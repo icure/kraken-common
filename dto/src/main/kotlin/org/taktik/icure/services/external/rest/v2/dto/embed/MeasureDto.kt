@@ -26,8 +26,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MeasureDto(
 	val value: Double? = null,
-	val min: Double? = null,
-	val max: Double? = null,
 	val ref: Double? = null,
 	val severity: Int? = null,
 	val severityCode: String? = null,
@@ -36,5 +34,6 @@ data class MeasureDto(
 	val unitCodes: Set<CodeStubDto>? = null,
 	val comment: String? = null,
 	val comparator: String? = null,
-	val sign: String? = null
+	val sign: String? = null,
+	val referenceRange: List<ReferenceRangeDto>
 ) : Serializable

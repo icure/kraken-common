@@ -24,9 +24,9 @@ data class Measure(
 	@param:ContentValue(ContentValues.ANY_INT) val evolution: Int? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val unit: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val sign: String? = null,
-
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val unitCodes: Set<CodeStub>? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val comment: String? = null,
-	val comparator: String? = null
+	val comparator: String? = null,
+	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val referenceRange: List<ReferenceRange>
 ) : Serializable
