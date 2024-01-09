@@ -7,8 +7,8 @@ import org.taktik.icure.entities.base.CodeStub
 /**
  * A range of values that can be used to provide reference ranges for a result.
  *
- * @property low is the lower bound of the reference range
- * @property high is the higher bound of the reference range
+ * @property low is the lower bound (inclusive) of the reference range
+ * @property high is the higher bound (inclusive) of the reference range
  * @property tags are the tags that apply to the reference range
  * @property codes are the codes that apply to the reference range
  * @property notes are the notes to apply to the reference range
