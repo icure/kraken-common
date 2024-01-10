@@ -9,6 +9,7 @@ import org.taktik.icure.entities.base.CodeStub
  *
  * @property low is the lower bound (inclusive) of the reference range
  * @property high is the higher bound (inclusive) of the reference range
+ * @property valueText is a text value that can be used to provide reference for a result (e.g. "Negative", "Positive", "Normal", "Abnormal", etc.)
  * @property tags are the tags that apply to the reference range
  * @property codes are the codes that apply to the reference range
  * @property notes are the notes to apply to the reference range
@@ -17,6 +18,7 @@ import org.taktik.icure.entities.base.CodeStub
 data class ReferenceRange(
     @param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
     @param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
+    @param:ContentValue(ContentValues.ANY_STRING) val stringValue: String? = null,
     @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val tags: List<CodeStub> = emptyList(),
     @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val codes: List<CodeStub> = emptyList(),
     @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val notes: List<Annotation> = emptyList(),
