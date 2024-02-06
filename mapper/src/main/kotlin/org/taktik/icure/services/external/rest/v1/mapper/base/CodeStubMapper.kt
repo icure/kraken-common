@@ -18,6 +18,7 @@ abstract class CodeStubMapper {
 				code = it.code,
 				version = it.version,
 				context = it.context,
+				contextLabel = it.contextLabel,
 				label = it.label
 			)
 		}
@@ -31,6 +32,7 @@ abstract class CodeStubMapper {
 				code = it.code,
 				version = it.version,
 				context = it.context,
+				contextLabel = it.contextLabel,
 				label = it.label
 			)
 		}
