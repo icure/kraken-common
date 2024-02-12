@@ -22,7 +22,7 @@ data class CodeStub(
 	override val type: String? = null, //ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
 	override val code: String? = null, //ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
 	override val version: String? = null, //ex: 10. Must be lexicographically searchable
-	val contextLabel: String? = null,
+	override val contextLabel: String? = null,
 	override val label: Map<String, String>? = null //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentification, Serializable {
 
@@ -51,6 +51,7 @@ data class CodeStub(
 
 		if (id != other.id) return false
 		if (context != other.context) return false
+		if (contextLabel != other.contextLabel) return false
 		if (type != other.type) return false
 		if (code != other.code) return false
 		if (version != other.version) return false
@@ -62,6 +63,7 @@ data class CodeStub(
 	override fun hashCode(): Int {
 		var result = id.hashCode()
 		result = 31 * result + (context?.hashCode() ?: 0)
+		result = 31 * result + (contextLabel?.hashCode() ?: 0)
 		result = 31 * result + (type?.hashCode() ?: 0)
 		result = 31 * result + (code?.hashCode() ?: 0)
 		result = 31 * result + (version?.hashCode() ?: 0)
