@@ -24,12 +24,12 @@ data class Measure(
     @param:ContentValue(ContentValues.ANY_DOUBLE) val value: Double? = null,
     /**
      * lower bound of the reference range
-     * @deprecated use referenceRange instead
+     * @deprecated use referenceRanges instead
      */
     @param:ContentValue(ContentValues.ANY_DOUBLE) val min: Double? = null,
     /**
      * higher bound of the reference range
-     * @deprecated use referenceRange instead
+     * @deprecated use referenceRanges instead
      */
     @param:ContentValue(ContentValues.ANY_DOUBLE) val max: Double? = null,
     @param:ContentValue(ContentValues.ANY_DOUBLE) val ref: Double? = null,
@@ -53,5 +53,5 @@ data class Measure(
      *
      * conversion from min/max is done at the client side level since most of the data are encrypted, we can't do it at the server level (or we can, but it will be a lot of work for very little data that aren't encrypted)
      */
-    @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val referenceRange: List<ReferenceRange> = emptyList()
+    @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val referenceRanges: List<ReferenceRange> = emptyList()
 ) : Serializable
