@@ -16,7 +16,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 interface MeasureMapper {
 
 	@Mappings(
-		Mapping(target = "referenceRange", ignore = true)
+		Mapping(target = "referenceRanges", ignore = true)
 	)
 	fun map(measureDto: MeasureDto): Measure
 	fun map(measure: Measure): MeasureDto
