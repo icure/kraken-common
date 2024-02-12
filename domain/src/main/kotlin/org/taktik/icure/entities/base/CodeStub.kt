@@ -13,6 +13,18 @@ import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import java.io.Serializable
 
+/**
+ *
+ *  __          __     _____  _   _ _____ _   _  _____
+ *  \ \        / /\   |  __ \| \ | |_   _| \ | |/ ____|
+ *   \ \  /\  / /  \  | |__) |  \| | | | |  \| | |  __
+ *    \ \/  \/ / /\ \ |  _  /| . ` | | | | . ` | | |_ |
+ *     \  /\  / ____ \| | \ \| |\  |_| |_| |\  | |__| |
+ *      \/  \/_/    \_\_|  \_\_| \_|_____|_| \_|\_____|
+ *
+ * WARNING: If you ever change this class, you must also change the deserializer
+ * Luca and Clement lost 2hr of their life because of this
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
