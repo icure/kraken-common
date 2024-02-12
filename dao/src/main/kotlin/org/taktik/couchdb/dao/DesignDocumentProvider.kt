@@ -27,7 +27,7 @@ interface DesignDocumentProvider {
 
     /**
      * The current design document id. In an environment with versioned design document this consist of the
-     * [baseDesignDocumentId] plus an hash calculated on the views for that document.
+     * [baseDesignDocumentId] plus a hash calculated on the views for that document.
      *
      * In an environment without versioned design documents this is the same as [baseDesignDocumentId].
      * @param entityClass the class of entities that are indexed by the views of the design document.
@@ -35,13 +35,14 @@ interface DesignDocumentProvider {
      * [entityClass]).
      * @param secondaryPartition the name of the secondary partition of the design document (if applicable).
      */
-    fun currentDesignDocumentId(entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
+    suspend fun currentDesignDocumentId(entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
 
     /**
      * Generates the design documents from a given metadata source.
      * @param entityClass the class of entities that are indexed by the views of the design document.
      * @param metaDataSource the class defining the views for entities of class [entityClass] (the DAO for entities of class
      * [entityClass]).
+     * @param client a [Client] for when is necessary to compare the newly created design documents to the existing one.
      */
-    fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any): Set<DesignDocument>
+    suspend fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any, client: Client? = null): Set<DesignDocument>
 }

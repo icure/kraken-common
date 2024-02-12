@@ -589,7 +589,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param updateIfExists updates the design docs if already existing
 	 */
 	override suspend fun forceInitStandardDesignDocument(client: Client, updateIfExists: Boolean, dryRun: Boolean): List<DesignDocument> {
-		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this)
+		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client)
 		return generatedDocs.mapNotNull { generated ->
 			suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
 				val fromDatabase = client.get(generated.id, DesignDocument::class.java)

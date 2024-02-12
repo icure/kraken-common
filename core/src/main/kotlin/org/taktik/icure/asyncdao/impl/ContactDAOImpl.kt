@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -27,7 +26,6 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.*
 
-@OptIn(FlowPreview::class)
 @Repository("contactDAO")
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted) emit( null, doc._id )}")
@@ -37,6 +35,11 @@ class ContactDAOImpl(
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Contact::class.java), designDocumentProvider), ContactDAO {
+
+	companion object {
+		private const val TERTIARY_CONTACT_PARTITION = "Maurice"
+	}
+
 	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? {
 		return get(datastoreInformation, id)
 	}
@@ -228,10 +231,10 @@ class ContactDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
 	}
 
-	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js")
+	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = TERTIARY_CONTACT_PARTITION)
 	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, ids: List<String>, linkType: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id")
+		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id", TERTIARY_CONTACT_PARTITION)
 			.keys(ids)
 			.includeDocs(false)
 		val res = client.queryView<String, Array<String>>(viewQuery)
