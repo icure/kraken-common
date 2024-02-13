@@ -12,6 +12,7 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.services.external.rest.v1.dto.ContactDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.AnnotationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.SecurityMetadataMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.ServiceMapper
@@ -23,7 +24,8 @@ interface ContactMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "notes", ignore = true)
 	)
 	fun map(contactDto: ContactDto): Contact
 	fun map(contact: Contact): ContactDto

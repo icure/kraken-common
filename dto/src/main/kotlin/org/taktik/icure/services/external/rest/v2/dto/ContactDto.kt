@@ -25,6 +25,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
@@ -72,7 +73,8 @@ data class ContactDto(
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
+	override val securityMetadata: SecurityMetadataDto? = null,
+	@Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
