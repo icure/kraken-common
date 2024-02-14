@@ -30,6 +30,10 @@ import java.io.Serializable
 data class TimeTableItemDto(
 	val rruleStartDate: Long? = null, // YYYYMMDD
 	val rrule: String? = null,
+	val notBeforeInMinutes: Int? = null,
+	val notAfterInMinutes: Int? = null,
+	val zoneId: String? = null,
+
 	@Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
 	@Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
 	val hours: List<TimeTableHourDto> = emptyList(),

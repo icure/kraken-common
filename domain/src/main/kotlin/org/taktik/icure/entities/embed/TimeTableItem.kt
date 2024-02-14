@@ -19,6 +19,11 @@ import java.io.Serializable
 data class TimeTableItem(
 	val rruleStartDate: Long? = null, // YYYYMMDD
 	@param:ContentValue(ContentValues.ANY_STRING) val rrule: String? = null,
+
+	@param:ContentValue(ContentValues.ANY_INT) val notBeforeInMinutes: Int? = null,
+	@param:ContentValue(ContentValues.ANY_INT) val notAfterInMinutes: Int? = null,
+	@param:ContentValue(ContentValues.ANY_STRING) val zoneId: String? = null,
+
 	@Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
 	@Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val hours: List<TimeTableHour> = emptyList(),
@@ -28,5 +33,6 @@ data class TimeTableItem(
 	@param:ContentValue(ContentValues.ANY_STRING) val placeId: String? = null,
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val publicTimeTableItem: Boolean = false,
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val acceptsNewPatient: Boolean = true,
+
 	@JsonProperty("isUnavailable") val unavailable: Boolean = false
 ) : Serializable

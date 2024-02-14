@@ -7,26 +7,33 @@ import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.isXDayweekOfMonthInRange
 import org.taktik.icure.utils.sortedMerge
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-fun TimeTableItem.iterator(startDateAndTime: Long, endDateAndTime: Long, duration: Duration) = object : Iterator<Long> {
-	val startLdt = FuzzyValues.getDateTime(startDateAndTime - (startDateAndTime % 100))!!
-	val endLdt = FuzzyValues.getDateTime(endDateAndTime - (endDateAndTime % 100))!!
+fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration) = object : Iterator<Long> {
+	val constrainedStartDateTime = startDateTime.coerceAtLeast(notBeforeInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
+		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: 0)
+	val constrainedEndDateTime = endDateTime.coerceAtMost(notAfterInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
+		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: endDateTime)
+
+	val startLdt = FuzzyValues.getDateTime(constrainedStartDateTime - (constrainedStartDateTime % 100))!!
+	val endLdt = FuzzyValues.getDateTime(constrainedEndDateTime - (constrainedEndDateTime % 100))!!
 	val coercedEndLdt = (startLdt + Duration.ofDays(120)).coerceAtMost(endLdt)
 
 	val daysIterator = object : Iterator<LocalDateTime> {
 		var day = startLdt.withHour(0).withMinute(0).withSecond(0).withNano(0)
 		val rrit = rrule?.let {
 			RecurrenceRule(it).iterator(
-				FuzzyValues.getDateTime(rruleStartDate ?: startDateAndTime)!!.atOffset(ZoneOffset.UTC).toInstant()
+				FuzzyValues.getDateTime(rruleStartDate ?: constrainedStartDateTime)!!.atOffset(ZoneOffset.UTC).toInstant()
 					.toEpochMilli(), TimeZone.getTimeZone("UTC")
 			).also {
 				it.fastForward(
-					FuzzyValues.getDateTime(startDateAndTime)!!.atOffset(ZoneOffset.UTC).toInstant()
+					FuzzyValues.getDateTime(constrainedStartDateTime)!!.atOffset(ZoneOffset.UTC).toInstant()
 						.toEpochMilli() - 24 * 3600 * 1000
 				)
 			}
@@ -47,13 +54,13 @@ fun TimeTableItem.iterator(startDateAndTime: Long, endDateAndTime: Long, duratio
 			return rrit?.let {
 				try {
 					it.peekMillis().let { n ->
-						LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(n), ZoneOffset.UTC) <= coercedEndLdt
+						LocalDateTime.ofInstant(Instant.ofEpochMilli(n), ZoneOffset.UTC) <= coercedEndLdt
 					}
 				} catch(e:ArrayIndexOutOfBoundsException) { false } } ?: (getNextValidLegacyDay() != null)
 		}
 		override fun next(): LocalDateTime {
 			return rrit?.nextMillis()?.let {
-				LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(it), ZoneOffset.UTC).also { day = it }
+				LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC).also { day = it }
 			} ?: run {
 				getNextValidLegacyDay()?.also { day = it + Duration.ofDays(1) } ?: throw NoSuchElementException()
 							}
@@ -77,10 +84,12 @@ fun TimeTableItem.iterator(startDateAndTime: Long, endDateAndTime: Long, duratio
 	override fun hasNext(): Boolean {
 		val cd = currentDay
 		val ch = currentHour
+
 		return cd != null && when {
+			ch != null && cd.withHour((ch.toInt()) / 10000).withMinute(((ch.toInt()) / 100) % 100).withSecond(0) > endLdt -> false
 			ch != null && cd > startLdt -> true
 			ch != null -> {
-				if (ch >= startDateAndTime % 1000000) {
+				if (ch >= constrainedStartDateTime % 1000000) {
 					true
 				} else {
 					//We need to skip the current hour and see if there is a later one that matches the constraints
@@ -93,7 +102,7 @@ fun TimeTableItem.iterator(startDateAndTime: Long, endDateAndTime: Long, duratio
 				hoursIterator = hours.iterator(duration)
 				currentHour = if (hoursIterator.hasNext()) hoursIterator.next() else null
 				currentDay = if (daysIterator.hasNext()) daysIterator.next() else null
-				(currentDay != null && currentHour != null)
+				(currentDay != null && currentHour != null && currentDay!!.withHour((currentHour!!.toInt()) / 10000).withMinute(((currentHour!!.toInt()) / 100) % 100).withSecond(0) <= endLdt)
 			}
 		}
 	}
@@ -108,7 +117,7 @@ fun TimeTableItem.iterator(startDateAndTime: Long, endDateAndTime: Long, duratio
 			currentDay = if (daysIterator.hasNext()) daysIterator.next() else null
 			next()
 		}).let {
-			if (it < startDateAndTime) {
+			if (it < constrainedStartDateTime) {
 				if (hasNext()) next() else throw NoSuchElementException() //This should never happen if hasNext() is called before next()
 			} else it
 		}
