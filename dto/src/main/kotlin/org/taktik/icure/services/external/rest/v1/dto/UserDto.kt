@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.constants.Users
+import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationTagDto
@@ -27,6 +28,8 @@ data class UserDto(
 	@Schema(description = "the revision of the user in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val deletionDate: Long? = null,
 	val created: Long? = null,
+
+	val identifier: List<IdentifierDto> = listOf(),
 
 	@Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.") override val name: String? = null,
 	@Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
