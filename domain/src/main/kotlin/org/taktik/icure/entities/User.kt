@@ -152,9 +152,6 @@ data class User(
     override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
     override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
-    @JsonIgnore
-    override fun getParents(): Set<String> = this.roles
-
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class SystemMetadata(
