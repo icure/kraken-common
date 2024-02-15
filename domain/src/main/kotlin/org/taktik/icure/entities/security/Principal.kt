@@ -9,5 +9,4 @@ import org.taktik.icure.entities.base.PropertyStub
 
 interface Principal : Identifiable<String>, Named {
 	val properties: Set<PropertyStub>
-	fun getParents(): Set<String>
 }
