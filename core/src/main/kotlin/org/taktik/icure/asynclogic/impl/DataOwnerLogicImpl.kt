@@ -38,11 +38,11 @@ class DataOwnerLogicImpl(
 
     override suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType? {
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
-        return wrongTypeAsNull { patientDao.get(datastoreInfo, dataOwnerId) }?.let {
+        return wrongTypeAsNull { patientDao.get(datastoreInfo, dataOwnerId) }?.takeIf { it.deletionDate == null }?.let {
             DataOwnerWithType.PatientDataOwner(it)
-        } ?: wrongTypeAsNull { hcpDao.get(datastoreInfo, dataOwnerId) }?.let {
+        } ?: wrongTypeAsNull { hcpDao.get(datastoreInfo, dataOwnerId) }?.takeIf { it.deletionDate == null }?.let {
             DataOwnerWithType.HcpDataOwner(it)
-        } ?: wrongTypeAsNull { deviceDao.get(datastoreInfo, dataOwnerId) }?.let {
+        } ?: wrongTypeAsNull { deviceDao.get(datastoreInfo, dataOwnerId) }?.takeIf { it.deletionDate == null }?.let {
             DataOwnerWithType.DeviceDataOwner(it)
         }
     }
@@ -54,10 +54,13 @@ class DataOwnerLogicImpl(
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
         return when (dataOwnerType) {
             DataOwnerType.HCP -> wrongTypeAsNull { hcpDao.get(datastoreInfo, dataOwnerId) }
+                ?.takeIf { it.deletionDate == null }
                 ?.let { DataOwnerWithType.HcpDataOwner(it) }
             DataOwnerType.DEVICE -> wrongTypeAsNull { deviceDao.get(datastoreInfo, dataOwnerId) }
+                ?.takeIf { it.deletionDate == null }
                 ?.let { DataOwnerWithType.DeviceDataOwner(it) }
             DataOwnerType.PATIENT -> wrongTypeAsNull { patientDao.get(datastoreInfo, dataOwnerId) }
+                ?.takeIf { it.deletionDate == null }
                 ?.let { DataOwnerWithType.PatientDataOwner(it) }
         }
     }
