@@ -24,11 +24,12 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.User
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
+import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.security.UnsecureAuthenticationTokenV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.security.PermissionV2Mapper
 
-@Mapper(componentModel = "spring", uses = [PermissionV2Mapper::class, PropertyStubV2Mapper::class, UnsecureAuthenticationTokenV2Mapper::class, UnsecureUserV2Mapper.SystemMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [PermissionV2Mapper::class, PropertyStubV2Mapper::class, IdentifierV2Mapper::class, UnsecureAuthenticationTokenV2Mapper::class, UnsecureUserV2Mapper.SystemMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface UnsecureUserV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

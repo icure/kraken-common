@@ -17,6 +17,7 @@ import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
+import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
@@ -67,6 +68,8 @@ data class User(
     @JsonProperty("_rev") override val rev: String? = null,
     @JsonProperty("deleted") override val deletionDate: Long? = null,
     @field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
+
+    val identifier: List<Identifier> = listOf(),
 
     @param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
     override val properties: Set<PropertyStub> = emptySet(),
