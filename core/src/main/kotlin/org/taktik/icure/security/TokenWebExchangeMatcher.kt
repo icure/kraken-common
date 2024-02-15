@@ -40,7 +40,6 @@ class TokenWebExchangeMatcher(val asyncCacheManager: AsyncCacheManager) : Server
 								val secContext = SecurityContextImpl(restriction.authentication)
 								val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 								return@mono withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
-									exchange.session.awaitFirst().attributes["SPRING_SECURITY_CONTEXT"] = secContext
 									ServerWebExchangeMatcher.MatchResult.match().awaitFirst()
 								}
 							}
