@@ -6,6 +6,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
@@ -27,7 +28,6 @@ import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-import javax.validation.Valid
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

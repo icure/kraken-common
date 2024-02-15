@@ -35,7 +35,7 @@ dependencies {
     implementation(coreLibs.bundles.krouchLibs)
 
     implementation(coreLibs.krouch)
-    implementation(coreLibs.javaxServlet)
+    implementation(coreLibs.jakartaServlet)
     implementation(coreLibs.taktikCommons)
     implementation(coreLibs.taktikBoot)
     implementation(coreLibs.caffeine)

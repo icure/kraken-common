@@ -1,13 +1,14 @@
 package org.taktik.icure.asynclogic.impl
 
+import jakarta.validation.Validation
+import jakarta.validation.ValidatorFactory
 import org.hibernate.validator.internal.engine.path.NodeImpl
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.DataOwnerProvider
 import org.taktik.icure.validation.aspect.Fixer
-import javax.validation.Validation
-import javax.validation.ValidatorFactory
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.instanceParameter
@@ -19,7 +20,11 @@ import kotlin.reflect.full.memberProperties
 class FixerImpl (
     private val dataOwnerProvider: DataOwnerProvider,
 ) : Fixer {
-    private val factory: ValidatorFactory = Validation.buildDefaultValidatorFactory()
+    private val factory: ValidatorFactory = Validation
+        .byDefaultProvider()
+        .configure()
+        .messageInterpolator(ParameterMessageInterpolator())
+        .buildValidatorFactory()
 
     private data class Fix(val fixPath: List<FixPointSelector>, val value: Any?) {
         fun behead() = this.copy(fixPath = fixPath.drop(1))
@@ -27,6 +32,7 @@ class FixerImpl (
 
     private data class FixPointSelector(val name: String, val leaf: Boolean, val iterable: Boolean, val beanInIteration: Any?)
 
+    @Suppress("UNCHECKED_CAST")
     private fun <K : Any> applyFixes(doc: K, fixes: List<Fix>): K {
         val docFixes = fixes.groupBy { f -> f.fixPath.first().let { Triple(it.name, it.leaf, it.iterable) } }.map { (sel, groupedFixes) ->
             val (name, leaf, iterable) = sel

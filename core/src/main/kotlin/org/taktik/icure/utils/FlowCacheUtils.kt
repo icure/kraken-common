@@ -2,10 +2,12 @@ package org.taktik.icure.utils
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.asFlux
 import org.taktik.icure.cache.ReactorCacheInjector
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.context.Context
 
 /**
  * Injects the reactor context in a [Flow] and converts it to a [Flux].
@@ -18,8 +20,7 @@ import reactor.core.publisher.Mono
  */
 fun <T : Any> Flow<T>.injectCachedReactorContext(injector: ReactorCacheInjector, cacheSize: Int): Flux<T> {
     require(cacheSize > 0)
-    return Mono.subscriberContext().flatMapMany { reactorCtx ->
-        this.flowOn(injector.injectCacheInContext(reactorCtx, cacheSize)
-    ).asFlux()
+    return Mono.deferContextual { Mono.just(it) }.flatMapMany { ctxView ->
+        this.flowOn(injector.injectCacheInContext(Context.of(ctxView).asCoroutineContext(), cacheSize)).asFlux()
     }
 }

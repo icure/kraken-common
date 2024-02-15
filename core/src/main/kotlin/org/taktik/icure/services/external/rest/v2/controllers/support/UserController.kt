@@ -53,7 +53,6 @@ class UserController(
 	private val filters: Filters,
 	private val userService: UserService,
 	private val sessionInfo: SessionInformationProvider,
-	private val sessionLogic: AsyncSessionLogic,
 	private val userV2Mapper: SecureUserV2Mapper,
 	private val propertyStubV2Mapper: PropertyStubV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
@@ -72,12 +71,6 @@ class UserController(
 		val user = userService.getUser(sessionInfo.getCurrentUserId())
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
 		userV2Mapper.mapOmittingSecrets(user)
-	}
-
-	@Operation(summary = "Get Currently logged-in user session.", description = "Get current user.")
-	@GetMapping("/session", produces = ["text/plain"])
-	fun getCurrentSession(): String? { // TODO MB nullable or exception ?
-		return sessionLogic.getOrCreateSession()?.id
 	}
 
 	@Operation(summary = "List users with(out) pagination", description = "Returns a list of users.")

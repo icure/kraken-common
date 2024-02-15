@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.asFlux
+import reactor.util.context.Context
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import reactor.core.publisher.Flux
@@ -24,21 +26,16 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 
 /**
  * Injects the reactor context in a [Flow] and converts it to a [Flux].
  */
-fun <T : Any> Flow<T>.injectReactorContext(): Flux<T> {
-    /*return Mono.deferContextual { Mono.just(it) }.flatMapMany { reactorCtx ->
-        this.flowOn(reactor.util.context.Context.of(reactorCtx).asCoroutineContext()).asFlux()
-    }*/
-    return Mono.subscriberContext().flatMapMany { reactorCtx ->
-        this.flowOn(
-            reactorCtx.asCoroutineContext()
-        ).asFlux()
+fun <T : Any> Flow<T>.injectReactorContext(): Flux<T> =
+    Mono.deferContextual { Mono.just(it) }.flatMapMany { ctxView ->
+        this.flowOn(Context.of(ctxView).asCoroutineContext()).asFlux()
     }
-}
 
 suspend fun Flow<ByteBuffer>.toInputStream(): InputStream = withContext(IO) {
     val buffers = toList()
@@ -149,7 +146,7 @@ fun InputStream.toFlow() = flow {
  * Drop the first [n] bytes from this flow.
  */
 fun Flow<DataBuffer>.dropBytes(n: Long): Flow<DataBuffer> =
-    if (n > 0) DataBufferUtils.skipUntilByteCount(this.asPublisher(), n).asFlow() else this
+    if (n > 0) DataBufferUtils.skipUntilByteCount(asPublisher(), n).asFlow() else this
 
 /* TODO check if other implementation is more efficient and is also correct (does never leave trailing zeroes)
 DataBufferUtils.join(asPublisher()).awaitFirst().asByteBuffer().array()

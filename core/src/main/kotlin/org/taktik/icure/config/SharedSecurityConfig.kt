@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm
 import org.springframework.security.web.firewall.StrictHttpFirewall
 import org.taktik.icure.security.database.ShaAndVerificationCodePasswordEncoder
 
@@ -19,7 +20,7 @@ class SharedSecurityConfig {
 	@Bean
 	fun httpFirewall() = StrictHttpFirewall().apply {
 		setAllowSemicolon(true)
-	} // TODO SH later: might be ignored if not registered in the security config
+	}
 
 	@Bean
 	fun passwordEncoder(): PasswordEncoder {
@@ -30,7 +31,7 @@ class SharedSecurityConfig {
 			mapOf(
 				"sha256" to shaAndVerificationCodePasswordEncoder,
 				"bcrypt" to BCryptPasswordEncoder(12),
-				"pbkdf2" to Pbkdf2PasswordEncoder(),
+				"pbkdf2" to Pbkdf2PasswordEncoder("", 8, 185000, SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256),
 			)
 		) {
 			override fun encode(rawPassword: CharSequence?): String {

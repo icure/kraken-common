@@ -50,8 +50,8 @@ dependencies {
     implementation(coreLibs.bundles.jsonWebTokenLibs) {
         exclude(group = "com.fasterxml.jackson.core")
     }
-    implementation(coreLibs.bundles.javaxElLibs)
     implementation(coreLibs.bundles.bouncyCastleLibs)
+    implementation(coreLibs.jakartaServlet)
 
     implementation(coreLibs.kotlinxCollectionsImmutableJvm)
     implementation(coreLibs.springSession)
@@ -59,7 +59,6 @@ dependencies {
     implementation(coreLibs.gcpAuthProvider)
     implementation(coreLibs.taktikBoot)
     implementation(coreLibs.caffeine)
-    implementation(coreLibs.javaxServlet)
     implementation(coreLibs.jboss)
     implementation(coreLibs.mapstruct)
     implementation(coreLibs.libRecur)

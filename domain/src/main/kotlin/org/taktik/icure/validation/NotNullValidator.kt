@@ -3,8 +3,8 @@
  */
 package org.taktik.icure.validation
 
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 
 class NotNullValidator : ConstraintValidator<NotNull?, Any?> {
 	override fun initialize(parameters: NotNull?) {}

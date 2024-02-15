@@ -1,7 +1,7 @@
 package org.taktik.icure.validation
 
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 
 class NotBlankValidator : ConstraintValidator<NotBlank?, Any?> {
     override fun initialize(parameters: NotBlank?) {}

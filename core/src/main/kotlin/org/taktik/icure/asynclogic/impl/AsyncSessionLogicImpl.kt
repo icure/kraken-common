@@ -13,13 +13,10 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import org.springframework.web.context.request.RequestContextHolder
-import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.loadSecurityContext
-import javax.servlet.http.HttpSession
 
 @Service
 @Profile("app")
@@ -29,15 +26,6 @@ class AsyncSessionLogicImpl(
 	/* Generic */
 
 	val log: Logger = LoggerFactory.getLogger(this::class.java)
-
-	override fun getOrCreateSession(): HttpSession? {
-		val requestAttributes = RequestContextHolder.getRequestAttributes()
-		if (requestAttributes is ServletRequestAttributes) {
-			val httpRequest = requestAttributes.request
-			return httpRequest.getSession(true)
-		}
-		return null
-	}
 
 	override suspend fun login(username: String, password: String, request: ServerHttpRequest, session: WebSession?, groupId: String?): Authentication? {
 		val token = UsernamePasswordAuthenticationToken(username, password)
