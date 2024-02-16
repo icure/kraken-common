@@ -232,24 +232,26 @@ class DocumentController(
 			HttpStatus.BAD_REQUEST,
 			"`enckeys` must contain at least a valid aes key"
 		)
-		val (newPayload, newSize) =
-			if (validEncryptionKeys?.isNotEmpty() == true) Pair(
+		val (newPayload, newSize, encrypted) =
+			if (validEncryptionKeys?.isNotEmpty() == true) Triple(
 				// Encryption should never fail if the key is valid
 				CryptoUtils.encryptFlowAES(payload, validEncryptionKeys.first())
 					.map { DefaultDataBufferFactory.sharedInstance.wrap(it) },
-				size?.let { CryptoUtils.predictAESEncryptedSize(it) }
-			) else (payload to size)
+				size?.let { CryptoUtils.predictAESEncryptedSize(it) },
+				true
+			) else Triple(payload, size, false)
 		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("Document not found")
 		checkRevision(rev, document)
 		val mainAttachmentChange =
 			if (newSize != null)
-				DataAttachmentChange.CreateOrUpdate(newPayload, newSize, utis)
+				DataAttachmentChange.CreateOrUpdate(newPayload, newSize, utis, encrypted)
 			else
 				newPayload.toByteArray(true).let { payloadBytes ->
 					DataAttachmentChange.CreateOrUpdate(
 						flowOf(DefaultDataBufferFactory.sharedInstance.wrap(payloadBytes)),
 						payloadBytes.size.toLong(),
-						utis
+						utis,
+						encrypted
 					)
 				}
 		documentService.updateAttachmentsWrappingExceptions(
@@ -442,7 +444,8 @@ class DocumentController(
 				key to DataAttachmentChange.CreateOrUpdate(
 					payload,
 					attachmentSize,
-					utis
+					utis,
+					false
 				)
 			)
 		).let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
@@ -501,52 +504,6 @@ class DocumentController(
 		).let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
 
-	@Operation(
-		summary = "Creates, modifies, or delete the attachments of a document",
-		description = "Batch operation to modify multiple attachments of a document at once"
-	)
-	@PutMapping("/{documentId}/attachments", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-	fun setDocumentAttachments(
-		@Parameter(description = "Id of the document to update")
-		@PathVariable
-		documentId: String,
-		@Parameter(description = "Revision of the latest known version of the document. If the revision does not match the current version of the document the method will fail with CONFLICT status")
-		@RequestParam(required = true)
-		rev: String,
-		@Parameter(description = "Describes the operations to execute with this update.")
-		@RequestPart("options", required = true)
-		options: BulkAttachmentUpdateOptions,
-		@Parameter(description = "New attachments (to create or update). The file name will be used as the attachment key. To update the main attachment use the document id")
-		@RequestPart("attachments", required = false)
-		attachments: Flux<FilePart>?
-	): Mono<DocumentDto> = mono {
-		val attachmentsByKey: Map<String, FilePart> = attachments?.asFlow()?.toList()?.let { partsList ->
-			partsList.associateBy { it.filename() }.also { partsMap ->
-				require(partsList.size == partsMap.size) {
-					"Duplicate keys for new attachments ${partsList.groupingBy { it.filename() }.eachCount().filter { it.value > 1 }.keys}"
-				}
-			}
-		} ?: emptyMap()
-		require(attachmentsByKey.values.all { it.headers().contentType != null }) {
-			"Each attachment part must specify a ${HttpHeaders.CONTENT_TYPE} header."
-		}
-		require(attachmentsByKey.keys.containsAll(options.updateAttachmentsMetadata.keys)) {
-			"Missing attachments for metadata: ${options.updateAttachmentsMetadata.keys - attachmentsByKey.keys}"
-		}
-		require(attachmentsByKey.isNotEmpty() || options.deleteAttachments.isNotEmpty()) { "Nothing to do" }
-		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("Document not found")
-		checkRevision(rev, document)
-		val mainAttachmentChange = attachmentsByKey[document.mainAttachmentKey]?.let {
-			makeMultipartAttachmentUpdate("main attachment", it, options.updateAttachmentsMetadata[document.mainAttachmentKey])
-		} ?: DataAttachmentChange.Delete.takeIf { document.mainAttachmentKey in options.deleteAttachments }
-		val secondaryAttachmentsChanges = (options.deleteAttachments - document.mainAttachmentKey).associateWith { DataAttachmentChange.Delete } +
-			(attachmentsByKey - document.mainAttachmentKey).mapValues { (key, value) ->
-				makeMultipartAttachmentUpdate("secondary attachment $key", value, options.updateAttachmentsMetadata[key])
-			}
-		documentService.updateAttachmentsWrappingExceptions(document, mainAttachmentChange, secondaryAttachmentsChanges)
-			.let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
-	}
-
 	private fun makeMultipartAttachmentUpdate(name: String, part: FilePart, metadata: BulkAttachmentUpdateOptions.AttachmentMetadata?) =
 		DataAttachmentChange.CreateOrUpdate(
 			part.content().asFlow(),
@@ -554,7 +511,8 @@ class DocumentController(
 				HttpStatus.BAD_REQUEST,
 				"Missing size information for $name: you must provide the size of the attachment in bytes using a Content-Length part header."
 			),
-			metadata?.utis
+			metadata?.utis,
+			false
 		)
 
 	private fun checkRevision(rev: String?, document: Document) {

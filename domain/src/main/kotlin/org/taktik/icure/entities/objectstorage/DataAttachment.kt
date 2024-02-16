@@ -36,7 +36,7 @@ data class DataAttachment(
 		/**
 		 * Default mime type for data attachments, if no specific uti is provided.
 		 */
-		const val DEFAULT_MIME_TYPE = "application/xml"
+		const val DEFAULT_MIME_TYPE = "application/octet-stream"
 	}
 
 	@JsonIgnore

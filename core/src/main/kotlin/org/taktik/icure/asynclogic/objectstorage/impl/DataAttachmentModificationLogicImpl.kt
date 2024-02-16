@@ -171,7 +171,11 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		val bytes = change.data.toByteArray(true)
 		val attachmentId = DigestUtils.sha256Hex(bytes)
 		return DataAttachment(couchDbAttachmentId = attachmentId, objectStoreAttachmentId = null, utis = utis).let {
-			it to AttachmentTask.UploadCouchDb(attachmentId, bytes, it.mimeTypeOrDefault)
+			it to AttachmentTask.UploadCouchDb(
+				attachmentId,
+				bytes,
+				if (change.dataIsEncrypted) "application/octet-stream" else it.mimeTypeOrDefault
+			)
 		}
 	}
 
