@@ -104,7 +104,7 @@ class ReceiptController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Receipt not found")
 	}
 
-	@Operation(summary = "Gets a receipt")
+	@Operation(summary = "Gets a receipt by reference")
 	@GetMapping("/byref/{ref}")
 	fun listByReference(@PathVariable ref: String): Flux<ReceiptDto> =
 		receiptService.listReceiptsByReference(ref).map { receiptMapper.map(it) }.injectReactorContext()

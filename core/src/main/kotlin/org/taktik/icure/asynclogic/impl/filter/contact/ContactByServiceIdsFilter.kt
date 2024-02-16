@@ -3,7 +3,6 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.contact
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.springframework.context.annotation.Profile
@@ -15,7 +14,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter
 import org.taktik.icure.entities.Contact
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class ContactByServiceIdsFilter(private val contactLogic: ContactLogic) :

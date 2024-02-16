@@ -32,7 +32,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import org.taktik.icure.annotations.permissions.*
 
 @RestController
 @Profile("app")
@@ -48,7 +47,6 @@ class ClassificationTemplateController(
 		private const val DEFAULT_LIMIT = 1000
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "Create a classification Template with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
 	fun createClassificationTemplate(@RequestBody c: ClassificationTemplateDto) = mono {
@@ -57,7 +55,6 @@ class ClassificationTemplateController(
 		classificationTemplateMapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationTemplateId}")
 	fun getClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
@@ -66,7 +63,6 @@ class ClassificationTemplateController(
 		classificationTemplateMapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a list of classifications Templates", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
 	fun getClassificationTemplateByIds(@PathVariable ids: String): Flux<ClassificationTemplateDto> {
@@ -74,7 +70,6 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
@@ -84,7 +79,6 @@ class ClassificationTemplateController(
 		return elementList.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationTemplateIds}")
 	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifier> {
@@ -93,7 +87,6 @@ class ClassificationTemplateController(
 		return classificationTemplateService.deleteClassificationTemplates(ids).injectReactorContext()
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
 	fun modifyClassificationTemplate(@RequestBody classificationTemplateDto: ClassificationTemplateDto) = mono {
@@ -104,7 +97,6 @@ class ClassificationTemplateController(
 		classificationTemplateMapper.map(modifiedClassificationTemplate)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Delegates a classification Template to a healthcare party", description = "It delegates a classification Template to a healthcare party (By current healthcare party). Returns the element with new delegations.")
 	@PostMapping("/{classificationTemplateId}/delegate")
 	fun newClassificationTemplateDelegations(@PathVariable classificationTemplateId: String, @RequestBody ds: List<DelegationDto>) = mono {
@@ -119,7 +111,6 @@ class ClassificationTemplateController(
 		}
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List all classification templates with pagination", description = "Returns a list of classification templates.")
 	@GetMapping
 	fun listClassificationTemplates(

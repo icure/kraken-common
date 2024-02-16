@@ -116,11 +116,10 @@ class TimeTableController(
 
 	@Operation(summary = "Get TimeTables by AgendaId")
 	@PostMapping("/byAgendaId")
-	fun getTimeTablesByAgendaId(@Parameter(required = true) @RequestParam agendaId: String): Flux<TimeTableDto> =
-		flow {
-			if (agendaId.isBlank()) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
-			}
-			emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableMapper.map(it) })
-		}.injectReactorContext()
+	fun getTimeTablesByAgendaId(@Parameter(required = true) @RequestParam agendaId: String): Flux<TimeTableDto> = flow {
+		if (agendaId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
+		}
+		emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableMapper.map(it) })
+	}.injectReactorContext()
 }

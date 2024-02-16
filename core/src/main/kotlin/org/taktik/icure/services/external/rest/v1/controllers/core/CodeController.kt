@@ -39,6 +39,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.CodeMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
@@ -69,7 +70,7 @@ class CodeController(
 		@RequestParam(required = false) language: String,
 		@RequestParam(required = false) label: String,
 		@RequestParam(required = false) version: String?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
@@ -94,7 +95,7 @@ class CodeController(
 		@RequestParam(required = false) type: String?,
 		@RequestParam(required = false) code: String?,
 		@RequestParam(required = false) version: String?,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
@@ -117,13 +118,13 @@ class CodeController(
 		@PathVariable linkType: String,
 		@RequestParam(required = false) linkedId: String?,
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey")
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements: List<String>? = if (startKey == null) null else objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+		val startKeyElements: List<String>? = if (startKey == null) null else objectMapper.readValue<List<String>>(startKey)
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 		codeService.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
 			.paginatedList(codeToCodeDto, realLimit)

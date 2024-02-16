@@ -31,7 +31,6 @@ import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.services.external.rest.v1.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.base.Splitter
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenConcat
@@ -42,6 +42,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.MessageMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.error
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -68,7 +69,7 @@ class MessageController(
 	fun createMessage(@RequestBody messageDto: MessageDto) = mono {
 		messageService.createMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
-				.also { logger.error { it.message!! } }
+				.also { logger.error { it.message } }
 	}
 
 	@Operation(summary = "Deletes a message delegation")
@@ -130,7 +131,7 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
 	@GetMapping
 	fun findMessages(
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
 	) = mono {
@@ -148,7 +149,7 @@ class MessageController(
 	fun getChildrenMessages(@PathVariable messageId: String) =
 		messageService.getMessageChildren(messageId).map { messageMapper.map(it) }.injectReactorContext()
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getChildrenMessagesOfList(@RequestBody parentIds: ListOfIdsDto) =
@@ -167,7 +168,7 @@ class MessageController(
 	fun findMessagesByTransportGuid(
 		@RequestParam(required = false) transportGuid: String?,
 		@RequestParam(required = false) received: Boolean?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
@@ -205,7 +206,7 @@ class MessageController(
 		@RequestParam(required = false) transportGuid: String,
 		@RequestParam(required = false, value = "from") fromDate: Long,
 		@RequestParam(required = false, value = "to") toDate: Long,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
@@ -233,7 +234,7 @@ class MessageController(
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
 		@RequestParam(required = false) toAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
@@ -251,7 +252,7 @@ class MessageController(
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
 		@RequestParam(required = false) fromAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?

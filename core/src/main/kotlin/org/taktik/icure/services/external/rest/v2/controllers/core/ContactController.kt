@@ -17,6 +17,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -141,13 +142,16 @@ class ContactController(
 	}
 
 	@Operation(summary = "Get the list of all used codes frequencies in services")
-	@GetMapping("/service/codes/{codeType}/{minOccurences}")
-	fun getServiceCodesOccurences(
+	@GetMapping("/service/codes/{codeType}/{minOccurrences}")
+	fun getServiceCodesOccurrences(
 		@PathVariable codeType: String,
-		@PathVariable minOccurences: Long
+		@PathVariable minOccurrences: Long
 	) = mono {
-		contactService.getServiceCodesOccurences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, codeType, minOccurences)
-			.map { LabelledOccurenceDto(it.label, it.occurence) }
+		contactService.getServiceCodesOccurences(
+			sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
+					?: throw AccessDeniedException("Current user is not a healthcare party"),
+			codeType,
+			minOccurrences).map { LabelledOccurenceDto(it.label, it.occurence) }
 	}
 
 	@Operation(summary = "List contacts found By Healthcare Party and service Id.")

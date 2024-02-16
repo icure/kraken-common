@@ -28,7 +28,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.UserService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.User
 import org.taktik.icure.services.external.rest.v1.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v1.dto.UserDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto

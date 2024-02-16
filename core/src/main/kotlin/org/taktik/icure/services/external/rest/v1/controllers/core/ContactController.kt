@@ -128,12 +128,12 @@ class ContactController(
 		contactService.getContacts(contactIds.ids).map { c -> contactMapper.map(c) }.injectReactorContext()
 
 	@Operation(summary = "Get the list of all used codes frequencies in services")
-	@GetMapping("/service/codes/{codeType}/{minOccurences}")
-	fun getServiceCodesOccurences(
+	@GetMapping("/service/codes/{codeType}/{minOccurrences}")
+	fun getServiceCodesOccurrences(
 		@PathVariable codeType: String,
-		@PathVariable minOccurences: Long,
+		@PathVariable minOccurrences: Long,
 	) = mono {
-		contactService.getServiceCodesOccurences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, codeType, minOccurences)
+		contactService.getServiceCodesOccurences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, codeType, minOccurrences)
 			.map { LabelledOccurenceDto(it.label, it.occurence) }
 	}
 
@@ -254,7 +254,7 @@ class ContactController(
 		emitAll(contactService.modifyContacts(contacts.toList()).map { contactMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "Close contacts for Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Close contacts for Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PutMapping("/byHcPartySecretForeignKeys/close")
 	fun closeForHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -413,7 +413,7 @@ class ContactController(
 		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String
 	) = contactService.listServicesByHcPartyAndHealthElementIds(hcPartyId, listOf(healthElementId)).map { svc -> serviceMapper.map(svc) }.injectReactorContext()
 
-	@Operation(summary = "List contacts bu opening date parties with(out) pagination", description = "Returns a list of contacts.")
+	@Operation(summary = "List contacts by opening date parties with(out) pagination", description = "Returns a list of contacts.")
 	@GetMapping("/byOpeningDate")
 	fun listContactsByOpeningDate(
 		@Parameter(description = "The contact openingDate", required = true) @RequestParam startKey: Long,

@@ -40,11 +40,11 @@ class PlaceController(
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
 	}
 
-	@Operation(summary = "Deletes an place")
+	@Operation(summary = "Deletes a place")
 	@DeleteMapping("/{placeIds}")
 	fun deletePlace(@PathVariable placeIds: String) = placeService.deletePlace(placeIds.split(',')).injectReactorContext()
 
-	@Operation(summary = "Gets an place")
+	@Operation(summary = "Gets a place")
 	@GetMapping("/{placeId}")
 	fun getPlace(@PathVariable placeId: String) = mono {
 		placeService.getPlace(placeId)?.let { placeMapper.map(it) }
@@ -56,7 +56,7 @@ class PlaceController(
 	fun getPlaces() =
 		placeService.getAllPlaces().let { it.map { c -> placeMapper.map(c) } }.injectReactorContext()
 
-	@Operation(summary = "Modifies an place")
+	@Operation(summary = "Modifies a place")
 	@PutMapping
 	fun modifyPlace(@RequestBody placeDto: PlaceDto) = mono {
 		placeService.modifyPlace(placeMapper.map(placeDto))?.let { placeMapper.map(it) }

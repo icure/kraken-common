@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.hcparty
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.context.annotation.Profile
@@ -27,7 +26,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.HealthcareParty
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class HealthcarePartyByIdsFilter :

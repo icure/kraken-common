@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -49,6 +51,7 @@ import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.InvoiceBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -137,7 +140,8 @@ class InvoiceController(
 	fun validate(@PathVariable invoiceId: String, @RequestParam scheme: String, @RequestParam forcedValue: String) = mono {
 		invoiceService.getInvoice(invoiceId)?.let {
 			invoiceService.validateInvoice(
-				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
+				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
+					?: throw AccessDeniedException("Current user is not a HCP"),
 				it,
 				scheme,
 				forcedValue)?.let(invoiceV2Mapper::map)
@@ -189,7 +193,7 @@ class InvoiceController(
 		@PathVariable hcPartyId: String,
 		@RequestParam(required = false) fromDate: Long?,
 		@RequestParam(required = false) toDate: Long?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
@@ -198,10 +202,7 @@ class InvoiceController(
 			startKeyString
 				.takeIf { it.startsWith("[") }
 				?.let { startKeyArray ->
-					objectMapper.readValue(
-						startKeyArray,
-						objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-					)
+					objectMapper.readValue<List<String>>(startKeyArray)
 				}
 				?: startKeyString.split(',')
 		}?.let { keys ->
@@ -366,9 +367,9 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "Get the list of all used tarifications frequencies in invoices")
-	@GetMapping("/codes/{minOccurences}")
-	fun getTarificationsCodesOccurences(@PathVariable minOccurences: Long) = mono {
-		invoiceService.getTarificationsCodesOccurrences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, minOccurences).map { LabelledOccurenceDto(it.label, it.occurence) }
+	@GetMapping("/codes/{minOccurrences}")
+	fun getTarificationsCodesOccurrences(@PathVariable minOccurrences: Long) = mono {
+		invoiceService.getTarificationsCodesOccurrences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, minOccurrences).map { LabelledOccurenceDto(it.label, it.occurence) }
 	}
 
 	@Operation(summary = "Filter invoices for the current user (HcParty)", description = "Returns a list of invoices along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")

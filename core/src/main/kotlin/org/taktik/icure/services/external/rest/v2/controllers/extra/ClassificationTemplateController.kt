@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.db.PaginationOffset
@@ -59,7 +58,6 @@ class ClassificationTemplateController(
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "Create a classification Template with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
 	fun createClassificationTemplate(@RequestBody c: ClassificationTemplateDto) = mono {
@@ -68,7 +66,6 @@ class ClassificationTemplateController(
 		classificationTemplateV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationTemplateId}")
 	fun getClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
@@ -77,7 +74,6 @@ class ClassificationTemplateController(
 		classificationTemplateV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a list of classifications Templates", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
 	fun getClassificationTemplateByIds(@PathVariable ids: String): Flux<ClassificationTemplateDto> {
@@ -85,7 +81,6 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
@@ -108,7 +103,6 @@ class ClassificationTemplateController(
 		classificationTemplateService.deleteClassificationTemplate(classificationTemplateId)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
 	fun modifyClassificationTemplate(@RequestBody classificationTemplateDto: ClassificationTemplateDto) = mono {
@@ -119,7 +113,6 @@ class ClassificationTemplateController(
 		classificationTemplateV2Mapper.map(modifiedClassificationTemplate)
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List all classification templates with pagination", description = "Returns a list of classification templates.")
 	@GetMapping
 	fun findClassificationTemplatesBy(

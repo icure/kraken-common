@@ -10,7 +10,7 @@ import com.google.common.base.Splitter
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -39,6 +39,7 @@ import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.MessageBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -116,14 +117,13 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
 	@GetMapping
 	fun findMessages(
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
 		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<ComplexKey>(
-				startKey)
+			objectMapper.readValue<ComplexKey>(startKey)
 		}
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 
@@ -135,7 +135,7 @@ class MessageController(
 	fun getChildrenMessages(@PathVariable messageId: String) =
 		messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getMessagesChildren(@RequestBody parentIds: ListOfIdsDto) =
@@ -154,7 +154,7 @@ class MessageController(
 	fun findMessagesByTransportGuid(
 		@RequestParam(required = false) transportGuid: String?,
 		@RequestParam(required = false) received: Boolean?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
@@ -164,9 +164,7 @@ class MessageController(
 		if (received == true) {
 			val startKeyElements = startKey?.let { startKeyString ->
 				startKeyString.takeIf { it.startsWith("[") }?.let { startKeyArray ->
-					objectMapper.readValue<ComplexKey>(
-						startKeyArray
-					)
+					objectMapper.readValue<ComplexKey>(startKeyArray)
 				} ?: Splitter.on(",").omitEmptyStrings().trimResults().splitToList(startKeyString) // Pretty sure this was not working well before, but leaving it as is for now
 					.map { it.takeUnless { it == "null" } }.let { ComplexKey(it.toTypedArray()) }
 			}
@@ -220,7 +218,7 @@ class MessageController(
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
 		@RequestParam(required = false) toAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
@@ -239,16 +237,14 @@ class MessageController(
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
 		@RequestParam(required = false) fromAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
 		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<ComplexKey>(
-				startKey
-			)
+			objectMapper.readValue<ComplexKey>(startKey)
 		}
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()

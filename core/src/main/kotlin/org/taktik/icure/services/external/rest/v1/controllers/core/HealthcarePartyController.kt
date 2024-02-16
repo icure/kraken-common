@@ -145,9 +145,9 @@ class HealthcarePartyController(
 		@Parameter(description = "The speciality of the HCP") @PathVariable spec: String,
 		@Parameter(description = "The first postCode for the HCP") @PathVariable firstCode: String,
 		@Parameter(description = "The last postCode for the HCP") @PathVariable lastCode: String,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
-		healthcarePartyService.listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode).paginatedList(healthcarePartyToHealthcarePartyDto, limit)
+		healthcarePartyService.listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode).paginatedList(healthcarePartyToHealthcarePartyDto, limit ?: DEFAULT_LIMIT)
 	}
 
 	@Operation(summary = "Create a healthcare party", description = "One of Name or Last name+First name, Nihii, and Public key are required.")

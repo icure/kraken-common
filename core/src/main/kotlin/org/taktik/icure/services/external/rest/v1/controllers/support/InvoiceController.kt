@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v1.controllers.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -45,6 +46,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.InvoicingCodeMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
@@ -188,10 +190,8 @@ class InvoiceController(
 		@PathVariable hcPartyId: String,
 		@RequestParam(required = false) fromDate: Long?,
 		@RequestParam(required = false) toDate: Long?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(
-			"startKey",
-			required = false
-		) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey")
+		@RequestParam("startKey", required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
@@ -200,10 +200,7 @@ class InvoiceController(
 			startKeyString
 				.takeIf { it.startsWith("[") }
 				?.let { startKeyArray ->
-					objectMapper.readValue(
-						startKeyArray,
-						objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-					)
+					objectMapper.readValue<List<String>>(startKeyArray)
 				}
 				?: startKeyString.split(',')
 		}?.let { keys ->
@@ -255,14 +252,14 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices by groupId", description = "Keys have to delimited by coma")
+	@Operation(summary = "List invoices by groupId")
 	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")
 	fun listByHcPartyGroupId(@PathVariable hcPartyId: String, @PathVariable groupId: String): Flux<InvoiceDto> {
 		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
 		return invoices.map { el -> invoiceMapper.map(el) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices by type, sent or unsent", description = "Keys have to delimited by coma")
+	@Operation(summary = "List invoices by type, sent or unsent")
 	@GetMapping("/byHcParty/{hcPartyId}/mediumType/{sentMediumType}/invoiceType/{invoiceType}/sent/{sent}")
 	fun listByHcPartySentMediumTypeInvoiceTypeSentDate(
 		@PathVariable hcPartyId: String,
@@ -276,7 +273,7 @@ class InvoiceController(
 		return invoices.map { el -> invoiceMapper.map(el) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Update delegations in healthElements.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Update delegations in healthElements.")
 	@PostMapping("/delegations")
 	fun setInvoicesDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
 		val invoices = invoiceService.getInvoices(stubs.map { it.id }).map { invoice ->
@@ -294,7 +291,7 @@ class InvoiceController(
 		emitAll(invoiceService.modifyInvoices(invoices).map { stubMapper.mapToStub(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "Gets all invoices for author at date")
+	@Operation(summary = "Gets all invoices by Contact ids")
 	@PostMapping("/byCtcts")
 	fun listByContactIds(@RequestBody contactIds: ListOfIdsDto) = flow {
 		emitAll(
@@ -303,7 +300,7 @@ class InvoiceController(
 		)
 	}.injectReactorContext()
 
-	@Operation(summary = "Gets all invoices for author at date")
+	@Operation(summary = "Gets all invoices by recipient ids")
 	@GetMapping("/to/{recipientIds}")
 	fun listByRecipientsIds(@PathVariable recipientIds: String) = flow {
 		emitAll(

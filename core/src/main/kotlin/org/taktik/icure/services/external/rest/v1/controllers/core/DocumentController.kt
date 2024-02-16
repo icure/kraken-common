@@ -388,7 +388,7 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Update delegations in healthElements.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Update delegations in a document.", description = "Keys must be delimited by comma")
 	@PostMapping("/delegations")
 	fun setDocumentsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
 		val stubsById = stubs.associateBy { it.id }

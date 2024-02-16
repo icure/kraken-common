@@ -40,7 +40,7 @@ class AccessLogDAOImpl(
 	@View(name = "all_by_date", map = "classpath:js/accesslog/All_by_date_map.js")
 	override fun listAccessLogsByDate(datastoreInformation: IDatastoreInformation, fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = pagedViewQuery<Long>(
+		val viewQuery = pagedViewQuery(
 			datastoreInformation,
 			"all_by_date",
 			fromEpoch,
@@ -74,7 +74,7 @@ class AccessLogDAOImpl(
 		)
 
 		val items = client.queryView(
-			pagedViewQuery<ComplexKey>(
+			pagedViewQuery(
 				datastoreInformation,
 				"all_by_user_date",
 				startKey,

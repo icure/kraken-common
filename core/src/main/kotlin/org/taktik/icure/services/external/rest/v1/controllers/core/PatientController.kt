@@ -57,6 +57,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMappe
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.services.external.rest.v1.utils.paginatedListOfIds
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -96,7 +97,7 @@ class PatientController(
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: String
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)) }
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 
 		val currentHealthcarePartyId = sessionLogic.getCurrentHealthcarePartyId()
@@ -144,11 +145,7 @@ class PatientController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 		patientService.listOfPatientsModifiedAfter(
-			date, startKey, startDocumentId,
-			(
-				limit
-					?: DEFAULT_LIMIT
-				) + 1
+			date, startKey, startDocumentId, (limit ?: DEFAULT_LIMIT) + 1
 		).paginatedList(patientToPatientDto, limit ?: DEFAULT_LIMIT)
 	}
 
@@ -157,12 +154,11 @@ class PatientController(
 	fun listPatientsByHcParty(
 		@PathVariable hcPartyId: String,
 		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false) sortField: String?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false) sortDirection: String?
-	) =
-		listPatients(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection ?: "asc")
+	) = listPatients(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection ?: "asc")
 
 
 	@Operation(
@@ -210,13 +206,13 @@ class PatientController(
 	fun listPatients(
 		@Parameter(description = "Healthcare party id") @RequestParam(required = false) hcPartyId: String?,
 		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false) sortField: String?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: String
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)) }
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 		sessionLogic.getCurrentHealthcarePartyId().let { currentHcpId ->
 			val hcp = healthcarePartyService.getHealthcareParty(currentHcpId)
@@ -235,12 +231,12 @@ class PatientController(
 	@GetMapping("/idsPages")
 	fun listPatientsIds(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The page first id") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The page first id") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Page size") @RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)) }
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 		patientService.findByHcPartyIdsOnly(hcPartyId, paginationOffset).paginatedListOfIds(realLimit)
 	}
@@ -249,7 +245,7 @@ class PatientController(
 	@GetMapping("/byExternalId/{externalId}")
 	fun findByExternalId(
 		@PathVariable("externalId")
-		@Parameter(description = "A external ID", required = true) externalId: String
+		@Parameter(description = "A external ID") externalId: String
 	) = mono {
 		patientService.getByExternalId(externalId)?.let(patientToPatientDto)
 	}
@@ -257,7 +253,7 @@ class PatientController(
 	@Operation(summary = "Get Paginated List of Patients sorted by Access logs descending")
 	@GetMapping("/byAccess/{userId}")
 	fun findByAccessLogUserAfterDate(
-		@Parameter(description = "A User ID", required = true) @PathVariable userId: String,
+		@Parameter(description = "A User ID") @PathVariable userId: String,
 		@Parameter(description = "The type of access (COMPUTER or USER)") @RequestParam(required = false) accessType: String?,
 		@Parameter(description = "The start search epoch") @RequestParam(required = false) startDate: Long?,
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
@@ -334,8 +330,8 @@ class PatientController(
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")
 	fun fuzzySearch(
-		@Parameter(description = "The first name") @RequestParam(required = false) firstName: String,
-		@Parameter(description = "The last name") @RequestParam(required = false) lastName: String,
+		@Parameter(description = "The first name") @RequestParam(required = true) firstName: String,
+		@Parameter(description = "The last name") @RequestParam(required = true) lastName: String,
 		@Parameter(description = "The date of birth") @RequestParam(required = false) dateOfBirth: Int?
 	): Flux<PatientDto> = flow {
 		try {
@@ -365,7 +361,7 @@ class PatientController(
 	@Operation(summary = "Find deleted patients", description = "Returns a list of deleted patients, within the specified time period, if any.")
 	@GetMapping("/deleted/by_date")
 	fun listDeletedPatients(
-		@Parameter(description = "Filter deletions after this date (unix epoch), included") @RequestParam(required = false) startDate: Long,
+		@Parameter(description = "Filter deletions after this date (unix epoch), included") @RequestParam(required = true) startDate: Long,
 		@Parameter(description = "Filter deletions before this date (unix epoch), included") @RequestParam(required = false) endDate: Long?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
@@ -493,31 +489,31 @@ class PatientController(
 
 	// TODO MB add missing methods like findDuplicatesBySsin or findDuplicatesByName  (compare this controller with the master branch)
 
-	@Operation(summary = "Provides a paginated list of patients with duplicate ssin for an hecparty")
+	@Operation(summary = "Provides a paginated list of patients with duplicate ssin for an healthcare party")
 	@PostMapping("/duplicates/ssin")
 	fun findDuplicatesBySsin(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)) }
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 
 		patientService.getDuplicatePatientsBySsin(hcPartyId, paginationOffset).paginatedList(patientToPatientDto, realLimit)
 	}
 
-	@Operation(summary = "Provides a paginated list of patients with duplicate name for an hecparty")
+	@Operation(summary = "Provides a paginated list of patients with duplicate name for an healthcare party")
 	@PostMapping("/duplicates/name")
 	fun findDuplicatesByName(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)) }
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
 
 		patientService.getDuplicatePatientsByName(hcPartyId, paginationOffset).paginatedList(patientToPatientDto, realLimit)

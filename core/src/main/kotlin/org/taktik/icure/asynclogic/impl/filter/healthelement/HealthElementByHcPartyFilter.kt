@@ -18,7 +18,6 @@
 
 package org.taktik.icure.asynclogic.impl.filter.healthelement
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asynclogic.HealthElementLogic
@@ -27,7 +26,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.HealthElement
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class HealthElementByHcPartyFilter(private val healthElementLogic: HealthElementLogic) :

@@ -25,11 +25,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.icure.annotations.controllers.CreatesOne
-import org.taktik.icure.annotations.controllers.DeletesMany
-import org.taktik.icure.annotations.controllers.RetrievesOne
-import org.taktik.icure.annotations.controllers.UpdatesOne
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
@@ -56,8 +51,6 @@ class ClassificationController(
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@AccessControl("CanAccessAsHcp")
-	@CreatesOne
 	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
 	fun createClassification(@RequestBody c: ClassificationDto) = mono {
@@ -67,8 +60,6 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@RetrievesOne
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationId}")
 	fun getClassification(@PathVariable classificationId: String) = mono {
@@ -78,7 +69,6 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a list of classifications", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
 	fun getClassificationByHcPartyId(@PathVariable ids: String): Flux<ClassificationDto> {
@@ -87,7 +77,6 @@ class ClassificationController(
 		return elements.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
@@ -97,8 +86,6 @@ class ClassificationController(
 		return elementList.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsAdmin AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@DeletesMany
 	@Operation(summary = "Delete a batch of classifications", description = "Response is a set containing the ID's of deleted classifications.")
 	@PostMapping("/delete/batch")
 	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifier> =
@@ -112,8 +99,6 @@ class ClassificationController(
 		classificationService.deleteClassification(classificationId)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@UpdatesOne
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
 	fun modifyClassification(@RequestBody classificationDto: ClassificationDto) = mono {

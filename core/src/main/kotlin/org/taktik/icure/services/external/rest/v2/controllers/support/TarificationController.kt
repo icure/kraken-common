@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -30,6 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v2.mapper.TarificationV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -57,16 +59,13 @@ class TarificationController(
 		@RequestParam(required = false) types: String?,
 		@RequestParam(required = false) language: String?,
 		@RequestParam(required = false) label: String?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
 		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<List<String>>(
-				startKey,
-				objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-			)
+			objectMapper.readValue<List<String>>(startKey)
 		}
 		val tarificationsList = tarificationService.findTarificationsByLabel(
 			region,
@@ -95,15 +94,12 @@ class TarificationController(
 		@RequestParam(required = false) tarification: String?,
 		@RequestParam(required = false) version: String?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	) = mono {
 		val realLimit = limit ?: DEFAULT_LIMIT
 		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<List<String>>(
-				startKey,
-				objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-			)
+			objectMapper.readValue<List<String>>(startKey)
 		}
 
 		tarificationService.findTarificationsBy(
