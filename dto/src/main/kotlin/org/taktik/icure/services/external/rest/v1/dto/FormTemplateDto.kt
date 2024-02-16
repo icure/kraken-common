@@ -44,8 +44,8 @@ data class FormTemplateDto(
 	val shortReport: String? = null,
 	val mediumReport: String? = null,
 	val longReport: String? = null,
-	val reports: Set<String> = emptySet(),
-	val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val reports: Set<String> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val tags: Set<CodeStubDto> = emptySet(),
 	val layoutAttachmentId: String? = null,
 	val templateLayoutAttachmentId: String? = null
 ) : StoredDocumentDto {

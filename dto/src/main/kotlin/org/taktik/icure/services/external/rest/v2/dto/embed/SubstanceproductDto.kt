@@ -25,8 +25,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SubstanceproductDto(
-	val intendedcds: List<CodeStubDto> = emptyList(),
-	val deliveredcds: List<CodeStubDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val intendedcds: List<CodeStubDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val deliveredcds: List<CodeStubDto> = emptyList(),
 	val intendedname: String? = null,
 	val deliveredname: String? = null,
 	val productId: String? = null

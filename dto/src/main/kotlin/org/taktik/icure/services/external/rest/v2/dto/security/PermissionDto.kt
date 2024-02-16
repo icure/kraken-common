@@ -25,6 +25,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PermissionDto(
-	@Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
-	@Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet()
 ) : Cloneable, Serializable

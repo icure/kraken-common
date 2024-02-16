@@ -16,5 +16,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class ContactByHcPartyIdentifiersFilter(
 	val healthcarePartyId: String? = null,
 	override val desc: String? = null,
-	val identifiers: List<IdentifierDto> = emptyList()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val identifiers: List<IdentifierDto> = emptyList()
 ) : AbstractFilterDto<ContactDto>

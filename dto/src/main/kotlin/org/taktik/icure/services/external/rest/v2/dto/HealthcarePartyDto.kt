@@ -48,14 +48,14 @@ data class HealthcarePartyDto(
 	@Schema(description = "last modification timestamp of the object.") val modified: Long? = null,
 	@Schema(description = "hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
 
-	@Schema(description = "The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side.") val identifier: List<IdentifierDto> = emptyList(),
-	@Schema(description = "Tags that qualify the healthcareparty as being member of a certain class.") override val tags: Set<CodeStubDto> = emptySet(),
-	@Schema(description = "Codes that identify or qualify this particular healthcareparty.") override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side.") val identifier: List<IdentifierDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Tags that qualify the healthcareparty as being member of a certain class.") override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Codes that identify or qualify this particular healthcareparty.") override val codes: Set<CodeStubDto> = emptySet(),
 
 	@Schema(description = "The full name of the healthcare party, used mainly when the healthcare party is an organization") override val name: String? = null,
 	@Schema(description = "the lastname (surname) of the healthcare party. This is the official lastname that should be used for official administrative purposes.") override val lastName: String? = null,
 	@Schema(description = "the firstname (name) of the healthcare party.") override val firstName: String? = null,
-	@Schema(description = "the list of all names of the healthcare party, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the healthcare party in the application") override val names: List<PersonNameDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "the list of all names of the healthcare party, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the healthcare party in the application") override val names: List<PersonNameDto> = emptyList(),
 	@Schema(description = "the gender of the healthcare party: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown") override val gender: GenderDto? = null,
 	@Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
 	@Schema(description = "The name of the company this healthcare party is member of") override val companyName: String? = null,
@@ -73,17 +73,17 @@ data class HealthcarePartyDto(
 	@Schema(description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).") val nihii: String? = null, //institution, person
 	val nihiiSpecCode: String? = null, //don't show field in the GUI
 	@Schema(description = "Social security inscription number.") val ssin: String? = null,
-	@Schema(description = "The list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
-	@Schema(description = "The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).") override val languages: List<String> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).") override val languages: List<String> = emptyList(),
 	@Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
-	@Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'") val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
-	@Schema(description = "The healthcare party's status history") val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'") val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The healthcare party's status history") val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
 
-	@Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") val specialityCodes: Set<CodeStubDto> = emptySet(), //Speciality codes, default is first
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") val specialityCodes: Set<CodeStubDto> = emptySet(), //Speciality codes, default is first
 
-	@Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.") val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.") val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
 	@Schema(description = "Text notes.") val notes: String? = null,
-	@Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
 	@Schema(description = "A description of the HCP, meant for the public and in multiple languages.") val descr: Map<String, String>? = emptyMap(),
 
 	// Medical houses
@@ -92,19 +92,19 @@ data class HealthcarePartyDto(
 	val contactPerson: String? = null,
 	val contactPersonHcpId: String? = null,
 	val supervisorId: String? = null,
-	val flatRateTarifications: List<FlatRateTarificationDto> = emptyList(),
-	val importedData: Map<String, String> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val flatRateTarifications: List<FlatRateTarificationDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val importedData: Map<String, String> = emptyMap(),
 
 	@Deprecated("Use properties instead")
-	val options: Map<String, String> = emptyMap(),
-	override val properties: Set<PropertyStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val options: Map<String, String> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val properties: Set<PropertyStubDto> = emptySet(),
 
-	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
-	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
-	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
-	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitionned : "threshold⎮partition in hex"
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitionned : "threshold⎮partition in hex"
 	override val publicKey: String? = null,
-	override val publicKeysForOaepWithSha256: Set<String> = emptySet()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val publicKeysForOaepWithSha256: Set<String> = emptySet()
 ) : StoredDocumentDto, NamedDto, PersonDto, CryptoActorDto, DataOwnerDto, HasCodesDto, HasTagsDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

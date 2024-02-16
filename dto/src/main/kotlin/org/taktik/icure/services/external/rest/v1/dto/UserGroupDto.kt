@@ -4,10 +4,16 @@
 
 package org.taktik.icure.services.external.rest.v1.dto
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class UserGroupDto(
 	val groupId: String? = null,
 	val groupName: String? = null,
-	val groupsHierarchy: List<GroupDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val groupsHierarchy: List<GroupDto> = emptyList(),
 	val userId: String? = null,
 	val login: String? = null,
 	val name: String? = null,
@@ -17,4 +23,4 @@ data class UserGroupDto(
 	val healthcarePartyId: String? = null,
 	val deviceId: String? = null,
 	val nameOfParentOfTopmostGroupInHierarchy: String? = null,
-	)
+): Serializable

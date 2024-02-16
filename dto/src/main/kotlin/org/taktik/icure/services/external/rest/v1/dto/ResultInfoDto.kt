@@ -3,6 +3,7 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ServiceDto
 
@@ -18,6 +19,6 @@ class ResultInfoDto(
 	val demandDate: Long? = null,
 	val labo: String? = null,
 	val engine: String? = null,
-	val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val codes: Set<CodeStubDto> = emptySet(),
 	val services: List<ServiceDto>? = null
 )

@@ -12,5 +12,5 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AnonymousMedicalLocationDto(
 	val id: String,
-	val publicInformations: Map<String, String> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val publicInformations: Map<String, String> = emptyMap(),
 ): Serializable
