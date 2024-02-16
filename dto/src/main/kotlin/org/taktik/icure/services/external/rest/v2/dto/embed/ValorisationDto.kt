@@ -27,6 +27,7 @@ data class ValorisationDto(
 	val startOfValidity: Long? = null, //yyyyMMdd
 	val endOfValidity: Long? = null, //yyyyMMdd
 	val predicate: String? = null,
+	val reference: List<Int>? = null,
 	val totalAmount: Double? = null, //=reimbursement+doctorSupplement+intervention
 	val reimbursement: Double? = null,
 	val patientIntervention: Double? = null,
