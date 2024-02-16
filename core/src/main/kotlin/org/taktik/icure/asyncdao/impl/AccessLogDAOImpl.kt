@@ -82,7 +82,7 @@ class AccessLogDAOImpl(
 				pagination,
 				descending
 			),
-			Array<Any>::class.java,
+			ComplexKey::class.java,
 			String::class.java,
 			AccessLog::class.java
 		)

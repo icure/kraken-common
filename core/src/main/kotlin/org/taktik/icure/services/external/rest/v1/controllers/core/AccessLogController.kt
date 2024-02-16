@@ -85,8 +85,8 @@ class AccessLogController(
 	): PaginatedFlux {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService.listAccessLogsBy(
-			fromEpoch ?: if (descending == true) Long.MAX_VALUE else 0,
-			toEpoch ?: if (descending == true) 0 else Long.MAX_VALUE,
+			if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
+			if (descending == true) fromEpoch ?: 0 else toEpoch ?: Long.MAX_VALUE,
 			paginationOffset,
 			descending == true
 		).mapElements(accessLogMapper::map).asPaginatedFlux()
@@ -103,7 +103,7 @@ class AccessLogController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
 	): PaginatedFlux {
-		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) } // TODO ??
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService
 			.findAccessLogsByUserAfterDate(userId, accessType, startDate, paginationOffset, descending ?: false)

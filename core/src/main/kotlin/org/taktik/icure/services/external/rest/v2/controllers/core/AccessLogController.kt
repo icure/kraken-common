@@ -101,8 +101,8 @@ class AccessLogController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService
 			.listAccessLogsBy(
-				fromEpoch ?: if (descending == true) Long.MAX_VALUE else 0,
-				toEpoch ?: if (descending == true) 0 else Long.MAX_VALUE,
+				if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
+				if (descending == true) fromEpoch ?: 0 else toEpoch ?: Long.MAX_VALUE,
 				paginationOffset,
 				descending == true
 			).mapElements(accessLogV2Mapper::map).asPaginatedFlux()
