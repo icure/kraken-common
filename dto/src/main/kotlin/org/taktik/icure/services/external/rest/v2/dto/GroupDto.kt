@@ -44,7 +44,7 @@ data class GroupDto(
 	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The default roles for each user type, if not otherwise specified on the user.") val defaultUserRoles: Map<UserTypeDto, Set<String>> = emptyMap(),
 	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Single-used token to perform specific operations") val operationTokens: Map<String, OperationTokenDto> = emptyMap(),
 	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "List of entities that have to be collected from a shared database. Only Code and tarification can be set at this point.") val sharedEntities: Map<String, String> = emptyMap(),
-	@Schema(description = "Minimum version of Kraken required to access API")	val minimumKrakenVersion: String? = null,
+	@Schema(description = "Minimum version of Kraken required to access API") val minimumKrakenVersion: String? = null,
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 
 	val superGroup: String? = null
