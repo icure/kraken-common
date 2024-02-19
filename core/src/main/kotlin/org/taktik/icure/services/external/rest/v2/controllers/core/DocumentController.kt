@@ -151,7 +151,9 @@ class DocumentController(
 		@RequestBody
 		payload: Flow<DataBuffer>,
 		@RequestHeader(name = HttpHeaders.CONTENT_LENGTH, required = false)
-		lengthHeader: Long?
+		lengthHeader: Long?,
+		@RequestParam(required = false)
+		encrypted: Boolean?
 	): Mono<DocumentDto> = mono {
 		val payloadSize = requireNotNull(lengthHeader?.takeIf { it > 0 }) {
 			"The `Content-Length` header must contain the payload size"
@@ -160,7 +162,7 @@ class DocumentController(
 		checkRevision(rev, document)
 		documentService.updateAttachmentsWrappingExceptions(
 			document,
-			mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(payload, payloadSize, utis)
+			mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(payload, payloadSize, utis, encrypted ?: false)
 		)?.let { documentV2Mapper.map(it) }
 	}
 
@@ -268,7 +270,9 @@ class DocumentController(
 		@RequestBody
 		payload: Flow<DataBuffer>,
 		@RequestHeader(name = HttpHeaders.CONTENT_LENGTH, required = false)
-		lengthHeader: Long?
+		lengthHeader: Long?,
+		@RequestParam(required = false)
+		encrypted: Boolean?
 	): Mono<DocumentDto> = mono {
 		val attachmentSize = lengthHeader ?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
@@ -285,7 +289,8 @@ class DocumentController(
 				key to DataAttachmentChange.CreateOrUpdate(
 					payload,
 					attachmentSize,
-					utis
+					utis,
+					encrypted ?: false
 				)
 			)
 		).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
@@ -397,7 +402,8 @@ class DocumentController(
 				HttpStatus.BAD_REQUEST,
 				"Missing size information for $name: you must provide the size of the attachment in bytes using a Content-Length part header."
 			),
-			metadata?.utis
+			metadata?.utis,
+			metadata?.dataIsEncrypted ?: false
 		)
 
 	private fun checkRevision(rev: String, document: Document) {
@@ -410,7 +416,7 @@ class DocumentController(
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
 		currentDocument: Document,
 		mainAttachmentChange: DataAttachmentChange? = null,
-		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? =
 		try {
 			updateAttachments(currentDocument, mainAttachmentChange, secondaryAttachmentsChanges)
