@@ -126,7 +126,7 @@ data class HealthcareParty(
 	val picture: ByteArray? = null,
 	val statuses: Set<HealthcarePartyStatus> = emptySet(),
 	val statusHistory: List<HealthcarePartyHistoryStatus> = emptyList(),
-	val descr: Map<String, String>? = emptyMap(),
+	val descr: Map<String, String>? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) @JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val specialityCodes: Set<CodeStub> = emptySet(), //Speciality codes, default is first
 
 	val sendFormats: Map<TelecomType, String> = emptyMap(),
@@ -163,10 +163,10 @@ data class HealthcareParty(
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap(),
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap()
+	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
 ) : StoredDocument, Named, Person, CryptoActor, DataOwner, HasTags, HasCodes {
 	companion object : DynamicInitializer<HealthcareParty>

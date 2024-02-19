@@ -45,11 +45,11 @@ data class SecureDelegationKeyMap(
     override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
     override val delegations: Map<String, Set<Delegation>> = emptyMap(),
     override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
-    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap(),
+    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
     @JsonProperty("deleted") override val deletionDate: Long? = null,
-    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-    @JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap()
+    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+    @JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null
 ): StoredDocument, Encryptable {
     init {
         require(secretForeignKeys.isEmpty() && delegations.isEmpty() && encryptionKeys.isEmpty() && cryptedForeignKeys.isEmpty()) {

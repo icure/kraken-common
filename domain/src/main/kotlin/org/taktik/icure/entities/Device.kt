@@ -126,10 +126,10 @@ data class Device(
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap(),
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap()
+	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
 ) : StoredICureDocument, Named, CryptoActor, DataOwner {
 	companion object : DynamicInitializer<Device>
