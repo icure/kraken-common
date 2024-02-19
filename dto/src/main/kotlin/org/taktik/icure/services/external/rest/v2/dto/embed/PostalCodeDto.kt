@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PostalCodeDto(
 	val code: String? = null,
-	val label: Map<String, String> = emptyMap()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val label: Map<String, String> = emptyMap()
 ) : Serializable {
 	override fun toString(): String {
 		return code ?: "N/A"

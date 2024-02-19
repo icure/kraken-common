@@ -29,7 +29,7 @@ data class InsuranceDto(
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
 
-	val name: Map<String, String> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val name: Map<String, String> = emptyMap(),
 	val privateInsurance: Boolean = false,
 	val hospitalisationInsurance: Boolean = false,
 	val ambulatoryInsurance: Boolean = false,

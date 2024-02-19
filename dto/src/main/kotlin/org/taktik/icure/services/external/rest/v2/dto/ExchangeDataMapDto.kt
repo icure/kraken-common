@@ -18,7 +18,7 @@ data class ExchangeDataMapDto(
     @get:Schema(description = """
         A map where each key is the fingerprint of a public key and the value is an exchange data id, encrypted with the private key corresponding to that public key.
     """)
-    val encryptedExchangeDataIds: Map<KeypairFingerprintV2String, Base64String> = emptyMap(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) val encryptedExchangeDataIds: Map<KeypairFingerprintV2String, Base64String> = emptyMap(),
     override val deletionDate: Long? = null,
 ): StoredDocumentDto {
     override fun withDeletionDate(deletionDate: Long?): ExchangeDataMapDto = copy(deletionDate = deletionDate)

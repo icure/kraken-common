@@ -36,14 +36,14 @@ data class DeviceDto(
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
 
-	val identifiers: List<IdentifierDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val identifiers: List<IdentifierDto> = emptyList(),
 
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
-	override val tags: Set<CodeStubDto> = emptySet(),
-	override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val medicalLocationId: String? = null,
 
@@ -58,13 +58,13 @@ data class DeviceDto(
 	val parentId: String? = null,
 	val picture: ByteArray? = null,
 
-	override val properties: Set<PropertyStubDto> = emptySet(),
-	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
-	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
-	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
-	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val properties: Set<PropertyStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: String? = null,
-	override val publicKeysForOaepWithSha256: Set<String> = emptySet()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val publicKeysForOaepWithSha256: Set<String> = emptySet()
 ) : StoredDocumentDto, ICureDocumentDto<String>, NamedDto, CryptoActorDto, DataOwnerDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

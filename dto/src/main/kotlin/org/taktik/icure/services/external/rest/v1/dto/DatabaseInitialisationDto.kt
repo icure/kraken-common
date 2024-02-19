@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DatabaseInitialisationDto(
-	val users: List<UserDto>? = emptyList(),
-	val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val users: List<UserDto>? = null,
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val healthcareParties: List<HealthcarePartyDto>? = null,
 	val replication: ReplicationDto? = null,
 	val minimumKrakenVersion: String?,
 ) : Serializable

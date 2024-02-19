@@ -41,14 +41,18 @@ be hidden to prevent data leakages (see class documentation for more details).""
     val delegate: String? = null,
     @get:Schema(description = """Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
 `secretForeignKeys` field of children entities.""")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val secretIds: Set<Base64String> = emptySet(),
     @get:Schema(description = """Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).""")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val encryptionKeys: Set<Base64String> = emptySet(),
     @get:Schema(description = """Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
 such as the id of the patient for a contact or healthcare element.""")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val owningEntityIds: Set<Base64String> = emptySet(),
     @get:Schema(description = """Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
 only [SecureDelegation] that they can directly access or any children delegations.""")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val parentDelegations: Set<Sha256HexString> = emptySet(),
     @get:Schema(description = """If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
 data used for the encryption of this delegation. Otherwise, this will be null.""")

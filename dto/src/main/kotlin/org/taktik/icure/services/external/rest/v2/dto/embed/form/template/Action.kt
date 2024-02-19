@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Action(
-	val launchers: List<Launcher>? = emptyList(),
+	val launchers: List<Launcher>? = null,
 	val expression: String? = null,
-	val states : List<State>? = emptyList()
+	val states : List<State>? = null
 )

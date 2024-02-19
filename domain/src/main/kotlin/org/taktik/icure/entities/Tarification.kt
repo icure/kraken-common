@@ -57,10 +57,10 @@ data class Tarification(
 	@JsonProperty("nGroup") val ngroup: String? = null, //An obscure bug prevents Jackson to interpret the annotation if the name of the property is xAbcd
 	val letterValues: List<LetterValue> = emptyList(),
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap(),
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap()
+	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
 ) : StoredDocument, CodeIdentification {
 	companion object : DynamicInitializer<Tarification> {

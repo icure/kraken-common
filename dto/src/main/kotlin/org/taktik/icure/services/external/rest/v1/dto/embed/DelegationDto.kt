@@ -18,5 +18,5 @@ data class DelegationDto(
 	var owner: String? = null, // owner id
 	var delegatedTo: String? = null, // delegatedTo id
 	var key: String? = null, // An arbitrary key (generated, patientId, any ID, etc.), usually prefixed with the entity ID followed by ":", encrypted using an exchange AES key.
-	var tags: List<String> = emptyList() // Used for rights
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) var tags: List<String> = emptyList() // Used for rights
 ) : Serializable

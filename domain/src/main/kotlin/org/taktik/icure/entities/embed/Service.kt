@@ -77,7 +77,7 @@ data class Service(
 	@JsonIgnore val plansOfActionIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
 	@JsonIgnore val healthElementsIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
 	@JsonIgnore val formIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val secretForeignKeys: Set<String>? = emptySet(), //Only used when the Service is emitted outside its contact
+	@JsonIgnore val secretForeignKeys: Set<String>? = null, //Only used when the Service is emitted outside its contact
 	@JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact
 	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact
 	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact

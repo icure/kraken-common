@@ -19,25 +19,25 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.TaskStatusDto
 data class MaintenanceTaskDto(
 	override val id: String,
 	override val rev: String? = null,
-	val identifier: List<IdentifierDto> = listOf(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val identifier: List<IdentifierDto> = emptyList(),
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
-	override val tags: Set<CodeStubDto> = emptySet(),
-	override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 
 	val taskType: String? = null,
-	val properties: Set<PropertyStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	val status: TaskStatusDto = TaskStatusDto.pending,
 
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val secretForeignKeys: Set<String> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadataDto? = null
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {
