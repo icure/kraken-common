@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -40,15 +42,21 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.asyncservice.DocumentService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.security.CryptoUtils
 import org.taktik.icure.security.CryptoUtils.isValidAesKey
 import org.taktik.icure.security.CryptoUtils.tryKeyFromHexString
@@ -59,6 +67,7 @@ import org.taktik.icure.services.external.rest.v1.dto.requests.document.BulkAtta
 import org.taktik.icure.services.external.rest.v1.mapper.DocumentMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
@@ -73,6 +82,8 @@ class DocumentController(
 	private val documentMapper: DocumentMapper,
 	private val delegationMapper: DelegationMapper,
 	private val stubMapper: StubMapper,
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper,
 	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader
 ) {
 
@@ -344,7 +355,7 @@ class DocumentController(
 		}.collect { emit(it) }
 	}.injectReactorContext()
 
-	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findDocumentsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -354,6 +365,23 @@ class DocumentController(
 		val secretMessageKeys = secretFKeys.split(',').map { it.trim() }
 		val documentList = documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
+	}
+
+	@Operation(summary = "List documents found By Healthcare Party and secret foreign key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findDocumentsByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+	): PaginatedFlux {
+		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return documentService
+			.listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId, secretFKey, paginationOffset)
+			.mapElements(documentMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.")
@@ -366,7 +394,7 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List documents found By type, By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents found By type, By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byTypeHcPartySecretForeignKeys")
 	fun findByTypeHCPartyMessageSecretFKeys(
 		@RequestParam documentTypeCode: String,
@@ -383,7 +411,7 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List documents with no delegation", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents with no delegation")
 	@GetMapping("/woDelegation")
 	fun findWithoutDelegation(@RequestParam(required = false) limit: Int?): Flux<DocumentDto> {
 		val documentList = documentService.listDocumentsWithoutDelegation(limit ?: 100)

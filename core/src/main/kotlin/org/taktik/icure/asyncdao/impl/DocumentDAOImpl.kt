@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -21,6 +22,7 @@ import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Document
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
@@ -71,6 +73,23 @@ class DocumentDAOImpl(
 		emitAll(client.interleave<Array<String>, String, Document>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Document>>().map { it.doc })
 	}.distinctById()
+
+	override fun listDocumentsByHcPartyIdAndSecretMessageKey(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		secretForeignKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(hcPartyId, secretForeignKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_message",
+			"by_data_owner_message" to DATA_OWNER_PARTITION,
+			key, key, paginationOffset, false
+		)
+		emitAll(client.interleave<Array<String>, String, Document>(viewQueries, compareBy({it[0]}, {it[1]})))
+	}
 
 	@View(name = "without_delegations", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && (!doc.delegations || Object.keys(doc.delegations).length === 0)) emit(doc._id )}")
 	override fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int) = flow {
