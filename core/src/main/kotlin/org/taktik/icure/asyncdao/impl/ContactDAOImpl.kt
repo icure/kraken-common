@@ -152,6 +152,23 @@ class ContactDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
 	}.distinctById()
 
+	override fun listContactsByHcPartyIdAndPatientSecretKey(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		secretPatientKey: String,
+		pagination: PaginationOffset<ComplexKey>
+	) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(hcPartyId, secretPatientKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patientfk",
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+			key, key, pagination, false
+		)
+		emitAll(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]})))
+	}
+
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),

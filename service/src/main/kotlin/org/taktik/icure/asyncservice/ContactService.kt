@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -17,12 +18,38 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedElement
 
 interface ContactService: EntityWithSecureDelegationsService<Contact> {
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
 	fun findContactsByIds(selectedIds: Collection<String>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [Contact]s for a healthcare party and a set of secret patient keys, filtering out all the
+	 * entities that the current user is not allowed to access.
+	 * Note: if the current data owner is [hcPartyId], then all the search keys available for the user will be applied
+	 * in retrieving the [Contact]s.
+	 *
+	 * @param hcPartyId the id of the healthcare party.
+	 * @param secretPatientKeys the secret patient keys.
+	 * @return a [Flow] of [Contact]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Contact]s.
+	 */
 	fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
+
+	/**
+	 * Retrieves all the [Contact]s for a healthcare party id and secret patient key pair.
+	 * The result will be returned in a format for pagination.
+	 * Note: differently from [listContactsByHCPartyAndPatient], this method will NOT use all the search keys for the
+	 * current data owner if the current data owner id is equal to [hcPartyId].
+	 *
+	 * @param hcPartyId the id of the healthcare party.
+	 * @param secretPatientKey the secret patient key.
+	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginatedElement]s wrapping the [Contact]s.
+	 */
+	fun listContactByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
 	fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
@@ -86,12 +113,26 @@ interface ContactService: EntityWithSecureDelegationsService<Contact> {
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
 
 	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+
+	/**
+	 * Retrieves all the [Contact]s that a healthcare party can access and which [Contact.openingDate] is between the
+	 * [startOpeningDate], if provided, and the [endOpeningDate], if provided.
+	 * The results will be returned in a format for pagination and all the entities that the current user cannot access
+	 * will be automatically filtered out from the final result.
+	 *
+	 * @param hcPartyId the id of the healthcare party.
+	 * @param startOpeningDate the timestamp of the start opening date. If null, all the [Contact]s since the beginning of time will be retrieved.
+	 * @param endOpeningDate the timestamp of the end opening date. If null, all the [Contact]s until the end of time will be retrieved.
+	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginatedElement] wrapping the [Contact]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition to search the [Contact]s.
+	 */
 	fun listContactsByOpeningDate(
 		hcPartyId: String,
 		startOpeningDate: Long,
 		endOpeningDate: Long,
-		offset: PaginationOffset<List<String>>,
-	): Flow<ViewQueryResultEvent>
+		offset: PaginationOffset<ComplexKey>,
+	): Flow<PaginatedElement>
 
 	suspend fun addDelegations(contactId: String, delegations: List<Delegation>): Contact?
 
@@ -118,7 +159,7 @@ interface ContactService: EntityWithSecureDelegationsService<Contact> {
 	 * and the user has the permission to do it, otherwise it will be ignored.
 	 *
 	 * @param contacts a [Collection] of modified [Contact]s.
-	 * @return a [Flow] containing all the [Contact]s that were succesfully modified.
+	 * @return a [Flow] containing all the [Contact]s that were successfully modified.
 	 */
 	fun modifyContacts(contacts: Collection<Contact>): Flow<Contact>
 }

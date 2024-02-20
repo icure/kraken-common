@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.UpdateConflictException
@@ -40,6 +41,8 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.exceptions.BulkUpdateConflictException
+import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
@@ -76,6 +79,22 @@ class ContactLogicImpl(
 			contactDAO.listContactsByHcPartyAndPatient(
 				datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys
 			)
+		)
+	}
+
+	override fun listContactByHCPartyIdAndSecretPatientKey(
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginatedElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			contactDAO.listContactsByHcPartyIdAndPatientSecretKey(
+				datastoreInformation,
+				hcPartyId,
+				secretPatientKey,
+				paginationOffset.copy(limit = paginationOffset.limit + 1)
+			).toPaginatedFlow<Contact>(paginationOffset.limit)
 		)
 	}
 
@@ -393,13 +412,13 @@ class ContactLogicImpl(
 		hcPartyId: String,
 		startOpeningDate: Long,
 		endOpeningDate: Long,
-		offset: PaginationOffset<List<String>>,
-	): Flow<ViewQueryResultEvent> = flow {
+		offset: PaginationOffset<ComplexKey>,
+	): Flow<PaginatedElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByOpeningDate(
-				datastoreInformation, hcPartyId, startOpeningDate, endOpeningDate, offset.toComplexKeyPaginationOffset()
-			)
+				datastoreInformation, hcPartyId, startOpeningDate, endOpeningDate, offset.copy(limit = offset.limit + 1)
+			).toPaginatedFlow<Contact>(offset.limit)
 		)
 	}
 }
