@@ -292,7 +292,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	/**
 	 * This operation is performed after saving an entity to the database.
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity saved to the database.
+	 * @param savedEntity the entity [T] saved to the database.
+	 * @param preSaveEntity the entity [T] before it was stored on the db.
 	 * @return the entity after the operation.
 	 */
 	protected open suspend fun afterSave(datastoreInformation: IDatastoreInformation, savedEntity: T, preSaveEntity: T): T {
@@ -675,9 +676,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
 
 	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending)
-
-	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, keys: Collection<P>, pagination: PaginationOffset<P>, descending: Boolean) =
 		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending)
 
 	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =

@@ -27,4 +27,10 @@ class PaginatedFlux(
 	}
 }
 
+/**
+ * Converts a [Flow] of [PaginatedElement] to a [PaginatedFlux], injecting the reactor context.
+ *
+ * @receiver a [Flow] of [PaginatedElement].
+ * @return a [PaginatedFlux].
+ */
 fun Flow<PaginatedElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined)

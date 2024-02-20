@@ -13,6 +13,15 @@ import org.taktik.icure.entities.utils.PaginatedDocumentKeyIdPair
 import org.taktik.icure.entities.utils.PaginatedList
 import java.io.Serializable
 
+/**
+ * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginatedElement]. Only the first [pageSize] elements
+ * of the original flow of [ViewRowWithDoc] type will be converted. The [pageSize] + 1 [ViewRowWithDoc] will be used to
+ * extrapolate the [NextPageElement], otherwise no [NextPageElement] will be included in the output flow.
+ *
+ * @receiver a [Flow] of [ViewQueryResultEvent] which doc type extends [Identifiable] of [String].
+ * @param pageSize the number of elements that will be included in the output [Flow].
+ * @return a [Flow] of [PaginatedElement].
+ */
 @Suppress("UNCHECKED_CAST")
 fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSize: Int): Flow<PaginatedElement> {
 	var emitted = 0
@@ -35,8 +44,18 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 	}
 }
 
+/**
+ * Map all the [PaginatedRowElement] of a [Flow] of [PaginatedElement] from their [SRC] type to a [DST] type.
+ * If the flow contains a [NextPageElement], then it will be left unchanged.
+ *
+ * @receiver a [Flow] of [PaginatedElement].
+ * @param mapper a function that can convert a [SRC] to a [DST].
+ * @return a [Flow] of [PaginatedElement].
+ * @throws IllegalStateException if there is a [PaginatedRowElement] that wraps an element which type is different
+ * from [SRC].
+ */
 @Suppress("UNCHECKED_CAST")
-fun <SRC: Identifiable<String>, DST: Serializable> Flow<PaginatedElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginatedElement> =
+fun <SRC: Identifiable<String>, DST> Flow<PaginatedElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginatedElement> =
 	map {
 		when(it) {
 			is NextPageElement<*> -> it
@@ -48,6 +67,12 @@ fun <SRC: Identifiable<String>, DST: Serializable> Flow<PaginatedElement>.mapEle
 		}
 	}
 
+/**
+ * Terminal operator for a [Flow] of [PaginatedElement]. It collects it generating a [PaginatedList].
+ *
+ * @receiver a [Flow] of [PaginatedElement].
+ * @return a [PaginatedList]
+ */
 @Suppress("UNCHECKED_CAST")
 suspend fun <T : Serializable, K> Flow<PaginatedElement>.toPaginatedList(): PaginatedList<T> {
 	var nextKey: NextPageElement<K>? = null

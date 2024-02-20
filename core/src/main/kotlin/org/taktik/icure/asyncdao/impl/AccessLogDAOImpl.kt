@@ -109,4 +109,22 @@ class AccessLogDAOImpl(
 		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>,String, AccessLog>>().map { it.doc })
 	}.distinct()
+
+	override fun findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation: IDatastoreInformation, searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val key = ComplexKey.of(searchKey, secretPatientKey)
+
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patient",
+			"by_data_owner_patient" to DATA_OWNER_PARTITION,
+			key,
+			key,
+			paginationOffset,
+			false
+		)
+
+		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]})))
+	}
 }

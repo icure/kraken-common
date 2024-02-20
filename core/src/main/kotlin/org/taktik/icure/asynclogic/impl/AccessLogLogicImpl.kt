@@ -78,6 +78,19 @@ class AccessLogLogicImpl(
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))
 	}
 
+	override fun listAccessLogBySearchKeyAndSecretPatientKey(
+		searchKey: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			accessLogDAO
+				.findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation, searchKey, secretPatientKey, paginationOffset.copy(limit = paginationOffset.limit + 1))
+				.toPaginatedFlow<AccessLog>(paginationOffset.limit)
+		)
+	}
+
 	override suspend fun getAccessLog(accessLogId: String): AccessLog? = getEntity(accessLogId)
 
 	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginatedElement> = flow {

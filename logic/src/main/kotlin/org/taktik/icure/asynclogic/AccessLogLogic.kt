@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
@@ -18,6 +17,16 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
 	fun deleteAccessLogs(ids: List<String>): Flow<DocIdentifier>
 	fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog>
+
+	/**
+	 * Retrieves all the [AccessLog]s by search key and secret patient key with support for pagination.
+	 *
+	 * @param searchKey the search key.
+	 * @param secretPatientKey the secret patient key.
+	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginatedElement] containing the [AccessLog]s.
+	 */
+	fun listAccessLogBySearchKeyAndSecretPatientKey(searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
 	/**

@@ -7,7 +7,6 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
@@ -69,4 +68,20 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	suspend fun modifyAccessLog(accessLog: AccessLog): AccessLog?
 	fun getGenericLogic(): AccessLogLogic
 	suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int): AggregatedAccessLogs
+
+	/**
+	 * Retrieves all the [AccessLog]s by search key and secret patient key with support for pagination.
+	 * All the [AccessLog]s that the current user cannot access will be filtered out by the final result.
+	 *
+	 * @param searchKey the search key.
+	 * @param secretPatientKey the secret patient key.
+	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginatedElement] containing the [AccessLog]s.
+	 * @throws AccessDeniedException if the user does not meet the precondition to execute this
+	 */
+	fun listAccessLogsBySearchKeyAndSecretPatientKey(
+		searchKey: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginatedElement>
 }
