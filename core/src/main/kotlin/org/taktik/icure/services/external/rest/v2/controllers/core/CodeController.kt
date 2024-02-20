@@ -28,9 +28,12 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.CodeService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
-import org.taktik.icure.entities.base.Code
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.BooleanResponseDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -55,14 +58,10 @@ class CodeController(
 	private val codeV2Mapper: CodeV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
-	private val codeToCodeDto = { it: Code -> codeV2Mapper.map(it) }
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input. If several types are provided, pagination is not supported")
 	@GetMapping("/byLabel")
@@ -75,18 +74,17 @@ class CodeController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-
+	): PaginatedFlux {
 		if((sanitizeString(label)?.length ?: 0) < 3) throw IllegalArgumentException("Label must contain at least 3 characters")
 
-		val realLimit = limit ?: DEFAULT_LIMIT
-
-		val startKeyElements = if (startKey == null) null else objectMapper.readValue<List<String?>>(startKey)
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		val typesList = types.split(',').toSet()
-		codeService.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
+		return codeService
+			.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
+			.mapElements(codeV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input.")
@@ -99,18 +97,19 @@ class CodeController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = if (startKey == null) null else objectMapper.readValue<List<String?>>(startKey)
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
 		val paginationOffset = PaginationOffset(
 			startKeyElements,
-			startDocumentId, null,
-			realLimit + 1
+			startDocumentId,
+			null,
+			limit ?: paginationConfig.defaultLimit
 		)
 
-		codeService.findCodesBy(region, type, code, version, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
+		return codeService
+			.findCodesBy(region, type, code, version, paginationOffset)
+			.mapElements(codeV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input.")
@@ -122,12 +121,13 @@ class CodeController(
 		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements: List<String>? = if (startKey == null) null else objectMapper.readValue<List<String>>(startKey)
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-		codeService.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
+	) : PaginatedFlux {
+		val startKeyElements: List<String>? = startKey?.let { objectMapper.readValue<List<String>>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return codeService
+			.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
+			.mapElements(codeV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Finding codes by code, type and version", description = "Returns a list of codes matched with given input.")
@@ -137,22 +137,16 @@ class CodeController(
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 		@Parameter(description = "Code code") @RequestParam(required = false) code: String?,
 		@Parameter(description = "Code version") @RequestParam(required = false) version: String?
-	): Flux<CodeDto> {
-
-		return codeService.findCodesBy(region, type, code, version)
+	) = codeService.findCodesBy(region, type, code, version)
 			.map { c -> codeV2Mapper.map(c) }
 			.injectReactorContext()
-	}
 
 	@Operation(summary = "Finding code types.", description = "Returns a list of code types matched with given input.")
 	@GetMapping("/codetype/byRegionType")
 	fun listCodeTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
-	): Flux<String> {
-		return codeService.listCodeTypesBy(region, type)
-			.injectReactorContext()
-	}
+	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Finding tag types.", description = "Returns a list of tag types matched with given input.")
 	@GetMapping("/tagtype/byRegionType")
@@ -205,25 +199,14 @@ class CodeController(
 	) = mono {
 		(languages?.let {
 			codeService.getCodeByLabel(region, label, type, it.split(","))
-		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeToCodeDto)
+		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeV2Mapper::map)
 	}
 
 	@Operation(summary = "Get a list of codes by ids", description = "Keys must be delimited by coma")
 	@PostMapping("/byIds")
-	fun getCodes(@RequestBody codeIds: ListOfIdsDto): Flux<CodeDto> {
-		return codeIds.ids.takeIf { it.isNotEmpty() }
-			?.let { ids ->
-				try {
-					codeService
-						.getCodes(ids)
-						.map { f -> codeV2Mapper.map(f) }
-						.injectReactorContext()
-				} catch (e: java.lang.Exception) {
-					throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.message).also { logger.error(it.message) }
-				}
-			}
-			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
-	}
+	fun getCodes(@RequestBody codeIds: ListOfIdsDto) = codeIds.ids.takeIf { it.isNotEmpty() }
+		?.let { ids -> codeService.getCodes(ids).map { f -> codeV2Mapper.map(f) }.injectReactorContext() }
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Get a code", description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.")
 	@GetMapping("/{codeId}")
@@ -240,7 +223,6 @@ class CodeController(
 		@Parameter(description = "Code code") @PathVariable code: String,
 		@Parameter(description = "Code version") @PathVariable version: String
 	) = mono {
-
 		val c = codeService.get(type, code, version)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code with parts. Read the app logs.")
 		codeV2Mapper.map(c)
@@ -280,12 +262,12 @@ class CodeController(
 		@RequestBody(required = false) filterChain: FilterChain<CodeDto>
 	) = mono {
 
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val startKeyList = startKey?.split(',')?.filter { it.isNotBlank() }?.map { it.trim() } ?: listOf()
 
 		val paginationOffset = PaginationOffset(startKeyList, startDocumentId, skip, realLimit + 1)
 		codeService.listCodes(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
-			.paginatedList(codeToCodeDto, realLimit)
+			.paginatedList(codeV2Mapper::map, realLimit)
 	}
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")

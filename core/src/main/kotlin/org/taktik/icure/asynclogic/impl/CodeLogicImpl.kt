@@ -36,6 +36,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.exceptions.BulkUpdateConflictException
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.aspect.Fixer
 import org.xml.sax.Attributes
@@ -179,7 +180,10 @@ class CodeLogicImpl(
 	override fun findCodesBy(region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>) =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(codeDAO.findCodesBy(datastoreInformation, region, type, code, version, paginationOffset))
+			emitAll(codeDAO
+				.findCodesBy(datastoreInformation, region, type, code, version, paginationOffset.copy(limit = paginationOffset.limit + 1))
+				.toPaginatedFlow<Code>(paginationOffset.limit)
+			)
 		}
 
 
@@ -194,20 +198,20 @@ class CodeLogicImpl(
 				// Only works if between pages the order of types is preserved
 				codeTypeStartKey != null && it != codeTypeStartKey
 			}.forEach { type ->
-				if(emitted < paginationOffset.limit) {
+				if(emitted < (paginationOffset.limit + 1)) {
 					val offset =
 						if (codeTypeStartKey == null || codeTypeStartKey == type)
 							paginationOffset
 					 	else
 							 paginationOffset.copy(startKey = null, startDocumentId = null)
 					emitAll(
-						codeDAO.findCodesByLabel(datastoreInformation, region, language, type, label, version, offset).onEach {
+						codeDAO.findCodesByLabel(datastoreInformation, region, language, type, label, version, offset.copy(limit = offset.limit + 1)).onEach {
 							if(it is ViewRowWithDoc<*, * ,*>) emitted++
 						}
 					)
 				}
 			}
-		}
+		}.toPaginatedFlow<Code>(paginationOffset.limit)
 
 	override fun listCodeIdsByLabel(region: String?, language: String, type: String, label: String?) =
 		flow {
@@ -223,7 +227,10 @@ class CodeLogicImpl(
 	override fun findCodesByQualifiedLinkId(region: String?, linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>) =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(codeDAO.findCodesByQualifiedLinkId(datastoreInformation, region, linkType, linkedId, pagination))
+			emitAll(codeDAO
+				.findCodesByQualifiedLinkId(datastoreInformation, region, linkType, linkedId, pagination.copy(limit = pagination.limit + 1))
+				.toPaginatedFlow<Code>(pagination.limit)
+			)
 		}
 
 	override fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?) =

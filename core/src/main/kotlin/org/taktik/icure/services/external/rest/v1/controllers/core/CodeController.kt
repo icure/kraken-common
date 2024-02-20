@@ -28,9 +28,12 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.CodeService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
-import org.taktik.icure.entities.base.Code
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.BooleanResponseDto
 import org.taktik.icure.services.external.rest.v1.dto.CodeDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
@@ -54,13 +57,9 @@ class CodeController(
     private val codeMapper: CodeMapper,
     private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val codeToCodeDto = { it: Code -> codeMapper.map(it) }
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Get paginated list of codes by code, type and version.", description = "Returns a list of codes matched with given input. If several types are provided, pagination is not supported")
 	@GetMapping("/byLabel")
@@ -73,19 +72,17 @@ class CodeController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-
+	): PaginatedFlux {
 		if((sanitizeString(label)?.length ?: 0) < 3) throw IllegalArgumentException("Label must contain at least 3 characters")
 
-		val realLimit = limit ?: DEFAULT_LIMIT
-
-		val startKeyElements = if (startKey == null) null else objectMapper.readValue<List<String?>>(startKey)
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		val typesList = types.split(',').toSet()
-		codeService.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
-
+		return codeService
+			.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
+			.mapElements(codeMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Gets paginated list of codes by code, type and version.", description = "Returns a list of codes matched with given input.")
@@ -98,18 +95,19 @@ class CodeController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = if (startKey == null) null else objectMapper.readValue<List<String?>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
 		val paginationOffset = PaginationOffset(
 			startKeyElements,
-			startDocumentId, null,
-			realLimit + 1
+			startDocumentId,
+			null,
+			limit ?: paginationConfig.defaultLimit
 		)
 
-		codeService.findCodesBy(region, type, code, version, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
+		return codeService
+			.findCodesBy(region, type, code, version, paginationOffset)
+			.mapElements(codeMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Gets paginated list of codes by link and link type.", description = "Returns a list of codes matched with given input.")
@@ -121,13 +119,13 @@ class CodeController(
 		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements: List<String>? = if (startKey == null) null else objectMapper.readValue<List<String>>(startKey)
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-		codeService.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
-			.paginatedList(codeToCodeDto, realLimit)
+	) : PaginatedFlux {
+		val startKeyElements: List<String>? = startKey?.let { objectMapper.readValue<List<String>>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return codeService
+			.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
+			.mapElements(codeMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Gets list of codes by code, type and version", description = "Returns a list of codes matched with given input.")
@@ -137,21 +135,16 @@ class CodeController(
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 		@Parameter(description = "Code code") @RequestParam(required = false) code: String?,
 		@Parameter(description = "Code version") @RequestParam(required = false) version: String?
-	): Flux<CodeDto> {
-
-		return codeService.findCodesBy(region, type, code, version)
+	) = codeService.findCodesBy(region, type, code, version)
 			.map { c -> codeMapper.map(c) }
 			.injectReactorContext()
-	}
 
 	@Operation(summary = "Get list of code types by region and type.", description = "Returns a list of code types matched with given input.")
 	@GetMapping("/codetype/byRegionType")
 	fun findCodeTypes(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
-	): Flux<String> {
-		return codeService.listCodeTypesBy(region, type).injectReactorContext()
-	}
+	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Gets list of tag types by region and type.", description = "Returns a list of tag types matched with given input.")
 	@GetMapping("/tagtype/byRegionType")
@@ -204,7 +197,7 @@ class CodeController(
 	) = mono {
 		(languages?.let {
 			codeService.getCodeByLabel(region, label, type, it.split(","))
-		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeToCodeDto)
+		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeMapper::map)
 	}
 
 	@Operation(summary = "Gets a list of codes by ids", description = "Get a list of codes by ids/keys. Keys must be delimited by coma")
@@ -269,13 +262,12 @@ class CodeController(
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 		@RequestBody(required = false) filterChain: FilterChain<CodeDto>
 	) = mono {
-
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val startKeyList = startKey?.split(',')?.filter { it.isNotBlank() }?.map { it.trim() } ?: listOf()
 		val paginationOffset = PaginationOffset(startKeyList, startDocumentId, skip, realLimit + 1)
 
 		codeService.listCodes(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow(), sort, desc)
-			.paginatedList(codeToCodeDto, realLimit)
+			.paginatedList(codeMapper::map, realLimit)
 	}
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
