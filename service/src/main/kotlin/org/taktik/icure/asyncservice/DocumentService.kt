@@ -106,7 +106,8 @@ interface DocumentService : EntityWithSecureDelegationsService<Document> {
 
 	/**
 	 * Retrieves all the [Document]s for the given healthcare party id and secret foreign key in a format for pagination,
-	 * filtering out all the entities that the current user cannot access.
+	 * filtering out all the entities that the current user cannot access, but it will ensure that the page
+	 * will be filled as long as there are available elements.
 	 * Note: differently from [listDocumentsByHCPartySecretMessageKeys], this method will NOT consider the available
 	 * search keys for the current user if their data owner id is equal to [hcPartyId].
 	 *
