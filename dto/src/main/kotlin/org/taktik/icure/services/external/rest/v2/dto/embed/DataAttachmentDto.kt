@@ -10,5 +10,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class DataAttachmentDto(
 	@Schema(description = "Id of the attachment, if stored as a couchdb attachment") val couchDbAttachmentId: String? = null,
 	@Schema(description = "Id of the attachment, if stored using the object storage service") val objectStoreAttachmentId: String? = null,
-	@Schema(description = "The Uniform Type Identifiers (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE) of the attachment. This is a list to allow representing a priority, but each UTI must be unique.") val utis: List<String> = emptyList()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The Uniform Type Identifiers (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE) of the attachment. This is a list to allow representing a priority, but each UTI must be unique.") val utis: List<String> = emptyList()
 ) : Serializable

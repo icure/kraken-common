@@ -24,8 +24,8 @@ data class SubContactDto(
 	override val author: String? = null,
 	override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
-	override val tags: Set<CodeStubDto> = emptySet(),
-	override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	@Schema(description = "Description of the sub-contact") val descr: String? = null,
 	@Schema(description = "Protocol based on which the sub-contact was used for linking services to structuring elements") val protocol: String? = null,
@@ -34,6 +34,6 @@ data class SubContactDto(
 	@Schema(description = "Id of the plan of action (healthcare approach) that is linked by the sub-contact to a service.") val planOfActionId: String? = null,
 	@Schema(description = "Id of the healthcare element that is linked by the sub-contact to a service") val healthElementId: String? = null,
 	val classificationId: String? = null,
-	@Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.") val services: List<ServiceLinkDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.") val services: List<ServiceLinkDto> = emptyList(),
 	override val encryptedSelf: String? = null
 ) : EncryptedDto, ICureDocumentDto<String?>

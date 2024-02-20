@@ -7,6 +7,7 @@ data class JwtRefreshCachedDetails(
      * The original username used to generate the token.
      */
     val credentials: String,
+    val authenticatorClass: String?,
     /**
      * A hash of the group id and the user id.
      */

@@ -13,6 +13,18 @@ import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import java.io.Serializable
 
+/**
+ *
+ *  __          __     _____  _   _ _____ _   _  _____
+ *  \ \        / /\   |  __ \| \ | |_   _| \ | |/ ____|
+ *   \ \  /\  / /  \  | |__) |  \| | | | |  \| | |  __
+ *    \ \/  \/ / /\ \ |  _  /| . ` | | | | . ` | | |_ |
+ *     \  /\  / ____ \| | \ \| |\  |_| |_| |\  | |__| |
+ *      \/  \/_/    \_\_|  \_\_| \_|_____|_| \_|\_____|
+ *
+ * WARNING: If you ever change this class, you must also change the deserializer
+ * Luca and Clement lost 2hr of their life because of this
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
@@ -51,6 +63,7 @@ data class CodeStub(
 
 		if (id != other.id) return false
 		if (context != other.context) return false
+		if (contextLabel != other.contextLabel) return false
 		if (type != other.type) return false
 		if (code != other.code) return false
 		if (version != other.version) return false
@@ -62,6 +75,7 @@ data class CodeStub(
 	override fun hashCode(): Int {
 		var result = id.hashCode()
 		result = 31 * result + (context?.hashCode() ?: 0)
+		result = 31 * result + (contextLabel?.hashCode() ?: 0)
 		result = 31 * result + (type?.hashCode() ?: 0)
 		result = 31 * result + (code?.hashCode() ?: 0)
 		result = 31 * result + (version?.hashCode() ?: 0)

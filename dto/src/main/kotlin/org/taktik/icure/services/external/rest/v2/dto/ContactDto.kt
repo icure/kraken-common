@@ -25,6 +25,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
@@ -48,9 +49,9 @@ data class ContactDto(
 	override val author: String? = null,
 	override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
-	override val tags: Set<CodeStubDto> = emptySet(),
-	override val codes: Set<CodeStubDto> = emptySet(),
-	@Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 
@@ -61,18 +62,19 @@ data class ContactDto(
 	@Schema(description = "Location where the contact was recorded.") val location: String? = null,
 	@Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
 	@Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
-	@Schema(description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.") val subContacts: Set<SubContactDto> = emptySet(),
-	@Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.") val subContacts: Set<SubContactDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
 
 	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, //Redundant... Should be responsible
 	@get:Deprecated("Use groupId") val modifiedContactId: String? = null,
 
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val secretForeignKeys: Set<String> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
+	override val securityMetadata: SecurityMetadataDto? = null,
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

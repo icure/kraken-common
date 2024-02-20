@@ -17,12 +17,18 @@ class CodeStubDeserializer : JsonObjectDeserializer<CodeStub>() {
 		val type = tree["type"]?.textValue()
 		val version = tree["version"]?.textValue()
 		val context = tree["context"]?.textValue()
+		val contextLabel = tree["contextLabel"]?.textValue()
 		val label = tree["label"]
 
 		val codeStub = CodeStub(
 			id = id
 				?: "$type|$code|$version",
-			code = code, type = type, version = version, context = context, label = label?.let { codec.treeToValue(it, Map::class.java) as Map<String, String> } ?: mapOf()
+			code = code,
+			type = type,
+			version = version,
+			context = context,
+			contextLabel = contextLabel,
+			label = label?.let { codec.treeToValue(it, Map::class.java) as Map<String, String> } ?: mapOf()
 		)
 		return codeStub
 	}

@@ -26,22 +26,22 @@ Any action performed by the healthcare party which is relevant for the healthcar
 data class ServiceDto(
     @Schema(description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.") override val id: String = UUID.randomUUID().toString(),
     @Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service") val transactionId: String? = null,
-    val identifier: List<IdentifierDto> = emptyList(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) val identifier: List<IdentifierDto> = emptyList(),
     @Schema(description = "Id of the contact during which the service is provided") val contactId: String? = null,
     @Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact") val subContactIds: Set<String>? = null, //Only used when the ServiceDto is emitted outside of its contact
     @Schema(description = "List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact") val plansOfActionIds: Set<String>? = null, //Only used when the ServiceDto is emitted outside of its contact
     @Schema(description = "List of IDs of all healthcare elements for which the service is provided. Only used when the Service is emitted outside of its contact") val healthElementsIds: Set<String>? = null, //Only used when the ServiceDto is emitted outside of its contact
     @Schema(description = "List of Ids of all forms linked to the Service. Only used when the Service is emitted outside of its contact.") val formIds: Set<String>? = null, //Only used when the ServiceDto is emitted outside of its contact
-    @Schema(description = "The secret patient key, encrypted in the patient document, in clear here.") val secretForeignKeys: Set<String>? = emptySet(), //Only used when the ServiceDto is emitted outside of its contact
-    @Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
-    @Schema(description = "The delegations giving access to connected healthcare information.") val delegations: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
-    @Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.") val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
+    @Schema(description = "The secret patient key, encrypted in the patient document, in clear here.") val secretForeignKeys: Set<String>? = null, //Only used when the ServiceDto is emitted outside of its contact
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The delegations giving access to connected healthcare information.") val delegations: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.") val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), //Only used when the ServiceDto is emitted outside of its contact
     @Schema(description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...") val label: String? = null,
     @get:Deprecated("Deleted in next version") val dataClassName: String? = null,
     @Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)") val index: Long? = null, //Used for sorting
-    @Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), //Localized, in the case when the service contains a document, the document id is the SerializableValue
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), //Localized, in the case when the service contains a document, the document id is the SerializableValue
     @get:Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, //Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
-    val textIndexes: Map<String, String> = emptyMap(), //Same structure as content but used for full text indexation
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) val textIndexes: Map<String, String> = emptyMap(), //Same structure as content but used for full text indexation
     @Schema(description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date") val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
     @Schema(description = "The date (YYYYMMDDhhmmss) of the start of the Service") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
     @Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the Service") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
@@ -54,11 +54,11 @@ data class ServiceDto(
     override val medicalLocationId: String? = null,
     @Schema(description = "Text, comments on the Service provided") val comment: String? = null,
     val status: Int? = null, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
-    @Schema(description = "List of invoicing codes") val invoicingCodes: Set<String> = emptySet(),
-    @Schema(description = "Comments - Notes recorded by a HCP about this service") val notes: List<AnnotationDto> = emptyList(),
-    @Schema(description = "Links towards related services (possibly in other contacts)") val qualifiedLinks: Map<LinkQualificationDto, Map<String, String>> = emptyMap(), //Links towards related services (possibly in other contacts)
-    override val codes: Set<CodeStubDto> = emptySet(), //stub object of the CodeDto used to qualify the content of the ServiceDto
-    override val tags: Set<CodeStubDto> = emptySet(), //stub object of the tag used to qualify the type of the ServiceDto
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "List of invoicing codes") val invoicingCodes: Set<String> = emptySet(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Comments - Notes recorded by a HCP about this service") val notes: List<AnnotationDto> = emptyList(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Links towards related services (possibly in other contacts)") val qualifiedLinks: Map<LinkQualificationDto, Map<String, String>> = emptyMap(), //Links towards related services (possibly in other contacts)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(), //stub object of the CodeDto used to qualify the content of the ServiceDto
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(), //stub object of the tag used to qualify the type of the ServiceDto
     override val encryptedSelf: String? = null,
     val securityMetadata: SecurityMetadataDto? = null
 ) : EncryptedDto, ICureDocumentDto<String>, Comparable<ServiceDto> {

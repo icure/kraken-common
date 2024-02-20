@@ -66,10 +66,10 @@ data class SecureDelegationKeyMapDto(
 	 * On the server side this value should always be encrypted.
 	 */
 	val delegate: String?,
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val secretForeignKeys: Set<String> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val deletionDate: Long? = null,

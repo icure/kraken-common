@@ -16,6 +16,6 @@ data class FinancialInstitutionInformationDto(
 	val bic: String? = null,
 	val proxyBankAccount: String? = null,
 	val proxyBic: String? = null,
-	val preferredFiiForPartners: Set<String> = emptySet(), //InsuranceDto Id, Hcp Id
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val preferredFiiForPartners: Set<String> = emptySet(), //InsuranceDto Id, Hcp Id
 	override val encryptedSelf: String? = null
 ) : EncryptedDto, Serializable

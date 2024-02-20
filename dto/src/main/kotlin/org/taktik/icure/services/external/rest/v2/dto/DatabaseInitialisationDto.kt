@@ -24,8 +24,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DatabaseInitialisationDto(
-    val users: List<UserDto>? = emptyList(),
-    val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
+    val users: List<UserDto>? = null,
+    val healthcareParties: List<HealthcarePartyDto>? = null,
     val replication: ReplicationDto? = null,
     val minimumKrakenVersion: String?,
 ) : Serializable

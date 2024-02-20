@@ -304,10 +304,6 @@ open class UserLogicImpl (
 		getByLogin: suspend (login: String) -> User?,
 		createUser: suspend (updatedUser: User) -> User?,
 	): User? {
-		if (user.permissions.isNotEmpty()) {
-			log.warn("Trying to provide permissions ${user.permissions} to user ${user.id} during its creation. Those permissions will not be saved in the User.")
-		}
-
 		val login = user.login?.takeIf { it.isNotBlank() }
 			?: user.email?.takeIf { it.isNotBlank() } // TODO we could check with a regex if it is a valid email
 			?: user.mobilePhone?.takeIf { it.isNotBlank() } // TODO we could check with a regex if it is a valid phone number
@@ -330,8 +326,6 @@ open class UserLogicImpl (
 				email = user.email?.takeIf { it.isNotBlank() },
 				mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
 				applicationTokens = emptyMap(),
-				permissions = emptySet(),
-				roles = emptySet(),
 			).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)
 		) {
 			createUser(it)

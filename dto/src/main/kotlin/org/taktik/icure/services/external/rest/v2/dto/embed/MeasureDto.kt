@@ -35,5 +35,5 @@ data class MeasureDto(
 	val comment: String? = null,
 	val comparator: String? = null,
 	val sign: String? = null,
-	val referenceRanges: List<ReferenceRangeDto> = emptyList()
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val referenceRanges: List<ReferenceRangeDto> = emptyList()
 ) : Serializable

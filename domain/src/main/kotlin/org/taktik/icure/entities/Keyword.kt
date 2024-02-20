@@ -38,10 +38,10 @@ data class Keyword(
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) val subWords: Set<KeywordSubword> = emptySet(),
 	val userId: String? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap(),
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap()
+	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
 ) : StoredICureDocument {
 	companion object : DynamicInitializer<Keyword>

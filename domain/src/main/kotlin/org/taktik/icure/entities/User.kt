@@ -17,6 +17,7 @@ import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
+import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
@@ -68,6 +69,8 @@ data class User(
     @JsonProperty("deleted") override val deletionDate: Long? = null,
     @field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 
+    val identifier: List<Identifier> = listOf(),
+
     @param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
     override val properties: Set<PropertyStub> = emptySet(),
     /**
@@ -111,10 +114,10 @@ data class User(
      */
     @JsonIgnore val systemMetadata: SystemMetadata? = null,
 
-    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = emptyMap(),
-    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = emptyList(),
-    @JsonProperty("_conflicts") override val conflicts: List<String>? = emptyList(),
-    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = emptyMap(),
+    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+    @JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredDocument, Principal, Cloneable, Serializable, BaseUser {
     companion object : DynamicInitializer<User> {
         data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
@@ -148,9 +151,6 @@ data class User(
 
     override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
     override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-
-    @JsonIgnore
-    override fun getParents(): Set<String> = this.roles
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)

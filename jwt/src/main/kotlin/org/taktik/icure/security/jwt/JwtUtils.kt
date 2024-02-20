@@ -135,10 +135,10 @@ class JwtUtils(
     ): T =
         jwtDetailsFromClaims(converter, decodeAndGetClaims(jwt, ignoreExpiration))
 
-    fun decodeAndGetClaims(jwt: String, ignoreExpiration: Boolean = false): Claims =
+    fun decodeAndGetClaims(jwt: String, ignoreExpiration: Boolean = false, publicKey: PublicKey = authKeyPair.public): Claims =
         try {
             Jwts.parserBuilder()
-                .setSigningKey(authKeyPair.public)
+                .setSigningKey(publicKey)
                 .build()
                 .parseClaimsJws(jwt)
                 .body

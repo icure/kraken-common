@@ -27,6 +27,7 @@ sealed interface DataAttachmentChange {
     data class CreateOrUpdate(
         val data: Flow<DataBuffer>,
         val size: Long,
-        val utis: List<String>?
+        val utis: List<String>?,
+        val dataIsEncrypted: Boolean
     ) : DataAttachmentChange
 }

@@ -232,24 +232,26 @@ class DocumentController(
 			HttpStatus.BAD_REQUEST,
 			"`enckeys` must contain at least a valid aes key"
 		)
-		val (newPayload, newSize) =
-			if (validEncryptionKeys?.isNotEmpty() == true) Pair(
+		val (newPayload, newSize, encrypted) =
+			if (validEncryptionKeys?.isNotEmpty() == true) Triple(
 				// Encryption should never fail if the key is valid
 				CryptoUtils.encryptFlowAES(payload, validEncryptionKeys.first())
 					.map { DefaultDataBufferFactory.sharedInstance.wrap(it) },
-				size?.let { CryptoUtils.predictAESEncryptedSize(it) }
-			) else (payload to size)
+				size?.let { CryptoUtils.predictAESEncryptedSize(it) },
+				true
+			) else Triple(payload, size, false)
 		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("Document not found")
 		checkRevision(rev, document)
 		val mainAttachmentChange =
 			if (newSize != null)
-				DataAttachmentChange.CreateOrUpdate(newPayload, newSize, utis)
+				DataAttachmentChange.CreateOrUpdate(newPayload, newSize, utis, encrypted)
 			else
 				newPayload.toByteArray(true).let { payloadBytes ->
 					DataAttachmentChange.CreateOrUpdate(
 						flowOf(DefaultDataBufferFactory.sharedInstance.wrap(payloadBytes)),
 						payloadBytes.size.toLong(),
-						utis
+						utis,
+						encrypted
 					)
 				}
 		documentService.updateAttachmentsWrappingExceptions(
@@ -442,7 +444,8 @@ class DocumentController(
 				key to DataAttachmentChange.CreateOrUpdate(
 					payload,
 					attachmentSize,
-					utis
+					utis,
+					false
 				)
 			)
 		).let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
@@ -554,7 +557,8 @@ class DocumentController(
 				HttpStatus.BAD_REQUEST,
 				"Missing size information for $name: you must provide the size of the attachment in bytes using a Content-Length part header."
 			),
-			metadata?.utis
+			metadata?.utis,
+			false
 		)
 
 	private fun checkRevision(rev: String?, document: Document) {
