@@ -30,7 +30,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
+	@Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
 	@Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
 	@Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
 	@Schema(description = "Is dental care covered.") val dental: Boolean? = null,

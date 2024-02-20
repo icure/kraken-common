@@ -10,6 +10,6 @@ data class RegistrationInformationDto(
 	val lastName: String,
 	val emailAddress: String,
 	val userOptions: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val userRoles:Set<String> = emptySet(),
+	val userRoles:Set<String> = emptySet(),
 	val minimumKrakenVersion: String? = null,
 )

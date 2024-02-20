@@ -13,7 +13,7 @@ data class SecurityDto(
 	val admins: RightDto = RightDto(),
 	val members: RightDto = RightDto()
 ) : Serializable {
-	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 		data class RightDto(val names: Set<String> = emptySet(), val roles: Set<String> = emptySet())
 }

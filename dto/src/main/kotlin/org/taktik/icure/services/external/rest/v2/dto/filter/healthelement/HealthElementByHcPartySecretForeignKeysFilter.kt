@@ -15,5 +15,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class HealthElementByHcPartySecretForeignKeysFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val patientSecretForeignKeys: Set<String> = emptySet(),
+	val patientSecretForeignKeys: Set<String> = emptySet(),
 ) : AbstractFilterDto<HealthElementDto>
