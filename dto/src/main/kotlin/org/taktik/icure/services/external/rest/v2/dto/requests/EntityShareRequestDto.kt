@@ -32,15 +32,15 @@ data class EntityShareRequestDto(
     /**
      * Encrypted secret ids to share with the delegate.
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) val secretIds: Set<Base64String> = emptySet(),
+    val secretIds: Set<Base64String> = emptySet(),
     /**
      * Encrypted encryption keys to share with the delegate.
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) val encryptionKeys: Set<Base64String> = emptySet(),
+    val encryptionKeys: Set<Base64String> = emptySet(),
     /**
      * Encrypted owning entity ids to share with the delegate.
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) val owningEntityIds: Set<Base64String> = emptySet(),
+    val owningEntityIds: Set<Base64String> = emptySet(),
     /**
      * Id of the exchange data used for the encryption of the ids and keys to share. Must be null at least one of
      * delegator or delegate is not explicit.
@@ -50,7 +50,7 @@ data class EntityShareRequestDto(
      * Must be non-empty if exactly one of delegator or delegate is explicit and the other is not, empty in all other
      * cases.
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) val encryptedExchangeDataId: Map<KeypairFingerprintString, Base64String> = emptyMap(),
+    val encryptedExchangeDataId: Map<KeypairFingerprintString, Base64String> = emptyMap(),
     /**
      * Permissions for the delegate.
      */

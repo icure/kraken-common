@@ -24,7 +24,6 @@ access control secret and secret foreign key of the entity: what happens if the 
 delegate may have access to only one of them but not all, so if we chose an unlucky secret foreign key in the creation of the
 access control key the delegate will never be able to access the entity. This field allows to essentially create an access control
 key and corresponding secure delegation key for each secret foreign key without having to replicate the actual secure delegation.""")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val keysEquivalences: Map<Sha256HexString, Sha256HexString> = emptyMap()
 )
 

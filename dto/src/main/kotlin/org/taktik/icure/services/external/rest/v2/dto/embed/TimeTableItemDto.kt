@@ -34,9 +34,9 @@ data class TimeTableItemDto(
 	val notAfterInMinutes: Int? = null,
 	val zoneId: String? = null,
 
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val hours: List<TimeTableHourDto> = emptyList(),
+	@Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
+	@Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
+	val hours: List<TimeTableHourDto> = emptyList(),
 	val calendarItemTypeId: String? = null,
 
 	val homeVisit: Boolean = false,

@@ -8,7 +8,7 @@ data class AppointmentTypeAndPlaceDto(
 	val name: String? = null,
 	val color: String? = null, //"#123456"
 	@Schema(defaultValue = "0") val duration: Int = 0,
-	val subjectByLanguage: Map<String, String>? = null,
+	val subjectByLanguage: Map<String, String>? = emptyMap(),
 	val placeId: String?,
 	val address: AddressDto?,
 	val acceptsNewPatients: Boolean = true,

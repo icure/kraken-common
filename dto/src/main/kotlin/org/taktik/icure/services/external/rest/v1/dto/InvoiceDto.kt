@@ -31,16 +31,16 @@ data class InvoiceDto(
 	override val author: String? = null,
 	override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val codes: Set<CodeStubDto> = emptySet(),
+	override val tags: Set<CodeStubDto> = emptySet(),
+	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 
 	@Schema(description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.") val invoiceDate: Long? = null, // yyyyMMdd
 	@Schema(description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.") val sentDate: Long? = null,
 	@Schema(description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.") val printedDate: Long? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "") val receipts: Map<String, String> = emptyMap(),
+	val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
+	@Schema(description = "") val receipts: Map<String, String> = emptyMap(),
 	@Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v1.dto.HealthcarePartyDto,
 
 	// org.taktik.icure.services.external.rest.v1.dto.InsuranceDto, org.taktik.icure.services.external.rest.v1.dto.PatientDto
@@ -97,10 +97,10 @@ data class InvoiceDto(
 	val cancelDate: Long? = null,
 	val options: Map<String, String> = emptyMap(),
 
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val secretForeignKeys: Set<String> = emptySet(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val secretForeignKeys: Set<String> = emptySet(),
+	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadataDto? = null
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {

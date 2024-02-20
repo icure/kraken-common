@@ -14,6 +14,6 @@ data class FlatRateTarificationDto(
 	val code: String? = null,
 	val flatRateType: FlatRateTypeDto? = null,
 	val label: Map<String, String>? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val valorisations: List<ValorisationDto> = emptyList(),
+	val valorisations: List<ValorisationDto> = emptyList(),
 	override val encryptedSelf: String? = null
 ) : EncryptedDto, Serializable

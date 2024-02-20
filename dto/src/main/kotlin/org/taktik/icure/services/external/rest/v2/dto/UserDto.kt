@@ -46,9 +46,9 @@ data class UserDto(
 	val identifier: List<IdentifierDto> = listOf(),
 
 	@Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.") override val name: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system") val permissions: Set<PermissionDto> = emptySet(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system") val roles: Set<String> = emptySet(),
+	@Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
+	@Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system") val permissions: Set<PermissionDto> = emptySet(),
+	@Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system") val roles: Set<String> = emptySet(),
 	@Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: Users.Type? = null,
 	@Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: Users.Status? = null,
 	@Schema(description = "Username for this user. We encourage using an email address") val login: String? = null,
@@ -57,7 +57,7 @@ data class UserDto(
 	@Schema(description = "Id of the healthcare party if the user is a healthcare party.") val healthcarePartyId: String? = null,
 	@Schema(description = "Id of the patient if the user is a patient") val patientId: String? = null,
 	@Schema(description = "Id of the device if the user is a device") val deviceId: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user") val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), //DelegationTagDto -> healthcarePartyIds
+	@Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user") val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), //DelegationTagDto -> healthcarePartyIds
 
 	@JsonSerialize(using = InstantSerializer::class)
 	@JsonInclude(JsonInclude.Include.NON_NULL)
@@ -71,8 +71,8 @@ data class UserDto(
 	@Schema(description = "email address of the user (used for token exchange or password recovery).") val email: String? = null,
 	@Schema(description = "mobile phone of the user (used for token exchange or password recovery).") val mobilePhone: String? = null,
 
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @get:Deprecated("Long lived authentication tokens used for inter-applications authentication.") val applicationTokens: Map<String, String> = emptyMap(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication") val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
+	@get:Deprecated("Long lived authentication tokens used for inter-applications authentication.") val applicationTokens: Map<String, String> = emptyMap(),
+	@Schema(description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication") val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
 
 	@Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.") val systemMetadata: UserDto.SystemMetadata? = null,
 ) : StoredDocumentDto, PrincipalDto, Cloneable, Serializable {

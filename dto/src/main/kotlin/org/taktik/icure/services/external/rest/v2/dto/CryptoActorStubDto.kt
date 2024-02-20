@@ -15,13 +15,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 data class CryptoActorStubDto(
     override val id: String,
     override val rev: String, // Stubs can't be created, but only updated or retrieved: rev is never null.
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val privateKeyShamirPartitions: Map<String, String> = emptyMap(),
+    override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
+    override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
+    override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
+    override val privateKeyShamirPartitions: Map<String, String> = emptyMap(),
     override val publicKey: String? = null,
     override val publicKeysForOaepWithSha256: Set<String>,
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) override val tags: Set<CodeStubDto> = emptySet(),
+    override val tags: Set<CodeStubDto> = emptySet(),
 ) : VersionableDto<String>, CryptoActorDto, HasTagsDto {
     override fun withIdRev(id: String?, rev: String): CryptoActorStubDto =
         copy(id = id ?: this.id, rev = rev)
