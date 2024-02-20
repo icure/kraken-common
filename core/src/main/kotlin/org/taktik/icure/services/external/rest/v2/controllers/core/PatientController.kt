@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.base.Splitter
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.AccessLogService
@@ -118,6 +120,22 @@ class PatientController(
 		}
 	}
 
+	@Operation(summary = "List patients of a specific HcParty or of the current HcParty ", description = "Returns a list of patients along with next start keys and Document ID. If the nextStartKey is " + "Null it means that this is the last page.")
+	@GetMapping("/ofHcParty/{hcPartyId}")
+	fun listPatientsOfHcParty(
+		@PathVariable hcPartyId: String,
+		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false) sortField: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: String
+	) = mono {
+		val realLimit = limit ?: DEFAULT_LIMIT
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+		patientService.findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(hcPartyId, paginationOffset, null, Sorting(sortField, sortDirection)).paginatedList(patientToPatientDto, realLimit)
+	}
+
 	@Operation(summary = "List patients that have been merged towards another patient ", description = "Returns a list of patients that have been merged after the provided date")
 	@GetMapping("/merges/{date}")
 	fun listOfMergesAfter(@PathVariable date: Long) =
@@ -139,6 +157,18 @@ class PatientController(
 				) + 1
 		).paginatedList(patientToPatientDto, limit ?: DEFAULT_LIMIT)
 	}
+
+	@Operation(summary = "List patients for a specific HcParty or for the current HcParty ", description = "Returns a list of patients along with next start keys and Document ID. If the nextStartKey is " + "Null it means that this is the last page.")
+	@GetMapping("/hcParty/{hcPartyId}")
+	fun listPatientsByHcParty(
+		@PathVariable hcPartyId: String,
+		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false) sortField: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false) sortDirection: String?
+	) =
+		findPatientsByHealthcareParty(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection ?: "asc")
 
 	@Suppress("DEPRECATION")
 	@GetMapping("/{patientId}/keys")
