@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -27,12 +28,16 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -45,6 +50,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -66,10 +72,6 @@ class HealthElementController(
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(
 		summary = "Create a healthcare element with the current user",
@@ -99,7 +101,7 @@ class HealthElementController(
 		emitAll(healthElements.map { c -> healthElementMapper.map(c) })
 	}.injectReactorContext()
 
-	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<HealthElementDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
@@ -110,7 +112,25 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Operation(summary = "List healthcare elements found By Healthcare Party and a secret foreign key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findHealthElementsByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return healthElementService
+			.listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
+			.mapElements(healthElementMapper::map)
+			.asPaginatedFlux()
+	}
+
+
+	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<HealthElementDto> {
 		val elementList = healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
@@ -120,7 +140,7 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -143,7 +163,7 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "Update delegations in healthElements.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Update delegations in healthElements.")
 	@PostMapping("/delegations")
 	fun setHealthElementsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
 		val healthElements = healthElementService.getHealthElements(stubs.map { it.id }).map { he ->
@@ -228,7 +248,7 @@ class HealthElementController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<HealthElementDto>
 	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		val healthElements = healthElementService.filter(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())

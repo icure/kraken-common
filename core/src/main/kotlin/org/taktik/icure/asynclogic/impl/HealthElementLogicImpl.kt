@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.TotalCount
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.HealthElementDAO
@@ -29,6 +30,9 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
@@ -78,6 +82,18 @@ class HealthElementLogicImpl (
 			emitAll(healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 		}
 
+	override fun listHealthElementsByHCPartyIdAndSecretPatientKey(
+		hcPartyId: String,
+		secretPatientKey: String,
+		offset: PaginationOffset<ComplexKey>
+	): Flow<PaginatedElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			healthElementDAO
+				.listHealthElementsByHCPartyIdAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, offset.limitIncludingKey())
+				.toPaginatedFlow<HealthElement>(offset.limit)
+		)
+	}
 
 	override fun listHealthElementIdsByHcParty(hcpId: String) =
 		flow {

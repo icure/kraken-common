@@ -38,8 +38,10 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
 	 * @param hcPartyId the id of the healthcare party to look for in the delegations.
 	 * @param secretPatientKey the secret patient key, that will be searched in [HealthElement.secretForeignKeys].
+	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [ViewQueryResultEvent] containing the [HealthElement]s.
 	 */
-	// fun listHealthElementsByHCPartyIdAndSecretPatientKey(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun listHealthElementsByHCPartyIdAndSecretPatientKey(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<HealthElement>
 

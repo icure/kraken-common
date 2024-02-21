@@ -19,6 +19,7 @@ import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.*
@@ -196,7 +197,23 @@ internal class HealthElementDAOImpl(
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, HealthElement>>().map { it.doc }.distinctById())
+	}
 
+	override fun listHealthElementsByHCPartyIdAndSecretPatientKey(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		secretPatientKey: String,
+		offset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(hcPartyId, secretPatientKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patient",
+			"by_data_owner_patient" to DATA_OWNER_PARTITION,
+			key, key, offset, false
+		)
+		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]})))
 	}
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id )}")
