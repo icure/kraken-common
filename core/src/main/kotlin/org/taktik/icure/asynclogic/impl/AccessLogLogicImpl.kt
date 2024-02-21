@@ -29,6 +29,7 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedList
 import org.taktik.icure.validation.aspect.Fixer
@@ -86,7 +87,7 @@ class AccessLogLogicImpl(
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			accessLogDAO
-				.findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation, searchKey, secretPatientKey, paginationOffset.copy(limit = paginationOffset.limit + 1))
+				.findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation, searchKey, secretPatientKey, paginationOffset.limitIncludingKey())
 				.toPaginatedFlow<AccessLog>(paginationOffset.limit)
 		)
 	}
@@ -96,7 +97,7 @@ class AccessLogLogicImpl(
 	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginatedElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO
-			.listAccessLogsByDate(datastoreInformation, fromEpoch, toEpoch, paginationOffset.copy(limit = paginationOffset.limit + 1), descending)
+			.listAccessLogsByDate(datastoreInformation, fromEpoch, toEpoch, paginationOffset.limitIncludingKey(), descending)
 			.toPaginatedFlow<AccessLog>(paginationOffset.limit)
 		)
 	}
@@ -171,7 +172,7 @@ class AccessLogLogicImpl(
 	override fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginatedElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO
-			.findAccessLogsByUserAfterDate(datastoreInformation, userId, accessType, startDate, pagination.copy(limit = pagination.limit + 1), descending)
+			.findAccessLogsByUserAfterDate(datastoreInformation, userId, accessType, startDate, pagination.limitIncludingKey(), descending)
 			.toPaginatedFlow<AccessLog>(pagination.limit)
 		)
 	}

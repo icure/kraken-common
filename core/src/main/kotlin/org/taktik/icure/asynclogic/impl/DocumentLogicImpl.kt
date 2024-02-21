@@ -35,6 +35,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.properties.CouchDbProperties
 import org.taktik.icure.validation.aspect.Fixer
@@ -224,7 +225,7 @@ class DocumentLogicImpl(
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			documentDAO.listDocumentsByHcPartyIdAndSecretMessageKey(
-				datastoreInformation, hcPartyId, secretForeignKey, paginationOffset.copy(limit = paginationOffset.limit + 1)
+				datastoreInformation, hcPartyId, secretForeignKey, paginationOffset.limitIncludingKey()
 			).toPaginatedFlow<Document>(paginationOffset.limit)
 		)
 	}

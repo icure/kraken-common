@@ -42,6 +42,7 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -93,7 +94,7 @@ class ContactLogicImpl(
 				datastoreInformation,
 				hcPartyId,
 				secretPatientKey,
-				paginationOffset.copy(limit = paginationOffset.limit + 1)
+				paginationOffset.limitIncludingKey()
 			).toPaginatedFlow<Contact>(paginationOffset.limit)
 		)
 	}
@@ -417,7 +418,7 @@ class ContactLogicImpl(
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByOpeningDate(
-				datastoreInformation, hcPartyId, startOpeningDate, endOpeningDate, offset.copy(limit = offset.limit + 1)
+				datastoreInformation, hcPartyId, startOpeningDate, endOpeningDate, offset.limitIncludingKey()
 			).toPaginatedFlow<Contact>(offset.limit)
 		)
 	}

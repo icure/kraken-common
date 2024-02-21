@@ -30,6 +30,7 @@ import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -75,9 +76,9 @@ class FormLogicImpl(
 		paginationOffset: PaginationOffset<ComplexKey>
 	): Flow<PaginatedElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(formDAO.listFormsByHcPartyIdPatientSecretKey(
-				datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.copy(limit = paginationOffset.limit + 1)
-			).toPaginatedFlow<Form>(paginationOffset.limit)
+		emitAll(formDAO
+			.listFormsByHcPartyIdPatientSecretKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Form>(paginationOffset.limit)
 		)
 	}
 

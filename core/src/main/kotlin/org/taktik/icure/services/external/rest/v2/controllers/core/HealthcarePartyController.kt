@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -25,13 +27,18 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthcarePartyService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.exceptions.DocumentNotFoundException
 import org.taktik.icure.exceptions.MissingRequirementsException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto
@@ -42,6 +49,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Map
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -56,12 +64,11 @@ class HealthcarePartyController(
     private val healthcarePartyV2Mapper: HealthcarePartyV2Mapper,
     private val filterChainV2Mapper: FilterChainV2Mapper,
     private val filterV2Mapper: FilterV2Mapper,
+    private val paginationConfig: SharedPaginationConfig,
+    private val objectMapper: ObjectMapper
 ) {
-    private val healthcarePartyToHealthcarePartyDto = { it: HealthcareParty -> healthcarePartyV2Mapper.map(it) }
-
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-        private const val DEFAULT_LIMIT = 1000
     }
 
     @Operation(
@@ -79,7 +86,7 @@ class HealthcarePartyController(
     }
 
     @Operation(
-        summary = "List healthcare parties with(out) pagination",
+        summary = "List healthcare parties with pagination",
         description = "Returns a list of healthcare parties."
     )
     @GetMapping
@@ -88,17 +95,16 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-    ) = mono {
-
-        val realLimit = limit ?: DEFAULT_LIMIT
-        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
-
-        healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
-            .paginatedList(healthcarePartyToHealthcarePartyDto, realLimit)
+    ): PaginatedFlux {
+        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+        return healthcarePartyService
+            .findHealthcarePartiesBy(paginationOffset, desc)
+            .mapElements(healthcarePartyV2Mapper::map)
+            .asPaginatedFlux()
     }
 
     @Operation(
-        summary = "Find healthcare parties by name with(out) pagination",
+        summary = "Find healthcare parties by name with pagination",
         description = "Returns a list of healthcare parties."
     )
     @GetMapping("/byName")
@@ -108,19 +114,17 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-    ) = mono {
-
-        val realLimit = limit ?: DEFAULT_LIMIT
-        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
-        if (name.isNullOrEmpty()) {
+    ): PaginatedFlux {
+        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+        return if (name.isNullOrEmpty()) {
             healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
         } else {
             healthcarePartyService.findHealthcarePartiesBy(name, paginationOffset, desc)
-        }.paginatedList(healthcarePartyToHealthcarePartyDto, realLimit)
+        }.mapElements(healthcarePartyV2Mapper::map).asPaginatedFlux()
     }
 
     @Operation(
-        summary = "Find healthcare parties by nihii or ssin with(out) pagination",
+        summary = "Find healthcare parties by nihii or ssin with pagination",
         description = "Returns a list of healthcare parties."
     )
     @GetMapping("/byNihiiOrSsin/{searchValue}")
@@ -130,31 +134,29 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean
-    ) = mono {
-
-        val realLimit = limit ?: DEFAULT_LIMIT
-        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
-
-        healthcarePartyService.findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
-            .paginatedList(healthcarePartyToHealthcarePartyDto, realLimit)
+    ): PaginatedFlux {
+        val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+        return healthcarePartyService
+            .findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
+            .mapElements(healthcarePartyV2Mapper::map)
+            .asPaginatedFlux()
     }
 
     @Operation(
-        summary = "Find healthcare parties by name with(out) pagination",
+        summary = "Find healthcare parties by name without pagination",
         description = "Returns a list of healthcare parties."
     )
     @GetMapping("/byNameStrict/{name}")
     fun listHealthcarePartiesByName(
         @Parameter(description = "The Last name search value")
         @PathVariable name: String
-    ) =
-        healthcarePartyService.listHealthcarePartiesByName(name)
-            .map { healthcarePartyV2Mapper.map(it) }
-            .injectReactorContext()
+    ) = healthcarePartyService.listHealthcarePartiesByName(name)
+        .map { healthcarePartyV2Mapper.map(it) }
+        .injectReactorContext()
 
     @Operation(
-        summary = "Find healthcare parties by name with(out) pagination",
-        description = "Returns a list of healthcare parties."
+        summary = "Find healthcare parties by name with pagination",
+        description = "Returns a paginated list of healthcare parties."
     )
     @GetMapping("/bySpecialityAndPostCode/{type}/{spec}/{firstCode}/to/{lastCode}")
     fun findHealthcarePartiesBySpecialityAndPostCode(
@@ -162,10 +164,16 @@ class HealthcarePartyController(
         @Parameter(description = "The speciality of the HCP") @PathVariable spec: String,
         @Parameter(description = "The first postCode for the HCP") @PathVariable firstCode: String,
         @Parameter(description = "The last postCode for the HCP") @PathVariable lastCode: String,
+        @Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: StartKeyJsonString?,
+        @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-    ) = mono {
-        healthcarePartyService.listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode)
-            .paginatedList(healthcarePartyToHealthcarePartyDto, limit ?: DEFAULT_LIMIT)
+    ): PaginatedFlux {
+        val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+        val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+        return healthcarePartyService
+            .listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode, paginationOffset)
+            .mapElements(healthcarePartyV2Mapper::map)
+            .asPaginatedFlux()
     }
 
     @Operation(
@@ -304,11 +312,11 @@ class HealthcarePartyController(
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @RequestBody filterChain: FilterChain<HealthcarePartyDto>
     ) = mono {
-        val realLimit = limit ?: DEFAULT_LIMIT
+        val realLimit = limit ?: paginationConfig.defaultLimit
         val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
         val healthcareParties =
             healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-        healthcareParties.paginatedList(healthcarePartyToHealthcarePartyDto, realLimit)
+        healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit)
     }
 }

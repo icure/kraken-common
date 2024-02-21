@@ -71,7 +71,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_speciality_postcode", map = "classpath:js/healthcareparty/By_speciality_postcode.js")
-	override fun listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation: IDatastoreInformation, type: String, spec: String, firstCode: String, lastCode: String) = flow {
+	override fun listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation: IDatastoreInformation, type: String, spec: String, firstCode: String, lastCode: String, offset: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
@@ -79,10 +79,10 @@ internal class HealthcarePartyDAOImpl(
 			"by_speciality_postcode",
 			ComplexKey.of(type, spec, firstCode),
 			ComplexKey.of(type, spec, lastCode),
-			PaginationOffset(10000),
+			offset,
 			false
 		)
-		emitAll(client.queryView(viewQuery, Array<String>::class.java, String::class.java, HealthcareParty::class.java))
+		emitAll(client.queryView(viewQuery, ComplexKey::class.java, String::class.java, HealthcareParty::class.java))
 	}
 
 	@View(name = "allForPagination", map = "classpath:js/healthcareparty/All_for_pagination.js")

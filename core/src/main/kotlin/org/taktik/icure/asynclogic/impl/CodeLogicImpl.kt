@@ -36,6 +36,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.exceptions.BulkUpdateConflictException
+import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.aspect.Fixer
@@ -181,7 +182,7 @@ class CodeLogicImpl(
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			emitAll(codeDAO
-				.findCodesBy(datastoreInformation, region, type, code, version, paginationOffset.copy(limit = paginationOffset.limit + 1))
+				.findCodesBy(datastoreInformation, region, type, code, version, paginationOffset.limitIncludingKey())
 				.toPaginatedFlow<Code>(paginationOffset.limit)
 			)
 		}
@@ -205,7 +206,7 @@ class CodeLogicImpl(
 					 	else
 							 paginationOffset.copy(startKey = null, startDocumentId = null)
 					emitAll(
-						codeDAO.findCodesByLabel(datastoreInformation, region, language, type, label, version, offset.copy(limit = offset.limit + 1)).onEach {
+						codeDAO.findCodesByLabel(datastoreInformation, region, language, type, label, version, offset.limitIncludingKey()).onEach {
 							if(it is ViewRowWithDoc<*, * ,*>) emitted++
 						}
 					)
@@ -228,7 +229,7 @@ class CodeLogicImpl(
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			emitAll(codeDAO
-				.findCodesByQualifiedLinkId(datastoreInformation, region, linkType, linkedId, pagination.copy(limit = pagination.limit + 1))
+				.findCodesByQualifiedLinkId(datastoreInformation, region, linkType, linkedId, pagination.limitIncludingKey())
 				.toPaginatedFlow<Code>(pagination.limit)
 			)
 		}

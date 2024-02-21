@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.transform
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.id.Identifiable
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.utils.PaginatedDocumentKeyIdPair
 import org.taktik.icure.entities.utils.PaginatedList
 import java.io.Serializable
@@ -90,3 +91,11 @@ suspend fun <T : Serializable, K> Flow<PaginatedElement>.toPaginatedList(): Pagi
 		nextKeyPair = PaginatedDocumentKeyIdPair(startKey = nextKey?.startKey, startKeyDocId = nextKey?.startKeyDocId)
 	)
 }
+
+/**
+ * Increases the limit of the current [PaginationOffset] by one to take into account the extra element to retrieve as
+ * key.
+ * @receiver a [PaginationOffset]
+ * @return a copy of the [PaginationOffset] with increased limit.
+ */
+fun <T> PaginationOffset<T>.limitIncludingKey() = copy(limit = limit + 1)

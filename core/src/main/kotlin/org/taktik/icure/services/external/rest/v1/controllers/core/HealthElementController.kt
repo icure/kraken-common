@@ -4,6 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -30,6 +31,7 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v1.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
@@ -59,7 +61,9 @@ class HealthElementController(
     private val delegationMapper: DelegationMapper,
     private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val stubMapper: StubMapper
+    private val stubMapper: StubMapper,
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
