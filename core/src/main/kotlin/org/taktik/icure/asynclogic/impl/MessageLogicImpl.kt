@@ -17,7 +17,6 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -33,7 +32,9 @@ import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.exceptions.PersistenceException
+import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 import javax.security.auth.login.LoginException
@@ -50,13 +51,23 @@ class MessageLogicImpl(
     fixer: Fixer
 ) : EncryptableEntityLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), MessageLogic {
 
-	@Throws(LoginException::class)
 	override fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO.listMessagesByHcPartyAndPatient(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	@Throws(PersistenceException::class)
+	override fun listMessagesByHcPartySecretPatientKey(
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginatedElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(messageDAO
+			.listMessagesByHcPartyAndPatient(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
+	}
+
 	override fun setStatus(messages: Collection<Message>, status: Int): Flow<Message> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
@@ -68,7 +79,6 @@ class MessageLogicImpl(
 		)
 	}
 
-	@Throws(PersistenceException::class)
 	override fun setReadStatus(messages: Collection<Message>, userId: String, status: Boolean, time: Long) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
@@ -86,33 +96,51 @@ class MessageLogicImpl(
 
 	override fun findForHcPartySortedByReceived(hcPartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.findMessagesByHcPartySortedByReceived(datastoreInformation, hcPartyId, paginationOffset))
+		emitAll(messageDAO
+			.findMessagesByHcPartySortedByReceived(datastoreInformation, hcPartyId, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override fun findMessagesByFromAddress(
-		partyId: String, fromAddress: String, paginationOffset: PaginationOffset<ComplexKey>
-	) = flow {
+		partyId: String,
+		fromAddress: String,
+		paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.listMessagesByFromAddress(datastoreInformation, partyId, fromAddress, paginationOffset))
+		emitAll(messageDAO
+			.listMessagesByFromAddress(datastoreInformation, partyId, fromAddress, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override fun findMessagesByToAddress(partyId: String, toAddress: String, paginationOffset: PaginationOffset<ComplexKey>, reverse: Boolean) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.findMessagesByToAddress(datastoreInformation, partyId, toAddress, paginationOffset, reverse))
+		emitAll(messageDAO
+			.findMessagesByToAddress(datastoreInformation, partyId, toAddress, paginationOffset.limitIncludingKey(), reverse)
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override fun findMessagesByTransportGuidReceived(
-		partyId: String, transportGuid: String?, paginationOffset: PaginationOffset<ComplexKey>
+		partyId: String,
+		transportGuid: String?,
+		paginationOffset: PaginationOffset<ComplexKey>
 	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.findMessagesByTransportGuidReceived(datastoreInformation, partyId, transportGuid, paginationOffset))
+		emitAll(messageDAO
+			.findMessagesByTransportGuidReceived(datastoreInformation, partyId, transportGuid, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override fun findMessagesByTransportGuid(
-		partyId: String, transportGuid: String?, paginationOffset: PaginationOffset<List<String?>>
+		partyId: String, transportGuid: String?, paginationOffset: PaginationOffset<ComplexKey>
 	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.findMessagesByTransportGuid(datastoreInformation, partyId, transportGuid, paginationOffset))
+		emitAll(messageDAO
+			.findMessagesByTransportGuid(datastoreInformation, partyId, transportGuid, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override fun listMessageIdsByTransportGuid(
@@ -125,7 +153,10 @@ class MessageLogicImpl(
 
 	override fun findMessagesByTransportGuidSentDate(partyId: String, transportGuid: String, fromDate: Long, toDate: Long, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.findMessagesByTransportGuidAndSentDate(datastoreInformation, partyId, transportGuid, fromDate, toDate, paginationOffset))
+		emitAll(messageDAO
+			.findMessagesByTransportGuidAndSentDate(datastoreInformation, partyId, transportGuid, fromDate, toDate, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Message>(paginationOffset.limit)
+		)
 	}
 
 	override suspend fun addDelegation(message: Message, delegation: Delegation): Message? {
