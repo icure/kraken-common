@@ -3,4 +3,7 @@
  */
 package org.taktik.icure.db
 
-class Sorting(val field: String?, val direction: String?)
+class Sorting<T>(val field: T, val direction: SortDirection)
+
+@Suppress("EnumEntryName")
+enum class SortDirection { asc, desc }

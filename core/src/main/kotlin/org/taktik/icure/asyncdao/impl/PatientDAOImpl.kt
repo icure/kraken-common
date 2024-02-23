@@ -172,20 +172,11 @@ class PatientDAOImpl(
 		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.id })
 	}
 
-	@Views(
-	    View(name = "by_hcparty_contains_name", map = "classpath:js/patient/By_hcparty_contains_name_map.js"),
-	    View(name = "by_data_owner_contains_name", map = "classpath:js/patient/By_data_owner_contains_name_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
-	override fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) = flow {
+	private fun listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?, viewNames: List<Pair<String, String?>>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val name = if (searchString != null) sanitizeString(searchString) else null
-
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"by_hcparty_contains_name",
-			"by_data_owner_contains_name" to DATA_OWNER_PARTITION
-		)
+		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
 			.startKey(ComplexKey.of(healthcarePartyId, name))
 			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0"))
 			.also { q -> limit?.let { q.limit(it) } ?: q }
@@ -195,13 +186,16 @@ class PatientDAOImpl(
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 	}
 
+	@Views(
+	    View(name = "by_hcparty_contains_name", map = "classpath:js/patient/By_hcparty_contains_name_map.js"),
+	    View(name = "by_data_owner_contains_name", map = "classpath:js/patient/By_data_owner_contains_name_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+	)
+	override fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) =
+		listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit, listOf("by_hcparty_contains_name".main(), "by_data_owner_contains_name" to DATA_OWNER_PARTITION))
+
 	@View(name = "of_hcparty_contains_name", map = "classpath:js/patient/Of_hcparty_contains_name_map.js")
-	override fun listPatientIdsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val name = if (searchString != null) sanitizeString(searchString) else null
-		val viewQuery = createQuery(datastoreInformation, "of_hcparty_contains_name").startKey(ComplexKey.of(healthcarePartyId, name)).endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")).also { q -> limit?.let { q.limit(it) } ?: q }.includeDocs(false)
-		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.id }.distinct())
-	}
+	override fun listPatientIdsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) =
+		listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit, listOf("of_hcparty_contains_name".main()))
 
 	private fun listPatientIdsForName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, viewNames: List<Pair<String, String?>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -448,10 +442,33 @@ class PatientDAOImpl(
 		return findPatientsByDateOfBirth(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("of_hcparty_date_of_birth".main()))
 	}
 
+	override fun findPatientsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean) =
+		findPatientsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, pagination, descending, listOf("by_hcparty_contains_name".main(), "by_data_owner_contains_name" to DATA_OWNER_PARTITION))
+
+	override fun findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean) =
+		findPatientsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, pagination, descending, listOf("of_hcparty_contains_name".main()))
+
+	private fun findPatientsForHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean, viewNames: List<Pair<String, String?>>): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val name = if (searchString != null) sanitizeString(searchString) else null
+		val startKey: ComplexKey
+		val endKey: ComplexKey
+		if(descending) {
+			endKey = ComplexKey.of(healthcarePartyId, name)
+			startKey = ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")
+		} else {
+			startKey = ComplexKey.of(healthcarePartyId, name)
+			endKey = ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")
+		}
+		val viewQueries = createPagedQueries(datastoreInformation, viewNames, startKey, endKey, pagination, descending)
+
+		emitAll(client.interleave<ComplexKey, String, Patient>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
+	}
+
 	private fun findPatientsByName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean, viewNames: List<Pair<String, String?>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		var name = name
 		val startKeyNameKeySuffix = if (descending) "\ufff0" else "\u0000"
 		val endKeyNameKeySuffix = if (descending) "\u0000" else "\ufff0"
 		val smallestKey = if (descending) ComplexKey.emptyObject() else null
@@ -463,9 +480,8 @@ class PatientDAOImpl(
 			startKey = ComplexKey.of(healthcarePartyId, smallestKey)
 			endKey = ComplexKey.of(healthcarePartyId, largestKey)
 		} else {
-			name = sanitizeString(name)
-			startKey = ComplexKey.of(healthcarePartyId, name!! + startKeyNameKeySuffix)
-			endKey = ComplexKey.of(healthcarePartyId, name + endKeyNameKeySuffix)
+			startKey = ComplexKey.of(healthcarePartyId, sanitizeString(name) + startKeyNameKeySuffix)
+			endKey = ComplexKey.of(healthcarePartyId, sanitizeString(name) + endKeyNameKeySuffix)
 		}
 
 		val viewQueries = createPagedQueries(datastoreInformation, viewNames, startKey, endKey, pagination, descending)
@@ -497,14 +513,15 @@ class PatientDAOImpl(
 
 	private fun findPatientsByDateOfBirth(datastoreInformation: IDatastoreInformation, startDate: Int?, endDate: Int?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean, viewNames: List<Pair<String, String?>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val startKeyStartDate = if (descending) endDate else startDate
-		val endKeyEndDate = if (descending) startDate else endDate
-		val smallestKey = if (descending) ComplexKey.emptyObject() else null
-		val largestKey = if (descending) null else ComplexKey.emptyObject()
-
-		val from = ComplexKey.of(healthcarePartyId, if (startKeyStartDate == null && endKeyEndDate == null) null else startKeyStartDate ?: smallestKey)
-		val to = ComplexKey.of(healthcarePartyId, if (startKeyStartDate == null && endKeyEndDate == null) null else endKeyEndDate ?: largestKey)
+		val from: ComplexKey
+		val to: ComplexKey
+		if(descending) {
+			from = ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject())
+			to = ComplexKey.of(healthcarePartyId, startDate)
+		} else {
+			from = ComplexKey.of(healthcarePartyId, startDate)
+			to = ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject())
+		}
 
 		val viewQueries = createPagedQueries(datastoreInformation, viewNames, from, to, pagination, descending)
 		emitAll(client.interleave<ComplexKey, String, Patient>(viewQueries, compareBy({it.components[0] as? String}, {(it.components[1] as? Number)?.toLong()})))
@@ -558,8 +575,8 @@ class PatientDAOImpl(
 		val viewQuery = pagedViewQuery(
 			datastoreInformation,
 			"deleted_by_delete_date",
-			start,
-			end,
+			if (descending) end else start,
+			if (descending) start else end,
 			paginationOffset,
 			descending
 		)
@@ -627,6 +644,7 @@ class PatientDAOImpl(
 		return listPatientIdsForSsins(datastoreInformation, ssins, healthcarePartyId, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION))
 	}
 
+	@Deprecated("A Data Owner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	@View(name = "by_hcparty_delegate_keys", map = "classpath:js/patient/By_hcparty_delegate_keys_map.js")
 	override suspend fun getHcPartyKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, String> {
 		//Not transactional aware
@@ -637,8 +655,8 @@ class PatientDAOImpl(
 		)
 
 		val resultMap = HashMap<String, String>()
-		result.collect {
-			it.value?.let {
+		result.collect { row ->
+			row.value?.let {
 				resultMap[it[0]] = it[1]
 			}
 		}
@@ -683,11 +701,11 @@ class PatientDAOImpl(
 	}.distinctByIdIf(searchKeys.size > 1)
 
 	override fun getDuplicatePatientsBySsin(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent> {
-		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
+		return getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
 	}
 
 	override fun getDuplicatePatientsByName(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent> {
-		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
+		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_name".main(), "by_data_owner_name" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
 	}
 
 	override fun findPatients(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<ViewQueryResultEvent> = flow {
@@ -729,32 +747,75 @@ class PatientDAOImpl(
 		)
 	}.distinct()
 
-	private fun getDuplicatesFromView(datastoreInformation: IDatastoreInformation, viewNames: List<Pair<String, String?>>, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow<ViewQueryResultEvent> {
+	private fun getDuplicatesFromView(
+		datastoreInformation: IDatastoreInformation,
+		viewNames: List<Pair<String, String?>>,
+		healthcarePartyId: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val from = if (paginationOffset.startKey == null) ComplexKey.of(healthcarePartyId, "") else ComplexKey.of(*paginationOffset.startKey as Array<Any>)
+		val from = paginationOffset.startKey ?: ComplexKey.of(healthcarePartyId, "")
 		val to = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
 		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
 			.startKey(from)
-			.startDocId(paginationOffset.startDocumentId)
 			.endKey(to)
 			.reduce(true)
 			.group(true)
+			.groupLevel(2)
 			.doNotIncludeDocs()
 
-		val viewResult = client.interleave<ComplexKey, Int>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})).filterIsInstance<ViewRowNoDoc<ComplexKey, Int>>()
+		var duplicates = 0
+		// This is needed because pagination on grouped entities cannot rely on startDocumentId.
+		// If the document id  is the last document of a group, then the pagination will end even if there
+		// are more elements. Therefore, it's better to take a group more.
+		var takeNextGroup = true
+		val viewResult = client.interleave<ComplexKey, Int>(
+			viewQueries,
+			compareBy({it.components[0] as? String}, {it.components[1] as? String}),
+			deduplicationMode = DeduplicationMode.NONE
+		).filterIsInstance<ViewRowNoDoc<ComplexKey, Int>>()
 		val keysWithDuplicates = viewResult
-			.filter { it.value?.let { it > 1 } == true }
-			.map { it.key }
-			.toList()
+			.transform {
+				if(it.value?.let { count -> count > 1 } == true) {
+					takeNextGroup = duplicates <= paginationOffset.limit
+					duplicates += it.value ?: 0
+					emit(it.key)
+				}
+			}.takeWhile { duplicates <= paginationOffset.limit || takeNextGroup }.toList()
 
-		// TODO MB no reified
+		val startDocumentId = paginationOffset.startDocumentId
+		var sentElements = 0
+		var lastVisited: ViewRowWithDoc<ComplexKey, Int, Patient>? = null
 		val duplicatePatients = client.interleave<ComplexKey, Int, Patient>(
 			createQueries(datastoreInformation, *viewNames.toTypedArray()).keys(keysWithDuplicates).reduce(false).includeDocs(),
 			compareBy({it.components[0] as? String}, {it.components[1] as? String})
 		).filterIsInstance<ViewRowWithDoc<ComplexKey, Int, Patient>>()
-			.filter { it.doc.active }
-			.distinct()
+			.transform {
+				// Skips all the documents of the start key group until we reach the start document id
+				if(it.doc.active && (it.key != from || startDocumentId == null || it.doc.id >= startDocumentId)) {
+					sentElements++
+					if(lastVisited != null) {
+						emit(lastVisited!!)
+					}
+					lastVisited = it
+				}
+			}.onCompletion {
+				if(duplicates >= paginationOffset.limit && sentElements < paginationOffset.limit && lastVisited != null) {
+					emitAll(getDuplicatesFromView(
+						datastoreInformation,
+						viewNames,
+						healthcarePartyId,
+						paginationOffset.copy(
+							startKey = lastVisited?.key,
+							startDocumentId = lastVisited?.id,
+							limit = paginationOffset.limit - sentElements
+						)
+					))
+				} else if(lastVisited != null){
+					emit(lastVisited!!)
+				}
+			}
 		emitAll(duplicatePatients)
 	}
 }

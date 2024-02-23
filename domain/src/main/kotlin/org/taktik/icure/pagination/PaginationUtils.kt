@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.db.PaginationOffset
@@ -32,6 +33,37 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 				emitted < pageSize -> {
 					emitted++
 					emit(PaginatedRowElement(it.doc as U))
+				}
+
+				emitted == pageSize -> {
+					emitted++
+					emit(NextPageElement(it.id, it.key))
+				}
+			}
+		}
+	}.takeWhile {
+		emitted <= pageSize + 1
+	}
+}
+
+/**
+ * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginatedElement] containing only the ids of the entities.
+ * Only the first [pageSize] elements of the original flow of [ViewRowNoDoc] type will be converted.
+ * The [pageSize] + 1 [ViewRowNoDoc] will be used to extrapolate the [NextPageElement], otherwise no
+ * [NextPageElement] will be included in the output flow.
+ *
+ * @receiver a [Flow] of [ViewQueryResultEvent] which doc type extends [Identifiable] of [String].
+ * @param pageSize the number of elements that will be included in the output [Flow].
+ * @return a [Flow] of [PaginatedElement].
+ */
+fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<PaginatedElement> {
+	var emitted = 0
+	return transform {
+		if (it is ViewRowNoDoc<*, *>) {
+			when {
+				emitted < pageSize -> {
+					emitted++
+					emit(PaginatedRowElement(it.id))
 				}
 
 				emitted == pageSize -> {

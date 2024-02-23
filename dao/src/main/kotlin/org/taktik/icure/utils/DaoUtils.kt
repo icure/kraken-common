@@ -93,7 +93,7 @@ inline fun <reified K, reified V, reified T : Any> Client.interleave(viewQueries
 	this.interleave(viewQueries, K::class.java, V::class.java, T::class.java, comparator, deduplicationMode, timeoutDuration)
 
 enum class DeduplicationMode {
-	ID, ID_AND_VALUE, DOCUMENT
+	ID, ID_AND_VALUE, DOCUMENT, NONE
 }
 
 inline fun <reified K, reified T : Any> Client.interleaveNoValue(viewQueries: ViewQueries, comparator: Comparator<K>, deduplicationMode: DeduplicationMode = DeduplicationMode.ID, timeoutDuration: Duration? = null) =
@@ -112,7 +112,7 @@ inline fun <reified K, reified V : Any> Client.interleave(viewQueries: NoDocView
  * @param v the class of the value
  * @param t the class of the document
  * @param comparator the comparator to use to sort the keys
- * @param deduplicationMode if true, the results will be deduplicated on id (if it is null, the results will be deduplicated on id if the viewQueries request for the documents to be included)
+ * @param deduplicationMode a [DeduplicationMode] that determines how successive entities will be deduplicated.
  * @param timeoutDuration the timeout duration
  *
  * @return a flow of ViewQueryResultEvent
@@ -133,6 +133,9 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 				DeduplicationMode.ID -> previous?.id == current.id
 				DeduplicationMode.ID_AND_VALUE -> (previous?.id == current.id) && ( previous.value == current.value )
 				DeduplicationMode.DOCUMENT -> (previous?.id == current.id) && (previous.doc == current.doc)
+				// When I reduce + group, I will have empty IDs, no documents and repeated values, so I may want
+				// not to deduplicate results.
+				DeduplicationMode.NONE -> false
 			}
 		}
 
@@ -359,6 +362,7 @@ suspend fun <P> DesignDocumentProvider.pagedViewQueryOfIds(client: Client, metad
 	var viewQuery = createQuery(client, metadataSource, viewName, entityClass, secondaryPartition)
 		.skipIfViewDoesNotExist(secondaryPartition != null)
 		.startKey(pagination.startKey ?: startKey ?: NullKey)
+		.startDocId(pagination.startDocumentId)
 		.includeDocs(false)
 		.reduce(false)
 		.limit(pagination.limit)
