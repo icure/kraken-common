@@ -33,4 +33,4 @@ class PaginatedFlux(
  * @receiver a [Flow] of [PaginatedElement].
  * @return a [PaginatedFlux].
  */
-fun Flow<PaginatedElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined)
+fun Flow<PaginatedElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined) // TODO: Check

@@ -32,7 +32,7 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 			when {
 				emitted < pageSize -> {
 					emitted++
-					emit(PaginatedRowElement(it.doc as U))
+					emit(PaginatedRowElement(it.doc as U, it.key))
 				}
 
 				emitted == pageSize -> {
@@ -63,7 +63,7 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
 			when {
 				emitted < pageSize -> {
 					emitted++
-					emit(PaginatedRowElement(it.id))
+					emit(PaginatedRowElement(it.id, it.key))
 				}
 
 				emitted == pageSize -> {
@@ -92,9 +92,10 @@ fun <SRC: Identifiable<String>, DST> Flow<PaginatedElement>.mapElements(mapper: 
 	map {
 		when(it) {
 			is NextPageElement<*> -> it
-			is PaginatedRowElement<*> -> {
+			is PaginatedRowElement<*, *> -> {
 				PaginatedRowElement(
-					mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" })
+					element = mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" }),
+					key = it.key
 				)
 			}
 		}
@@ -115,7 +116,7 @@ suspend fun <T : Serializable, K> Flow<PaginatedElement>.toPaginatedList(): Pagi
 				nextKey = it as? NextPageElement<K>
 				null
 			}
-			is PaginatedRowElement<*> -> it.element as? T
+			is PaginatedRowElement<*, *> -> it.element as? T
 		}
 	}.toList()
 	return PaginatedList(

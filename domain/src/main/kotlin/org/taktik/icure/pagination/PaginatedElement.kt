@@ -1,5 +1,7 @@
 package org.taktik.icure.pagination
 
+import org.taktik.couchdb.id.Identifiable
+
 /**
  * This is a marker interface for the elements that are part of a paginated list and that can be included in a
  * [PaginatedFlux]. The only allowed elements are:
@@ -11,10 +13,20 @@ sealed interface PaginatedElement
 
 /**
  * A wrapper for the actual element of type [T] to be added to the row array of the paginated list.
+ * It also contains the key [K] of the element in the view.
  */
-@JvmInline
-value class PaginatedRowElement<T>(val element: T) : PaginatedElement
+data class PaginatedRowElement<T, K>(
+	val element: T,
+	val key: K? = null
+) : PaginatedElement {
 
+	fun asNextPageElement(): NextPageElement<K> = when {
+		element is Identifiable<*> && element.id is String -> NextPageElement(element.id as String, key)
+		element is String -> NextPageElement(element, key)
+		else -> throw IllegalArgumentException("Cannot derive a NextPage element from this entity")
+	}
+
+}
 /**
  * Represents the key to retrieve the next page. If present, it must be the last element of the flow.
  */
