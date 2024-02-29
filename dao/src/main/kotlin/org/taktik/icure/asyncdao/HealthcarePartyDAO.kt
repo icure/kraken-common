@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
-import org.taktik.icure.pagination.PaginatedElement
 
 interface HealthcarePartyDAO : GenericDAO<HealthcareParty> {
 	fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?): Flow<HealthcareParty>

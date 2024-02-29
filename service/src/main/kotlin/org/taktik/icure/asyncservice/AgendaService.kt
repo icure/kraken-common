@@ -7,8 +7,10 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedElement
 
 interface AgendaService {
 	suspend fun createAgenda(agenda: Agenda): Agenda?
@@ -39,7 +41,10 @@ interface AgendaService {
 	fun getReadableAgendaForUser(userId: String): Flow<Agenda>
 
 	/**
-	 * @return a [Flow] containing all the [Agenda]s the current user can access.
+	 * Retrieves all the [Agenda]s in a group in a format for pagination.
+	 *
+	 * @param offset a [PaginationOffset] of [Nothing] for pagination.
+	 * @return a [Flow] of [PaginatedElement] containing the [Agenda]s.
 	 */
-	fun getAllAgendas(): Flow<Agenda>
+	fun getAllAgendas(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
 }

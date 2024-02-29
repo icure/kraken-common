@@ -126,7 +126,7 @@ data class HealthcareParty(
 	val picture: ByteArray? = null,
 	val statuses: Set<HealthcarePartyStatus> = emptySet(),
 	val statusHistory: List<HealthcarePartyHistoryStatus> = emptyList(),
-	val descr: Map<String, String>? = null,
+	val descr: Map<String, String>? = emptyMap(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) @JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val specialityCodes: Set<CodeStub> = emptySet(), //Speciality codes, default is first
 
 	val sendFormats: Map<TelecomType, String> = emptyMap(),
