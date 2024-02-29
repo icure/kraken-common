@@ -4,10 +4,18 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -22,7 +30,12 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.distinctBy
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.interleaveNoValue
+import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
 
 @Repository("calendarItemDAO")
@@ -34,6 +47,19 @@ class CalendarItemDAOImpl(
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItem::class.java), designDocumentProvider), CalendarItemDAO {
+
+	override fun listAllCalendarItems(
+		datastoreInformation: IDatastoreInformation,
+		offset: PaginationOffset<Nothing>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = pagedViewQuery(
+			datastoreInformation, "all", null, null, offset, false
+		)
+
+		emitAll(client.queryView(viewQuery, Nothing::class.java, String::class.java, CalendarItem::class.java))
+	}
 
 	@Views(
         View(name = "by_hcparty_and_startdate", map = "classpath:js/calendarItem/By_hcparty_and_startdate.js"),

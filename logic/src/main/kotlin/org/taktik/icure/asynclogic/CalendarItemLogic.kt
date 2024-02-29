@@ -10,6 +10,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
+import org.taktik.icure.pagination.PaginatedElement
 
 interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithSecureDelegationsLogic<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
@@ -21,7 +22,13 @@ interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithS
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 	fun findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>, paginationOffset: PaginationOffset<List<Any>>): Flow<ViewQueryResultEvent>
 
-	fun getAllCalendarItems(): Flow<CalendarItem>
+	/**
+	 * Retrieves all [CalendarItem]s in a group in a format for pagination.
+	 *
+	 * @param offset a [PaginationOffset] of [Nothing] (i.e. with an always null key) for pagination.
+	 * @return a [Flow] of [PaginatedElement] containing the [CalendarItem]s.
+	 */
+	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 }

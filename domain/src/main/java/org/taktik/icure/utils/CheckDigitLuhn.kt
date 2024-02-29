@@ -18,11 +18,11 @@ object CheckDigitLuhn {
      */
     fun computeCheckDigit(iNumber: String): Int {
         var checkSum = 0
-        var weight = 0
-        var weightedDigit = 0
-        for (pos in 0 until iNumber.length) {
+        var weight: Int
+        var weightedDigit: Int
+        for (pos in iNumber.indices) {
             weight = if (pos % 2 == 0) 2 else 1
-            weightedDigit = iNumber[iNumber.length - pos - 1].digitToIntOrNull() ?: -1 * weight
+            weightedDigit = (iNumber[iNumber.length - pos - 1].digitToIntOrNull() ?: -1) * weight
             checkSum += if (weightedDigit > 9) weightedDigit - 9 else weightedDigit
         }
         return (10 - checkSum % 10) % 10
@@ -36,10 +36,10 @@ object CheckDigitLuhn {
     fun checkDigit(iNumber: String): Boolean {
         var checkSum = 0
         var weight = 0
-        var weightedDigit = 0
-        for (pos in 0 until iNumber.length) {
+        var weightedDigit: Int
+        for (pos in iNumber.indices) {
             weight = if (pos % 2 == 0) 1 else 2
-            weightedDigit = iNumber[iNumber.length - pos - 1].digitToIntOrNull() ?: -1 * weight
+            weightedDigit = (iNumber[iNumber.length - pos - 1].digitToIntOrNull() ?: -1) * weight
             checkSum += if (weightedDigit > 9) weightedDigit - 9 else weightedDigit
         }
         return if (checkSum % 10 == 0) true else false

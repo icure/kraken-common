@@ -29,7 +29,11 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -49,13 +53,20 @@ class CalendarItemController(
 	private val calendarItemMapper: CalendarItemMapper,
 	private val delegationMapper: DelegationMapper,
 	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
-	fun getCalendarItems(): Flux<CalendarItemDto> {
-		val calendarItems = calendarItemService.getAllCalendarItems()
-		return calendarItems.map { calendarItemMapper.map(it) }.injectReactorContext()
+	fun getCalendarItems(
+		@Parameter(description = "A CalendarItem document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return calendarItemService
+			.getAllCalendarItems(offset)
+			.mapElements(calendarItemMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Creates a calendarItem")
@@ -73,12 +84,12 @@ class CalendarItemController(
 		calendarItemService.deleteCalendarItems(calendarItemIds.ids).injectReactorContext()
 
 	@Deprecated(message = "Use deleteItemCalendars instead")
-	@Operation(summary = "Deletes an calendarItem")
+	@Operation(summary = "Deletes a calendarItem")
 	@DeleteMapping("/{calendarItemIds}")
 	fun deleteCalendarItem(@PathVariable calendarItemIds: String): Flux<DocIdentifier> =
 		calendarItemService.deleteCalendarItems(calendarItemIds.split(',')).injectReactorContext()
 
-	@Operation(summary = "Gets an calendarItem")
+	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
 	fun getCalendarItem(@PathVariable calendarItemId: String) = mono {
 		val calendarItem = calendarItemService.getCalendarItem(calendarItemId)
@@ -87,7 +98,7 @@ class CalendarItemController(
 		calendarItemMapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies an calendarItem")
+	@Operation(summary = "Modifies a calendarItem")
 	@PutMapping
 	fun modifyCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
 		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemMapper.map(calendarItemDto))

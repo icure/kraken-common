@@ -29,7 +29,11 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -38,8 +42,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.StartKeyJsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
 
@@ -53,14 +57,21 @@ class CalendarItemController(
 	private val bulkShareResultV2Mapper: CalendarItemBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val reactorCacheInjector: ReactorCacheInjector
+	private val reactorCacheInjector: ReactorCacheInjector,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
-	fun getCalendarItems(): Flux<CalendarItemDto> {
-		val calendarItems = calendarItemService.getAllCalendarItems()
-		return calendarItems.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+	fun getCalendarItems(
+		@Parameter(description = "A CalendarItem document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return calendarItemService
+			.getAllCalendarItems(offset)
+			.mapElements(calendarItemV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Creates a calendarItem")

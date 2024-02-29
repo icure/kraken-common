@@ -12,6 +12,7 @@ import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedElement
 
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
@@ -42,7 +43,16 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 
 	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem?
-	fun getAllCalendarItems(): Flow<CalendarItem>
+
+	/**
+	 * Retrieves all [CalendarItem]s in a group in a format for pagination.
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access, but
+	 * it guarantees that the page size specified in the [offset] is reached as long as there are available entities.
+	 *
+	 * @param offset a [PaginationOffset] of [Nothing] (i.e. with an always null key) for pagination.
+	 * @return a [Flow] of [PaginatedElement] containing the [CalendarItem]s.
+	 */
+	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 
