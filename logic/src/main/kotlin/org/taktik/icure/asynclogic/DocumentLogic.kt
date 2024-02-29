@@ -6,16 +6,14 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import java.nio.ByteBuffer
 
 interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDelegationsLogic<Document> {
@@ -119,9 +117,9 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	 * @param hcPartyId the healthcare party id.
 	 * @param secretForeignKey the patient secret foreign key.
 	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [Document]s.
+	 * @return a [Flow] of [PaginationElement] wrapping the [Document]s.
 	 */
-	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 

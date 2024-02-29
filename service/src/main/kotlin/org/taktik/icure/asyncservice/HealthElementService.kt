@@ -18,7 +18,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface HealthElementService : EntityWithSecureDelegationsService<HealthElement> {
 	suspend fun createHealthElement(healthElement: HealthElement): HealthElement?
@@ -51,10 +51,10 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	 * @param hcPartyId the id of the healthcare party to look for in the delegations.
 	 * @param secretPatientKey the secret patient key, that will be searched in [HealthElement.secretForeignKeys].
 	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [HealthElement]s.
+	 * @return a [Flow] of [PaginationElement] containing the [HealthElement]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to list [HealthElement]s.
 	 */
-	fun listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>

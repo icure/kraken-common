@@ -12,7 +12,7 @@ import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
@@ -50,9 +50,9 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 * it guarantees that the page size specified in the [offset] is reached as long as there are available entities.
 	 *
 	 * @param offset a [PaginationOffset] of [Nothing] (i.e. with an always null key) for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [CalendarItem]s.
+	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
 	 */
-	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
+	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 

@@ -28,7 +28,7 @@ import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedList
@@ -94,7 +94,7 @@ class AccessLogLogicImpl(
 
 	override suspend fun getAccessLog(accessLogId: String): AccessLog? = getEntity(accessLogId)
 
-	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginatedElement> = flow {
+	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO
 			.listAccessLogsByDate(datastoreInformation, fromEpoch, toEpoch, paginationOffset.limitIncludingKey(), descending)
@@ -169,7 +169,7 @@ class AccessLogLogicImpl(
 	override suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int) =
 		doAggregatePatientByAccessLogs(userId, accessType, startDate, startKey, startDocumentId, limit, PaginationOffset(null, null, null, limit * 2 + 1))
 
-	override fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginatedElement> = flow {
+	override fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO
 			.findAccessLogsByUserAfterDate(datastoreInformation, userId, accessType, startDate, pagination.limitIncludingKey(), descending)

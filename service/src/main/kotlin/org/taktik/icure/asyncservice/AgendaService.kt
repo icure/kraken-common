@@ -10,7 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface AgendaService {
 	suspend fun createAgenda(agenda: Agenda): Agenda?
@@ -44,7 +44,7 @@ interface AgendaService {
 	 * Retrieves all the [Agenda]s in a group in a format for pagination.
 	 *
 	 * @param offset a [PaginationOffset] of [Nothing] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [Agenda]s.
+	 * @return a [Flow] of [PaginationElement] containing the [Agenda]s.
 	 */
-	fun getAllAgendas(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
+	fun getAllAgendas(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 }

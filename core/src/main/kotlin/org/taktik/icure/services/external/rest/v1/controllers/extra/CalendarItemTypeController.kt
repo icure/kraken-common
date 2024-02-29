@@ -5,8 +5,8 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -17,11 +17,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemTypeDto
 import org.taktik.icure.services.external.rest.v1.mapper.CalendarItemTypeMapper
 import org.taktik.icure.utils.injectReactorContext
@@ -33,18 +39,36 @@ import reactor.core.publisher.Flux
 @Tag(name = "calendarItemType")
 class CalendarItemTypeController(
 	private val calendarItemTypeService: CalendarItemTypeService,
-	private val calendarItemTypeMapper: CalendarItemTypeMapper
+	private val calendarItemTypeMapper: CalendarItemTypeMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Gets all calendarItemTypes")
 	@GetMapping
-	fun getCalendarItemTypes(): Flux<CalendarItemTypeDto> =
-		calendarItemTypeService.getAllCalendarItemTypes().map { calendarItemTypeMapper.map(it) }.injectReactorContext()
+	fun getCalendarItemTypes(
+		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return calendarItemTypeService
+			.getAllCalendarItemTypes(offset)
+			.mapElements(calendarItemTypeMapper::map)
+			.asPaginatedFlux()
+	}
 
-	@Operation(summary = "Gets all calendarItemTypes include deleted")
+	@Operation(summary = "Gets all calendarItemTypes including deleted entities")
 	@GetMapping("/includeDeleted")
-	fun getCalendarItemTypesIncludeDeleted(): Flux<CalendarItemTypeDto> =
-		calendarItemTypeService.getAllEntitiesIncludeDelete().map { calendarItemTypeMapper.map(it) }.injectReactorContext()
+	fun getCalendarItemTypesIncludingDeleted(
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return calendarItemTypeService
+			.getAllEntitiesIncludeDeleted(offset)
+			.mapElements(calendarItemTypeMapper::map)
+			.asPaginatedFlux()
+	}
 
 	@Operation(summary = "Creates a calendarItemType")
 	@PostMapping

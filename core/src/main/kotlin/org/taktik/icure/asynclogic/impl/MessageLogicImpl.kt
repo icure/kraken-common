@@ -32,7 +32,7 @@ import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -60,7 +60,7 @@ class MessageLogicImpl(
 		hcPartyId: String,
 		secretPatientKey: String,
 		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO
 			.listMessagesByHcPartyAndPatient(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())

@@ -11,16 +11,16 @@ import reactor.core.publisher.Flux
 import kotlin.coroutines.CoroutineContext
 
 /**
- * A [Flux] of [PaginatedElement]. Its purpose is to be recognized by the custom Jackson2Json encoder to serialize a
+ * A [Flux] of [PaginationElement]. Its purpose is to be recognized by the custom Jackson2Json encoder to serialize a
  * paginated list without collecting the flow of elements.
  */
 class PaginatedFlux(
-	private val flow: Flow<PaginatedElement>,
+	private val flow: Flow<PaginationElement>,
 	private val context: CoroutineContext
-) : Flux<PaginatedElement>() {
+) : Flux<PaginationElement>() {
 
 	@OptIn(InternalCoroutinesApi::class)
-	override fun subscribe(subscriber: CoreSubscriber<in PaginatedElement>) {
+	override fun subscribe(subscriber: CoreSubscriber<in PaginationElement>) {
 		val hasContext = !subscriber.currentContext().isEmpty
 		val source = if (hasContext) flow.flowOn(subscriber.currentContext().asCoroutineContext()) else flow
 		subscriber.onSubscribe(FlowSubscription(source, subscriber, context))
@@ -28,9 +28,9 @@ class PaginatedFlux(
 }
 
 /**
- * Converts a [Flow] of [PaginatedElement] to a [PaginatedFlux], injecting the reactor context.
+ * Converts a [Flow] of [PaginationElement] to a [PaginatedFlux], injecting the reactor context.
  *
- * @receiver a [Flow] of [PaginatedElement].
+ * @receiver a [Flow] of [PaginationElement].
  * @return a [PaginatedFlux].
  */
-fun Flow<PaginatedElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined) // TODO: Check
+fun Flow<PaginationElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined) // TODO: Check

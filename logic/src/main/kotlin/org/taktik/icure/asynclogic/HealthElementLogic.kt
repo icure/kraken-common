@@ -15,7 +15,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWithSecureDelegationsLogic<HealthElement> {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
@@ -42,9 +42,9 @@ interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWit
 	 * @param hcPartyId the id of the healthcare party to look for in the delegations.
 	 * @param secretPatientKey the secret patient key, that will be searched in [HealthElement.secretForeignKeys].
 	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [HealthElement]s.
+	 * @return a [Flow] of [PaginationElement] containing the [HealthElement]s.
 	 */
-	fun listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>

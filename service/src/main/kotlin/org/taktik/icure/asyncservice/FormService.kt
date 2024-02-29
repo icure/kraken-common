@@ -14,7 +14,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface FormService : EntityWithSecureDelegationsService<Form> {
 	suspend fun getForm(id: String): Form?
@@ -47,9 +47,9 @@ interface FormService : EntityWithSecureDelegationsService<Form> {
 	 *
 	 * @param hcPartyId the healthcare party id.
 	 * @param secretPatientKey the secret patient key.
-	 * @return a [Flow] of [PaginatedElement]s wrapping the [Form]s.
+	 * @return a [Flow] of [PaginationElement]s wrapping the [Form]s.
 	 */
-	fun listFormsByHcPartyIdPatientSecretKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listFormsByHcPartyIdPatientSecretKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
 	suspend fun addDelegation(formId: String, delegation: Delegation): Form?
 

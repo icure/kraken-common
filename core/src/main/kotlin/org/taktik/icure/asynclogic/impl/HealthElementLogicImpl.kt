@@ -30,7 +30,7 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
@@ -86,7 +86,7 @@ class HealthElementLogicImpl (
 		hcPartyId: String,
 		secretPatientKey: String,
 		offset: PaginationOffset<ComplexKey>
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			healthElementDAO

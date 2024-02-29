@@ -17,7 +17,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import java.nio.ByteBuffer
 
 interface DocumentService : EntityWithSecureDelegationsService<Document> {
@@ -114,10 +114,10 @@ interface DocumentService : EntityWithSecureDelegationsService<Document> {
 	 * @param hcPartyId the healthcare party id.
 	 * @param secretForeignKey the patient secret foreign key.
 	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [Document]s.
+	 * @return a [Flow] of [PaginationElement] wrapping the [Document]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition requirement to query [Document]s.
 	 */
-	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: List<String>): Flow<Document>
 

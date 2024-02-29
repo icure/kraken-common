@@ -22,7 +22,7 @@ import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
 
 interface PatientService : EntityWithSecureDelegationsService<Patient> {
@@ -46,10 +46,10 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 *
 	 * @param healthcarePartyId the id of the healthcare party.
 	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the ids.
+	 * @return a [Flow] of [PaginationElement] containing the ids.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to find [Patient]s.
 	 */
-	fun findByHcPartyIdsOnly(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun findByHcPartyIdsOnly(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
 	/**
 	 * Retrieves all the [Patient]s for a healthcare party in a format for pagination.
@@ -67,10 +67,10 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 * @param searchString the value to search, it will be interpreted differently according to the [sorting] value.
 	 * @param sorting a [Sorting] that specifies the interpretation of [searchString] and the sort order of the
 	 * results (desc for descending).
-	 * @return a [Flow] of [PaginatedElement] containing the patients.
+	 * @return a [Flow] of [PaginationElement] containing the patients.
 	 * @throws AccessDeniedException if the user does not meet the precondition to find [Patient]s.
 	 */
-	fun findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>): Flow<PaginatedElement>
+	fun findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>): Flow<PaginationElement>
 	fun listPatients(paginationOffset: PaginationOffset<*>, filterChain: FilterChain<Patient>, sort: String?, desc: Boolean?): Flow<ViewQueryResultEvent>
 	fun findByHcPartyNameContainsFuzzy(searchString: String?, healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
 
@@ -91,9 +91,9 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 * @param searchString the value to search, it will be interpreted differently according to the [sorting] value.
 	 * @param sorting a [Sorting] that specifies the interpretation of [searchString] and the sort order of the
 	 * results (desc for descending).
-	 * @return a [Flow] of [PaginatedElement] containing the patients.
+	 * @return a [Flow] of [PaginationElement] containing the patients.
 	 */
-	fun findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>): Flow<PaginatedElement>
+	fun findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>): Flow<PaginationElement>
 	fun findByHcPartyAndSsin(ssin: String?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 	fun findByHcPartyDateOfBirth(date: Int?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 	fun findByHcPartyModificationDate(start: Long?, end: Long?, healthcarePartyId: String, descending: Boolean, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
@@ -133,9 +133,9 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 *
 	 * @param date the lower bound for [Patient.modified] as timestamp.
 	 * @param paginationOffset a [PaginationOffset] of [Long] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [Patient]s.
+	 * @return a [Flow] of [PaginationElement] containing the [Patient]s.
 	 */
-	fun listOfPatientsModifiedAfter(date: Long, paginationOffset: PaginationOffset<Long>): Flow<PaginatedElement>
+	fun listOfPatientsModifiedAfter(date: Long, paginationOffset: PaginationOffset<Long>): Flow<PaginationElement>
 
 	/**
 	 * Retrieves all the [Patient]s for a given healthcare party that appear multiple times in the `by_ssin` view in a
@@ -145,10 +145,10 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 *
 	 * @param healthcarePartyId the id of the delegated healthcare party.
 	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] pf [PaginatedElement] containing the [Patient]s.
+	 * @return a [Flow] pf [PaginationElement] containing the [Patient]s.
 	 * @throws AccessDeniedException if the user does not meet the precondition to find [Patient]s.
 	 */
-	fun getDuplicatePatientsBySsin(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun getDuplicatePatientsBySsin(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
 	/**
 	 * Retrieves all the [Patient]s for a given healthcare party that appear multiple times in the `by_name` view in a
@@ -158,10 +158,10 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 *
 	 * @param healthcarePartyId the id of the delegated healthcare party.
 	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] pf [PaginatedElement] containing the [Patient]s.
+	 * @return a [Flow] pf [PaginationElement] containing the [Patient]s.
 	 * @throws AccessDeniedException if the user does not meet the precondition to find [Patient]s.
 	 */
-	fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun fuzzySearchPatients(firstName: String?, lastName: String?, dateOfBirth: Int?, healthcarePartyId: String? = null): Flow<Patient>
 
 	/**
@@ -194,9 +194,9 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 	 * @param start the lower bound for [Patient.deletionDate] as timestamp.
 	 * @param end the upper bound for [Patient.deletionDate] as timestamp. If null, there will be no lower bound.
 	 * @param paginationOffset a [PaginationOffset] of [Long] for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [Patient]s.
+	 * @return a [Flow] of [PaginationElement] containing the [Patient]s.
 	 */
-	fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<PaginatedElement>
+	fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<PaginationElement>
 	fun listDeletedPatientsByNames(firstName: String?, lastName: String?): Flow<Patient>
 	fun undeletePatients(ids: Set<String>): Flow<DocIdentifier>
 	fun listPatientIdsByHcpartyAndIdentifiers(healthcarePartyId: String, identifiers: List<Identifier>): Flow<String>

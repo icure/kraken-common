@@ -16,23 +16,23 @@ import org.taktik.icure.entities.utils.PaginatedList
 import java.io.Serializable
 
 /**
- * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginatedElement]. Only the first [pageSize] elements
+ * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginationElement]. Only the first [pageSize] elements
  * of the original flow of [ViewRowWithDoc] type will be converted. The [pageSize] + 1 [ViewRowWithDoc] will be used to
  * extrapolate the [NextPageElement], otherwise no [NextPageElement] will be included in the output flow.
  *
  * @receiver a [Flow] of [ViewQueryResultEvent] which doc type extends [Identifiable] of [String].
  * @param pageSize the number of elements that will be included in the output [Flow].
- * @return a [Flow] of [PaginatedElement].
+ * @return a [Flow] of [PaginationElement].
  */
 @Suppress("UNCHECKED_CAST")
-fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSize: Int): Flow<PaginatedElement> {
+fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSize: Int): Flow<PaginationElement> {
 	var emitted = 0
 	return transform {
 		if (it is ViewRowWithDoc<*, *, *> && (it.doc as? U) != null) {
 			when {
 				emitted < pageSize -> {
 					emitted++
-					emit(PaginatedRowElement(it.doc as U, it.key))
+					emit(PaginationRowElement(it.doc as U, it.key))
 				}
 
 				emitted == pageSize -> {
@@ -47,23 +47,23 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 }
 
 /**
- * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginatedElement] containing only the ids of the entities.
+ * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginationElement] containing only the ids of the entities.
  * Only the first [pageSize] elements of the original flow of [ViewRowNoDoc] type will be converted.
  * The [pageSize] + 1 [ViewRowNoDoc] will be used to extrapolate the [NextPageElement], otherwise no
  * [NextPageElement] will be included in the output flow.
  *
  * @receiver a [Flow] of [ViewQueryResultEvent] which doc type extends [Identifiable] of [String].
  * @param pageSize the number of elements that will be included in the output [Flow].
- * @return a [Flow] of [PaginatedElement].
+ * @return a [Flow] of [PaginationElement].
  */
-fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<PaginatedElement> {
+fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<PaginationElement> {
 	var emitted = 0
 	return transform {
 		if (it is ViewRowNoDoc<*, *>) {
 			when {
 				emitted < pageSize -> {
 					emitted++
-					emit(PaginatedRowElement(it.id, it.key))
+					emit(PaginationRowElement(it.id, it.key))
 				}
 
 				emitted == pageSize -> {
@@ -78,22 +78,22 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
 }
 
 /**
- * Map all the [PaginatedRowElement] of a [Flow] of [PaginatedElement] from their [SRC] type to a [DST] type.
+ * Map all the [PaginationRowElement] of a [Flow] of [PaginationElement] from their [SRC] type to a [DST] type.
  * If the flow contains a [NextPageElement], then it will be left unchanged.
  *
- * @receiver a [Flow] of [PaginatedElement].
+ * @receiver a [Flow] of [PaginationElement].
  * @param mapper a function that can convert a [SRC] to a [DST].
- * @return a [Flow] of [PaginatedElement].
- * @throws IllegalStateException if there is a [PaginatedRowElement] that wraps an element which type is different
+ * @return a [Flow] of [PaginationElement].
+ * @throws IllegalStateException if there is a [PaginationRowElement] that wraps an element which type is different
  * from [SRC].
  */
 @Suppress("UNCHECKED_CAST")
-fun <SRC: Identifiable<String>, DST> Flow<PaginatedElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginatedElement> =
+fun <SRC: Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginationElement> =
 	map {
 		when(it) {
 			is NextPageElement<*> -> it
-			is PaginatedRowElement<*, *> -> {
-				PaginatedRowElement(
+			is PaginationRowElement<*, *> -> {
+				PaginationRowElement(
 					element = mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" }),
 					key = it.key
 				)
@@ -102,13 +102,13 @@ fun <SRC: Identifiable<String>, DST> Flow<PaginatedElement>.mapElements(mapper: 
 	}
 
 /**
- * Terminal operator for a [Flow] of [PaginatedElement]. It collects it generating a [PaginatedList].
+ * Terminal operator for a [Flow] of [PaginationElement]. It collects it generating a [PaginatedList].
  *
- * @receiver a [Flow] of [PaginatedElement].
+ * @receiver a [Flow] of [PaginationElement].
  * @return a [PaginatedList]
  */
 @Suppress("UNCHECKED_CAST")
-suspend fun <T : Serializable, K> Flow<PaginatedElement>.toPaginatedList(): PaginatedList<T> {
+suspend fun <T : Serializable, K> Flow<PaginationElement>.toPaginatedList(): PaginatedList<T> {
 	var nextKey: NextPageElement<K>? = null
 	val rows = mapNotNull {
 		when(it) {
@@ -116,7 +116,7 @@ suspend fun <T : Serializable, K> Flow<PaginatedElement>.toPaginatedList(): Pagi
 				nextKey = it as? NextPageElement<K>
 				null
 			}
-			is PaginatedRowElement<*, *> -> it.element as? T
+			is PaginationRowElement<*, *> -> it.element as? T
 		}
 	}.toList()
 	return PaginatedList(

@@ -10,7 +10,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import java.io.InputStream
 
 interface CodeService {
@@ -77,9 +77,9 @@ interface CodeService {
 	 * @param code the code of the codes to return.
 	 * @param version the version of the codes to return, if not null, or "latest".
 	 * @param paginationOffset a [PaginationOffset] for pagination.
-	 * @return a [Flow] containing the [Code]s matching the criteria, wrapped in a [PaginatedElement] for pagination.
+	 * @return a [Flow] containing the [Code]s matching the criteria, wrapped in a [PaginationElement] for pagination.
 	 */
-	fun findCodesBy(region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginatedElement>
+	fun findCodesBy(region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginationElement>
 
 	/**
 	 * Returns all the [Code]s which label matches the query passed as parameter in the language passed as parameter.
@@ -94,12 +94,12 @@ interface CodeService {
 	 * @param version the version of the code. It may be null (all the versions will be returned), a specific version or
 	 * the string "latest", that will get the latest version of each code.
 	 * @param paginationOffset a [PaginationOffset] for getting the successive pages.
-	 * @return a [Flow] of [PaginatedElement]s the wrap the [Code]s for pagination.
+	 * @return a [Flow] of [PaginationElement]s the wrap the [Code]s for pagination.
 	 */
-	fun findCodesByLabel(region: String?, language: String, types: Set<String>, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginatedElement>
+	fun findCodesByLabel(region: String?, language: String, types: Set<String>, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginationElement>
 
 	fun listCodeIdsByTypeCodeVersionInterval(startType: String?, startCode: String?, startVersion: String?, endType: String?, endCode: String?, endVersion: String?): Flow<String>
-	fun findCodesByQualifiedLinkId(region: String?, linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>): Flow<PaginatedElement>
+	fun findCodesByQualifiedLinkId(region: String?, linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>): Flow<PaginationElement>
 	fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?): Flow<String>
 	suspend fun <T : Enum<*>> importCodesFromEnum(e: Class<T>)
 

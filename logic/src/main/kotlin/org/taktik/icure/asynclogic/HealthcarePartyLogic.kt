@@ -12,7 +12,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 
@@ -34,9 +34,9 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	 *
 	 * @param offset a [PaginationOffset] of [String] for pagination.
 	 * @param desc whether return the healthcare parties sorted by [HealthcareParty.lastName] in descending or ascending order.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [HealthcareParty] entities.
+	 * @return a [Flow] of [PaginationElement] wrapping the [HealthcareParty] entities.
 	 */
-	fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginatedElement>
+	fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement>
 
 	/**
 	 * Retrieves all the healthcare parties in a group, sorted by the concatenation of [HealthcareParty.lastName] and
@@ -49,9 +49,9 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	 * @param fuzzyName a prefix that will match the normalized [HealthcareParty.lastName] and [HealthcareParty.firstName] concatenation.
 	 * @param offset a [PaginationOffset] of [String] for pagination.
 	 * @param desc whether return the healthcare parties sorted by [HealthcareParty.lastName] in descending or ascending order.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [HealthcareParty] entities.
+	 * @return a [Flow] of [PaginationElement] wrapping the [HealthcareParty] entities.
 	 */
-	fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginatedElement>
+	fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement>
 	fun listHealthcarePartiesByNihii(nihii: String): Flow<HealthcareParty>
 	fun listHealthcarePartiesBySsin(ssin: String): Flow<HealthcareParty>
 	fun listHealthcarePartiesByName(name: String): Flow<HealthcareParty>
@@ -69,9 +69,9 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	 * @param firstCode the upper bound for the postal codes of the healthcare parties.
 	 * @param lastCode the lower bound for the postal codes of the healthcare parties.
 	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [HealthcareParty] entities.
+	 * @return a [Flow] of [PaginationElement] wrapping the [HealthcareParty] entities.
 	 */
-	fun listHealthcarePartiesBySpecialityAndPostcode(type: String, spec: String, firstCode: String, lastCode: String, offset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+	fun listHealthcarePartiesBySpecialityAndPostcode(type: String, spec: String, firstCode: String, lastCode: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun getHealthcareParties(ids: List<String>): Flow<HealthcareParty>
 
 	/**
@@ -82,9 +82,9 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	 * @param searchValue a query to search against the defined fields.
 	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
 	 * @param desc whether return the healthcare parties sorted by descending or ascending order.
-	 * @return a [Flow] of [PaginatedElement] wrapping the [HealthcareParty] entities.
+	 * @return a [Flow] of [PaginationElement] wrapping the [HealthcareParty] entities.
 	 */
-	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginatedElement>
+	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginationElement>
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
 	suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String>
 	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>

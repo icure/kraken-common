@@ -16,8 +16,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDelegationsLogic<Contact> {
     suspend fun getContact(id: String): Contact?
@@ -44,9 +43,9 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
      * @param hcPartyId the id of the healthcare party.
      * @param secretPatientKey the secret patient key.
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [PaginatedElement]s wrapping the [Contact]s.
+     * @return a [Flow] of [PaginationElement]s wrapping the [Contact]s.
      */
-    fun listContactByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+    fun listContactByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
     fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
     suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
@@ -98,14 +97,14 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
      * @param startOpeningDate the timestamp of the start opening date. If null, all the [Contact]s since the beginning of time will be retrieved.
      * @param endOpeningDate the timestamp of the end opening date. If null, all the [Contact]s until the end of time will be retrieved.
      * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [PaginatedElement] wrapping the [Contact]s.
+     * @return a [Flow] of [PaginationElement] wrapping the [Contact]s.
      */
     fun listContactsByOpeningDate(
         hcPartyId: String,
         startOpeningDate: Long,
         endOpeningDate: Long,
         offset: PaginationOffset<ComplexKey>
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     suspend fun addDelegations(contactId: String, delegations: List<Delegation>): Contact?
 

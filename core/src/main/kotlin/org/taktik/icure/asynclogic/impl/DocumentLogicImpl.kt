@@ -34,7 +34,7 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.properties.CouchDbProperties
@@ -221,7 +221,7 @@ class DocumentLogicImpl(
 		hcPartyId: String,
 		secretForeignKey: String,
 		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			documentDAO.listDocumentsByHcPartyIdAndSecretMessageKey(

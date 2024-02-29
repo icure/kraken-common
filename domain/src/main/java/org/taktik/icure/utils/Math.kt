@@ -163,130 +163,130 @@ object Math {
     }
 
     fun obsWeights(ac: Double?, hc: Double?, bipd: Double?, fl: Double?): Map<String, Double?> {
-        var ac = ac
-        var hc = hc
-        var bipd = bipd
-        var fl = fl
-        if (ac != null && ac == 0.0) {
-            ac = null
+        var ac1 = ac
+        var hc1 = hc
+        var bipd1 = bipd
+        var fl1 = fl
+        if (ac1 != null && ac1 == 0.0) {
+            ac1 = null
         }
-        if (hc != null && hc == 0.0) {
-            hc = null
+        if (hc1 != null && hc1 == 0.0) {
+            hc1 = null
         }
-        if (bipd != null && bipd == 0.0) {
-            bipd = null
+        if (bipd1 != null && bipd1 == 0.0) {
+            bipd1 = null
         }
-        if (fl != null && fl == 0.0) {
-            fl = null
+        if (fl1 != null && fl1 == 0.0) {
+            fl1 = null
         }
         val results: MutableMap<String, Double?> = HashMap()
         val results1: MutableMap<String, Double?> = HashMap()
         val results2: MutableMap<String, Double?> = HashMap()
         val results3: MutableMap<String, Double?> = HashMap()
         val results4: MutableMap<String, Double?> = HashMap()
-        if (ac != null) {
+        if (ac1 != null) {
             results1["Jordaan"] = Math.pow(
                 10.0,
-                0.6328 + 0.01881 * ac - 0.000043 * ac * ac + 0.000000036239 * Math.pow(ac, 3.0)
+                0.6328 + 0.01881 * ac1 - 0.000043 * ac1 * ac1 + 0.000000036239 * Math.pow(ac1, 3.0)
             )
-            results1["Higginbottom"] = 0.0816 * Math.pow(ac, 3.0) / 1000
-            results1["Campbell"] = Math.pow(2.718281, -4.564 + 0.0282 * ac - 0.0000331 * ac * ac) * 1000
-            results1["Hadlock AC"] = Math.pow(2.718281, 2.695 + 0.0253 * ac - 0.0000275 * Math.pow(ac, 2.0))
-            results1["Warsof"] = Math.pow(10.0, -1.8367 + 0.092 * ac / 10 - 0.000019 * Math.pow(ac, 3.0) / 1000) * 1000
+            results1["Higginbottom"] = 0.0816 * Math.pow(ac1, 3.0) / 1000
+            results1["Campbell"] = Math.pow(2.718281, -4.564 + 0.0282 * ac1 - 0.0000331 * ac1 * ac1) * 1000
+            results1["Hadlock AC"] = Math.pow(2.718281, 2.695 + 0.0253 * ac1 - 0.0000275 * Math.pow(ac1, 2.0))
+            results1["Warsof"] = Math.pow(10.0, -1.8367 + 0.092 * ac1 / 10 - 0.000019 * Math.pow(ac1, 3.0) / 1000) * 1000
         }
-        if (fl != null) {
+        if (fl1 != null) {
             results1["Warsof et al. 1986"] = Math.pow(
                 2.718281,
-                4.6914 + 0.00151 * Math.pow(fl, 2.0) - 0.0000119 * Math.pow(fl, 3.0)
+                4.6914 + 0.00151 * Math.pow(fl1, 2.0) - 0.0000119 * Math.pow(fl1, 3.0)
             )
         }
-        if (ac != null && fl != null) {
-            results2["Woo et al. 1985"] = Math.pow(10.0, 0.59 + 0.008 * ac + 0.028 * fl - 0.0000716 * ac * fl)
+        if (ac1 != null && fl1 != null) {
+            results2["Woo et al. 1985"] = Math.pow(10.0, 0.59 + 0.008 * ac1 + 0.028 * fl1 - 0.0000716 * ac1 * fl1)
             results2["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.304 + 0.005281 * ac + 0.01938 * fl - 0.00004 * ac * fl)
+                Math.pow(10.0, 1.304 + 0.005281 * ac1 + 0.01938 * fl1 - 0.00004 * ac1 * fl1)
         }
-        if (ac != null && bipd != null) {
+        if (ac1 != null && bipd1 != null) {
             results2["Hsieh et al. 1987"] = Math.pow(
                 10.0,
-                2.1315 + 0.000056541 * ac * bipd - 0.00000015515 * bipd * Math.pow(
-                    ac,
+                2.1315 + 0.000056541 * ac1 * bipd1 - 0.00000015515 * bipd1 * Math.pow(
+                    ac1,
                     2.0
-                ) + 0.000000019782 * Math.pow(ac, 3.0) + 0.0052594 * bipd
+                ) + 0.000000019782 * Math.pow(ac1, 3.0) + 0.0052594 * bipd1
             )
-            results2["Vintzileos et al. 1987"] = Math.pow(10.0, 1.879 + 0.0084 * bipd + 0.0026 * ac)
+            results2["Vintzileos et al. 1987"] = Math.pow(10.0, 1.879 + 0.0084 * bipd1 + 0.0026 * ac1)
             results2["Woo et al. 1985"] = Math.pow(
                 10.0,
-                1.63 + 0.016 * bipd + 0.0000111 * Math.pow(ac, 2.0) - 0.0000000859 * bipd * Math.pow(
-                    ac,
+                1.63 + 0.016 * bipd1 + 0.0000111 * Math.pow(ac1, 2.0) - 0.0000000859 * bipd1 * Math.pow(
+                    ac1,
                     2.0
                 )
             )
             results2["Hadlock et al. 1984"] = Math.pow(
                 10.0,
-                1.1134 + 0.005845 * ac - 0.00000604 * Math.pow(ac, 2.0) - 0.00007365 * Math.pow(
-                    bipd,
+                1.1134 + 0.005845 * ac1 - 0.00000604 * Math.pow(ac1, 2.0) - 0.00007365 * Math.pow(
+                    bipd1,
                     2.0
-                ) + 0.00000595 * bipd * ac + 0.01694 * bipd
+                ) + 0.00000595 * bipd1 * ac1 + 0.01694 * bipd1
             )
             results2["Jordaan. 1983"] =
-                Math.pow(10.0, -1.1683 + 0.00377 * ac + 0.0095 * bipd - 0.000015 * bipd * ac) * 1000
+                Math.pow(10.0, -1.1683 + 0.00377 * ac1 + 0.0095 * bipd1 - 0.000015 * bipd1 * ac1) * 1000
             results2["Warsof et al. 1977"] = Math.pow(
                 10.0,
-                -1.599 + 0.0144 * bipd + 0.0032 * ac - 0.000000111 * Math.pow(bipd, 2.0) * ac
+                -1.599 + 0.0144 * bipd1 + 0.0032 * ac1 - 0.000000111 * Math.pow(bipd1, 2.0) * ac1
             ) * 1000
             results2["Shepard et al. 1982"] =
-                Math.pow(10.0, -1.7492 + 0.0166 * bipd + 0.0046 * ac - 0.00002546 * ac * bipd) * 1000
+                Math.pow(10.0, -1.7492 + 0.0166 * bipd1 + 0.0046 * ac1 - 0.00002546 * ac1 * bipd1) * 1000
         }
-        if (ac != null && hc != null) {
+        if (ac1 != null && hc1 != null) {
             results2["Hadlock"] = Math.pow(
                 10.0,
-                1.182 + 0.0273 * hc / 10 + 0.07057 * ac / 10 - 0.00063 * ac * ac / 100 - 0.0002184 * ac * ac / 100
+                1.182 + 0.0273 * hc1 / 10 + 0.07057 * ac1 / 10 - 0.00063 * ac1 * ac1 / 100 - 0.0002184 * ac1 * ac1 / 100
             )
-            results2["Jordan"] = Math.pow(10.0, 0.9119 + 0.00488 * hc + 0.00824 * ac - 0.00001599 * hc * ac)
+            results2["Jordan"] = Math.pow(10.0, 0.9119 + 0.00488 * hc1 + 0.00824 * ac1 - 0.00001599 * hc1 * ac1)
         }
-        if (ac != null && bipd != null && fl != null) {
+        if (ac1 != null && bipd1 != null && fl1 != null) {
             results3["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.335 - 0.000034 * ac * fl + 0.00316 * bipd + 0.00457 * ac + 0.01623 * fl)
+                Math.pow(10.0, 1.335 - 0.000034 * ac1 * fl1 + 0.00316 * bipd1 + 0.00457 * ac1 + 0.01623 * fl1)
             results3["Hsieh et al. 1987"] = Math.pow(
                 10.0,
-                2.7193 + 0.000094962 * ac * bipd - 0.01432 * fl - 0.00000076742 * ac * Math.pow(
-                    bipd,
+                2.7193 + 0.000094962 * ac1 * bipd1 - 0.01432 * fl1 - 0.00000076742 * ac1 * Math.pow(
+                    bipd1,
                     2.0
-                ) + 0.000001745 * fl * Math.pow(bipd, 2.0)
+                ) + 0.000001745 * fl1 * Math.pow(bipd1, 2.0)
             )
-            results3["Shinozuka et al. 1987"] = 0.00023966 * Math.pow(ac, 2.0) * fl + 0.001623 * Math.pow(bipd, 3.0)
+            results3["Shinozuka et al. 1987"] = 0.00023966 * Math.pow(ac1, 2.0) * fl1 + 0.001623 * Math.pow(bipd1, 3.0)
             results3["Woo et al. 1985"] = Math.pow(
                 10.0,
-                1.54 + 0.015 * bipd + 0.0000111 * Math.pow(ac, 2.0) - 0.0000000764 * bipd * Math.pow(
-                    ac,
+                1.54 + 0.015 * bipd1 + 0.0000111 * Math.pow(ac1, 2.0) - 0.0000000764 * bipd1 * Math.pow(
+                    ac1,
                     2.0
-                ) + 0.005 * fl - 0.00000992 * fl * ac
+                ) + 0.005 * fl1 - 0.00000992 * fl1 * ac1
             )
         }
-        if (ac != null && hc != null && bipd != null) {
-            results3["Jordaan. 1983"] = Math.pow(10.0, 2.3231 + 0.002904 * ac + 0.00079 * hc - 0.00058 * bipd)
+        if (ac1 != null && hc1 != null && bipd1 != null) {
+            results3["Jordaan. 1983"] = Math.pow(10.0, 2.3231 + 0.002904 * ac1 + 0.00079 * hc1 - 0.00058 * bipd1)
         }
-        if (ac != null && hc != null && fl != null) {
+        if (ac1 != null && hc1 != null && fl1 != null) {
             results3["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.326 - 0.0000326 * ac * fl + 0.00107 * hc + 0.00438 * ac + 0.0158 * fl)
+                Math.pow(10.0, 1.326 - 0.0000326 * ac1 * fl1 + 0.00107 * hc1 + 0.00438 * ac1 + 0.0158 * fl1)
             results3["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.326 - 0.0000326 * ac * fl + 0.00107 * hc + 0.00438 * ac + 0.0158 * fl)
+                Math.pow(10.0, 1.326 - 0.0000326 * ac1 * fl1 + 0.00107 * hc1 + 0.00438 * ac1 + 0.0158 * fl1)
             results3["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.326 - 0.0000326 * ac * fl + 0.00107 * hc + 0.00438 * ac + 0.0158 * fl)
-            results3["Combs et al. 1993"] = 0.00023718 * Math.pow(ac, 2.0) * fl + 0.00003312 * Math.pow(
-                hc, 3.0
+                Math.pow(10.0, 1.326 - 0.0000326 * ac1 * fl1 + 0.00107 * hc1 + 0.00438 * ac1 + 0.0158 * fl1)
+            results3["Combs et al. 1993"] = 0.00023718 * Math.pow(ac1, 2.0) * fl1 + 0.00003312 * Math.pow(
+                hc1, 3.0
             )
             results3["Ott et al. 1986"] = Math.pow(
                 10.0,
-                -2.0661 + 0.004355 * hc + 0.005394 * ac - 0.000008582 * hc * ac + 1.2594 * (fl / ac)
+                -2.0661 + 0.004355 * hc1 + 0.005394 * ac1 - 0.000008582 * hc1 * ac1 + 1.2594 * (fl1 / ac1)
             ) * 1000
             results3["Hadlock et al. 1985"] =
-                Math.pow(10.0, 1.326 - 0.0000326 * ac * fl + 0.00107 * hc + 0.00438 * ac + 0.0158 * fl)
+                Math.pow(10.0, 1.326 - 0.0000326 * ac1 * fl1 + 0.00107 * hc1 + 0.00438 * ac1 + 0.0158 * fl1)
         }
-        if (ac != null && hc != null && fl != null && bipd != null) {
+        if (ac1 != null && hc1 != null && fl1 != null && bipd1 != null) {
             results4["Hadlock et al. 1985"] = Math.pow(
                 10.0,
-                1.3596 + 0.00064 * hc + 0.00424 * ac + 0.0174 * fl + 0.0000061 * bipd * ac - 0.0000386 * ac * fl
+                1.3596 + 0.00064 * hc1 + 0.00424 * ac1 + 0.0174 * fl1 + 0.0000061 * bipd1 * ac1 - 0.0000386 * ac1 * fl1
             )
         }
 

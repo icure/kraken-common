@@ -9,16 +9,16 @@ import org.taktik.couchdb.id.Identifiable
  * - The next page, if there are more elements to be emitted.
  * It was decided to remove the total size, as it cannot be accurate, especially after filtering.
  */
-sealed interface PaginatedElement
+sealed interface PaginationElement
 
 /**
  * A wrapper for the actual element of type [T] to be added to the row array of the paginated list.
  * It also contains the key [K] of the element in the view.
  */
-data class PaginatedRowElement<T, K>(
+data class PaginationRowElement<T, K>(
 	val element: T,
 	val key: K? = null
-) : PaginatedElement {
+) : PaginationElement {
 
 	fun asNextPageElement(): NextPageElement<K> = when {
 		element is Identifiable<*> && element.id is String -> NextPageElement(element.id as String, key)
@@ -30,4 +30,4 @@ data class PaginatedRowElement<T, K>(
 /**
  * Represents the key to retrieve the next page. If present, it must be the last element of the flow.
  */
-data class NextPageElement<K>(val startKeyDocId: String? = null, val startKey: K? = null): PaginatedElement
+data class NextPageElement<K>(val startKeyDocId: String? = null, val startKey: K? = null): PaginationElement

@@ -24,7 +24,7 @@ import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.exceptions.MissingRequirementsException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -103,7 +103,7 @@ class HealthcarePartyLogicImpl(
 			}
 		}
 
-	override fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginatedElement> =
+	override fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			val healthcareParties = healthcarePartyDAO
@@ -111,7 +111,7 @@ class HealthcarePartyLogicImpl(
 			emitAll(healthcareParties.toPaginatedFlow<HealthcareParty>(offset.limit))
 		}
 
-	override fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginatedElement> = flow {
+	override fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val healthcareParties = healthcarePartyDAO
 			.findHealthcarePartiesByHcPartyNameContainsFuzzy(datastoreInformation, fuzzyName, offset.limitIncludingKey(), desc)
@@ -150,7 +150,7 @@ class HealthcarePartyLogicImpl(
 		firstCode: String,
 		lastCode: String,
 		offset: PaginationOffset<ComplexKey>
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(healthcarePartyDAO
 			.listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation, type, spec, firstCode, lastCode, offset.limitIncludingKey())
@@ -168,7 +168,7 @@ class HealthcarePartyLogicImpl(
 		searchValue: String,
 		paginationOffset: PaginationOffset<String>,
 		desc: Boolean
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(healthcarePartyDAO
 			.findHealthcarePartiesBySsinOrNihii(datastoreInformation, searchValue, paginationOffset.limitIncludingKey(), desc)

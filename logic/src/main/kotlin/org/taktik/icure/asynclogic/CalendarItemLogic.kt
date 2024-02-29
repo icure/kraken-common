@@ -10,7 +10,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithSecureDelegationsLogic<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
@@ -26,9 +26,9 @@ interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithS
 	 * Retrieves all [CalendarItem]s in a group in a format for pagination.
 	 *
 	 * @param offset a [PaginationOffset] of [Nothing] (i.e. with an always null key) for pagination.
-	 * @return a [Flow] of [PaginatedElement] containing the [CalendarItem]s.
+	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
 	 */
-	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginatedElement>
+	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 }

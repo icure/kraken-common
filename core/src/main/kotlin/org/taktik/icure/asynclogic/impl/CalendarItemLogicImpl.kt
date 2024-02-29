@@ -20,7 +20,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.mergeUniqueValuesForSearchKeys
@@ -52,7 +52,7 @@ class CalendarItemLogicImpl(
 		}
 
 
-	override fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginatedElement> = flow {
+	override fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(calendarItemDAO
 			.listAllCalendarItems(datastoreInformation, offset.limitIncludingKey())

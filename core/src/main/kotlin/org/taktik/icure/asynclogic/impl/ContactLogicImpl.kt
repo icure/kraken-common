@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.toSet
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -41,12 +40,11 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.exceptions.BulkUpdateConflictException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
-import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
@@ -87,7 +85,7 @@ class ContactLogicImpl(
 		hcPartyId: String,
 		secretPatientKey: String,
 		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByHcPartyIdAndPatientSecretKey(
@@ -414,7 +412,7 @@ class ContactLogicImpl(
 		startOpeningDate: Long,
 		endOpeningDate: Long,
 		offset: PaginationOffset<ComplexKey>,
-	): Flow<PaginatedElement> = flow {
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByOpeningDate(

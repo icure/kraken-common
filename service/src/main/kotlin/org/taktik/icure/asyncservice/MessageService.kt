@@ -15,7 +15,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginatedElement
+import org.taktik.icure.pagination.PaginationElement
 
 interface MessageService : EntityWithSecureDelegationsService<Message> {
 
@@ -29,13 +29,13 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * @param hcPartyId the id of the healthcare party.
      * @param fromAddress one of the [Message.fromAddress] to search.
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      */
     fun findMessagesByFromAddress(
         hcPartyId: String,
         fromAddress: String,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     /**
      * Retrieves all the [Message]s for a given healthcare party, where [Message.toAddresses] contains [toAddress],
@@ -48,14 +48,14 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * @param toAddress one of the [Message.toAddresses] to search.
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
      * @param reverse whether to sort the result in ascending or descending order by actor.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      */
     fun findMessagesByToAddress(
         hcPartyId: String,
         toAddress: String,
         paginationOffset: PaginationOffset<ComplexKey>,
         reverse: Boolean?
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     /**
      * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and sorted by
@@ -68,14 +68,14 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * @param transportGuid the transport guid to search. If null, all the [Message]s for the specified healthcare
      * party will be returned. If [transportGuid] ends with the string `:*`, then the asterisk is removed from the start key.
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
      */
     fun findMessagesByTransportGuidReceived(
         hcPartyId: String,
         transportGuid: String?,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     /**
      * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] in a format for pagination.
@@ -87,14 +87,14 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * @param transportGuid the transport guid to search. If null, all the [Message]s for the specified healthcare
      * party will be returned. If [transportGuid] ends with the string `:*`, then the asterisk is removed for the start key.
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
      */
     fun findMessagesByTransportGuid(
         hcPartyId: String,
         transportGuid: String?,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     /**
      * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and which [Message.sent]
@@ -109,7 +109,7 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * @param fromDate the lower bound timestamp for [Message.sent].
      * @param toDate the upper bound timestamp for [Message.sent].
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
      */
     fun findMessagesByTransportGuidSentDate(
@@ -118,7 +118,7 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
         fromDate: Long,
         toDate: Long,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<PaginatedElement>
+    ): Flow<PaginationElement>
 
     suspend fun addDelegation(messageId: String, delegation: Delegation): Message?
 
@@ -152,9 +152,9 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      *
      * @param secretPatientKey a [Message.secretForeignKeys].
      * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      */
-    fun listMessagesByCurrentHCPartySecretPatientKey(secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+    fun listMessagesByCurrentHCPartySecretPatientKey(secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
     fun setStatus(messageIds: List<String>, status: Int): Flow<Message>
     fun setReadStatus(messageIds: List<String>, userId: String, status: Boolean, time: Long): Flow<Message>
@@ -166,9 +166,9 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
      * in the [paginationOffset] will be reached as long as there are available elements.
      *
      * @param paginationOffset a [PaginationOffset] that marks the start of the found messages.
-     * @return a [Flow] of [Message]s wrapped in [PaginatedElement]s, for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
      */
-    fun findForCurrentHcPartySortedByReceived(paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginatedElement>
+    fun findForCurrentHcPartySortedByReceived(paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
     suspend fun addDelegations(messageId: String, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>
