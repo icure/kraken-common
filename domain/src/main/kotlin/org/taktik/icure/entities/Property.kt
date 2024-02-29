@@ -41,7 +41,10 @@ data class Property(
 
 	@JsonIgnore
 	fun <T> getValue(): T? {
-		return (typedValue?.getValue<Any>()?.let { it as? T })
+		return (typedValue?.getValue<Any>()?.let {
+			@Suppress("UNCHECKED_CAST")
+			it as? T
+		})
 	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

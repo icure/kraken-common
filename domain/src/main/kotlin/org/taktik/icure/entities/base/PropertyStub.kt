@@ -4,13 +4,13 @@
 
 package org.taktik.icure.entities.base
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.embed.Encrypted
 import org.taktik.icure.entities.embed.TypedValue
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -23,6 +23,9 @@ data class PropertyStub(
 ) : Serializable, Encrypted {
 	@JsonIgnore
 	fun <T> getValue(): T? {
-		return (typedValue?.getValue<Any>()?.let { it as? T })
+		return (typedValue?.getValue<Any>()?.let {
+			@Suppress("UNCHECKED_CAST")
+			it as? T
+		})
 	}
 }

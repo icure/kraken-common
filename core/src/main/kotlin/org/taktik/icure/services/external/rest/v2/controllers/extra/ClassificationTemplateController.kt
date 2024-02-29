@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -25,10 +27,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.ClassificationTemplate
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -36,9 +42,9 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationTemplateBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
-import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
 @RestController("classificationTemplateControllerV2")
@@ -50,11 +56,12 @@ class ClassificationTemplateController(
 	private val classificationTemplateV2Mapper: ClassificationTemplateV2Mapper,
 	private val bulkShareResultV2Mapper: ClassificationTemplateBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector
+	private val reactorCacheInjector: ReactorCacheInjector,
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	companion object {
-		private const val DEFAULT_LIMIT = 1000
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
 
@@ -81,13 +88,30 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		val elementList = classificationTemplateService.listClasificationsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
+		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
 
 		return elementList.map { classificationTemplateV2Mapper.map(it) }.injectReactorContext()
+	}
+
+	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findClassificationTemplatesByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
+	): PaginatedFlux {
+		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return classificationTemplateService
+			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, offset)
+			.mapElements(classificationTemplateV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Deletes a batch of ClassificationTemplates.", description = "Response is a set containing the ID's of deleted ClassificationTemplates.")
@@ -119,12 +143,13 @@ class ClassificationTemplateController(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
+	): PaginatedFlux {
+		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val classificationTemplates = classificationTemplateService.listClassificationTemplates(paginationOffset)
-		classificationTemplates.paginatedList<ClassificationTemplate, ClassificationTemplateDto>({ classificationTemplateV2Mapper.map(it) }, realLimit)
+		return classificationTemplateService
+			.listClassificationTemplates(paginationOffset)
+			.mapElements(classificationTemplateV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(description = "Shares one or more patients with one or more data owners")

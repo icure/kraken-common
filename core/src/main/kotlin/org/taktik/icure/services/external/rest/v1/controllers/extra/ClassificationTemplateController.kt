@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,14 +24,18 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.ClassificationTemplate
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ClassificationTemplateDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.ClassificationTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
-import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -40,12 +46,10 @@ import reactor.core.publisher.Flux
 class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateMapper: ClassificationTemplateMapper,
-	private val delegationMapper: DelegationMapper
+	private val delegationMapper: DelegationMapper,
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Create a classification Template with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
@@ -70,13 +74,30 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys has to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		val elementList = classificationTemplateService.listClasificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
 		return elementList.map { classificationTemplateMapper.map(it) }.injectReactorContext()
+	}
+
+	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findClassificationTemplatesByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
+	): PaginatedFlux {
+		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return classificationTemplateService
+			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, offset)
+			.mapElements(classificationTemplateMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
@@ -117,11 +138,12 @@ class ClassificationTemplateController(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
+	): PaginatedFlux {
+		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val classificationTemplates = classificationTemplateService.listClassificationTemplates(paginationOffset)
-		classificationTemplates.paginatedList<ClassificationTemplate, ClassificationTemplateDto>({ classificationTemplateMapper.map(it) }, realLimit)
+		return classificationTemplateService
+			.listClassificationTemplates(paginationOffset)
+			.mapElements(classificationTemplateMapper::map)
+			.asPaginatedFlux()
 	}
 }
