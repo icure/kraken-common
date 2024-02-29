@@ -20,8 +20,8 @@ data class AnnotationDto(
 	@get:Schema(description = "The timestamp (unix epoch in ms) of creation of this note, will be filled automatically if missing. Not enforced by the application server.") val created: Long? = null,
 	@get:Schema(description = "The timestamp (unix epoch in ms) of the latest modification of this note, will be filled automatically if missing. Not enforced by the application server.") val modified: Long? = null,
 	@get:Schema(description = "Text contained in the note, written as markdown.", deprecated = true) val text: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) @get:Schema(description = "Localized text contained in the note, written as markdown. Keys should respect ISO 639-1") val markdown: Map<String, String> = emptyMap(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val tags: Set<CodeStubDto> = emptySet(),
+	@get:Schema(description = "Localized text contained in the note, written as markdown. Keys should respect ISO 639-1") val markdown: Map<String, String> = emptyMap(),
+	val tags: Set<CodeStubDto> = emptySet(),
 	val confidential: Boolean? = null,
 	@get:Schema(description = "Defines to which part of the corresponding information the note is related to.") val location: String? = null,
 	val encryptedSelf: String? = null

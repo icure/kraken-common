@@ -26,7 +26,7 @@ data class EntityBulkShareResultDto<T>(
      * If a `bulkShare` method fails to apply any of the share requests for an entity this map associates the id of the
      * original failed request to the reason of failure.
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequestDto> = emptyMap()
+    val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequestDto> = emptyMap()
 ) {
     /**
      * Represents a reason why a share requests might have failed.

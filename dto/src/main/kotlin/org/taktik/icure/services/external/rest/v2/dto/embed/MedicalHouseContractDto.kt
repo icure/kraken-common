@@ -63,7 +63,7 @@ data class MedicalHouseContractDto(
 	val status: Int? = null,
 
 	val options: Map<String, String> = HashMap(),
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val receipts: Map<String, String> = emptyMap(),
+	val receipts: Map<String, String> = emptyMap(),
 
 	override val encryptedSelf: String? = null
 ) : EncryptedDto

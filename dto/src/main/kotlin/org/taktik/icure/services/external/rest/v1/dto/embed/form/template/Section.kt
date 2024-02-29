@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Section(
 	val section: String? = null,
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val fields: List<StructureElement> = emptyList(),
+	val fields: List<StructureElement> = emptyList(),
 	val description: String? = null,
 	val keywords: List<String>? = null,
 )
