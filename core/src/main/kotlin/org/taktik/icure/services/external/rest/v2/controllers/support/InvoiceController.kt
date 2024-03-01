@@ -26,15 +26,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -47,13 +51,12 @@ import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.InvoiceBulkShareResultV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.StartKeyJsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 
 @RestController("invoiceControllerV2")
@@ -71,12 +74,9 @@ class InvoiceController(
     private val objectMapper: ObjectMapper,
     private val bulkShareResultV2Mapper: InvoiceBulkShareResultV2Mapper,
     private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-    private val reactorCacheInjector: ReactorCacheInjector
+    private val reactorCacheInjector: ReactorCacheInjector,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Creates an invoice")
 	@PostMapping
@@ -196,33 +196,25 @@ class InvoiceController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { startKeyString ->
-			startKeyString
-				.takeIf { it.startsWith("[") }
-				?.let { startKeyArray ->
-					objectMapper.readValue<List<String>>(startKeyArray)
-				}
-				?: startKeyString.split(',')
-		}?.let { keys ->
-			listOf(keys[0], keys[1].toLong())
-		}
-		val paginationOffset = PaginationOffset<List<*>>(
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it)}
+		val paginationOffset = PaginationOffset(
 			startKeyElements,
 			startDocumentId,
 			0,
-			realLimit + 1
-		) // fetch one more for nextKeyPair
-		val findByAuthor = invoiceService.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
-		findByAuthor.paginatedList(invoiceV2Mapper::map, realLimit)
+			limit ?: paginationConfig.defaultLimit
+		)
+		return invoiceService
+			.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
+			.mapElements(invoiceV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listInvoicesByHCPartyAndPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
-		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys)
+		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys)
 
 		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
 	}
@@ -230,7 +222,7 @@ class InvoiceController(
 	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
-		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys.toSet())
+		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet())
 
 		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
 	}
@@ -242,7 +234,24 @@ class InvoiceController(
 		@RequestParam secretFKeys: String
 	): Flux<IcureStubDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
-		return invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
+		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
+	}
+
+	@Operation(summary = "List invoices found By Healthcare Party and a single secret foreign patient key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findInvoicesByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return invoiceService
+			.listInvoicesByHcPartyAndPatientSfk(hcPartyId, secretFKey, offset)
+			.mapElements(invoiceV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
@@ -251,14 +260,7 @@ class InvoiceController(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
-		return invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
-	}
-
-	@Operation(summary = "List invoices by groupId", description = "Keys have to delimited by coma")
-	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")
-	fun listInvoicesByHcPartyAndGroupId(@PathVariable hcPartyId: String, @PathVariable groupId: String): Flux<InvoiceDto> {
-		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
-		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
+		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List invoices by type, sent or unsent", description = "Keys have to delimited by coma")

@@ -4,7 +4,7 @@
 package org.taktik.icure.asynclogic.impl
 
 import com.google.common.base.Strings
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
@@ -18,16 +18,16 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asyncdao.InvoiceDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.EntityReferenceLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.InsuranceLogic
 import org.taktik.icure.asynclogic.InvoiceLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -43,7 +43,11 @@ import org.taktik.icure.entities.embed.InvoicingCode
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
-import org.taktik.icure.utils.*
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
+import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.mergeUniqueValuesForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -124,14 +128,14 @@ class InvoiceLogicImpl (
 		hcPartyId: String,
 		fromDate: Long?,
 		toDate: Long?,
-		paginationOffset: PaginationOffset<List<*>>
-	): Flow<ViewQueryResultEvent> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-				invoiceDAO.findInvoicesByHcParty(datastoreInformation, hcPartyId, fromDate, toDate, paginationOffset.toComplexKeyPaginationOffset())
-			)
-		}
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(invoiceDAO
+			.findInvoicesByHcParty(datastoreInformation, hcPartyId, fromDate, toDate, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Invoice>(paginationOffset.limit)
+		)
+	}
 
 
 	override fun listInvoicesByHcPartyContacts(hcParty: String, contactIds: Set<String>): Flow<Invoice> =
@@ -147,12 +151,23 @@ class InvoiceLogicImpl (
 				emitAll(invoiceDAO.listInvoicesByHcPartyAndRecipientIds(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), recipientIds))
 			}
 
-	override fun listInvoicesByHcPartyAndPatientSks(hcParty: String, secretPatientKeys: Set<String>): Flow<Invoice> =
+	override fun listInvoicesByHcPartyAndPatientSfks(hcParty: String, secretPatientKeys: Set<String>): Flow<Invoice> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(invoiceDAO.listInvoicesByHcPartyAndPatientFk(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), secretPatientKeys))
+			emitAll(invoiceDAO.listInvoicesByHcPartyAndPatientSfks(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), secretPatientKeys))
 		}
 
+	override fun listInvoicesByHcPartyAndPatientSfk(
+		hcParty: String,
+		secretPatientKey: String,
+		offset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(invoiceDAO
+			.listInvoicesByHcPartyAndPatientSfk(datastoreInformation, hcParty, secretPatientKey, offset.limitIncludingKey())
+			.toPaginatedFlow<Invoice>(offset.limit)
+		)
+	}
 
 	override fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(hcParty: String, sentMediumType: MediumType, invoiceType: InvoiceType, sent: Boolean, fromDate: Long?, toDate: Long?): Flow<Invoice> =
 		flow {
@@ -404,7 +419,7 @@ class InvoiceLogicImpl (
 		return entity.copy(securityMetadata = updatedMetadata)
 	}
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun getInvoicesForUsersAndInsuranceIds(userIds: List<String>?): Flow<Invoice> = flow {
 		val users = if (userIds == null) userLogic.getEntities() else userLogic.getUsers(userIds)
 		val insuranceIds = insuranceLogic.getEntityIds().toList().toSet()
@@ -419,7 +434,7 @@ class InvoiceLogicImpl (
 			.forEach { emit(it) }
 	}
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun getUnsentInvoicesForUsersAndInsuranceIds(userIds: List<String>?): Flow<Invoice> = flow {
 		val users = if (userIds == null) userLogic.getEntities() else userLogic.getUsers(userIds)
 		val insuranceIds = insuranceLogic.getEntityIds().toList().toSet()

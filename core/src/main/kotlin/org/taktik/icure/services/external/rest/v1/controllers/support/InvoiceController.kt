@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,13 +27,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.InvoiceService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -45,7 +51,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.InvoicingCodeMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
-import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -64,12 +69,9 @@ class InvoiceController(
     private val delegationMapper: DelegationMapper,
     private val invoicingCodeMapper: InvoicingCodeMapper,
     private val stubMapper: StubMapper,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Creates an invoice")
 	@PostMapping
@@ -142,7 +144,15 @@ class InvoiceController(
 	@Operation(summary = "Gets all invoices for author at date")
 	@PostMapping("/validate/{invoiceId}")
 	fun validate(@PathVariable invoiceId: String, @RequestParam scheme: String, @RequestParam forcedValue: String) = mono {
-		invoiceService.getInvoice(invoiceId)?.let { invoiceService.validateInvoice(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, it, scheme, forcedValue)?.let { invoiceMapper.map(it) } }
+		invoiceService.getInvoice(invoiceId)?.let {
+			invoiceService.validateInvoice(
+				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
+					?: throw AccessDeniedException("Current user is not a healthcare party"),
+				it,
+				scheme,
+				forcedValue
+			)?.let(invoiceMapper::map)
+		}
 	}
 
 	@Operation(summary = "Append codes to new or existing invoice")
@@ -191,44 +201,53 @@ class InvoiceController(
 		@RequestParam(required = false) fromDate: Long?,
 		@RequestParam(required = false) toDate: Long?,
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey")
-		@RequestParam("startKey", required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { startKeyString ->
-			startKeyString
-				.takeIf { it.startsWith("[") }
-				?.let { startKeyArray ->
-					objectMapper.readValue<List<String>>(startKeyArray)
-				}
-				?: startKeyString.split(',')
-		}?.let { keys ->
-			listOf(keys[0], keys[1].toLong())
-		}
-		val paginationOffset = PaginationOffset<List<*>>(
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it)}
+		val paginationOffset = PaginationOffset(
 			startKeyElements,
 			startDocumentId,
 			0,
-			realLimit + 1
-		) // fetch one more for nextKeyPair
-		val findByAuthor = invoiceService.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
-		findByAuthor.paginatedList(invoiceMapper::map, realLimit)
+			limit ?: paginationConfig.defaultLimit
+		)
+		return invoiceService
+			.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
+			.mapElements(invoiceMapper::map)
+			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
+	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
-		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys)
+		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys)
 
 		return elementList.map { element -> invoiceMapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
+	@Operation(summary = "List invoices found By Healthcare Party and a single secret foreign patient key.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findInvoicesByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return invoiceService
+			.listInvoicesByHcPartyAndPatientSfk(hcPartyId, secretFKey, offset)
+			.mapElements(invoiceMapper::map)
+			.asPaginatedFlux()
+	}
+
+	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by comma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
-		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys.toSet())
+		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet())
 
 		return elementList.map { element -> invoiceMapper.map(element) }.injectReactorContext()
 	}
@@ -240,7 +259,7 @@ class InvoiceController(
 		@RequestParam secretFKeys: String
 	): Flux<IcureStubDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
-		return invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
+		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
@@ -249,14 +268,7 @@ class InvoiceController(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
-		return invoiceService.listInvoicesByHcPartyAndPatientSks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
-	}
-
-	@Operation(summary = "List invoices by groupId")
-	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")
-	fun listByHcPartyGroupId(@PathVariable hcPartyId: String, @PathVariable groupId: String): Flux<InvoiceDto> {
-		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
-		return invoices.map { el -> invoiceMapper.map(el) }.injectReactorContext()
+		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List invoices by type, sent or unsent")
