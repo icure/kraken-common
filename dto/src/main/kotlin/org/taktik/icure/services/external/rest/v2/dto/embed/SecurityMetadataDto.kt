@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.entities.utils.Sha256HexString
+import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,7 +16,7 @@ anonymous data owners (see [DataOwnerAuthenticationDetails]) and in some cases a
 exchange key needed for the decryption of the content of the corresponding [SecureDelegation].
 Note that it is also possible for a secure delegation in this map to have no entry for secretId, encryptionKey or owningEntityId.
 This could happen in situations where a user should have access only to the unencrypted content of an entity.""")
-    val secureDelegations: Map<Sha256HexString, SecureDelegationDto>,
+    val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
     @get:Schema(description = """Holds aliases for secure delegation keys that apply to this entity: `a -> b` means that anyone with key `a` has access to the
 secure delegation in `secureDelegations['b']`.
 This map is useful in cases when it is not possible to know for certain if the delegate of a new secure delegation will be able
