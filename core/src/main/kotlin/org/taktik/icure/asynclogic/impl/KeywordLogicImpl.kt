@@ -14,7 +14,11 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.KeywordDAO
 import org.taktik.icure.asynclogic.KeywordLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -65,5 +69,12 @@ class KeywordLogicImpl(
 			emitAll(keywordDAO.getKeywordsByUserId(datastoreInformation, userId))
 		}
 
+	override fun getAllKeywords(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(keywordDAO
+			.getAllKeywords(datastoreInformation, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Keyword>(paginationOffset.limit)
+		)
+	}
 
 }

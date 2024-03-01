@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.taktik.icure.security.jwt
 
 import org.taktik.icure.services.external.rest.v1.dto.AuthenticationResponse

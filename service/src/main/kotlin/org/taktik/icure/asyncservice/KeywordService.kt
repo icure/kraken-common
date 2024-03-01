@@ -6,11 +6,21 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
+import org.taktik.icure.pagination.PaginationElement
 
 interface KeywordService {
 	suspend fun createKeyword(keyword: Keyword): Keyword?
-	fun getAllKeywords(): Flow<Keyword>
+
+	/**
+	 * Returns all the [Keyword]s in a group in a format for pagination.
+	 *
+	 * @param paginationOffset a [PaginationOffset] of [Nothing] (i.e. with an always-null start key) for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [Keyword]s.
+	 * @throws AccessDeniedException if the current user is not and admin or an healthcare party.
+	 */
+	fun getAllKeywords(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	suspend fun getKeyword(keywordId: String): Keyword?
 	fun deleteKeywords(ids: Set<String>): Flow<DocIdentifier>
 

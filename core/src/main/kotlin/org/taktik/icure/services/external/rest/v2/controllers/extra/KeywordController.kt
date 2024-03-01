@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -17,10 +18,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.KeywordService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.KeywordDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.KeywordV2Mapper
@@ -31,7 +38,11 @@ import reactor.core.publisher.Flux
 @Profile("app")
 @RequestMapping("/rest/v2/keyword")
 @Tag(name = "keyword")
-class KeywordController(private val keywordService: KeywordService, private val keywordV2Mapper: KeywordV2Mapper) {
+class KeywordController(
+	private val keywordService: KeywordService,
+	private val keywordV2Mapper: KeywordV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
+) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Create a keyword with the current user", description = "Returns an instance of created keyword.")
@@ -53,12 +64,15 @@ class KeywordController(private val keywordService: KeywordService, private val 
 	fun getKeywordsByUser(@PathVariable userId: String) =
 		keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordV2Mapper.map(c) } }.injectReactorContext()
 
-	@Operation(summary = "Gets all keywords")
+	@Operation(summary = "Gets all keywords with pagination")
 	@GetMapping
-	fun getKeywords(): Flux<KeywordDto> {
-		return keywordService.getAllKeywords().map { c -> keywordV2Mapper.map(c) }.injectReactorContext()
+	fun getKeywords(
+		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return keywordService.getAllKeywords(offset).mapElements(keywordV2Mapper::map).asPaginatedFlux()
 	}
-
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@PostMapping("/delete/batch")
 	fun deleteKeywords(@RequestBody keywordIds: ListOfIdsDto): Flux<DocIdentifier> =
