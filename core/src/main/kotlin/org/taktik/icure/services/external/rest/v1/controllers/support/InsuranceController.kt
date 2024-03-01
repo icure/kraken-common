@@ -22,13 +22,16 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.mapper.InsuranceMapper
 import org.taktik.icure.utils.injectReactorContext
-import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
 
 @RestController
@@ -37,26 +40,22 @@ import reactor.core.publisher.Flux
 @Tag(name = "insurance")
 class InsuranceController(
 	private val insuranceService: InsuranceService,
-	private val insuranceMapper: InsuranceMapper
+	private val insuranceMapper: InsuranceMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-
-    companion object {
-        private const val DEFAULT_LIMIT = 1000
-    }
 
     @Operation(summary = "Gets all the insurances")
     @GetMapping
     fun getAllInsurances(
         @Parameter(description = "An insurance document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-    ) = mono {
-        val realLimit = limit ?: DEFAULT_LIMIT
-        val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
+    ): PaginatedFlux {
+        val paginationOffset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-        insuranceService.getAllInsurances(paginationOffset).paginatedList(
-            insuranceMapper::map,
-            realLimit
-        )
+        return insuranceService
+			.getAllInsurances(paginationOffset)
+	        .mapElements(insuranceMapper::map)
+	        .asPaginatedFlux()
     }
 
 	@Operation(summary = "Creates an insurance")
