@@ -47,7 +47,7 @@ class DocumentTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			datastoreInformation, "all", null, null, paginationOffset, false
+			datastoreInformation, "all", paginationOffset.startDocumentId, "\ufff0", paginationOffset, false
 		)
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, DocumentTemplate::class.java))
 	}

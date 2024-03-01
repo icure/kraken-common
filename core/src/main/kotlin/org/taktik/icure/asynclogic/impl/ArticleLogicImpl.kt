@@ -16,9 +16,13 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Article
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -62,7 +66,14 @@ class ArticleLogicImpl(
 			articleDAO.save(datastoreInformation, fixedArticle)
 		}
 
-	override fun getArticles() = getEntities()
+	override fun getAllArticles(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(articleDAO
+			.getAllArticles(datastoreInformation, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Article>(paginationOffset.limit)
+		)
+	}
+
 	override fun entityWithUpdatedSecurityMetadata(entity: Article, updatedMetadata: SecurityMetadata): Article {
 		return entity.copy(securityMetadata = updatedMetadata)
 	}
