@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v1.controllers.support
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -25,17 +26,23 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.DocumentType
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.DocumentTemplateDto
 import org.taktik.icure.services.external.rest.v1.dto.data.ByteArrayDto
 import org.taktik.icure.services.external.rest.v1.mapper.DocumentTemplateMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import org.taktik.icure.asynclogic.SessionInformationProvider
 
 @RestController
 @Profile("app")
@@ -44,7 +51,8 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 class DocumentTemplateController(
     private val documentTemplateService: DocumentTemplateService,
     private val sessionLogic: SessionInformationProvider,
-    private val documentTemplateMapper: DocumentTemplateMapper
+    private val documentTemplateMapper: DocumentTemplateMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	@Operation(summary = "Gets a document template")
 	@GetMapping("/{documentTemplateId}")
@@ -97,11 +105,18 @@ class DocumentTemplateController(
 		)
 	}.injectReactorContext()
 
-	@Operation(summary = "Gets all document templates for all users")
+	@Operation(summary = "Gets all document templates for all users with pagination")
 	@GetMapping("/find/all")
-	fun findAllDocumentTemplates(): Flux<DocumentTemplateDto> {
-		val documentTemplates = documentTemplateService.getAllDocumentTemplates()
-		return documentTemplates.map { ft -> documentTemplateMapper.map(ft) }.injectReactorContext()
+	fun findAllDocumentTemplates(
+		@Parameter(description = "The startKey for pagination") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "A DocumentTemplate document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return documentTemplateService
+			.getAllDocumentTemplates(offset)
+			.mapElements(documentTemplateMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Create a document template with the current user", description = "Returns an instance of created document template.")

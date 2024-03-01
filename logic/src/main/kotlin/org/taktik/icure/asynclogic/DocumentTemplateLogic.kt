@@ -5,7 +5,9 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
+import org.taktik.icure.pagination.PaginationElement
 
 interface DocumentTemplateLogic : EntityPersister<DocumentTemplate, String> {
 	suspend fun createDocumentTemplate(entity: DocumentTemplate): DocumentTemplate
@@ -17,4 +19,12 @@ interface DocumentTemplateLogic : EntityPersister<DocumentTemplate, String> {
 	fun getDocumentTemplatesByUser(userId: String): Flow<DocumentTemplate>
 
 	suspend fun modifyDocumentTemplate(documentTemplate: DocumentTemplate): DocumentTemplate?
+
+	/**
+	 * Retrieves all the [DocumentTemplate]s in a group in a format for pagination.
+	 *
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [DocumentTemplate]s.
+	 */
+	fun getAllDocumentTemplates(paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
 }

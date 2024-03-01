@@ -9,10 +9,14 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.DocumentTemplateDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.DocumentTemplateLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -78,6 +82,14 @@ class DocumentTemplateLogicImpl(
 			val datastoreInformation = getInstanceAndGroup()
 			documentTemplateDAO.save(datastoreInformation, fixedDocumentTemplate.owner?.let { fixedDocumentTemplate } ?: fixedDocumentTemplate.copy(owner = sessionLogic.getCurrentUserId()))
 		}
+
+	override fun getAllDocumentTemplates(paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(documentTemplateDAO
+			.getAllDocumentTemplates(datastoreInformation, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<DocumentTemplate>(paginationOffset.limit)
+		)
+	}
 
 	override fun getGenericDAO(): DocumentTemplateDAO {
 		return documentTemplateDAO

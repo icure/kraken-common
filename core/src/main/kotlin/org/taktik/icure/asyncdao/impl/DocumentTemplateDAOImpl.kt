@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.commons.uti.UTI
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
@@ -24,6 +25,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DocumentTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 import org.taktik.icure.utils.writeTo
 import java.nio.ByteBuffer
@@ -37,6 +39,18 @@ class DocumentTemplateDAOImpl(
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<DocumentTemplate>(DocumentTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(DocumentTemplate::class.java), designDocumentProvider), DocumentTemplateDAO {
+
+	override fun getAllDocumentTemplates(
+		datastoreInformation: IDatastoreInformation,
+		paginationOffset: PaginationOffset<String>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = pagedViewQuery(
+			datastoreInformation, "all", null, null, paginationOffset, false
+		)
+		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, DocumentTemplate::class.java))
+	}
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.owner) emit([doc.owner,doc.guid], null )}")
 	override fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?) = flow {
