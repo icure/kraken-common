@@ -13,8 +13,12 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.MedicalLocationDAO
 import org.taktik.icure.asynclogic.MedicalLocationLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.exceptions.DeletionException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -31,7 +35,13 @@ class MedicalLocationLogicImpl(
 		medicalLocationDAO.create(datastoreInformation, fixedMedicalLocation)
 	}
 
-	override fun getAllMedicalLocations(): Flow<MedicalLocation> = getEntities()
+	override fun getAllMedicalLocations(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(medicalLocationDAO
+			.getAllMedicalLocations(datastoreInformation, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<MedicalLocation>(paginationOffset.limit)
+		)
+	}
 
 	override fun deleteMedicalLocations(ids: List<String>): Flow<DocIdentifier> = flow {
 		try {

@@ -5,8 +5,8 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -17,9 +17,15 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.MedicalLocationService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.MedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.mapper.MedicalLocationMapper
 import org.taktik.icure.utils.injectReactorContext
@@ -30,7 +36,8 @@ import org.taktik.icure.utils.injectReactorContext
 @Tag(name = "medicallocation")
 class MedicalLocationController(
 	private val medicalLocationService: MedicalLocationService,
-	private val medicalLocationMapper: MedicalLocationMapper
+	private val medicalLocationMapper: MedicalLocationMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Creates a medical location")
@@ -52,9 +59,18 @@ class MedicalLocationController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location fetching failed")
 	}
 
-	@Operation(summary = "Gets all medical locations")
+	@Operation(summary = "Gets all medical locations with pagination")
 	@GetMapping
-	fun getMedicalLocations() = medicalLocationService.getAllMedicalLocations().map { c -> medicalLocationMapper.map(c) }.injectReactorContext()
+	fun getMedicalLocations(
+		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return medicalLocationService
+			.getAllMedicalLocations(offset)
+			.mapElements(medicalLocationMapper::map)
+			.asPaginatedFlux()
+	}
 
 	@Operation(summary = "Modifies a medical location")
 	@PutMapping
