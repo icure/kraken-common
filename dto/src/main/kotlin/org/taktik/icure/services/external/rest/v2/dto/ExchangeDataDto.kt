@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.entities.utils.Base64String
-import org.taktik.icure.entities.utils.KeypairFingerprintString
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,7 +20,7 @@ data class ExchangeDataDto(
     val delegate: String,
     @get:Schema(description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""")
-    val exchangeKey: Map<KeypairFingerprintString, Base64String>,
+    val exchangeKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
     @get:Schema(description = """Key used for access control to data shared from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator.
 This key will be used by the client to calculate the keys of [SecurityMetadata.secureDelegations] in
@@ -40,15 +41,15 @@ between data.
 accessControlKey = sha256Bytes(accessControlSecret + entityClass + sfk[0]).take(16)
 securityMetadataKey = sha256Hex(accessControlKey)
 ```""")
-    val accessControlSecret: Map<KeypairFingerprintString, Base64String>,
+    val accessControlSecret: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
     @get:Schema(description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 sign it with his own private key.
 This field will contain the signature by fingerprint of the public key to use for verification.""")
-    val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
+    val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
     @get:Schema(description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
 the exchange data, without voiding the authenticity guarantee.""")
-    val sharedSignatureKey: Map<KeypairFingerprintString, Base64String>,
+    val sharedSignatureKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
     @get:Schema(description = """Base 64 signature of the exchange data, to ensure it was not tampered by third parties. This signature validates:
 - The (decrypted) exchange key
 - The (decrypted) access control secret
