@@ -3,10 +3,10 @@ import com.icure.codegen.task.PostProcessSdkTask
 plugins {
     id("com.icure.kotlin-library-conventions")
 
-    alias(coreLibs.plugins.kotlinAllOpen) apply(true)
+    alias(coreLibs.plugins.kotlinAllOpen)
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion)
-    alias(libs.plugins.ksp) apply(true)
+    alias(coreLibs.plugins.ksp)
 }
 
 val gitVersion: String? by project
@@ -21,7 +21,10 @@ dependencies {
         implementation(project(":utils"))
     }
 
-    ksp(project(":sdk-codegen"))
+    if (rootProject.name == "dto-mapping") {
+        ksp(project(":sdk-codegen"))
+    }
+
 
     implementation(coreLibs.bundles.xmlLibs)
     implementation(coreLibs.bundles.jacksonLibs)
