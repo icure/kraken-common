@@ -1,4 +1,3 @@
-import com.icure.codegen.task.PostProcessSdkTask
 
 plugins {
     id("com.icure.kotlin-library-conventions")
