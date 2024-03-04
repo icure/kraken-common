@@ -209,12 +209,17 @@ class CalendarItemController(
 		elementList.paginatedList(calendarItemV2Mapper::map, limit)
 	}
 
-	@Operation(summary = "Find CalendarItems by recurrenceId", description = "")
+	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")
 	@GetMapping("/byRecurrenceId")
-	fun findCalendarItemsByRecurrenceId(@RequestParam recurrenceId: String): Flux<CalendarItemDto> {
-		val elementList = calendarItemService.getCalendarItemsByRecurrenceId(recurrenceId)
-		return elementList.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
-	}
+	fun findCalendarItemsByRecurrenceId(
+		@RequestParam recurrenceId: String,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+	): PaginatedFlux = calendarItemService
+		.getCalendarItemsByRecurrenceId(recurrenceId, PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit))
+		.mapElements(calendarItemV2Mapper::map)
+		.asPaginatedFlux()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")

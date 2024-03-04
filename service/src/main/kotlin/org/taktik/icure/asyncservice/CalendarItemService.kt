@@ -54,7 +54,18 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 */
 	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
-	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
+
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.recurrenceId] is equal to the provided [recurrenceId]
+	 * in a format for pagination.
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access, but
+	 * it guarantees that the page size specified in the [paginationOffset] is reached as long as there are available entities.
+	 *
+	 * @param recurrenceId the [CalendarItem.recurrenceId].
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
+	 */
+	fun getCalendarItemsByRecurrenceId(recurrenceId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
 
 	/**
 	 * Updates a collection of [CalendarItem]s.

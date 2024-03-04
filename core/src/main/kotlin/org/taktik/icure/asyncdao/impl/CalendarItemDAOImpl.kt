@@ -261,9 +261,11 @@ class CalendarItemDAOImpl(
 	}
 
 	@View(name = "by_recurrence_id", map = "classpath:js/calendarItem/by_recurrence_id.js")
-	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String): Flow<CalendarItem> = flow {
+	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String, offset: PaginationOffset<String>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
+		val viewQuery = pagedViewQuery(
+			datastoreInformation, "by_recurrence_id", recurrenceId, recurrenceId, offset, false
+		)
+		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery))
 	}
 }

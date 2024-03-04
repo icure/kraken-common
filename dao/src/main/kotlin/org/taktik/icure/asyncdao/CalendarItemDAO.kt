@@ -40,5 +40,14 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 
 	fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKeys: List<String>, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 
-	fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String): Flow<CalendarItem>
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.recurrenceId] is equal to the provided [recurrenceId]
+	 * in a format for pagination.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param recurrenceId the [CalendarItem.recurrenceId].
+	 * @param offset a [PaginationOffset] of [String] for pagination.
+	 * @return a [Flow] of [ViewQueryResultEvent] containing the [CalendarItem]s.
+	 */
+	fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String, offset: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 }
