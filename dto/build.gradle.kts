@@ -1,9 +1,12 @@
+import com.icure.codegen.task.PostProcessSdkTask
+
 plugins {
     id("com.icure.kotlin-library-conventions")
 
     alias(coreLibs.plugins.kotlinAllOpen) apply(true)
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion)
+    alias(libs.plugins.ksp) apply(true)
 }
 
 val gitVersion: String? by project
@@ -17,6 +20,8 @@ dependencies {
     } else {
         implementation(project(":utils"))
     }
+
+    ksp(project(":sdk-codegen"))
 
     implementation(coreLibs.bundles.xmlLibs)
     implementation(coreLibs.bundles.jacksonLibs)

@@ -63,7 +63,7 @@ data class HealthElementDto(
     @Schema(description = "Id of the opening contact when the healthcare element was created.") val idOpeningContact: String? = null,
     @Schema(description = "Id of the closing contact for the healthcare element.") val idClosingContact: String? = null,
     @Schema(description = "Id of the service when a service is used to create a healthcare element.") val idService: String? = null, //When a service is used to create the healthElement
-    @Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present") val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+    @Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present", defaultValue = "0") val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
     @Schema(description = "Left or Right dominance/preference.") val laterality: LateralityDto? = null,
     @Schema(description = "List of healthcare approaches.") val plansOfAction: List<PlanOfActionDto> = emptyList(),
     @Schema(description = "List of episodes of occurrences of the healthcare element.") val episodes: List<EpisodeDto> = emptyList(),
