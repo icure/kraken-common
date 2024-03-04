@@ -94,7 +94,7 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice> {
 	fun removeCodes(userId: String, secretPatientKeys: Set<String>, serviceId: String, inputTarificationIds: List<String>): Flow<Invoice>
 	fun listInvoicesHcpsByStatus(status: String, from: Long?, to: Long?, hcpIds: List<String>): Flow<Invoice>
 	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
-
+	fun listInvoicesByHcPartyAndGroupId(hcPartyId: String, inputGroupId: String): Flow<Invoice>
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<org.taktik.icure.entities.data.LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>
 	fun listInvoiceIdsByTarificationsByCode(hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>

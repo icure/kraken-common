@@ -263,6 +263,13 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
+	@Operation(summary = "List invoices by groupId", description = "Keys have to delimited by coma")
+	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")
+	fun listInvoicesByHcPartyAndGroupId(@PathVariable hcPartyId: String, @PathVariable groupId: String): Flux<InvoiceDto> {
+		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
+		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
+	}
+
 	@Operation(summary = "List invoices by type, sent or unsent", description = "Keys have to delimited by coma")
 	@GetMapping("/byHcParty/{hcPartyId}/mediumType/{sentMediumType}/invoiceType/{invoiceType}/sent/{sent}")
 	fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
@@ -295,6 +302,7 @@ class InvoiceController(
 		)
 	}.injectReactorContext()
 
+	// TODO: Paginate
 	@Operation(summary = "Gets all invoices for author at date")
 	@GetMapping("/toInsurances")
 	fun listToInsurances(@RequestParam(required = false) userIds: String?): Flux<InvoiceDto> =
@@ -309,6 +317,7 @@ class InvoiceController(
 			.map(invoiceV2Mapper::map)
 			.injectReactorContext()
 
+	// TODO: Paginate
 	@Operation(summary = "Gets all invoices for author at date")
 	@GetMapping("/toPatients")
 	fun listToPatients(@RequestParam(required = false) hcPartyId: String?): Flux<InvoiceDto> = flow {

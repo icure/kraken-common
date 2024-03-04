@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
@@ -94,8 +93,8 @@ class TarificationDAOImpl(
 		type: String?,
 		code: String?,
 		version: String?,
-		pagination: PaginationOffset<List<String?>>
-	) = flow<ViewQueryResultEvent> {
+		pagination: PaginationOffset<ComplexKey>
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(
 			region ?: "\u0000",
@@ -114,62 +113,58 @@ class TarificationDAOImpl(
 			"by_region_type_code_version",
 			from,
 			to,
-			pagination.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
+			pagination,
 			false
 		)
 		emitAll(client.queryView(viewQuery, ComplexKey::class.java, String::class.java, Tarification::class.java))
 	}
 
 	@View(name = "by_language_label", map = "classpath:js/tarif/By_language_label.js")
-	override fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, label: String?, pagination: PaginationOffset<List<String?>>) = flow {
+	override fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, label: String?, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val label = label?.let { sanitizeString(it) }
+		val sanitizedLabel = label?.let { sanitizeString(it) }
 
-		val startKey = pagination.startKey?.toMutableList()
-		startKey?.takeIf { it.size > 2 }?.get(2)?.let { startKey[2] = sanitizeString(it) }
 		val from = ComplexKey.of(
 			region ?: "\u0000",
 			language ?: "\u0000",
-			label ?: "\u0000"
+			sanitizedLabel ?: "\u0000"
 		)
 
 		val to = ComplexKey.of(
 			if (region == null) ComplexKey.emptyObject() else if (language == null) region + "\ufff0" else region,
-			if (language == null) ComplexKey.emptyObject() else if (label == null) language + "\ufff0" else language,
-			if (label == null) ComplexKey.emptyObject() else label + "\ufff0"
+			if (language == null) ComplexKey.emptyObject() else if (sanitizedLabel == null) language + "\ufff0" else language,
+			if (sanitizedLabel == null) ComplexKey.emptyObject() else sanitizedLabel + "\ufff0"
 		)
 		val viewQuery = pagedViewQuery(
 			datastoreInformation,
 			"by_language_label",
 			from,
 			to,
-			pagination.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
+			pagination,
 			false
 		)
-		emitAll(client.queryView(viewQuery, Array<String>::class.java, Integer::class.java, Tarification::class.java))
+		emitAll(client.queryView(viewQuery, ComplexKey::class.java, Integer::class.java, Tarification::class.java))
 	}
 
 	@View(name = "by_language_type_label", map = "classpath:js/tarif/By_language_label.js")
-	override fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, type: String?, label: String?, pagination: PaginationOffset<List<String?>>) = flow<ViewQueryResultEvent> {
+	override fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, type: String?, label: String?, pagination: PaginationOffset<List<String?>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val label = label?.let { sanitizeString(it) }
+		val sanitizedLabel = label?.let { sanitizeString(it) }
 
-		val startKey = pagination.startKey?.toMutableList()
-		startKey?.takeIf { it.size > 3 }?.get(3)?.let { startKey[3] = sanitizeString(it) }
 		val from = ComplexKey.of(
 			region ?: "\u0000",
 			language ?: "\u0000",
 			type ?: "\u0000",
-			label ?: "\u0000"
+			sanitizedLabel ?: "\u0000"
 		)
 
 		val to = ComplexKey.of(
 			if (region == null) ComplexKey.emptyObject() else if (language == null) region + "\ufff0" else region,
 			if (language == null) ComplexKey.emptyObject() else if (type == null) language + "\ufff0" else language,
-			if (type == null) ComplexKey.emptyObject() else if (label == null) type + "\ufff0" else language,
-			if (label == null) ComplexKey.emptyObject() else label + "\ufff0"
+			if (type == null) ComplexKey.emptyObject() else if (sanitizedLabel == null) type + "\ufff0" else language,
+			if (sanitizedLabel == null) ComplexKey.emptyObject() else sanitizedLabel + "\ufff0"
 		)
 		val viewQuery = pagedViewQuery(
 			datastoreInformation,

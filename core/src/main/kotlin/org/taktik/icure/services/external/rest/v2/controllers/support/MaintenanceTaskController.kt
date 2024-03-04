@@ -26,8 +26,8 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -53,10 +53,9 @@ class MaintenanceTaskController(
 	private val filterChainMapper: FilterChainV2Mapper,
 	private val bulkShareResultV2Mapper: MaintenanceTaskBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector
+	private val reactorCacheInjector: ReactorCacheInjector,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val maintenanceTaskToMaintenanceTaskDto = { it: MaintenanceTask -> maintenanceTaskMapper.map(it) }
-
 	@Operation(summary = "Creates a maintenanceTask")
 	@PostMapping
 	fun createMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
@@ -99,12 +98,12 @@ class MaintenanceTaskController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>
 	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		maintenanceTaskService
 			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
-			.paginatedList(maintenanceTaskToMaintenanceTaskDto, realLimit)
+			.paginatedList(maintenanceTaskMapper::map, realLimit)
 	}
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
@@ -117,7 +116,4 @@ class MaintenanceTaskController(
 		).map { bulkShareResultV2Mapper.map(it) })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	companion object {
-		const val DEFAULT_LIMIT: Int = 1000
-	}
 }

@@ -8,14 +8,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transform
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowWithDoc
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -76,15 +83,73 @@ class TarificationLogicImpl(
 		type: String?,
 		tarification: String?,
 		version: String?,
-		paginationOffset: PaginationOffset<List<String?>>
-	): Flow<ViewQueryResultEvent> = flow {
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(tarificationDAO.findTarificationsBy(datastoreInformation, region, type, tarification, version, paginationOffset))
+		emitAll(tarificationDAO
+			.findTarificationsBy(datastoreInformation, region, type, tarification, version, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Tarification>(paginationOffset.limit)
+		)
 	}
 
-	override fun findTarificationsByLabel(region: String?, language: String?, label: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
+	override fun findTarificationsOfTypesByLabel(
+		region: String?,
+		language: String?,
+		label: String?,
+		types: Set<String>?,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(tarificationDAO.findTarificationsByLabel(datastoreInformation, region, language, label, paginationOffset))
+
+		suspend fun findTarificationsOfTypesByLabelRecursive(region: String?, language: String?, label: String?, types: Set<String>?, paginationOffset: PaginationOffset<ComplexKey>, extensionFactor: Float = 1f): Flow<ViewRowWithDoc<*, *, *>> {
+			val offset = paginationOffset.copy(limit = (paginationOffset.limit * extensionFactor).toInt())
+			var toEmit: ViewRowWithDoc<*, *, *>? = null
+			var sentElements = 0
+			var seenElements = 0
+
+			return tarificationDAO
+				.findTarificationsByLabel(datastoreInformation, region, language, label, offset)
+				.transform {
+					if(it is ViewRowWithDoc<*, *, *> && it.doc is Tarification) {
+						if(toEmit != null) {
+							emit(checkNotNull(toEmit))
+							toEmit = null
+						}
+						if(types == null || types.contains((it.doc as Tarification).type)) {
+							sentElements++
+							toEmit = it
+						}
+						seenElements++
+					}
+				}.onCompletion {
+					if(sentElements < paginationOffset.limit && sentElements < seenElements && toEmit != null) {
+						emitAll(
+							findTarificationsOfTypesByLabelRecursive(
+								region, language, label, types,
+								paginationOffset.copy(
+									startKey = toEmit?.key as? ComplexKey,
+									startDocumentId = toEmit?.id,
+									limit = paginationOffset.limit - sentElements
+								),
+								(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(100f)
+							)
+						)
+					} else if(toEmit != null){
+						emit(checkNotNull(toEmit))
+					}
+				}
+		}
+
+		emitAll(
+			findTarificationsOfTypesByLabelRecursive(
+				region,
+				language,
+				label,
+				types,
+				paginationOffset.limitIncludingKey(),
+				100f
+			).toPaginatedFlow<Tarification>(paginationOffset.limit)
+		)
 	}
 
 	override fun findTarificationsByLabel(region: String?, language: String?, type: String?, label: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {

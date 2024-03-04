@@ -271,6 +271,13 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
+	@Operation(summary = "List invoices by groupId")
+	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")
+	fun listByHcPartyGroupId(@PathVariable hcPartyId: String, @PathVariable groupId: String): Flux<InvoiceDto> {
+		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
+		return invoices.map { el -> invoiceMapper.map(el) }.injectReactorContext()
+	}
+
 	@Operation(summary = "List invoices by type, sent or unsent")
 	@GetMapping("/byHcParty/{hcPartyId}/mediumType/{sentMediumType}/invoiceType/{invoiceType}/sent/{sent}")
 	fun listByHcPartySentMediumTypeInvoiceTypeSentDate(
