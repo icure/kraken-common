@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Repository
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
@@ -66,7 +64,7 @@ open class UserDAOImpl(
 	@View(name = "allForPagination", map = "map = function (doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) { emit(doc.login, null); }};")
 	override fun findUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean): Flow<ViewQueryResultEvent> = findUsers(datastoreInformation, pagination, skipPatients, 1f, 0, false)
 
-	fun findUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean, extensionFactor: Float, prevTotalCount: Int, isContinuation: Boolean): Flow<ViewQueryResultEvent> = flow {
+	private fun findUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean, extensionFactor: Float, prevTotalCount: Int, isContinuation: Boolean): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		var seenElements = 0
@@ -88,7 +86,7 @@ open class UserDAOImpl(
 						latestResult = it
 						seenElements++
 						if (skipped || !isContinuation) {
-							if (((it.doc as User).patientId === null || (it.doc as User).healthcarePartyId != null) && sentElements < pagination.limit) {
+							if (((it.doc as User).patientId == null || (it.doc as User).healthcarePartyId != null) && sentElements < pagination.limit) {
 								sentElements++
 								true
 							} else false

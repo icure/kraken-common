@@ -36,7 +36,7 @@ class EntityTemplateController(
 	private val entityTemplateMapper: EntityTemplateMapper
 ) {
 
-	@Operation(summary = "Finding entityTemplates by userId, entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by userId, entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/find/{userId}/{type}")
 	fun findEntityTemplates(
 		@PathVariable userId: String,
@@ -46,7 +46,7 @@ class EntityTemplateController(
 	) =
 		entityTemplateService.listEntityTemplatesBy(userId, type, searchString, includeEntities).map { entityTemplateMapper.map(it)/*.apply { if (includeEntities == true) entity = it.entity }*/ }.injectReactorContext()
 
-	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/findAll/{type}")
 	fun findAllEntityTemplates(
 		@PathVariable type: String,
@@ -65,7 +65,7 @@ class EntityTemplateController(
 	) =
 		entityTemplateService.listEntityTemplatesByKeyword(userId, type, keyword, includeEntities).map { entityTemplateMapper.map(it)/*.apply { if (includeEntities == true) entity = it.entity }*/ }.injectReactorContext()
 
-	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/findAll/{type}/keyword/{keyword}")
 	fun findAllEntityTemplatesByKeyword(
 		@PathVariable type: String,
@@ -84,7 +84,7 @@ class EntityTemplateController(
 		entityTemplateMapper.map(entityTemplate)
 	}
 
-	@Operation(summary = "Get a list of entityTemplates by ids", description = "Keys must be delimited by coma")
+	@Operation(summary = "Get a list of entityTemplates by ids", description = "Keys must be delimited by comma")
 	@GetMapping("/byIds/{entityTemplateIds}")
 	fun getEntityTemplates(@PathVariable entityTemplateIds: String): Flux<EntityTemplateDto> {
 		val entityTemplates = entityTemplateService.getEntityTemplates(entityTemplateIds.split(','))

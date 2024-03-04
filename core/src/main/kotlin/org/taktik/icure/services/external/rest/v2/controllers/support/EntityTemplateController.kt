@@ -39,7 +39,7 @@ class EntityTemplateController(
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@Operation(summary = "Finding entityTemplates by userId, entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by userId, entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/find/{userId}/{type}")
 	fun listEntityTemplatesBy(
 		@PathVariable userId: String,
@@ -48,7 +48,7 @@ class EntityTemplateController(
 		@RequestParam(required = false) includeEntities: Boolean?
 	) = entityTemplateService.listEntityTemplatesBy(userId, type, searchString, includeEntities).map { entityTemplateV2Mapper.map(it)/*.apply { if (includeEntities == true) entity = it.entity }*/ }.injectReactorContext()
 
-	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/findAll/{type}")
 	fun listAllEntityTemplatesBy(
 		@PathVariable type: String,
@@ -65,7 +65,7 @@ class EntityTemplateController(
 		@RequestParam(required = false) includeEntities: Boolean?
 	) = entityTemplateService.listEntityTemplatesByKeyword(userId, type, keyword, includeEntities).map { entityTemplateV2Mapper.map(it)/*.apply { if (includeEntities == true) entity = it.entity }*/ }.injectReactorContext()
 
-	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version with pagination.", description = "Returns a list of entityTemplates matched with given input.")
+	@Operation(summary = "Finding entityTemplates by entityTemplate, type and version.", description = "Returns a list of entityTemplates matched with given input.")
 	@GetMapping("/findAll/{type}/keyword/{keyword}")
 	fun findAllEntityTemplatesByKeyword(
 		@PathVariable type: String,
@@ -83,7 +83,7 @@ class EntityTemplateController(
 		entityTemplateV2Mapper.map(entityTemplate)
 	}
 
-	@Operation(summary = "Get a list of entityTemplates by ids", description = "Keys must be delimited by coma")
+	@Operation(summary = "Get a list of entityTemplates by ids", description = "Keys must be delimited by comma")
 	@PostMapping("/byIds")
 	fun getEntityTemplates(@RequestBody entityTemplateIds: ListOfIdsDto): Flux<EntityTemplateDto> {
 		return entityTemplateIds.ids.takeIf { it.isNotEmpty() }

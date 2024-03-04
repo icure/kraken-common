@@ -108,6 +108,7 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice> {
 	 * This method will fail if at least one of the users is not a HCP.
 	 * Only users with the [Permissions.InvoiceManagement.Maintenance.CanGetInvoicesForUsersAndInsurances] can access
 	 * this method.
+	 *
 	 * @param userIds a [List] of user ids to search the [Invoice]s. If null, all the users in the system will be used.
 	 * @return a [Flow] of all the [Invoice]s, ordered by sent date.
 	 */

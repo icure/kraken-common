@@ -101,6 +101,7 @@ interface InvoiceLogic : EntityPersister<Invoice, String>, EntityWithSecureDeleg
 	 * the insurances id available. The elements of the flow are ordered by sentDate.
 	 * If no userId is passed, all the users of the group are used instead.
 	 * This method will fail if at least one of the users is not a HCP.
+	 *
 	 * @param userIds a [List] of user ids to search the [Invoice]s. If null, all the users in the system will be used.
 	 * @return a [Flow] of all the [Invoice]s, ordered by sentDate.
 	 */

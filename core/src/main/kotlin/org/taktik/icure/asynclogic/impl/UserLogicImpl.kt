@@ -7,17 +7,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.UserLogic
@@ -35,6 +31,8 @@ import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.DuplicateDocumentException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.security.credentials.SecretValidator
 import org.taktik.icure.security.user.UserEnhancer
@@ -52,8 +50,7 @@ open class UserLogicImpl (
 	fixer: Fixer
 ) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider), UserLogic {
 
-	private val log: Logger = LoggerFactory.getLogger(UserLogicImpl::class.java)
-	protected val shortTokenFormatter = DecimalFormat("000000")
+	private val shortTokenFormatter = DecimalFormat("000000")
 
 	override suspend fun getUser(id: String): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
@@ -222,20 +219,11 @@ open class UserLogicImpl (
 
 	override fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userEnhancer.enhanceViewFlow(listUsers(datastoreInformation, paginationOffset, skipPatients)))
-	}
-
-	override fun listUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean) = flow {
-		emitAll(userDAO.findUsers(datastoreInformation, pagination, skipPatients).let { flw ->
-			if (!skipPatients) flw else flw.filter {
-				when (it) {
-					is ViewRowWithDoc<*, *, *> -> {
-						(it.doc as User).patientId === null || (it.doc as User).healthcarePartyId != null
-					}
-					else -> true
-				}
-			}
-		})
+		emitAll(
+			userEnhancer.enhanceViewFlow(
+				userDAO.findUsers(datastoreInformation, paginationOffset.limitIncludingKey(), skipPatients)
+			).toPaginatedFlow<User>(paginationOffset.limit)
+		)
 	}
 
 	override fun filterUsers(

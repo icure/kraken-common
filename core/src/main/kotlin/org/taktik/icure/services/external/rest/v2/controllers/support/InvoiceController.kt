@@ -302,7 +302,6 @@ class InvoiceController(
 		)
 	}.injectReactorContext()
 
-	// TODO: Paginate
 	@Operation(summary = "Gets all invoices for author at date")
 	@GetMapping("/toInsurances")
 	fun listToInsurances(@RequestParam(required = false) userIds: String?): Flux<InvoiceDto> =
@@ -317,7 +316,6 @@ class InvoiceController(
 			.map(invoiceV2Mapper::map)
 			.injectReactorContext()
 
-	// TODO: Paginate
 	@Operation(summary = "Gets all invoices for author at date")
 	@GetMapping("/toPatients")
 	fun listToPatients(@RequestParam(required = false) hcPartyId: String?): Flux<InvoiceDto> = flow {
