@@ -26,8 +26,8 @@ import org.taktik.icure.entities.MedicalLocation
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.MedicalLocation' && !doc.deleted) emit( null, doc._id )}")
 open class MedicalLocationDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<MedicalLocation>(MedicalLocation::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(MedicalLocation::class.java), designDocumentProvider), MedicalLocationDAO {

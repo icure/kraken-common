@@ -27,9 +27,9 @@ import org.taktik.icure.entities.Agenda
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Agenda' && !doc.deleted) emit( null, doc._id )}")
 class AgendaDAOImpl(
-    @Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
+	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<Agenda>(Agenda::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Agenda::class.java), designDocumentProvider), AgendaDAO {
 

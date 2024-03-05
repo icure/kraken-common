@@ -3,7 +3,6 @@ package org.taktik.icure.cache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactor.ReactorContext
 import reactor.core.publisher.Mono
-import reactor.util.context.Context
 import kotlin.coroutines.CoroutineContext
 
 interface ReactorCacheInjector {

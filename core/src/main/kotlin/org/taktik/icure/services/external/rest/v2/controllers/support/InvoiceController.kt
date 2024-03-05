@@ -64,17 +64,17 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/invoice")
 @Tag(name = "invoice")
 class InvoiceController(
-    private val invoiceService: InvoiceService,
-    private val sessionLogic: SessionInformationProvider,
-    private val uuidGenerator: UUIDGenerator,
-    private val invoiceV2Mapper: InvoiceV2Mapper,
-    private val filterChainV2Mapper: FilterChainV2Mapper,
-    private val invoicingCodeV2Mapper: InvoicingCodeV2Mapper,
-    private val stubV2Mapper: StubV2Mapper,
-    private val objectMapper: ObjectMapper,
-    private val bulkShareResultV2Mapper: InvoiceBulkShareResultV2Mapper,
-    private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-    private val reactorCacheInjector: ReactorCacheInjector,
+	private val invoiceService: InvoiceService,
+	private val sessionLogic: SessionInformationProvider,
+	private val uuidGenerator: UUIDGenerator,
+	private val invoiceV2Mapper: InvoiceV2Mapper,
+	private val filterChainV2Mapper: FilterChainV2Mapper,
+	private val invoicingCodeV2Mapper: InvoicingCodeV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
+	private val objectMapper: ObjectMapper,
+	private val bulkShareResultV2Mapper: InvoiceBulkShareResultV2Mapper,
+	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 

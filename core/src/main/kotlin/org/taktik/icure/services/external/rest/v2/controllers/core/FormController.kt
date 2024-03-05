@@ -68,16 +68,16 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/form")
 @Tag(name = "form")
 class FormController(
-    private val formTemplateService: FormTemplateService,
-    private val formService: FormService,
-    private val sessionLogic: SessionInformationProvider,
-    private val formV2Mapper: FormV2Mapper,
-    private val formTemplateV2Mapper: FormTemplateV2Mapper,
-    private val rawFormTemplateV2Mapper: RawFormTemplateV2Mapper,
-    private val stubV2Mapper: StubV2Mapper,
-    private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
-    private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-    private val reactorCacheInjector: ReactorCacheInjector,
+	private val formTemplateService: FormTemplateService,
+	private val formService: FormService,
+	private val sessionLogic: SessionInformationProvider,
+	private val formV2Mapper: FormV2Mapper,
+	private val formTemplateV2Mapper: FormTemplateV2Mapper,
+	private val rawFormTemplateV2Mapper: RawFormTemplateV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
+	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
+	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {

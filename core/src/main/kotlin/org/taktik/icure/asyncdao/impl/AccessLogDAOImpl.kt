@@ -31,9 +31,9 @@ import org.taktik.icure.utils.interleave
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.AccessLog' && !doc.deleted) emit( null, doc._id )}")
 class AccessLogDAOImpl(
-    @Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
+	@Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<AccessLog>(AccessLog::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(AccessLog::class.java), designDocumentProvider), AccessLogDAO {
 

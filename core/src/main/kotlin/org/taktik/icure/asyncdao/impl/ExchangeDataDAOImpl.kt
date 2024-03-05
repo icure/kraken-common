@@ -23,10 +23,10 @@ import org.taktik.icure.entities.ExchangeData
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ExchangeData' && !doc.deleted) emit( null, doc._id )}")
 class ExchangeDataDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
-    designDocumentProvider: DesignDocumentProvider
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
+	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<ExchangeData>(ExchangeData::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(ExchangeData::class.java), designDocumentProvider), ExchangeDataDAO {
 
     @View(name = "by_participant", map = "classpath:js/exchangedata/By_participant_map.js")

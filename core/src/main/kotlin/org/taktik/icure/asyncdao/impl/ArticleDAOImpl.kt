@@ -25,10 +25,10 @@ import org.taktik.icure.entities.Article
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Article' && !doc.deleted) emit( null, doc._id )}")
 class ArticleDAOImpl(
-    @Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
-    designDocumentProvider: DesignDocumentProvider
+	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
+	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<Article>(Article::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Article::class.java), designDocumentProvider), ArticleDAO {
     override fun getAllArticles(
         datastoreInformation: IDatastoreInformation,
