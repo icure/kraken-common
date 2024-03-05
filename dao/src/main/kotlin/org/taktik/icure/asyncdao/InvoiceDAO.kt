@@ -43,6 +43,15 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 		inputGroupId: String
 	): Flow<Invoice>
 
+	/**
+	 * Retrieves all the [Invoice]s for a data owner using his set of [searchKeys] and where [Invoice.recipientId] is
+	 * included in [recipientIds].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchKeys a [Set] of search keys for the data owner.
+	 * @param recipientIds a [Set] of recipient ids.
+	 * @return a [Flow] of [Invoice]s.
+	 */
 	fun listInvoicesByHcPartyAndRecipientIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, recipientIds: Set<String?>): Flow<Invoice>
 
 	/**

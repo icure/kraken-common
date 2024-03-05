@@ -145,11 +145,10 @@ class InvoiceLogicImpl (
 		}
 
 
-	override fun listInvoicesByHcPartyAndRecipientIds(hcParty: String, recipientIds: Set<String?>): Flow<Invoice> =
-			flow {
-				val datastoreInformation = getInstanceAndGroup()
-				emitAll(invoiceDAO.listInvoicesByHcPartyAndRecipientIds(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), recipientIds))
-			}
+	override fun listInvoicesByHcPartyAndRecipientIds(hcParty: String, recipientIds: Set<String?>): Flow<Invoice> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(invoiceDAO.listInvoicesByHcPartyAndRecipientIds(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), recipientIds))
+	}
 
 	override fun listInvoicesByHcPartyAndPatientSfks(hcParty: String, secretPatientKeys: Set<String>): Flow<Invoice> =
 		flow {
@@ -428,9 +427,7 @@ class InvoiceLogicImpl (
 				listInvoicesByHcPartyAndRecipientIds(hcpId, insuranceIds).filter { iv -> user.id == iv.author }
 			} ?: throw IllegalArgumentException("Provided user is not a Healthcare Party")
 		}.toList()
-			.sortedWith(Comparator
-				.comparing { iv: Invoice -> iv.sentDate ?: 0L }
-				.thenComparing { iv: Invoice -> iv.sentDate ?: 0L}) //TODO https://i.kym-cdn.com/entries/icons/original/000/018/489/nick-young-confused-face-300x256-nqlyaa.jpg
+			.sortedWith(Comparator.comparing { iv: Invoice -> iv.sentDate ?: 0L })
 			.forEach { emit(it) }
 	}
 
