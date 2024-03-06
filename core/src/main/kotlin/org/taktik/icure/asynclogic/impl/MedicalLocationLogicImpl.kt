@@ -38,7 +38,7 @@ class MedicalLocationLogicImpl(
 	override fun getAllMedicalLocations(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(medicalLocationDAO
-			.getAllMedicalLocations(datastoreInformation, paginationOffset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<MedicalLocation>(paginationOffset.limit)
 		)
 	}

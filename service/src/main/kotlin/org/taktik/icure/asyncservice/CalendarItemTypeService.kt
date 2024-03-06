@@ -33,6 +33,13 @@ interface CalendarItemTypeService {
 	 * @return a [Flow] of [PaginationElement]s containing the [CalendarItemType]s.
 	 */
 	fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [CalendarItemType]s in a group.
+	 *
+	 * @return a [Flow] of [CalendarItemType]s.
+	 */
+	fun getAllCalendarItemTypes(): Flow<CalendarItemType>
 	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
 
 	/**
@@ -44,4 +51,13 @@ interface CalendarItemTypeService {
 	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
 	 */
 	fun getAllEntitiesIncludeDeleted(offset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [CalendarItemType]s in a group, including all the entities where
+	 * [CalendarItemType.deletionDate] is not null.
+	 *
+	 * @return a [Flow] of [PaginationElement]s containing the [CalendarItemType]s.
+	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
+	 */
+	fun getAllEntitiesIncludeDeleted(): Flow<CalendarItemType>
 }

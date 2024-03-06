@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
@@ -35,4 +34,12 @@ interface CalendarItemTypeLogic : EntityPersister<CalendarItemType, String> {
 	 * @return a [Flow] of [PaginationElement]s containing the [CalendarItemType]s.
 	 */
 	fun getAllEntitiesIncludeDeleted(offset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [CalendarItemType]s in a group, including all the entities where
+	 * [CalendarItemType.deletionDate] is not null.
+	 *
+	 * @return a [Flow] of [CalendarItemType]s.
+	 */
+	fun getAllEntitiesIncludeDeleted(): Flow<CalendarItemType>
 }

@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -35,7 +33,6 @@ import org.taktik.icure.services.external.rest.v1.dto.ClassificationTemplateDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.ClassificationTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
-import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -81,23 +78,6 @@ class ClassificationTemplateController(
 		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
 		return elementList.map { classificationTemplateMapper.map(it) }.injectReactorContext()
-	}
-
-	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findClassificationTemplatesByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: StartKeyJsonString?,
-		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
-		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return classificationTemplateService
-			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, offset)
-			.mapElements(classificationTemplateMapper::map)
-			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")

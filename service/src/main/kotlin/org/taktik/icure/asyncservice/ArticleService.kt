@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncservice
 
+import com.sun.jdi.connect.Connector.Argument
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
@@ -47,5 +48,14 @@ interface ArticleService : EntityWithSecureDelegationsService<Article> {
 	 * @return a [Flow] of [PaginationElement] containing the [Article]s.
 	 */
 	fun getAllArticles(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Returns all the [Article]s in a group.
+	 * Note: this method will filter out all the entities that the current user is now allowed to access.
+	 *
+	 * @return a [Flow] of [Article]s.
+	 */
+	fun getAllArticles(): Flow<Article>
+
 	suspend fun modifyArticle(article: Article): Article?
 }

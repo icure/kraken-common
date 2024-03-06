@@ -20,13 +20,16 @@ import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.create
+import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.View
+import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.exception.CouchDbConflictException
 import org.taktik.couchdb.exception.CouchDbException
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -37,8 +40,6 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.update
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.GenericDAO
-import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -65,6 +66,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	private val designDocumentProvider: DesignDocumentProvider
 ) : GenericDAO<T> {
 	private val log = LoggerFactory.getLogger(this.javaClass)
+
+	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = pagedViewQuery(
+			datastoreInformation, "all", null, null, offset, false
+		)
+		emitAll(client.queryView(viewQuery, keyClass, String::class.java, entityClass))
+	}
 
 	/**
 	 * Checks if the entity with the id passed as parameter exists on the database.

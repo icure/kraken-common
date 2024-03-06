@@ -184,23 +184,6 @@ class ContactController(
 		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Get a list of contacts found by Healthcare Party and Patient foreign key.")
-	@GetMapping("/byHcPartyPatientForeignKey")
-	fun findContactsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam patientForeignKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
-		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return contactService
-			.listContactByHCPartyIdAndSecretPatientKey(hcPartyId, patientForeignKey, paginationOffset)
-			.mapElements(contactMapper::map)
-			.asPaginatedFlux()
-	}
-
 	@Operation(summary = "Get a list of contacts found by Healthcare Party and Patient foreign keys.")
 	@PostMapping("/byHcPartyPatientForeignKeys")
 	fun findContactsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody patientForeignKeys: ListOfIdsDto): Flux<ContactDto> {

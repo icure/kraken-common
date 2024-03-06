@@ -20,6 +20,14 @@ interface PlaceService {
 	 * @throws AccessDeniedException if the current user is not an admin or an healthcare party.
 	 */
 	fun getAllPlaces(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [Place]s in a group.
+	 *
+	 * @return a [Flow] of [PaginationElement] containing the [Place]s.
+	 * @throws AccessDeniedException if the current user is not an admin or an healthcare party.
+	 */
+	fun getAllPlaces(): Flow<Place>
 	suspend fun createPlace(place: Place): Place?
 	fun deletePlace(ids: List<String>): Flow<DocIdentifier>
 	suspend fun getPlace(place: String): Place?

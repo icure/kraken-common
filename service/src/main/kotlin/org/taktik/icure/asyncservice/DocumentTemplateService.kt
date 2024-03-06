@@ -48,4 +48,12 @@ interface DocumentTemplateService {
 	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
 	 */
 	fun getAllDocumentTemplates(paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [DocumentTemplate]s in a group.
+	 *
+	 * @return a [Flow] of [DocumentTemplate]s.
+	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
+	 */
+	fun getAllDocumentTemplates(): Flow<DocumentTemplate>
 }

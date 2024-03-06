@@ -82,7 +82,7 @@ interface ClassificationTemplateService : EntityWithSecureDelegationsService<Cla
 	 * This method will filter out all the entities that the current user is not allowed to access, but it will guarantee
 	 * that the page size specified in the [paginationOffset] is reached as long as there are available elements.
 	 *
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
 	 * @return a [Flow] of [PaginationElement] wrapping the [ClassificationTemplate]s.
 	 */
 	fun listClassificationTemplates(paginationOffset: PaginationOffset<String>): Flow<PaginationElement>

@@ -47,4 +47,11 @@ interface AgendaService {
 	 * @return a [Flow] of [PaginationElement] containing the [Agenda]s.
 	 */
 	fun getAllAgendas(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [Agenda]s in a group.
+	 *
+	 * @return a [Flow] of [Agenda]s.
+	 */
+	fun getAllAgendas(): Flow<Agenda>
 }

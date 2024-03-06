@@ -29,11 +29,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
-import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -53,21 +49,14 @@ class CalendarItemController(
 	private val calendarItemMapper: CalendarItemMapper,
 	private val delegationMapper: DelegationMapper,
 	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
-	fun getCalendarItems(
-		@Parameter(description = "A CalendarItem document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
-		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return calendarItemService
-			.getAllCalendarItems(offset)
-			.mapElements(calendarItemMapper::map)
-			.asPaginatedFlux()
-	}
+	fun getCalendarItems() = calendarItemService
+		.getAllCalendarItems()
+		.map(calendarItemMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Creates a calendarItem")
 	@PostMapping
@@ -221,14 +210,9 @@ class CalendarItemController(
 
 	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")
 	@GetMapping("/byRecurrenceId")
-	fun findCalendarItemsByRecurrenceId(
-		@RequestParam recurrenceId: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
-		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux = calendarItemService
-		.getCalendarItemsByRecurrenceId(recurrenceId, PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit))
-		.mapElements(calendarItemMapper::map)
-		.asPaginatedFlux()
+	fun findCalendarItemsByRecurrenceId(@RequestParam recurrenceId: String) = calendarItemService
+		.getCalendarItemsByRecurrenceId(recurrenceId)
+		.map(calendarItemMapper::map)
+		.injectReactorContext()
 
 }

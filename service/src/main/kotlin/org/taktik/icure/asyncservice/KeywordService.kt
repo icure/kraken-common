@@ -21,6 +21,14 @@ interface KeywordService {
 	 * @throws AccessDeniedException if the current user is not and admin or an healthcare party.
 	 */
 	fun getAllKeywords(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Returns all the [Keyword]s in a group.
+	 *
+	 * @return a [Flow] of [Keyword]s.
+	 * @throws AccessDeniedException if the current user is not and admin or an healthcare party.
+	 */
+	fun getAllKeywords(): Flow<Keyword>
 	suspend fun getKeyword(keywordId: String): Keyword?
 	fun deleteKeywords(ids: Set<String>): Flow<DocIdentifier>
 

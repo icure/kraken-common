@@ -40,4 +40,12 @@ interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithS
 	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
 	 */
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.recurrenceId] is equal to the provided [recurrenceId].
+	 *
+	 * @param recurrenceId the [CalendarItem.recurrenceId].
+	 * @return a [Flow] of [CalendarItem]s.
+	 */
+	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 }

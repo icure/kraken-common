@@ -24,4 +24,11 @@ interface MedicalLocationService {
 	 * @return a [Flow] of [PaginationElement] containing the [MedicalLocation]s
 	 */
 	fun getAllMedicalLocations(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [MedicalLocation]s in a group.
+	 *
+	 * @return a [Flow] of [MedicalLocation]s
+	 */
+	fun getAllMedicalLocations(): Flow<MedicalLocation>
 }

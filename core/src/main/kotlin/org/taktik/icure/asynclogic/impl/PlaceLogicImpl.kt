@@ -56,7 +56,7 @@ class PlaceLogicImpl(
 	override fun getAllPlaces(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(placeDAO
-			.getAllPlaces(datastoreInformation, paginationOffset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<Place>(paginationOffset.limit)
 		)
 	}

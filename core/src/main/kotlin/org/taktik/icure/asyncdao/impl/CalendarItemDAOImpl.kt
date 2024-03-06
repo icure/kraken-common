@@ -48,19 +48,6 @@ class CalendarItemDAOImpl(
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItem::class.java), designDocumentProvider), CalendarItemDAO {
 
-	override fun listAllCalendarItems(
-		datastoreInformation: IDatastoreInformation,
-		offset: PaginationOffset<Nothing>
-	): Flow<ViewQueryResultEvent> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val viewQuery = pagedViewQuery(
-			datastoreInformation, "all", null, null, offset, false
-		)
-
-		emitAll(client.queryView(viewQuery, Nothing::class.java, String::class.java, CalendarItem::class.java))
-	}
-
 	@Views(
         View(name = "by_hcparty_and_startdate", map = "classpath:js/calendarItem/By_hcparty_and_startdate.js"),
         View(name = "by_data_owner_and_startdate", map = "classpath:js/calendarItem/By_data_owner_and_startdate.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -267,5 +254,11 @@ class CalendarItemDAOImpl(
 			datastoreInformation, "by_recurrence_id", recurrenceId, recurrenceId, offset, false
 		)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery))
+	}
+
+	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
+		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
 	}
 }

@@ -32,7 +32,7 @@ class AgendaLogicImpl(
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(agendaDAO
-			.getAllPaginated(datastoreInformation, offset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, offset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<Agenda>(offset.limit)
 		)
 	}

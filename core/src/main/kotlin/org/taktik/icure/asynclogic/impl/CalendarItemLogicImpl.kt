@@ -55,7 +55,7 @@ class CalendarItemLogicImpl(
 	override fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(calendarItemDAO
-			.listAllCalendarItems(datastoreInformation, offset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, offset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<CalendarItem>(offset.limit)
 		)
 	}
@@ -95,6 +95,11 @@ class CalendarItemLogicImpl(
 			.listCalendarItemsByRecurrenceId(datastoreInformation, recurrenceId, paginationOffset.limitIncludingKey())
 			.toPaginatedFlow<CalendarItem>(paginationOffset.limit)
 		)
+	}
+
+	override fun getCalendarItemsByRecurrenceId(recurrenceId: String) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemDAO.listCalendarItemsByRecurrenceId(datastoreInformation, recurrenceId))
 	}
 
 	override fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) = flow {

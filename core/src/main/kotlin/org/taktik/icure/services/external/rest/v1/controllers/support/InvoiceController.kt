@@ -227,23 +227,6 @@ class InvoiceController(
 		return elementList.map { element -> invoiceMapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and a single secret foreign patient key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findInvoicesByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
-		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
-		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return invoiceService
-			.listInvoicesByHcPartyAndPatientSfk(hcPartyId, secretFKey, offset)
-			.mapElements(invoiceMapper::map)
-			.asPaginatedFlux()
-	}
-
 	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by comma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {

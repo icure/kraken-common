@@ -5,8 +5,8 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -17,17 +17,11 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ArticleService
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ArticleDto
 import org.taktik.icure.services.external.rest.v1.mapper.ArticleMapper
 import org.taktik.icure.utils.injectReactorContext
@@ -39,8 +33,7 @@ import reactor.core.publisher.Flux
 @Tag(name = "article")
 class ArticleController(
 	private val articleService: ArticleService,
-	private val articleMapper: ArticleMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val articleMapper: ArticleMapper
 ) {
 
 	@Operation(summary = "Creates a article")
@@ -77,15 +70,9 @@ class ArticleController(
 
 	@Operation(summary = "Gets all articles with pagination")
 	@GetMapping
-	fun getArticles(
-		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
-		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return articleService
-			.getAllArticles(offset)
-			.mapElements(articleMapper::map)
-			.asPaginatedFlux()
-	}
+	fun getArticles() = articleService
+		.getAllArticles()
+		.map(articleMapper::map)
+		.injectReactorContext()
 
 }

@@ -122,21 +122,6 @@ class MessageController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List messages found By Healthcare Party and secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findMessagesByHCPartyPatientForeignKey(
-		@RequestParam secretFKey: String,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
-		@RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
-		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return messageService.listMessagesByCurrentHCPartySecretPatientKey(secretFKey, paginationOffset)
-			.mapElements(messageMapper::map)
-			.asPaginatedFlux()
-	}
-
 	@Operation(summary = "List messages found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findMessagesByHCPartyPatientForeignKeys(@RequestBody secretPatientKeys: List<String>): Flux<MessageDto> {

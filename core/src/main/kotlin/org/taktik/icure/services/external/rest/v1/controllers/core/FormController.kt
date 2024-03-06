@@ -4,10 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
@@ -35,16 +32,10 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.MissingRequirementsException
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.FormDto
 import org.taktik.icure.services.external.rest.v1.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
@@ -55,7 +46,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.FormTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.RawFormTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
-import org.taktik.icure.utils.StartKeyJsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
 import org.taktik.icure.utils.warn
@@ -73,9 +63,7 @@ class FormController(
     private val formTemplateMapper: FormTemplateMapper,
     private val rawFormTemplateMapper: RawFormTemplateMapper,
     private val delegationMapper: DelegationMapper,
-    private val stubMapper: StubMapper,
-	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig
+    private val stubMapper: StubMapper
 ) {
 	private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -240,23 +228,6 @@ class FormController(
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
 		return formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, null, null, null).map { form -> stubMapper.mapToStub(form) }.injectReactorContext()
-	}
-
-	@Operation(summary = "List forms found By Healthcare Party and secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findFormsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretPatientKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
-		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return formService
-			.listFormsByHcPartyIdPatientSecretKey(hcPartyId, secretPatientKey, paginationOffset)
-			.mapElements(formMapper::map)
-			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Update delegations in form.")

@@ -72,7 +72,7 @@ class KeywordLogicImpl(
 	override fun getAllKeywords(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(keywordDAO
-			.getAllKeywords(datastoreInformation, paginationOffset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<Keyword>(paginationOffset.limit)
 		)
 	}

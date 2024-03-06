@@ -69,7 +69,7 @@ class ArticleLogicImpl(
 	override fun getAllArticles(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(articleDAO
-			.getAllArticles(datastoreInformation, paginationOffset.limitIncludingKey())
+			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<Article>(paginationOffset.limit)
 		)
 	}

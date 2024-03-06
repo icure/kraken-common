@@ -30,7 +30,7 @@ class CalendarItemTypeLogicImpl(
 	override fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastore = getInstanceAndGroup()
 		emitAll(calendarItemTypeDAO
-			.getCalendarItemTypes(datastore, offset.limitIncludingKey())
+			.getAllPaginated(datastore, offset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<CalendarItemType>(offset.limit)
 		)
 	}
@@ -75,6 +75,11 @@ class CalendarItemTypeLogicImpl(
 			.getCalendarItemsWithDeleted(datastoreInformation, offset.limitIncludingKey())
 			.toPaginatedFlow<CalendarItemType>(offset.limit)
 		)
+	}
+
+	override fun getAllEntitiesIncludeDeleted() = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemTypeDAO.getCalendarItemsWithDeleted(datastoreInformation))
 	}
 
 	override fun getGenericDAO(): CalendarItemTypeDAO {

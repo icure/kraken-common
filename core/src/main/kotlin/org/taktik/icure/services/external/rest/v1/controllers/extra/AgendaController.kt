@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -24,11 +23,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.AgendaService
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v1.mapper.AgendaMapper
 import org.taktik.icure.utils.injectReactorContext
@@ -41,21 +35,14 @@ import reactor.core.publisher.Flux
 class AgendaController(
 	private val agendaService: AgendaService,
 	private val agendaMapper: AgendaMapper,
-	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	@Operation(summary = "Gets all agendas")
 	@GetMapping
-	fun getAgendas(
-		@Parameter(description = "An agenda document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
-		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return agendaService
-			.getAllAgendas(offset)
-			.mapElements(agendaMapper::map)
-			.asPaginatedFlux()
-	}
+	fun getAgendas() = agendaService
+		.getAllAgendas()
+		.map(agendaMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Creates a agenda")
 	@PostMapping
