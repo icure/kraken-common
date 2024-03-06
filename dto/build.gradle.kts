@@ -1,9 +1,11 @@
+
 plugins {
     id("com.icure.kotlin-library-conventions")
 
-    alias(coreLibs.plugins.kotlinAllOpen) apply(true)
+    alias(coreLibs.plugins.kotlinAllOpen)
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion)
+    alias(coreLibs.plugins.ksp)
 }
 
 val gitVersion: String? by project
@@ -17,6 +19,11 @@ dependencies {
     } else {
         implementation(project(":utils"))
     }
+
+    if (rootProject.name == "dto-mapping") {
+        ksp(project(":sdk-codegen"))
+    }
+
 
     implementation(coreLibs.bundles.xmlLibs)
     implementation(coreLibs.bundles.jacksonLibs)

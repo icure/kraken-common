@@ -28,37 +28,38 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageReadStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity is a root level object. It represents a Message. It is serialized in JSON and saved in the underlying CouchDB database.""")
 data class MessageDto(
-	@Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@Schema(description = "The revision of the message in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
-	override val created: Long? = null,
-	override val modified: Long? = null,
-	override val author: String? = null,
-	override val responsible: String? = null,
-	override val medicalLocationId: String? = null,
-	override val tags: Set<CodeStubDto> = emptySet(),
-	override val codes: Set<CodeStubDto> = emptySet(),
-	override val endOfLife: Long? = null,
-	override val deletionDate: Long? = null,
+    @Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+    @Schema(description = "The revision of the message in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+    override val created: Long? = null,
+    override val modified: Long? = null,
+    override val author: String? = null,
+    override val responsible: String? = null,
+    override val medicalLocationId: String? = null,
+    override val tags: Set<CodeStubDto> = emptySet(),
+    override val codes: Set<CodeStubDto> = emptySet(),
+    override val endOfLife: Long? = null,
+    override val deletionDate: Long? = null,
 
-	@Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
-	@Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
-	val formId: String? = null,
-	@Schema(description = "Status of the message") val status: Int? = null,
-	@Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
-	@Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), //The id of the hcp whose the message is addressed to
-	@Schema(description = "The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)") val toAddresses: Set<String> = emptySet(),
-	@Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
-	@Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
-	val metas: Map<String, String> = emptyMap(),
-	@Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
-	val messageAttachments: List<MessageAttachmentDto> = emptyList(),
-	/*
+    @Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
+    @Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
+    val formId: String? = null,
+    @Schema(description = "Status of the message") val status: Int? = null,
+    @Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
+    @Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), //The id of the hcp whose the message is addressed to
+    @Schema(description = "The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)") val toAddresses: Set<String> = emptySet(),
+    @Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
+    @Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
+    val metas: Map<String, String> = emptyMap(),
+    @Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
+    val messageAttachments: List<MessageAttachmentDto> = emptyList(),
+    /*
         CHAP4:IN:   ${Mycarenet message ref}
         CHAP4:OUT:  ${Mycarenet message ref}
         EFACT:BATCH:${Mycarenet message ref}
@@ -73,22 +74,22 @@ data class MessageDto(
         REPORT:OUT: ${iCure ref}
         */
 	val transportGuid: String? = null, //Each message should have a transportGuid: see above for formats
-	val remark: String? = null,
-	val conversationGuid: String? = null,
-	@Schema(description = "Subject for the message") val subject: String? = null,
-	@Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
-	@Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, //ID of parent in a message conversation
-	val externalRef: String? = null,
-	val unassignedResults: Set<String> = emptySet(), //refs
-	val assignedResults: Map<String, String> = emptyMap(), //ContactId -> ref
-	val senderReferences: Map<String, String> = emptyMap(),
+    val remark: String? = null,
+    val conversationGuid: String? = null,
+    @Schema(description = "Subject for the message") val subject: String? = null,
+    @Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
+    @Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, //ID of parent in a message conversation
+    val externalRef: String? = null,
+    val unassignedResults: Set<String> = emptySet(), //refs
+    val assignedResults: Map<String, String> = emptyMap(), //ContactId -> ref
+    val senderReferences: Map<String, String> = emptyMap(),
 
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
+    override val secretForeignKeys: Set<String> = emptySet(),
+    override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+    override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+    override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+    override val encryptedSelf: Base64StringDto? = null,
+    override val securityMetadata: SecurityMetadataDto? = null
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {
 	companion object : DynamicInitializer<MessageDto> {
 		const val STATUS_LABO_RESULT = 1 shl 0

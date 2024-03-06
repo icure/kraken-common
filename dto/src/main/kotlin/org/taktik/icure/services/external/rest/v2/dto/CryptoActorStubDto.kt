@@ -6,6 +6,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 
 /**
  * Holds only data specific for crypto actors without any additional information (from patient, hcparty, device).
@@ -15,7 +16,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 data class CryptoActorStubDto(
     override val id: String,
     override val rev: String, // Stubs can't be created, but only updated or retrieved: rev is never null.
-    override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
+    override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
     override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
     override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
     override val privateKeyShamirPartitions: Map<String, String> = emptyMap(),

@@ -30,6 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -72,7 +73,7 @@ data class ContactDto(
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptedSelf: String? = null,
+	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
 	@Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {

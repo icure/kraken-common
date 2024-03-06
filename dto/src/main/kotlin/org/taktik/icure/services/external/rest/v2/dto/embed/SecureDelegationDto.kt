@@ -3,9 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.entities.utils.Base64String
-import org.taktik.icure.entities.utils.KeypairFingerprintString
-import org.taktik.icure.entities.utils.Sha256HexString
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -41,15 +40,15 @@ be hidden to prevent data leakages (see class documentation for more details).""
     val delegate: String? = null,
     @get:Schema(description = """Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
 `secretForeignKeys` field of children entities.""")
-    val secretIds: Set<Base64String> = emptySet(),
+    val secretIds: Set<Base64StringDto> = emptySet(),
     @get:Schema(description = """Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).""")
-    val encryptionKeys: Set<Base64String> = emptySet(),
+    val encryptionKeys: Set<Base64StringDto> = emptySet(),
     @get:Schema(description = """Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
 such as the id of the patient for a contact or healthcare element.""")
-    val owningEntityIds: Set<Base64String> = emptySet(),
+    val owningEntityIds: Set<Base64StringDto> = emptySet(),
     @get:Schema(description = """Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
 only [SecureDelegation] that they can directly access or any children delegations.""")
-    val parentDelegations: Set<Sha256HexString> = emptySet(),
+    val parentDelegations: Set<SecureDelegationKeyStringDto> = emptySet(),
     @get:Schema(description = """If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
 data used for the encryption of this delegation. Otherwise, this will be null.""")
     val exchangeDataId: String? = null,

@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -40,7 +41,7 @@ data class HealthElementTemplateDto(
 	override val deletionDate: Long? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@Schema(defaultValue = "0") val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	val relevant: Boolean = true,
 	val plansOfAction: List<PlanOfActionTemplateDto> = emptyList()
 ) : StoredDocumentDto, ICureDocumentDto<String> {

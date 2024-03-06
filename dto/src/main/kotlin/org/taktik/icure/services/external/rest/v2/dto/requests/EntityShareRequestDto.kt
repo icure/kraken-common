@@ -2,9 +2,9 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.entities.utils.Base64String
-import org.taktik.icure.entities.utils.HexString
-import org.taktik.icure.entities.utils.KeypairFingerprintString
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyStringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
 
 /**
  * Holds parameters necessary to share an entity.
@@ -28,19 +28,19 @@ data class EntityShareRequestDto(
      * Values generated using the access control secret of the exchange data used for the encryption of the ids and keys
      * to share. Once hashed they are used as secure delegation keys.
      */
-    val accessControlKeys: Set<HexString>,
+    val accessControlKeys: Set<AccessControlKeyStringDto>,
     /**
      * Encrypted secret ids to share with the delegate.
      */
-    val secretIds: Set<Base64String> = emptySet(),
+    val secretIds: Set<Base64StringDto> = emptySet(),
     /**
      * Encrypted encryption keys to share with the delegate.
      */
-    val encryptionKeys: Set<Base64String> = emptySet(),
+    val encryptionKeys: Set<Base64StringDto> = emptySet(),
     /**
      * Encrypted owning entity ids to share with the delegate.
      */
-    val owningEntityIds: Set<Base64String> = emptySet(),
+    val owningEntityIds: Set<Base64StringDto> = emptySet(),
     /**
      * Id of the exchange data used for the encryption of the ids and keys to share. Must be null at least one of
      * delegator or delegate is not explicit.
@@ -50,7 +50,7 @@ data class EntityShareRequestDto(
      * Must be non-empty if exactly one of delegator or delegate is explicit and the other is not, empty in all other
      * cases.
      */
-    val encryptedExchangeDataId: Map<KeypairFingerprintString, Base64String> = emptyMap(),
+    val encryptedExchangeDataId: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
     /**
      * Permissions for the delegate.
      */

@@ -21,6 +21,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 interface EncryptableDto: VersionableDto<String> {
 	@get:Schema(description = "The secretForeignKeys are filled at the to many end of a one to many relationship (for example inside Contact for the Patient -> Contacts relationship). Used when we want to find all contacts for a specific patient. These keys are in clear. You can have several to partition the medical document space.")
@@ -36,7 +37,7 @@ interface EncryptableDto: VersionableDto<String> {
 	val encryptionKeys: Map<String, Set<DelegationDto>>
 
 	@get:Schema(description = "The base64 encoded data of this object, formatted as JSON and encrypted in AES using the random master key from encryptionKeys.")
-	val encryptedSelf: String?
+	val encryptedSelf: Base64StringDto?
 
 	@get:Schema(description = """Security metadata for the entity, contains metadata necessary for access control.
 In [Encryptable] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
