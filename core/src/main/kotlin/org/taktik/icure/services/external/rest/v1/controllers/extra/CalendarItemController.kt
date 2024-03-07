@@ -36,7 +36,7 @@ import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.mapper.CalendarItemMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -162,7 +162,7 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKeys: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
 	) = mono {
@@ -179,7 +179,7 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable(required = false) limit: Int,
 	) = mono {

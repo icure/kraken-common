@@ -57,7 +57,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.toByteArray
@@ -221,7 +221,7 @@ class FormController(
 	fun findFormsByHCPartyPatientForeignKey(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretPatientKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux {

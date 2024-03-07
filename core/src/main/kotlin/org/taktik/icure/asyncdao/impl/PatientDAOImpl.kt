@@ -16,6 +16,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
@@ -38,11 +39,11 @@ class PatientDAOImpl(
 ) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Patient::class.java), designDocumentProvider), PatientDAO {
 
 	@Views(
-	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count"),
+	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
 	    View(name = "by_data_owner_name", map = "classpath:js/patient/By_data_owner_name_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listPatientIdsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForName(datastoreInformation, name, healthcarePartyId, listOf("by_hcparty_name".main(), "by_data_owner_name" to DATA_OWNER_PARTITION))
+		return listPatientIdsForName(datastoreInformation, name, healthcarePartyId, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION))
 	}
 
 	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
@@ -199,15 +200,14 @@ class PatientDAOImpl(
 
 	private fun listPatientIdsForName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, viewNames: List<Pair<String, String?>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		var name = name
 		val startKey: ComplexKey
 		val endKey: ComplexKey
 
 		//Not transactional aware
 		if (name != null) {
-			name = sanitizeString(name)
-			startKey = ComplexKey.of(healthcarePartyId, name)
-			endKey = ComplexKey.of(healthcarePartyId, name!! + "\ufff0")
+			val sanitizedName = sanitizeString(name)
+			startKey = ComplexKey.of(healthcarePartyId, sanitizedName)
+			endKey = ComplexKey.of(healthcarePartyId, sanitizedName + "\ufff0")
 		} else {
 			startKey = ComplexKey.of(healthcarePartyId, null)
 			endKey = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
@@ -400,13 +400,14 @@ class PatientDAOImpl(
 			"by_hcparty_name",
 			ComplexKey.of(healthcarePartyId, null),
 			ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()),
-			pagination
+			pagination,
+			MAURICE_PARTITION
 		)
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, String::class.java, Any::class.java))
 	}
 
 	override fun findPatientsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
-		return findPatientsByName(datastoreInformation, name, healthcarePartyId, pagination, descending, listOf("by_hcparty_name".main(), "by_data_owner_name" to DATA_OWNER_PARTITION))
+		return findPatientsByName(datastoreInformation, name, healthcarePartyId, pagination, descending, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION))
 	}
 
 	override fun findPatientsOfHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
@@ -584,38 +585,38 @@ class PatientDAOImpl(
 	}
 
 	@View(name = "deleted_by_names", map = "classpath:js/patient/Deleted_by_names.js")
-	override fun findDeletedPatientsByNames(datastoreInformation: IDatastoreInformation, _firstName: String?, _lastName: String?) = flow {
+	override fun findDeletedPatientsByNames(datastoreInformation: IDatastoreInformation, firstName: String?, lastName: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val firstName = if (_firstName == null) null else sanitizeString(_firstName)
-		val lastName = if (_lastName == null) null else sanitizeString(_lastName)
+		val normalizedFirstName = if (firstName == null) null else sanitizeString(firstName)
+		val normalizedLastName = if (lastName == null) null else sanitizeString(lastName)
 
 		val startKey: ComplexKey
 		val endKey: ComplexKey
-		if (lastName == null && firstName == null) {
+		if (normalizedLastName == null && normalizedFirstName == null) {
 			startKey = ComplexKey.of(null, null)
 			endKey = ComplexKey.of(ComplexKey.of(), ComplexKey.emptyObject())
-		} else if (lastName == null) {
-			startKey = ComplexKey.of(ComplexKey.emptyObject(), firstName)
-			endKey = ComplexKey.of(ComplexKey.emptyObject(), firstName!! + "\ufff0")
-		} else if (firstName == null) {
-			startKey = ComplexKey.of(lastName)
-			endKey = ComplexKey.of(lastName + "\ufff0")
+		} else if (normalizedLastName == null) {
+			startKey = ComplexKey.of(ComplexKey.emptyObject(), normalizedFirstName)
+			endKey = ComplexKey.of(ComplexKey.emptyObject(), normalizedFirstName!! + "\ufff0")
+		} else if (normalizedFirstName == null) {
+			startKey = ComplexKey.of(normalizedLastName)
+			endKey = ComplexKey.of(normalizedLastName + "\ufff0")
 		} else {
-			startKey = ComplexKey.of(lastName, firstName)
-			endKey = ComplexKey.of(lastName + "\ufff0", firstName + "\ufff0")
+			startKey = ComplexKey.of(normalizedLastName, normalizedFirstName)
+			endKey = ComplexKey.of(normalizedLastName + "\ufff0", normalizedFirstName + "\ufff0")
 		}
 
 		val queryView = createQuery(datastoreInformation, "deleted_by_names").startKey(startKey).endKey(endKey).includeDocs(true)
-		val deleted_by_names = client.queryViewIncludeDocsNoValue<Array<String>, Patient>(queryView).map { it.doc }
+		val deletedByNames = client.queryViewIncludeDocsNoValue<Array<String>, Patient>(queryView).map { it.doc }
 
 		emitAll(
-			if (firstName == null || lastName == null) {
-				deleted_by_names
+			if (normalizedFirstName == null || normalizedLastName == null) {
+				deletedByNames
 			} else {
 				// filter firstName because main filtering is done on lastName
-				deleted_by_names
-					.filter { p -> p.firstName != null && sanitizeString(p.firstName)?.startsWith(firstName) == true }
+				deletedByNames
+					.filter { p -> p.firstName != null && sanitizeString(p.firstName)?.startsWith(normalizedFirstName) == true }
 			}
 		)
 	}
@@ -676,10 +677,10 @@ class PatientDAOImpl(
 		return result.fold(emptyMap()) { acc, (key, value) ->
 			if (key != null && value != null) {
 				acc + (
-					value[0] to (acc[value[0]] ?: emptyMap()).let {
-						it + (
+					value[0] to (acc[value[0]] ?: emptyMap()).let { m ->
+						m + (
 							value[1].let { it.substring((it.length - 32).coerceAtLeast(0)) } to (
-								it[value[1]]
+								m[value[1]]
 									?: emptyMap()
 								).let { dels ->
 								dels + (value[2] to value[3])
@@ -705,7 +706,7 @@ class PatientDAOImpl(
 	}
 
 	override fun getDuplicatePatientsByName(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent> {
-		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_name".main(), "by_data_owner_name" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
+		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
 	}
 
 	override fun findPatients(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<ViewQueryResultEvent> = flow {

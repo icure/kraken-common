@@ -42,7 +42,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationTemplateBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -102,7 +102,7 @@ class ClassificationTemplateController(
 	fun findClassificationTemplatesByHCPartyPatientForeignKey(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: JsonString?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
 	): PaginatedFlux {

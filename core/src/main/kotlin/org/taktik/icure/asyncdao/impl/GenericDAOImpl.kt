@@ -76,12 +76,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		emitAll(client.queryView(viewQuery, keyClass, String::class.java, entityClass))
 	}
 
-	/**
-	 * Checks if the entity with the id passed as parameter exists on the database.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param id the id of the entity to check.
-	 * @return true if the entity exists, false otherwise.
-	 */
 	override suspend fun contains(datastoreInformation: IDatastoreInformation, id: String): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -91,11 +85,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return client.get(id, entityClass) != null
 	}
 
-	/**
-	 * Checks if there are any entities of the specified type on the database.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @return true if at least one entity is present, false otherwise.
-	 */
 	override suspend fun hasAny(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return designDocContainsAllView(datastoreInformation) && client.queryView<String, String>(createQuery(
@@ -116,12 +105,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)?.views?.containsKey("all") ?: false
 	}
 
-	/**
-	 * Gets the id of all the entities of the defined type in the database.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param limit if not null, only the first nth results are returned.
-	 * @return a [Flow] containing the ids of the entities.
-	 */
 	override fun getEntityIds(datastoreInformation: IDatastoreInformation, limit: Int?): Flow<String> = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAllIds")
@@ -135,11 +118,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Gets all the entities of the defined type in the database.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @return a [Flow] containing the entities.
-	 */
+	@Suppress("UNCHECKED_CAST")
 	override fun getEntities(datastoreInformation: IDatastoreInformation) = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAll")
@@ -148,27 +127,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		emitAll(client.queryView(createQuery(datastoreInformation, "all").includeDocs(true), Nothing::class.java, String::class.java, entityClass).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull())
 	}
 
-	/**
-	 * Retrieves an entity from the database by its id. If the cache is not null, it will access the cache first.
-	 * If the element is not found in the cache, but found in the database and a cache is present, then the element is
-	 * stored at all the levels of the cache.
-	 * @param datastoreInformation the datastore information to get the database client.
-	 * @param id the id of the entity to retrieve.
-	 * @param options 0 or more [Option] to pass to the database client.
-	 * @return the entity or null if not found.
-	 */
 	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T? = get(datastoreInformation, id, null, *options)
 
-	/**
-	 * Retrieves an entity from the database by its id. If the cache is not null, it will access the cache first.
-	 * If the element is not found in the cache, but found in the database and a cache is present, then the element is
-	 * stored at all the levels of the cache.
-	 * @param datastoreInformation the datastore information to get the database client.
-	 * @param id the id of the entity to retrieve.
-	 * @param rev the rev of the entity to retrieve.
-	 * @param options 0 or more [Option] to pass to the database client.
-	 * @return the entity or null if not found.
-	 */
 	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option): T? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -187,27 +147,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Retrieves a collection of entities from the database by their id. The returned flow will have the same order as
-	 * the order of the ids passed as parameter. If an entity is not found, then it is ignored and no error will be
-	 * returned. For each id, the cache is checked first if present. Also, if the cache is present, all the found
-	 * entities will be stored in all the levels of the cache.
-	 * @param datastoreInformation the datastore information to get the database client.
-	 * @param ids a [Collection] containing the ids of the entities to retrieve.
-	 * @return a [Flow] containing all the found entities.
-	 */
 	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<T> =
 		getEntities(datastoreInformation, ids.asFlow())
 
-	/**
-	 * Retrieves a collection of entities from the database by their id. The returned flow will have the same order as
-	 * the order of the ids passed as parameter. If an entity is not found, then it is ignored and no error will be
-	 * returned. For each id, the cache is checked first if present. Also, if the cache is present, all the found
-	 * entities will be stored in all the levels of the cache.
-	 * @param datastoreInformation the datastore information to get the database client.
-	 * @param ids a [Flow] containing the ids of the entities to retrieve.
-	 * @return a [Flow] containing all the found entities.
-	 */
 	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -233,24 +175,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Creates a new entity on the database. If there is a cache, then the created entity is also saved at all the
-	 * levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to create.
-	 * @return the created entity or null.
-	 */
 	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? {
 		return save(datastoreInformation, true, entity)
 	}
 
-	/**
-	 * Updates an existing entity on the database. If the entity rev field is null, the entity will be created. If
-	 * there is a cache, then the created entity is also saved at all the levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to create.
-	 * @return the updated entity or null.
-	 */
 	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T? {
 		return save(datastoreInformation, null, entity)
 	}
@@ -361,40 +289,29 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return entity
 	}
 
-	/**
-	 * Soft-deletes an entity by setting its deletionDate field and saving it to the database. If a cache is present,
-	 * then the entity is removed from all the levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to delete.
-	 * @return a [DocIdentifier] related to the deleted entity.
-	 */
+	@Suppress("UNCHECKED_CAST")
 	override suspend fun remove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".remove: " + entity)
 		}
-		val deleted = client.update(beforeDelete(datastoreInformation, entity).withDeletionDate(deletionDate = System.currentTimeMillis()) as T, entityClass).let {
-			afterDelete(datastoreInformation, it)
-		}
+		val deleted = afterDelete(
+			datastoreInformation,
+			client.update(beforeDelete(datastoreInformation, entity).withDeletionDate(deletionDate = System.currentTimeMillis()) as T, entityClass)
+		)
 		cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
 		return DocIdentifier(deleted.id, deleted.rev)
 	}
 
-	/**
-	 * Reverts the soft-deleting of an entity by setting its deletionDate field to null and saving it to the database.
-	 * If a cache is present, then the entity is also removed form all the level of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to undelete.
-	 * @return a [DocIdentifier] related to the undeleted entity.
-	 */
+	@Suppress("UNCHECKED_CAST")
 	override suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".remove: " + entity)
 		}
 		// Before remove
-		return beforeUnDelete(datastoreInformation, entity).let {
-			val undeleted = client.update(it.withDeletionDate(null) as T, entityClass).let {
+		return beforeUnDelete(datastoreInformation, entity).let { e ->
+			val undeleted = client.update(e.withDeletionDate(null) as T, entityClass).let {
 				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
 				afterUnDelete(datastoreInformation, it)
 			}
@@ -403,12 +320,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Hard-deletes an entity. If a cache is present, then the entity is removed from all the levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to delete.
-	 * @return a [DocIdentifier] related to the deleted entity.
-	 */
 	override suspend fun purge(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -422,21 +333,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return purged
 	}
 
-	/**
-	 * Soft-deletes a collection of entities by setting their deletionDate field and saving them to the database. If a
-	 * cache is present, then the entities are removed from all the levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entities a [Collection] of entities to soft-delete.
-	 * @return a [Flow] of [DocIdentifier] related to the deleted entities.
-	 */
+	@Suppress("UNCHECKED_CAST")
 	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug("remove $entities")
 		}
 		try {
-			val toBeDeletedEntities = entities.map {
-				beforeDelete(datastoreInformation, it).let {
+			val toBeDeletedEntities = entities.map { entity ->
+				beforeDelete(datastoreInformation, entity).let {
 					it.withDeletionDate(System.currentTimeMillis()) as T
 				}
 			}
@@ -453,13 +358,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Reverts the soft-deleting of a collection of entities by setting their deletionDate field to null and saving
-	 * them to the database. If a cache is present, then the entities are also removed form all the levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entities a [Collection] of entities to undelete.
-	 * @return a [Flow] of [DocIdentifier] related to the undeleted entities.
-	 */
+	@Suppress("UNCHECKED_CAST")
 	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -467,8 +366,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		try {
 			val bulkUpdateResults = client.bulkUpdate(
-				entities.map {
-					beforeUnDelete(datastoreInformation, it).let {
+				entities.map { entity ->
+					beforeUnDelete(datastoreInformation, entity).let {
 						it.withDeletionDate(null) as T
 					}
 				},
@@ -485,29 +384,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Creates a collection of new entities on the database. If there is a cache, then the created entities are also saved
-	 * at all levels of the cache.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entities the [Collection] of entities to create.
-	 * @return a [Flow] containing the created entities.
-	 */
 	override fun <K : Collection<T>> create(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> {
 		return save(datastoreInformation, true, entities)
 	}
 
-	/**
-	 * Creates or updates a collection of new entities on the database. If there is a cache, then the created entities
-	 * are also saved at all levels of the cache. If an entity already exists, but it has a wrong rev, than it will not
-	 * be created or updated and will be ignored in the final result.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entities the [Collection] of entities to create.
-	 * @return a [Flow] containing the created entities.
-	 */
 	override fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> {
 		return save(datastoreInformation, false, entities)
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,
 		entities: Collection<T>
@@ -543,11 +428,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * Creates or updates a collection of new entities on the database. If there is a cache, then the created entities
 	 * are also saved at all levels of the cache. If an entity already exists, but it has a wrong rev, than it will not
 	 * be created or updated and will be ignored in the final result.
+	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param newEntity whether the entities passed as parameter are new or not.
 	 * @param entities the [Collection] of entities to create.
 	 * @return a [Flow] containing the created entities.
 	 */
+	@Suppress("UNCHECKED_CAST")
 	protected open fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entities: K): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -582,11 +469,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)
 	}
 
-	/**
-	 * Creates the view design documents for this entity type.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param updateIfExists updates the design docs if already existing
-	 */
 	override suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
 		updateIfExists: Boolean,
@@ -594,11 +476,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	): List<DesignDocument> =
 		forceInitStandardDesignDocument(couchDbDispatcher.getClient(datastoreInformation), updateIfExists, dryRun)
 
-	/**
-	 * Creates the view design documents for this entity type.
-	 * @param client the database client.
-	 * @param updateIfExists updates the design docs if already existing
-	 */
 	override suspend fun forceInitStandardDesignDocument(client: Client, updateIfExists: Boolean, dryRun: Boolean): List<DesignDocument> {
 		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client)
 		return generatedDocs.mapNotNull { generated ->
@@ -623,18 +500,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	/**
-	 * Creates System design documents for this entity type.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 */
 	override suspend fun initSystemDocumentIfAbsent(datastoreInformation: IDatastoreInformation) {
 		initSystemDocumentIfAbsent(couchDbDispatcher.getClient(datastoreInformation))
 	}
 
-	/**
-	 * Creates System design documents for this entity type.
-	 * @param client the database client.
-	 */
 	override suspend fun initSystemDocumentIfAbsent(client: Client) {
 		val designDocId = designDocName("_System")
 		val designDocument = client.get(designDocId, DesignDocument::class.java)

@@ -64,7 +64,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.requests.ContactBulkSha
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.FuzzyValues
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -209,7 +209,7 @@ class ContactController(
 	fun findContactsByHCPartyPatientForeignKey(
 		@RequestParam hcPartyId: String,
 		@RequestParam patientForeignKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux {
@@ -431,7 +431,7 @@ class ContactController(
 		@Parameter(description = "The contact openingDate", required = true) @RequestParam startDate: Long,
 		@Parameter(description = "The contact max openingDate", required = true) @RequestParam endDate: Long,
 		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {

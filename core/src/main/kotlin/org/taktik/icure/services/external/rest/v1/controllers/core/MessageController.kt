@@ -44,7 +44,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.MessageMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.error
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -133,7 +133,7 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
 	@GetMapping
 	fun findMessages(
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
@@ -170,7 +170,7 @@ class MessageController(
 	fun findMessagesByTransportGuid(
 		@RequestParam(required = false) transportGuid: String?,
 		@RequestParam(required = false) received: Boolean?,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
@@ -191,7 +191,7 @@ class MessageController(
 		@RequestParam(required = false) transportGuid: String,
 		@RequestParam(required = false, value = "from") fromDate: Long,
 		@RequestParam(required = false, value = "to") toDate: Long,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
@@ -211,7 +211,7 @@ class MessageController(
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
 		@RequestParam(required = false) toAddress: String,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
@@ -227,7 +227,7 @@ class MessageController(
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
 		@RequestParam(required = false) fromAddress: String,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?

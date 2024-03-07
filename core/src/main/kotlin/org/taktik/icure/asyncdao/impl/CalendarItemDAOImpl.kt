@@ -130,7 +130,7 @@ class CalendarItemDAOImpl(
 	override fun listCalendarItemByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
 		emitAll(listCalendarItemByStartDateAndAgendaId(
 			datastoreInformation, startDate?.let {
-				/* 1 day in the past to catch long lasting events that could bracket the search period */
+				/* 1 day in the past to catch long-lasting events that could bracket the search period */
 				FuzzyValues.getFuzzyDateTime(FuzzyValues.getDateTime(it)?.minusDays(1) ?: throw IllegalStateException("Failed to compute startDate"), ChronoUnit.SECONDS)
 			}, endDate, agendaId
 		).filter {
@@ -166,7 +166,7 @@ class CalendarItemDAOImpl(
 	)
 	override fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQueries = createPagedQueries<ComplexKey>(
+		val viewQueries = createPagedQueries(
 			datastoreInformation,
 			listOf("by_hcparty_patient_start_time_desc".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
 			ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),

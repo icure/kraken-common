@@ -32,7 +32,7 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v2.mapper.TarificationV2Mapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -57,7 +57,7 @@ class TarificationController(
 		@RequestParam(required = false) types: String?,
 		@RequestParam(required = false) language: String?,
 		@RequestParam(required = false) label: String?,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
@@ -79,7 +79,7 @@ class TarificationController(
 		@RequestParam(required = false) tarification: String?,
 		@RequestParam(required = false) version: String?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }

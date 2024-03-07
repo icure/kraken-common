@@ -62,7 +62,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.PatientHealthCare
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -96,7 +96,7 @@ class PatientController(
 	fun findByNameBirthSsinAuto(
 		@Parameter(description = "HealthcareParty Id. If not set, will use user's hcpId") @RequestParam(required = false) healthcarePartyId: String?,
 		@Parameter(description = "Optional value for filtering results") @RequestParam(required = true) filterValue: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
@@ -126,7 +126,7 @@ class PatientController(
 	fun listPatientsOfHcParty(
 		@PathVariable hcPartyId: String,
 		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false, defaultValue = "name") sortField: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
@@ -165,7 +165,7 @@ class PatientController(
 	fun listPatientsByHcParty(
 		@PathVariable hcPartyId: String,
 		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth'). " + "Specifying this deactivates filtering") @RequestParam(required = false, defaultValue = "name") sortField: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
@@ -217,7 +217,7 @@ class PatientController(
 	fun findPatientsByHealthcareParty(
 		@Parameter(description = "Healthcare party id") @RequestParam(required = false) hcPartyId: String?,
 		@Parameter(description = "Optional value for sorting results by a given field ('name', 'ssin', 'dateOfBirth').") @RequestParam(required = false, defaultValue = "name") sortField: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
@@ -242,7 +242,7 @@ class PatientController(
 	@GetMapping("/idsPages")
 	fun listPatientsIds(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The page first id") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The page first id") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Page size") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
@@ -483,7 +483,7 @@ class PatientController(
 	@PostMapping("/duplicates/ssin")
 	fun findDuplicatesBySsin(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
@@ -500,7 +500,7 @@ class PatientController(
 	@PostMapping("/duplicates/name")
 	fun findDuplicatesByName(
 		@Parameter(description = "Healthcare party id") @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {

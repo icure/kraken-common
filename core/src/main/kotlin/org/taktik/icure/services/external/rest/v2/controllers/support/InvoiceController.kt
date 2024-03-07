@@ -53,7 +53,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Ma
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.InvoiceBulkShareResultV2Mapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -193,7 +193,7 @@ class InvoiceController(
 		@PathVariable hcPartyId: String,
 		@RequestParam(required = false) fromDate: Long?,
 		@RequestParam(required = false) toDate: Long?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {
@@ -242,7 +242,7 @@ class InvoiceController(
 	fun findInvoicesByHCPartyPatientForeignKey(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKey: String,
-		@RequestParam(required = false) startKey: StartKeyJsonString?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {

@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -17,6 +18,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.db.PaginationOffset
@@ -35,10 +37,6 @@ class ContactDAOImpl(
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Contact::class.java), designDocumentProvider), ContactDAO {
-
-	companion object {
-		private const val TERTIARY_CONTACT_PARTITION = "Maurice"
-	}
 
 	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? {
 		return get(datastoreInformation, id)
@@ -248,10 +246,10 @@ class ContactDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
 	}
 
-	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = TERTIARY_CONTACT_PARTITION)
+	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
 	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, ids: List<String>, linkType: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id", TERTIARY_CONTACT_PARTITION)
+		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id", MAURICE_PARTITION)
 			.keys(ids)
 			.includeDocs(false)
 		val res = client.queryView<String, Array<String>>(viewQuery)
@@ -261,6 +259,7 @@ class ContactDAOImpl(
 		)
 	}
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun listServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -290,6 +289,7 @@ class ContactDAOImpl(
 		emitAll(client.interleave<String, String>(viewQueries, compareBy({it}), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value })
 	}.distinctIf(searchKeys.size > 1)
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun findServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -345,6 +345,7 @@ class ContactDAOImpl(
 		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct())
 	}
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@Views(
 		View(name = "service_by_hcparty_patient_tag", map = "classpath:js/contact/Service_by_hcparty_patient_tag.js"),
 		View(name = "service_by_data_owner_patient_tag", map = "classpath:js/contact/Service_by_data_owner_patient_tag.js", secondaryPartition = DATA_OWNER_PARTITION)
@@ -503,7 +504,7 @@ class ContactDAOImpl(
 
 		emitAll(
 			client
-				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String },), DeduplicationMode.ID_AND_VALUE)
+				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }), DeduplicationMode.ID_AND_VALUE)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value }
 		)
 	}.distinct()
@@ -597,6 +598,7 @@ class ContactDAOImpl(
 	}
 
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@Views(
 		View(name = "service_by_hcparty_patient_code", map = "classpath:js/contact/Service_by_hcparty_patient_code.js"),
 		View(name = "service_by_data_owner_patient_code", map = "classpath:js/contact/Service_by_data_owner_patient_code.js", secondaryPartition = DATA_OWNER_PARTITION)
@@ -645,6 +647,7 @@ class ContactDAOImpl(
 		emitAll(idFlows.asFlow().flattenConcat().distinct())
 	}
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> =
 		listContactsByHcPartyAndPatient(datastoreInformation, searchKeys, patientSecretForeignKeys.toList())
 			.mapNotNull { c ->

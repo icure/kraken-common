@@ -54,7 +54,7 @@ import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.HealthElementBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -122,7 +122,7 @@ class HealthElementController(
 	fun findHealthElementsByHCPartyPatientForeignKey(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKey: String,
-		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {

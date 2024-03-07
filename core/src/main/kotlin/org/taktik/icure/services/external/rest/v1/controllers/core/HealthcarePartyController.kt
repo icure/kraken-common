@@ -50,7 +50,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.HealthcarePartyMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -148,7 +148,7 @@ class HealthcarePartyController(
 		@Parameter(description = "The speciality of the HCP") @PathVariable spec: String,
 		@Parameter(description = "The first postCode for the HCP") @PathVariable firstCode: String,
 		@Parameter(description = "The last postCode for the HCP") @PathVariable lastCode: String,
-		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
 	): PaginatedFlux {

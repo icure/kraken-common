@@ -1,3 +1,3 @@
 package org.taktik.icure.utils
 
-typealias StartKeyJsonString = String
+typealias JsonString = String

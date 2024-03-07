@@ -41,7 +41,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.AccessLogV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.AccessLogBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.utils.StartKeyJsonString
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -114,7 +114,7 @@ class AccessLogController(
 		@Parameter(description = "A User ID", required = true) @RequestParam userId: String,
 		@Parameter(description = "The type of access (COMPUTER or USER)") @RequestParam(required = false) accessType: String?,
 		@Parameter(description = "The start search epoch") @RequestParam(required = false) startDate: Long?,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
@@ -138,7 +138,7 @@ class AccessLogController(
 	fun findAccessLogsByHCPartyPatientForeignKey(
 		@RequestParam("hcPartyId") hcPartyId: String,
 		@RequestParam("secretFKey") secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: StartKeyJsonString?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux {
