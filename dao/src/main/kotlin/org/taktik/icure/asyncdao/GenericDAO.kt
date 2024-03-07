@@ -14,9 +14,11 @@ import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 
+// We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
-
 const val MAURICE_PARTITION = "Maurice"
+
+enum class Partitions(val partitionName: String) { All(""), Main(""), DataOwner(DATA_OWNER_PARTITION), Maurice(MAURICE_PARTITION) }
 
 interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	/**
@@ -165,20 +167,36 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier
 
 	/**
-	 * Creates the view design documents for this entity type.
+	 * Creates or updates the view design documents for this entity type.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param updateIfExists updates the design docs if already existing
+	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
+	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
+	 * @return a [List] containing the updated [DesignDocument]s.
 	 */
-	suspend fun forceInitStandardDesignDocument(datastoreInformation: IDatastoreInformation, updateIfExists: Boolean = true, dryRun: Boolean = false): List<DesignDocument>
+	suspend fun forceInitStandardDesignDocument(
+		datastoreInformation: IDatastoreInformation,
+		updateIfExists: Boolean = true,
+		dryRun: Boolean = false,
+		partition: Partitions = Partitions.All
+	): List<DesignDocument>
 
 	/**
-	 * Creates the view design documents for this entity type.
+	 * Creates or updates the view design documents for this entity type.
 	 *
-	 * @param client the database client.
+	 * @param client the database [Client].
 	 * @param updateIfExists updates the design docs if already existing
+	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
+	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
+	 * @return a [List] containing the updated [DesignDocument]s.
 	 */
-	suspend fun forceInitStandardDesignDocument(client: Client, updateIfExists: Boolean = true, dryRun: Boolean = false): List<DesignDocument>
+	suspend fun forceInitStandardDesignDocument(
+		client: Client,
+		updateIfExists: Boolean = true,
+		dryRun: Boolean = false,
+		partition: Partitions = Partitions.All
+	): List<DesignDocument>
 
 	/**
 	 * Creates System design documents for this entity type.
