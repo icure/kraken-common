@@ -40,6 +40,7 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.update
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.GenericDAO
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -472,12 +473,17 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	override suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
 		updateIfExists: Boolean,
-		dryRun: Boolean
-	): List<DesignDocument> =
-		forceInitStandardDesignDocument(couchDbDispatcher.getClient(datastoreInformation), updateIfExists, dryRun)
+		dryRun: Boolean,
+		partition: Partitions
+	): List<DesignDocument> = forceInitStandardDesignDocument(couchDbDispatcher.getClient(datastoreInformation), updateIfExists, dryRun, partition)
 
-	override suspend fun forceInitStandardDesignDocument(client: Client, updateIfExists: Boolean, dryRun: Boolean): List<DesignDocument> {
-		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client)
+	override suspend fun forceInitStandardDesignDocument(
+		client: Client,
+		updateIfExists: Boolean,
+		dryRun: Boolean,
+		partition: Partitions
+	): List<DesignDocument> {
+		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client, partition)
 		return generatedDocs.mapNotNull { generated ->
 			suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
 				val fromDatabase = client.get(generated.id, DesignDocument::class.java)
