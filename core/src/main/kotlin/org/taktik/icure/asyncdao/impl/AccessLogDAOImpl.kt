@@ -31,16 +31,16 @@ import org.taktik.icure.utils.interleave
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.AccessLog' && !doc.deleted) emit( null, doc._id )}")
 class AccessLogDAOImpl(
-    @Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
+	@Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<AccessLog>(AccessLog::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(AccessLog::class.java), designDocumentProvider), AccessLogDAO {
 
 	@View(name = "all_by_date", map = "classpath:js/accesslog/All_by_date_map.js")
 	override fun listAccessLogsByDate(datastoreInformation: IDatastoreInformation, fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = pagedViewQuery<Long>(
+		val viewQuery = pagedViewQuery(
 			datastoreInformation,
 			"all_by_date",
 			fromEpoch,
@@ -74,7 +74,7 @@ class AccessLogDAOImpl(
 		)
 
 		val items = client.queryView(
-			pagedViewQuery<ComplexKey>(
+			pagedViewQuery(
 				datastoreInformation,
 				"all_by_user_date",
 				startKey,
@@ -82,7 +82,7 @@ class AccessLogDAOImpl(
 				pagination,
 				descending
 			),
-			Array<Any>::class.java,
+			ComplexKey::class.java,
 			String::class.java,
 			AccessLog::class.java
 		)
@@ -109,4 +109,22 @@ class AccessLogDAOImpl(
 		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>,String, AccessLog>>().map { it.doc })
 	}.distinct()
+
+	override fun findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation: IDatastoreInformation, searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val key = ComplexKey.of(searchKey, secretPatientKey)
+
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patient",
+			"by_data_owner_patient" to DATA_OWNER_PARTITION,
+			key,
+			key,
+			paginationOffset,
+			false
+		)
+
+		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]})))
+	}
 }

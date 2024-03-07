@@ -4,17 +4,29 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.*
+import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
+import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
+import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.InvoiceDAO
@@ -24,9 +36,10 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.distinct
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.interleave
 
-@OptIn(FlowPreview::class)
 @Repository("invoiceDAO")
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Invoice' && !doc.deleted) emit( null, doc._id )}")
@@ -91,12 +104,11 @@ class InvoiceDAOImpl(
 			datastoreInformation,
 			"by_hcparty_reference",
 			"by_data_owner_reference" to DATA_OWNER_PARTITION
-		)
-			.let {
+		).let { viewQuery ->
 				if (invoiceReferences != null)
-					it.keys(invoiceReferences.map { ComplexKey.of(hcParty, it) })
+					viewQuery.keys(invoiceReferences.map { ComplexKey.of(hcParty, it) })
 				else
-					it.startKey(ComplexKey.of(hcParty, null)).endKey(ComplexKey.of(hcParty, ComplexKey.emptyObject()))
+					viewQuery.startKey(ComplexKey.of(hcParty, null)).endKey(ComplexKey.of(hcParty, ComplexKey.emptyObject()))
 			}.includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy({it.components[0] as String?}, {it.components[1] as? String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc }.distinctById())
@@ -166,7 +178,7 @@ class InvoiceDAOImpl(
 	    View(name = "by_hcparty_patientfk", map = "classpath:js/invoice/By_hcparty_patientfk_map.js"),
 	    View(name = "by_data_owner_patientfk", map = "classpath:js/invoice/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listInvoicesByHcPartyAndPatientFk(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: Set<String>) = flow {
+	override fun listInvoicesByHcPartyAndPatientSfks(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -180,6 +192,24 @@ class InvoiceDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}.distinctById()
+
+	override fun listInvoicesByHcPartyAndPatientSfk(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(searchKey, secretPatientKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patientfk",
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+			key, key, paginationOffset, false
+		)
+
+		emitAll(client.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
+	}
 
 	@Views(
 	    View(name = "by_hcparty_recipient_unsent", map = "classpath:js/invoice/By_hcparty_recipient_unsent_map.js"),
@@ -241,7 +271,7 @@ class InvoiceDAOImpl(
 			{(it.components[1] as? MediumType)?.name ?: it.components[1] as? String},
 			{(it.components[2] as? InvoiceType)?.name ?: it.components[2] as? String},
 			{it.components[3] as? Boolean ?: it.components[3] as? String},
-			{it.components[4] as? Long ?: it.components[4]?.let { if (it == ComplexKey.emptyObject()) Long.MAX_VALUE else null }},
+			{it.components[4] as? Long ?: it.components[4]?.let { c -> if (c == ComplexKey.emptyObject()) Long.MAX_VALUE else null }},
 		)).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}
 
@@ -273,9 +303,9 @@ class InvoiceDAOImpl(
 			.startKey(startKey).endKey(endKey).includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy(
 			{it.components[0] as? String},
-			{it.components[1] as? String ?: it.components[1]?.let { if (it == ComplexKey.emptyObject()) "\uFF0F" else null }},
-			{it.components[2] as? String ?: it.components[2]?.let { if (it == ComplexKey.emptyObject()) "\uFF0F" else null}},
-			{it.components[3] as? Long ?: it.components[3]?.let { if (it == ComplexKey.emptyObject()) "\uFF0F" else null }},
+			{it.components[1] as? String ?: it.components[1]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null }},
+			{it.components[2] as? String ?: it.components[2]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null}},
+			{it.components[3] as? Long ?: it.components[3]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null }},
 		)).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}
 
@@ -286,15 +316,16 @@ class InvoiceDAOImpl(
 		emitAll(client.queryViewIncludeDocs<String, String, Invoice>(createQuery(datastoreInformation, "by_serviceid").includeDocs(true).keys(serviceIds)).map { it.doc })
 	}
 
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "by_status_hcps_sentdate", map = "classpath:js/invoice/By_status_hcps_sentdate_map.js")
 	override fun listInvoicesHcpsByStatus(datastoreInformation: IDatastoreInformation, status: String, from: Long?, to: Long?, hcpIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val result = hcpIds.map {
+		val result = hcpIds.map { hcpId ->
 			client.queryView<Array<String>, String>(
 				createQuery(datastoreInformation, "by_status_hcps_sentdate").includeDocs(false)
-					.startKey(ComplexKey.of(status, it, from))
-					.endKey(ComplexKey.of(status, it, to ?: ComplexKey.emptyObject()))
+					.startKey(ComplexKey.of(status, hcpId, from))
+					.endKey(ComplexKey.of(status, hcpId, to ?: ComplexKey.emptyObject()))
 			).mapNotNull { it.value }
 		}.asFlow().flattenConcat().distinct()
 
@@ -312,23 +343,21 @@ class InvoiceDAOImpl(
 	override fun listInvoiceIdsByTarificationsAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		var startValueDate = startValueDate
-		var endValueDate = endValueDate
-		if (startValueDate != null && startValueDate < 99999999) {
-			startValueDate = startValueDate * 1000000
-		}
-		if (endValueDate != null && endValueDate < 99999999) {
-			endValueDate = endValueDate * 1000000
-		}
+		val startDate = if (startValueDate != null && startValueDate < 99999999) {
+			startValueDate * 1000000
+		} else startValueDate
+		val endDate = if (endValueDate != null && endValueDate < 99999999) {
+			endValueDate * 1000000
+		} else endValueDate
 		val from = ComplexKey.of(
 			hcPartyId,
 			codeCode,
-			startValueDate
+			startDate
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			codeCode ?: ComplexKey.emptyObject(),
-			endValueDate ?: ComplexKey.emptyObject()
+			endDate ?: ComplexKey.emptyObject()
 		)
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
@@ -340,23 +369,22 @@ class InvoiceDAOImpl(
 	override fun listInvoiceIdsByTarificationsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		var startValueDate = startValueDate
-		var endValueDate = endValueDate
-		if (startValueDate != null && startValueDate < 99999999) {
-			startValueDate = startValueDate * 1000000
-		}
-		if (endValueDate != null && endValueDate < 99999999) {
-			endValueDate = endValueDate * 1000000
-		}
+		val startDate = if (startValueDate != null && startValueDate < 99999999) {
+			startValueDate * 1000000
+		} else startValueDate
+		val endDate = if (endValueDate != null && endValueDate < 99999999) {
+			endValueDate * 1000000
+		} else endValueDate
+
 		val from = ComplexKey.of(
 			hcPartyId,
 			codeCode,
-			startValueDate
+			startDate
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			codeCode ?: ComplexKey.emptyObject(),
-			endValueDate ?: ComplexKey.emptyObject()
+			endDate ?: ComplexKey.emptyObject()
 		)
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(

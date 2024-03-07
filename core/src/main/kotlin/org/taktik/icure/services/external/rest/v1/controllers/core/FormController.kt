@@ -198,7 +198,7 @@ class FormController(
 		return formsList.map { contact -> formMapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findFormsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -221,7 +221,7 @@ class FormController(
 		return formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, null, null, null).map { form -> stubMapper.mapToStub(form) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -230,7 +230,7 @@ class FormController(
 		return formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, null, null, null).map { form -> stubMapper.mapToStub(form) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Update delegations in form.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Update delegations in form.")
 	@PostMapping("/delegations")
 	fun setFormsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
 		val forms = formService.getForms(stubs.map { it.id }).map { form ->
@@ -275,12 +275,7 @@ class FormController(
 	@Operation(summary = "Gets all form templates for current user")
 	@GetMapping("/template")
 	fun findFormTemplates(@RequestParam(required = false) loadLayout: Boolean?, @RequestParam(required = false) raw: Boolean?): Flux<FormTemplateDto> = flow {
-		val formTemplates = try {
-			formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
-		} catch (e: Exception) {
-			log.warn(e) { e.message }
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+		val formTemplates = formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
 		emitAll(
 			formTemplates.map { if (raw == true) rawFormTemplateMapper.map(it) else formTemplateMapper.map(it) }
 		)

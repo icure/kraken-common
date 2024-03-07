@@ -25,11 +25,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.icure.annotations.controllers.CreatesOne
-import org.taktik.icure.annotations.controllers.DeletesMany
-import org.taktik.icure.annotations.controllers.RetrievesOne
-import org.taktik.icure.annotations.controllers.UpdatesOne
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.services.external.rest.v1.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
@@ -51,8 +46,6 @@ class ClassificationController(
 	private val stubMapper: StubMapper
 ) {
 
-	@AccessControl("CanAccessAsHcp")
-	@CreatesOne
 	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
 	fun createClassification(@RequestBody c: ClassificationDto) = mono {
@@ -62,8 +55,6 @@ class ClassificationController(
 		classificationMapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@RetrievesOne
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationId}")
 	fun getClassification(@PathVariable classificationId: String) = mono {
@@ -73,7 +64,6 @@ class ClassificationController(
 		classificationMapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a list of classifications", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
 	fun getClassificationByHcPartyId(@PathVariable ids: String): Flux<ClassificationDto> {
@@ -82,8 +72,7 @@ class ClassificationController(
 		return elements.map { classificationMapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys have to be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
@@ -92,8 +81,6 @@ class ClassificationController(
 		return elementList.map { classificationMapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsAdmin AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@DeletesMany
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationIds}")
 	fun deleteClassifications(@PathVariable classificationIds: String): Flux<DocIdentifier> {
@@ -105,8 +92,6 @@ class ClassificationController(
 		return classificationService.deleteClassifications(ids.toSet()).injectReactorContext()
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@UpdatesOne
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
 	fun modifyClassification(@RequestBody classificationDto: ClassificationDto) = mono {
@@ -115,7 +100,6 @@ class ClassificationController(
 			?: throw DocumentNotFoundException("Classification modification failed.")
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Delegates a classification to a healthcare party", description = "It delegates a classification to a healthcare party (By current healthcare party). Returns the element with new delegations.")
 	@PostMapping("/{classificationId}/delegate")
 	fun newClassificationDelegations(@PathVariable classificationId: String, @RequestBody ds: List<DelegationDto>) = mono {
@@ -130,7 +114,6 @@ class ClassificationController(
 		}
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Update delegations in classification", description = "Keys must be delimited by coma")
 	@PostMapping("/delegations")
 	fun setClassificationsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {

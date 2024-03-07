@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
@@ -94,13 +92,13 @@ open class MessageDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		actorKeys?.takeIf { it.isNotEmpty() }?.let {
+		actorKeys?.takeIf { it.isNotEmpty() }?.let { keys ->
 			emitAll(client.interleave<ComplexKey, String, Message>(
 				createQueries(
 					datastoreInformation,
 					"by_hcparty_to_address_actor",
 					"by_data_owner_to_address_actor" to DATA_OWNER_PARTITION
-				).keys(it.map { k: String -> ComplexKey.of(partyId, toAddress, k) }).includeDocs(),
+				).keys(keys.map { ComplexKey.of(partyId, toAddress, it) }).includeDocs(),
 				compareBy({ it.components[0] as? String },
 					{ it.components[1] as? String },
 					{ it.components[2] as? String })
@@ -126,13 +124,13 @@ open class MessageDAOImpl(
 		actorKeys: List<String>?
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		actorKeys?.takeIf { it.isNotEmpty() }?.let {
+		actorKeys?.takeIf { it.isNotEmpty() }?.let { keys ->
 			emitAll(client.interleave<ComplexKey, String, Message>(
 				createQueries(
 					datastoreInformation,
 					"by_hcparty_transport_guid_actor",
 					"by_data_owner_transport_guid_actor" to DATA_OWNER_PARTITION
-				).keys(it.map { k: String -> ComplexKey.of(partyId, transportGuid, k) }).includeDocs(),
+				).keys(keys.map { ComplexKey.of(partyId, transportGuid, it) }).includeDocs(),
 				compareBy({ it.components[0] as? String },
 					{ it.components[1] as? String },
 					{ it.components[2] as? String })
@@ -210,12 +208,7 @@ open class MessageDAOImpl(
 				reverse
 			)
 			emitAll(
-				client.interleave<ComplexKey, String, Message>(
-					viewQueries,
-					compareBy({ it.components[0] as? String },
-						{ it.components[1] as? String },
-						{ (it.components[2] as? Number)?.toLong() })
-				)
+				client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() }))
 			)
 		}
 
@@ -227,7 +220,7 @@ open class MessageDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
 		transportGuid: String?,
-		paginationOffset: PaginationOffset<List<String?>>
+		paginationOffset: PaginationOffset<ComplexKey>
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -238,17 +231,14 @@ open class MessageDAOImpl(
 
 		val endKey = transportGuid?.takeIf { it.endsWith(":*") }?.let {
 			val prefix = transportGuid.substring(0, transportGuid.length - 1)
-			ComplexKey.of(partyId, prefix + "\ufff0", ComplexKey.emptyObject())
-		} ?: ComplexKey.of(partyId, transportGuid, ComplexKey.emptyObject())
+			ComplexKey.of(partyId, prefix + "\ufff0")
+		} ?: ComplexKey.of(partyId, transportGuid)
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation,
 			"by_hcparty_transport_guid",
 			"by_data_owner_transport_guid" to DATA_OWNER_PARTITION,
-			startKey,
-			endKey,
-			paginationOffset.toComplexKeyPaginationOffset(),
-			false
+			startKey, endKey, paginationOffset, false
 		)
 		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
 	}
@@ -381,13 +371,30 @@ open class MessageDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc }.distinctUntilChangedBy { it.id })
 	}.distinctById()
 
+	override fun listMessagesByHcPartyAndPatient(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(hcPartyId, secretPatientKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patientfk",
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+			key, key, paginationOffset,false
+		)
+		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String})))
+	}
+
 	@View(name = "by_parent_id", map = "classpath:js/message/By_parent_id_map.js")
 	override fun getChildren(datastoreInformation: IDatastoreInformation, messageId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.queryViewIncludeDocs<String, Int, Message>(createQuery(datastoreInformation, "by_parent_id").includeDocs(true).key(messageId)).map { it.doc })
 	}
 
-	override fun getMessagesChildren(datastoreInformation: IDatastoreInformation, parentIds: List<String>) = flow<List<Message>> {
+	override fun getMessagesChildren(datastoreInformation: IDatastoreInformation, parentIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val byParentId = client.queryViewIncludeDocs<String, Int, Message>(createQuery(
 			datastoreInformation,
@@ -446,7 +453,4 @@ open class MessageDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Message>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map { it.doc })
 	}
 
-	companion object {
-		const val TOPIC_BASED_PARTITION = "TopicBased"
-	}
 }

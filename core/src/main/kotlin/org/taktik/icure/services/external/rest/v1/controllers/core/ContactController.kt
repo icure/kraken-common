@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -17,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,13 +31,17 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.ContactService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.Contact
 import org.taktik.icure.exceptions.MissingRequirementsException
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ContactDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -53,6 +60,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMappe
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -74,13 +82,13 @@ class ContactController(
     private val delegationMapper: DelegationMapper,
     private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val stubMapper: StubMapper
+    private val stubMapper: StubMapper,
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper
 ) {
-	private val contactToContactDto = { it: Contact -> contactMapper.map(it) }
 
 	companion object {
 		private val log = LoggerFactory.getLogger(this::class.java)
-		private const val DEFAULT_LIMIT = 1000
 	}
 
 	@Operation(summary = "Get an empty content")
@@ -128,35 +136,42 @@ class ContactController(
 		contactService.getContacts(contactIds.ids).map { c -> contactMapper.map(c) }.injectReactorContext()
 
 	@Operation(summary = "Get the list of all used codes frequencies in services")
-	@GetMapping("/service/codes/{codeType}/{minOccurences}")
-	fun getServiceCodesOccurences(
+	@GetMapping("/service/codes/{codeType}/{minOccurrences}")
+	fun getServiceCodesOccurrences(
 		@PathVariable codeType: String,
-		@PathVariable minOccurences: Long,
+		@PathVariable minOccurrences: Long,
 	) = mono {
-		contactService.getServiceCodesOccurences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, codeType, minOccurences)
-			.map { LabelledOccurenceDto(it.label, it.occurence) }
+		contactService.getServiceCodesOccurences(
+			sessionLogic.getCurrentSessionContext().getHealthcarePartyId() ?: throw AccessDeniedException("Current user is not an HCP"),
+			codeType,
+			minOccurrences).map { LabelledOccurenceDto(it.label, it.occurence) }
 	}
 
 	@Operation(summary = "Get a list of contacts found by Healthcare Party and form's id.")
 	@GetMapping("/byHcPartyFormId")
-	fun findByHCPartyFormId(@RequestParam hcPartyId: String, @RequestParam formId: String): Flux<ContactDto> {
+	fun findByHCPartyFormId(
+		@RequestParam hcPartyId: String,
+		@RequestParam formId: String
+	): Flux<ContactDto> {
 		val contactList = contactService.listContactsByHcPartyAndFormId(hcPartyId, formId)
 		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List contacts found By Healthcare Party and service Id.")
 	@GetMapping("/byHcPartyServiceId")
-	fun findByHCPartyServiceId(@RequestParam hcPartyId: String, @RequestParam serviceId: String): Flux<ContactDto> {
-		val contactList = contactService.listContactsByHcPartyServiceId(hcPartyId, serviceId)
-		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
-	}
+	fun findByHCPartyServiceId(@RequestParam hcPartyId: String, @RequestParam serviceId: String): Flux<ContactDto> =
+		contactService
+			.listContactsByHcPartyServiceId(hcPartyId, serviceId)
+			.map(contactMapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "List contacts found By externalId.")
 	@PostMapping("/byExternalId")
-	fun findContactsByExternalId(@RequestParam externalId: String): Flux<ContactDto> {
-		val contactList = contactService.listContactsByExternalId(externalId)
-		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
-	}
+	fun findContactsByExternalId(@RequestParam externalId: String): Flux<ContactDto> =
+		contactService
+			.listContactsByExternalId(externalId)
+			.map(contactMapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Get a list of contacts found by Healthcare Party and form's ids.")
 	@PostMapping("/byHcPartyFormIds")
@@ -254,7 +269,7 @@ class ContactController(
 		emitAll(contactService.modifyContacts(contacts.toList()).map { contactMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "Close contacts for Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Close contacts for Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PutMapping("/byHcPartySecretForeignKeys/close")
 	fun closeForHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -333,13 +348,13 @@ class ContactController(
 		@RequestBody filterChain: FilterChain<ContactDto>,
 	) = mono {
 
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		val contacts = contactService.filterContacts(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 
-		contacts.paginatedList(contactToContactDto, realLimit)
+		contacts.paginatedList(contactMapper::map, realLimit)
 	}
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
@@ -348,7 +363,6 @@ class ContactController(
 		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
 	}
 
-	// TODO SH MB test this for PaginatedList construction...
 	@Operation(summary = "Get a service by id")
 	@GetMapping("/service/{serviceId}")
 	fun getService(
@@ -366,13 +380,13 @@ class ContactController(
 		@RequestBody filterChain: FilterChain<ServiceDto>,
 	) = mono {
 
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		val services: List<ServiceDto> = contactService.filterServices(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow()).map { serviceMapper.map(it) }.toList()
 
-		val totalSize = services.size // TODO SH AD: this is wrong! totalSize is ids.size from filterServices, which can be retrieved from the TotalCount ViewQueryResultEvent, but we can't easily recover it...
+		val totalSize = services.size
 
 		if (services.size <= realLimit) {
 			org.taktik.icure.services.external.rest.v1.dto.PaginatedList(services.size, totalSize, services, null)
@@ -413,22 +427,22 @@ class ContactController(
 		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String
 	) = contactService.listServicesByHcPartyAndHealthElementIds(hcPartyId, listOf(healthElementId)).map { svc -> serviceMapper.map(svc) }.injectReactorContext()
 
-	@Operation(summary = "List contacts bu opening date parties with(out) pagination", description = "Returns a list of contacts.")
+	@Operation(summary = "List contacts by opening date parties with(out) pagination", description = "Returns a list of contacts.")
 	@GetMapping("/byOpeningDate")
 	fun listContactsByOpeningDate(
-		@Parameter(description = "The contact openingDate", required = true) @RequestParam startKey: Long,
-		@Parameter(description = "The contact max openingDate", required = true) @RequestParam endKey: Long,
-		@Parameter(description = "hcpartyid", required = true) @RequestParam hcpartyid: String,
+		@Parameter(description = "The contact openingDate", required = true) @RequestParam startDate: Long,
+		@Parameter(description = "The contact max openingDate", required = true) @RequestParam endDate: Long,
+		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	) = mono {
-
-		val realLimit = limit ?: DEFAULT_LIMIT
-
-		val paginationOffset = PaginationOffset<List<String>>(null, startDocumentId, null, realLimit + 1) // startKey is null since it is already a parameter of the subsequent function
-		val contacts = contactService.listContactsByOpeningDate(hcpartyid, startKey, endKey, paginationOffset)
-
-		contacts.paginatedList(contactToContactDto, realLimit)
+	): PaginatedFlux {
+		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return contactService
+			.listContactsByOpeningDate(hcPartyId, startDate, endDate, paginationOffset)
+			.mapElements(contactMapper::map)
+			.asPaginatedFlux()
 	}
 
 }

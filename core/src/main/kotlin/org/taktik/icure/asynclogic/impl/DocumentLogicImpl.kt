@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
@@ -31,7 +32,11 @@ import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.properties.CouchDbProperties
 import org.taktik.icure.validation.aspect.Fixer
 import java.net.URI
@@ -209,6 +214,19 @@ class DocumentLogicImpl(
 			documentDAO.listDocumentsByHcPartyAndSecretMessageKeys(
 				datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys
 			)
+		)
+	}
+
+	override fun listDocumentsByHcPartyIdAndSecretMessageKey(
+		hcPartyId: String,
+		secretForeignKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			documentDAO.listDocumentsByHcPartyIdAndSecretMessageKey(
+				datastoreInformation, hcPartyId, secretForeignKey, paginationOffset.limitIncludingKey()
+			).toPaginatedFlow<Document>(paginationOffset.limit)
 		)
 	}
 

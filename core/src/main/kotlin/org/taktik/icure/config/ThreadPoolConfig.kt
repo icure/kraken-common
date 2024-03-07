@@ -16,7 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 @Profile("app")
 class ThreadPoolConfig {
 	@Bean
-	open fun threadPoolTaskExecutor(): TaskExecutor = ThreadPoolTaskExecutor().apply {
+	fun threadPoolTaskExecutor(): TaskExecutor = ThreadPoolTaskExecutor().apply {
 		corePoolSize = 8
 		maxPoolSize = 24
 		setThreadNamePrefix("default_task_executor_thread_pool")
@@ -24,7 +24,7 @@ class ThreadPoolConfig {
 	}
 
 	@Bean
-	open fun threadPoolTaskScheduler(): TaskScheduler = ThreadPoolTaskScheduler().apply {
+	fun threadPoolTaskScheduler(): TaskScheduler = ThreadPoolTaskScheduler().apply {
 		setThreadNamePrefix("default_task_scheduler_thread_pool")
 		initialize()
 	}

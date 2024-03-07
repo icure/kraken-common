@@ -3,7 +3,7 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.invoice
 
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
 import org.springframework.context.annotation.Profile
@@ -23,7 +23,7 @@ class InvoiceByHcPartyCodeDateFilter(
 	private val healthcarePartyLogic: HealthcarePartyLogic
 ) : Filter<String, Invoice, InvoiceByHcPartyCodeDateFilter> {
 
-	@FlowPreview
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
         filter: InvoiceByHcPartyCodeDateFilter,
         context: Filters,

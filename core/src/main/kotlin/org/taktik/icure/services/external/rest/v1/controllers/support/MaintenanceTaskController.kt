@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.MaintenanceTaskService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.services.external.rest.v1.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v1.mapper.MaintenanceTaskMapper
@@ -41,8 +41,8 @@ class MaintenanceTaskController(
 	private val maintenanceTaskService: MaintenanceTaskService,
 	private val maintenanceTaskMapper: MaintenanceTaskMapper,
 	private val filterChainMapper: FilterChainMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val maintenanceTaskToMaintenanceTaskDto = { it: MaintenanceTask -> maintenanceTaskMapper.map(it) }
 
 	@Operation(summary = "Creates a maintenanceTask")
 	@PostMapping
@@ -85,15 +85,11 @@ class MaintenanceTaskController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>
 	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		maintenanceTaskService
 			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
-			.paginatedList(maintenanceTaskToMaintenanceTaskDto, realLimit)
-	}
-
-	companion object {
-		const val DEFAULT_LIMIT: Int = 1000
+			.paginatedList(maintenanceTaskMapper::map, realLimit)
 	}
 }

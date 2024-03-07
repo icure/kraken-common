@@ -56,6 +56,7 @@ class LoginController(
 	@Value("\${spring.session.enabled}")
 	private val sessionEnabled: Boolean = false
 
+	@Suppress("DEPRECATION")
 	private suspend fun produceAuthenticationResponse(
 		authentication: Authentication?,
 		username: String,
@@ -94,6 +95,7 @@ class LoginController(
 			val authentication = sessionLogic.login(username, loginCredentials.password!!, request, if (sessionEnabled) session else null, groupId)
 			produceAuthenticationResponse(authentication, username, duration?.seconds?.inWholeMilliseconds, session)
 		} catch (e: Exception) {
+			@Suppress("DEPRECATION")
 			ResponseEntity.status(
 				when(e){
 					is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
@@ -133,6 +135,7 @@ class LoginController(
 				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
 				loginCredentials.password ?: throw IllegalArgumentException("Password is required")
 			)
+			@Suppress("DEPRECATION")
 			AuthenticationResponse(successful = true)
 		} catch (e: Exception) {
 			throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message)
@@ -144,6 +147,7 @@ class LoginController(
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
 	fun logout() = mono {
 		sessionLogic.logout()
+		@Suppress("DEPRECATION")
 		AuthenticationResponse(successful = true)
 	}
 
@@ -152,6 +156,7 @@ class LoginController(
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
 	fun logoutPost() = mono {
 		sessionLogic.logout()
+		@Suppress("DEPRECATION")
 		AuthenticationResponse(successful = true)
 	}
 

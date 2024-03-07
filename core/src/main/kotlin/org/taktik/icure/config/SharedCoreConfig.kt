@@ -17,7 +17,6 @@ class SharedCoreConfig {
 	fun uuidGenerator() = UUIDGenerator()
 	@Bean
 	fun filters() = Filters()
-
 	@Bean
 	fun objectMapper(): ObjectMapper = IcureDomainObjectMapper.new()
 }

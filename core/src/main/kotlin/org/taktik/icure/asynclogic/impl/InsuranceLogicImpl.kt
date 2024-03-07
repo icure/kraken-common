@@ -16,6 +16,8 @@ import org.taktik.icure.asynclogic.InsuranceLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.exceptions.DeletionException
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -74,7 +76,10 @@ class InsuranceLogicImpl(
 
 	override fun getAllInsurances(paginationOffset: PaginationOffset<Nothing>) = flow {
         val datastoreInformation = getInstanceAndGroup()
-        emitAll(insuranceDAO.getAllInsurances(datastoreInformation, paginationOffset))
+        emitAll(insuranceDAO
+			.getAllInsurances(datastoreInformation, paginationOffset.limitIncludingKey())
+	        .toPaginatedFlow<Insurance>(paginationOffset.limit)
+		)
 	}
 
 	override fun getGenericDAO(): InsuranceDAO {

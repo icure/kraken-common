@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.service
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -28,7 +27,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.embed.Service
 
-@ExperimentalCoroutinesApi
 @org.springframework.stereotype.Service
 @Profile("app")
 class ServiceByIdsFilter : Filter<String, Service, org.taktik.icure.domain.filter.Filters.IdsFilter<String, Service>> {

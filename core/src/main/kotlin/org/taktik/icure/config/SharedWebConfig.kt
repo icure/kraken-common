@@ -61,18 +61,13 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
+	abstract fun getJackson2JsonEncoder(): Jackson2JsonEncoder
+
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)
 
-		configurer.defaultCodecs().jackson2JsonEncoder(
-			Jackson2JsonEncoder(
-				ObjectMapper().registerModule(
-					KotlinModule.Builder()
-						.configure(KotlinFeature.NullIsSameAsDefault, true)
-						.build()
-				).apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
-			)
-		)
+		configurer.defaultCodecs().jackson2JsonEncoder(getJackson2JsonEncoder())
+
 		configurer.defaultCodecs().jackson2JsonDecoder(
 			Jackson2JsonDecoder(
 				ObjectMapper().registerModule(

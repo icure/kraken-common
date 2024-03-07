@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
@@ -23,8 +21,8 @@ import org.taktik.icure.entities.MedicalLocation
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.MedicalLocation' && !doc.deleted) emit( null, doc._id )}")
 open class MedicalLocationDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<MedicalLocation>(MedicalLocation::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(MedicalLocation::class.java), designDocumentProvider), MedicalLocationDAO {

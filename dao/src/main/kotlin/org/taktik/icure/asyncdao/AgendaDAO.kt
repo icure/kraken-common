@@ -10,6 +10,5 @@ import org.taktik.icure.entities.Agenda
 
 interface AgendaDAO : GenericDAO<Agenda> {
 	fun getAgendasByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<Agenda>
-
 	fun getReadableAgendaByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<Agenda>
 }

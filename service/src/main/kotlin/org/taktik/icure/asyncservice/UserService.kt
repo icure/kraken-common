@@ -10,6 +10,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
+import org.taktik.icure.pagination.PaginationElement
 
 interface UserService {
 	// region create
@@ -39,7 +40,21 @@ interface UserService {
 	fun getUsers(ids: List<String>): Flow<User>
 	fun getUsersByLogin(login: String): Flow<User>
 	fun listUserIdsByNameEmailPhone(searchString: String): Flow<String>
-	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [User]s in a group in a format for pagination.
+	 * If [skipPatients] is true, only the users where [User.patientId] is null or [User.healthcarePartyId] is not null
+	 * will be returned (this is because there are legacy users that can be both, and they should be considered as
+	 * healthcare party users for the scope of this method).
+	 * This method will filter out all the entities that the current user is not allowed to access, but it will guarantee
+	 * that the limit specified in the [paginationOffset] is reached as long as there are available entities.
+	 *
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @param skipPatients true if the patient-only users should be skipped.
+	 * @return a [Flow] of [PaginationElement] containing the [User]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition to search any user.
+	 */
+	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<PaginationElement>
 	fun filterUsers(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<User>): Flow<ViewQueryResultEvent>
 	// endregion
 

@@ -23,12 +23,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.icure.asynclogic.AsyncSessionLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.UserService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.User
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v1.dto.UserDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
@@ -54,16 +56,15 @@ class UserController (
 	private val filters: Filters,
 	private val userService: UserService,
 	private val sessionInfo: SessionInformationProvider,
-	private val sessionLogic: AsyncSessionLogic,
 	private val userMapper: SecureUserV1Mapper,
 	private val propertyStubMapper: PropertyStubMapper,
 	private val filterChainMapper: FilterChainMapper,
-	private val filterMapper: FilterMapper
+	private val filterMapper: FilterMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
-		private const val DEFAULT_LIMIT = 1000
 	}
 
 	@Operation(summary = "Get presently logged-in user.", description = "Get current user.")
@@ -75,24 +76,19 @@ class UserController (
 		userMapper.mapOmittingSecrets(user)
 	}
 
-	@Operation(summary = "Get Currently logged-in user session.", description = "Get current user.")
-	@GetMapping("/session", produces = ["text/plain"])
-	fun getCurrentSession(): String? { // TODO MB nullable or exception ?
-		return sessionLogic.getOrCreateSession()?.id
-	}
-
-	@Operation(summary = "List users with(out) pagination", description = "Returns a list of users.")
+	@Operation(summary = "List users with pagination", description = "Returns a list of users.")
 	@GetMapping
 	fun listUsers(
 		@Parameter(description = "An user email") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "An user document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Filter out patient users") @RequestParam(required = false) skipPatients: Boolean?,
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT // TODO SH MB: rather use defaultValue = DEFAULT_LIMIT everywhere?
-		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1)
-
-		userService.listUsers(paginationOffset, skipPatients ?: true).paginatedList(userMapper::mapOmittingSecrets, realLimit)
+	): PaginatedFlux {
+		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return userService
+			.listUsers(paginationOffset, skipPatients ?: true)
+			.mapElements(userMapper::mapOmittingSecrets)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Create a user", description = "Create a user. HealthcareParty ID should be set. Email or Login have to be set. If login hasn't been set, Email will be used for Login instead.")
@@ -199,7 +195,7 @@ class UserController (
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<UserDto>
 	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val users = userService.filterUsers(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 

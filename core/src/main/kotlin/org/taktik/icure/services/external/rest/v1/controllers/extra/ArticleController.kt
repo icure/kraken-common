@@ -21,12 +21,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.icure.annotations.controllers.CreatesOne
-import org.taktik.icure.annotations.controllers.DeletesMany
-import org.taktik.icure.annotations.controllers.RetrievesAll
-import org.taktik.icure.annotations.controllers.RetrievesOne
-import org.taktik.icure.annotations.controllers.UpdatesOne
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncservice.ArticleService
 import org.taktik.icure.services.external.rest.v1.dto.ArticleDto
 import org.taktik.icure.services.external.rest.v1.mapper.ArticleMapper
@@ -42,8 +36,6 @@ class ArticleController(
 	private val articleMapper: ArticleMapper
 ) {
 
-	@AccessControl("CanAccessAsHcp")
-	@CreatesOne
 	@Operation(summary = "Creates a article")
 	@PostMapping
 	fun createArticle(@RequestBody articleDto: ArticleDto) = mono {
@@ -53,16 +45,12 @@ class ArticleController(
 		articleMapper.map(article)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@DeletesMany
 	@Operation(summary = "Deletes an article")
 	@DeleteMapping("/{articleIds}")
 	fun deleteArticle(@PathVariable articleIds: String): Flux<DocIdentifier> {
 		return articleService.deleteArticles(articleIds.split(',')).injectReactorContext()
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@RetrievesOne
 	@Operation(summary = "Gets an article")
 	@GetMapping("/{articleId}")
 	fun getArticle(@PathVariable articleId: String) = mono {
@@ -72,8 +60,6 @@ class ArticleController(
 		articleMapper.map(article)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@UpdatesOne
 	@Operation(summary = "Modifies an article")
 	@PutMapping
 	fun modifyArticle(@RequestBody articleDto: ArticleDto) = mono {
@@ -82,11 +68,11 @@ class ArticleController(
 		articleMapper.map(article)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@RetrievesAll
-	@Operation(summary = "Gets all articles")
+	@Operation(summary = "Gets all articles with pagination")
 	@GetMapping
-	fun getArticles(): Flux<ArticleDto> =
-		articleService.getAllArticles().map { a -> articleMapper.map(a) }.injectReactorContext()
+	fun getArticles() = articleService
+		.getAllArticles()
+		.map(articleMapper::map)
+		.injectReactorContext()
 
 }

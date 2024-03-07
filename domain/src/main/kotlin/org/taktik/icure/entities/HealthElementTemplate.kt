@@ -3,10 +3,10 @@
  */
 package org.taktik.icure.entities
 
-import javax.validation.Valid
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.StoredICureDocument

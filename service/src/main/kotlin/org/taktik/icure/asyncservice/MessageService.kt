@@ -14,71 +14,161 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.exceptions.CreationException
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import javax.security.auth.login.LoginException
+import org.taktik.icure.pagination.PaginationElement
 
 interface MessageService : EntityWithSecureDelegationsService<Message> {
+
+    /**
+     * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],
+     * sorted by [Message.received], in a format for pagination.
+     * This method will filter out all the entities that the current user
+     * cannot access, but it will ensure that the page size specified in the [paginationOffset] will be reached as long
+     * as there are available elements.
+     *
+     * @param hcPartyId the id of the healthcare party.
+     * @param fromAddress one of the [Message.fromAddress] to search.
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     */
     fun findMessagesByFromAddress(
         hcPartyId: String,
         fromAddress: String,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
+    /**
+     * Retrieves all the [Message]s for a given healthcare party, where [Message.toAddresses] contains [toAddress],
+     * sorted by [Message.received], in a format for pagination.
+     * This method will filter out all the entities that the current user
+     * cannot access, but it will ensure that the page size specified in the [paginationOffset] will be reached as long
+     * as there are available elements.
+     *
+     * @param hcPartyId the id of the healthcare party.
+     * @param toAddress one of the [Message.toAddresses] to search.
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
+     * @param reverse whether to sort the result in ascending or descending order by actor.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     */
     fun findMessagesByToAddress(
         hcPartyId: String,
         toAddress: String,
         paginationOffset: PaginationOffset<ComplexKey>,
         reverse: Boolean?
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
+    /**
+     * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and sorted by
+     * [Message.received] in a format for pagination.
+     * This method will filter out all the entities that the current user cannot access, but it will
+     * ensure that the page size specified in the [paginationOffset] will be reached as long as there are available
+     * elements.
+     *
+     * @param hcPartyId the id of the HCP.
+     * @param transportGuid the transport guid to search. If null, all the [Message]s for the specified healthcare
+     * party will be returned. If [transportGuid] ends with the string `:*`, then the asterisk is removed from the start key.
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
+     */
     fun findMessagesByTransportGuidReceived(
         hcPartyId: String,
         transportGuid: String?,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
+    /**
+     * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] in a format for pagination.
+     * This method will filter out all the entities that the current user cannot access, but it will
+     * ensure that the page size specified in the [paginationOffset] will be reached as long as there are available
+     * elements.
+     *
+     * @param hcPartyId the id of the HCP.
+     * @param transportGuid the transport guid to search. If null, all the [Message]s for the specified healthcare
+     * party will be returned. If [transportGuid] ends with the string `:*`, then the asterisk is removed for the start key.
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
+     */
     fun findMessagesByTransportGuid(
         hcPartyId: String,
         transportGuid: String?,
-        paginationOffset: PaginationOffset<List<String?>>
-    ): Flow<ViewQueryResultEvent>
+        paginationOffset: PaginationOffset<ComplexKey>
+    ): Flow<PaginationElement>
 
+    /**
+     * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and which [Message.sent]
+     * date is between [fromDate] and [toDate] in a format for pagination.
+     * This method will filter out all the entities that the current user cannot access, but it will
+     * ensure that the page size specified in the [paginationOffset] will be reached as long as there are available
+     * elements.
+     *
+     * @param hcPartyId the id of the HCP.
+     * @param transportGuid the transport guid to search. If null, all the [Message]s for the specified healthcare
+     * party will be returned.
+     * @param fromDate the lower bound timestamp for [Message.sent].
+     * @param toDate the upper bound timestamp for [Message.sent].
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] that marks the start of the found messages.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     * @throws AccessDeniedException if the current user does not match the precondition to find [Message]s.
+     */
     fun findMessagesByTransportGuidSentDate(
         hcPartyId: String,
         transportGuid: String,
         fromDate: Long,
         toDate: Long,
         paginationOffset: PaginationOffset<ComplexKey>
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
     suspend fun addDelegation(messageId: String, delegation: Delegation): Message?
 
-    @Throws(CreationException::class, LoginException::class)
     suspend fun createMessage(message: Message): Message?
 
     fun createMessages(entities: Collection<Message>): Flow<Message>
 
-    @Throws(LoginException::class)
     suspend fun getMessage(messageId: String): Message?
 
-    @Throws(MissingRequirementsException::class)
     suspend fun modifyMessage(message: Message): Message?
 
     /**
-     * Returns all the [Message]s that the current healthcare party can access, given the secret patient keys of the
-     * patients related to the messages to retrieve.
+     * Returns all the [Message]s that the current healthcare party can access, given the [Message.secretForeignKeys].
+     * This method will theoretically filter out all the entities that the current user cannot access (but this
+     * should not happen, as we are getting the [Message]s by delegate).
+     * Note: this method will also use the available search keys for the current user to retrieve the results.
      *
      * @param secretPatientKeys the secret patient keys.
-     * @return a [Flow] of [Message]s matching the criterion.
+     * @return a [Flow] of [Message]s.
      */
     fun listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys: List<String>): Flow<Message>
+
+    /**
+     * Retrieves all the [Message]s for the current healthcare party id and a [Message.secretForeignKeys] in a format for
+     * pagination.
+     * This method will theoretically filter out all the entities that the current user cannot access (but this
+     * should not happen, as we are getting the [Message]s by delegate) but it will ensure that the page size specified
+     * in the [paginationOffset] will be reached as long as there are available elements.
+     * Note: differently from [listMessagesByCurrentHCPartySecretPatientKeys], this method only uses the healthcare party
+     * if of the current user to retrieve the result and will ignore the available search keys.
+     *
+     * @param secretPatientKey a [Message.secretForeignKeys].
+     * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     */
+    fun listMessagesByCurrentHCPartySecretPatientKey(secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
     fun setStatus(messageIds: List<String>, status: Int): Flow<Message>
     fun setReadStatus(messageIds: List<String>, userId: String, status: Boolean, time: Long): Flow<Message>
 
-    fun findForCurrentHcPartySortedByReceived(paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+    /**
+     * Finds all the [Message]s related to the current data owner, sorted by [Message.received], in a format for pagination.
+     * This method will theoretically filter out all the entities that the current user cannot access (but this
+     * should not happen, as we are getting the [Message]s by delegate) but it will ensure that the page size specified
+     * in the [paginationOffset] will be reached as long as there are available elements.
+     *
+     * @param paginationOffset a [PaginationOffset] that marks the start of the found messages.
+     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     */
+    fun findForCurrentHcPartySortedByReceived(paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
     suspend fun addDelegations(messageId: String, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>

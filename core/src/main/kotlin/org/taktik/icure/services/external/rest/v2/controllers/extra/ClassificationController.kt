@@ -4,7 +4,10 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -24,14 +27,15 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.icure.annotations.controllers.CreatesOne
-import org.taktik.icure.annotations.controllers.DeletesMany
-import org.taktik.icure.annotations.controllers.RetrievesOne
-import org.taktik.icure.annotations.controllers.UpdatesOne
-import org.taktik.icure.annotations.permissions.*
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -39,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
@@ -52,12 +57,12 @@ class ClassificationController(
 	private val classificationV2Mapper: ClassificationV2Mapper,
 	private val bulkShareResultV2Mapper: ClassificationBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector
+	private val reactorCacheInjector: ReactorCacheInjector,
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@AccessControl("CanAccessAsHcp")
-	@CreatesOne
 	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
 	fun createClassification(@RequestBody c: ClassificationDto) = mono {
@@ -67,8 +72,6 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@RetrievesOne
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationId}")
 	fun getClassification(@PathVariable classificationId: String) = mono {
@@ -78,7 +81,6 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
 	@Operation(summary = "Get a list of classifications", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
 	fun getClassificationByHcPartyId(@PathVariable ids: String): Flux<ClassificationDto> {
@@ -87,7 +89,6 @@ class ClassificationController(
 		return elements.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
@@ -97,8 +98,23 @@ class ClassificationController(
 		return elementList.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@AccessControl("CanAccessAsAdmin AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@DeletesMany
+	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key elementId.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findClassificationsByHCPartyPatientForeignKey(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKey: String,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(description = "A Classification ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+	): PaginatedFlux {
+		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
+		val paginationOffset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return classificationService
+			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
+			.mapElements(classificationV2Mapper::map)
+			.asPaginatedFlux()
+	}
+
 	@Operation(summary = "Delete a batch of classifications", description = "Response is a set containing the ID's of deleted classifications.")
 	@PostMapping("/delete/batch")
 	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifier> =
@@ -112,8 +128,6 @@ class ClassificationController(
 		classificationService.deleteClassification(classificationId)
 	}
 
-	@AccessControl("(CanAccessAsAdmin OR CanAccessAsHcp) AND (CanAccessAsDelegate OR CanAccessWithLegacyPermission)")
-	@UpdatesOne
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
 	fun modifyClassification(@RequestBody classificationDto: ClassificationDto) = mono {

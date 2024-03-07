@@ -29,7 +29,6 @@ internal class KeywordDAOImpl(
 	entityCacheFactory: EntityCacheFactory,
 	designDocumentProvider: DesignDocumentProvider
 ) : GenericIcureDAOImpl<Keyword>(Keyword::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Keyword::class.java), designDocumentProvider), KeywordDAO {
-
 	override suspend fun getKeyword(datastoreInformation: IDatastoreInformation, keywordId: String): Keyword? {
 		return get(datastoreInformation, keywordId)
 	}

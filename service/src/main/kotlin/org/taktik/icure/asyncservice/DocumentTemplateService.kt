@@ -6,7 +6,9 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
+import org.taktik.icure.pagination.PaginationElement
 
 interface DocumentTemplateService {
 	suspend fun createDocumentTemplate(documentTemplate: DocumentTemplate): DocumentTemplate
@@ -39,7 +41,19 @@ interface DocumentTemplateService {
 	fun deleteDocumentTemplates(ids: Set<String>): Flow<DocIdentifier>
 
 	/**
-	 * @return a [Flow] containing all the [DocumentTemplate]s that the current user can access.
+	 * Retrieves all the [DocumentTemplate]s in a group in a format for pagination.
+	 *
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [DocumentTemplate]s.
+	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
+	 */
+	fun getAllDocumentTemplates(paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [DocumentTemplate]s in a group.
+	 *
+	 * @return a [Flow] of [DocumentTemplate]s.
+	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
 	 */
 	fun getAllDocumentTemplates(): Flow<DocumentTemplate>
 }

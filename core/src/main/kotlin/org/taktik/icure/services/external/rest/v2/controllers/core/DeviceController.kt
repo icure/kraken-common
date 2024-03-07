@@ -23,6 +23,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.DeviceService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v1.controllers.core.DeviceController
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -48,11 +49,10 @@ class DeviceController(
 	private val deviceV2Mapper: DeviceV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-
 	companion object {
 		private val log = LoggerFactory.getLogger(DeviceController::class.java)
-		private const val DEFAULT_LIMIT = 1000
 	}
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
@@ -104,7 +104,7 @@ class DeviceController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<DeviceDto>
 	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		deviceService
 			.filterDevices(filterChainV2Mapper.tryMap(filterChain).orThrow(), realLimit + 1, startDocumentId)

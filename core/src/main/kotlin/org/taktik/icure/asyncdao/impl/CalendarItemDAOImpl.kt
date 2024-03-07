@@ -4,10 +4,18 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -22,7 +30,12 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.distinctBy
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.interleaveNoValue
+import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
 
 @Repository("calendarItemDAO")
@@ -117,7 +130,7 @@ class CalendarItemDAOImpl(
 	override fun listCalendarItemByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
 		emitAll(listCalendarItemByStartDateAndAgendaId(
 			datastoreInformation, startDate?.let {
-				/* 1 day in the past to catch long lasting events that could bracket the search period */
+				/* 1 day in the past to catch long-lasting events that could bracket the search period */
 				FuzzyValues.getFuzzyDateTime(FuzzyValues.getDateTime(it)?.minusDays(1) ?: throw IllegalStateException("Failed to compute startDate"), ChronoUnit.SECONDS)
 			}, endDate, agendaId
 		).filter {
@@ -153,7 +166,7 @@ class CalendarItemDAOImpl(
 	)
 	override fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQueries = createPagedQueries<ComplexKey>(
+		val viewQueries = createPagedQueries(
 			datastoreInformation,
 			listOf("by_hcparty_patient_start_time_desc".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
 			ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),
@@ -235,7 +248,15 @@ class CalendarItemDAOImpl(
 	}
 
 	@View(name = "by_recurrence_id", map = "classpath:js/calendarItem/by_recurrence_id.js")
-	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String): Flow<CalendarItem> = flow {
+	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String, offset: PaginationOffset<String>): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = pagedViewQuery(
+			datastoreInformation, "by_recurrence_id", recurrenceId, recurrenceId, offset, false
+		)
+		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery))
+	}
+
+	override fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })

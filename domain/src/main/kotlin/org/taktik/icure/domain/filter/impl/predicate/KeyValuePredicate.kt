@@ -3,10 +3,10 @@
  */
 package org.taktik.icure.domain.filter.impl.predicate
 
-import java.lang.reflect.InvocationTargetException
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.domain.filter.predicate.Predicate
+import java.lang.reflect.InvocationTargetException
 
 data class KeyValuePredicate(
 	val key: String? = null,
@@ -15,6 +15,7 @@ data class KeyValuePredicate(
 ) : Predicate {
 	val pub = PropertyUtilsBean()
 
+	@Suppress("UNCHECKED_CAST")
 	override fun apply(input: Identifiable<String>): Boolean {
 		return try {
 			operator!!.apply(pub.getProperty(input, key) as Comparable<Any>?, value as Comparable<Any>?)
@@ -39,7 +40,7 @@ data class KeyValuePredicate(
 		GREATERTHANOREQUAL(">=", { a, b -> if (a == null && b == null) false else if (a == null) false else if (b == null) true else a >= b }),
 		SMALLERTHANOREQUAL("<=", { a, b -> if (a == null && b == null) false else if (a == null) false else if (b == null) true else a <= b }),
 		LIKE("%=", { a, b -> b?.let { pattern -> a?.toString()?.matches(Regex(pattern.toString())) } ?: false }),
-		ILIKE("%%=", { a, b -> b?.let { pattern -> a?.toString()?.toLowerCase()?.matches(Regex(pattern.toString().toLowerCase())) } ?: false });
+		ILIKE("%%=", { a, b -> b?.let { pattern -> a?.toString()?.lowercase()?.matches(Regex(pattern.toString().lowercase())) } ?: false });
 
 		override fun toString(): String {
 			return code

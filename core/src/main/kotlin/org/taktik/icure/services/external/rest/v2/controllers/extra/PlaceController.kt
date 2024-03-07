@@ -5,8 +5,8 @@
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -17,10 +17,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.PlaceService
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
@@ -33,7 +39,8 @@ import reactor.core.publisher.Flux
 @Tag(name = "place")
 class PlaceController(
 	private val placeService: PlaceService,
-	private val placeV2Mapper: PlaceV2Mapper
+	private val placeV2Mapper: PlaceV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -58,10 +65,18 @@ class PlaceController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
 
-	@Operation(summary = "Gets all places")
+	@Operation(summary = "Gets all places with pagination")
 	@GetMapping
-	fun getPlaces() =
-		placeService.getAllPlaces().let { it.map { c -> placeV2Mapper.map(c) } }.injectReactorContext()
+	fun getPlaces(
+		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+	): PaginatedFlux {
+		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return placeService
+			.getAllPlaces(offset)
+			.mapElements(placeV2Mapper::map)
+			.asPaginatedFlux()
+	}
 
 	@Operation(summary = "Modifies an place")
 	@PutMapping

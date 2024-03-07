@@ -4,6 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -44,6 +45,7 @@ import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.asyncservice.DocumentService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DocumentType
@@ -73,6 +75,8 @@ class DocumentController(
 	private val documentMapper: DocumentMapper,
 	private val delegationMapper: DelegationMapper,
 	private val stubMapper: StubMapper,
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper,
 	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader
 ) {
 
@@ -344,7 +348,7 @@ class DocumentController(
 		}.collect { emit(it) }
 	}.injectReactorContext()
 
-	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findDocumentsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -366,7 +370,7 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List documents found By type, By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents found By type, By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byTypeHcPartySecretForeignKeys")
 	fun findByTypeHCPartyMessageSecretFKeys(
 		@RequestParam documentTypeCode: String,
@@ -383,14 +387,14 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List documents with no delegation", description = "Keys must be delimited by coma")
+	@Operation(summary = "List documents with no delegation")
 	@GetMapping("/woDelegation")
 	fun findWithoutDelegation(@RequestParam(required = false) limit: Int?): Flux<DocumentDto> {
 		val documentList = documentService.listDocumentsWithoutDelegation(limit ?: 100)
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Update delegations in healthElements.", description = "Keys must be delimited by coma")
+	@Operation(summary = "Update delegations in a document.", description = "Keys must be delimited by comma")
 	@PostMapping("/delegations")
 	fun setDocumentsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
 		val stubsById = stubs.associateBy { it.id }

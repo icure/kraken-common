@@ -3,7 +3,7 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.service
 
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -20,7 +20,7 @@ import org.taktik.icure.domain.filter.service.ServiceByContactsAndSubcontactsFil
 class ServiceByContactsAndSubcontactsFilter(private val contactLogic: ContactLogic) :
     Filter<String, org.taktik.icure.entities.embed.Service, ServiceByContactsAndSubcontactsFilter> {
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
         filter: ServiceByContactsAndSubcontactsFilter,
         context: Filters,

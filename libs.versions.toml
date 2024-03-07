@@ -1,10 +1,10 @@
 [versions]
-springBoot = "2.7.15"
-jackson = "2.13.5"
-caffeine = "2.9.3"
-kotlinx = "1.8.0-RC2"
+springBoot = "3.2.2"
+jackson = "2.15.3"
+caffeine = "3.1.8"
+kotlinx = "1.7.3"
 kotest = "4.4.3"
-hibernateValidator = "6.2.5.Final"
+hibernateValidator = "8.0.1.Final"
 kmap = "0.1.52-main.8d4a565b58"
 bouncyCastle = "1.70"
 jwt = "0.11.5"
@@ -16,15 +16,15 @@ springBootWebflux = { group = "org.springframework.boot", name = "spring-boot-st
 springBootSecurity = { group = "org.springframework.boot", name = "spring-boot-starter-security", version.ref = "springBoot"  }
 springBootActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version.ref = "springBoot"  }
 springBootCache = { group = "org.springframework.boot", name = "spring-boot-starter-cache", version.ref = "springBoot"  }
-springAspects = { group = "org.springframework", name = "spring-aspects", version = "5.3.29" }
-springWebsocket = { group = "org.springframework", name = "spring-websocket", version = "5.3.29" }
-springMessaging = { group = "org.springframework", name = "spring-messaging", version = "5.3.29" }
-springSecurityMessaging = { group = "org.springframework.security", name = "spring-security-messaging", version = "5.7.10" }
-springSession = { group = "org.springframework.session", name = "spring-session-core", version = "2.7.2" }
+springAspects = { group = "org.springframework", name = "spring-aspects", version = "6.1.3" }
+springWebsocket = { group = "org.springframework", name = "spring-websocket", version = "6.1.3" }
+springMessaging = { group = "org.springframework", name = "spring-messaging", version = "6.1.3" }
+springSecurityMessaging = { group = "org.springframework.security", name = "spring-security-messaging", version = "6.2.1" }
+springSession = { group = "org.springframework.session", name = "spring-session-core", version = "3.2.1" }
 jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
-jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
-jacksonSmile = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-smile" }
-jacksonJsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
+jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jacksonSmile = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-smile", version.ref = "jackson" }
+jacksonJsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
 kotlinxCoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx" }
 kotlinxCoroutinesJdk8 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version.ref = "kotlinx" }
 kotlinxCoroutinesCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinx" }
@@ -39,30 +39,26 @@ jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 springBootTest = { group = "org.springframework.boot", name = "spring-boot-starter-test", version.ref = "springBoot" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }
 springmockk = { group = "com.ninja-squad", name = "springmockk", version = "4.0.2" }
+jakartaServlet = { group = "jakarta.servlet", name = "jakarta.servlet-api", version = "6.0.0" }
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 hibernateValidatorAnnotationProcessor = { group = "org.hibernate.validator", name = "hibernate-validator-annotation-processor", version.ref = "hibernateValidator" }
 hibernateValidatorCdi = { group = "org.hibernate.validator", name = "hibernate-validator-cdi", version.ref = "hibernateValidator" }
-javaxServlet = { group = "javax.servlet", name = "javax.servlet-api", version = "3.1.0" }
 krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.42-g0877ff9aa2" }
 asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.14-g05fa58f2eb" }
 mapperProcessor = { group = "io.icure", name = "mapper-processor", version = "0.1.1-32d45af2a6" }
 guava = { group = "com.google.guava", name = "guava", version = "31.1-jre" }
 commonsBeanUtils = { group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4" }
 commonsIO = { group = "commons-io", name = "commons-io", version = "2.11.0" }
-apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.12.0" }
+apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.13.0" }
 apacheCommonsCompress = { group = "org.apache.commons", name = "commons-compress", version = "1.21" }
 apacheCommonsMath3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 taktikCommons = { group = "org.taktik.commons", name = "commons-uti", version = "1.0" }
 gcpAuthProvider = { group = "com.icure", name = "icure-gcp_auth_provider", version = "1.0.13-gb7ba77828a" }
 taktikBoot = { group = "com.taktik.boot", name = "spring-boot-starter-gke-logging", version = "2.1.179-2746294715" }
 activation = { group = "javax.activation", name = "activation", version = "1.1.1" }
-jaxbApi = { group = "javax.xml.bind", name = "jaxb-api", version = "2.3.1" }
-jaxbRuntime = { group = "org.glassfish.jaxb", name = "jaxb-runtime", version = "2.3.8" }
 springdocWebflux = { group = "org.springdoc", name = "springdoc-openapi-webflux-ui", version = "1.6.8" }
 springdocKotlin = { group = "org.springdoc", name = "springdoc-openapi-kotlin", version = "1.5.13" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
-javaxElApi = { group = "javax.el", name = "javax.el-api", version = "3.0.0" }
-javaxEl = { group = "org.glassfish", name = "javax.el", version = "3.0.1-b12" }
 reflections = { group = "org.reflections", name = "reflections", version = "0.9.12" }
 mapstruct = { group = "org.mapstruct", name = "mapstruct", version = "1.3.1.Final" }
 kmapKsp = { group = "io.icure", name = "kmap", version.ref = "kmap" }
@@ -80,7 +76,7 @@ ktorServerNetty = { group = "io.ktor", name = "ktor-server-netty", version.ref =
 ktorServerContentNegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktorServerWebSocket = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 ktorSerialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.5.0-RC" }
+kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
 ktorClientCore = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktorClientCio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 ktorClientContentNegotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
@@ -97,9 +93,8 @@ springSecurityLibs = ["springSecurityMessaging"]
 springLibs = ["springAspects", "springWebsocket", "springMessaging"]
 krouchLibs = ["krouch", "asyncJacksonHttpClient"]
 commonsLibs = ["commonsBeanUtils", "commonsIO", "apacheCommonsLang3", "apacheCommonsCompress", "apacheCommonsMath3", "taktikCommons"]
-xmlLibs = ["activation", "jaxbApi", "jaxbRuntime"]
+xmlLibs = ["activation"]
 swaggerLibs = ["springdocWebflux", "springdocKotlin"]
-javaxElLibs = ["javaxElApi", "javaxEl"]
 bouncyCastleLibs = ["bouncyCastleBcprov", "bouncyCastleBcmail"]
 jsonWebTokenLibs = ["jsonWebTokenApi", "jsonWebTokenImpl", "jsonWebTokenJackson"]
 ktorServerLibs = ["ktorServerCore", "ktorServerNetty", "ktorServerContentNegotiation", "ktorSerialization", "ktorServerWebSocket"]

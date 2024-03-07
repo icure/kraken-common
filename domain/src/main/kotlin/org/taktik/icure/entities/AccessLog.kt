@@ -44,7 +44,7 @@ data class AccessLog(
 	val accessType: String? = null,
 	val user: String? = null, //TODO what is this used for?
 	@param:ContentValue(ContentValues.ANY_STRING) val detail: String? = null,
-	@JsonSerialize(using = InstantSerializer::class, include = JsonSerialize.Inclusion.NON_NULL) @JsonDeserialize(using = InstantDeserializer::class)
+	@JsonSerialize(using = InstantSerializer::class) @JsonDeserialize(using = InstantDeserializer::class)
 	val date: Instant? = null,
 	@Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),

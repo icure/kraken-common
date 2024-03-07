@@ -5,6 +5,7 @@
 package org.taktik.icure.asynclogic.impl
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.AccessLogLogic
@@ -27,8 +28,10 @@ import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
-import org.taktik.icure.services.external.rest.v1.utils.paginatedList
-import org.taktik.icure.utils.toComplexKeyPaginationOffset
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
+import org.taktik.icure.pagination.toPaginatedList
 import org.taktik.icure.validation.aspect.Fixer
 import java.time.Instant
 
@@ -76,15 +79,30 @@ class AccessLogLogicImpl(
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))
 	}
 
-	override suspend fun getAccessLog(accessLogId: String): AccessLog? = getEntity(accessLogId)
-
-	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<ViewQueryResultEvent> = flow {
+	override fun listAccessLogBySearchKeyAndSecretPatientKey(
+		searchKey: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(accessLogDAO.listAccessLogsByDate(datastoreInformation, fromEpoch, toEpoch, paginationOffset, descending))
+		emitAll(
+			accessLogDAO
+				.findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation, searchKey, secretPatientKey, paginationOffset.limitIncludingKey())
+				.toPaginatedFlow<AccessLog>(paginationOffset.limit)
+		)
 	}
 
-	private fun decomposeStartKey(startKeyString: String?): Long? =
-		startKeyString?.let { objectMapper.readValue(it, objectMapper.typeFactory.constructType(Long::class.java)) }
+	override suspend fun getAccessLog(accessLogId: String): AccessLog? = getEntity(accessLogId)
+
+	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(accessLogDAO
+			.listAccessLogsByDate(datastoreInformation, fromEpoch, toEpoch, paginationOffset.limitIncludingKey(), descending)
+			.toPaginatedFlow<AccessLog>(paginationOffset.limit)
+		)
+	}
+
+	private fun decomposeStartKey(startKeyString: String?): Long? = startKeyString?.let { objectMapper.readValue<Long>(it) }
 
 	private suspend fun doAggregatePatientByAccessLogs(
 		userId: String,
@@ -93,7 +111,7 @@ class AccessLogLogicImpl(
 		startKey: String?,
 		startDocumentId: String?,
 		limit: Int,
-		paginationOffset: PaginationOffset<List<*>>,
+		paginationOffset: PaginationOffset<ComplexKey>,
 		patientIds: List<String> = emptyList(),
 		patients: List<Patient> = emptyList(),
 		totalCount: Int = 0
@@ -105,7 +123,7 @@ class AccessLogLogicImpl(
 			decomposeStartKey(startKey) ?: startDate,
 			paginationOffset,
 			true
-		).paginatedList<AccessLog>(limit * 2)
+		).toPaginatedList<AccessLog, ComplexKey>()
 			.let { accessLogPaginatedList ->
 				val count = accessLogPaginatedList.rows.count()
 				val previousPatientIds = patientIds.toSet()
@@ -122,14 +140,10 @@ class AccessLogLogicImpl(
 						doAggregatePatientByAccessLogs(
 							userId, accessType, startDate, startKey, startDocumentId, limit,
 							PaginationOffset(
-								objectMapper.convertValue(
-									accessLogPaginatedList.nextKeyPair!!.startKey,
-									objectMapper.typeFactory.constructCollectionType(
-										List::class.java,
-										Object::class.java
-									)
-								),
-								accessLogPaginatedList.nextKeyPair!!.startKeyDocId, null, limit * 2 + 1
+								accessLogPaginatedList.nextKeyPair?.startKey as? ComplexKey,
+								accessLogPaginatedList.nextKeyPair?.startKeyDocId,
+								null,
+								limit * 2 + 1
 							),
 							updatedPatientIds, updatedPatients, totalCount + count
 						)
@@ -155,9 +169,12 @@ class AccessLogLogicImpl(
 	override suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int) =
 		doAggregatePatientByAccessLogs(userId, accessType, startDate, startKey, startDocumentId, limit, PaginationOffset(null, null, null, limit * 2 + 1))
 
-	override fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<List<*>>, descending: Boolean): Flow<ViewQueryResultEvent> = flow {
+	override fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(accessLogDAO.findAccessLogsByUserAfterDate(datastoreInformation, userId, accessType, startDate, pagination.toComplexKeyPaginationOffset(), descending))
+		emitAll(accessLogDAO
+			.findAccessLogsByUserAfterDate(datastoreInformation, userId, accessType, startDate, pagination.limitIncludingKey(), descending)
+			.toPaginatedFlow<AccessLog>(pagination.limit)
+		)
 	}
 
 	override fun entityWithUpdatedSecurityMetadata(entity: AccessLog, updatedMetadata: SecurityMetadata): AccessLog =

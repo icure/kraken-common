@@ -40,7 +40,7 @@ data class PropertyType(
 
 	fun merge(other: PropertyType) = PropertyType(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: PropertyType) = super.solveConflictsWith(other) + mapOf(
-		"identifier" to (this.identifier ?: other.identifier),
+		"identifier" to this.identifier,
 		"type" to (this.type ?: other.type),
 		"scope" to (this.scope ?: other.scope),
 		"unique" to (this.unique),

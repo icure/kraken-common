@@ -34,15 +34,15 @@ import reactor.core.publisher.Flux
 @Tag(name = "agenda")
 class AgendaController(
 	private val agendaService: AgendaService,
-	private val agendaMapper: AgendaMapper
+	private val agendaMapper: AgendaMapper,
 ) {
 
 	@Operation(summary = "Gets all agendas")
 	@GetMapping
-	fun getAgendas(): Flux<AgendaDto> {
-		val agendas = agendaService.getAllAgendas()
-		return agendas.map { agendaMapper.map(it) }.injectReactorContext()
-	}
+	fun getAgendas() = agendaService
+		.getAllAgendas()
+		.map(agendaMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Creates a agenda")
 	@PostMapping

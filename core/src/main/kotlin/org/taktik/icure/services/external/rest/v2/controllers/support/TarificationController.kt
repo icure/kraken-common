@@ -5,10 +5,10 @@
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
@@ -22,14 +22,17 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.ViewRow
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.TarificationService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.Tarification
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v2.mapper.TarificationV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -40,12 +43,9 @@ import reactor.core.publisher.Flux
 class TarificationController(
 	private val tarificationService: TarificationService,
 	private val tarificationV2Mapper: TarificationV2Mapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val tarificationToTarificationDto = { it: Tarification -> tarificationV2Mapper.map(it) }
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(
 		summary = "Finding tarifications by tarification, type and version with pagination.",
@@ -57,34 +57,18 @@ class TarificationController(
 		@RequestParam(required = false) types: String?,
 		@RequestParam(required = false) language: String?,
 		@RequestParam(required = false) label: String?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<List<String>>(
-				startKey,
-				objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-			)
-		}
-		val tarificationsList = tarificationService.findTarificationsByLabel(
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		return tarificationService.findTarificationsOfTypesByLabel(
 			region,
 			language,
 			label,
-			PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-		)
-
-		types?.let {
-			val splits = it.split(',')
-			tarificationsList.filter { d ->
-				if (d is ViewRow<*, *, *> && d.value is Tarification) {
-					splits.contains(d.value)
-				} else true
-			}
-		}
-
-		tarificationsList.paginatedList(tarificationToTarificationDto, realLimit)
+			types?.split(',')?.toSet(),
+			PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		).mapElements(tarificationV2Mapper::map).asPaginatedFlux()
 	}
 
 	@Operation(summary = "Finding tarifications by tarification, type and version with pagination.", description = "Returns a list of tarifications matched with given input.")
@@ -95,25 +79,17 @@ class TarificationController(
 		@RequestParam(required = false) tarification: String?,
 		@RequestParam(required = false) version: String?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<List<String>>(
-				startKey,
-				objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java)
-			)
-		}
-
-		tarificationService.findTarificationsBy(
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		return tarificationService.findTarificationsBy(
 			region,
 			type,
 			tarification,
 			version,
-			PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-		)
-			.paginatedList(tarificationToTarificationDto, realLimit)
+			PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		).mapElements(tarificationV2Mapper::map).asPaginatedFlux()
 	}
 
 	@Operation(summary = "Finding tarifications by tarification, type and version", description = "Returns a list of tarifications matched with given input.")

@@ -30,7 +30,7 @@ import org.taktik.icure.utils.injectReactorContext
 @Tag(name = "medicallocation")
 class MedicalLocationController(
 	private val medicalLocationService: MedicalLocationService,
-	private val medicalLocationMapper: MedicalLocationMapper
+	private val medicalLocationMapper: MedicalLocationMapper,
 ) {
 
 	@Operation(summary = "Creates a medical location")
@@ -52,9 +52,12 @@ class MedicalLocationController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location fetching failed")
 	}
 
-	@Operation(summary = "Gets all medical locations")
+	@Operation(summary = "Gets all medical locations with pagination")
 	@GetMapping
-	fun getMedicalLocations() = medicalLocationService.getAllMedicalLocations().map { c -> medicalLocationMapper.map(c) }.injectReactorContext()
+	fun getMedicalLocations() = medicalLocationService
+		.getAllMedicalLocations()
+		.map(medicalLocationMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Modifies a medical location")
 	@PutMapping

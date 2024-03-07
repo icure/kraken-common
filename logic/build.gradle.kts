@@ -30,7 +30,7 @@ dependencies {
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
     implementation(coreLibs.krouch)
     implementation(coreLibs.kotlinxCollectionsImmutableJvm)
-    implementation(coreLibs.javaxServlet)
+    implementation(coreLibs.jakartaServlet)
     implementation(coreLibs.guava)
     implementation(coreLibs.bouncyCastleBcprov)
 }

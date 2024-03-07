@@ -8,10 +8,12 @@ import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -53,6 +55,23 @@ internal class FormDAOImpl(
 		emitAll(client.interleave<Array<String>, String, Form>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>().map { it.doc })
 	}.distinctById()
+
+	override fun listFormsByHcPartyIdPatientSecretKey(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent>  = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(hcPartyId, secretPatientKey)
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patientfk",
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+			key, key, paginationOffset, false
+		)
+		emitAll(client.interleave<Array<String>, String, Form>(viewQueries, compareBy({it[0]}, {it[1]})))
+	}
 
 	@Views(
     	View(name = "by_hcparty_parentId", map = "classpath:js/form/By_hcparty_parent_id.js"),

@@ -19,10 +19,10 @@ import org.taktik.icure.entities.SecureDelegationKeyMap
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(null, doc._id)}")
 class SecureDelegationKeyMapDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
-    designDocumentProvider: DesignDocumentProvider
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
+	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<SecureDelegationKeyMap>(
     SecureDelegationKeyMap::class.java,
     couchDbDispatcher,

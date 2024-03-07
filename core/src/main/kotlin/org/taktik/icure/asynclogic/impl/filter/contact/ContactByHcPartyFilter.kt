@@ -18,7 +18,6 @@
 
 package org.taktik.icure.asynclogic.impl.filter.contact
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asynclogic.ContactLogic
@@ -27,7 +26,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.Contact
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class ContactByHcPartyFilter(

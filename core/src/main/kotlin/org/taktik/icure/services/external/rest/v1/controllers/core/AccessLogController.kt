@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -25,12 +26,16 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.AccessLogService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.AccessLog
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v1.mapper.AccessLogMapper
-import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -41,13 +46,9 @@ import reactor.core.publisher.Flux
 class AccessLogController(
 	private val accessLogService: AccessLogService,
 	private val accessLogMapper: AccessLogMapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val accessLogToAccessLogDto = { it: AccessLog -> accessLogMapper.map(it) }
-
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Create an access log")
 	@PostMapping
@@ -74,11 +75,21 @@ class AccessLogController(
 
 	@Operation(summary = "Get paginated list of Access Logs")
 	@GetMapping
-	fun listAccessLogs(@RequestParam(required = false) fromEpoch: Long?, @RequestParam(required = false) toEpoch: Long?, @RequestParam(required = false) startKey: Long?, @RequestParam(required = false) startDocumentId: String?, @RequestParam(required = false) limit: Int?, @RequestParam(required = false) descending: Boolean?) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, realLimit + 1) // fetch one more for nextKeyPair
-		val accessLogs = accessLogService.listAccessLogsBy(fromEpoch ?: if (descending == true) Long.MAX_VALUE else 0, toEpoch ?: if (descending == true) 0 else Long.MAX_VALUE, paginationOffset, descending == true)
-		accessLogs.paginatedList(accessLogToAccessLogDto, realLimit)
+	fun listAccessLogs(
+		@RequestParam(required = false) fromEpoch: Long?,
+		@RequestParam(required = false) toEpoch: Long?,
+		@RequestParam(required = false) startKey: Long?,
+		@RequestParam(required = false) startDocumentId: String?,
+		@RequestParam(required = false) limit: Int?,
+		@RequestParam(required = false) descending: Boolean?
+	): PaginatedFlux {
+		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return accessLogService.listAccessLogsBy(
+			if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
+			if (descending == true) fromEpoch ?: 0 else toEpoch ?: Long.MAX_VALUE,
+			paginationOffset,
+			descending == true
+		).mapElements(accessLogMapper::map).asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get paginated list of Access Logs")
@@ -87,29 +98,52 @@ class AccessLogController(
 		@Parameter(description = "A User ID", required = true) @RequestParam userId: String,
 		@Parameter(description = "The type of access (COMPUTER or USER)") @RequestParam(required = false) accessType: String?,
 		@Parameter(description = "The start search epoch") @RequestParam(required = false) startDate: Long?,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.let { objectMapper.readValue<List<*>>(startKey, objectMapper.typeFactory.constructCollectionType(List::class.java, Object::class.java)) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-		val accessLogs = accessLogService.findAccessLogsByUserAfterDate(userId, accessType, startDate, paginationOffset, descending ?: false)
-
-		accessLogs.paginatedList(accessLogToAccessLogDto, realLimit)
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return accessLogService
+			.findAccessLogsByUserAfterDate(userId, accessType, startDate, paginationOffset, descending ?: false)
+			.mapElements(accessLogMapper::map)
+			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "List access logs found by Healthcare Party and secret foreign keyelementIds.")
+	@Operation(summary = "List access logs found by Healthcare Party id and secret foreign key element ids.")
 	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findAccessLogsByHCPartyPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestParam("secretFKeys") secretFKeys: String) = flow {
+	fun findAccessLogsByHCPartyPatientForeignKeys(
+		@RequestParam("hcPartyId") hcPartyId: String,
+		@RequestParam("secretFKeys") secretFKeys: String
+	) = flow {
 		val secretPatientKeys = HashSet(secretFKeys.split(",")).toList()
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "List access logs found by Healthcare Party and secret foreign keyelementIds.")
+	@Operation(summary = "List access logs found by Healthcare Party id and secret foreign key element id with pagination.")
+	@GetMapping("/byHcPartySecretForeignKey")
+	fun findAccessLogsByHCPartyPatientForeignKey(
+		@RequestParam("hcPartyId") hcPartyId: String,
+		@RequestParam("secretFKey") secretFKey: String,
+		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		return accessLogService
+			.listAccessLogsBySearchKeyAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
+			.mapElements(accessLogMapper::map)
+			.asPaginatedFlux()
+	}
+
+	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun findAccessLogsByHCPartyPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestBody secretPatientKeys: List<String>) = flow {
+	fun findAccessLogsByHCPartyPatientForeignKeys(
+		@RequestParam("hcPartyId") hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>
+	) = flow {
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogMapper.map(it) })
 	}.injectReactorContext()
 

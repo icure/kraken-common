@@ -6,11 +6,14 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginationElement
 import java.nio.ByteBuffer
 
 interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDelegationsLogic<Document> {
@@ -94,7 +97,29 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	): Document?
 
 	fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode: String, hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
+
+	/**
+	 * Retrieves all the [Document]s for a given healthcare party id and a set of secret foreign keys.
+	 * Note: if the current user is a data owner which data owner id is [hcPartyId], then all the search keys available
+	 * for the user will be considered in retrieving the documents.
+	 *
+	 * @param hcPartyId the healthcare party id.
+	 * @param secretForeignKeys a [List] of secret foreign keys.
+	 * @return a [Flow] of [Document]s.
+	 */
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
+
+	/**
+	 * Retrieves all the [Document]s for the given healthcare party id and secret foreign key in a format for pagination.
+	 * Note: differently from [listDocumentsByHCPartySecretMessageKeys], this method will NOT consider the available
+	 * search keys for the current user if their data owner id is equal to [hcPartyId].
+	 *
+	 * @param hcPartyId the healthcare party id.
+	 * @param secretForeignKey the patient secret foreign key.
+	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginationElement] wrapping the [Document]s.
+	 */
+	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 

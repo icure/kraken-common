@@ -24,10 +24,10 @@ import org.taktik.couchdb.entity.IdAndRev
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted) emit( null, doc._id )}")
 class RecoveryDataDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
-    designDocumentProvider: DesignDocumentProvider
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
+	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOWithMinimalPurgeImpl<RecoveryData>(
     RecoveryData::class.java,
     couchDbDispatcher,

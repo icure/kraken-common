@@ -36,6 +36,7 @@ import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.mapper.CalendarItemMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -52,10 +53,10 @@ class CalendarItemController(
 
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
-	fun getCalendarItems(): Flux<CalendarItemDto> {
-		val calendarItems = calendarItemService.getAllCalendarItems()
-		return calendarItems.map { calendarItemMapper.map(it) }.injectReactorContext()
-	}
+	fun getCalendarItems() = calendarItemService
+		.getAllCalendarItems()
+		.map(calendarItemMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Creates a calendarItem")
 	@PostMapping
@@ -72,12 +73,12 @@ class CalendarItemController(
 		calendarItemService.deleteCalendarItems(calendarItemIds.ids).injectReactorContext()
 
 	@Deprecated(message = "Use deleteItemCalendars instead")
-	@Operation(summary = "Deletes an calendarItem")
+	@Operation(summary = "Deletes a calendarItem")
 	@DeleteMapping("/{calendarItemIds}")
 	fun deleteCalendarItem(@PathVariable calendarItemIds: String): Flux<DocIdentifier> =
 		calendarItemService.deleteCalendarItems(calendarItemIds.split(',')).injectReactorContext()
 
-	@Operation(summary = "Gets an calendarItem")
+	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
 	fun getCalendarItem(@PathVariable calendarItemId: String) = mono {
 		val calendarItem = calendarItemService.getCalendarItem(calendarItemId)
@@ -86,7 +87,7 @@ class CalendarItemController(
 		calendarItemMapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies an calendarItem")
+	@Operation(summary = "Modifies a calendarItem")
 	@PutMapping
 	fun modifyCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
 		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemMapper.map(calendarItemDto))
@@ -161,7 +162,7 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKeys: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
 	) = mono {
@@ -178,7 +179,7 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable(required = false) limit: Int,
 	) = mono {
@@ -207,10 +208,11 @@ class CalendarItemController(
 		emitAll(calendarItemService.modifyEntities(calendarItems.toList()).map { calendarItemMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "Find CalendarItems by recurrenceId", description = "")
+	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")
 	@GetMapping("/byRecurrenceId")
-	fun findCalendarItemsByRecurrenceId(@RequestParam recurrenceId: String): Flux<CalendarItemDto> {
-		val elementList = calendarItemService.getCalendarItemsByRecurrenceId(recurrenceId)
-		return elementList.map { calendarItemMapper.map(it) }.injectReactorContext()
-	}
+	fun findCalendarItemsByRecurrenceId(@RequestParam recurrenceId: String) = calendarItemService
+		.getCalendarItemsByRecurrenceId(recurrenceId)
+		.map(calendarItemMapper::map)
+		.injectReactorContext()
+
 }

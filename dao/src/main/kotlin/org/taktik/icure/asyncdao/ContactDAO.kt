@@ -18,12 +18,37 @@ interface ContactDAO : GenericDAO<Contact> {
 	suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact?
 	fun getContacts(datastoreInformation: IDatastoreInformation, contactIds: Collection<String>): Flow<Contact>
 	fun getContacts(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<Contact>
+
+	/**
+	 * Retrieves all the [Contact]s for a healthcare party and which [Contact.openingDate] is between the
+	 * [startOpeningDate], if provided, and the [endOpeningDate], if provided.
+	 * The results will be returned in a format for pagination.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param hcPartyId the id of the healthcare party.
+	 * @param startOpeningDate the timestamp of the start opening date. If null, all the [Contact]s since the beginning of time will be retrieved.
+	 * @param endOpeningDate the timestamp of the end opening date. If null, all the [Contact]s until the end of time will be retrieved.
+	 * @param pagination a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [ViewQueryResultEvent] wrapping the [Contact]s.
+	 */
 	fun listContactsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 	fun findContactsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<ViewQueryResultEvent>
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Collection<String>): Flow<ViewQueryResultEvent>
 	fun listContactIdsByHealthcareParty(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
 	fun listContactsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Contact>
+
+	/**
+	 * Retrieves all the [Contact]s for a healthcare party id and secret patient key pair.
+	 * The result will be returned in a format for pagination.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param hcPartyId the id of the healthcare party.
+	 * @param secretPatientKey the secret patient key.
+	 * @param pagination a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [ViewQueryResultEvent]s wrapping the [Contact]s.
+	 */
+	fun listContactsByHcPartyIdAndPatientSecretKey(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 	fun listContactIdsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String>
 	fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String): Flow<Contact>
 	fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>): Flow<Contact>

@@ -37,7 +37,7 @@ class SwaggerConfig {
 	}
 
 	@Bean
-	open fun iCureV1Api(springOperationCustomizer: OperationCustomizer) = GroupedOpenApi.builder().group("v1").pathsToMatch("/rest/v1/**").packagesToScan("org.taktik.icure.services.external.rest.v1").addOpenApiCustomiser { openApi ->
+	fun iCureV1Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi.builder().group("v1").pathsToMatch("/rest/v1/**").packagesToScan("org.taktik.icure.services.external.rest.v1").addOpenApiCustomiser { openApi ->
 		openApi.info(
 			Info().title("iCure Data Stack API Documentation")
 				.description("The iCure Data Stack Application API is the native interface to iCure. This version is obsolete, please use v2.")
@@ -46,7 +46,7 @@ class SwaggerConfig {
 	}.addOperationCustomizer(springOperationCustomizer).build()
 
 	@Bean
-	open fun iCureV2Api(springOperationCustomizer: OperationCustomizer) = GroupedOpenApi.builder().group("v2").pathsToMatch("/rest/v2/**").packagesToScan("org.taktik.icure.services.external.rest.v2").addOpenApiCustomiser { openApi ->
+	fun iCureV2Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi.builder().group("v2").pathsToMatch("/rest/v2/**").packagesToScan("org.taktik.icure.services.external.rest.v2").addOpenApiCustomiser { openApi ->
 		openApi.info(
 			Info().title("iCure Data Stack API Documentation")
 				.description("The iCure Data Stack Application API is the native interface to iCure.")
@@ -54,7 +54,7 @@ class SwaggerConfig {
 		)
 	}.addOperationCustomizer(springOperationCustomizer).build()
 	@Bean
-	open fun springOperationCustomizer() = OperationCustomizer { operation, handlerMethod ->
+	fun springOperationCustomizer() = OperationCustomizer { operation, handlerMethod ->
 		operation.also {
 			try {
 				if (it.parameters != null) {

@@ -37,7 +37,7 @@ function(doc) {
                   if (doc.lastName) {
                     emit_normalized_substrings(k, doc.lastName + (doc.firstName?doc.firstName:''), doc._id, latin_map);
                   } else {
-                    emit([k,null], docId);
+                    emit([k,null], doc._id);
                   }
               });
           }

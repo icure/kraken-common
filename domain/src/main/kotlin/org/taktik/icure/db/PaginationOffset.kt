@@ -18,6 +18,7 @@ data class PaginationOffset<K>(
 
 	constructor(limit: Int, startDocumentId: String?) : this(null, startDocumentId, null, limit)
 
+	@Suppress("UNCHECKED_CAST")
 	constructor(paginatedList: PaginatedList<*>) : this(
 		paginatedList.nextKeyPair?.startKey as K?,
 		paginatedList.nextKeyPair?.startKeyDocId,

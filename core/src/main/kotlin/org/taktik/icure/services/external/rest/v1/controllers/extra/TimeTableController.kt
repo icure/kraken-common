@@ -51,7 +51,7 @@ class TimeTableController(
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
 		}
 
-	@Operation(summary = "Deletes an timeTable")
+	@Operation(summary = "Deletes a timeTable")
 	@DeleteMapping("/{timeTableIds}")
 	fun deleteTimeTable(@PathVariable timeTableIds: String): Flux<DocIdentifier> {
 		return timeTableService.deleteTimeTables(timeTableIds.split(',')).injectReactorContext()
@@ -93,7 +93,7 @@ class TimeTableController(
 			}
 		}
 
-	@Operation(summary = "Modifies an timeTable")
+	@Operation(summary = "Modifies a timeTable")
 	@PutMapping
 	fun modifyTimeTable(@RequestBody timeTableDto: TimeTableDto) =
 		mono {
@@ -116,11 +116,10 @@ class TimeTableController(
 
 	@Operation(summary = "Get TimeTables by AgendaId")
 	@PostMapping("/byAgendaId")
-	fun getTimeTablesByAgendaId(@Parameter(required = true) @RequestParam agendaId: String): Flux<TimeTableDto> =
-		flow {
-			if (agendaId.isBlank()) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
-			}
-			emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableMapper.map(it) })
-		}.injectReactorContext()
+	fun getTimeTablesByAgendaId(@Parameter(required = true) @RequestParam agendaId: String): Flux<TimeTableDto> = flow {
+		if (agendaId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
+		}
+		emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableMapper.map(it) })
+	}.injectReactorContext()
 }

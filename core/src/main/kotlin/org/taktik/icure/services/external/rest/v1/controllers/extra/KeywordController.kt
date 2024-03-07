@@ -30,7 +30,10 @@ import reactor.core.publisher.Flux
 @Profile("app")
 @RequestMapping("/rest/v1/keyword")
 @Tag(name = "keyword")
-class KeywordController(private val keywordService: KeywordService, private val keywordMapper: KeywordMapper) {
+class KeywordController(
+	private val keywordService: KeywordService,
+	private val keywordMapper: KeywordMapper
+) {
 
 	@Operation(summary = "Create a keyword with the current user", description = "Returns an instance of created keyword.")
 	@PostMapping
@@ -51,11 +54,12 @@ class KeywordController(private val keywordService: KeywordService, private val 
 	fun getKeywordsByUser(@PathVariable userId: String) =
 		keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordMapper.map(c) } }.injectReactorContext()
 
-	@Operation(summary = "Gets all keywords")
+	@Operation(summary = "Gets all keywords with pagination")
 	@GetMapping
-	fun getKeywords(): Flux<KeywordDto> {
-		return keywordService.getAllKeywords().map { c -> keywordMapper.map(c) }.injectReactorContext()
-	}
+	fun getKeywords() = keywordService
+		.getAllKeywords()
+		.map(keywordMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@DeleteMapping("/{keywordIds}")

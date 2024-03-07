@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.FormDAO
@@ -24,9 +25,13 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.FormLogic
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -64,6 +69,18 @@ class FormLogicImpl(
 			}
 			emitAll(filteredForms)
 		}
+
+	override fun listFormsByHcPartyIdPatientSecretKey(
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(formDAO
+			.listFormsByHcPartyIdPatientSecretKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Form>(paginationOffset.limit)
+		)
+	}
 
 	override suspend fun addDelegation(formId: String, delegation: Delegation): Form? {
 		val datastoreInformation = getInstanceAndGroup()

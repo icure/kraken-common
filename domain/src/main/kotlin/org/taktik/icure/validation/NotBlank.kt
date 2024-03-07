@@ -1,7 +1,7 @@
 package org.taktik.icure.validation
 
-import javax.validation.Constraint
-import javax.validation.Payload
+import jakarta.validation.Constraint
+import jakarta.validation.Payload
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.VALUE_PARAMETER)
@@ -12,7 +12,7 @@ annotation class NotBlank(val message: String = "{org.taktik.icure.validation.No
     /**
      * Defines several [NotBlank] annotations on the same element.
      *
-     * @see javax.validation.constraints.NotBlank
+     * @see jakarta.validation.constraints.NotBlank
      */
     @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.VALUE_PARAMETER)
     @Retention(AnnotationRetention.RUNTIME)

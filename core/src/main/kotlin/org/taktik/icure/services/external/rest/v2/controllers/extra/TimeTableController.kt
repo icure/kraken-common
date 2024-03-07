@@ -37,8 +37,8 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.TimeTableV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.TimeTableBulkShareResultV2Mapper
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import java.util.*
 
@@ -110,7 +110,7 @@ class TimeTableController(
 			}
 		}
 
-	@Operation(summary = "Modifies an timeTable")
+	@Operation(summary = "Modifies a timeTable")
 	@PutMapping
 	fun modifyTimeTable(@RequestBody timeTableDto: TimeTableDto) =
 		mono {

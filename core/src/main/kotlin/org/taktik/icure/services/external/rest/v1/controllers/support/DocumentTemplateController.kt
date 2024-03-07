@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.services.external.rest.v1.dto.DocumentTemplateDto
@@ -35,7 +36,6 @@ import org.taktik.icure.services.external.rest.v1.dto.data.ByteArrayDto
 import org.taktik.icure.services.external.rest.v1.mapper.DocumentTemplateMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import org.taktik.icure.asynclogic.SessionInformationProvider
 
 @RestController
 @Profile("app")
@@ -97,12 +97,12 @@ class DocumentTemplateController(
 		)
 	}.injectReactorContext()
 
-	@Operation(summary = "Gets all document templates for all users")
+	@Operation(summary = "Gets all document templates for all users with pagination")
 	@GetMapping("/find/all")
-	fun findAllDocumentTemplates(): Flux<DocumentTemplateDto> {
-		val documentTemplates = documentTemplateService.getAllDocumentTemplates()
-		return documentTemplates.map { ft -> documentTemplateMapper.map(ft) }.injectReactorContext()
-	}
+	fun findAllDocumentTemplates() = documentTemplateService
+		.getAllDocumentTemplates()
+		.map(documentTemplateMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Create a document template with the current user", description = "Returns an instance of created document template.")
 	@PostMapping

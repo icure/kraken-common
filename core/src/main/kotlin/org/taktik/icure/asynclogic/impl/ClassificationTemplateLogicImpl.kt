@@ -10,16 +10,20 @@ import kotlinx.coroutines.flow.flow
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.ClassificationTemplateDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ClassificationTemplateLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -114,19 +118,32 @@ class ClassificationTemplateLogicImpl(
 
 	override fun getClassificationTemplates(ids: Collection<String>): Flow<ClassificationTemplate> = getEntities(ids)
 
-	override fun listClasificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<ClassificationTemplate> =
+	override fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<ClassificationTemplate> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			emitAll(classificationTemplateDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 		}
 
+	override fun listClassificationsByHCPartyAndSecretPatientKey(
+		hcPartyId: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(classificationTemplateDAO
+			.listClassificationsByHCPartyAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<ClassificationTemplate>(paginationOffset.limit)
+		)
+	}
 
 	override fun listClassificationTemplates(paginationOffset: PaginationOffset<String>) =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(classificationTemplateDAO.findClassificationTemplates(datastoreInformation, paginationOffset))
+			emitAll(classificationTemplateDAO
+				.findClassificationTemplates(datastoreInformation, paginationOffset.limitIncludingKey())
+				.toPaginatedFlow<ClassificationTemplate>(paginationOffset.limit)
+			)
 		}
-
 
 	companion object {
 		private val log = LoggerFactory.getLogger(ClassificationTemplateLogicImpl::class.java)

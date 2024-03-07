@@ -1,21 +1,21 @@
 package org.taktik.icure.cache
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.reactor.ReactorContext
 import reactor.core.publisher.Mono
-import reactor.util.context.Context
 import kotlin.coroutines.CoroutineContext
 
 interface ReactorCacheInjector {
 
     /**
-     * Injects a local cache into the [Context] passed as parameter and converts it to a [CoroutineContext].
+     * Injects a local cache into the [ReactorContext] passed as parameter and converts it to a [CoroutineContext].
      *
-     * @param ctx the [Context] where to inject the cache.
+     * @param ctx the [ReactorContext] where to inject the cache.
      * @param cacheSize the size of the cache. Note: it is required that size is greater than 0.
      * @return a [CoroutineContext] with the cache.
      * @throws IllegalArgumentException if [cacheSize] of the cache is less or equal to 0.
      */
-    fun injectCacheInContext(ctx: Context, cacheSize: Int): CoroutineContext
+    fun injectCacheInContext(ctx: ReactorContext, cacheSize: Int): CoroutineContext
 
     /**
      * Creates a new [Mono], with a cache with the size passed as parameter.

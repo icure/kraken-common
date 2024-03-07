@@ -6,12 +6,12 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
+import org.taktik.icure.pagination.PaginationElement
 
 interface UserLogic : EntityPersister<User, String> {
 
@@ -46,8 +46,18 @@ interface UserLogic : EntityPersister<User, String> {
 	fun getUsers(ids: List<String>): Flow<User>
 	fun getUsersByLogin(login: String): Flow<EnhancedUser>
 	fun listUserIdsByNameEmailPhone(searchString: String): Flow<String>
-	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<ViewQueryResultEvent>
-	fun listUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [User]s in a group in a format for pagination.
+	 * If [skipPatients] is true, only the users where [User.patientId] is null or [User.healthcarePartyId] is not null
+	 * will be returned (this is because there are legacy users that can be both, and they should be considered as
+	 * healthcare party users for the scope of this method).
+	 *
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @param skipPatients true if the patient-only users should be skipped.
+	 * @return a [Flow] of [PaginationElement] containing the [User]s.
+	 */
+	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<PaginationElement>
 	fun filterUsers(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<User>): Flow<ViewQueryResultEvent>
 
 	// endregion

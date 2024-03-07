@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.hcparty
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.security.auth.login.LoginException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -34,7 +33,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.hcparty.HealthcarePartyByTagCodeFilter
 import org.taktik.icure.entities.HealthcareParty
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class HealthcarePartyByTagCodeFilter(

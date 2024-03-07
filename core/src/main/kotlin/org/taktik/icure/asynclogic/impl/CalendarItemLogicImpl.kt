@@ -12,14 +12,17 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.AgendaLogic
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.CalendarItemLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.DeletionException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.mergeUniqueValuesForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
@@ -49,7 +52,13 @@ class CalendarItemLogicImpl(
 		}
 
 
-	override fun getAllCalendarItems(): Flow<CalendarItem> = getEntities()
+	override fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemDAO
+			.getAllPaginated(datastoreInformation, offset.limitIncludingKey(), Nothing::class.java)
+			.toPaginatedFlow<CalendarItem>(offset.limit)
+		)
+	}
 
 	override fun deleteCalendarItems(ids: List<String>): Flow<DocIdentifier> = try {
 		deleteEntities(ids)
@@ -80,7 +89,15 @@ class CalendarItemLogicImpl(
 		emitAll(calendarItemDAO.listCalendarItemByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId))
 	}
 
-	override fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem> = flow {
+	override fun getCalendarItemsByRecurrenceId(recurrenceId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemDAO
+			.listCalendarItemsByRecurrenceId(datastoreInformation, recurrenceId, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<CalendarItem>(paginationOffset.limit)
+		)
+	}
+
+	override fun getCalendarItemsByRecurrenceId(recurrenceId: String) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(calendarItemDAO.listCalendarItemsByRecurrenceId(datastoreInformation, recurrenceId))
 	}

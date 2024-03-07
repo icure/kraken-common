@@ -6,9 +6,9 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
+import org.taktik.icure.pagination.PaginationElement
 
 interface InsuranceLogic : EntityPersister<Insurance, String> {
 	suspend fun createInsurance(insurance: Insurance): Insurance?
@@ -24,8 +24,8 @@ interface InsuranceLogic : EntityPersister<Insurance, String> {
 	/**
 	 * Retrieves all the [Insurance]s defined in the group of the current logged-in user in a format for pagination.
 	 *
-	 * @param paginationOffset a [PaginationOffset] for pagination.
-	 * @return a [Flow] of [Insurance]s wrapped in [ViewRowWithDoc]s for pagination.
+	 * @param paginationOffset a [PaginationOffset] of [Nothing] (i.e. with an always-null start key) for pagination.
+	 * @return a [Flow] of [Insurance]s wrapped in [PaginationElement]s for pagination.
 	 */
-	fun getAllInsurances(paginationOffset: PaginationOffset<Nothing>): Flow<ViewRowWithDoc<Any?, String, Insurance>>
+	fun getAllInsurances(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
 }

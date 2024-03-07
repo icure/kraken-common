@@ -12,6 +12,7 @@ import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
@@ -42,8 +43,45 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 
 	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem?
+
+	/**
+	 * Retrieves all [CalendarItem]s in a group in a format for pagination.
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access, but
+	 * it guarantees that the page size specified in the [offset] is reached as long as there are available entities.
+	 *
+	 * @param offset a [PaginationOffset] of [Nothing] (i.e. with an always null key) for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
+	 */
+	fun getAllCalendarItems(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all [CalendarItem]s in a group.
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access.
+	 *
+	 * @return a [Flow] of [CalendarItem]s.
+	 */
 	fun getAllCalendarItems(): Flow<CalendarItem>
 	fun getCalendarItems(ids: List<String>): Flow<CalendarItem>
+
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.recurrenceId] is equal to the provided [recurrenceId]
+	 * in a format for pagination.
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access, but
+	 * it guarantees that the page size specified in the [paginationOffset] is reached as long as there are available entities.
+	 *
+	 * @param recurrenceId the [CalendarItem.recurrenceId].
+	 * @param paginationOffset a [PaginationOffset] of [String] for pagination.
+	 * @return a [Flow] of [PaginationElement] containing the [CalendarItem]s.
+	 */
+	fun getCalendarItemsByRecurrenceId(recurrenceId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement>
+
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.recurrenceId] is equal to the provided [recurrenceId].
+	 * Note: this method will automatically filter out the entities that the current user is not allowed to access.
+	 *
+	 * @param recurrenceId the [CalendarItem.recurrenceId].
+	 * @return a [Flow] of [CalendarItem]s.
+	 */
 	fun getCalendarItemsByRecurrenceId(recurrenceId: String): Flow<CalendarItem>
 
 	/**

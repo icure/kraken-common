@@ -33,6 +33,7 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.db.PaginationOffset
@@ -51,7 +52,6 @@ import org.taktik.icure.entities.base.Code
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"
-		private const val SECONDARY_CODE_PARTITION = "Maurice"
 		const val LATEST_VERSION = "latest"
 
 		/**
@@ -231,7 +231,7 @@ import org.taktik.icure.entities.base.Code
 							it.toEmit
 						}
 					}
-					// If I have a specific version but I cannot query the view because one of the other parameters is null
+					// If I have a specific version, but I cannot query the view because one of the other parameters is null
 					// I have to filter the flow
 					version != null && (region == null || type == null || code == null) -> flw.filter {
 						it.version == version
@@ -351,7 +351,7 @@ import org.taktik.icure.entities.base.Code
 		ComplexKey.of(language, type, sanitizedLabel + "\ufff0", ComplexKey.emptyObject()),
 		paginationOffset.copy(limit = limit).toPaginationOffset { sk -> ComplexKey.of(*sk.mapIndexed { i, s -> if (i == 3) s?.let { sanitizeString(it) } else s }.toTypedArray()) },
 		false,
-		SECONDARY_CODE_PARTITION
+		MAURICE_PARTITION
 	)
 
 	private fun findSpecificVersionOfCodesByLabel(
@@ -521,7 +521,7 @@ import org.taktik.icure.entities.base.Code
 		// to get all the versions of each code, returning always the latest.
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(datastoreInformation, "by_type_code", SECONDARY_CODE_PARTITION)
+				createQuery(datastoreInformation, "by_type_code", MAURICE_PARTITION)
 					.includeDocs(true)
 					.reduce(false)
 					.keys(validCodes.keys)
@@ -607,8 +607,8 @@ import org.taktik.icure.entities.base.Code
 	}
 
 	@Views(
-		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js", secondaryPartition = SECONDARY_CODE_PARTITION),
-		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js", secondaryPartition = SECONDARY_CODE_PARTITION),
+		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js", secondaryPartition = MAURICE_PARTITION),
 	)
 	override fun findCodesByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String, type: String, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -679,7 +679,7 @@ import org.taktik.icure.entities.base.Code
 
 		emitAll(
 			client.queryView<Array<String>, Array<String>?>(
-				createQuery(datastoreInformation, "by_language_type_label", SECONDARY_CODE_PARTITION)
+				createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
 					.includeDocs(false)
 					.reduce(false)
 					.startKey(from)
@@ -747,7 +747,7 @@ import org.taktik.icure.entities.base.Code
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		return languages.firstNotNullOfOrNull { lang ->
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(datastoreInformation, "by_language_type_label", SECONDARY_CODE_PARTITION)
+				createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(ComplexKey.of(lang, type, sanitizedLabel, SMALLEST_CHAR))

@@ -19,8 +19,8 @@ import org.taktik.icure.entities.Place
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Place' && !doc.deleted) emit( null, doc._id )}")
 class PlaceDAOImpl(
-    @Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    entityCacheFactory: EntityCacheFactory,
-    designDocumentProvider: DesignDocumentProvider
+	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	entityCacheFactory: EntityCacheFactory,
+	designDocumentProvider: DesignDocumentProvider
 ) : GenericDAOImpl<Place>(Place::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Place::class.java), designDocumentProvider), PlaceDAO

@@ -11,8 +11,12 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.exceptions.DeletionException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -23,7 +27,13 @@ class CalendarItemTypeLogicImpl(
 	fixer: Fixer
 ) : GenericLogicImpl<CalendarItemType, CalendarItemTypeDAO>(fixer, datastoreInstanceProvider), CalendarItemTypeLogic {
 
-	override fun getAllCalendarItemTypes(): Flow<CalendarItemType> = getEntities()
+	override fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
+		val datastore = getInstanceAndGroup()
+		emitAll(calendarItemTypeDAO
+			.getAllPaginated(datastore, offset.limitIncludingKey(), Nothing::class.java)
+			.toPaginatedFlow<CalendarItemType>(offset.limit)
+		)
+	}
 
 	override suspend fun createCalendarItemType(calendarItemType: CalendarItemType) =
 		fix(calendarItemType) { fixedCalendarItemType ->
@@ -57,11 +67,20 @@ class CalendarItemTypeLogicImpl(
 			calendarItemTypeDAO.save(datastoreInformation, fixedCalendarItemType)
 		}
 
-	override fun getAllEntitiesIncludeDelete(): Flow<CalendarItemType> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(calendarItemTypeDAO.getCalendarItemsWithDeleted(datastoreInformation))
-		}
+	override fun getAllEntitiesIncludeDeleted(
+		offset: PaginationOffset<String>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemTypeDAO
+			.getCalendarItemsWithDeleted(datastoreInformation, offset.limitIncludingKey())
+			.toPaginatedFlow<CalendarItemType>(offset.limit)
+		)
+	}
+
+	override fun getAllEntitiesIncludeDeleted() = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemTypeDAO.getCalendarItemsWithDeleted(datastoreInformation))
+	}
 
 	override fun getGenericDAO(): CalendarItemTypeDAO {
 		return calendarItemTypeDAO

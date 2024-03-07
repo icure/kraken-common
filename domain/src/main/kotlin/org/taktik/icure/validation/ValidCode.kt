@@ -3,8 +3,8 @@
  */
 package org.taktik.icure.validation
 
-import javax.validation.Constraint
-import javax.validation.Payload
+import jakarta.validation.Constraint
+import jakarta.validation.Payload
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.VALUE_PARAMETER)
@@ -15,7 +15,7 @@ annotation class ValidCode(val message: String = "{org.taktik.icure.validation.V
 	/**
 	 * Defines several [ValidCode] annotations on the same element.
 	 *
-	 * @see javax.validation.constraints.NotNull
+	 * @see jakarta.validation.constraints.NotNull
 	 */
 	@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.VALUE_PARAMETER)
 	@Retention(AnnotationRetention.RUNTIME)

@@ -3,7 +3,7 @@
  */
 package org.taktik.icure.asynclogic.impl
 
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.lang3.StringUtils
@@ -21,10 +21,12 @@ import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
+import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Patient
@@ -40,11 +42,13 @@ import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
+import org.taktik.icure.pagination.toPaginatedFlowOfIds
 import org.taktik.icure.utils.*
 import org.taktik.icure.validation.aspect.Fixer
 import java.time.Instant
 import java.util.*
-import kotlin.math.min
 
 @Service
 @Profile("app")
@@ -211,28 +215,32 @@ class PatientLogicImpl(
 		emitAll(patientDAO.listOfMergesAfter(datastoreInformation, date))
 	}
 
-	override fun findByHcPartyIdsOnly(healthcarePartyId: String, offset: PaginationOffset<List<String>>) = flow {
+	override fun findByHcPartyIdsOnly(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.findPatientIdsByHcParty(datastoreInformation, healthcarePartyId, offset.toComplexKeyPaginationOffset()))
+		emitAll(patientDAO
+			.findPatientIdsByHcParty(datastoreInformation, healthcarePartyId, offset.limitIncludingKey())
+			.toPaginatedFlowOfIds(offset.limit)
+		)
 	}
 
-	override fun findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<List<String>>, searchString: String?, sorting: Sorting) = flow {
-		val descending = "desc" == sorting.direction
+	override fun findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>) = flow {
+		val descending = SortDirection.desc == sorting.direction
 		val datastoreInformation = getInstanceAndGroup()
 
+		val offsetIncludingNextKey = offset.limitIncludingKey()
 		if (searchString.isNullOrEmpty()) {
 			emitAll(
 				when (sorting.field) {
-					"ssin" -> {
-						patientDAO.findPatientsByHcPartyAndSsin(datastoreInformation, null, healthcarePartyId, offset.toComplexKeyPaginationOffset(), descending)
+					PatientSearchField.ssin -> {
+						patientDAO.findPatientsByHcPartyAndSsin(datastoreInformation, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 
-					"dateOfBirth" -> {
-						patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, null, null, healthcarePartyId, offset.toComplexKeyPaginationOffset(), descending)
+					PatientSearchField.dateOfBirth -> {
+						patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, null, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 
-					else -> {
-						patientDAO.findPatientsByHcPartyAndName(datastoreInformation, null, healthcarePartyId, offset.toComplexKeyPaginationOffset(), descending)
+					PatientSearchField.patientName -> {
+						patientDAO.findPatientsByHcPartyAndName(datastoreInformation, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 				}
 			)
@@ -240,20 +248,20 @@ class PatientLogicImpl(
 			emitAll(
 				when {
 					FuzzyValues.isSsin(searchString) -> {
-						patientDAO.findPatientsByHcPartyAndSsin(datastoreInformation, searchString, healthcarePartyId, offset.toComplexKeyPaginationOffset(), false)
+						patientDAO.findPatientsByHcPartyAndSsin(datastoreInformation, searchString, healthcarePartyId, offsetIncludingNextKey, false)
 					}
 
 					FuzzyValues.isDate(searchString) -> {
-						patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, FuzzyValues.toYYYYMMDD(searchString), FuzzyValues.getMaxRangeOf(searchString), healthcarePartyId, offset.toComplexKeyPaginationOffset(), false)
+						patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, FuzzyValues.toYYYYMMDD(searchString), FuzzyValues.getMaxRangeOf(searchString), healthcarePartyId, offsetIncludingNextKey, false)
 					}
 
 					else -> {
-						findByHcPartyNameContainsFuzzy(searchString, healthcarePartyId, offset, descending)
+						patientDAO.findPatientsByHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 				}
 			)
 		}
-	}
+	}.toPaginatedFlow<Patient>(offset.limit)
 
 	override fun listPatients(
 		paginationOffset: PaginationOffset<*>,
@@ -314,32 +322,24 @@ class PatientLogicImpl(
 	override fun findByHcPartyNameContainsFuzzy(
 		searchString: String?,
 		healthcarePartyId: String,
-		offset: PaginationOffset<*>,
+		offset: PaginationOffset<ComplexKey>,
 		descending: Boolean
-	) = flow {
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		//TODO return useful data from the view like 3 first letters of names and date of birth that can be used to presort and reduce the number of items that have to be fully fetched
-		//We will get partial results but at least we will not overload the servers
-		val limit = if (offset.startKey == null) min(1000, offset.limit * 10) else null
-		val ids = patientDAO.listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit)
 		emitAll(
-			patientDAO.findPatients(datastoreInformation, ids)
+			patientDAO.findPatientsByHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offset, descending)
 		)
 	}
 
 	override fun findOfHcPartyNameContainsFuzzy(
 		searchString: String?,
 		healthcarePartyId: String,
-		offset: PaginationOffset<*>,
+		offset: PaginationOffset<ComplexKey>,
 		descending: Boolean
-	) = flow {
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		//TODO return useful data from the view like 3 first letters of names and date of birth that can be used to presort and reduce the number of items that have to be fully fetched
-		//We will get partial results but at least we will not overload the servers
-		val limit = if (offset.startKey == null) min(1000, offset.limit * 10) else null
-		val ids = patientDAO.listPatientIdsOfHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit)
 		emitAll(
-			patientDAO.findPatients(datastoreInformation, ids)
+			patientDAO.findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offset, descending)
 		)
 	}
 
@@ -347,45 +347,47 @@ class PatientLogicImpl(
 		healthcarePartyId: String,
 		offset: PaginationOffset<ComplexKey>,
 		searchString: String?,
-		sorting: Sorting
+		sorting: Sorting<PatientSearchField>
 	) = flow {
-		val descending = "desc" == sorting.direction
+		val descending = SortDirection.desc == sorting.direction
 		val datastoreInformation = getInstanceAndGroup()
+		val offsetIncludingNextKey = offset.limitIncludingKey()
+
 		emitAll(
 			if (searchString.isNullOrEmpty()) {
 				when (sorting.field) {
-					"ssin" -> {
-						patientDAO.findPatientsOfHcPartyAndSsin(datastoreInformation, null, healthcarePartyId, offset, descending)
+					PatientSearchField.ssin -> {
+						patientDAO.findPatientsOfHcPartyAndSsin(datastoreInformation, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 
-					"dateOfBirth" -> {
-						patientDAO.findPatientsOfHcPartyDateOfBirth(datastoreInformation, null, null, healthcarePartyId, offset, descending)
+					PatientSearchField.dateOfBirth -> {
+						patientDAO.findPatientsOfHcPartyDateOfBirth(datastoreInformation, null, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 
-					else -> {
-						patientDAO.findPatientsOfHcPartyAndName(datastoreInformation, null, healthcarePartyId, offset, descending)
+					PatientSearchField.patientName -> {
+						patientDAO.findPatientsOfHcPartyAndName(datastoreInformation, null, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 				}
 			} else {
 				when {
 					FuzzyValues.isSsin(searchString) -> {
-						patientDAO.findPatientsOfHcPartyAndSsin(datastoreInformation, searchString, healthcarePartyId, offset, false)
+						patientDAO.findPatientsOfHcPartyAndSsin(datastoreInformation, searchString, healthcarePartyId, offsetIncludingNextKey, false)
 					}
 
 					FuzzyValues.isDate(searchString) -> {
 						patientDAO.findPatientsOfHcPartyDateOfBirth(
 							datastoreInformation, FuzzyValues.toYYYYMMDD(searchString),
-							FuzzyValues.getMaxRangeOf(searchString), healthcarePartyId, offset, false
+							FuzzyValues.getMaxRangeOf(searchString), healthcarePartyId, offsetIncludingNextKey, false
 						)
 					}
 
 					else -> {
-						findOfHcPartyNameContainsFuzzy(searchString, healthcarePartyId, offset, descending)
+						patientDAO.findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offsetIncludingNextKey, descending)
 					}
 				}
 			}
 		)
-	}
+	}.toPaginatedFlow<Patient>(offset.limit)
 
 	override fun findByHcPartyAndSsin(ssin: String?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
@@ -576,31 +578,32 @@ class PatientLogicImpl(
 		return patientDAO.getAesExchangeKeysForDelegate(datastoreInformation, healthcarePartyId)
 	}
 
-	override fun listOfPatientsModifiedAfter(date: Long, startKey: Long?, startDocumentId: String?, limit: Int?) = flow {
+	override fun listOfPatientsModifiedAfter(date: Long, paginationOffset: PaginationOffset<Long>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			patientDAO.findPatientsModifiedAfter(
-				datastoreInformation, date,
-				PaginationOffset(
-					startKey, startDocumentId, 0,
-					limit
-						?: 1000
-				)
-			)
+			patientDAO
+				.findPatientsModifiedAfter(datastoreInformation, date, paginationOffset.limitIncludingKey())
+				.toPaginatedFlow<Patient>(paginationOffset.limit)
 		)
 	}
 
-	override fun getDuplicatePatientsBySsin(healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
+	override fun getDuplicatePatientsBySsin(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.getDuplicatePatientsBySsin(datastoreInformation, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset()))
+		emitAll(patientDAO
+			.getDuplicatePatientsBySsin(datastoreInformation, healthcarePartyId, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Patient>(paginationOffset.limit)
+		)
 	}
 
-	override fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
+	override fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.getDuplicatePatientsByName(datastoreInformation, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset()))
+		emitAll(patientDAO
+			.getDuplicatePatientsByName(datastoreInformation, healthcarePartyId, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Patient>(paginationOffset.limit)
+		)
 	}
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun fuzzySearchPatients(firstName: String?, lastName: String?, dateOfBirth: Int?, healthcarePartyId: String?) = flow {
 		val currentHealthcarePartyId = healthcarePartyId ?: sessionLogic.getCurrentHealthcarePartyId()
 		if (dateOfBirth != null) { //Patients with the right date of birth
@@ -624,11 +627,15 @@ class PatientLogicImpl(
 
 			)
 		} else if (lastName != null) {
+			val datastore = getInstanceAndGroup()
 			emitAll(
-				findByHcPartyNameContainsFuzzy(lastName.substring(0,
-					(lastName.length - 2).coerceAtLeast(6).coerceAtMost(lastName.length)
-				), currentHealthcarePartyId, PaginationOffset<Any?>(1000), false)
-					.filterIsInstance<ViewRowWithDoc<*, *, *>>()
+				patientDAO.findPatientsByHcPartyNameContainsFuzzy(
+					datastore,
+					lastName.substring(0, (lastName.length - 2).coerceAtLeast(6).coerceAtMost(lastName.length)),
+					currentHealthcarePartyId,
+					PaginationOffset(1000),
+					false
+				).filterIsInstance<ViewRowWithDoc<*, *, *>>()
 					.map { it.doc as Patient }
 					.filter { p: Patient -> firstName == null || p.firstName == null || p.firstName.toString().lowercase().startsWith(firstName.lowercase()) || firstName.lowercase().startsWith(p.firstName.toString().lowercase()) || StringUtils.getLevenshteinDistance(firstName.lowercase(), p.firstName.toString().lowercase()) <= 2 }
 					.filter { p: Patient -> p.lastName == null || StringUtils.getLevenshteinDistance(lastName.lowercase(), p.lastName.toString().lowercase()) <= 2 }
@@ -641,7 +648,10 @@ class PatientLogicImpl(
 
 	override fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.findDeletedPatientsByDeleteDate(datastoreInformation, start, end, descending, paginationOffset))
+		emitAll(patientDAO
+			.findDeletedPatientsByDeleteDate(datastoreInformation, start, end, descending, paginationOffset.limitIncludingKey())
+			.toPaginatedFlow<Patient>(paginationOffset.limit)
+		)
 	}
 
 	override fun listDeletedPatientsByNames(firstName: String?, lastName: String?) = flow {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -20,6 +21,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.interleave
@@ -63,4 +65,26 @@ internal class ClassificationDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Classification>>().map { it.doc }.distinctUntilChangedBy { it.id })
 
 	}.distinctByIdIf(searchKeys.size > 1)
+
+	override fun listClassificationsByHCPartyAndSecretPatientKey(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		secretPatientKey: String,
+		paginationOffset: PaginationOffset<ComplexKey>
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val key = ComplexKey.of(searchKey, secretPatientKey)
+
+		val viewQueries = createPagedQueries(
+			datastoreInformation,
+			"by_hcparty_patient",
+			"by_data_owner_patient" to DATA_OWNER_PARTITION,
+			key, key, paginationOffset, false
+		)
+
+		emitAll(client.interleave<ComplexKey, String, Classification>(
+			viewQueries,
+			compareBy({it.components[0] as String}, {it.components[1] as String}))
+		)
+	}
 }

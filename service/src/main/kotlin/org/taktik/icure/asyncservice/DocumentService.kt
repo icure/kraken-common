@@ -8,13 +8,16 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
+import org.taktik.icure.pagination.PaginationElement
 import java.nio.ByteBuffer
 
 interface DocumentService : EntityWithSecureDelegationsService<Document> {
@@ -87,7 +90,34 @@ interface DocumentService : EntityWithSecureDelegationsService<Document> {
 	): Document?
 
 	fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode: String, hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
+
+	/**
+	 * Retrieves all the [Document]s for a given healthcare party id and a set of secret foreign keys, filtering out
+	 * all the entities that the current user is not allowed to access.
+	 * Note: if the current user is a data owner which data owner id is [hcPartyId], then all the search keys available
+	 * for the user will be considered in retrieving the documents.
+	 *
+	 * @param hcPartyId the healthcare party id.
+	 * @param secretForeignKeys a [List] of secret foreign keys.
+	 * @return a [Flow] of [Document]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition requirement to query [Document]s.
+	 */
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
+
+	/**
+	 * Retrieves all the [Document]s for the given healthcare party id and secret foreign key in a format for pagination,
+	 * filtering out all the entities that the current user cannot access, but it will ensure that the page
+	 * will be filled as long as there are available elements.
+	 * Note: differently from [listDocumentsByHCPartySecretMessageKeys], this method will NOT consider the available
+	 * search keys for the current user if their data owner id is equal to [hcPartyId].
+	 *
+	 * @param hcPartyId the healthcare party id.
+	 * @param secretForeignKey the patient secret foreign key.
+	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
+	 * @return a [Flow] of [PaginationElement] wrapping the [Document]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition requirement to query [Document]s.
+	 */
+	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: List<String>): Flow<Document>
 

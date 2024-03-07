@@ -33,18 +33,22 @@ import reactor.core.publisher.Flux
 @Tag(name = "calendarItemType")
 class CalendarItemTypeController(
 	private val calendarItemTypeService: CalendarItemTypeService,
-	private val calendarItemTypeMapper: CalendarItemTypeMapper
+	private val calendarItemTypeMapper: CalendarItemTypeMapper,
 ) {
 
 	@Operation(summary = "Gets all calendarItemTypes")
 	@GetMapping
-	fun getCalendarItemTypes(): Flux<CalendarItemTypeDto> =
-		calendarItemTypeService.getAllCalendarItemTypes().map { calendarItemTypeMapper.map(it) }.injectReactorContext()
+	fun getCalendarItemTypes() = calendarItemTypeService
+		.getAllCalendarItemTypes()
+		.map(calendarItemTypeMapper::map)
+		.injectReactorContext()
 
-	@Operation(summary = "Gets all calendarItemTypes include deleted")
+	@Operation(summary = "Gets all calendarItemTypes including deleted entities")
 	@GetMapping("/includeDeleted")
-	fun getCalendarItemTypesIncludeDeleted(): Flux<CalendarItemTypeDto> =
-		calendarItemTypeService.getAllEntitiesIncludeDelete().map { calendarItemTypeMapper.map(it) }.injectReactorContext()
+	fun getCalendarItemTypesIncludingDeleted() = calendarItemTypeService
+		.getAllEntitiesIncludeDeleted()
+		.map(calendarItemTypeMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Creates a calendarItemType")
 	@PostMapping

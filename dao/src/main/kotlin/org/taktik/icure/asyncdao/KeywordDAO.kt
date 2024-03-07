@@ -5,7 +5,9 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 
 interface KeywordDAO : GenericDAO<Keyword> {

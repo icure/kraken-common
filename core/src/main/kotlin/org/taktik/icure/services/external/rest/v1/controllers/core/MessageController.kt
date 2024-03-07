@@ -6,10 +6,9 @@ package org.taktik.icure.services.external.rest.v1.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.google.common.base.Splitter
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenConcat
@@ -33,7 +32,11 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.dto.MessageDto
 import org.taktik.icure.services.external.rest.v1.dto.MessagesReadStatusUpdate
@@ -41,7 +44,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.MessageMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
-import org.taktik.icure.services.external.rest.v1.utils.paginatedList
+import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.error
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -56,10 +59,10 @@ class MessageController(
     private val messageMapper: MessageMapper,
     private val delegationMapper: DelegationMapper,
     private val stubMapper: StubMapper,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	companion object {
-		private const val DEFAULT_LIMIT = 1000
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
 
@@ -68,7 +71,7 @@ class MessageController(
 	fun createMessage(@RequestBody messageDto: MessageDto) = mono {
 		messageService.createMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
-				.also { logger.error { it.message!! } }
+				.also { logger.error { it.message } }
 	}
 
 	@Operation(summary = "Deletes a message delegation")
@@ -110,7 +113,7 @@ class MessageController(
 	fun listMessagesByTransportGuids(@RequestParam("hcpId") hcpId: String, @RequestBody transportGuids: ListOfIdsDto) =
 		messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageMapper.map(it) }.injectReactorContext()
 
-	@Operation(summary = "List messages found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Operation(summary = "List messages found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findMessagesByHCPartyPatientForeignKeys(@RequestParam secretFKeys: String): Flux<MessageDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
@@ -130,17 +133,17 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
 	@GetMapping
 	fun findMessages(
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<ComplexKey>(startKey)
-		}
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+	): PaginatedFlux {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		messageService.findForCurrentHcPartySortedByReceived(paginationOffset).paginatedList(messageMapper::map, realLimit)
+		return messageService
+			.findForCurrentHcPartySortedByReceived(paginationOffset)
+			.mapElements(messageMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get children messages of provided message")
@@ -148,7 +151,7 @@ class MessageController(
 	fun getChildrenMessages(@PathVariable messageId: String) =
 		messageService.getMessageChildren(messageId).map { messageMapper.map(it) }.injectReactorContext()
 
-	@OptIn(FlowPreview::class)
+	@OptIn(ExperimentalCoroutinesApi::class)
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getChildrenMessagesOfList(@RequestBody parentIds: ListOfIdsDto) =
@@ -167,37 +170,20 @@ class MessageController(
 	fun findMessagesByTransportGuid(
 		@RequestParam(required = false) transportGuid: String?,
 		@RequestParam(required = false) received: Boolean?,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+	): PaginatedFlux = flow {
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		if (received == true) {
-			val startKeyElements = startKey?.let { startKeyString ->
-				startKeyString.takeIf { it.startsWith("[") }?.let { startKeyArray ->
-					objectMapper.readValue<ComplexKey>(
-						startKeyArray
-					)
-				} ?: Splitter.on(",").omitEmptyStrings().trimResults().splitToList(startKeyString) // Pretty sure this was not working well before, but leaving it as is for now
-					.map { it.takeUnless { it == "null" } }.let { ComplexKey(it.toTypedArray()) }
-			}
-			val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-			messageService.findMessagesByTransportGuidReceived(hcpIdOrCurrentHcpId, transportGuid, paginationOffset)
+			emitAll(messageService.findMessagesByTransportGuidReceived(hcpIdOrCurrentHcpId, transportGuid, paginationOffset))
 		} else {
-			val startKeyElements = startKey?.let { startKeyString ->
-				startKeyString.takeIf { it.startsWith("[") }?.let { startKeyArray ->
-					objectMapper.readValue<List<String?>>(
-						startKeyArray
-					)
-				} ?: Splitter.on(",").omitEmptyStrings().trimResults().splitToList(startKeyString) // Pretty sure this was not working well before, but leaving it as is for now
-					.map { it.takeUnless { it == "null" } }
-			}
-			val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
-			messageService.findMessagesByTransportGuid(hcpIdOrCurrentHcpId, transportGuid, paginationOffset)
-		}.paginatedList(messageMapper::map, realLimit)
-	}
+			emitAll(messageService.findMessagesByTransportGuid(hcpIdOrCurrentHcpId, transportGuid, paginationOffset))
+		}
+	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
@@ -205,68 +191,52 @@ class MessageController(
 		@RequestParam(required = false) transportGuid: String,
 		@RequestParam(required = false, value = "from") fromDate: Long,
 		@RequestParam(required = false, value = "to") toDate: Long,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyList = startKey?.takeIf { it.isNotEmpty() }
-			?.let {
-				if (it.startsWith("["))
-					objectMapper.readValue<ComplexKey>(it)
-				else
-					// Pretty sure this was not working well before, but leaving it as is for now
-					ComplexKey(Splitter.on(",").omitEmptyStrings().trimResults().splitToList(it).toTypedArray())
-			}
-		val paginationOffset = PaginationOffset(startKeyList, startDocumentId, null, realLimit + 1)
-		messageService.findMessagesByTransportGuidSentDate(
+	): PaginatedFlux = flow {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		emitAll(messageService.findMessagesByTransportGuidSentDate(
 			hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
 			transportGuid,
 			fromDate,
 			toDate,
 			paginationOffset
-		).paginatedList(messageMapper::map, realLimit)
-	}
+		))
+	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
 		@RequestParam(required = false) toAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
 		@RequestParam(required = false) hcpId: String?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }
-			?.let { objectMapper.readValue<ComplexKey>(startKey) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+	): PaginatedFlux = flow {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
-		messageService.findMessagesByToAddress(hcpIdOrCurrentHcpId, toAddress, paginationOffset, reverse ?: false).paginatedList(messageMapper::map, realLimit)
-	}
+		emitAll(messageService.findMessagesByToAddress(hcpIdOrCurrentHcpId, toAddress, paginationOffset, reverse ?: false))
+	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
 		@RequestParam(required = false) fromAddress: String,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	) = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val startKeyElements = startKey?.takeIf { it.isNotEmpty() }?.let {
-			objectMapper.readValue<ComplexKey>(
-				startKey
-			)
-		}
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, realLimit + 1)
+	): PaginatedFlux = flow {
+		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
+		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
-		messageService.findMessagesByFromAddress(hcpIdOrCurrentHcpId, fromAddress, paginationOffset)
-			.paginatedList(messageMapper::map, realLimit)
-	}
+		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentHcpId, fromAddress, paginationOffset))
+	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Updates a message")
 	@PutMapping

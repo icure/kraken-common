@@ -13,10 +13,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.HealthcarePartyLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -25,6 +24,9 @@ import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.exceptions.MissingRequirementsException
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
@@ -101,19 +103,21 @@ class HealthcarePartyLogicImpl(
 			}
 		}
 
-	override fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<ViewQueryResultEvent> =
+	override fun findHealthcarePartiesBy(offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			val healthcareParties = healthcarePartyDAO.findHealthCareParties(datastoreInformation, offset, desc)
-			emitAll(healthcareParties)
+			val healthcareParties = healthcarePartyDAO
+				.findHealthCareParties(datastoreInformation, offset.limitIncludingKey(), desc)
+			emitAll(healthcareParties.toPaginatedFlow<HealthcareParty>(offset.limit))
 		}
 
-	override fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<ViewQueryResultEvent> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			val healthcareParties = healthcarePartyDAO.findHealthcarePartiesByHcPartyNameContainsFuzzy(datastoreInformation, fuzzyName, offset, desc)
-			emitAll(healthcareParties)
-		}
+	override fun findHealthcarePartiesBy(fuzzyName: String, offset: PaginationOffset<String>, desc: Boolean?): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val healthcareParties = healthcarePartyDAO
+			.findHealthcarePartiesByHcPartyNameContainsFuzzy(datastoreInformation, fuzzyName, offset.limitIncludingKey(), desc)
+			.toPaginatedFlow<HealthcareParty>(offset.limit)
+		emitAll(healthcareParties)
+	}
 
 	override fun listHealthcarePartiesByNihii(nihii: String): Flow<HealthcareParty> =
 		flow {
@@ -140,11 +144,19 @@ class HealthcarePartyLogicImpl(
 		return hcParty.publicKey
 	}
 
-	override fun listHealthcarePartiesBySpecialityAndPostcode(type: String, spec: String, firstCode: String, lastCode: String): Flow<ViewQueryResultEvent> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthcarePartyDAO.listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation, type, spec, firstCode, lastCode))
-		}
+	override fun listHealthcarePartiesBySpecialityAndPostcode(
+		type: String,
+		spec: String,
+		firstCode: String,
+		lastCode: String,
+		offset: PaginationOffset<ComplexKey>
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(healthcarePartyDAO
+			.listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation, type, spec, firstCode, lastCode, offset.limitIncludingKey())
+			.toPaginatedFlow<HealthcareParty>(offset.limit)
+		)
+	}
 
 	override fun getHealthcareParties(ids: List<String>): Flow<HealthcareParty> =
 		flow {
@@ -152,11 +164,17 @@ class HealthcarePartyLogicImpl(
 			emitAll(healthcarePartyDAO.getEntities(datastoreInformation, ids))
 		}
 
-	override fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<ViewQueryResultEvent> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthcarePartyDAO.findHealthcarePartiesBySsinOrNihii(datastoreInformation, searchValue, paginationOffset, desc))
-		}
+	override fun findHealthcarePartiesBySsinOrNihii(
+		searchValue: String,
+		paginationOffset: PaginationOffset<String>,
+		desc: Boolean
+	): Flow<PaginationElement> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(healthcarePartyDAO
+			.findHealthcarePartiesBySsinOrNihii(datastoreInformation, searchValue, paginationOffset.limitIncludingKey(), desc)
+			.toPaginatedFlow<HealthcareParty>(paginationOffset.limit)
+		)
+	}
 
 	override fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty> =
 		flow {
