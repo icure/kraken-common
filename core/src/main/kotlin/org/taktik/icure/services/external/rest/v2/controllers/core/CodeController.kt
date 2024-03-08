@@ -241,14 +241,13 @@ class CodeController(
 
 	@Operation(summary = "Modify a batch of codes", description = "Modification of (type, code, version) is not allowed.")
 	@PutMapping("/batch")
-	fun modifyCodes(@RequestBody codeBatch: List<CodeDto>) = mono {
+	fun modifyCodes(@RequestBody codeBatch: List<CodeDto>) =
 		codeService.modify(codeBatch.map { codeV2Mapper.map(it) })
 			.catch { e ->
 				if (e is IllegalStateException) throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 				else throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "A problem regarding modification of the code. Read the app logs: " + e.message)
 			}
-			.map { codeV2Mapper.map(it) }
-	}
+			.map { codeV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Filter codes ", description = "Returns a list of codes along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
 	@PostMapping("/filter")
