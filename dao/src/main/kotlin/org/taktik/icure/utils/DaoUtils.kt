@@ -23,7 +23,7 @@ import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.icure.db.PaginationOffset
 import java.time.Duration
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -193,7 +193,7 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 			if (idx == -1) {
 				break
 			}
-			val latestViewRow = queues[idx].first!!
+			val latestViewRow = queues[idx].first()!!
 			val iterationLimit = min(
 				globalLimit - sent + 10 /* better overshoot than do a lot of small queries */,
 				perQueryLimit ?: Int.MAX_VALUE
@@ -261,6 +261,7 @@ suspend fun <P> DesignDocumentProvider.createPagedQueries(client: Client, metada
 suspend fun <P> DesignDocumentProvider.createPagedQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
 	ViewQueries(viewQueries.map { (v,p) -> pagedViewQuery(client, metadataSource, v, clazz, startKey, endKey, pagination, descending, p) })
 
+@Suppress("unused")
 data class ViewQueries(val queries: List<ViewQuery> = emptyList()) : List<ViewQuery> by queries {
 	operator fun plus(viewQueries: ViewQueries): ViewQueries = ViewQueries(queries + viewQueries)
 
@@ -295,6 +296,7 @@ data class ViewQueries(val queries: List<ViewQuery> = emptyList()) : List<ViewQu
 	fun ignoreNotFound(value: Boolean) = ViewQueries(queries.map { it.ignoreNotFound(value) })
 }
 
+@Suppress("unused")
 data class NoDocViewQueries(val queries: List<ViewQuery> = emptyList()) : List<ViewQuery> by queries {
 	operator fun plus(viewQueries: NoDocViewQueries): NoDocViewQueries = NoDocViewQueries(queries + viewQueries)
 
