@@ -105,7 +105,7 @@ class ClassificationTemplateController(
 		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: JsonString?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationTemplateDto> {
 		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return classificationTemplateService
@@ -143,7 +143,7 @@ class ClassificationTemplateController(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationTemplateDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return classificationTemplateService

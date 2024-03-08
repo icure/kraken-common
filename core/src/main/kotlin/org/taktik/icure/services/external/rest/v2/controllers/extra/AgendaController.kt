@@ -52,7 +52,7 @@ class AgendaController(
 	fun getAgendas(
 		@Parameter(description = "An agenda document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<AgendaDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return agendaService
 			.getAllAgendas(offset)

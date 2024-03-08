@@ -90,7 +90,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return healthcarePartyService
@@ -107,7 +107,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return if (name.isNullOrEmpty()) {
 			healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
@@ -124,7 +124,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean
-	): PaginatedFlux {
+	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
@@ -151,7 +151,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<HealthcarePartyDto> {
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService

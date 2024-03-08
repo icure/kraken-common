@@ -83,7 +83,7 @@ class UserController(
 		@Parameter(description = "An user document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Filter out patient users") @RequestParam(required = false) skipPatients: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<UserDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return userService

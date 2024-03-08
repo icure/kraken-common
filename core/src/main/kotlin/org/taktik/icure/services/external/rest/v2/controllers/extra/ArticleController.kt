@@ -102,7 +102,7 @@ class ArticleController(
 	fun getArticles(
 		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ArticleDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return articleService
 			.getAllArticles(offset)

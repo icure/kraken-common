@@ -50,7 +50,7 @@ class CalendarItemTypeController(
 	fun getCalendarItemTypes(
 		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<CalendarItemTypeDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
 			.getAllCalendarItemTypes(offset)
@@ -64,7 +64,7 @@ class CalendarItemTypeController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<CalendarItemTypeDto> {
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
 			.getAllEntitiesIncludeDeleted(offset)

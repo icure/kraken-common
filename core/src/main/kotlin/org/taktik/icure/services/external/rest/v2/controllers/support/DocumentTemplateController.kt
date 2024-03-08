@@ -114,7 +114,7 @@ class DocumentTemplateController(
 		@Parameter(description = "The startKey for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A DocumentTemplate document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<DocumentTemplateDto> {
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return documentTemplateService
 			.getAllDocumentTemplates(offset)

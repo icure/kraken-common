@@ -74,7 +74,7 @@ class CodeController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<CodeDto> {
 		if((sanitizeString(label)?.length ?: 0) < 3) throw IllegalArgumentException("Label must contain at least 3 characters")
 
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
@@ -97,7 +97,7 @@ class CodeController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<CodeDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
 		val paginationOffset = PaginationOffset(
 			startKeyElements,
@@ -121,7 +121,7 @@ class CodeController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) : PaginatedFlux {
+	) : PaginatedFlux<CodeDto> {
 		val startKeyElements: List<String>? = startKey?.let { objectMapper.readValue<List<String>>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return codeService

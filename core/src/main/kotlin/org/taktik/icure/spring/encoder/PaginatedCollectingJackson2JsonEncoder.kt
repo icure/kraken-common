@@ -30,7 +30,7 @@ class PaginatedCollectingJackson2JsonEncoder(
 		elementType: ResolvableType,
 		mimeType: MimeType?,
 		hints: MutableMap<String, Any>?
-	): Flux<DataBuffer> = if(inputStream is PaginatedFlux) {
+	): Flux<DataBuffer> = if(inputStream is PaginatedFlux<*>) {
 		var nextPageElement: NextPageElement<*>? = null
 		inputStream.mapNotNull {
 			when(it) {

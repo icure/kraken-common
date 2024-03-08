@@ -44,8 +44,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
 @RestController("classificationControllerV2")
@@ -106,7 +106,7 @@ class ClassificationController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A Classification ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationDto> {
 		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return classificationService

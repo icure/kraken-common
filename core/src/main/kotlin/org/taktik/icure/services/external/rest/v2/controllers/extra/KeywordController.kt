@@ -28,6 +28,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.KeywordDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.KeywordV2Mapper
@@ -69,7 +70,7 @@ class KeywordController(
 	fun getKeywords(
 		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<KeywordDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return keywordService.getAllKeywords(offset).mapElements(keywordV2Mapper::map).asPaginatedFlux()
 	}
