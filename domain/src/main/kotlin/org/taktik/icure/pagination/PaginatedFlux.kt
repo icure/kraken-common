@@ -14,8 +14,10 @@ import kotlin.coroutines.CoroutineContext
 /**
  * A [Flux] of [PaginationElement]. Its purpose is to be recognized by the custom Jackson2Json encoder to serialize a
  * paginated list without collecting the flow of elements.
+ * All the [PaginationRowElement] of this flux will contain an entity of type [T], this is necessary for the SDK code
+ * generation.
  */
-class PaginatedFlux(
+class PaginatedFlux<T>(
 	private val flow: Flow<PaginationElement>,
 	private val context: CoroutineContext,
 	private val injector: ReactorCacheInjector? = null,
@@ -39,9 +41,9 @@ class PaginatedFlux(
  * @receiver a [Flow] of [PaginationElement].
  * @return a [PaginatedFlux].
  */
-fun Flow<PaginationElement>.asPaginatedFlux(): PaginatedFlux = PaginatedFlux(this, Dispatchers.Unconfined)
+fun <T> Flow<PaginationElement>.asPaginatedFlux(): PaginatedFlux<T> = PaginatedFlux(this, Dispatchers.Default)
 
-fun Flow<PaginationElement>.asPaginatedFluxWithCoroutineCache(injector: ReactorCacheInjector, cacheSize: Int): PaginatedFlux {
+fun <T> Flow<PaginationElement>.asPaginatedFluxWithCoroutineCache(injector: ReactorCacheInjector, cacheSize: Int): PaginatedFlux<T> {
 	require(cacheSize > 0)
 	return PaginatedFlux(this, Dispatchers.Unconfined, injector, cacheSize)
 }

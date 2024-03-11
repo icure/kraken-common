@@ -118,7 +118,7 @@ class ClassificationTemplateController(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationTemplateDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return classificationTemplateService

@@ -204,7 +204,7 @@ class InvoiceController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<InvoiceDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it)}
 		val paginationOffset = PaginationOffset(
 			startKeyElements,

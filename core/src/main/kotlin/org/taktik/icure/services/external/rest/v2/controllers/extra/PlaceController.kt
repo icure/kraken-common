@@ -70,7 +70,7 @@ class PlaceController(
 	fun getPlaces(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<PlaceDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return placeService
 			.getAllPlaces(offset)

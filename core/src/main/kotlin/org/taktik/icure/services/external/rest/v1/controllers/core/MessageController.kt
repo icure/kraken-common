@@ -136,7 +136,7 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<MessageDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
@@ -174,7 +174,7 @@ class MessageController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -195,7 +195,7 @@ class MessageController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		emitAll(messageService.findMessagesByTransportGuidSentDate(
@@ -216,7 +216,7 @@ class MessageController(
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
@@ -231,7 +231,7 @@ class MessageController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()

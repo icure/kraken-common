@@ -60,7 +60,7 @@ class TarificationController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<TarificationDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		return tarificationService.findTarificationsOfTypesByLabel(
 			region,
@@ -81,7 +81,7 @@ class TarificationController(
 		@Parameter(description = "A tarification document ID") @RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<TarificationDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		return tarificationService.findTarificationsBy(
 			region,
