@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -58,8 +60,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
 
@@ -326,6 +328,18 @@ class FormController(
 				"attachment part must specify ${HttpHeaders.CONTENT_TYPE} header."
 			}
 		}.content().asFlow().toByteArray(true)))?.rev ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
+	}
+
+	@Operation(summary = "Update a form template's layout")
+	@PutMapping("/template/{formTemplateId}/attachment", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+	fun setTemplateAttachment(
+		@PathVariable formTemplateId: String,
+		@RequestBody payload: Flow<DataBuffer>,
+	) = mono {
+		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
+			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
+		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true)))?.rev
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
 	}
 
 	@Operation(description = "Shares one or more forms with one or more data owners")
