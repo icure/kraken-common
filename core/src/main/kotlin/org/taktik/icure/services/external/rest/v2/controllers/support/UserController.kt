@@ -169,7 +169,7 @@ class UserController(
 			userId,
 			properties?.map { p -> propertyStubV2Mapper.map(p) }
 				?: listOf()
-		) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
+		)?.let(userV2Mapper::mapOmittingSecrets) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
 
 
