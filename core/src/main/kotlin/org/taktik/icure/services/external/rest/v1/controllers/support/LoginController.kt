@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
+import org.taktik.icure.entities.security.jwt.JwtResponse
 import org.taktik.icure.exceptions.*
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken

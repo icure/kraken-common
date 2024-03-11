@@ -24,11 +24,13 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
+import org.taktik.icure.entities.security.jwt.JwtResponse
 import org.taktik.icure.exceptions.*
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
 import org.taktik.icure.security.jwt.*
 import org.taktik.icure.services.external.rest.v2.dto.LoginCredentials
+import org.taktik.icure.services.external.rest.v2.mapper.JwtResponseV2Mapper
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
 import reactor.core.publisher.Mono
 import java.util.*
@@ -44,6 +46,7 @@ class LoginController(
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
 	private val jwtToResponseMapper: JwtToResponseMapper,
+	private val jwtResponseV2Mapper: JwtResponseV2Mapper
 	asyncCacheManager: AsyncCacheManager
 ) {
 	val cache = asyncCacheManager.getCache<String, SecurityToken>("spring.security.tokens")
@@ -70,12 +73,12 @@ class LoginController(
 							if (session != null) {
 								session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 							}
-						}
+						}.let(jwtResponseV2Mapper::map)
 					)
 				}
 			} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
 				ResponseEntity.ok().body(
-					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds)
+					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
 				)
 			} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(JwtResponse(successful = false))
 		} catch (e: Exception) {

@@ -1,4 +1,4 @@
-package org.taktik.icure.security.jwt
+package org.taktik.icure.entities.security.jwt
 
 data class JwtResponse(
 	val token: String? = null,

@@ -43,7 +43,9 @@ import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.InvoiceTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoicingCodeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.MediumTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
@@ -274,13 +276,20 @@ class InvoiceController(
 	@GetMapping("/byHcParty/{hcPartyId}/mediumType/{sentMediumType}/invoiceType/{invoiceType}/sent/{sent}")
 	fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
 		@PathVariable hcPartyId: String,
-		@PathVariable sentMediumType: MediumType,
-		@PathVariable invoiceType: InvoiceType,
+		@PathVariable sentMediumType: MediumTypeDto,
+		@PathVariable invoiceType: InvoiceTypeDto,
 		@PathVariable sent: Boolean,
 		@RequestParam(required = false) from: Long?,
 		@RequestParam(required = false) to: Long?
 	): Flux<InvoiceDto> {
-		val invoices = invoiceService.listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(hcPartyId, sentMediumType, invoiceType, sent, from, to)
+		val invoices = invoiceService.listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
+			hcPartyId,
+			MediumType.valueOf(sentMediumType.name),
+			InvoiceType.valueOf(invoiceType.name),
+			sent,
+			from,
+			to
+		)
 		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
 	}
 
