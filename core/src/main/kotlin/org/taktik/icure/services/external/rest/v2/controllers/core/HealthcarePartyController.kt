@@ -132,7 +132,7 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: String?,
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-        @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean
+        @Parameter(description = "Descending") @RequestParam(required = false, defaultValue = "false") desc: Boolean
     ): PaginatedFlux<HealthcarePartyDto> {
         val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
         return healthcarePartyService

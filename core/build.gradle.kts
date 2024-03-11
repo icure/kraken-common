@@ -10,7 +10,7 @@ plugins {
     alias(coreLibs.plugins.helmRepository) apply(true)
     alias(coreLibs.plugins.kotlinxSerialization) apply(true)
     alias(coreLibs.plugins.licenceReport) apply(true)
-
+    alias(coreLibs.plugins.ksp) apply(true)
     `maven-publish`
 }
 
@@ -35,6 +35,10 @@ dependencies {
         implementation(project(":jwt"))
         implementation(project(":utils"))
         implementation(project(":service"))
+    }
+
+    if (rootProject.name == "dto-mapping") {
+        ksp(project(":sdk-codegen"))
     }
 
     implementation(coreLibs.hibernateValidator)

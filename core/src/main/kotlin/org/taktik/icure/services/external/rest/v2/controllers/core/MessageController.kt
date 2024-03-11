@@ -203,9 +203,9 @@ class MessageController(
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
 	fun findMessagesByTransportGuidSentDate(
-		@RequestParam(required = false) transportGuid: String,
-		@RequestParam(required = false, value = "from") fromDate: Long,
-		@RequestParam(required = false, value = "to") toDate: Long,
+		@RequestParam(required = true) transportGuid: String,
+		@RequestParam(required = true) from: Long,
+		@RequestParam(required = true) to: Long,
 		@RequestParam(required = false) startKey: String?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
@@ -216,8 +216,8 @@ class MessageController(
 		emitAll(messageService.findMessagesByTransportGuidSentDate(
 			hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
 			transportGuid,
-			fromDate,
-			toDate,
+			from,
+			to,
 			paginationOffset
 		))
 	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
@@ -225,7 +225,7 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
-		@RequestParam(required = false) toAddress: String,
+		@RequestParam(required = true) toAddress: String,
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
@@ -241,7 +241,7 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
-		@RequestParam(required = false) fromAddress: String,
+		@RequestParam(required = true) fromAddress: String,
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,

@@ -188,9 +188,9 @@ class MessageController(
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
 	fun findMessagesByTransportGuidSentDate(
-		@RequestParam(required = false) transportGuid: String,
-		@RequestParam(required = false, value = "from") fromDate: Long,
-		@RequestParam(required = false, value = "to") toDate: Long,
+		@RequestParam(required = true) transportGuid: String,
+		@RequestParam(required = true) from: Long,
+		@RequestParam(required = true) to: Long,
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
@@ -201,8 +201,8 @@ class MessageController(
 		emitAll(messageService.findMessagesByTransportGuidSentDate(
 			hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
 			transportGuid,
-			fromDate,
-			toDate,
+			from,
+			to,
 			paginationOffset
 		))
 	}.mapElements(messageMapper::map).asPaginatedFlux()

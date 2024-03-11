@@ -17,8 +17,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.http.server.reactive.ServerHttpRequest
-import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextImpl
@@ -56,14 +54,13 @@ class LoginController(
 	@Operation(summary = "login", description = "Login using username and password")
 	@PostMapping("/login")
 	fun login(
-		request: ServerHttpRequest,
 		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
 		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
 	) = mono {
 		try {
-			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, request, if (sessionEnabled) session else null, groupId)
+			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, if (sessionEnabled) session else null, groupId)
 			if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
@@ -98,11 +95,10 @@ class LoginController(
 	@Operation(summary = "refresh", description = "Get a new authentication token using a refresh token")
 	@PostMapping("/refresh")
 	fun refresh(
-		request: ServerHttpRequest,
-		response: ServerHttpResponse,
+		@RequestHeader(name = "Refresh-Token") rawRefreshToken: String,
 		@RequestParam(required = false) totp: String?
 	) = mono {
-		val refreshToken = jwtUtils.extractRawRefreshTokenFromRequest(request)
+		val refreshToken = rawRefreshToken.replace("Bearer ", "")
 		val newJwtDetails = authenticationManager.regenerateJwtDetails(refreshToken, totpToken = totp)
 		JwtResponse(
 			successful = true,
