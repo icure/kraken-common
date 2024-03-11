@@ -42,7 +42,7 @@ class SecureDelegationKeyMapController(
     ) = mono {
         secureDelegationKeyMapService.createSecureDelegationKeyMap(
             secureDelegationKeyMapV2Mapper.map(secureDelegationKeyMap)
-        )
+        ).let(secureDelegationKeyMapV2Mapper::map)
     }
 
     @Operation(description = "Gets the existing secure delegation key maps for some specific keys")
