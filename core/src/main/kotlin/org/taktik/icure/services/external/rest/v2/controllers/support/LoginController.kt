@@ -106,16 +106,16 @@ class LoginController(
 	@Operation(summary = "refresh", description = "Get a new authentication token using a refresh token")
 	@PostMapping("/refresh")
 	fun refresh(
-		@RequestHeader(name = "Refresh-Token") rawRefreshToken: String,
+		@RequestHeader(name = "Refresh-Token") refreshToken: String,
 		@RequestParam(required = false) totp: String?
 	) = mono {
-		val refreshToken = rawRefreshToken.replace("Bearer ", "")
-		val newJwtDetails = authenticationManager.regenerateJwtDetails(refreshToken, totpToken = totp)
+		val token = refreshToken.replace("Bearer ", "")
+		val newJwtDetails = authenticationManager.regenerateJwtDetails(token, totpToken = totp)
 		JwtResponse(
 			successful = true,
 			token = jwtUtils.createJWT(
 				newJwtDetails,
-				jwtUtils.getJwtDurationFromRefreshToken(refreshToken)
+				jwtUtils.getJwtDurationFromRefreshToken(token)
 			)
 		)
 	}
