@@ -81,30 +81,25 @@ class LoginController(
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 				withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
-					ResponseEntity.ok().body(
-						jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).also {
-							if (session != null) {
-								session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
-							}
-						}.let(jwtResponseV2Mapper::map)
-					)
+					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).also {
+						if (session != null) {
+							session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
+						}
+					}.let(jwtResponseV2Mapper::map)
 				}
 			} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
-				ResponseEntity.ok().body(
-					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
-				)
-			} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(JwtResponse(successful = false))
+				jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
+			} else throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 		} catch (e: Exception) {
-			ResponseEntity.status(
-				when(e){
-					is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
-					is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
-					is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
-					is BadCredentialsException -> HttpStatus.UNAUTHORIZED
-					is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
-					else -> HttpStatus.UNAUTHORIZED
-				}
-			).body(JwtResponse(successful = false))
+			val status = when(e){
+				is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
+				is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
+				is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
+				is BadCredentialsException -> HttpStatus.UNAUTHORIZED
+				is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
+				else -> HttpStatus.UNAUTHORIZED
+			}
+			throw ResponseStatusException(status)
 		}
 	}
 
