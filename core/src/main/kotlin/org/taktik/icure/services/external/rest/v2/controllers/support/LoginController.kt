@@ -20,15 +20,28 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
 import org.taktik.icure.entities.security.jwt.JwtResponse
-import org.taktik.icure.exceptions.*
+import org.taktik.icure.exceptions.Invalid2FAException
+import org.taktik.icure.exceptions.Missing2FAException
+import org.taktik.icure.exceptions.PasswordTooShortException
+import org.taktik.icure.exceptions.TooManyRequestsException
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
-import org.taktik.icure.security.jwt.*
+import org.taktik.icure.security.jwt.JwtDetails
+import org.taktik.icure.security.jwt.JwtRefreshDetails
+import org.taktik.icure.security.jwt.JwtToResponseMapper
+import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v2.dto.LoginCredentials
 import org.taktik.icure.services.external.rest.v2.mapper.JwtResponseV2Mapper
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
@@ -46,7 +59,7 @@ class LoginController(
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
 	private val jwtToResponseMapper: JwtToResponseMapper,
-	private val jwtResponseV2Mapper: JwtResponseV2Mapper
+	private val jwtResponseV2Mapper: JwtResponseV2Mapper,
 	asyncCacheManager: AsyncCacheManager
 ) {
 	val cache = asyncCacheManager.getCache<String, SecurityToken>("spring.security.tokens")
