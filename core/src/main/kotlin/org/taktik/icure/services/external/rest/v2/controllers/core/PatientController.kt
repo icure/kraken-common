@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -52,12 +52,14 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PatientHealthCarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -93,6 +95,7 @@ class PatientController(
 	private val objectMapper: ObjectMapper,
 	private val bulkShareResultV2Mapper: PatientBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -350,13 +353,13 @@ class PatientController(
 
 	@Operation(summary = "Deletes patients", description = "Response is an array containing the ID of deleted patients.")
 	@PostMapping("/delete/batch")
-	fun deletePatients(@RequestBody patientIds: ListOfIdsDto): Flux<DocIdentifier> =
-		patientService.deletePatients(HashSet(patientIds.ids)).injectReactorContext()
+	fun deletePatients(@RequestBody patientIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		patientService.deletePatients(HashSet(patientIds.ids)).map(docIdentifierV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes a patient", description = "Deletes a patient and returns its identifier.")
 	@DeleteMapping("/{patientId}")
 	fun deletePatient(@PathVariable patientId: String) = mono {
-		patientService.deletePatient(patientId)
+		patientService.deletePatient(patientId).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Find deleted patients", description = "Returns a list of deleted patients, within the specified time period, if any.")
@@ -385,10 +388,11 @@ class PatientController(
 
 	@Operation(summary = "undelete previously deleted patients", description = "Response is an array containing the ID of undeleted patient..")
 	@PutMapping("/undelete/{patientIds}")
-	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifier> {
+	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		return patientService.undeletePatients(HashSet(ids))
+			.map(docIdentifierV2Mapper::map)
 			.injectReactorContext()
 	}
 

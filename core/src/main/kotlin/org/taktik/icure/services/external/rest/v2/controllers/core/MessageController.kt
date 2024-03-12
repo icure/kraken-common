@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -44,11 +44,13 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -73,6 +75,7 @@ class MessageController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filters: Filters,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
@@ -91,13 +94,15 @@ class MessageController(
 
 	@Operation(summary = "Deletes multiple messages")
 	@PostMapping("/delete/batch")
-	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifier> =
-		messageService.deleteMessages(messageIds.ids).injectReactorContext()
+	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		messageService.deleteMessages(messageIds.ids)
+			.map(docIdentifierV2Mapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Deletes a message")
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(@PathVariable messageId: String) = mono {
-		messageService.deleteMessage(messageId)
+		messageService.deleteMessage(messageId).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a message")

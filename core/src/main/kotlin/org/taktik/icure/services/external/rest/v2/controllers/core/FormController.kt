@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
@@ -51,12 +51,14 @@ import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.FormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
 import org.taktik.icure.utils.JsonString
@@ -79,6 +81,7 @@ class FormController(
 	private val stubV2Mapper: StubV2Mapper,
 	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
@@ -169,15 +172,18 @@ class FormController(
 
 	@Operation(summary = "Deletes a batch of forms", description = "Response is a set containing the ID's of deleted forms.")
 	@PostMapping("/delete/batch")
-	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		formIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			formService.deleteForms(HashSet(ids)).injectReactorContext()
+			formService.deleteForms(HashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a  form", description = "Deletes a single form returning its identifier")
 	@DeleteMapping("/{formId}")
 	fun deleteForm(@PathVariable formId: String) = mono {
 		formService.deleteForm(formId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a batch of forms", description = "Returns the modified forms.")

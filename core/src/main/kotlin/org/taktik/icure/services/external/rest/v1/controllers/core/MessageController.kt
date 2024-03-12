@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
@@ -40,9 +40,11 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.dto.MessageDto
 import org.taktik.icure.services.external.rest.v1.dto.MessagesReadStatusUpdate
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.MessageMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.error
@@ -54,12 +56,13 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/message")
 @Tag(name = "message")
 class MessageController(
-    private val messageService: MessageService,
-    private val sessionLogic: SessionInformationProvider,
-    private val messageMapper: MessageMapper,
-    private val delegationMapper: DelegationMapper,
-    private val stubMapper: StubMapper,
-    private val objectMapper: ObjectMapper,
+	private val messageService: MessageService,
+	private val sessionLogic: SessionInformationProvider,
+	private val messageMapper: MessageMapper,
+	private val delegationMapper: DelegationMapper,
+	private val stubMapper: StubMapper,
+	private val objectMapper: ObjectMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	companion object {
@@ -90,15 +93,18 @@ class MessageController(
 
 	@Operation(summary = "Deletes multiple messages")
 	@DeleteMapping("/{messageIds}")
-	fun deleteMessages(@PathVariable messageIds: String): Flux<DocIdentifier> =
+	fun deleteMessages(@PathVariable messageIds: String): Flux<DocIdentifierDto> =
 		messageIds.split(',').takeIf { it.isNotEmpty() }
 			?.let { messageService.deleteMessages(it).injectReactorContext() }
+			?.map(docIdentifierMapper::map)
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong id format")
 
 	@Operation(summary = "Deletes multiple messages")
 	@PostMapping("/delete/byIds")
-	fun deleteMessagesBatch(@RequestBody messagesIds: ListOfIdsDto): Flux<DocIdentifier> =
-		messageService.deleteMessages(messagesIds.ids).injectReactorContext()
+	fun deleteMessagesBatch(@RequestBody messagesIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		messageService.deleteMessages(messagesIds.ids)
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Gets a message")
 	@GetMapping("/{messageId}")

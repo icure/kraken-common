@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -41,9 +41,11 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.orThrow
@@ -63,6 +65,7 @@ class HealthcarePartyController(
     private val healthcarePartyV2Mapper: HealthcarePartyV2Mapper,
     private val filterChainV2Mapper: FilterChainV2Mapper,
     private val filterV2Mapper: FilterV2Mapper,
+    private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
     private val paginationConfig: SharedPaginationConfig,
     private val objectMapper: ObjectMapper
 ) {
@@ -271,9 +274,11 @@ class HealthcarePartyController(
         description = "Deleting healthcareParties. Response is an array containing the id of deleted healthcare parties."
     )
     @PostMapping("/delete/batch")
-    fun deleteHealthcareParties(@RequestBody healthcarePartyIds: ListOfIdsDto): Flux<DocIdentifier> =
+    fun deleteHealthcareParties(@RequestBody healthcarePartyIds: ListOfIdsDto): Flux<DocIdentifierDto> =
         healthcarePartyIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-            healthcarePartyService.deleteHealthcareParties(ids).injectReactorContext()
+            healthcarePartyService.deleteHealthcareParties(ids)
+                .map(docIdentifierV2Mapper::map)
+                .injectReactorContext()
         } ?: throw ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "A required query parameter was not specified for this request."
@@ -286,6 +291,7 @@ class HealthcarePartyController(
     @DeleteMapping("/{healthcarePartyId}")
     fun deleteHealthcareParty(@PathVariable healthcarePartyId: String) = mono {
         healthcarePartyService.deleteHealthcareParty(healthcarePartyId)
+            .let(docIdentifierV2Mapper::map)
     }
 
     @Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")

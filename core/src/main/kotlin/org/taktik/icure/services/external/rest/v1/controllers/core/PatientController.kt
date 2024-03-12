@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -51,11 +51,13 @@ import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v1.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v1.dto.PatientDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v1.mapper.PatientMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.AddressMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.PatientHealthCarePartyMapper
@@ -77,18 +79,19 @@ import javax.security.auth.login.LoginException
 @RequestMapping("/rest/v1/patient")
 @Tag(name = "patient")
 class PatientController(
-    private val sessionLogic: SessionInformationProvider,
-    private val accessLogService: AccessLogService,
-    private val filters: Filters,
-    private val patientService: PatientService,
-    private val healthcarePartyService: HealthcarePartyService,
-    private val patientMapper: PatientMapper,
-    private val filterChainMapper: FilterChainMapper,
+	private val sessionLogic: SessionInformationProvider,
+	private val accessLogService: AccessLogService,
+	private val filters: Filters,
+	private val patientService: PatientService,
+	private val healthcarePartyService: HealthcarePartyService,
+	private val patientMapper: PatientMapper,
+	private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val addressMapper: AddressMapper,
-    private val patientHealthCarePartyMapper: PatientHealthCarePartyMapper,
-    private val delegationMapper: DelegationMapper,
-    private val objectMapper: ObjectMapper,
+	private val addressMapper: AddressMapper,
+	private val patientHealthCarePartyMapper: PatientHealthCarePartyMapper,
+	private val delegationMapper: DelegationMapper,
+	private val objectMapper: ObjectMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -363,10 +366,12 @@ class PatientController(
 
 	@Operation(summary = "Delete patients.", description = "Response is an array containing the ID of deleted patient..")
 	@DeleteMapping("/{patientIds}")
-	fun deletePatient(@PathVariable patientIds: String): Flux<DocIdentifier> {
+	fun deletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return patientService.deletePatients(ids.toSet()).injectReactorContext()
+		return patientService.deletePatients(ids.toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Find deleted patients", description = "Returns a list of deleted patients, within the specified time period, if any.")
@@ -395,10 +400,12 @@ class PatientController(
 
 	@Operation(summary = "undelete previously deleted patients", description = "Response is an array containing the ID of undeleted patient..")
 	@PutMapping("/undelete/{patientIds}")
-	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifier> {
+	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return patientService.undeletePatients(HashSet(ids)).injectReactorContext()
+		return patientService.undeletePatients(HashSet(ids))
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Delegates a patients to a healthcare party", description = "It delegates a patient to a healthcare party (By current healthcare party). A modified patient with new delegation gets returned.")

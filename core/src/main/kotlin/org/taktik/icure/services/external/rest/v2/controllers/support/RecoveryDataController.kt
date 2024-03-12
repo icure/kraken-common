@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.RecoveryDataService
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.icure.services.external.rest.v2.dto.RecoveryDataDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.mapper.RecoveryDataV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import reactor.core.publisher.Mono
 
 @RestController("recoveryDataControllerV2")
@@ -26,7 +27,8 @@ import reactor.core.publisher.Mono
 @Tag(name = "recoveryData")
 class RecoveryDataController(
     private val recoveryDataService: RecoveryDataService,
-    private val recoveryDataV2Mapper: RecoveryDataV2Mapper
+    private val recoveryDataV2Mapper: RecoveryDataV2Mapper,
+    private val docIdentifierMapper: DocIdentifierV2Mapper
 ) {
     @PostMapping
     fun createRecoveryData(
@@ -48,8 +50,8 @@ class RecoveryDataController(
     @DeleteMapping("/{id}")
     fun deleteRecoveryData(
         @PathVariable id: String
-    ): Mono<DocIdentifier> = mono {
-        recoveryDataService.deleteRecoveryData(id)
+    ): Mono<DocIdentifierDto> = mono {
+        recoveryDataService.deleteRecoveryData(id).let(docIdentifierMapper::map)
     }
 
     @DeleteMapping("forRecipient/{recipientId}")

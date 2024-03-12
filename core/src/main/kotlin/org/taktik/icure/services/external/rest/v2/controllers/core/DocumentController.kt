@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
@@ -58,10 +58,12 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
@@ -80,6 +82,7 @@ class DocumentController(
 	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	private val bulkShareResultV2Mapper: DocumentBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val objectMapper: ObjectMapper,
@@ -100,15 +103,18 @@ class DocumentController(
 
 	@Operation(summary = "Deletes documents")
 	@PostMapping("/delete/batch")
-	fun deleteDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		documentIds.ids.takeIf { it.isNotEmpty() }?.let {
-			documentService.deleteDocuments(it).injectReactorContext()
+			documentService.deleteDocuments(it)
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a document")
 	@DeleteMapping("/{documentId}")
-	fun deleteDocument(@PathVariable documentId: String) = mono {
+	fun deleteDocument(@PathVariable documentId: String): Mono<DocIdentifierDto> = mono {
 		documentService.deleteDocument(documentId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Load the main attachment of a document", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])

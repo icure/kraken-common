@@ -28,16 +28,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.ReceiptDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ReceiptBulkShareResultV2Mapper
 import org.taktik.icure.utils.injectReactorContext
@@ -55,6 +57,7 @@ class ReceiptController(
 	private val receiptV2Mapper: ReceiptV2Mapper,
 	private val bulkShareResultV2Mapper: ReceiptBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -69,15 +72,18 @@ class ReceiptController(
 
 	@Operation(summary = "Deletes a batch of receipts")
 	@PostMapping("/delete/batch")
-	fun deleteReceipts(@RequestBody receiptIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteReceipts(@RequestBody receiptIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		receiptIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			receiptService.deleteReceipts(LinkedHashSet(ids)).injectReactorContext()
+			receiptService.deleteReceipts(LinkedHashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a receipt")
 	@DeleteMapping("/{receiptId}")
 	fun deleteReceipt(@PathVariable receiptId: String) = mono {
 		receiptService.deleteReceipt(receiptId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Get an attachment", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])
