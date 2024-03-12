@@ -17,7 +17,7 @@ enum class FieldType(val clazz: KClass<out Field>) {
 
 	companion object {
 		fun fromClass(clazz: KClass<out Field>): FieldType {
-			return FieldType.values().firstOrNull { it.clazz == clazz } ?: throw IllegalArgumentException("Unknown field type $clazz")
+			return FieldType.entries.firstOrNull { it.clazz == clazz } ?: throw IllegalArgumentException("Unknown field type $clazz")
 		}
 	}
 }

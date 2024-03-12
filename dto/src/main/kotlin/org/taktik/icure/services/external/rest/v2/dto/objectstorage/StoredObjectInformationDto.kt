@@ -9,4 +9,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 	JsonSubTypes.Type(value = StoringDto::class, name = "Storing"),
 	JsonSubTypes.Type(value = NotStoredDto::class, name = "NotStored"),
 )
-sealed class StoredObjectInformationDto
+sealed interface StoredObjectInformationDto
