@@ -9,7 +9,7 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonStructureElementDeserializer
 
 @JsonDeserialize(using = JacksonStructureElementDeserializer::class)
-interface StructureElement
+sealed interface StructureElement
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
