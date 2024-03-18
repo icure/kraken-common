@@ -10,25 +10,25 @@ import org.taktik.icure.services.external.rest.v2.handlers.JacksonFieldDeseriali
 @JsonDiscriminator("type")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-open class Field(
-	val field: String,
-	val shortLabel: String? = null,
-	val rows: Int? = null,
-	val columns: Int? = null,
-	val grows: Boolean? = null,
-	val schema: String? = null,
-	val tags: List<String>? = null,
-	val codifications: List<String>? = null,
-	val options: Map<String, *>? = null,
-	val hideCondition: String? = null,
-	val required: Boolean? = null,
-	val multiline: Boolean? = null,
-	val value: String? = null,
-	val labels: Map<String, *>? = null,
-	val unit: String? = null,
-	val now: Boolean? = null,
-	val translate: Boolean? = null
-) : StructureElement {
+sealed class Field : StructureElement {
+	abstract val field: String
+	abstract val shortLabel: String?
+	abstract val rows: Int?
+	abstract val columns: Int?
+	abstract val grows: Boolean?
+	abstract val schema: String?
+	abstract val tags: List<String>?
+	abstract val codifications: List<String>?
+	abstract val options: Map<String, *>?
+	abstract val hideCondition: String?
+	abstract val required: Boolean?
+	abstract val multiline: Boolean?
+	abstract val value: String?
+	abstract val labels: Map<String, *>?
+	abstract val unit: String?
+	abstract val now: Boolean?
+	abstract val translate: Boolean?
+
 	val type: FieldType
 		get() = FieldType.fromClass(this::class)
 
