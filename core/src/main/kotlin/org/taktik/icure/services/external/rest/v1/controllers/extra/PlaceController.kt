@@ -7,6 +7,7 @@ package org.taktik.icure.services.external.rest.v1.controllers.extra
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -21,11 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.PlaceService
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v1.mapper.PlaceMapper
 import org.taktik.icure.utils.injectReactorContext
@@ -36,8 +32,7 @@ import org.taktik.icure.utils.injectReactorContext
 @Tag(name = "place")
 class PlaceController(
 	private val placeService: PlaceService,
-	private val placeMapper: PlaceMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val placeMapper: PlaceMapper
 ) {
 
 	@Operation(summary = "Creates a place")
@@ -60,16 +55,7 @@ class PlaceController(
 
 	@Operation(summary = "Gets all places with pagination")
 	@GetMapping
-	fun getPlaces(
-		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux<PlaceDto> {
-		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return placeService
-			.getAllPlaces(offset)
-			.mapElements(placeMapper::map)
-			.asPaginatedFlux()
-	}
+	fun getPlaces() = placeService.getAllPlaces().map(placeMapper::map).injectReactorContext()
 
 	@Operation(summary = "Modifies a place")
 	@PutMapping
