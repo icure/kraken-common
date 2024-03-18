@@ -16,7 +16,7 @@ sealed interface StructureElement
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("textfield")
-class TextField(
+data class TextField(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -34,14 +34,14 @@ class TextField(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("measure-field")
-class MeasureField(
+data class MeasureField(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -59,14 +59,14 @@ class MeasureField(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("number-field")
-class NumberField(
+data class NumberField(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -84,14 +84,14 @@ class NumberField(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-picker")
-class DatePicker(
+data class DatePicker(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -109,14 +109,14 @@ class DatePicker(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("time-picker")
-class TimePicker(
+data class TimePicker(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -134,7 +134,7 @@ class TimePicker(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -142,7 +142,7 @@ class TimePicker(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("multiple-choice")
-class MultipleChoice(
+data class MultipleChoice(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -160,7 +160,7 @@ class MultipleChoice(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field()
+): Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -168,7 +168,7 @@ class MultipleChoice(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("dropdown")
-class DropdownField(
+data class DropdownField(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -186,14 +186,14 @@ class DropdownField(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field()
+): Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("radio-button")
-class RadioButton(
+data class RadioButton(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -211,14 +211,14 @@ class RadioButton(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field()
+): Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("checkbox")
-class CheckBox(
+data class CheckBox(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -236,7 +236,7 @@ class CheckBox(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field()
+): Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -244,7 +244,7 @@ class CheckBox(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-time-picker")
-class DateTimePicker(
+data class DateTimePicker(
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -262,4 +262,4 @@ class DateTimePicker(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-) : Field()
+) : Field
