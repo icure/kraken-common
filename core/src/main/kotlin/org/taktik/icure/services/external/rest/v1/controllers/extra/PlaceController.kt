@@ -55,10 +55,7 @@ class PlaceController(
 
 	@Operation(summary = "Gets all places with pagination")
 	@GetMapping
-	fun getPlaces(
-		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) = placeService.getAllPlaces().map(placeMapper::map).injectReactorContext()
+	fun getPlaces() = placeService.getAllPlaces().map(placeMapper::map).injectReactorContext()
 
 	@Operation(summary = "Modifies a place")
 	@PutMapping
