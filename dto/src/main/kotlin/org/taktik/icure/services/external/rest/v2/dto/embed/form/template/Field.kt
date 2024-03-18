@@ -19,12 +19,12 @@ sealed interface Field : StructureElement {
 	val schema: String?
 	val tags: List<String>?
 	val codifications: List<String>?
-	val options: Map<String, *>?
+	val options: Map<String, String>?
 	val hideCondition: String?
 	val required: Boolean?
 	val multiline: Boolean?
 	val value: String?
-	val labels: Map<String, *>?
+	val labels: Map<String, String>?
 	val unit: String?
 	val now: Boolean?
 	val translate: Boolean?
