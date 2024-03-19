@@ -46,7 +46,7 @@ class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>()
 	 * polymorphic class a reserved keyword.
 	 * As a workaround, the multiplatform SDK will keep using the `type` property as polymorphic discriminator and
 	 * will convert the `type` attribute to `kotlinxType`.
-	 * Therefore, this method will follow two pathway when trying to deserialize a filter:
+	 * Therefore, this method will follow one of two pathways when trying to deserialize a filter:
 	 * 1. if the `$type` property is in the JsonObject, it will deserialize the concrete filter directly.
 	 * 2. if there is no `$type` property but there are a `type` and a `kotlinxType` properties, then it will edit
 	 * the tree setting the value of `type` to the value of `kotlinxType`, and then deserializing the object.
