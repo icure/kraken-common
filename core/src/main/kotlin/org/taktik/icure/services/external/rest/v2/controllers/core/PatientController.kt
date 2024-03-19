@@ -330,8 +330,8 @@ class PatientController(
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")
 	fun fuzzySearch(
-		@Parameter(description = "The first name") @RequestParam(required = false) firstName: String,
-		@Parameter(description = "The last name") @RequestParam(required = false) lastName: String,
+		@Parameter(description = "The first name") @RequestParam(required = true) firstName: String,
+		@Parameter(description = "The last name") @RequestParam(required = true) lastName: String,
 		@Parameter(description = "The date of birth") @RequestParam(required = false) dateOfBirth: Int?
 	): Flux<PatientDto> {
 
