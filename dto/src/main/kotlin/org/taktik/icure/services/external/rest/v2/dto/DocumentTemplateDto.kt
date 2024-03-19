@@ -20,7 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.services.external.rest.v1.dto.embed.DocumentTypeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ReportVersionDto
