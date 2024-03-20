@@ -13,4 +13,4 @@ data class AuthenticationTokenDto(
 	@Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
 	@Schema(description = "Token validity in seconds") val validity: Long,
 	@Schema(description = "hard delete (unix epoch in ms) timestamp of the object") val deletionDate: Long? = null,
-) : Cloneable, Serializable
+) : Serializable
