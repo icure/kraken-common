@@ -389,7 +389,7 @@ class InvoiceLogicImpl (
 	override suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence> {
 		val datastoreInformation = getInstanceAndGroup()
 		return invoiceDAO.listTarificationsFrequencies(datastoreInformation, hcPartyId)
-			.filter { v -> v.value != null && v.value!! >= minOccurrences }
+			.filter { v -> v.value != null && v.value!! >= minOccurrences  && v.key != null && v.key!!.components.size > 1 && v.key!!.components[1] != null }
 			.map { v -> LabelledOccurence(v.key!!.components[1] as String, v.value!!) }
 			.toList().sortedByDescending { it.occurence }
 	}
