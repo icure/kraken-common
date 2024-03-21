@@ -1,4 +1,4 @@
-package org.taktik.icure.constants
+package org.taktik.icure.entities.embed
 
 enum class TypedValuesType {
     BOOLEAN, INTEGER, DOUBLE, STRING, DATE, CLOB, JSON;

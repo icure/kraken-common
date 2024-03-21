@@ -11,24 +11,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import org.taktik.icure.constants.TypedValuesType
+import org.taktik.icure.entities.embed.TypedValuesType
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TypedValue<T>(
-	val type: TypedValuesType? = null,
-	val booleanValue: Boolean? = null,
-	val integerValue: Long? = null,
-	val doubleValue: Double? = null,
-	val stringValue: String? = null,
+    val type: TypedValuesType? = null,
+    val booleanValue: Boolean? = null,
+    val integerValue: Long? = null,
+    val doubleValue: Double? = null,
+    val stringValue: String? = null,
 
-	@JsonSerialize(using = InstantSerializer::class)
+    @JsonSerialize(using = InstantSerializer::class)
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
-	override val encryptedSelf: String? = null
+    override val encryptedSelf: String? = null
 ) : Comparable<TypedValue<T>>, Encrypted, Serializable {
 	companion object {
 		fun <T> withValue(value: T?): TypedValue<T>? = value?.let {

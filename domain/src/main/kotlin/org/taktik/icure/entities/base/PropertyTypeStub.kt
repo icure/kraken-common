@@ -7,7 +7,7 @@ package org.taktik.icure.entities.base
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.constants.TypedValuesType
+import org.taktik.icure.entities.embed.TypedValuesType
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
