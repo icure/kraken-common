@@ -18,9 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import java.io.Serializable
-import org.taktik.icure.services.external.rest.v2.dto.base.EnumVersionDto
 
-@EnumVersionDto(1L)
 enum class GenderDto(val code: String) : Serializable {
 	male("M"), female("F"), indeterminate("I"), changed("C"), changedToMale("Y"), changedToFemale("X"), unknown("U");
 
