@@ -19,7 +19,7 @@ import java.lang.reflect.Modifier
 class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>() {
 	private val discriminator = AbstractFilterDto::class.java.getAnnotation(JsonDiscriminator::class.java)?.value ?: "\$type"
 	private val secondaryDiscriminator = "type"
-	private val secondaryTypeField = "kotlinxType"
+	private val secondaryTypeField = "filterType"
 	private val subclasses: MutableMap<String, Class<AbstractFilterDto<*>>> = HashMap()
 	private val reverseSubclasses: MutableMap<Class<*>, String> = HashMap()
 	private val scanner = Reflections(AbstractFilterDto::class.java, TypeAnnotationsScanner(), SubTypesScanner())
@@ -45,11 +45,11 @@ class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>()
 	 * However, this is forbidden by Kotlinx serialization, that considers the type attribute when serializing a
 	 * polymorphic class a reserved keyword.
 	 * As a workaround, the multiplatform SDK will keep using the `type` property as polymorphic discriminator and
-	 * will convert the `type` attribute to `kotlinxType`.
+	 * will convert the `type` attribute to `filterType`.
 	 * Therefore, this method will follow one of two pathways when trying to deserialize a filter:
 	 * 1. if the `$type` property is in the JsonObject, it will deserialize the concrete filter directly.
-	 * 2. if there is no `$type` property but there are a `type` and a `kotlinxType` properties, then it will edit
-	 * the tree setting the value of `type` to the value of `kotlinxType`, and then deserializing the object.
+	 * 2. if there is no `$type` property but there are a `type` and a `filterType` properties, then it will edit
+	 * the tree setting the value of `type` to the value of `filterType`, and then deserializing the object.
 	 * All the other cases are considered erroneous.
 	 */
 	override fun deserializeObject(jsonParser: JsonParser?, context: DeserializationContext?, codec: ObjectCodec, tree: JsonNode): AbstractFilterDto<*> =

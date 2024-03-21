@@ -261,7 +261,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<PatientDto>> = mono {
+	): Mono<PaginatedList<PatientDto, Long>> = mono {
 		accessLogService.aggregatePatientByAccessLogs(userId, accessType, startDate, startKey, startDocumentId, limit ?: paginationConfig.defaultLimit).let { (_, _, patients, dateNextKey, nextDocumentId) ->
 			val patientDtos = patients.map { patient ->
 				PatientDto(

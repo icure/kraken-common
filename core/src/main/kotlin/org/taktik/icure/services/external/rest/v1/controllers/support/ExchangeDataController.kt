@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -34,11 +35,9 @@ import reactor.core.publisher.Mono
 @Tag(name = "exchangeData")
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
-	private val exchangeDataMapper: ExchangeDataV2Mapper
+	private val exchangeDataMapper: ExchangeDataV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Creates new exchange data")
 	@PostMapping
@@ -67,8 +66,8 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<ExchangeDataDto>> = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
+	): Mono<PaginatedList<ExchangeDataDto, *>> = mono {
+		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset<String>(realLimit + 1, startDocumentId)
 		exchangeDataLogic.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
 			.paginatedList<ExchangeData, ExchangeDataDto>({ exchangeDataMapper.map(it) }, realLimit)

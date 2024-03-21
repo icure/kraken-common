@@ -44,5 +44,5 @@ dependencies {
 val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask")
 
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-    //finalizedBy(postProcessDtoTask)
+    finalizedBy(postProcessDtoTask)
 }
