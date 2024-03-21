@@ -26,6 +26,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.db.PaginationOffset
@@ -161,14 +162,14 @@ class CalendarItemDAOImpl(
 	}
 
 	@Views(
-		View(name = "by_hcparty_patient_start_time_desc", map = "classpath:js/calendarItem/By_hcparty_patient_start_time_map.js"),
+		View(name = "by_hcparty_patient_start_time_desc", map = "classpath:js/calendarItem/By_hcparty_patient_start_time_map.js", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_data_owner_patient_start_time_desc", map = "classpath:js/calendarItem/By_data_owner_patient_start_time_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createPagedQueries(
 			datastoreInformation,
-			listOf("by_hcparty_patient_start_time_desc".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
+			listOf("by_hcparty_patient_start_time_desc" to MAURICE_PARTITION, "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
 			ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),
 			ComplexKey.of(hcPartyId, secretPatientKey, null),
 			pagination,
