@@ -26,13 +26,13 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
-import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @RestController("exchangeDataControllerV2")
 @Profile("app")
@@ -71,11 +71,12 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<ExchangeDataDto, *>> = mono {
-		val realLimit = limit ?: paginationConfig.defaultLimit
-		val paginationOffset = PaginationOffset<String>(realLimit + 1, startDocumentId)
-		exchangeDataLogic.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
-			.paginatedList<ExchangeData, ExchangeDataDto>({ exchangeDataMapper.map(it) }, realLimit)
+	): PaginatedFlux<ExchangeData> {
+		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
+		return exchangeDataLogic
+			.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
+			.mapElements(exchangeDataMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
