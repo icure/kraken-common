@@ -1,4 +1,4 @@
-import com.icure.codegen.task.PostProcessDtoTask
+// import com.icure.codegen.task.PostProcessDtoTask
 
 plugins {
     id("com.icure.kotlin-library-conventions")
@@ -41,8 +41,8 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
-val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask")
+// val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask")
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-    finalizedBy(postProcessDtoTask)
-}
+//tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
+//    finalizedBy(postProcessDtoTask)
+//}
