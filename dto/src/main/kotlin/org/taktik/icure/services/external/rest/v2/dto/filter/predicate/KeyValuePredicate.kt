@@ -21,24 +21,26 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimitive
 
 @JsonPolymorphismRoot(org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class KeyValuePredicate(val key: String? = null, val operator: Operator? = null, val value: Any? = null) : Predicate {
-	enum class Operator(val code: String) {
-		EQUAL("=="),
-		NOTEQUAL("!="),
-		GREATERTHAN(">"),
-		SMALLERTHAN("<"),
-		GREATERTHANOREQUAL(">="),
-		SMALLERTHANOREQUAL("<="),
-		LIKE("%="),
-		ILIKE("%%=");
-		override fun toString(): String {
-			return code
-		}
+data class KeyValuePredicate(val key: String? = null, val operator: Operator? = null, val value: AnyPrimitive? = null) : Predicate
+
+enum class Operator(val code: String) {
+	@Schema(defaultValue = "==") EQUAL("=="),
+	@Schema(defaultValue = "!=") NOTEQUAL("!="),
+	@Schema(defaultValue = ">") GREATERTHAN(">"),
+	@Schema(defaultValue = "<") SMALLERTHAN("<"),
+	@Schema(defaultValue = ">=") GREATERTHANOREQUAL(">="),
+	@Schema(defaultValue = "<=") SMALLERTHANOREQUAL("<="),
+	@Schema(defaultValue = "%=") LIKE("%="),
+	@Schema(defaultValue = "%%=") ILIKE("%%=");
+	override fun toString(): String {
+		return code
 	}
 }
