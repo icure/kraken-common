@@ -13,8 +13,8 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	val entityClass: String,
 	val filter: FilterChain<O>?,
 	val accessControlKeys: List<AccessControlKeyStringDto>?
-) : java.io.Serializable {
-	enum class EventType {
-		CREATE, UPDATE, DELETE
-	}
+) : java.io.Serializable
+
+enum class EventType {
+	CREATE, UPDATE, DELETE
 }

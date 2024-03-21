@@ -27,27 +27,27 @@ data class EntityBulkShareResultDto<T>(
      * original failed request to the reason of failure.
      */
     val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequestDto> = emptyMap()
-) {
+)
+
+/**
+ * Represents a reason why a share requests might have failed.
+ */
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = false)
+data class RejectedShareOrMetadataUpdateRequestDto(
     /**
-     * Represents a reason why a share requests might have failed.
+     * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
      */
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    @JsonIgnoreProperties(ignoreUnknown = false)
-        data class RejectedShareOrMetadataUpdateRequestDto(
-        /**
-         * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
-         */
-        val code: Int,
-        /**
-         * If true a new share request with the same content may succeed so the user is encouraged to retry. This could
-         * happen if the entity to share changed while verifying the validity of the request (correctness, permissions,
-         * ...), and if the entity did not change in ways incompatible with the request re-performing the request in
-         * the same way may succeed.
-         */
-        val shouldRetry: Boolean = false,
-        /**
-         * Human-friendly message explaining the reason of the failure.
-         */
-        val reason: String
-    )
-}
+    val code: Int,
+    /**
+     * If true a new share request with the same content may succeed so the user is encouraged to retry. This could
+     * happen if the entity to share changed while verifying the validity of the request (correctness, permissions,
+     * ...), and if the entity did not change in ways incompatible with the request re-performing the request in
+     * the same way may succeed.
+     */
+    val shouldRetry: Boolean = false,
+    /**
+     * Human-friendly message explaining the reason of the failure.
+     */
+    val reason: String
+)

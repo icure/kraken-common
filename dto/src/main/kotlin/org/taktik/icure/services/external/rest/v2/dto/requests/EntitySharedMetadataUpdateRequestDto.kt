@@ -30,11 +30,11 @@ data class EntitySharedMetadataUpdateRequestDto(
      * that encrypted owning entity id should be created or deleted.
      */
     val owningEntityIds: Map<String, EntryUpdateTypeDto> = emptyMap(),
-) {
-    /**
-     * Specifies if an entry should be created anew or deleted
-     */
-    enum class EntryUpdateTypeDto {
-        CREATE, DELETE
-    }
+)
+
+/**
+ * Specifies if an entry should be created anew or deleted
+ */
+enum class EntryUpdateTypeDto {
+    CREATE, DELETE
 }
