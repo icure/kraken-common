@@ -5,9 +5,9 @@ package org.taktik.icure.services.external.rest.v1.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.entities.embed.TypedValuesType
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.constants.PropertyTypeScopeDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.TypedValuesTypeDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -17,7 +17,7 @@ data class PropertyTypeDto(
     override val deletionDate: Long? = null,
 
     val identifier: String,
-    val type: TypedValuesType? = null,
+    val type: TypedValuesTypeDto? = null,
     val scope: PropertyTypeScopeDto? = null,
     val unique: Boolean = false,
     val editor: String? = null,
