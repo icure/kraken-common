@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.pagination.PaginatedFlux
@@ -71,7 +70,7 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): PaginatedFlux<ExchangeData> {
+	): PaginatedFlux<ExchangeDataDto> {
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataLogic
 			.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
