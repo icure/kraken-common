@@ -2,6 +2,8 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
 /**
  * Parameters for the update of shared metadata. Currently only changes to secret ids, encryption keys and owning entity
@@ -14,22 +16,22 @@ data class EntitySharedMetadataUpdateRequestDto(
     /**
      * Access control hash of the metadata to update.
      */
-    val metadataAccessControlHash: String,
+    val metadataAccessControlHash: SecureDelegationKeyStringDto,
     /**
      * Updates for secret ids: the key is an encrypted secret id and the value is if an entry with that encrypted secret
      * id should be created or deleted.
      */
-    val secretIds: Map<String, EntryUpdateTypeDto> = emptyMap(),
+    val secretIds: Map<Base64StringDto, EntryUpdateTypeDto> = emptyMap(),
     /**
      * Updates for encryption keys: a key in the map is an encrypted encryption key and the value is if an entry with
      * that encrypted encryption key should be created or deleted.
      */
-    val encryptionKeys: Map<String, EntryUpdateTypeDto> = emptyMap(),
+    val encryptionKeys: Map<Base64StringDto, EntryUpdateTypeDto> = emptyMap(),
     /**
      * Updates for owning entity ids: the key is the encrypted id of an owning entity and the value is if an entry with
      * that encrypted owning entity id should be created or deleted.
      */
-    val owningEntityIds: Map<String, EntryUpdateTypeDto> = emptyMap(),
+    val owningEntityIds: Map<Base64StringDto, EntryUpdateTypeDto> = emptyMap(),
 )
 
 /**

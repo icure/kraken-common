@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
@@ -17,7 +18,7 @@ data class BulkShareOrUpdateMetadataParamsDto(
          * Which delegations can be parents to any newly requested non-root delegations. Some may be ignored in order to
          * simplify the delegation graph, or if the requested permission is root.
          */
-        val potentialParentDelegations: Set<String>
+        val potentialParentDelegations: Set<SecureDelegationKeyStringDto>
     )
 
 }

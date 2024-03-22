@@ -44,6 +44,8 @@ import org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -53,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("healthcarePartyControllerV2")
 @Profile("app")
@@ -204,7 +207,9 @@ class HealthcarePartyController(
         description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
     )
     @GetMapping("/{healthcarePartyId}/aesExchangeKeys")
-    fun getAesExchangeKeysForDelegate(@PathVariable healthcarePartyId: String) = mono {
+    fun getAesExchangeKeysForDelegate(
+        @PathVariable healthcarePartyId: String
+    ): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
         healthcarePartyService.getAesExchangeKeysForDelegate(healthcarePartyId)
     }
 

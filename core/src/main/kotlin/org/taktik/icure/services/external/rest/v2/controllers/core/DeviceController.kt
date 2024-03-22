@@ -30,6 +30,8 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -38,6 +40,7 @@ import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("deviceControllerV2")
 @RequestMapping("/rest/v2/device")
@@ -117,7 +120,9 @@ class DeviceController(
 		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
 	)
 	@GetMapping("/{deviceId}/aesExchangeKeys")
-	fun getDeviceAesExchangeKeysForDelegate(@PathVariable deviceId: String) = mono {
+	fun getDeviceAesExchangeKeysForDelegate(
+		@PathVariable deviceId: String
+	): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
 
