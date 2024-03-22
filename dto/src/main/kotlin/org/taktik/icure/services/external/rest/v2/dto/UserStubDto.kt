@@ -22,10 +22,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import org.taktik.icure.constants.Users
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatus
-import org.taktik.icure.services.external.rest.v2.dto.enums.UsersType
+import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
+import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 
@@ -37,8 +36,8 @@ data class UserStubDto(
 	override val deletionDate: Long? = null,
 
 	val name: String? = null,
-	val type: UsersType? = null,
-	val status: UsersStatus? = null,
+	val type: UsersTypeDto? = null,
+	val status: UsersStatusDto? = null,
 	val login: String? = null,
 	val groupId: String? = null,
 	val healthcarePartyId: String? = null,

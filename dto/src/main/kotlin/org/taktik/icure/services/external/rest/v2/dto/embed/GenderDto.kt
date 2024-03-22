@@ -17,10 +17,17 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
 enum class GenderDto(val code: String) : Serializable {
-	male("M"), female("F"), indeterminate("I"), changed("C"), changedToMale("Y"), changedToFemale("X"), unknown("U");
+	@Schema(defaultValue = "M") male("M"),
+	@Schema(defaultValue = "F") female("F"),
+	@Schema(defaultValue = "I") indeterminate("I"),
+	@Schema(defaultValue = "C") changed("C"),
+	@Schema(defaultValue = "Y") changedToMale("Y"),
+	@Schema(defaultValue = "X") changedToFemale("X"),
+	@Schema(defaultValue = "U") unknown("U");
 
 	companion object {
 		fun fromCode(code: String?): GenderDto? {
