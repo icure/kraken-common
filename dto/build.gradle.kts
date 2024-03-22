@@ -41,7 +41,9 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
- val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask")
+ val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
+     rootDir = project.rootDir
+ }
 
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
     finalizedBy(postProcessDtoTask)
