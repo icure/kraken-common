@@ -17,6 +17,8 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.data
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 import java.util.*
 import org.taktik.commons.serialization.SerializableValue
@@ -25,11 +27,13 @@ import org.taktik.icure.services.external.rest.v1.dto.CodeDto
 /**
  * Created by aduchate on 01/02/13, 12:27
  */
-class FormDataItem : FormItem(), Serializable {
-	val openingDate: Date? = null
-	val closingDate: Date? = null
-	val previousVersion: FormItem? = null
-	val content: MutableMap<String, SerializableValue>? = null
-	val listOfMultipleValues: List<HashMap<String, SerializableValue>>? = null
-	val codes: List<CodeDto> = emptyList()
-}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class FormDataItem(
+	val openingDate: Date? = null,
+	val closingDate: Date? = null,
+	val previousVersion: FormItem? = null,
+	val content: Map<String, SerializableValue>? = null,
+	val listOfMultipleValues: List<Map<String, SerializableValue>>? = null,
+	val codes: List<CodeDto> = emptyList(),
+) : IFormItem, Serializable

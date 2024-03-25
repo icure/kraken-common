@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ArticleService
 import org.taktik.icure.services.external.rest.v1.dto.ArticleDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.ArticleMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -33,7 +35,8 @@ import reactor.core.publisher.Flux
 @Tag(name = "article")
 class ArticleController(
 	private val articleService: ArticleService,
-	private val articleMapper: ArticleMapper
+	private val articleMapper: ArticleMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 
 	@Operation(summary = "Creates a article")
@@ -47,8 +50,10 @@ class ArticleController(
 
 	@Operation(summary = "Deletes an article")
 	@DeleteMapping("/{articleIds}")
-	fun deleteArticle(@PathVariable articleIds: String): Flux<DocIdentifier> {
-		return articleService.deleteArticles(articleIds.split(',')).injectReactorContext()
+	fun deleteArticle(@PathVariable articleIds: String): Flux<DocIdentifierDto> {
+		return articleService.deleteArticles(articleIds.split(','))
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets an article")

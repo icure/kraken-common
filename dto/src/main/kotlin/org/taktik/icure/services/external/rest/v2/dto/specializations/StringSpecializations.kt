@@ -16,7 +16,7 @@ typealias Sha256HexStringDto = String
 
 typealias AccessControlSecretDto = String
 
-typealias AccessControlKeyStringDto = String
+typealias AccessControlKeyHexStringDto = String
 
 typealias SecureDelegationKeyStringDto = String
 

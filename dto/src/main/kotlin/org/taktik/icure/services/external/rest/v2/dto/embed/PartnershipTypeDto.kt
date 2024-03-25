@@ -17,9 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import org.taktik.icure.services.external.rest.v2.dto.base.EnumVersionDto
-
-@EnumVersionDto(1L)
 enum class PartnershipTypeDto {
 	primary_contact, primary_contact_for, family, friend, counselor, contact, //From Kmehr
 	brother, brotherinlaw, child, daughter, employer, father, grandchild, grandparent, husband, lawyer, mother, neighbour, notary, partner, sister, sisterinlaw, son, spouse, stepdaughter, stepfather, stepmother, stepson, tutor,

@@ -33,7 +33,7 @@ data class EntityBulkShareResultDto<T>(
      */
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     @JsonIgnoreProperties(ignoreUnknown = false)
-        data class RejectedShareOrMetadataUpdateRequestDto(
+    data class RejectedShareOrMetadataUpdateRequestDto(
         /**
          * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
          */
@@ -50,4 +50,5 @@ data class EntityBulkShareResultDto<T>(
          */
         val reason: String
     )
+
 }

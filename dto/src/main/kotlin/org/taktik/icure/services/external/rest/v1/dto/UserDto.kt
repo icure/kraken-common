@@ -10,11 +10,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.constants.Users
 import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationTagDto
+import org.taktik.icure.services.external.rest.v1.dto.enums.UsersStatusDto
+import org.taktik.icure.services.external.rest.v1.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.security.AuthenticationTokenDto
 import org.taktik.icure.services.external.rest.v1.dto.security.PermissionDto
 import org.taktik.icure.utils.InstantDeserializer
@@ -35,8 +36,8 @@ data class UserDto(
 	@Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
 	@Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system") val permissions: Set<PermissionDto> = emptySet(),
 	@Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system") val roles: Set<String> = emptySet(),
-	@Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: Users.Type? = null,
-	@Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: Users.Status? = null,
+	@Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: UsersTypeDto? = null,
+	@Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: UsersStatusDto? = null,
 	@Schema(description = "Username for this user. We encourage using an email address") val login: String? = null,
 	@Schema(description = "Hashed version of the password (BCrypt is used for hashing)") val passwordHash: String? = null,
 	@Schema(description = "id of the group (practice/hospital) the user is member of") val groupId: String? = null,

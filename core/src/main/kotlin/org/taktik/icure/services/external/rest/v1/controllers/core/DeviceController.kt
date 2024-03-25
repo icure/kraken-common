@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -27,9 +27,11 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v1.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v1.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v1.mapper.DeviceMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
@@ -42,11 +44,12 @@ import reactor.core.publisher.Flux
 @Tag(name = "device")
 @Profile("app")
 class DeviceController(
-    private val filters: Filters,
-    private val deviceService: DeviceService,
-    private val deviceMapper: DeviceMapper,
-    private val filterChainMapper: FilterChainMapper,
+	private val filters: Filters,
+	private val deviceService: DeviceService,
+	private val deviceMapper: DeviceMapper,
+	private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
@@ -132,11 +135,15 @@ class DeviceController(
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
 	@DeleteMapping("/{deviceId}")
 	fun deleteDevice(@PathVariable deviceId: String) = mono {
-		deviceService.deleteDevice(deviceId) ?: throw NotFoundRequestException("Device not found")
+		deviceService.deleteDevice(deviceId)
+			?.let(docIdentifierMapper::map)
+			?: throw NotFoundRequestException("Device not found")
 	}
 
 	@Operation(summary = "Delete devices.", description = "Response is an array containing the id/rev of deleted devices.")
 	@PostMapping("/delete/batch")
-	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifier> =
-		deviceService.deleteDevices(deviceIds.ids.toSet()).injectReactorContext()
+	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		deviceService.deleteDevices(deviceIds.ids.toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 }

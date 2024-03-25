@@ -20,6 +20,9 @@ import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 
 @Service
@@ -49,8 +52,11 @@ class ExchangeDataLogicImpl(
         return exchangeDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)
     }
 
-    override fun findExchangeDataByParticipant(dataOwnerId: String, paginationOffset: PaginationOffset<String>): Flow<ViewQueryResultEvent> = flow {
-        emitAll(exchangeDataDAO.findExchangeDataByParticipant(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerId, paginationOffset))
+    override fun findExchangeDataByParticipant(dataOwnerId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
+        emitAll(exchangeDataDAO
+            .findExchangeDataByParticipant(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerId, paginationOffset.limitIncludingKey())
+            .toPaginatedFlow<ExchangeData>(paginationOffset.limit)
+        )
     }
 
     override fun findExchangeDataByDelegatorDelegatePair(delegatorId: String, delegateId: String): Flow<ExchangeData> = flow {

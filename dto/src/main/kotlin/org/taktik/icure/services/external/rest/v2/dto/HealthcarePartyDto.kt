@@ -37,6 +37,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.HealthcarePartyHisto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthcarePartyStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PersonNameDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TelecomTypeDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
@@ -102,10 +103,10 @@ data class HealthcarePartyDto(
     override val properties: Set<PropertyStubDto> = emptySet(),
 
     override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
-    override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
+    override val aesExchangeKeys: Map<SpkiHexStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
     override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
     override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitionned : "threshold⎮partition in hex"
-    override val publicKey: String? = null,
+    override val publicKey: SpkiHexStringDto? = null,
     override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet()
 ) : StoredDocumentDto, NamedDto, PersonDto, CryptoActorDto, DataOwnerDto, HasCodesDto, HasTagsDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

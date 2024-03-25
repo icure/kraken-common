@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
@@ -42,12 +42,14 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.orThrow
@@ -58,6 +60,7 @@ import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("healthElementControllerV2")
 @Profile("app")
@@ -72,6 +75,7 @@ class HealthElementController(
 	private val stubV2Mapper: StubV2Mapper,
 	private val bulkShareResultV2Mapper: HealthElementBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
@@ -169,15 +173,18 @@ class HealthElementController(
 
 	@Operation(summary = "Delete health elements.", description = "Response is a set containing the ID's of deleted health elements.")
 	@PostMapping("/delete/batch")
-	fun deleteHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		healthElementIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			healthElementService.deleteHealthElements(ids.toSet()).injectReactorContext()
+			healthElementService.deleteHealthElements(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 
 	@Operation(summary = "Deletes an health element", description = "Deletes an health element and returns its identifier.")
 	@DeleteMapping("/{healthElementId}")
-	fun deleteHealthElement(@PathVariable healthElementId: String) = mono {
+	fun deleteHealthElement(@PathVariable healthElementId: String): Mono<DocIdentifierDto> = mono {
 		healthElementService.deleteHealthElement(healthElementId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a health element", description = "Returns the modified health element.")

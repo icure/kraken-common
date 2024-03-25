@@ -27,13 +27,15 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.services.external.rest.v1.dto.DocumentTemplateDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.data.ByteArrayDto
 import org.taktik.icure.services.external.rest.v1.mapper.DocumentTemplateMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -42,9 +44,10 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/doctemplate")
 @Tag(name = "doctemplate")
 class DocumentTemplateController(
-    private val documentTemplateService: DocumentTemplateService,
-    private val sessionLogic: SessionInformationProvider,
-    private val documentTemplateMapper: DocumentTemplateMapper
+	private val documentTemplateService: DocumentTemplateService,
+	private val sessionLogic: SessionInformationProvider,
+	private val documentTemplateMapper: DocumentTemplateMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 	@Operation(summary = "Gets a document template")
 	@GetMapping("/{documentTemplateId}")
@@ -56,9 +59,11 @@ class DocumentTemplateController(
 
 	@Operation(summary = "Deletes a document template")
 	@DeleteMapping("/{documentTemplateIds}")
-	fun deleteDocumentTemplate(@PathVariable documentTemplateIds: String): Flux<DocIdentifier> {
+	fun deleteDocumentTemplate(@PathVariable documentTemplateIds: String): Flux<DocIdentifierDto> {
 		val documentTemplateIdsList = documentTemplateIds.split(',').toSet()
-		return documentTemplateService.deleteDocumentTemplates(documentTemplateIdsList).injectReactorContext()
+		return documentTemplateService.deleteDocumentTemplates(documentTemplateIdsList)
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets all document templates")

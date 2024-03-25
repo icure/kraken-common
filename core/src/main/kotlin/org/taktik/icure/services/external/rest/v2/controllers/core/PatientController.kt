@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -52,12 +52,17 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PatientHealthCarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -93,6 +98,7 @@ class PatientController(
 	private val objectMapper: ObjectMapper,
 	private val bulkShareResultV2Mapper: PatientBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -105,7 +111,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirectionDto
 	): PaginatedFlux<PatientDto> = flow {
 		require(filterValue.length >= 2) { "The filterValue parameter should have at least 2 characters" }
 
@@ -120,7 +126,7 @@ class PatientController(
 					hcpId,
 					paginationOffset,
 					filterValue,
-					Sorting(PatientSearchField.patientName, sortDirection)
+					Sorting(PatientSearchField.patientName, SortDirection.valueOf(sortDirection.name))
 				)
 			} ?: emptyFlow()
 		)
@@ -135,13 +141,13 @@ class PatientController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirectionDto
 	): PaginatedFlux<PatientDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val sortFieldAsEnum = PatientSearchField.lenientValueOf(sortField)
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
-			.findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(hcPartyId, paginationOffset, null, Sorting(sortFieldAsEnum, sortDirection))
+			.findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(hcPartyId, paginationOffset, null, Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name)))
 			.mapElements(patientV2Mapper::map)
 			.asPaginatedFlux()
 	}
@@ -174,7 +180,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirectionDto
 	) = findPatientsByHealthcareParty(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection)
 
 	@Suppress("DEPRECATION")
@@ -188,7 +194,9 @@ class PatientController(
 		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
 	)
 	@GetMapping("/{patientId}/aesExchangeKeys")
-	fun getPatientAesExchangeKeysForDelegate(@PathVariable patientId: String) = mono {
+	fun getPatientAesExchangeKeysForDelegate(
+		@PathVariable patientId: String
+	): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
 		patientService.getAesExchangeKeysForDelegate(patientId)
 	}
 
@@ -206,7 +214,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirection
+		@Parameter(description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.") @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirectionDto
 	): PaginatedFlux<PatientDto> = flow {
 		val sortFieldAsEnum = PatientSearchField.lenientValueOf(sortField)
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
@@ -218,7 +226,7 @@ class PatientController(
 				hcpId,
 				paginationOffset,
 				null,
-				Sorting(sortFieldAsEnum, sortDirection)
+				Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name))
 			)
 		} ?: emptyFlow()
 		)
@@ -257,7 +265,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<PatientDto>> = mono {
+	): Mono<PaginatedList<PatientDto, Long>> = mono {
 		accessLogService.aggregatePatientByAccessLogs(userId, accessType, startDate, startKey, startDocumentId, limit ?: paginationConfig.defaultLimit).let { (_, _, patients, dateNextKey, nextDocumentId) ->
 			val patientDtos = patients.map { patient ->
 				PatientDto(
@@ -326,8 +334,8 @@ class PatientController(
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")
 	fun fuzzySearch(
-		@Parameter(description = "The first name") @RequestParam(required = false) firstName: String,
-		@Parameter(description = "The last name") @RequestParam(required = false) lastName: String,
+		@Parameter(description = "The first name") @RequestParam(required = true) firstName: String,
+		@Parameter(description = "The last name") @RequestParam(required = true) lastName: String,
 		@Parameter(description = "The date of birth") @RequestParam(required = false) dateOfBirth: Int?
 	): Flux<PatientDto> {
 
@@ -350,13 +358,13 @@ class PatientController(
 
 	@Operation(summary = "Deletes patients", description = "Response is an array containing the ID of deleted patients.")
 	@PostMapping("/delete/batch")
-	fun deletePatients(@RequestBody patientIds: ListOfIdsDto): Flux<DocIdentifier> =
-		patientService.deletePatients(HashSet(patientIds.ids)).injectReactorContext()
+	fun deletePatients(@RequestBody patientIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		patientService.deletePatients(HashSet(patientIds.ids)).map(docIdentifierV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes a patient", description = "Deletes a patient and returns its identifier.")
 	@DeleteMapping("/{patientId}")
 	fun deletePatient(@PathVariable patientId: String) = mono {
-		patientService.deletePatient(patientId)
+		patientService.deletePatient(patientId).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Find deleted patients", description = "Returns a list of deleted patients, within the specified time period, if any.")
@@ -385,10 +393,11 @@ class PatientController(
 
 	@Operation(summary = "undelete previously deleted patients", description = "Response is an array containing the ID of undeleted patient..")
 	@PutMapping("/undelete/{patientIds}")
-	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifier> {
+	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		return patientService.undeletePatients(HashSet(ids))
+			.map(docIdentifierV2Mapper::map)
 			.injectReactorContext()
 	}
 

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -37,9 +37,11 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationTemplateV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationTemplateBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
@@ -56,6 +58,7 @@ class ClassificationTemplateController(
 	private val classificationTemplateV2Mapper: ClassificationTemplateV2Mapper,
 	private val bulkShareResultV2Mapper: ClassificationTemplateBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
@@ -116,15 +119,18 @@ class ClassificationTemplateController(
 
 	@Operation(summary = "Deletes a batch of ClassificationTemplates.", description = "Response is a set containing the ID's of deleted ClassificationTemplates.")
 	@PostMapping("/delete/batch")
-	fun deleteClassificationTemplates(@RequestBody classificationTemplateIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteClassificationTemplates(@RequestBody classificationTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		classificationTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			classificationTemplateService.deleteClassificationTemplates(LinkedHashSet(ids)).injectReactorContext()
+			classificationTemplateService.deleteClassificationTemplates(LinkedHashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a ClassificationTemplate.", description = "Deletes a ClassificationTemplate and returns its id and rev.")
 	@DeleteMapping("/{classificationTemplateId}")
 	fun deleteClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
 		classificationTemplateService.deleteClassificationTemplate(classificationTemplateId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

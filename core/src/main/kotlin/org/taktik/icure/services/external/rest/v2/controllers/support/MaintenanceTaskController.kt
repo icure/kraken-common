@@ -23,17 +23,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.MaintenanceTaskV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -53,6 +55,7 @@ class MaintenanceTaskController(
 	private val filterChainMapper: FilterChainV2Mapper,
 	private val bulkShareResultV2Mapper: MaintenanceTaskBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -67,13 +70,16 @@ class MaintenanceTaskController(
 
 	@Operation(summary = "Delete a batch of maintenanceTasks")
 	@PostMapping("/delete/batch")
-	fun deleteMaintenanceTasks(@RequestBody maintenanceTaskIds: ListOfIdsDto): Flux<DocIdentifier> =
-		maintenanceTaskService.deleteMaintenanceTasks(maintenanceTaskIds.ids).injectReactorContext()
+	fun deleteMaintenanceTasks(@RequestBody maintenanceTaskIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		maintenanceTaskService.deleteMaintenanceTasks(maintenanceTaskIds.ids)
+			.map(docIdentifierV2Mapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Delete a maintenanceTask")
 	@DeleteMapping("/{maintenanceTaskId}")
 	fun deleteMaintenanceTask(@PathVariable maintenanceTaskId: String) = mono {
 		maintenanceTaskService.deleteMaintenanceTask(maintenanceTaskId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a maintenanceTask")

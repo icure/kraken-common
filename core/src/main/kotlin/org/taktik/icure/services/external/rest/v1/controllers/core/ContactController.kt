@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -46,6 +46,7 @@ import org.taktik.icure.services.external.rest.v1.dto.ContactDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v1.dto.PaginatedDocumentKeyIdPair
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
@@ -54,6 +55,7 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v1.mapper.ContactMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.ServiceMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
@@ -74,15 +76,16 @@ import java.util.*
 @RequestMapping("/rest/v1/contact")
 @Tag(name = "contact")
 class ContactController(
-    private val filters: Filters,
-    private val contactService: ContactService,
-    private val sessionLogic: SessionInformationProvider,
-    private val contactMapper: ContactMapper,
-    private val serviceMapper: ServiceMapper,
-    private val delegationMapper: DelegationMapper,
-    private val filterChainMapper: FilterChainMapper,
+	private val filters: Filters,
+	private val contactService: ContactService,
+	private val sessionLogic: SessionInformationProvider,
+	private val contactMapper: ContactMapper,
+	private val serviceMapper: ServiceMapper,
+	private val delegationMapper: DelegationMapper,
+	private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val stubMapper: StubMapper,
+	private val stubMapper: StubMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val objectMapper: ObjectMapper
 ) {
@@ -291,12 +294,14 @@ class ContactController(
 
 	@Operation(summary = "Delete contacts.", description = "Response is a set containing the ID's of deleted contacts.")
 	@DeleteMapping("/{contactIds}")
-	fun deleteContacts(@PathVariable contactIds: String): Flux<DocIdentifier> {
+	fun deleteContacts(@PathVariable contactIds: String): Flux<DocIdentifierDto> {
 		if (contactIds.isBlank()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		}
 		// TODO versioning?
-		return contactService.deleteContacts(contactIds.split(',').toSet()).injectReactorContext()
+		return contactService.deleteContacts(contactIds.split(',').toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a contact", description = "Returns the modified contact.")

@@ -18,8 +18,10 @@
 package org.taktik.icure.services.external.rest.v2.dto.filter.predicate
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.taktik.icure.handlers.JsonDiscriminator
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonPredicateDeserializer
 import java.io.Serializable
 
 @JsonDeserialize(using = JacksonPredicateDeserializer::class)
-interface Predicate : Serializable
+@JsonDiscriminator("\$type")
+sealed interface Predicate : Serializable

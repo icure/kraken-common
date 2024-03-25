@@ -19,25 +19,28 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.services.external.rest.v1.controllers.core.DeviceController
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("deviceControllerV2")
 @RequestMapping("/rest/v2/device")
@@ -49,7 +52,8 @@ class DeviceController(
 	private val deviceV2Mapper: DeviceV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	companion object {
 		private val log = LoggerFactory.getLogger(DeviceController::class.java)
@@ -116,7 +120,9 @@ class DeviceController(
 		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
 	)
 	@GetMapping("/{deviceId}/aesExchangeKeys")
-	fun getDeviceAesExchangeKeysForDelegate(@PathVariable deviceId: String) = mono {
+	fun getDeviceAesExchangeKeysForDelegate(
+		@PathVariable deviceId: String
+	): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
 
@@ -134,9 +140,9 @@ class DeviceController(
 
 	@Operation(summary = "Delete devices.", description = "Response is an array containing the id/rev of deleted devices.")
 	@PostMapping("/delete/batch")
-	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifier> {
+	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> {
 		return try {
-			deviceService.deleteDevices(deviceIds.ids.toSet()).injectReactorContext()
+			deviceService.deleteDevices(deviceIds.ids.toSet()).map(docIdentifierV2Mapper::map).injectReactorContext()
 		} catch (e: Exception) {
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Devices deletion failed").also { log.error(it.message) }
 		}

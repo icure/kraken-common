@@ -67,9 +67,9 @@ class CodeController(
 	@GetMapping("/byLabel")
 	fun findCodesByLabel(
 		@RequestParam(required = true) region: String?,
-		@RequestParam(required = false) types: String,
-		@RequestParam(required = false) language: String,
-		@RequestParam(required = false) label: String,
+		@RequestParam(required = true) types: String,
+		@RequestParam(required = true) language: String,
+		@RequestParam(required = true) label: String,
 		@RequestParam(required = false) version: String?,
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,

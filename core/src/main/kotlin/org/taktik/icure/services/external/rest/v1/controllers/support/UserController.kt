@@ -168,7 +168,7 @@ class UserController (
 		userService.setProperties(
 			userId,
 			properties?.map { p -> propertyStubMapper.map(p) } ?: listOf()
-		) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
+		)?.let(userMapper::mapOmittingSecrets) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
 
 	@Operation(summary = "Request a new temporary token for authentication")
