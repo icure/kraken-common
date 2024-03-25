@@ -9,12 +9,12 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessCont
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SubscriptionDto<O : IdentifiableDto<String>>(
-	val eventTypes: List<EventType>,
+	val eventTypes: List<SubscriptionEventType>,
 	val entityClass: String,
 	val filter: FilterChain<O>?,
 	val accessControlKeys: List<AccessControlKeyStringDto>?
 ) : java.io.Serializable
 
-enum class EventType {
+enum class SubscriptionEventType {
 	CREATE, UPDATE, DELETE
 }
