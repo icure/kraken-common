@@ -173,13 +173,15 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param updateIfExists updates the design docs if already existing
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
+	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
 	 * @return a [List] containing the updated [DesignDocument]s.
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
-		partition: Partitions = Partitions.All
+		partition: Partitions = Partitions.All,
+		ignoreIfUnchanged: Boolean = false
 	): List<DesignDocument>
 
 	/**
@@ -189,13 +191,15 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param updateIfExists updates the design docs if already existing
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
+	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
 	 * @return a [List] containing the updated [DesignDocument]s.
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		client: Client,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
-		partition: Partitions = Partitions.All
+		partition: Partitions = Partitions.All,
+		ignoreIfUnchanged: Boolean = false
 	): List<DesignDocument>
 
 	/**
