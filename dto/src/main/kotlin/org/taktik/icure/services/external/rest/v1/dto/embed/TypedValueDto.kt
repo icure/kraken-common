@@ -28,7 +28,7 @@ data class TypedValueDto<T>(
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
     override val encryptedSelf: String? = null
-) : Comparable<TypedValueDto<T>>, EncryptedDto, Serializable {
+) : Comparable<TypedValueDto<T>>, EncryptableDto, Serializable {
 	companion object {
 		fun <T> withValue(value: T?): TypedValueDto<T>? = value?.let { withTypeAndValue(
 			when (it) {

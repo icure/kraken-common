@@ -32,4 +32,4 @@ data class FinancialInstitutionInformationDto(
 	val proxyBic: String? = null,
 	val preferredFiiForPartners: Set<String> = emptySet(), //InsuranceDto Id, Hcp Id
 	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable
+) : EncryptableDto, Serializable

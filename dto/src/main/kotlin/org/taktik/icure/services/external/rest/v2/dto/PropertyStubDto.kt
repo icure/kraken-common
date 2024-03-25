@@ -19,7 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptedDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -30,4 +30,4 @@ data class PropertyStubDto(
 	val typedValue: TypedValueDto<*>? = null,
 	@Deprecated("Remove from list instead") val deletionDate: Long? = null,
 	override val encryptedSelf: String? = null
-) : EncryptedDto
+) : EncryptableDto

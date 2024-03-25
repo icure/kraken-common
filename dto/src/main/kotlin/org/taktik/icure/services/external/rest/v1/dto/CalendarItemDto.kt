@@ -6,12 +6,13 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
-import org.taktik.icure.services.external.rest.v1.dto.base.EncryptableDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.CalendarItemTagDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 
@@ -59,7 +60,7 @@ data class CalendarItemDto(
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, EncryptableDto {
+) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

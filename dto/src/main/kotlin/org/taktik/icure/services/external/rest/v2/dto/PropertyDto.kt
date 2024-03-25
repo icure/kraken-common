@@ -20,7 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptedDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -33,7 +33,7 @@ data class PropertyDto(
 	val type: PropertyTypeDto? = null,
 	val typedValue: TypedValueDto<*>? = null,
 	override val encryptedSelf: String? = null
-) : StoredDocumentDto, EncryptedDto {
+) : StoredDocumentDto, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

@@ -18,7 +18,6 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import java.io.Serializable
-import java.util.SortedSet
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
@@ -37,4 +36,4 @@ data class PatientHealthCarePartyDto(
 	@Schema(description = "Time periods") val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
 	@get:Deprecated("Use type") @Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
 	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable
+) : EncryptableDto, Serializable

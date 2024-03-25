@@ -36,4 +36,4 @@ data class SubContactDto(
 	val classificationId: String? = null,
 	@Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.") val services: List<ServiceLinkDto> = emptyList(),
 	override val encryptedSelf: String? = null
-) : EncryptedDto, ICureDocumentDto<String?>
+) : EncryptableDto, ICureDocumentDto<String?>
