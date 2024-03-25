@@ -49,7 +49,8 @@ interface DesignDocumentProvider {
      * [entityClass]).
      * @param client a [Client] for when is necessary to compare the newly created design documents to the existing one.
      * @param partition if not [Partitions.All], only the documents on that partition will be generated.
+     * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
      * @return a [Set] of generated [DesignDocument]s.
      */
-    suspend fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any, client: Client? = null, partition: Partitions = Partitions.All): Set<DesignDocument>
+    suspend fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any, client: Client? = null, partition: Partitions = Partitions.All, ignoreIfUnchanged: Boolean = false): Set<DesignDocument>
 }
