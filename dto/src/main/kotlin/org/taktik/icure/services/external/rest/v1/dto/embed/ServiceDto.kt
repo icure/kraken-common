@@ -61,7 +61,7 @@ data class ServiceDto(
     override val tags: Set<CodeStubDto> = emptySet(), //stub object of the tag used to qualify the type of the ServiceDto
     override val encryptedSelf: String? = null,
     val securityMetadata: SecurityMetadataDto? = null
-) : EncryptedDto, ICureDocumentDto<String>, Comparable<ServiceDto> {
+) : EncryptableDto, ICureDocumentDto<String>, Comparable<ServiceDto> {
 	override fun compareTo(other: ServiceDto): Int {
 		if (this == other) {
 			return 0

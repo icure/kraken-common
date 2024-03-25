@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.extensions.ExtensionProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.CryptoActorDto
-import org.taktik.icure.services.external.rest.v1.dto.base.EncryptableDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.base.PersonDto
@@ -20,6 +20,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DeactivationReasonDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EmploymentInfoDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.InsurabilityDto
@@ -123,7 +124,7 @@ data class PatientDto(
 	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
 	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 
-	) : StoredDocumentDto, ICureDocumentDto<String>, PersonDto, EncryptableDto, CryptoActorDto {
+	) : StoredDocumentDto, ICureDocumentDto<String>, PersonDto, HasEncryptionMetadataDto, EncryptableDto, CryptoActorDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

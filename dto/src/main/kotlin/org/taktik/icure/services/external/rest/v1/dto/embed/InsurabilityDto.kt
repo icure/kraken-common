@@ -26,4 +26,4 @@ data class InsurabilityDto(
 	@Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
 	@Schema(description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).") val titularyId: String? = null,
 	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable
+) : EncryptableDto, Serializable

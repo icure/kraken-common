@@ -16,4 +16,4 @@ data class CareTeamMembershipDto(
 	val careTeamMemberId: String? = null,
 	val membershipType: MembershipTypeDto? = null,
 	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable
+) : EncryptableDto, Serializable

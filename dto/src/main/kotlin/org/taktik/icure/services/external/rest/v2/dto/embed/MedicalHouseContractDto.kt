@@ -66,4 +66,4 @@ data class MedicalHouseContractDto(
 	val receipts: Map<String, String> = emptyMap(),
 
 	override val encryptedSelf: String? = null
-) : EncryptedDto
+) : EncryptableDto

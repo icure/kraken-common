@@ -36,7 +36,7 @@ data class TelecomDto(
 	val telecomNumber: String? = null,
 	val telecomDescription: String? = null,
 	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable, Comparable<TelecomDto> {
+) : EncryptableDto, Serializable, Comparable<TelecomDto> {
 	companion object : DynamicInitializer<TelecomDto>
 
 	fun merge(other: TelecomDto) = TelecomDto(args = this.solveConflictsWith(other))

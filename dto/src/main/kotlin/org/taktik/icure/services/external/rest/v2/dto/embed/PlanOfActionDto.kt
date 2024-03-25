@@ -60,4 +60,4 @@ data class PlanOfActionDto(
 
 	@get:Deprecated("Use status") @Schema(defaultValue = "true")val relevant: Boolean = true,
 	override val encryptedSelf: String? = null
-) : EncryptedDto, ICureDocumentDto<String>, NamedDto
+) : EncryptableDto, ICureDocumentDto<String>, NamedDto
