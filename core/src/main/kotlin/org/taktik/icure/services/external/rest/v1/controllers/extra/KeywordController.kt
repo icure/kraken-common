@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.services.external.rest.v1.dto.KeywordDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.KeywordMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -32,7 +34,8 @@ import reactor.core.publisher.Flux
 @Tag(name = "keyword")
 class KeywordController(
 	private val keywordService: KeywordService,
-	private val keywordMapper: KeywordMapper
+	private val keywordMapper: KeywordMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 
 	@Operation(summary = "Create a keyword with the current user", description = "Returns an instance of created keyword.")
@@ -63,10 +66,12 @@ class KeywordController(
 
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@DeleteMapping("/{keywordIds}")
-	fun deleteKeywords(@PathVariable keywordIds: String): Flux<DocIdentifier> {
+	fun deleteKeywords(@PathVariable keywordIds: String): Flux<DocIdentifierDto> {
 		val ids = keywordIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return keywordService.deleteKeywords(ids.toSet()).injectReactorContext()
+		return keywordService.deleteKeywords(ids.toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a keyword", description = "Returns the modified keyword.")

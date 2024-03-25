@@ -24,6 +24,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,6 +32,6 @@ data class DelegationDto(
 	//This is not the owner of a piece of date (patient, contact). It is the owner of the delegation.
 	var owner: String? = null, // owner id
 	var delegatedTo: String? = null, // delegatedTo id
-	var key: String? = null, // An arbitrary key (generated, patientId, any ID, etc.), usually prefixed with the entity ID followed by ":", encrypted using an exchange AES key.
+	var key: HexStringDto? = null, // An arbitrary key (generated, patientId, any ID, etc.), usually prefixed with the entity ID followed by ":", encrypted using an exchange AES key.
 	var tags: List<String> = emptyList() // Used for rights
 ) : Serializable

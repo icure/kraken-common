@@ -5,6 +5,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginationElement
 
 interface ExchangeDataService {
     // TODO standard entity persister
@@ -21,13 +22,13 @@ interface ExchangeDataService {
      * Since a certain data owner may have thousands of exchange data this method allows to
      * retrieve exchange data in multiple pages.
      * @param dataOwnerId id of a data owner.
-     * @param paginationOffset data for the paged retrevial of data.
+     * @param paginationOffset data for the paged retrieval of data.
      * @return the events resulting from the DB interrogation.
      */
     fun findExchangeDataByParticipant(
         dataOwnerId: String,
         paginationOffset: PaginationOffset<String>
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
     /**
      * Get the exchange data for a specific delegator->delegate pair. Note that this does not

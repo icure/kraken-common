@@ -17,6 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.data
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 
-class ByteArrayDto(val data: ByteArray) : Serializable
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ByteArrayDto(val data: ByteArray) : Serializable

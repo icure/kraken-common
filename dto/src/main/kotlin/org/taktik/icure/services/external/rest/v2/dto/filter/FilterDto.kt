@@ -36,7 +36,7 @@ interface AbstractFilterDto<O : IdentifiableDto<String>> : FilterDto<O> {
 	val desc: String?
 }
 
-interface FilterDto<O : IdentifiableDto<*>> : Serializable {
+sealed interface FilterDto<O : IdentifiableDto<*>> : Serializable {
 	interface IdsFilter<T : Serializable, O : IdentifiableDto<T>> : FilterDto<O> {
 		val ids: Set<T>
 	}

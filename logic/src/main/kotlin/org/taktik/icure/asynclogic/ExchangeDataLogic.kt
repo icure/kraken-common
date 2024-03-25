@@ -5,6 +5,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginationElement
 
 interface ExchangeDataLogic {
     // TODO standard entity persister
@@ -27,7 +28,7 @@ interface ExchangeDataLogic {
     fun findExchangeDataByParticipant(
         dataOwnerId: String,
         paginationOffset: PaginationOffset<String>
-    ): Flow<ViewQueryResultEvent>
+    ): Flow<PaginationElement>
 
     /**
      * Get the exchange data for a specific delegator->delegate pair. Note that this does not

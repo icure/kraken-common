@@ -3,8 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.entities.utils.Sha256HexString
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Sha256HexStringDto
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,6 +25,6 @@ access control secret and secret foreign key of the entity: what happens if the 
 delegate may have access to only one of them but not all, so if we chose an unlucky secret foreign key in the creation of the
 access control key the delegate will never be able to access the entity. This field allows to essentially create an access control
 key and corresponding secure delegation key for each secret foreign key without having to replicate the actual secure delegation.""")
-    val keysEquivalences: Map<Sha256HexString, Sha256HexString> = emptyMap()
+    val keysEquivalences: Map<Sha256HexStringDto, Sha256HexStringDto> = emptyMap()
 )
 

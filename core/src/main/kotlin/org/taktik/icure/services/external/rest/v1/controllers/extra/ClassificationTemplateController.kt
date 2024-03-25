@@ -4,7 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -30,8 +29,10 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ClassificationTemplateDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.ClassificationTemplateMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -44,7 +45,7 @@ class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateMapper: ClassificationTemplateMapper,
 	private val delegationMapper: DelegationMapper,
-	private val objectMapper: ObjectMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -82,10 +83,12 @@ class ClassificationTemplateController(
 
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationTemplateIds}")
-	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifier> {
+	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifierDto> {
 		val ids = classificationTemplateIds.split(',').takeUnless { it.isEmpty() }
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return classificationTemplateService.deleteClassificationTemplates(ids).injectReactorContext()
+		return classificationTemplateService.deleteClassificationTemplates(ids)
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

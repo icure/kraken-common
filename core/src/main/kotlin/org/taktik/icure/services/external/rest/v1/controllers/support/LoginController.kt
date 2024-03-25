@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
+import org.taktik.icure.entities.security.jwt.JwtResponse
 import org.taktik.icure.exceptions.*
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
@@ -92,7 +93,7 @@ class LoginController(
 		try {
 			val username = loginCredentials.username!!
 
-			val authentication = sessionLogic.login(username, loginCredentials.password!!, request, if (sessionEnabled) session else null, groupId)
+			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId)
 			produceAuthenticationResponse(authentication, username, duration?.seconds?.inWholeMilliseconds, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")

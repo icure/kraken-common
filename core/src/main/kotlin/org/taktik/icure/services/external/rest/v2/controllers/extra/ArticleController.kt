@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ArticleService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -35,9 +35,11 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ArticleDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ArticleV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ArticleBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
@@ -53,6 +55,7 @@ class ArticleController(
 	private val articleV2Mapper: ArticleV2Mapper,
 	private val bulkShareResultV2Mapper: ArticleBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -69,15 +72,17 @@ class ArticleController(
 
 	@Operation(summary = "Deletes a batch of articles")
 	@PostMapping("/delete/batch")
-	fun deleteArticles(@RequestBody articleIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteArticles(@RequestBody articleIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		articleIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			articleService.deleteArticles(ids).injectReactorContext()
+			articleService.deleteArticles(ids)
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes an article")
 	@DeleteMapping("/{articleId}")
 	fun deleteArticle(@PathVariable articleId: String) = mono {
-		articleService.deleteArticle(articleId)
+		articleService.deleteArticle(articleId).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an article")

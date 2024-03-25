@@ -1,6 +1,6 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
-import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyStringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyHexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
 
@@ -10,6 +10,6 @@ data class ExchangeDataMapCreationBatch(
      * key while the value is another map that associated the encrypted ExchangeData id to the fingerprint
      * of the public key used to encrypt it.
      */
-    val batch: Map<AccessControlKeyStringDto, Map<KeypairFingerprintV2StringDto, Base64StringDto>> = emptyMap()
+    val batch: Map<AccessControlKeyHexStringDto, Map<KeypairFingerprintV2StringDto, Base64StringDto>> = emptyMap()
 
 )

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
@@ -38,9 +38,11 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
@@ -59,6 +61,7 @@ class ClassificationController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -117,15 +120,18 @@ class ClassificationController(
 
 	@Operation(summary = "Delete a batch of classifications", description = "Response is a set containing the ID's of deleted classifications.")
 	@PostMapping("/delete/batch")
-	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		classificationIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			classificationService.deleteClassifications(ids.toSet()).injectReactorContext()
+			classificationService.deleteClassifications(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Delete a classifications", description = "Deletes a classification and returns its id.")
 	@DeleteMapping("/{classificationId}")
 	fun deleteClassification(@PathVariable classificationId: String) = mono {
 		classificationService.deleteClassification(classificationId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

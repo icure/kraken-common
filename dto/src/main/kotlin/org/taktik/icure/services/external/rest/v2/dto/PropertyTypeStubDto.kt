@@ -19,11 +19,11 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.constants.TypedValuesType
+import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PropertyTypeStubDto(
 	val identifier: String? = null,
-	val type: TypedValuesType? = null
+	val type: TypedValuesTypeDto? = null
 )
