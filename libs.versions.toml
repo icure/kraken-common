@@ -10,6 +10,7 @@ bouncyCastle = "1.70"
 jwt = "0.11.5"
 kotlin = "1.9.22"
 ktor = "2.2.3"
+ksp = "1.9.22-1.0.16"
 
 [libraries]
 springBootWebflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux", version.ref = "springBoot" }
@@ -82,6 +83,7 @@ ktorClientCio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "kt
 ktorClientContentNegotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktorClientWebSocket = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.0" }
+kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 
 [bundles]
 springBootLibs = ["springBootWebflux", "springBootSecurity", "springBootActuator", "springBootCache"]
@@ -106,10 +108,11 @@ kotlinAllOpen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kot
 kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 springBootPlugin = { id = "org.springframework.boot", version.ref = "springBoot" }
 springBootDependenciesManagement = { id = "io.spring.dependency-management", version = "1.1.4" }
-ksp = { id = "com.google.devtools.ksp", version = "1.9.22-1.0.16" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 mavenRepository = { id = "com.taktik.gradle.maven-repository", version = "1.0.7" }
 gitVersion = { id = "com.taktik.gradle.git-version", version = "2.0.8-gb47b2d0e35" }
 helmRepository = { id = "com.taktik.gradle.helm-repository", version = "0.2.24-g9f69211aad" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 licenceReport = { id = "com.github.jk1.dependency-license-report", version = "2.0"}
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0" }

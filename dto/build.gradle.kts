@@ -7,6 +7,7 @@ plugins {
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion)
     alias(coreLibs.plugins.ksp)
+    alias(coreLibs.plugins.ktlint)
 }
 
 val gitVersion: String? by project
@@ -21,10 +22,9 @@ dependencies {
         implementation(project(":utils"))
     }
 
-    if (rootProject.name == "dto-mapping") {
-        ksp(project(":sdk-codegen"))
+    if (rootProject.name == "kraken-cloud") {
+        ksp(project(":sdk-codegen:sdk-codegen"))
     }
-
 
     implementation(coreLibs.bundles.xmlLibs)
     implementation(coreLibs.bundles.jacksonLibs)
@@ -41,10 +41,11 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
- val postProcessDtoTask = tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
-     rootDir = project.rootDir
- }
+val postProcessDtoTask =
+    tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
+        banana = File("${project.rootDir.path.trimEnd('/')}/kraken-common/dto/build/generated/ksp/main/kotlin/com/icure/sdk/model")
+    }
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-    finalizedBy(postProcessDtoTask)
+tasks.withType<PostProcessDtoTask> {
+    dependsOn("kspKotlin")
 }
