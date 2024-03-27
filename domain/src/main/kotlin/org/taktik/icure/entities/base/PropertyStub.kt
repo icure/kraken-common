@@ -17,15 +17,7 @@ import java.io.Serializable
 data class PropertyStub(
 	val id: String? = null,
 	val type: PropertyTypeStub? = null,
-	val typedValue: TypedValue<*>? = null,
+	val typedValue: TypedValue? = null,
 	@Deprecated("Remove from list instead") @JsonProperty("deleted") val deletionDate: Long? = null,
 	override val encryptedSelf: String? = null
-) : Serializable, Encrypted {
-	@JsonIgnore
-	fun <T> getValue(): T? {
-		return (typedValue?.getValue<Any>()?.let {
-			@Suppress("UNCHECKED_CAST")
-			it as? T
-		})
-	}
-}
+) : Serializable, Encrypted

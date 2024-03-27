@@ -32,7 +32,7 @@ data class PropertyDto(
 	override val deletionDate: Long? = null,
 
 	val type: PropertyTypeDto? = null,
-	val typedValue: TypedValueDto<*>? = null,
+	val typedValue: TypedValueDto? = null,
 	override val encryptedSelf: Base64StringDto? = null
 ) : StoredDocumentDto, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

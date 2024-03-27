@@ -23,7 +23,7 @@ data class Property(
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val type: PropertyType? = null,
-	val typedValue: TypedValue<*>? = null,
+	val typedValue: TypedValue? = null,
 	override val encryptedSelf: String? = null,
 
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
@@ -38,14 +38,6 @@ data class Property(
 		"type" to (this.type ?: other.type),
 		"typedValue" to (this.typedValue ?: other.typedValue)
 	)
-
-	@JsonIgnore
-	fun <T> getValue(): T? {
-		return (typedValue?.getValue<Any>()?.let {
-			@Suppress("UNCHECKED_CAST")
-			it as? T
-		})
-	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

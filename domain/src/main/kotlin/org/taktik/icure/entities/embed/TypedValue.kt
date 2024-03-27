@@ -16,7 +16,7 @@ import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class TypedValue<T>(
+data class TypedValue(
     val type: TypedValuesType? = null,
     val booleanValue: Boolean? = null,
     val integerValue: Long? = null,
@@ -28,9 +28,9 @@ data class TypedValue<T>(
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
     override val encryptedSelf: String? = null
-) : Comparable<TypedValue<T>>, Encrypted, Serializable {
+) : Comparable<TypedValue>, Encrypted, Serializable {
 	companion object {
-		fun <T> withValue(value: T?): TypedValue<T>? = value?.let {
+		fun <T> withValue(value: T?): TypedValue? = value?.let {
 			withTypeAndValue(
 				when (value) {
 					is Boolean -> TypedValuesType.BOOLEAN
@@ -45,7 +45,7 @@ data class TypedValue<T>(
 			)
 		}
 
-		fun <T> withTypeAndValue(type: TypedValuesType, value: T?): TypedValue<T>? = value?.let {
+		fun <T> withTypeAndValue(type: TypedValuesType, value: T?): TypedValue? = value?.let {
 			when (type) {
 				TypedValuesType.BOOLEAN -> if (value is Boolean) {
 					TypedValue(booleanValue = value, type = type)
@@ -70,22 +70,16 @@ data class TypedValue<T>(
 		}
 	}
 
-	@JsonIgnore
-	fun <T> getValue(): T? {
-		if (type == null) {
-			return null
-		}
+	override fun compareTo(other: TypedValue): Int {
+		require(other.type == type) { "Cannot compare different TypedValue types" }
 		return when (type) {
-			TypedValuesType.BOOLEAN -> booleanValue as? T
-			TypedValuesType.INTEGER -> integerValue as? T
-			TypedValuesType.DOUBLE -> doubleValue as? T
-			TypedValuesType.STRING, TypedValuesType.CLOB, TypedValuesType.JSON -> stringValue as? T
-			TypedValuesType.DATE -> dateValue as? T
+			TypedValuesType.BOOLEAN -> booleanValue!!.compareTo(other.booleanValue!!)
+			TypedValuesType.INTEGER -> integerValue!!.compareTo(other.integerValue!!)
+			TypedValuesType.DOUBLE -> doubleValue!!.compareTo(other.doubleValue!!)
+			TypedValuesType.STRING, TypedValuesType.CLOB, TypedValuesType.JSON -> stringValue!!.compareTo(other.stringValue!!)
+			TypedValuesType.DATE -> dateValue!!.compareTo(other.dateValue!!)
+			null -> 0
 		}
-	}
-
-	override fun compareTo(other: TypedValue<T>): Int {
-		return (other.getValue<T>() as Comparable<T>).compareTo(getValue<T>()!!)
 	}
 
 	override fun toString(): String {
