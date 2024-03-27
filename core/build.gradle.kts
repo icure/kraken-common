@@ -1,3 +1,7 @@
+import com.icure.codegen.task.MoveCommonSdkTask
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
+
 plugins {
     id("com.icure.kotlin-library-conventions")
 
@@ -83,4 +87,20 @@ dependencies {
     testImplementation(coreLibs.bundles.hibernateValidatorLibs)
     testImplementation(coreLibs.bundles.ktorServerLibs)
     testImplementation(coreLibs.bundles.ktorClientLibs)
+}
+
+@OptIn(ExperimentalPathApi::class)
+val moveCommonSdkTask = tasks.register<MoveCommonSdkTask>("MoveCommonSdkTask") {
+    val cleanUpFolder = File("${project.rootDir.path.trimEnd('/')}/kspGenerated")
+    if(cleanUpFolder.exists()) {
+        cleanUpFolder.toPath().deleteRecursively()
+    }
+    val dst = File("${project.rootDir.path.trimEnd('/')}/kspGenerated/main/kotlin/com/icure/sdk/api/raw")
+    dst.mkdirs()
+    srcDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/core/build/generated/ksp/main/kotlin/com/icure/sdk/api/raw")
+    dstDir = dst
+}
+
+tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
+    finalizedBy(moveCommonSdkTask)
 }
