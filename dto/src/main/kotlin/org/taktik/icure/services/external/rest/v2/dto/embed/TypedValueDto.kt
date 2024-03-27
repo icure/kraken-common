@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.icure.entities.embed.TypedValuesType
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 
@@ -42,7 +43,7 @@ data class TypedValueDto(
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: Base64StringDto? = null
 ) : Comparable<TypedValueDto>, EncryptableDto, Serializable {
 	companion object {
 		fun <T> withValue(value: T?): TypedValueDto? = value?.let { withTypeAndValue(
