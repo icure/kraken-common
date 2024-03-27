@@ -22,6 +22,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -65,5 +66,5 @@ data class MedicalHouseContractDto(
 	val options: Map<String, String> = HashMap(),
 	val receipts: Map<String, String> = emptyMap(),
 
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto

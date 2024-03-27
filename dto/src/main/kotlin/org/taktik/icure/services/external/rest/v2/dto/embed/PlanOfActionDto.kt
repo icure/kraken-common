@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -59,5 +60,5 @@ data class PlanOfActionDto(
 	@Schema(description = "Members of the careteam involved in this approach") val careTeamMemberships: List<CareTeamMembershipDto?> = emptyList(),
 
 	@get:Deprecated("Use status") @Schema(defaultValue = "true")val relevant: Boolean = true,
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto, ICureDocumentDto<String>, NamedDto

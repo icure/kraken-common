@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -49,5 +50,5 @@ data class SubContactDto(
 	@Schema(description = "Id of the healthcare element that is linked by the sub-contact to a service") val healthElementId: String? = null,
 	val classificationId: String? = null,
 	@Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.") val services: List<ServiceLinkDto> = emptyList(),
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto, ICureDocumentDto<String?>

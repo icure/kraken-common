@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -78,7 +79,7 @@ data class InvoicingCodeDto(
 	val insuranceJustification: Int? = null,
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto, Comparable<InvoicingCodeDto?> {
 	companion object : DynamicInitializer<InvoicingCodeDto> {
 		const val STATUS_PAID: Long = 1
