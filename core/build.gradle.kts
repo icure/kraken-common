@@ -37,8 +37,8 @@ dependencies {
         implementation(project(":service"))
     }
 
-    if (rootProject.name == "dto-mapping") {
-        ksp(project(":sdk-codegen"))
+    if (rootProject.name == "kraken-cloud") {
+        ksp(project(":sdk-codegen:sdk-codegen"))
     }
 
     implementation(coreLibs.hibernateValidator)
