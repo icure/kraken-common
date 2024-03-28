@@ -102,5 +102,11 @@ val moveCommonSdkTask = tasks.register<MoveCommonSdkTask>("MoveCommonSdkTask") {
 }
 
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-    finalizedBy(moveCommonSdkTask)
+    onlyIf {
+        false
+    }
+}
+
+tasks.named("MoveCommonSdkTask") {
+    dependsOn("kspKotlin")
 }
