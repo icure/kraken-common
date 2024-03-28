@@ -60,7 +60,7 @@ data class HealthElementDto(
     @Schema(description = "Description of the healthcare element.") val descr: String? = null,
     @Schema(description = "A text note (can be confidential, encrypted by default).") val note: String? = null,
     val notes: List<AnnotationDto> = emptyList(),
-    @Schema(description = "If the healthcare element is relevant or not (Set relevant by default).") val relevant: Boolean = true,
+    @Schema(description = "If the healthcare element is relevant or not (Set relevant by default).", defaultValue = "true") val relevant: Boolean = true,
     @Schema(description = "Id of the opening contact when the healthcare element was created.") val idOpeningContact: String? = null,
     @Schema(description = "Id of the closing contact for the healthcare element.") val idClosingContact: String? = null,
     @Schema(description = "Id of the service when a service is used to create a healthcare element.") val idService: String? = null, //When a service is used to create the healthElement
