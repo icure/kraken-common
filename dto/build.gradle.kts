@@ -1,3 +1,4 @@
+import com.google.devtools.ksp.gradle.KspTask
 import com.icure.codegen.task.PostProcessDtoTask
 
 plugins {
@@ -48,4 +49,10 @@ val postProcessDtoTask =
 
 tasks.withType<PostProcessDtoTask> {
     dependsOn("kspKotlin")
+}
+
+tasks.withType<KspTask> {
+	onlyIf {
+		false
+	}
 }
