@@ -18,12 +18,10 @@
 
 package org.taktik.icure.services.external.rest.v2.utils
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toCollection
-import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
@@ -31,6 +29,7 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import java.io.Serializable
 
 @Suppress("UNCHECKED_CAST")
 // TODO SH MB: handle offsets
@@ -40,15 +39,10 @@ suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEve
 	var lastProcessedViewRowNoDoc: ViewRowNoDoc<*, *>? = null
 
 	var nextKeyPair: PaginatedDocumentKeyIdPair<*>? = null
-	var totalSize: Int = 0
 
 	val resultRows = mutableListOf<T>()
 	this.mapNotNull { viewQueryResultEvent ->
 		when (viewQueryResultEvent) {
-			is TotalCount -> {
-				totalSize = viewQueryResultEvent.total
-				null
-			}
 			is ViewRowWithDoc<*, *, *> -> {
 				when {
 					viewRowCount == realLimit -> {
@@ -98,23 +92,18 @@ suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEve
 	if (resultRows.size < realLimit) {
 		((lastProcessedViewRow?.doc as? U) ?: lastProcessedViewRowNoDoc?.id as U?)?.let { resultRows.add(mapper(it)) }
 	}
-	return PaginatedList(pageSize = realLimit, totalSize = totalSize, nextKeyPair = nextKeyPair, rows = resultRows)
+	return PaginatedList(nextKeyPair = nextKeyPair, rows = resultRows)
 }
 
+@Suppress("UNCHECKED_CAST")
 suspend fun <T : Serializable> Flow<ViewQueryResultEvent>.paginatedList(realLimit: Int): PaginatedList<T, *> {
 	var viewRowCount = 0
 	var lastProcessedViewRow: ViewRowWithDoc<*, *, *>? = null
-
-	var totalSize: Int = 0
 	var nextKeyPair: PaginatedDocumentKeyIdPair<*>? = null
 
 	val resultRows = mutableListOf<T>()
 	this.mapNotNull { viewQueryResultEvent ->
 		when (viewQueryResultEvent) {
-			is TotalCount -> {
-				totalSize = viewQueryResultEvent.total
-				null
-			}
 			is ViewRowWithDoc<*, *, *> -> {
 				when {
 					viewRowCount == realLimit -> {
@@ -144,5 +133,5 @@ suspend fun <T : Serializable> Flow<ViewQueryResultEvent>.paginatedList(realLimi
 			resultRows.add(it)
 		}
 	}
-	return PaginatedList(pageSize = realLimit, totalSize = totalSize, nextKeyPair = nextKeyPair, rows = resultRows)
+	return PaginatedList(nextKeyPair = nextKeyPair, rows = resultRows)
 }
