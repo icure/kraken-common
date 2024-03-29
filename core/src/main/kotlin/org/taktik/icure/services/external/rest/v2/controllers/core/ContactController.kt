@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -47,6 +46,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
@@ -389,14 +389,12 @@ class ContactController(
 			contactService.filterServices(paginationOffset, mappedFilterChain), sessionLogic.getSearchKeyMatcher()
 		).map { serviceV2Mapper.map(it) }.toList()
 
-		val totalSize = services.size
-
 		if (services.size <= realLimit) {
-			org.taktik.icure.services.external.rest.v2.dto.PaginatedList(services.size, totalSize, services, null)
+			PaginatedList(services, null)
 		} else {
 			val nextKeyPair = services.lastOrNull()?.let { PaginatedDocumentKeyIdPair(null, it.id) }
 			val rows = services.subList(0, services.size - 1)
-			org.taktik.icure.services.external.rest.v2.dto.PaginatedList(realLimit, totalSize, rows, nextKeyPair)
+			PaginatedList(rows, nextKeyPair)
 		}
 	}
 
