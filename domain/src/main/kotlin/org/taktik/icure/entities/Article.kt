@@ -39,7 +39,6 @@ data class Article(
 	override val endOfLife: Long? = null,
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val content: List<Content> = emptyList(),
 	val classification: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
@@ -58,7 +57,6 @@ data class Article(
 	fun merge(other: Article) = Article(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Article) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"name" to (this.name ?: other.name),
-		"content" to MergeUtil.mergeListsDistinct(this.content, other.content, { a, b -> a == b }) { a, _ -> a },
 		"classification" to (this.classification ?: other.classification)
 	)
 
