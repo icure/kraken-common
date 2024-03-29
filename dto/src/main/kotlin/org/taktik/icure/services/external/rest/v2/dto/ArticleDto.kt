@@ -45,7 +45,6 @@ data class ArticleDto(
     override val endOfLife: Long? = null,
     override val deletionDate: Long? = null,
     val name: String? = null,
-    val content: List<ContentDto> = emptyList(),
     val classification: String? = null,
     override val secretForeignKeys: Set<String> = emptySet(),
     override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
