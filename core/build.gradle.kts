@@ -102,9 +102,9 @@ val moveCommonSdkTask = tasks.register<MoveCommonSdkTask>("MoveCommonSdkTask") {
 }
 
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-//    onlyIf {
-//        gradle.startParameter.taskNames.contains("kspKotlin")
-//    }
+    onlyIf {
+        gradle.startParameter.taskNames.contains(":kraken-common:core:kspKotlin")
+    }
 }
 
 tasks.named("MoveCommonSdkTask") {
