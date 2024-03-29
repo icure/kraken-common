@@ -53,6 +53,6 @@ tasks.withType<PostProcessDtoTask> {
 
 tasks.withType<KspTask> {
 	onlyIf {
-		false
+		gradle.startParameter.taskNames.contains(":kraken-common:dto:kspKotlin")
 	}
 }
