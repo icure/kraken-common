@@ -52,7 +52,7 @@ tasks.withType<PostProcessDtoTask> {
 }
 
 tasks.withType<KspTask> {
-	onlyIf {
-		false
-	}
+//	onlyIf {
+//		gradle.startParameter.taskNames.contains("kspKotlin")
+//	}
 }
