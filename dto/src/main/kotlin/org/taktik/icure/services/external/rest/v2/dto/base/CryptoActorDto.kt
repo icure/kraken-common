@@ -21,6 +21,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV1StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
 interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
@@ -34,10 +35,10 @@ interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
 	val aesExchangeKeys: Map<SpkiHexStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>
 
 	@get:Schema(description = "Our private keys encrypted with our public keys. The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }")
-	val transferKeys: Map<String, Map<String, String>>
+	val transferKeys: Map<KeypairFingerprintV1StringDto, Map<KeypairFingerprintV1StringDto, HexStringDto>>
 
 	@get:Schema(description = "The privateKeyShamirPartitions are used to share this hcp's private RSA key with a series of other hcParties using Shamir's algorithm. The key of the map is the hcp Id with whom this partition has been shared. The value is \"threshold⎮partition in hex\" encrypted using the the partition's holder's public RSA key")
-	val privateKeyShamirPartitions: Map<String, String>
+	val privateKeyShamirPartitions: Map<String, HexStringDto>
 
 	@get:Schema(description = "The public key of this hcp")
 	val publicKey: SpkiHexStringDto?
