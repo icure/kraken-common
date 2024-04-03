@@ -11,13 +11,12 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
-import org.taktik.icure.entities.embed.Content
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -51,11 +50,11 @@ data class Article(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable {
+) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<Article>
 
 	fun merge(other: Article) = Article(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Article) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Article) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"name" to (this.name ?: other.name),
 		"classification" to (this.classification ?: other.classification)
 	)

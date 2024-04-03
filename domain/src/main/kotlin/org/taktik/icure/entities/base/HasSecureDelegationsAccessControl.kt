@@ -13,9 +13,9 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 interface HasSecureDelegationsAccessControl : HasExplicitDataOwnerAccess {
     /**
      * Security metadata for the entity, contains metadata necessary for access control.
-     * In [Encryptable] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
-     * [Encryptable.encryptedSelf] (replacing [Encryptable.encryptionKeys]), owning entity id (replacing [Encryptable.cryptedForeignKeys]),
-     * and secret id (replacing the keys of [Encryptable.delegations]).
+     * In [HasEncryptionMetadata] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
+     * [HasEncryptionMetadata.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
+     * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
      */
     val securityMetadata: SecurityMetadata?
 

@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
@@ -50,7 +51,7 @@ data class SecureDelegationKeyMap(
     @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
     @JsonProperty("_conflicts") override val conflicts: List<String>? = null,
     @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null
-): StoredDocument, Encryptable {
+): StoredDocument, HasEncryptionMetadata, Encryptable {
     init {
         require(secretForeignKeys.isEmpty() && delegations.isEmpty() && encryptionKeys.isEmpty() && cryptedForeignKeys.isEmpty()) {
             "Secure delegation key maps should not contain legacy delegations."
@@ -64,7 +65,7 @@ data class SecureDelegationKeyMap(
         require(this.delegationKey == other.delegationKey) {
             "Can't merge automatically secure delegation key maps with different delegation keys."
         }
-        return super<StoredDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+        return super<StoredDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
             "delegator" to (this.delegator ?: other.delegator),
             "delegate" to (this.delegate ?: other.delegate),
             "delegationKey" to this.delegationKey

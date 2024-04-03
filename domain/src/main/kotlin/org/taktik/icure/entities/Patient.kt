@@ -13,7 +13,7 @@ import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -23,6 +23,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.DeactivationReason
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
@@ -214,14 +215,14 @@ data class Patient(
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
-) : StoredICureDocument, Person, Encryptable, CryptoActor, DataOwner {
+) : StoredICureDocument, Person, HasEncryptionMetadata, CryptoActor, DataOwner, Encryptable {
 	companion object : DynamicInitializer<Patient>
 
 	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Patient) =
 		super<StoredICureDocument>.solveConflictsWith(other) +
 			super<Person>.solveConflictsWith(other) +
-			super<Encryptable>.solveConflictsWith(other) +
+			super<HasEncryptionMetadata>.solveConflictsWith(other) +
 			super<CryptoActor>.solveConflictsWith(other) +
 			super<DataOwner>.solveConflictsWith(other) + mapOf(
 			"encryptionKeys" to this.encryptionKeys, // Only keep this ones

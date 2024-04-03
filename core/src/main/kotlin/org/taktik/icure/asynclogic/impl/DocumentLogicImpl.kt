@@ -22,7 +22,7 @@ import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.DocumentLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
@@ -53,7 +53,7 @@ class DocumentLogicImpl(
     private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
     @Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
     fixer: Fixer
-) : EncryptableEntityLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), DocumentLogic {
+) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), DocumentLogic {
 	private val dbInstanceUri = URI(couchDbProperties.url)
 
 	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document) { fixedDocument ->

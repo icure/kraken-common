@@ -2,7 +2,7 @@ package org.taktik.icure.domain.filter.impl.device
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Device
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class DeviceByHcPartyFilter(
 	override val desc: String? = null,
@@ -13,7 +13,7 @@ data class DeviceByHcPartyFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = responsibleId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Device, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Device, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return item.responsible == responsibleId
 	}
 }

@@ -2,7 +2,7 @@ package org.taktik.icure.domain.filter.impl.contact
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Identifier
 
 data class ContactByHcPartyIdentifiersFilter(
@@ -15,7 +15,7 @@ data class ContactByHcPartyIdentifiersFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Contact, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (
 			item.endOfLife == null
 				&& (healthcarePartyId == null

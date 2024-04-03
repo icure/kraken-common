@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
@@ -107,11 +107,11 @@ data class Service(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), //stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), //stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
-	) : Encrypted, ICureDocument<String>, Comparable<Service> {
+	) : Encryptable, ICureDocument<String>, Comparable<Service> {
 	companion object : DynamicInitializer<Service>
 
 	fun merge(other: Service) = Service(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Service) = super<Encrypted>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Service) = super<Encryptable>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
 		"label" to if (this.label.isNullOrBlank()) other.label else this.label,
 		"dataClassName" to (this.dataClassName ?: other.dataClassName),
 		"index" to (this.index ?: other.index),
@@ -151,22 +151,22 @@ data class Service(
 		}
 }
 
-private data class EncryptableServiceStub(
+private data class ServiceWithEncryptionMetadataStub(
 	override val secretForeignKeys: Set<String>,
 	override val cryptedForeignKeys: Map<String, Set<Delegation>>,
 	override val delegations: Map<String, Set<Delegation>>,
 	override val encryptionKeys: Map<String, Set<Delegation>>,
 	override val encryptedSelf: Base64String?,
 	override val securityMetadata: SecurityMetadata?
-): Encryptable
+): HasEncryptionMetadata, Encryptable
 
 /**
  * If the service is 'pimped' with contact information returns the service as an encryptable entity stub, allowing it
- * to be used with any [Encryptable] methods.
+ * to be used with any [HasEncryptionMetadata] methods.
  */
-fun Service.asEncryptable(): Encryptable? = if (
+fun Service.withEncryptionMetadata(): HasEncryptionMetadata? = if (
 	contactId != null
-) EncryptableServiceStub(
+) ServiceWithEncryptionMetadataStub(
 	secretForeignKeys = secretForeignKeys ?: emptySet(),
 	cryptedForeignKeys = cryptedForeignKeys,
 	delegations = delegations,
@@ -176,7 +176,7 @@ fun Service.asEncryptable(): Encryptable? = if (
 ) else null
 
 /**
- * If [this] is a pimped service works as [Encryptable.hasDataOwnerOrDelegationKey], else returns false.
+ * If [this] is a pimped service works as [HasEncryptionMetadata.hasDataOwnerOrDelegationKey], else returns false.
  */
 fun Service.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean =
-	asEncryptable()?.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey) ?: false
+	withEncryptionMetadata()?.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey) ?: false

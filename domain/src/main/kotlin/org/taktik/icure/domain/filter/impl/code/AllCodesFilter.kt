@@ -7,7 +7,7 @@ package org.taktik.icure.domain.filter.impl.code
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.base.Code
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AllCodesFilter(
 	override val desc: String? = null,
@@ -16,5 +16,5 @@ data class AllCodesFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Code, searchKeyMatcher: (String, Encryptable) -> Boolean) = true
+	override fun matches(item: Code, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = true
 }

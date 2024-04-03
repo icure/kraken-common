@@ -23,7 +23,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
@@ -60,7 +60,7 @@ class PatientLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), PatientLogic {
+) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), PatientLogic {
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
 	}

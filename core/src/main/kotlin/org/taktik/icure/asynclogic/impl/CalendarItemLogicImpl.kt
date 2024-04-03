@@ -15,7 +15,7 @@ import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.CalendarItemLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -37,7 +37,7 @@ class CalendarItemLogicImpl(
     sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<CalendarItem, CalendarItemDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), CalendarItemLogic {
+) : EntityWithEncryptionMetadataLogic<CalendarItem, CalendarItemDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), CalendarItemLogic {
 
 	override suspend fun createCalendarItem(calendarItem: CalendarItem) =
 		fix(calendarItem) { fixedCalendarItem ->

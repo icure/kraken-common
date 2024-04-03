@@ -9,7 +9,7 @@ import org.taktik.icure.asyncdao.SecureDelegationKeyMapDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SecureDelegationKeyMapLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.SecureDelegationKeyMap
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -23,7 +23,7 @@ class SecureDelegationKeyMapLogicImpl(
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     private val secureDelegationKeyMapDAO: SecureDelegationKeyMapDAO,
     fixer: Fixer
-) : EncryptableEntityLogic<SecureDelegationKeyMap, SecureDelegationKeyMapDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic),
+) : EntityWithEncryptionMetadataLogic<SecureDelegationKeyMap, SecureDelegationKeyMapDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic),
     SecureDelegationKeyMapLogic {
     override fun entityWithUpdatedSecurityMetadata(
         entity: SecureDelegationKeyMap,

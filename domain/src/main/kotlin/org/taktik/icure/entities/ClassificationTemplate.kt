@@ -8,9 +8,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.utils.DynamicInitializer
@@ -48,11 +49,11 @@ data class ClassificationTemplate(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable {
+) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<ClassificationTemplate>
 
 	fun merge(other: ClassificationTemplate) = ClassificationTemplate(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: ClassificationTemplate) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: ClassificationTemplate) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"parentId" to (this.parentId ?: other.parentId),
 		"label" to if (this.label.isBlank()) other.label else this.label
 	)

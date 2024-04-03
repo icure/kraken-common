@@ -3,7 +3,6 @@
  */
 package org.taktik.icure.entities.embed
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -28,7 +27,7 @@ data class TypedValue(
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
     override val encryptedSelf: String? = null
-) : Comparable<TypedValue>, Encrypted, Serializable {
+) : Comparable<TypedValue>, Encryptable, Serializable {
 	companion object {
 		fun <T> withValue(value: T?): TypedValue? = value?.let {
 			withTypeAndValue(

@@ -10,9 +10,10 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.MessageAttachment
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -133,7 +134,7 @@ data class Message(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable {
+) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<Message> {
 		const val STATUS_LABO_RESULT = 1 shl 0
 		const val STATUS_UNREAD = 1 shl 1
@@ -166,7 +167,7 @@ data class Message(
 	}
 
 	fun merge(other: Message) = Message(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Message) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Message) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"fromAddress" to (this.fromAddress ?: other.fromAddress),
 		"fromHealthcarePartyId" to (this.fromHealthcarePartyId ?: other.fromHealthcarePartyId),
 		"formId" to (this.formId ?: other.formId),

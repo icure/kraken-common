@@ -19,7 +19,7 @@ package org.taktik.icure.domain.filter.impl.service
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Service
 
 data class ServiceByIdsFilter(
@@ -30,5 +30,5 @@ data class ServiceByIdsFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Service, searchKeyMatcher: (String, Encryptable) -> Boolean) = ids.contains(item.id)
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = ids.contains(item.id)
 }

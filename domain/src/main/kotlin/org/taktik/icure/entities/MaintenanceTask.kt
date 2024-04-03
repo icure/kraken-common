@@ -7,15 +7,15 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.TaskStatus
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -52,7 +52,7 @@ data class MaintenanceTask(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable {
+) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	override fun withTimestamps(created: Long?, modified: Long?) =
 		when {
 			created != null && modified != null -> this.copy(created = created, modified = modified)
