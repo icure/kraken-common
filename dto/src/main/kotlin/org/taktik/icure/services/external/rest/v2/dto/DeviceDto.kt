@@ -29,7 +29,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
-import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV1StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -66,7 +65,7 @@ data class DeviceDto(
 
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<SpkiHexStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
-	override val transferKeys: Map<KeypairFingerprintV1StringDto, Map<KeypairFingerprintV1StringDto, HexStringDto>> = emptyMap(),
+	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: SpkiHexStringDto? = null,
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet()
