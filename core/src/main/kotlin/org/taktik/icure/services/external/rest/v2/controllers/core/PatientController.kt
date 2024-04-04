@@ -265,7 +265,7 @@ class PatientController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<PatientDto, Long>> = mono {
+	): Mono<PaginatedList<PatientDto>> = mono {
 		accessLogService.aggregatePatientByAccessLogs(userId, accessType, startDate, startKey, startDocumentId, limit ?: paginationConfig.defaultLimit).let { (_, _, patients, dateNextKey, nextDocumentId) ->
 			val patientDtos = patients.map { patient ->
 				PatientDto(
@@ -289,7 +289,7 @@ class PatientController(
 			PaginatedList(
 				nextKeyPair = dateNextKey?.let {
 					PaginatedDocumentKeyIdPair(
-						it,
+						objectMapper.valueToTree(it),
 						nextDocumentId
 					)
 				},
@@ -318,7 +318,7 @@ class PatientController(
 			val patients = patientService.listPatients(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
 			log.info("Filter patients in " + (System.currentTimeMillis() - System.currentTimeMillis()) + " ms.")
 
-			patients.paginatedList(patientV2Mapper::map, realLimit)
+			patients.paginatedList(patientV2Mapper::map, realLimit, objectMapper = objectMapper)
 		} catch (e: LoginException) {
 			log.warn(e.message, e)
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)

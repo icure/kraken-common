@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PaginatedList<T, O>(
+data class PaginatedList<T>(
 	val rows: List<T> = emptyList(),
-	val nextKeyPair: PaginatedDocumentKeyIdPair<O>? = null
+	val nextKeyPair: PaginatedDocumentKeyIdPair? = null
 ) : Serializable

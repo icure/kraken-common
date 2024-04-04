@@ -266,7 +266,7 @@ class CodeController(
 
 		val paginationOffset = PaginationOffset(startKeyList, startDocumentId, skip, realLimit + 1)
 		codeService.listCodes(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
-			.paginatedList(codeV2Mapper::map, realLimit)
+			.paginatedList(codeV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")

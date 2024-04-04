@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic.impl
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -32,7 +33,8 @@ class ExchangeDataLogicImpl(
     private val sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     @Qualifier("baseEntityInfoDao") private val baseEntityInfoDao: EntityInfoDAO,
-    @Qualifier("patientEntityInfoDao") private val patientEntityInfoDao: EntityInfoDAO
+    @Qualifier("patientEntityInfoDao") private val patientEntityInfoDao: EntityInfoDAO,
+    private val objectMapper: ObjectMapper
 ) : ExchangeDataLogic {
     companion object {
         const val PAGE_SIZE = 100
@@ -90,7 +92,7 @@ class ExchangeDataLogicImpl(
                 datastoreInfo,
                 dataOwnerId,
                 PaginationOffset(PAGE_SIZE + 1, nextPage)
-            ).paginatedList<ExchangeData>(PAGE_SIZE)
+            ).paginatedList<ExchangeData>(PAGE_SIZE, objectMapper = objectMapper)
             nextPage = dataForParticipantPage.nextKeyPair?.startKeyDocId
             val counterpartsIds = dataForParticipantPage.rows
                 .flatMap { listOf(it.delegator, it.delegate) }
