@@ -38,22 +38,16 @@ data class ClassificationTemplate(
 	val parentId: String? = null,
 	val label: String = "",
 
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
-	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
-	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadata? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+) : StoredICureDocument {
 	companion object : DynamicInitializer<ClassificationTemplate>
 
 	fun merge(other: ClassificationTemplate) = ClassificationTemplate(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: ClassificationTemplate) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: ClassificationTemplate) = super<StoredICureDocument>.solveConflictsWith(other) + mapOf(
 		"parentId" to (this.parentId ?: other.parentId),
 		"label" to if (this.label.isBlank()) other.label else this.label
 	)
