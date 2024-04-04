@@ -30,20 +30,10 @@ import org.taktik.icure.validation.aspect.Fixer
 @Profile("app")
 class ClassificationTemplateLogicImpl(
     private val classificationTemplateDAO: ClassificationTemplateDAO,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<ClassificationTemplate, ClassificationTemplateDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ClassificationTemplateLogic {
-	override fun entityWithUpdatedSecurityMetadata(
-		entity: ClassificationTemplate,
-		updatedMetadata: SecurityMetadata
-	): ClassificationTemplate {
-		return entity.copy(
-			securityMetadata = updatedMetadata
-		)
-	}
-
+) : GenericLogicImpl<ClassificationTemplate, ClassificationTemplateDAO>(fixer, datastoreInstanceProvider), ClassificationTemplateLogic {
 	override fun getGenericDAO(): ClassificationTemplateDAO {
 		return classificationTemplateDAO
 	}
@@ -89,52 +79,7 @@ class ClassificationTemplateLogicImpl(
 			}
 		}
 
-	override suspend fun addDelegation(classificationTemplate: ClassificationTemplate, healthcarePartyId: String, delegation: Delegation): ClassificationTemplate? {
-		val datastoreInformation = getInstanceAndGroup()
-		return classificationTemplate.let {
-			classificationTemplateDAO.save(
-				datastoreInformation,
-				it.copy(
-					delegations = it.delegations + mapOf(
-						healthcarePartyId to setOf(delegation)
-					)
-				)
-			)
-		}
-	}
-
-	override suspend fun addDelegations(classificationTemplate: ClassificationTemplate, delegations: List<Delegation>): ClassificationTemplate? {
-		val datastoreInformation = getInstanceAndGroup()
-		return classificationTemplate.let {
-			classificationTemplateDAO.save(
-				datastoreInformation,
-				it.copy(
-					delegations = it.delegations +
-						delegations.mapNotNull { d -> d.delegatedTo?.let { delegateTo -> delegateTo to setOf(d) } }
-				)
-			)
-		}
-	}
-
 	override fun getClassificationTemplates(ids: Collection<String>): Flow<ClassificationTemplate> = getEntities(ids)
-
-	override fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<ClassificationTemplate> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(classificationTemplateDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
-		}
-
-	override fun listClassificationsByHCPartyAndSecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(classificationTemplateDAO
-			.listClassificationsByHCPartyAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
-			.toPaginatedFlow<ClassificationTemplate>(paginationOffset.limit)
-		)
-	}
 
 	override fun listClassificationTemplates(paginationOffset: PaginationOffset<String>) =
 		flow {
