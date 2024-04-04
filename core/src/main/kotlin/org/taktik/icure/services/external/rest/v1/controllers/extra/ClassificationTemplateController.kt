@@ -44,7 +44,6 @@ import reactor.core.publisher.Flux
 class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateMapper: ClassificationTemplateMapper,
-	private val delegationMapper: DelegationMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -72,15 +71,6 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys has to delimited by comma")
-	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
-		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
-
-		return elementList.map { classificationTemplateMapper.map(it) }.injectReactorContext()
-	}
-
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationTemplateIds}")
 	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifierDto> {
@@ -99,20 +89,6 @@ class ClassificationTemplateController(
 		val modifiedClassificationTemplate = classificationTemplateService.getClassificationTemplate(classificationTemplateDto.id)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template modification failed")
 		classificationTemplateMapper.map(modifiedClassificationTemplate)
-	}
-
-	@Operation(summary = "Delegates a classification Template to a healthcare party", description = "It delegates a classification Template to a healthcare party (By current healthcare party). Returns the element with new delegations.")
-	@PostMapping("/{classificationTemplateId}/delegate")
-	fun newClassificationTemplateDelegations(@PathVariable classificationTemplateId: String, @RequestBody ds: List<DelegationDto>) = mono {
-		classificationTemplateService.addDelegations(classificationTemplateId, ds.map { delegationMapper.map(it) })
-		val classificationTemplateWithDelegation = classificationTemplateService.getClassificationTemplate(classificationTemplateId)
-
-		val succeed = classificationTemplateWithDelegation?.delegations != null && classificationTemplateWithDelegation.delegations.isNotEmpty()
-		if (succeed) {
-			classificationTemplateWithDelegation?.let { classificationTemplateMapper.map(it) }
-		} else {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delegation creation for classification Template failed.")
-		}
 	}
 
 	@Operation(summary = "List all classification templates with pagination", description = "Returns a list of classification templates.")
