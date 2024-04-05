@@ -34,7 +34,7 @@ data class AuthenticationToken(
 ) : Cloneable, Serializable {
 	companion object {
 		const val LONG_LIVING_TOKEN_VALIDITY = -1L
-		const val MAX_SHORT_LIVING_TOKEN_VALIDITY = (5 * 60L) // 5 minutes
+		const val MAX_SHORT_LIVING_TOKEN_VALIDITY = (10 * 60L) // 5 minutes
 	}
 
 	@JsonIgnore
