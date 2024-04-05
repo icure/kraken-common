@@ -80,7 +80,11 @@ class ExchangeDataLogicImpl(
         }
     }
 
-    override fun getParticipantCounterparts(dataOwnerId: String, counterpartsType: List<DataOwnerType>): Flow<String> = flow {
+    override fun getParticipantCounterparts(
+        dataOwnerId: String,
+        counterpartsType: List<DataOwnerType>,
+        ignoreOnEntryForFingerprint: String?
+    ): Flow<String> = flow {
         require(counterpartsType.isNotEmpty()) { "At least one counterpart type should be provided." }
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
         val allAnalyised = mutableSetOf<String>()
@@ -93,6 +97,15 @@ class ExchangeDataLogicImpl(
             ).paginatedList<ExchangeData>(PAGE_SIZE)
             nextPage = dataForParticipantPage.nextKeyPair?.startKeyDocId
             val counterpartsIds = dataForParticipantPage.rows
+                .let { rows ->
+                    if (ignoreOnEntryForFingerprint != null) {
+                        rows.filterNot {
+                            it.exchangeKey.containsKey(ignoreOnEntryForFingerprint)
+                                && it.accessControlSecret.containsKey(ignoreOnEntryForFingerprint)
+                                && it.sharedSignatureKey.containsKey(ignoreOnEntryForFingerprint)
+                        }
+                    } else rows
+                }
                 .flatMap { listOf(it.delegator, it.delegate) }
                 .toSet() - dataOwnerId - allAnalyised
             allAnalyised.addAll(counterpartsIds)
