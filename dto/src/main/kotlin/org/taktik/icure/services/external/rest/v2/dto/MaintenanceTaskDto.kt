@@ -5,6 +5,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
@@ -34,6 +35,7 @@ data class MaintenanceTaskDto(
 
     val taskType: String? = null,
     val properties: Set<PropertyStubDto> = emptySet(),
+	@Schema(defaultValue = "TaskStatusDto.pending")
     val status: TaskStatusDto = TaskStatusDto.pending,
 
     override val secretForeignKeys: Set<String> = emptySet(),
