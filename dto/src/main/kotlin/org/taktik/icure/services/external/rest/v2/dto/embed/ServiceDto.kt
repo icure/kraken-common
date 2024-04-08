@@ -28,6 +28,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -72,9 +73,9 @@ data class ServiceDto(
 	@Schema(description = "Links towards related services (possibly in other contacts)") val qualifiedLinks: Map<LinkQualificationDto, Map<String, String>> = emptyMap(), //Links towards related services (possibly in other contacts)
 	override val codes: Set<CodeStubDto> = emptySet(), //stub object of the CodeDto used to qualify the content of the ServiceDto
 	override val tags: Set<CodeStubDto> = emptySet(), //stub object of the tag used to qualify the type of the ServiceDto
-	override val encryptedSelf: String? = null,
+	override val encryptedSelf: Base64StringDto? = null,
 	val securityMetadata: SecurityMetadataDto? = null
-) : EncryptedDto, ICureDocumentDto<String>, Comparable<ServiceDto> {
+) : EncryptableDto, ICureDocumentDto<String>, Comparable<ServiceDto> {
 	override fun compareTo(other: ServiceDto): Int {
 		if (this == other) {
 			return 0

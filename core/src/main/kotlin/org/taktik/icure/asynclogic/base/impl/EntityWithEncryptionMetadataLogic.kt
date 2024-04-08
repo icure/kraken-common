@@ -14,7 +14,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.GenericLogicImpl
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.SecureDelegation
@@ -37,7 +37,7 @@ import org.taktik.icure.utils.hexStringToByteArray
 import org.taktik.icure.utils.reachSetExcludingZeroLength
 import org.taktik.icure.validation.aspect.Fixer
 
-abstract class EncryptableEntityLogic<E, D>(
+abstract class EntityWithEncryptionMetadataLogic<E, D>(
     fixer: Fixer,
     private val sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -45,7 +45,7 @@ abstract class EncryptableEntityLogic<E, D>(
 ) : GenericLogicImpl<E, D>(fixer, datastoreInstanceProvider),
     EntityWithSecureDelegationsLogic<E>
 where
-    E : Encryptable, E : Versionable<String>,
+    E : HasEncryptionMetadata, E : Versionable<String>,
     D : GenericDAO<E>
 {
 
@@ -140,7 +140,7 @@ where
         }
     }
 
-    private suspend fun <T : Encryptable> createExchangeDataMapIfNotExisting(
+    private suspend fun <T : HasEncryptionMetadata> createExchangeDataMapIfNotExisting(
         requests: BulkShareOrUpdateMetadataParams,
         validatedRequests: List<ValidatedShareRequest<T>>
     ) {
@@ -160,7 +160,7 @@ where
         exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(mapsToCreate).collect()
     }
 
-    private data class ValidatedShareRequest<E : Encryptable>(
+    private data class ValidatedShareRequest<E : HasEncryptionMetadata>(
         val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequest>,
         val entityId: String,
         val entityRev: String,

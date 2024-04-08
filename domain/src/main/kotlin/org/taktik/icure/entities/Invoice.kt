@@ -11,9 +11,10 @@ import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.IdentityDocumentReader
 import org.taktik.icure.entities.embed.InvoiceInterventionType
 import org.taktik.icure.entities.embed.InvoiceType
@@ -118,11 +119,11 @@ data class Invoice(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable {
+) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<Invoice>
 
 	fun merge(other: Invoice) = Invoice(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Invoice) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Invoice) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"invoiceDate" to (this.invoiceDate ?: other.invoiceDate),
 		"sentDate" to (this.sentDate ?: other.sentDate),
 		"printedDate" to (this.printedDate ?: other.printedDate),

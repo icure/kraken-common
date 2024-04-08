@@ -4,6 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -57,7 +58,8 @@ class MaintenanceTaskController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper
 ) {
 	@Operation(summary = "Creates a maintenanceTask")
 	@PostMapping
@@ -109,7 +111,7 @@ class MaintenanceTaskController(
 
 		maintenanceTaskService
 			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
-			.paginatedList(maintenanceTaskMapper::map, realLimit)
+			.paginatedList(maintenanceTaskMapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(description = "Shares one or more patients with one or more data owners")

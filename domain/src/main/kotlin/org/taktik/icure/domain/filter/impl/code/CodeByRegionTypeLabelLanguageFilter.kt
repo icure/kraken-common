@@ -8,7 +8,7 @@ import java.util.Objects
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.Code
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class CodeByRegionTypeLabelLanguageFilter(
 	override val desc: String? = null,
@@ -34,7 +34,7 @@ data class CodeByRegionTypeLabelLanguageFilter(
 		return Objects.hash(region, type, language, label)
 	}
 
-	override fun matches(item: Code, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Code, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val ss = sanitizeString(label)
 		return ss != null && (
 			(region == null || item.regions.contains(region)) && item.label?.get(language)?.let { s -> sanitizeString(s)?.contains(ss) } == true

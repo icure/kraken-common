@@ -4,10 +4,10 @@
 
 package org.taktik.icure.entities.embed
 
-interface Encrypted {
+interface Encryptable {
 	val encryptedSelf: String?
 
-	fun solveConflictsWith(other: Encrypted) = mapOf(
+	fun solveConflictsWith(other: Encryptable) = mapOf(
 		"encryptedSelf" to (this.encryptedSelf ?: other.encryptedSelf)
 	)
 }

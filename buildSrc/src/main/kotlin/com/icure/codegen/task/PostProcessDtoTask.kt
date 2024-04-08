@@ -7,7 +7,7 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class PostProcessDtoTask : DefaultTask() {
 	@get:InputDirectory
-	abstract val rootDir: DirectoryProperty
+	abstract val inputDir: DirectoryProperty
 
 	private val quotes = listOf(
 		"I'm gonna build my own theme park! With blackjack! And hookers! You know what- forget the park!",

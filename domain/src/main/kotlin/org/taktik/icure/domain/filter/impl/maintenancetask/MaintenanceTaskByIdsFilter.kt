@@ -6,7 +6,7 @@ package org.taktik.icure.domain.filter.impl.maintenancetask
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.MaintenanceTask
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class MaintenanceTaskByIdsFilter(
 	override val desc: String? = null,
@@ -16,5 +16,5 @@ data class MaintenanceTaskByIdsFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, Encryptable) -> Boolean) = ids.contains(item.id)
+	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = ids.contains(item.id)
 }

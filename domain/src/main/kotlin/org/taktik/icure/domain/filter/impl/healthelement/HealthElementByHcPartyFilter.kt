@@ -20,7 +20,7 @@ package org.taktik.icure.domain.filter.impl.healthelement
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.HealthElement
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthElementByHcPartyFilter(
 	override val hcpId: String,
@@ -30,6 +30,6 @@ data class HealthElementByHcPartyFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 
-	override fun matches(item: HealthElement, searchKeyMatcher: (String, Encryptable) -> Boolean) = searchKeyMatcher(hcpId, item)
+	override fun matches(item: HealthElement, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchKeyMatcher(hcpId, item)
 
 }

@@ -1,5 +1,6 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -36,9 +37,9 @@ import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -54,6 +55,7 @@ class DeviceController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper
 ) {
 	companion object {
 		private val log = LoggerFactory.getLogger(DeviceController::class.java)
@@ -112,7 +114,7 @@ class DeviceController(
 
 		deviceService
 			.filterDevices(filterChainV2Mapper.tryMap(filterChain).orThrow(), realLimit + 1, startDocumentId)
-			.paginatedList(deviceV2Mapper::map, realLimit)
+			.paginatedList(deviceV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(

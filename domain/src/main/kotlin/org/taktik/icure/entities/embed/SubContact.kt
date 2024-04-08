@@ -69,7 +69,7 @@ data class SubContact(
 	val classificationId: String? = null,
 	val services: List<ServiceLink> = emptyList(),
 	override val encryptedSelf: String? = null
-) : Encrypted, ICureDocument<String?> {
+) : Encryptable, ICureDocument<String?> {
 	companion object : DynamicInitializer<SubContact> {
 		const val STATUS_LABO_RESULT = 1
 		const val STATUS_UNREAD = 2
@@ -81,7 +81,7 @@ data class SubContact(
 	}
 
 	fun merge(other: SubContact) = SubContact(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: SubContact) = super<Encrypted>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: SubContact) = super<Encryptable>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
 		"descr" to (this.descr ?: other.descr),
 		"protocol" to (this.protocol ?: other.protocol),
 		"status" to (this.status ?: other.status),

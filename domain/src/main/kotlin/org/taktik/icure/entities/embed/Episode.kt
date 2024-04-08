@@ -24,7 +24,7 @@ data class Episode(
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) var startDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) var endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable, Identifiable<String>, Named {
+) : Encryptable, Serializable, Identifiable<String>, Named {
 	companion object : DynamicInitializer<Episode>
 
 	fun merge(other: Episode) = Episode(args = this.solveConflictsWith(other))

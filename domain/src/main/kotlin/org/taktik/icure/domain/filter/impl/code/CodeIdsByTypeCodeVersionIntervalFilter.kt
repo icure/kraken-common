@@ -2,7 +2,7 @@ package org.taktik.icure.domain.filter.impl.code
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.Code
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class CodeIdsByTypeCodeVersionIntervalFilter (
 	override val desc: String?,
@@ -17,7 +17,7 @@ data class CodeIdsByTypeCodeVersionIntervalFilter (
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Code, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Code, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val typeCondition = item.type != null &&
 			(startType == null || item.type >= startType) &&
 			(endType == null || item.type <= endType)

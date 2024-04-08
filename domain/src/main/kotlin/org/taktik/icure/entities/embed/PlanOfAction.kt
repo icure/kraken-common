@@ -88,7 +88,7 @@ data class PlanOfAction(
 	val numberOfCares: Int? = null,
 	val careTeamMemberships: List<CareTeamMembership?> = emptyList(),
 	override val encryptedSelf: String? = null
-) : Encrypted, ICureDocument<String>, Named {
+) : Encryptable, ICureDocument<String>, Named {
 	companion object : DynamicInitializer<PlanOfAction> {
 		const val STATUS_PLANNED = 1 shl 0
 		const val STATUS_ONGOING = 1 shl 1
@@ -98,7 +98,7 @@ data class PlanOfAction(
 	}
 
 	fun merge(other: PlanOfAction) = PlanOfAction(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: PlanOfAction) = super<Encrypted>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: PlanOfAction) = super<Encryptable>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
 		"valueDate" to (this.valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
 		"openingDate" to (this.openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
 		"closingDate" to (this.closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),

@@ -20,7 +20,7 @@ package org.taktik.icure.domain.filter.impl.hcparty
 import org.taktik.icure.db.sanitize
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthcarePartyByNameFilter(
 	override val desc: String? = null,
@@ -31,7 +31,7 @@ data class HealthcarePartyByNameFilter(
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return ((item.lastName ?: "") + (item.firstName ?: "")).contains(name.sanitize()!!, true)
 	}
 }

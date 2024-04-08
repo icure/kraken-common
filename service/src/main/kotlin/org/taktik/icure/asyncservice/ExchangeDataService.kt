@@ -64,9 +64,11 @@ interface ExchangeDataService {
      * data where the data owner is delegate. Return only counterparts that are data owners of the specified type.
      * @param dataOwnerId id of a data owner.
      * @param counterpartsType data owners types for counterparts which will be returned.
+     * @param ignoreOnEntryForFingerprint if not null ignore the exchange data where there is an entry for the provided
+     * fingerprint.
      * @return the ids of all data owners in exchange data with the current data owner that are one of the specified
      * types.
      * @throws IllegalArgumentException if counterpartTypes is empty.
      */
-    fun getParticipantCounterparts(dataOwnerId: String, counterpartsType: List<DataOwnerType>): Flow<String>
+    fun getParticipantCounterparts(dataOwnerId: String, counterpartsType: List<DataOwnerType>, ignoreOnEntryForFingerprint: String?): Flow<String>
 }

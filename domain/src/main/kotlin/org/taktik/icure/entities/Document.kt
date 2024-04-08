@@ -11,7 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
@@ -19,6 +19,7 @@ import org.taktik.icure.entities.embed.DeletedAttachment
 import org.taktik.icure.entities.embed.DocumentLocation
 import org.taktik.icure.entities.embed.DocumentStatus
 import org.taktik.icure.entities.embed.DocumentType
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
@@ -111,7 +112,7 @@ data class Document(
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
-) : StoredICureDocument, Encryptable, HasDataAttachments<Document> {
+) : StoredICureDocument, HasEncryptionMetadata, HasDataAttachments<Document>, Encryptable {
 	companion object : DynamicInitializer<Document>
 
 	@get:JsonIgnore
@@ -152,7 +153,7 @@ data class Document(
 
 	fun merge(other: Document) = Document(args = this.solveConflictsWith(other))
 
-	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
 		"size" to (this.size ?: other.size),
 		"hash" to (this.hash ?: other.hash),
 		"openingContactId" to (this.openingContactId ?: other.openingContactId),

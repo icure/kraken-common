@@ -312,7 +312,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val messages = messageService.filterMessages(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		messages.paginatedList(messageV2Mapper::map, realLimit)
+		messages.paginatedList(messageV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of messages matching the provided filter")

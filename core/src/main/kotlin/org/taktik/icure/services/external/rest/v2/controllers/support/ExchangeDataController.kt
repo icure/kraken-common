@@ -93,10 +93,12 @@ class ExchangeDataController(
 	fun getParticipantCounterparts(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
+		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
 	) = mono {
 		exchangeDataLogic.getParticipantCounterparts(
 			dataOwnerId,
-			counterpartsTypes.split(",").map { DataOwnerType.valueOf(it.uppercase()) }
+			counterpartsTypes.split(",").map { DataOwnerType.valueOf(it.uppercase()) },
+			ignoreOnEntryForFingerprint
 		).toList()
 	}
 }

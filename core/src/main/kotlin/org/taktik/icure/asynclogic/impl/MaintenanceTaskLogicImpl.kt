@@ -13,7 +13,7 @@ import org.taktik.icure.asyncdao.MaintenanceTaskDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MaintenanceTaskLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -35,7 +35,7 @@ class MaintenanceTaskLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<MaintenanceTask, MaintenanceTaskDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), MaintenanceTaskLogic {
+) : EntityWithEncryptionMetadataLogic<MaintenanceTask, MaintenanceTaskDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), MaintenanceTaskLogic {
 
 	override fun listMaintenanceTasksByHcPartyAndIdentifier(healthcarePartyId: String, identifiers: List<Identifier>): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()

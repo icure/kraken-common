@@ -20,7 +20,7 @@ package org.taktik.icure.domain.filter.impl.contact
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class ContactByHcPartyFilter(
 	override val hcpId: String,
@@ -29,5 +29,5 @@ data class ContactByHcPartyFilter(
 
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
-	override fun matches(item: Contact, searchKeyMatcher: (String, Encryptable) -> Boolean) = searchKeyMatcher(hcpId, item)
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchKeyMatcher(hcpId, item)
 }

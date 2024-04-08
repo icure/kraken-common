@@ -27,5 +27,5 @@ data class DatabaseInitialisationDto(
     val users: List<UserDto>? = emptyList(),
     val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
     val replication: ReplicationDto? = null,
-    val minimumKrakenVersion: String?,
+    val minimumKrakenVersion: String? = null,
 ) : Serializable

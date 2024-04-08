@@ -6,7 +6,7 @@ package org.taktik.icure.domain.filter.impl.patient
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.Patient
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class PatientByIdsFilter(
 	override val ids: Set<String>,
@@ -16,5 +16,5 @@ data class PatientByIdsFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Patient, searchKeyMatcher: (String, Encryptable) -> Boolean) = ids.contains(item.id)
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = ids.contains(item.id)
 }

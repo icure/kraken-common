@@ -232,7 +232,7 @@ class HealthElementController(
 
 		val healthElements = healthElementService.filter(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		healthElements.paginatedList(healthElementV2Mapper::map, realLimit)
+		healthElements.paginatedList(healthElementV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(description = "Shares one or more health elements with one or more data owners")

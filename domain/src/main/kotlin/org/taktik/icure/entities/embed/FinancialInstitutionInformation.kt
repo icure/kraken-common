@@ -20,4 +20,4 @@ data class FinancialInstitutionInformation(
 	@param:ContentValue(ContentValues.ANY_STRING) val proxyBic: String? = null,
 	val preferredFiiForPartners: Set<String> = emptySet(), //Insurance Id, Hcp Id
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable
+) : Encryptable, Serializable

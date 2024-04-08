@@ -6,13 +6,11 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.ReactorContext
-import org.springframework.context.annotation.Profile
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.core.Authentication
-import org.springframework.stereotype.Service
 import org.springframework.web.server.ServerWebExchange
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Sha256HexString
 import org.taktik.icure.entities.DataOwnerType
@@ -42,7 +40,7 @@ open class SessionInformationProviderImpl(
         } ?: throw AuthenticationServiceException("Failed to extract current data owner id")
     }
 
-    override suspend fun getSearchKeyMatcher(): (String, Encryptable) -> Boolean {
+    override suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean {
         val authenticationDetails = getDataOwnerAuthenticationDetails()
         return { hcpId, item ->
             if (hcpId == authenticationDetails.dataOwner?.id)

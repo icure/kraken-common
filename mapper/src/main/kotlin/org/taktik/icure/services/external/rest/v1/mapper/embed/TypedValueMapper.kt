@@ -15,23 +15,23 @@ import java.util.*
 
 @Mapper(componentModel = "spring", uses = [InstantMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class TypedValueMapper {
-	fun map(typedValueDto: TypedValueDto<*>?): TypedValue<*>? {
+	fun map(typedValueDto: TypedValueDto?): TypedValue? {
 		return if (typedValueDto == null) null else when (typedValueDto.type) {
-			TypedValuesTypeDto.STRING -> TypedValue.withTypeAndValue(TypedValuesType.STRING, typedValueDto.getValue<String>())
-			TypedValuesTypeDto.DATE -> TypedValue.withTypeAndValue(TypedValuesType.DATE, typedValueDto.getValue<Date>())
-			TypedValuesTypeDto.INTEGER -> TypedValue.withTypeAndValue(TypedValuesType.INTEGER, typedValueDto.getValue<Int>())
-			TypedValuesTypeDto.DOUBLE -> TypedValue.withTypeAndValue(TypedValuesType.DOUBLE, typedValueDto.getValue<Double>())
-			TypedValuesTypeDto.BOOLEAN -> TypedValue.withTypeAndValue(TypedValuesType.BOOLEAN, typedValueDto.getValue<Boolean>())
-			TypedValuesTypeDto.CLOB -> TypedValue.withTypeAndValue(TypedValuesType.CLOB, typedValueDto.getValue<String>())
-			TypedValuesTypeDto.JSON -> TypedValue.withTypeAndValue(TypedValuesType.JSON, typedValueDto.getValue<String>())
-			null -> TypedValue<String>(
+			TypedValuesTypeDto.STRING -> TypedValue.withTypeAndValue(TypedValuesType.STRING, typedValueDto.stringValue)
+			TypedValuesTypeDto.DATE -> TypedValue.withTypeAndValue(TypedValuesType.DATE, typedValueDto.dateValue)
+			TypedValuesTypeDto.INTEGER -> TypedValue.withTypeAndValue(TypedValuesType.INTEGER, typedValueDto.integerValue)
+			TypedValuesTypeDto.DOUBLE -> TypedValue.withTypeAndValue(TypedValuesType.DOUBLE, typedValueDto.doubleValue)
+			TypedValuesTypeDto.BOOLEAN -> TypedValue.withTypeAndValue(TypedValuesType.BOOLEAN, typedValueDto.booleanValue)
+			TypedValuesTypeDto.CLOB -> TypedValue.withTypeAndValue(TypedValuesType.CLOB, typedValueDto.stringValue)
+			TypedValuesTypeDto.JSON -> TypedValue.withTypeAndValue(TypedValuesType.JSON, typedValueDto.stringValue)
+			null -> TypedValue(
 				booleanValue = typedValueDto.booleanValue,
 				integerValue = typedValueDto.integerValue,
 				doubleValue = typedValueDto.doubleValue,
 				stringValue = typedValueDto.stringValue,
 				dateValue = typedValueDto.dateValue
 			)
-		} ?: TypedValue<String>(
+		} ?: TypedValue(
 			booleanValue = typedValueDto.booleanValue,
 			integerValue = typedValueDto.integerValue,
 			doubleValue = typedValueDto.doubleValue,
@@ -40,16 +40,16 @@ abstract class TypedValueMapper {
 		)
 	}
 
-	fun map(typedValue: TypedValue<*>?): TypedValueDto<*>? {
+	fun map(typedValue: TypedValue?): TypedValueDto? {
 		return if (typedValue == null) null else when (typedValue.type) {
-			TypedValuesType.STRING -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.STRING, typedValue.getValue<String>())
-			TypedValuesType.DATE -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.DATE, typedValue.getValue<Date>())
-			TypedValuesType.INTEGER -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.INTEGER, typedValue.getValue<Int>())
-			TypedValuesType.DOUBLE -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.DOUBLE, typedValue.getValue<Double>())
-			TypedValuesType.BOOLEAN -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.BOOLEAN, typedValue.getValue<Boolean>())
-			TypedValuesType.CLOB -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.CLOB, typedValue.getValue<String>())
-			TypedValuesType.JSON -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.JSON, typedValue.getValue<String>())
-			null -> TypedValueDto<String>(
+			TypedValuesType.STRING -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.STRING, typedValue.stringValue)
+			TypedValuesType.DATE -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.DATE, typedValue.dateValue)
+			TypedValuesType.INTEGER -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.INTEGER, typedValue.integerValue)
+			TypedValuesType.DOUBLE -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.DOUBLE, typedValue.doubleValue)
+			TypedValuesType.BOOLEAN -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.BOOLEAN, typedValue.booleanValue)
+			TypedValuesType.CLOB -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.CLOB, typedValue.stringValue)
+			TypedValuesType.JSON -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.JSON, typedValue.stringValue)
+			null -> TypedValueDto(
 				booleanValue = typedValue.booleanValue,
 				integerValue = typedValue.integerValue,
 				doubleValue = typedValue.doubleValue,
