@@ -251,13 +251,12 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 	}
 }
 
-
 suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, useDataOwner: Boolean) =
 	createQueries(client, metadataSource, clazz, useDataOwner, viewQueryOnMain.main(), viewQueryOnSecondary)
 
 suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, useDataOwner: Boolean, vararg viewQueries: Pair<String, String?>) =
 	NoDocViewQueries(viewQueries.mapNotNull { (v,p) ->
-		if(p == DATA_OWNER_PARTITION && useDataOwner) {
+		if(p != DATA_OWNER_PARTITION || useDataOwner) {
 			createQuery(client, metadataSource, v, clazz, p)
 		} else null
 	})
@@ -286,7 +285,7 @@ suspend fun <P> DesignDocumentProvider.createPagedQueries(
 	descending: Boolean,
 	useDataOwner: Boolean
 ): ViewQueries = ViewQueries(viewQueries.mapNotNull { (v,p) ->
-	if(p == DATA_OWNER_PARTITION && useDataOwner) {
+	if(p != DATA_OWNER_PARTITION || useDataOwner) {
 		pagedViewQuery(client, metadataSource, v, clazz, startKey, endKey, pagination, descending, p)
 	} else null
 })

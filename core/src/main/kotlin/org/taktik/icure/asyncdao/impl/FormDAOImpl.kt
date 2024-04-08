@@ -128,17 +128,7 @@ internal class FormDAOImpl(
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
-			Partitions.DataOwner -> {
-				val client = couchDbDispatcher.getClient(datastoreInformation)
-				client.interleave<Array<String>, String, Form>(
-					createQueries(
-						datastoreInformation,
-						useDataOwnerPartition = true,
-						"by_data_owner_parentId" to DATA_OWNER_PARTITION
-					).keys(emptyList<String>()).includeDocs(),
-					compareBy({it[0]}, {it[1]}),
-				).first()
-			}
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_parentId" to DATA_OWNER_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 

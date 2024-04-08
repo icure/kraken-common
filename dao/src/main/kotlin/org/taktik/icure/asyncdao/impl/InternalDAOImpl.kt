@@ -200,20 +200,20 @@ open class InternalDAOImpl<T : StoredDocument>(
 		designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, secondaryPartition)
 
 	protected suspend fun createQueries(vararg viewQueries: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, *viewQueries)
+		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, true, *viewQueries)
 
 	protected suspend fun createQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary)
+		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, true)
 
 
 	protected suspend fun <P> pagedViewQuery(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
 
 	protected suspend fun <P> createPagedQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending)
+		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, true)
 
 	protected suspend fun <P> createPagedQueries(viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueries, startKey, endKey, pagination, descending)
+		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueries, startKey, endKey, pagination, descending, true)
 
 	protected suspend fun <P> pagedViewQueryOfIds(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
 		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
