@@ -47,7 +47,7 @@ data class AccessLogDto(
     override val medicalLocationId: String? = null,
     override val tags: Set<CodeStubDto> = emptySet(),
     override val codes: Set<CodeStubDto> = emptySet(),
-    override val endOfLife: Long?,
+    override val endOfLife: Long? = null,
     override val deletionDate: Long? = null,
     @Schema(description = "Id of the object that is being requested.") val objectId: String? = null,
     @Schema(description = "The type of access") val accessType: String? = null,
