@@ -327,6 +327,6 @@ class HealthcarePartyController(
         val healthcareParties =
             healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-        healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit)
+        healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit, objectMapper = objectMapper)
     }
 }

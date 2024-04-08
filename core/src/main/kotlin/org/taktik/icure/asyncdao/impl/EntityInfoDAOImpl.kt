@@ -1,7 +1,9 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -19,20 +21,12 @@ class EntityInfoDAOImpl(
         ids: Collection<String>
     ): Flow<EntityInfo> = flow {
         val client = couchDbDispatcher.getClient(datastoreInformation)
-        var next: PaginatedDocumentKeyIdPair<*>? = null
-        do {
-            val viewQuery = ViewQuery()
-                .allDocs()
-                .includeDocs(true)
-                .keys(ids)
-                .ignoreNotFound(true)
-                .limit(ids.size + 1)
-                .startKey(next?.startKey)
-                .startDocId(next?.startKeyDocId)
-            val retrieved = client.queryViewIncludeDocsNoValue<String, EntityInfo>(viewQuery)
-                .paginatedList<EntityInfo>(ids.size)
-            next = retrieved.nextKeyPair
-            retrieved.rows.forEach { emit(it) }
-        } while (next != null)
+
+        val viewQuery = ViewQuery()
+            .allDocs()
+            .includeDocs(true)
+            .keys(ids)
+            .ignoreNotFound(true)
+        emitAll(client.queryViewIncludeDocsNoValue<String, EntityInfo>(viewQuery).map { it.doc })
     }
 }

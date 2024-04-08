@@ -355,7 +355,7 @@ class ContactController(
 
 		val contacts = contactService.filterContacts(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		contacts.paginatedList(contactV2Mapper::map, realLimit)
+		contacts.paginatedList(contactV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")

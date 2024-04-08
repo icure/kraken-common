@@ -20,10 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.JsonNode
 
-/**
- * Created by emad7105 on 11/07/2014.
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PaginatedDocumentKeyIdPair<K>(var startKey: K? = null, var startKeyDocId: String? = null) : Serializable
+data class PaginatedDocumentKeyIdPair(var startKey: JsonNode? = null, var startKeyDocId: String? = null) : Serializable
