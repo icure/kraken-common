@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -34,8 +35,10 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.base.Code
@@ -47,8 +50,9 @@ import org.taktik.icure.entities.base.Code
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(Code::class.java), designDocumentProvider), CodeDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(Code::class.java), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"
@@ -755,6 +759,13 @@ import org.taktik.icure.entities.base.Code
 			).mapNotNull { row ->
 				row.doc.takeIf { it.matchesRegion(region) && it.matchesAllLabelParts(lang, otherParts) }
 			}.firstOrNull()
+		}
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "by_language_type_label" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
 }

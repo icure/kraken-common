@@ -13,6 +13,7 @@ import org.taktik.icure.asyncdao.SecureDelegationKeyMapDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.localOnlyCache
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.SecureDelegationKeyMap
 
 @Repository("secureDelegationKeyMapDAO")
@@ -22,14 +23,17 @@ class SecureDelegationKeyMapDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
+	designDocumentProvider: DesignDocumentProvider,
+    daoConfig: DaoConfig
 ) : GenericDAOImpl<SecureDelegationKeyMap>(
     SecureDelegationKeyMap::class.java,
     couchDbDispatcher,
     idGenerator,
     entityCacheFactory.localOnlyCache(),
-    designDocumentProvider
+    designDocumentProvider,
+    daoConfig = daoConfig
 ), SecureDelegationKeyMapDAO {
+
     @View(name = "by_delegation_key", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(doc.delegationKey, null)}")
     override suspend fun findByDelegationKeys(datastoreInformation: IDatastoreInformation, delegationKeys: List<String>) = flow {
         val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -42,4 +46,5 @@ class SecureDelegationKeyMapDAOImpl(
             emit(it.doc)
         }
     }
+
 }

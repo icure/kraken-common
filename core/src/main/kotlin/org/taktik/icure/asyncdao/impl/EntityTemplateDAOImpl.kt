@@ -20,6 +20,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.EntityTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.EntityTemplate
 import org.taktik.icure.utils.distinctById
@@ -31,8 +32,10 @@ class EntityTemplateDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<EntityTemplate>(EntityTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(EntityTemplate::class.java), designDocumentProvider), EntityTemplateDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<EntityTemplate>(EntityTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(EntityTemplate::class.java), designDocumentProvider, daoConfig = daoConfig), EntityTemplateDAO {
+
 	@View(name = "by_user_type_descr", map = "classpath:js/entitytemplate/By_user_type_descr.js")
 	override fun listEntityTemplatesByUserIdTypeDescr(datastoreInformation: IDatastoreInformation, userId: String, type: String, searchString: String?, includeEntities: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

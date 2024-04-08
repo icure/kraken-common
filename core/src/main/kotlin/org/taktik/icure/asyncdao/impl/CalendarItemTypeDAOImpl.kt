@@ -18,6 +18,7 @@ import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 
@@ -28,8 +29,9 @@ class CalendarItemTypeDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<CalendarItemType>(CalendarItemType::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItemType::class.java), designDocumentProvider), CalendarItemTypeDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<CalendarItemType>(CalendarItemType::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItemType::class.java), designDocumentProvider, daoConfig = daoConfig), CalendarItemTypeDAO {
 	@View(name = "all_and_deleted", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType') emit( doc._id , null )}")
 	override fun getCalendarItemsWithDeleted(
 		datastoreInformation: IDatastoreInformation,

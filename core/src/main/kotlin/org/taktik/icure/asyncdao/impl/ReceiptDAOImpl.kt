@@ -21,6 +21,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Receipt
 
 @Repository("receiptDAO")
@@ -30,8 +31,10 @@ class ReceiptDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Receipt::class.java), designDocumentProvider), ReceiptDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Receipt::class.java), designDocumentProvider, daoConfig = daoConfig), ReceiptDAO {
+
 	@View(name = "by_reference", map = "classpath:js/receipt/By_ref.js")
 	override fun listByReference(datastoreInformation: IDatastoreInformation, ref: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

@@ -4,8 +4,6 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -20,18 +18,18 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.FrontEndMigrationDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.FrontEndMigration
 
-@ExperimentalCoroutinesApi
-@FlowPreview
 @Repository("frontEndMigrationDAO")
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FrontEndMigration' && !doc.deleted) emit( null, doc._id )}")
 class FrontEndMigrationDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<FrontEndMigration>(FrontEndMigration::class.java, couchDbDispatcher, idGenerator, designDocumentProvider = designDocumentProvider), FrontEndMigrationDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<FrontEndMigration>(FrontEndMigration::class.java, couchDbDispatcher, idGenerator, designDocumentProvider = designDocumentProvider, daoConfig = daoConfig), FrontEndMigrationDAO {
 
 	@View(
 		name = "by_userid_name",

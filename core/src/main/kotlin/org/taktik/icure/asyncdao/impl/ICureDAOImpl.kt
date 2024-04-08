@@ -28,7 +28,7 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.embed.DatabaseSynchronization
 import org.taktik.icure.security.CouchDbCredentialsProvider
 
-@ExperimentalCoroutinesApi
+@OptIn(ExperimentalCoroutinesApi::class)
 @Repository("iCureDAO")
 @Profile("app")
 class ICureDAOImpl(

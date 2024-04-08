@@ -23,8 +23,10 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MaintenanceTaskDAO
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.distinct
@@ -37,8 +39,9 @@ class MaintenanceTaskDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<MaintenanceTask>(MaintenanceTask::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(MaintenanceTask::class.java), designDocumentProvider), MaintenanceTaskDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<MaintenanceTask>(MaintenanceTask::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(MaintenanceTask::class.java), designDocumentProvider, daoConfig = daoConfig), MaintenanceTaskDAO {
 
 	@Views(
     	View(name = "by_hcparty_identifier", map = "classpath:js/maintenancetask/By_hcparty_identifier_map.js"),
@@ -122,5 +125,13 @@ class MaintenanceTaskDAOImpl(
 	override fun findMaintenanceTasksByIds(datastoreInformation: IDatastoreInformation, maintenanceTasksId: Flow<String>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.getForPagination(maintenanceTasksId, MaintenanceTask::class.java))
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_identifier" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+
 	}
 }

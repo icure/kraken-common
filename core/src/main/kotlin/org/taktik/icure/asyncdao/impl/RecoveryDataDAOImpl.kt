@@ -19,6 +19,7 @@ import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.localOnlyCache
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.config.DaoConfig
 
 @Repository("RecoveryDataDAO")
 @Profile("app")
@@ -27,14 +28,17 @@ class RecoveryDataDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
+	designDocumentProvider: DesignDocumentProvider,
+    daoConfig: DaoConfig
 ) : GenericDAOWithMinimalPurgeImpl<RecoveryData>(
     RecoveryData::class.java,
     couchDbDispatcher,
     idGenerator,
     entityCacheFactory.localOnlyCache(),
-    designDocumentProvider
-), RecoveryDataDAO{
+    designDocumentProvider,
+    daoConfig = daoConfig
+), RecoveryDataDAO {
+
     @View(name = "by_recipient_and_type", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted && doc.recipient && doc.type) emit([doc.recipient, doc.type], doc._rev)}")
     override fun findRecoveryDataIdsByRecipientAndType(
         datastoreInformation: IDatastoreInformation,

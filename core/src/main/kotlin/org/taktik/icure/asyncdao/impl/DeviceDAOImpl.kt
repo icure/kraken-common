@@ -18,6 +18,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Device
 
 @Repository("deviceDAO")
@@ -27,8 +28,9 @@ class DeviceDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<Device>(Device::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Device::class.java), designDocumentProvider), DeviceDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<Device>(Device::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Device::class.java), designDocumentProvider, daoConfig = daoConfig), DeviceDAO {
 
 	override fun findDevicesByIds(datastoreInformation: IDatastoreInformation, deviceIds: Flow<String>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -80,20 +82,14 @@ class DeviceDAOImpl(
 				.includeDocs(false)
 		).map { it.key to it.value }
 
-		return result.fold(emptyMap<String, Map<String, Map<String, String>>>()) { acc, (key, value) ->
+		return result.fold(emptyMap()) { acc, (key, value) ->
 			if (key != null && value != null) {
 				acc + (
 					value[0] to (acc[value[0]] ?: emptyMap()).let {
-						it + (
-							value[1].let { it.substring((it.length - 32).coerceAtLeast(0)) } to (
-								it[value[1]]
-									?: emptyMap()
-								).let { dels ->
-								dels + (value[2] to value[3])
-							}
-							)
-					}
-					)
+						it + (value[1].let { v -> v.substring((v.length - 32).coerceAtLeast(0)) }
+								to (it[value[1]] ?: emptyMap()).let { dels -> dels + (value[2] to value[3]) }
+					) }
+				)
 			} else acc
 		}
 	}

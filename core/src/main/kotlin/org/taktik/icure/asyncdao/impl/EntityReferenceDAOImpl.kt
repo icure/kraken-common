@@ -17,6 +17,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.EntityReferenceDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.EntityReference
 
 @Repository("entityReferenceDAO")
@@ -26,8 +27,9 @@ class EntityReferenceDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<EntityReference>(EntityReference::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(EntityReference::class.java), designDocumentProvider), EntityReferenceDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<EntityReference>(EntityReference::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(EntityReference::class.java), designDocumentProvider, daoConfig = daoConfig), EntityReferenceDAO {
 
 	override suspend fun getLatest(datastoreInformation: IDatastoreInformation, prefix: String): EntityReference? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
