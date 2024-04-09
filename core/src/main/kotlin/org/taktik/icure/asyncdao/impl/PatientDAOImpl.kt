@@ -826,7 +826,14 @@ class PatientDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_ssin" to DATA_OWNER_PARTITION)
-			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_name" to MAURICE_PARTITION)
+			Partitions.Maurice -> {
+				val client = couchDbDispatcher.getClient(datastoreInformation)
+				val viewQueries = createQueries(
+					datastoreInformation,
+					"by_hcparty_name" to MAURICE_PARTITION
+				).doNotIncludeDocs()
+				client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
+			}
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

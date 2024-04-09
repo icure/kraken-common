@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
@@ -552,7 +553,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			.createQueries(client, this, entityClass, true, view)
 			.keys(listOf(arrayOf("identifier")))
 			.doNotIncludeDocs()
-		client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).first()
+		client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
@@ -562,7 +563,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				warmupPartition(datastoreInformation, Partitions.DataOwner)
 				warmupPartition(datastoreInformation, Partitions.Maurice)
 			}
-			Partitions.Main -> getEntityIds(datastoreInformation, 1).first()
+			Partitions.Main -> getEntityIds(datastoreInformation, 1).firstOrNull()
 			else -> {}
 		}
 	}
