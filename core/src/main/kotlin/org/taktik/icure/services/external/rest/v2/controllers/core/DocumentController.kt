@@ -224,32 +224,28 @@ class DocumentController(
 		documentService.modifyDocuments(documentDtos.map(documentV2Mapper::map)).collect { emit(documentV2Mapper.map(it)) }
 	}.injectReactorContext()
 
-	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
-	@GetMapping("/byHcPartySecretForeignKeys")
-	fun listDocumentsByHCPartyAndPatientForeignKeys(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKeys: String
-	): Flux<DocumentDto> {
-		val secretMessageKeys = secretFKeys.split(',').map { it.trim() }
-		val documentList = documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
-		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
-	}
 
 	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun findDocumentsByHCPartyPatientForeignKeys(
+	fun listDocumentsByHcPartyMessageForeignKeys(
 		@RequestParam hcPartyId: String,
+		@RequestParam(required = false) documentTypeCode: String?,
 		@RequestBody secretMessageKeys: List<String>,
 	): Flux<DocumentDto> {
-		val documentList = documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
+		val documentList = documentTypeCode?.let {
+			if (DocumentType.fromName(documentTypeCode) == null) {
+				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid documentTypeCode.")
+			}
+			documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys)
+		} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
 		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List documents found By Healthcare Party and secret foreign key.")
 	@GetMapping("/byHcPartySecretForeignKey")
-	fun findDocumentsByHCPartyPatientForeignKey(
+	fun findDocumentsByHCPartyMessageForeignKey(
 		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
+		@RequestParam secretMessageKeys: String,
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
@@ -257,26 +253,9 @@ class DocumentController(
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return documentService
-			.listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId, secretFKey, paginationOffset)
+			.listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId, secretMessageKeys, paginationOffset)
 			.mapElements(documentV2Mapper::map)
 			.asPaginatedFlux()
-	}
-
-	@Operation(summary = "List documents found By type, By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
-	@GetMapping("/byTypeHcPartySecretForeignKeys")
-	fun listDocumentByTypeHCPartyMessageSecretFKeys(
-		@RequestParam documentTypeCode: String,
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKeys: String
-	): Flux<DocumentDto> {
-		if (DocumentType.fromName(documentTypeCode) == null) {
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid documentTypeCode.")
-		}
-
-		val secretMessageKeys = secretFKeys.split(',').map { it.trim() }
-		val documentList = documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys)
-
-		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
 	}
 
 	@Operation(summary = "List documents with no delegation")
