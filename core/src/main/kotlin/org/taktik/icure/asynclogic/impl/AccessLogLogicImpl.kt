@@ -20,7 +20,7 @@ import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.result.AggregatedAccessLogs
@@ -45,7 +45,7 @@ class AccessLogLogicImpl(
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<AccessLog, AccessLogDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), AccessLogLogic {
+) : EntityWithEncryptionMetadataLogic<AccessLog, AccessLogDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), AccessLogLogic {
 
 	override suspend fun createAccessLog(accessLog: AccessLog) =
 		fix(accessLog) { fixedAccessLog ->

@@ -19,7 +19,7 @@ data class Telecom(
 	val telecomNumber: String? = null,
 	val telecomDescription: String? = null,
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable, Comparable<Telecom> {
+) : Encryptable, Serializable, Comparable<Telecom> {
 	companion object : DynamicInitializer<Telecom>
 
 	fun merge(other: Telecom) = Telecom(args = this.solveConflictsWith(other))

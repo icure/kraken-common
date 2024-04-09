@@ -23,13 +23,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.TimeTableService
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
 import org.taktik.icure.services.external.rest.v1.dto.TimeTableDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.TimeTableMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import java.util.*
@@ -40,7 +42,8 @@ import java.util.*
 @Tag(name = "timeTable")
 class TimeTableController(
 	private val timeTableService: TimeTableService,
-	private val timeTableMapper: TimeTableMapper
+	private val timeTableMapper: TimeTableMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 
 	@Operation(summary = "Creates a timeTable")
@@ -53,8 +56,10 @@ class TimeTableController(
 
 	@Operation(summary = "Deletes a timeTable")
 	@DeleteMapping("/{timeTableIds}")
-	fun deleteTimeTable(@PathVariable timeTableIds: String): Flux<DocIdentifier> {
-		return timeTableService.deleteTimeTables(timeTableIds.split(',')).injectReactorContext()
+	fun deleteTimeTable(@PathVariable timeTableIds: String): Flux<DocIdentifierDto> {
+		return timeTableService.deleteTimeTables(timeTableIds.split(','))
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets a timeTable")

@@ -4,17 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
-import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyStringDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyHexStringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SubscriptionDto<O : IdentifiableDto<String>>(
-	val eventTypes: List<EventType>,
+	val eventTypes: List<SubscriptionEventType>,
 	val entityClass: String,
 	val filter: FilterChain<O>?,
-	val accessControlKeys: List<AccessControlKeyStringDto>?
-) : java.io.Serializable {
-	enum class EventType {
-		CREATE, UPDATE, DELETE
-	}
+	val accessControlKeys: List<AccessControlKeyHexStringDto>?
+) : java.io.Serializable
+
+enum class SubscriptionEventType {
+	CREATE, UPDATE, DELETE
 }

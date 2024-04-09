@@ -3,7 +3,6 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
@@ -55,7 +54,7 @@ the exchange data, without voiding the authenticity guarantee.""")
 - The (decrypted) access control secret
 - The delegator and delegates being part of the exchange data
 - The public keys used in the exchange data (allows to consider them as verified in a second moment).""")
-    val sharedSignature: Base64String,
+    val sharedSignature: Base64StringDto,
     override val deletionDate: Long? = null,
 ) : StoredDocumentDto {
     override fun withIdRev(id: String?, rev: String): ExchangeDataDto =

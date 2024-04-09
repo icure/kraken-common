@@ -68,7 +68,7 @@ data class InvoicingCode(
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
 	override val encryptedSelf: String? = null
-) : Encrypted, Comparable<InvoicingCode?> {
+) : Encryptable, Comparable<InvoicingCode?> {
 	companion object : DynamicInitializer<InvoicingCode> {
 		const val STATUS_PAID: Long = 1
 		const val STATUS_PRINTED: Long = 2

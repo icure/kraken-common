@@ -21,6 +21,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,5 +30,5 @@ data class CareTeamMembershipDto(
 	val endDate: Long? = null,
 	val careTeamMemberId: String? = null,
 	val membershipType: MembershipTypeDto? = null,
-	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable
+	override val encryptedSelf: Base64StringDto? = null
+) : EncryptableDto, Serializable

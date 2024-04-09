@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -36,9 +36,11 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
@@ -57,6 +59,7 @@ class CalendarItemController(
 	private val bulkShareResultV2Mapper: CalendarItemBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -66,7 +69,7 @@ class CalendarItemController(
 	fun getCalendarItems(
 		@Parameter(description = "A CalendarItem document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<CalendarItemDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemService
 			.getAllCalendarItems(offset)
@@ -85,20 +88,25 @@ class CalendarItemController(
 
 	@Operation(summary = "Deletes a batch of calendarItems")
 	@PostMapping("/delete/batch")
-	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifier> =
-		calendarItemService.deleteCalendarItems(calendarItemIds.ids).injectReactorContext()
+	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		calendarItemService.deleteCalendarItems(calendarItemIds.ids)
+			.map(docIdentifierV2Mapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Deletes a calendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(@PathVariable calendarItemId: String) = mono {
 		calendarItemService.deleteCalendarItem(calendarItemId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Deprecated(message = "Use deleteItemCalendars instead")
 	@Operation(summary = "Deletes an calendarItem")
 	@PostMapping("/{calendarItemIds}")
-	fun deleteCalendarItemsWithPost(@PathVariable calendarItemIds: String): Flux<DocIdentifier> =
-		calendarItemService.deleteCalendarItems(calendarItemIds.split(',')).injectReactorContext()
+	fun deleteCalendarItemsWithPost(@PathVariable calendarItemIds: String): Flux<DocIdentifierDto> =
+		calendarItemService.deleteCalendarItems(calendarItemIds.split(','))
+			.map(docIdentifierV2Mapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Gets an calendarItem")
 	@GetMapping("/{calendarItemId}")
@@ -216,7 +224,7 @@ class CalendarItemController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux = calendarItemService
+	): PaginatedFlux<CalendarItemDto> = calendarItemService
 		.getCalendarItemsByRecurrenceId(recurrenceId, PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit))
 		.mapElements(calendarItemV2Mapper::map)
 		.asPaginatedFlux()

@@ -7,6 +7,7 @@ package org.taktik.icure.services.external.rest.v2.controllers.extra
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.PlaceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -29,7 +30,9 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -40,6 +43,7 @@ import reactor.core.publisher.Flux
 class PlaceController(
 	private val placeService: PlaceService,
 	private val placeV2Mapper: PlaceV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -53,9 +57,11 @@ class PlaceController(
 
 	@Operation(summary = "Deletes places")
 	@PostMapping("/delete/batch")
-	fun deletePlaces(@RequestBody placeIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deletePlaces(@RequestBody placeIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		placeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			placeService.deletePlaces(ids.toSet()).injectReactorContext()
+			placeService.deletePlaces(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Gets a place")
@@ -70,7 +76,7 @@ class PlaceController(
 	fun getPlaces(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<PlaceDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return placeService
 			.getAllPlaces(offset)

@@ -7,7 +7,7 @@ package org.taktik.icure.domain.filter.impl
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class IntersectionFilter<O : Identifiable<String>>(
 	override val desc: String? = null,
@@ -17,7 +17,7 @@ data class IntersectionFilter<O : Identifiable<String>>(
 	override val requiresSecurityPrecondition: Boolean = filters.any { it.requiresSecurityPrecondition }
 	override fun requestedDataOwnerIds(): Set<String> = filters.flatMap { it.requestedDataOwnerIds() }.toSet()
 
-	override fun matches(item: O, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: O, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		for (f in filters) {
 			if (!f.matches(item, searchKeyMatcher)) {
 				return false

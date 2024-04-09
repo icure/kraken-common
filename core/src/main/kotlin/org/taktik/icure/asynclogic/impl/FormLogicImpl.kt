@@ -23,7 +23,7 @@ import org.taktik.icure.asyncdao.FormDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.FormLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
@@ -42,7 +42,7 @@ class FormLogicImpl(
     sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), FormLogic {
+) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), FormLogic {
 
 	override suspend fun getForm(id: String) = getEntity(id)
 

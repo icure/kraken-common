@@ -23,7 +23,7 @@ data class PatientHealthCareParty(
 	val sendFormats: Map<TelecomType, String> = emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
 	val referralPeriods: SortedSet<ReferralPeriod> = sortedSetOf(), // History of DMG ownerships
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable {
+) : Encryptable, Serializable {
 	companion object : DynamicInitializer<PatientHealthCareParty>
 
 	fun merge(other: PatientHealthCareParty) = PatientHealthCareParty(args = this.solveConflictsWith(other))

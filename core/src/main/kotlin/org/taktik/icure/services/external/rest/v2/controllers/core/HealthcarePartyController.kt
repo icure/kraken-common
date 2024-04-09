@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -41,9 +41,13 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.orThrow
@@ -51,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("healthcarePartyControllerV2")
 @Profile("app")
@@ -63,6 +68,7 @@ class HealthcarePartyController(
     private val healthcarePartyV2Mapper: HealthcarePartyV2Mapper,
     private val filterChainV2Mapper: FilterChainV2Mapper,
     private val filterV2Mapper: FilterV2Mapper,
+    private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
     private val paginationConfig: SharedPaginationConfig,
     private val objectMapper: ObjectMapper
 ) {
@@ -94,7 +100,7 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-    ): PaginatedFlux {
+    ): PaginatedFlux<HealthcarePartyDto> {
         val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
         return healthcarePartyService
             .findHealthcarePartiesBy(paginationOffset, desc)
@@ -113,7 +119,7 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
         @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
-    ): PaginatedFlux {
+    ): PaginatedFlux<HealthcarePartyDto> {
         val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
         return if (name.isNullOrEmpty()) {
             healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
@@ -132,8 +138,8 @@ class HealthcarePartyController(
         @Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: String?,
         @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
         @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-        @Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean
-    ): PaginatedFlux {
+        @Parameter(description = "Descending") @RequestParam(required = false, defaultValue = "false") desc: Boolean
+    ): PaginatedFlux<HealthcarePartyDto> {
         val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
         return healthcarePartyService
             .findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
@@ -166,7 +172,7 @@ class HealthcarePartyController(
 	    @Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
 	    @Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 	    @Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-    ): PaginatedFlux {
+    ): PaginatedFlux<HealthcarePartyDto> {
         val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
         val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
         return healthcarePartyService
@@ -201,7 +207,9 @@ class HealthcarePartyController(
         description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
     )
     @GetMapping("/{healthcarePartyId}/aesExchangeKeys")
-    fun getAesExchangeKeysForDelegate(@PathVariable healthcarePartyId: String) = mono {
+    fun getAesExchangeKeysForDelegate(
+        @PathVariable healthcarePartyId: String
+    ): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
         healthcarePartyService.getAesExchangeKeysForDelegate(healthcarePartyId)
     }
 
@@ -271,9 +279,11 @@ class HealthcarePartyController(
         description = "Deleting healthcareParties. Response is an array containing the id of deleted healthcare parties."
     )
     @PostMapping("/delete/batch")
-    fun deleteHealthcareParties(@RequestBody healthcarePartyIds: ListOfIdsDto): Flux<DocIdentifier> =
+    fun deleteHealthcareParties(@RequestBody healthcarePartyIds: ListOfIdsDto): Flux<DocIdentifierDto> =
         healthcarePartyIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-            healthcarePartyService.deleteHealthcareParties(ids).injectReactorContext()
+            healthcarePartyService.deleteHealthcareParties(ids)
+                .map(docIdentifierV2Mapper::map)
+                .injectReactorContext()
         } ?: throw ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "A required query parameter was not specified for this request."
@@ -286,6 +296,7 @@ class HealthcarePartyController(
     @DeleteMapping("/{healthcarePartyId}")
     fun deleteHealthcareParty(@PathVariable healthcarePartyId: String) = mono {
         healthcarePartyService.deleteHealthcareParty(healthcarePartyId)
+            .let(docIdentifierV2Mapper::map)
     }
 
     @Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")
@@ -316,6 +327,6 @@ class HealthcarePartyController(
         val healthcareParties =
             healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-        healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit)
+        healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit, objectMapper = objectMapper)
     }
 }

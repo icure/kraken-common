@@ -23,4 +23,4 @@ data class Valorisation(
 	@param:ContentValue(ContentValues.ANY_DOUBLE) val vat: Double? = null,
 	val label: Map<String, String>? = null, //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable
+) : Encryptable, Serializable

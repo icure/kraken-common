@@ -43,7 +43,9 @@ import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.InvoiceTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoicingCodeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.MediumTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
@@ -196,7 +198,7 @@ class InvoiceController(
 		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam("startKey", required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<InvoiceDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it)}
 		val paginationOffset = PaginationOffset(
 			startKeyElements,
@@ -245,7 +247,7 @@ class InvoiceController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<InvoiceDto> {
 		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return invoiceService
@@ -274,13 +276,20 @@ class InvoiceController(
 	@GetMapping("/byHcParty/{hcPartyId}/mediumType/{sentMediumType}/invoiceType/{invoiceType}/sent/{sent}")
 	fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
 		@PathVariable hcPartyId: String,
-		@PathVariable sentMediumType: MediumType,
-		@PathVariable invoiceType: InvoiceType,
+		@PathVariable sentMediumType: MediumTypeDto,
+		@PathVariable invoiceType: InvoiceTypeDto,
 		@PathVariable sent: Boolean,
 		@RequestParam(required = false) from: Long?,
 		@RequestParam(required = false) to: Long?
 	): Flux<InvoiceDto> {
-		val invoices = invoiceService.listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(hcPartyId, sentMediumType, invoiceType, sent, from, to)
+		val invoices = invoiceService.listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
+			hcPartyId,
+			MediumType.valueOf(sentMediumType.name),
+			InvoiceType.valueOf(invoiceType.name),
+			sent,
+			from,
+			to
+		)
 		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
 	}
 

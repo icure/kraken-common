@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -39,7 +38,6 @@ import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -48,6 +46,8 @@ import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
@@ -57,6 +57,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -65,9 +66,11 @@ import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrM
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -85,6 +88,7 @@ class ContactController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val stubV2Mapper: StubV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val bulkShareResultV2Mapper: ContactBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
@@ -212,7 +216,7 @@ class ContactController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
+	): PaginatedFlux<ContactDto> {
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService
@@ -299,15 +303,18 @@ class ContactController(
 
 	@Operation(summary = "Delete contacts.", description = "Response is a set containing the ID's of deleted contacts.")
 	@PostMapping("/delete/batch")
-	fun deleteContacts(@RequestBody contactIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteContacts(@RequestBody contactIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		contactIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			contactService.deleteContacts(ids.toSet()).injectReactorContext()
+			contactService.deleteContacts(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Delete a contact", description = "Deletes a single contact and returns its identifier")
 	@DeleteMapping("/{contactId}")
-	fun deleteContact(@PathVariable contactId: String) = mono {
+	fun deleteContact(@PathVariable contactId: String): Mono<DocIdentifierDto> = mono {
 		contactService.deleteContact(contactId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a contact", description = "Returns the modified contact.")
@@ -348,7 +355,7 @@ class ContactController(
 
 		val contacts = contactService.filterContacts(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		contacts.paginatedList(contactV2Mapper::map, realLimit)
+		contacts.paginatedList(contactV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
@@ -382,14 +389,12 @@ class ContactController(
 			contactService.filterServices(paginationOffset, mappedFilterChain), sessionLogic.getSearchKeyMatcher()
 		).map { serviceV2Mapper.map(it) }.toList()
 
-		val totalSize = services.size
-
 		if (services.size <= realLimit) {
-			org.taktik.icure.services.external.rest.v2.dto.PaginatedList(services.size, totalSize, services, null)
+			PaginatedList(services, null)
 		} else {
 			val nextKeyPair = services.lastOrNull()?.let { PaginatedDocumentKeyIdPair(null, it.id) }
 			val rows = services.subList(0, services.size - 1)
-			org.taktik.icure.services.external.rest.v2.dto.PaginatedList(realLimit, totalSize, rows, nextKeyPair)
+			PaginatedList(rows, nextKeyPair)
 		}
 	}
 
@@ -434,7 +439,7 @@ class ContactController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ContactDto> {
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService

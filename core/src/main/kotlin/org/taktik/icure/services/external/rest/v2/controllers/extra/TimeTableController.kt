@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.TimeTableService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.TimeTable
@@ -32,9 +32,11 @@ import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.TimeTableV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.TimeTableBulkShareResultV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
@@ -51,6 +53,7 @@ class TimeTableController(
 	private val timeTableV2Mapper: TimeTableV2Mapper,
 	private val bulkShareResultV2Mapper: TimeTableBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -65,15 +68,18 @@ class TimeTableController(
 
 	@Operation(summary = "Deletes a batch of TimeTables")
 	@PostMapping("/delete/batch")
-	fun deleteTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		timeTableIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			timeTableService.deleteTimeTables(ids).injectReactorContext()
+			timeTableService.deleteTimeTables(ids)
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a TimeTable")
 	@DeleteMapping("/{timeTableId}")
 	fun deleteTimeTable(@PathVariable timeTableId: String) = mono {
 		timeTableService.deleteTimeTable(timeTableId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a timeTable")

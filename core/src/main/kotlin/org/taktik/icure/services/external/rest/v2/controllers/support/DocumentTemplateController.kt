@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -40,8 +39,10 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.DocumentTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.ByteArrayDto
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentTemplateV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -50,9 +51,10 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/doctemplate")
 @Tag(name = "documentTemplate")
 class DocumentTemplateController(
-    private val documentTemplateService: DocumentTemplateService,
-    private val sessionLogic: SessionInformationProvider,
-    private val documentTemplateV2Mapper: DocumentTemplateV2Mapper,
+	private val documentTemplateService: DocumentTemplateService,
+	private val sessionLogic: SessionInformationProvider,
+	private val documentTemplateV2Mapper: DocumentTemplateV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -67,9 +69,11 @@ class DocumentTemplateController(
 
 	@Operation(summary = "Deletes document templates")
 	@PostMapping("/delete/batch")
-	fun deleteDocumentTemplates(@RequestBody documentTemplateIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteDocumentTemplates(@RequestBody documentTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		documentTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			documentTemplateService.deleteDocumentTemplates(LinkedHashSet(ids)).injectReactorContext()
+			documentTemplateService.deleteDocumentTemplates(LinkedHashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Gets all document templates")
@@ -114,7 +118,7 @@ class DocumentTemplateController(
 		@Parameter(description = "The startKey for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A DocumentTemplate document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<DocumentTemplateDto> {
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return documentTemplateService
 			.getAllDocumentTemplates(offset)

@@ -21,7 +21,7 @@ import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class LoginCredentials : Serializable {
-	var username: String? = null
-	var password: String? = null
-}
+data class LoginCredentials(
+	val username: String? = null,
+	val password: String? = null
+) : Serializable

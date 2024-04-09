@@ -21,10 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.AgendaService
 import org.taktik.icure.services.external.rest.v1.dto.AgendaDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.AgendaMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -35,6 +37,7 @@ import reactor.core.publisher.Flux
 class AgendaController(
 	private val agendaService: AgendaService,
 	private val agendaMapper: AgendaMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 
 	@Operation(summary = "Gets all agendas")
@@ -55,8 +58,10 @@ class AgendaController(
 
 	@Operation(summary = "Delete agendas by id")
 	@DeleteMapping("/{agendaIds}")
-	fun deleteAgenda(@PathVariable agendaIds: String): Flux<DocIdentifier> {
-		return agendaService.deleteAgendas(agendaIds.split(',').toSet()).injectReactorContext()
+	fun deleteAgenda(@PathVariable agendaIds: String): Flux<DocIdentifierDto> {
+		return agendaService.deleteAgendas(agendaIds.split(',').toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets an agenda")

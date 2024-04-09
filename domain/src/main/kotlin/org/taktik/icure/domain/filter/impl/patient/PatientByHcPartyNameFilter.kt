@@ -8,7 +8,7 @@ import java.util.Optional
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Patient
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class PatientByHcPartyNameFilter(
 	override val desc: String? = null,
@@ -20,7 +20,7 @@ data class PatientByHcPartyNameFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Patient, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val ss = sanitizeString(name)
 		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
 				(sanitizeString(Optional.of<String?>(item.lastName!!).orElse("") + Optional.of<String?>(item.firstName!!).orElse(""))!!.contains(ss!!) ||

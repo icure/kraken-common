@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
@@ -40,11 +40,13 @@ import org.taktik.icure.services.external.rest.v1.dto.FormDto
 import org.taktik.icure.services.external.rest.v1.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.FormMapper
 import org.taktik.icure.services.external.rest.v1.mapper.FormTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.RawFormTemplateMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
@@ -56,14 +58,15 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/form")
 @Tag(name = "form")
 class FormController(
-    private val formTemplateService: FormTemplateService,
-    private val formService: FormService,
-    private val sessionLogic: SessionInformationProvider,
-    private val formMapper: FormMapper,
-    private val formTemplateMapper: FormTemplateMapper,
-    private val rawFormTemplateMapper: RawFormTemplateMapper,
-    private val delegationMapper: DelegationMapper,
-    private val stubMapper: StubMapper
+	private val formTemplateService: FormTemplateService,
+	private val formService: FormService,
+	private val sessionLogic: SessionInformationProvider,
+	private val formMapper: FormMapper,
+	private val formTemplateMapper: FormTemplateMapper,
+	private val rawFormTemplateMapper: RawFormTemplateMapper,
+	private val delegationMapper: DelegationMapper,
+	private val stubMapper: StubMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 	private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -167,11 +170,13 @@ class FormController(
 
 	@Operation(summary = "Delete forms.", description = "Response is a set containing the ID's of deleted forms.")
 	@DeleteMapping("/{formIds}")
-	fun deleteForms(@PathVariable formIds: String): Flux<DocIdentifier> {
+	fun deleteForms(@PathVariable formIds: String): Flux<DocIdentifierDto> {
 		if (formIds.isEmpty()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "formIds was empty")
 		}
-		return formService.deleteForms(formIds.split(',').toSet()).injectReactorContext()
+		return formService.deleteForms(formIds.split(',').toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a batch of forms", description = "Returns the modified forms.")

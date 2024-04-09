@@ -8,7 +8,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
-import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -27,7 +26,7 @@ class AsyncSessionLogicImpl(
 
 	val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-	override suspend fun login(username: String, password: String, request: ServerHttpRequest, session: WebSession?, groupId: String?): Authentication? {
+	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?): Authentication? {
 		val token = UsernamePasswordAuthenticationToken(username, password)
 		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId).awaitFirstOrNull()
 		if (session != null) session.attributes[SESSION_LOCALE_ATTRIBUTE] = "fr" // TODO MB : add locale support

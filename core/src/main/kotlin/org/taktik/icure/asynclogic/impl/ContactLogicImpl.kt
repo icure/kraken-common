@@ -28,7 +28,7 @@ import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -57,7 +57,7 @@ class ContactLogicImpl(
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     private val filters: Filters,
     fixer: Fixer
-) : EncryptableEntityLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ContactLogic {
+) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ContactLogic {
 
 	companion object {
 		private val logger = LoggerFactory.getLogger(ContactLogicImpl::class.java)

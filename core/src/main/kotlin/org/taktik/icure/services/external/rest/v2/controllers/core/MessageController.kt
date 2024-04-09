@@ -10,14 +10,27 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -31,20 +44,22 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.MessageBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 
 @RestController("messageControllerV2")
@@ -60,6 +75,7 @@ class MessageController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filters: Filters,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
@@ -78,13 +94,15 @@ class MessageController(
 
 	@Operation(summary = "Deletes multiple messages")
 	@PostMapping("/delete/batch")
-	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifier> =
-		messageService.deleteMessages(messageIds.ids).injectReactorContext()
+	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		messageService.deleteMessages(messageIds.ids)
+			.map(docIdentifierV2Mapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Deletes a message")
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(@PathVariable messageId: String) = mono {
-		messageService.deleteMessage(messageId)
+		messageService.deleteMessage(messageId).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a message")
@@ -116,7 +134,7 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
+	): PaginatedFlux<MessageDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return messageService.listMessagesByCurrentHCPartySecretPatientKey(secretFKey, paginationOffset)
@@ -138,7 +156,7 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<MessageDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
@@ -176,7 +194,7 @@ class MessageController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
 		val startKeyElements = startKey?.let { startKeyArray -> objectMapper.readValue<ComplexKey>(startKeyArray) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -190,21 +208,21 @@ class MessageController(
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
 	fun findMessagesByTransportGuidSentDate(
-		@RequestParam(required = false) transportGuid: String,
-		@RequestParam(required = false, value = "from") fromDate: Long,
-		@RequestParam(required = false, value = "to") toDate: Long,
+		@RequestParam(required = true) transportGuid: String,
+		@RequestParam(required = true) from: Long,
+		@RequestParam(required = true) to: Long,
 		@RequestParam(required = false) startKey: String?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		emitAll(messageService.findMessagesByTransportGuidSentDate(
 			hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
 			transportGuid,
-			fromDate,
-			toDate,
+			from,
+			to,
 			paginationOffset
 		))
 	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
@@ -212,13 +230,13 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
 	@GetMapping("/byToAddress")
 	fun findMessagesByToAddress(
-		@RequestParam(required = false) toAddress: String,
+		@RequestParam(required = true) toAddress: String,
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
@@ -228,12 +246,12 @@ class MessageController(
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
 	@GetMapping("/byFromAddress")
 	fun findMessagesByFromAddress(
-		@RequestParam(required = false) fromAddress: String,
+		@RequestParam(required = true) fromAddress: String,
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
-	): PaginatedFlux = flow {
+	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
@@ -294,7 +312,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val messages = messageService.filterMessages(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		messages.paginatedList(messageV2Mapper::map, realLimit)
+		messages.paginatedList(messageV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of messages matching the provided filter")

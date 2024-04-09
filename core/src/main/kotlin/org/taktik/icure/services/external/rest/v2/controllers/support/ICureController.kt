@@ -27,9 +27,9 @@ import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.asyncservice.PatientService
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
-import org.taktik.icure.services.external.rest.v2.dto.IndexingInfoDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IndexingInfoV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.ReplicationInfoV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -47,7 +47,8 @@ class ICureController(
 	private val healthElementService: HealthElementService,
 	private val formService: FormService,
 	private val idWithRevMapper: IdWithRevV2Mapper,
-	private val indexingInfoV2Mapper: IndexingInfoV2Mapper
+	private val indexingInfoV2Mapper: IndexingInfoV2Mapper,
+	private val replicationInfoV2Mapper: ReplicationInfoV2Mapper,
 ) {
 
 	private val idAndRevToIdWithRevDto = { idWithRev: IdAndRev -> idWithRevMapper.map(idWithRev) }
@@ -72,7 +73,7 @@ class ICureController(
 	@Operation(summary = "Get replication info")
 	@GetMapping("/r")
 	fun getReplicationInfo() = mono {
-		iCureService.getReplicationInfo()
+		iCureService.getReplicationInfo().let(replicationInfoV2Mapper::map)
 	}
 
 	@Operation(summary = "Force update design doc")

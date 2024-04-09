@@ -17,10 +17,15 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.data
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
+
 /**
  * Created by aduchate on 31/07/13, 20:13
  */
-class GenericContent(
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenericContent(
 	override val entityId: String? = null,
 	override val entityClass: String? = null,
 	override val id: String? = null,

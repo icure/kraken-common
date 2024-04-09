@@ -29,7 +29,7 @@ import org.taktik.icure.asynclogic.InsuranceLogic
 import org.taktik.icure.asynclogic.InvoiceLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -71,7 +71,7 @@ class InvoiceLogicImpl (
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
 	fixer: Fixer
-) : EncryptableEntityLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), InvoiceLogic {
+) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), InvoiceLogic {
 
 	override suspend fun createInvoice(invoice: Invoice) =
 		fix(invoice) { fixedInvoice ->
@@ -389,7 +389,7 @@ class InvoiceLogicImpl (
 	override suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence> {
 		val datastoreInformation = getInstanceAndGroup()
 		return invoiceDAO.listTarificationsFrequencies(datastoreInformation, hcPartyId)
-			.filter { v -> v.value != null && v.value!! >= minOccurrences }
+			.filter { v -> v.value != null && v.value!! >= minOccurrences  && v.key != null && v.key!!.components.size > 1 && v.key!!.components[1] != null }
 			.map { v -> LabelledOccurence(v.key!!.components[1] as String, v.value!!) }
 			.toList().sortedByDescending { it.occurence }
 	}

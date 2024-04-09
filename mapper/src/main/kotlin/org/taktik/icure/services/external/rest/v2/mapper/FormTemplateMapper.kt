@@ -30,7 +30,6 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.form.template.FormTemplateLayout
-import org.taktik.icure.services.external.rest.v2.dto.gui.layout.FormLayout
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DocumentGroupV2Mapper
 import java.lang.IllegalArgumentException
@@ -68,15 +67,6 @@ abstract class FormTemplateV2Mapper {
 		Mapping(target = "rawTemplateLayout", ignore = true),
 	)
 	abstract fun map(formTemplate: FormTemplate): FormTemplateDto
-
-	fun mapLayout(formLayout: ByteArray?): FormLayout? = formLayout?.let {
-		try {
-			if (it[0] == 123.toByte()) json.readValue(it, FormLayout::class.java) else
-				yaml.readValue(it, FormLayout::class.java)
-		} catch (e: Exception) {
-			throw IllegalArgumentException("Could not parse form template layout. Try again requesting the raw template.")
-		}
-	}
 
 	fun mapTemplateLayout(formTemplateLayout: ByteArray?): FormTemplateLayout? = formTemplateLayout?.let {
 		try {

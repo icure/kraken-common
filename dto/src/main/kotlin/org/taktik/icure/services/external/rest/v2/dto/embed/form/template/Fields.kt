@@ -9,132 +9,132 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonStructureElementDeserializer
 
 @JsonDeserialize(using = JacksonStructureElementDeserializer::class)
-interface StructureElement
+sealed interface StructureElement
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("textfield")
-class TextField(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class TextField(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("measure-field")
-class MeasureField(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class MeasureField(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("number-field")
-class NumberField(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class NumberField(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-picker")
-class DatePicker(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class DatePicker(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("time-picker")
-class TimePicker(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class TimePicker(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -142,25 +142,25 @@ class TimePicker(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("multiple-choice")
-class MultipleChoice(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class MultipleChoice(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+): Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -168,75 +168,75 @@ class MultipleChoice(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("dropdown")
-class DropdownField(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class DropdownField(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+): Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("radio-button")
-class RadioButton(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class RadioButton(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+): Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("checkbox")
-class CheckBox(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class CheckBox(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+): Field
 
 
 @JsonPolymorphismRoot(Field::class)
@@ -244,22 +244,22 @@ class CheckBox(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-time-picker")
-class DateTimePicker(
-	field: String,
-	shortLabel: String? = null,
-	rows: Int? = null,
-	columns: Int? = null,
-	grows: Boolean? = null,
-	multiline: Boolean? = null,
-	schema: String? = null,
-	tags: List<String>? = null,
-	codifications: List<String>? = null,
-	options: Map<String, Any>? = null,
-	labels: Map<String, Any>? = null,
-	value: String? = null,
-	unit: String? = null,
-	required: Boolean? = null,
-	hideCondition: String? = null,
-	now: Boolean? = null,
-	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+data class DateTimePicker(
+	override val field: String,
+	override val shortLabel: String? = null,
+	override val rows: Int? = null,
+	override val columns: Int? = null,
+	override val grows: Boolean? = null,
+	override val multiline: Boolean? = null,
+	override val schema: String? = null,
+	override val tags: List<String>? = null,
+	override val codifications: List<String>? = null,
+	override val options: Map<String, String>? = null,
+	override val labels: Map<String, String>? = null,
+	override val value: String? = null,
+	override val unit: String? = null,
+	override val required: Boolean? = null,
+	override val hideCondition: String? = null,
+	override val now: Boolean? = null,
+	override val translate: Boolean? = null,
+) : Field

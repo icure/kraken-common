@@ -20,7 +20,7 @@ package org.taktik.icure.domain.filter.impl.user
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.User
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class UserByIdsFilter(
 	override val ids: Set<String>,
@@ -30,5 +30,5 @@ data class UserByIdsFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: User, searchKeyMatcher: (String, Encryptable) -> Boolean) = ids.contains(item.id)
+	override fun matches(item: User, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = ids.contains(item.id)
 }

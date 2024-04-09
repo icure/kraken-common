@@ -33,7 +33,7 @@ data class Address(
 	val notes: List<Annotation> = emptyList(),
 	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable, Comparable<Address> {
+) : Encryptable, Serializable, Comparable<Address> {
 	companion object : DynamicInitializer<Address>
 
 	fun merge(other: Address) = Address(args = this.solveConflictsWith(other))

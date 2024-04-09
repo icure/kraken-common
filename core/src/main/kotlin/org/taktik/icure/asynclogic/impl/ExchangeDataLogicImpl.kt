@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic.impl
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -20,6 +21,9 @@ import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 
 @Service
@@ -29,7 +33,8 @@ class ExchangeDataLogicImpl(
     private val sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     @Qualifier("baseEntityInfoDao") private val baseEntityInfoDao: EntityInfoDAO,
-    @Qualifier("patientEntityInfoDao") private val patientEntityInfoDao: EntityInfoDAO
+    @Qualifier("patientEntityInfoDao") private val patientEntityInfoDao: EntityInfoDAO,
+    private val objectMapper: ObjectMapper
 ) : ExchangeDataLogic {
     companion object {
         const val PAGE_SIZE = 100
@@ -49,8 +54,11 @@ class ExchangeDataLogicImpl(
         return exchangeDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)
     }
 
-    override fun findExchangeDataByParticipant(dataOwnerId: String, paginationOffset: PaginationOffset<String>): Flow<ViewQueryResultEvent> = flow {
-        emitAll(exchangeDataDAO.findExchangeDataByParticipant(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerId, paginationOffset))
+    override fun findExchangeDataByParticipant(dataOwnerId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
+        emitAll(exchangeDataDAO
+            .findExchangeDataByParticipant(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerId, paginationOffset.limitIncludingKey())
+            .toPaginatedFlow<ExchangeData>(paginationOffset.limit)
+        )
     }
 
     override fun findExchangeDataByDelegatorDelegatePair(delegatorId: String, delegateId: String): Flow<ExchangeData> = flow {
@@ -74,7 +82,11 @@ class ExchangeDataLogicImpl(
         }
     }
 
-    override fun getParticipantCounterparts(dataOwnerId: String, counterpartsType: List<DataOwnerType>): Flow<String> = flow {
+    override fun getParticipantCounterparts(
+        dataOwnerId: String,
+        counterpartsType: List<DataOwnerType>,
+        ignoreOnEntryForFingerprint: String?
+    ): Flow<String> = flow {
         require(counterpartsType.isNotEmpty()) { "At least one counterpart type should be provided." }
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
         val allAnalyised = mutableSetOf<String>()
@@ -84,9 +96,18 @@ class ExchangeDataLogicImpl(
                 datastoreInfo,
                 dataOwnerId,
                 PaginationOffset(PAGE_SIZE + 1, nextPage)
-            ).paginatedList<ExchangeData>(PAGE_SIZE)
+            ).paginatedList<ExchangeData>(PAGE_SIZE, objectMapper = objectMapper)
             nextPage = dataForParticipantPage.nextKeyPair?.startKeyDocId
             val counterpartsIds = dataForParticipantPage.rows
+                .let { rows ->
+                    if (ignoreOnEntryForFingerprint != null) {
+                        rows.filterNot {
+                            it.exchangeKey.containsKey(ignoreOnEntryForFingerprint)
+                                && it.accessControlSecret.containsKey(ignoreOnEntryForFingerprint)
+                                && it.sharedSignatureKey.containsKey(ignoreOnEntryForFingerprint)
+                        }
+                    } else rows
+                }
                 .flatMap { listOf(it.delegator, it.delegate) }
                 .toSet() - dataOwnerId - allAnalyised
             allAnalyised.addAll(counterpartsIds)

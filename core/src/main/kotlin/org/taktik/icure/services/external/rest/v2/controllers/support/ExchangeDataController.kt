@@ -21,17 +21,17 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataService
+import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
-import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @RestController("exchangeDataControllerV2")
 @Profile("app")
@@ -39,11 +39,9 @@ import reactor.core.publisher.Mono
 @Tag(name = "exchangeData")
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
-	private val exchangeDataMapper: ExchangeDataV2Mapper
+	private val exchangeDataMapper: ExchangeDataV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
-	companion object {
-		private const val DEFAULT_LIMIT = 1000
-	}
 
 	@Operation(summary = "Creates new exchange data")
 	@PostMapping
@@ -72,11 +70,12 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
-	): Mono<PaginatedList<ExchangeDataDto>> = mono {
-		val realLimit = limit ?: DEFAULT_LIMIT
-		val paginationOffset = PaginationOffset<String>(realLimit + 1, startDocumentId)
-		exchangeDataLogic.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
-			.paginatedList<ExchangeData, ExchangeDataDto>({ exchangeDataMapper.map(it) }, realLimit)
+	): PaginatedFlux<ExchangeDataDto> {
+		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
+		return exchangeDataLogic
+			.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
+			.mapElements(exchangeDataMapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
@@ -94,10 +93,12 @@ class ExchangeDataController(
 	fun getParticipantCounterparts(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
+		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
 	) = mono {
 		exchangeDataLogic.getParticipantCounterparts(
 			dataOwnerId,
-			counterpartsTypes.split(",").map { DataOwnerType.valueOf(it.uppercase()) }
+			counterpartsTypes.split(",").map { DataOwnerType.valueOf(it.uppercase()) },
+			ignoreOnEntryForFingerprint
 		).toList()
 	}
 }

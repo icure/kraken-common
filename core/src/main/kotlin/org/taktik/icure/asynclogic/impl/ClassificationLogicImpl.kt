@@ -16,7 +16,7 @@ import org.taktik.icure.asyncdao.ClassificationDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
@@ -35,7 +35,7 @@ class ClassificationLogicImpl(
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<Classification, ClassificationDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ClassificationLogic {
+) : EntityWithEncryptionMetadataLogic<Classification, ClassificationDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ClassificationLogic {
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: Classification,
 		updatedMetadata: SecurityMetadata

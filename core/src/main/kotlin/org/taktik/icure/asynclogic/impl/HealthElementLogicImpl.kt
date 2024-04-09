@@ -22,7 +22,7 @@ import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -47,7 +47,7 @@ class HealthElementLogicImpl (
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<HealthElement, HealthElementDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), HealthElementLogic {
+) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), HealthElementLogic {
 
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,

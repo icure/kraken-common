@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -33,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
@@ -49,17 +51,19 @@ import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.FormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
 
@@ -77,6 +81,7 @@ class FormController(
 	private val stubV2Mapper: StubV2Mapper,
 	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
@@ -167,15 +172,18 @@ class FormController(
 
 	@Operation(summary = "Deletes a batch of forms", description = "Response is a set containing the ID's of deleted forms.")
 	@PostMapping("/delete/batch")
-	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		formIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			formService.deleteForms(HashSet(ids)).injectReactorContext()
+			formService.deleteForms(HashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a  form", description = "Deletes a single form returning its identifier")
 	@DeleteMapping("/{formId}")
 	fun deleteForm(@PathVariable formId: String) = mono {
 		formService.deleteForm(formId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a batch of forms", description = "Returns the modified forms.")
@@ -224,7 +232,7 @@ class FormController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
+	): PaginatedFlux<FormDto> {
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return formService
@@ -326,6 +334,18 @@ class FormController(
 				"attachment part must specify ${HttpHeaders.CONTENT_TYPE} header."
 			}
 		}.content().asFlow().toByteArray(true)))?.rev ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
+	}
+
+	@Operation(summary = "Update a form template's layout")
+	@PutMapping("/template/{formTemplateId}/attachment", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+	fun setTemplateAttachment(
+		@PathVariable formTemplateId: String,
+		@RequestBody payload: Flow<DataBuffer>,
+	) = mono {
+		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
+			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
+		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true)))?.rev
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
 	}
 
 	@Operation(description = "Shares one or more forms with one or more data owners")

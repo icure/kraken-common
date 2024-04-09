@@ -25,6 +25,7 @@ import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -35,8 +36,8 @@ data class TelecomDto(
 	@Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") val telecomType: TelecomTypeDto? = null,
 	val telecomNumber: String? = null,
 	val telecomDescription: String? = null,
-	override val encryptedSelf: String? = null
-) : EncryptedDto, Serializable, Comparable<TelecomDto> {
+	override val encryptedSelf: Base64StringDto? = null
+) : EncryptableDto, Serializable, Comparable<TelecomDto> {
 	companion object : DynamicInitializer<TelecomDto>
 
 	fun merge(other: TelecomDto) = TelecomDto(args = this.solveConflictsWith(other))

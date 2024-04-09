@@ -5,7 +5,7 @@
 package org.taktik.icure.asynclogic
 
 import org.taktik.icure.entities.DataOwnerType
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 import org.taktik.icure.validation.DataOwnerProvider
 import java.io.Serializable
@@ -16,10 +16,10 @@ interface SessionInformationProvider: DataOwnerProvider {
 	suspend fun getCurrentHealthcarePartyId(): String
 
 	/**
-	 * @return a function that receives two parameter: a DataOwnerId and an [Encryptable] entity and returns true
+	 * @return a function that receives two parameter: a DataOwnerId and an [HasEncryptionMetadata] entity and returns true
 	 * if the data owner can access the entity and false otherwise.
 	 */
-	suspend fun getSearchKeyMatcher(): (String, Encryptable) -> Boolean
+	suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean
 
 	// TODO probably this should be cached in the coroutine context to avoid calculating the hash every time
 	suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails

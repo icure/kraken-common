@@ -21,11 +21,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.EntityTemplateService
 import org.taktik.icure.services.external.rest.v2.dto.EntityTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.EntityTemplateV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -35,7 +37,8 @@ import reactor.core.publisher.Flux
 @Tag(name = "entityTemplate")
 class EntityTemplateController(
 	private val entityTemplateService: EntityTemplateService,
-	private val entityTemplateV2Mapper: EntityTemplateV2Mapper
+	private val entityTemplateV2Mapper: EntityTemplateV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -143,9 +146,11 @@ class EntityTemplateController(
 
 	@Operation(summary = "Delete entity templates")
 	@PostMapping("/delete/batch")
-	fun deleteEntityTemplate(@RequestBody entityTemplateIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteEntityTemplate(@RequestBody entityTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		entityTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			entityTemplateService.deleteEntityTemplates(ids.toSet()).injectReactorContext()
+			entityTemplateService.deleteEntityTemplates(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 }

@@ -17,6 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.data
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 
-class FormDashboard(val dashboard: String? = null, val dashboardGuid: String? = null) : FormItem(), Serializable
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class FormDashboard(val dashboard: String? = null, val dashboardGuid: String? = null) : IFormItem, Serializable

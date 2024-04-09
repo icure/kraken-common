@@ -4,7 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
@@ -36,11 +35,13 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v1.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v1.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v1.mapper.HealthElementMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
@@ -55,14 +56,14 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/helement")
 @Tag(name = "helement")
 class HealthElementController(
-    private val filters: Filters,
-    private val healthElementService: HealthElementService,
-    private val healthElementMapper: HealthElementMapper,
-    private val delegationMapper: DelegationMapper,
-    private val filterChainMapper: FilterChainMapper,
+	private val filters: Filters,
+	private val healthElementService: HealthElementService,
+	private val healthElementMapper: HealthElementMapper,
+	private val delegationMapper: DelegationMapper,
+	private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
-    private val stubMapper: StubMapper,
-	private val objectMapper: ObjectMapper,
+	private val stubMapper: StubMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -159,14 +160,15 @@ class HealthElementController(
 
 	@Operation(summary = "Delete healthcare elements.", description = "Response is a set containing the ID's of deleted healthcare elements.")
 	@DeleteMapping("/{healthElementIds}")
-	fun deleteHealthElements(@PathVariable healthElementIds: String): Flux<DocIdentifier> = flow {
+	fun deleteHealthElements(@PathVariable healthElementIds: String): Flux<DocIdentifierDto> = flow {
 		val ids = healthElementIds.split(',')
 		if (ids.isEmpty()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		}
 
 		emitAll(healthElementService.deleteHealthElements(ids.toSet()))
-	}.injectReactorContext()
+	}.map(docIdentifierMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Modify a healthcare element", description = "Returns the modified healthcare element.")
 	@PutMapping

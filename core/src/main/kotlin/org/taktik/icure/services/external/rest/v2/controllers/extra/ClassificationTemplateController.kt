@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -37,13 +37,9 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
-import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
-import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationTemplateV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationTemplateBulkShareResultV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -54,9 +50,7 @@ import reactor.core.publisher.Flux
 class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateV2Mapper: ClassificationTemplateV2Mapper,
-	private val bulkShareResultV2Mapper: ClassificationTemplateBulkShareResultV2Mapper,
-	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -88,43 +82,20 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by comma")
-	@GetMapping("/byHcPartySecretForeignKeys")
-	fun listClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
-		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
-
-		return elementList.map { classificationTemplateV2Mapper.map(it) }.injectReactorContext()
-	}
-
-	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findClassificationTemplatesByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestBody(required = false) startKey: JsonString?,
-		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
-		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return classificationTemplateService
-			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, offset)
-			.mapElements(classificationTemplateV2Mapper::map)
-			.asPaginatedFlux()
-	}
-
 	@Operation(summary = "Deletes a batch of ClassificationTemplates.", description = "Response is a set containing the ID's of deleted ClassificationTemplates.")
 	@PostMapping("/delete/batch")
-	fun deleteClassificationTemplates(@RequestBody classificationTemplateIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteClassificationTemplates(@RequestBody classificationTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		classificationTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			classificationTemplateService.deleteClassificationTemplates(LinkedHashSet(ids)).injectReactorContext()
+			classificationTemplateService.deleteClassificationTemplates(LinkedHashSet(ids))
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Deletes a ClassificationTemplate.", description = "Deletes a ClassificationTemplate and returns its id and rev.")
 	@DeleteMapping("/{classificationTemplateId}")
 	fun deleteClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
 		classificationTemplateService.deleteClassificationTemplate(classificationTemplateId)
+			.let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
@@ -143,7 +114,7 @@ class ClassificationTemplateController(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationTemplateDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return classificationTemplateService
@@ -151,14 +122,4 @@ class ClassificationTemplateController(
 			.mapElements(classificationTemplateV2Mapper::map)
 			.asPaginatedFlux()
 	}
-
-	@Operation(description = "Shares one or more patients with one or more data owners")
-	@PutMapping("/bulkSharedMetadataUpdate")
-	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<ClassificationTemplateDto>> = flow {
-		emitAll(classificationTemplateService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
-	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

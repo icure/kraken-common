@@ -21,16 +21,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.KeywordDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.KeywordV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -41,6 +44,7 @@ import reactor.core.publisher.Flux
 class KeywordController(
 	private val keywordService: KeywordService,
 	private val keywordV2Mapper: KeywordV2Mapper,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -69,15 +73,17 @@ class KeywordController(
 	fun getKeywords(
 		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<KeywordDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return keywordService.getAllKeywords(offset).mapElements(keywordV2Mapper::map).asPaginatedFlux()
 	}
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@PostMapping("/delete/batch")
-	fun deleteKeywords(@RequestBody keywordIds: ListOfIdsDto): Flux<DocIdentifier> =
+	fun deleteKeywords(@RequestBody keywordIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		keywordIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			keywordService.deleteKeywords(ids.toSet()).injectReactorContext()
+			keywordService.deleteKeywords(ids.toSet())
+				.map(docIdentifierV2Mapper::map)
+				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@Operation(summary = "Modify a keyword", description = "Returns the modified keyword.")

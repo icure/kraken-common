@@ -5,7 +5,7 @@ package org.taktik.icure.domain.filter.impl.contact
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class ContactByHcPartyPatientTagCodeDateFilter(
 	override val desc: String? = null,
@@ -33,7 +33,7 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Contact, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (
 			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
 				(patientSecretForeignKeys == null || item.secretForeignKeys.any { o: String? -> patientSecretForeignKeys.contains(o) }) &&

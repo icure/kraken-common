@@ -19,9 +19,9 @@ package org.taktik.icure.domain.filter.impl.service
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Service
-import org.taktik.icure.entities.embed.asEncryptable
+import org.taktik.icure.entities.embed.withEncryptionMetadata
 
 data class ServiceByHcPartyFilter(
 	override val hcpId: String,
@@ -31,8 +31,8 @@ data class ServiceByHcPartyFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 
-	override fun matches(item: Service, searchKeyMatcher: (String, Encryptable) -> Boolean) =
-		item.asEncryptable()?.let {
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) =
+		item.withEncryptionMetadata()?.let {
 			searchKeyMatcher(hcpId, it)
 		} ?: false
 }

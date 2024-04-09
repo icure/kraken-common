@@ -51,4 +51,4 @@ data class MedicalHouseContract(
 	val receipts: Map<String, String> = emptyMap(),
 
 	override val encryptedSelf: String? = null
-) : Encrypted
+) : Encryptable

@@ -23,7 +23,7 @@ data class CareTeamMember(
 	val healthcarePartyId: String? = null,
 	val quality: CodeStub? = null,
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable, Identifiable<String> {
+) : Encryptable, Serializable, Identifiable<String> {
 	companion object : DynamicInitializer<CareTeamMember>
 
 	fun merge(other: CareTeamMember) = CareTeamMember(args = this.solveConflictsWith(other))

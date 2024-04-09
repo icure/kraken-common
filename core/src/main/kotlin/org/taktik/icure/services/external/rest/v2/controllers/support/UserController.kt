@@ -4,6 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -61,7 +62,8 @@ class UserController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper
 ) {
 
 	companion object {
@@ -83,7 +85,7 @@ class UserController(
 		@Parameter(description = "An user document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Filter out patient users") @RequestParam(required = false) skipPatients: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<UserDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return userService
@@ -169,7 +171,7 @@ class UserController(
 			userId,
 			properties?.map { p -> propertyStubV2Mapper.map(p) }
 				?: listOf()
-		) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
+		)?.let(userV2Mapper::mapOmittingSecrets) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
 
 
@@ -201,7 +203,7 @@ class UserController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val users = userService.filterUsers(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit)
+		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")

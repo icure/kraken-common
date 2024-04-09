@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.AccessLogService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -34,7 +34,9 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.AccessLogDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.AccessLogMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -47,6 +49,7 @@ class AccessLogController(
 	private val accessLogService: AccessLogService,
 	private val accessLogMapper: AccessLogMapper,
 	private val objectMapper: ObjectMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -60,8 +63,10 @@ class AccessLogController(
 
 	@Operation(summary = "Delete access logs by batch")
 	@DeleteMapping("/{accessLogIds}")
-	fun deleteAccessLog(@PathVariable accessLogIds: String): Flux<DocIdentifier> {
-		return accessLogService.deleteAccessLogs(accessLogIds.split(',')).injectReactorContext()
+	fun deleteAccessLog(@PathVariable accessLogIds: String): Flux<DocIdentifierDto> {
+		return accessLogService.deleteAccessLogs(accessLogIds.split(','))
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Get an access log")
@@ -82,7 +87,7 @@ class AccessLogController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) descending: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<AccessLogDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService.listAccessLogsBy(
 			if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
@@ -102,7 +107,7 @@ class AccessLogController(
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
-	): PaginatedFlux {
+	): PaginatedFlux<AccessLogDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService
@@ -129,7 +134,7 @@ class AccessLogController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux {
+	): PaginatedFlux<AccessLogDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService

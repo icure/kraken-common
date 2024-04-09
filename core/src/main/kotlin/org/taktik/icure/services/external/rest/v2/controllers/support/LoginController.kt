@@ -17,20 +17,33 @@ import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.http.server.reactive.ServerHttpRequest
-import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
-import org.taktik.icure.exceptions.*
+import org.taktik.icure.entities.security.jwt.JwtResponse
+import org.taktik.icure.exceptions.Invalid2FAException
+import org.taktik.icure.exceptions.Missing2FAException
+import org.taktik.icure.exceptions.PasswordTooShortException
+import org.taktik.icure.exceptions.TooManyRequestsException
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
-import org.taktik.icure.security.jwt.*
+import org.taktik.icure.security.jwt.JwtDetails
+import org.taktik.icure.security.jwt.JwtRefreshDetails
+import org.taktik.icure.security.jwt.JwtToResponseMapper
+import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v2.dto.LoginCredentials
+import org.taktik.icure.services.external.rest.v2.mapper.JwtResponseV2Mapper
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
 import reactor.core.publisher.Mono
 import java.util.*
@@ -46,6 +59,7 @@ class LoginController(
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
 	private val jwtToResponseMapper: JwtToResponseMapper,
+	private val jwtResponseV2Mapper: JwtResponseV2Mapper,
 	asyncCacheManager: AsyncCacheManager
 ) {
 	val cache = asyncCacheManager.getCache<String, SecurityToken>("spring.security.tokens")
@@ -56,59 +70,52 @@ class LoginController(
 	@Operation(summary = "login", description = "Login using username and password")
 	@PostMapping("/login")
 	fun login(
-		request: ServerHttpRequest,
 		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
 		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
 	) = mono {
 		try {
-			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, request, if (sessionEnabled) session else null, groupId)
+			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, if (sessionEnabled) session else null, groupId)
 			if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 				withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
-					ResponseEntity.ok().body(
-						jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).also {
-							if (session != null) {
-								session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
-							}
+					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).also {
+						if (session != null) {
+							session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 						}
-					)
+					}.let(jwtResponseV2Mapper::map)
 				}
 			} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
-				ResponseEntity.ok().body(
-					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds)
-				)
-			} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(JwtResponse(successful = false))
+				jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
+			} else throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 		} catch (e: Exception) {
-			ResponseEntity.status(
-				when(e){
-					is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
-					is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
-					is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
-					is BadCredentialsException -> HttpStatus.UNAUTHORIZED
-					is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
-					else -> HttpStatus.UNAUTHORIZED
-				}
-			).body(JwtResponse(successful = false))
+			val status = when(e){
+				is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
+				is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
+				is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
+				is BadCredentialsException -> HttpStatus.UNAUTHORIZED
+				is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
+				else -> HttpStatus.UNAUTHORIZED
+			}
+			throw ResponseStatusException(status)
 		}
 	}
 
 	@Operation(summary = "refresh", description = "Get a new authentication token using a refresh token")
 	@PostMapping("/refresh")
 	fun refresh(
-		request: ServerHttpRequest,
-		response: ServerHttpResponse,
+		@RequestHeader(name = "Refresh-Token") refreshToken: String,
 		@RequestParam(required = false) totp: String?
 	) = mono {
-		val refreshToken = jwtUtils.extractRawRefreshTokenFromRequest(request)
-		val newJwtDetails = authenticationManager.regenerateJwtDetails(refreshToken, totpToken = totp)
+		val token = refreshToken.replace("Bearer ", "")
+		val newJwtDetails = authenticationManager.regenerateJwtDetails(token, totpToken = totp)
 		JwtResponse(
 			successful = true,
 			token = jwtUtils.createJWT(
 				newJwtDetails,
-				jwtUtils.getJwtDurationFromRefreshToken(refreshToken)
+				jwtUtils.getJwtDurationFromRefreshToken(token)
 			)
 		)
 	}

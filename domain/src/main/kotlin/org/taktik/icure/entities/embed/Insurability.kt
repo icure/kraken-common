@@ -26,4 +26,4 @@ data class Insurability(
 	@param:ContentValue(ContentValues.FUZZY_DATE) val endDate: Long? = null,
 	val titularyId: String? = null, //UUID of the contact person who is the titulary of the insurance
 	override val encryptedSelf: String? = null
-) : Encrypted, Serializable
+) : Encryptable, Serializable

@@ -2,7 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.couchdb
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.services.external.rest.v1.dto.base.VersionableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -19,7 +19,7 @@ package org.taktik.icure.domain.filter.impl.hcparty
 
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.Encryptable
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.containsStubWithTypeAndCode
 
 data class HealthcarePartyByTagCodeFilter(
@@ -42,7 +42,7 @@ data class HealthcarePartyByTagCodeFilter(
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, Encryptable) -> Boolean): Boolean {
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
 			(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode))
 	}

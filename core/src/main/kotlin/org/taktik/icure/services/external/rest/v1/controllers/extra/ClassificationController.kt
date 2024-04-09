@@ -23,14 +23,16 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.services.external.rest.v1.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.ClassificationMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -43,7 +45,8 @@ class ClassificationController(
 	private val classificationService: ClassificationService,
 	private val classificationMapper: ClassificationMapper,
 	private val delegationMapper: DelegationMapper,
-	private val stubMapper: StubMapper
+	private val stubMapper: StubMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
 
 	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
@@ -83,13 +86,15 @@ class ClassificationController(
 
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationIds}")
-	fun deleteClassifications(@PathVariable classificationIds: String): Flux<DocIdentifier> {
+	fun deleteClassifications(@PathVariable classificationIds: String): Flux<DocIdentifierDto> {
 		val ids = classificationIds.split(',')
 		if (ids.isEmpty()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		}
 
-		return classificationService.deleteClassifications(ids.toSet()).injectReactorContext()
+		return classificationService.deleteClassifications(ids.toSet())
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

@@ -4,7 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.DocIdentifier
+
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -30,8 +29,10 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.ClassificationTemplateDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.mapper.ClassificationTemplateMapper
+import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -43,8 +44,7 @@ import reactor.core.publisher.Flux
 class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateMapper: ClassificationTemplateMapper,
-	private val delegationMapper: DelegationMapper,
-	private val objectMapper: ObjectMapper,
+	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -71,21 +71,14 @@ class ClassificationTemplateController(
 		return elements.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys has to delimited by comma")
-	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findClassificationTemplatesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationTemplateDto> {
-		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		val elementList = classificationTemplateService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
-
-		return elementList.map { classificationTemplateMapper.map(it) }.injectReactorContext()
-	}
-
 	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
 	@DeleteMapping("/{classificationTemplateIds}")
-	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifier> {
+	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifierDto> {
 		val ids = classificationTemplateIds.split(',').takeUnless { it.isEmpty() }
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return classificationTemplateService.deleteClassificationTemplates(ids).injectReactorContext()
+		return classificationTemplateService.deleteClassificationTemplates(ids)
+			.map(docIdentifierMapper::map)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
@@ -98,27 +91,13 @@ class ClassificationTemplateController(
 		classificationTemplateMapper.map(modifiedClassificationTemplate)
 	}
 
-	@Operation(summary = "Delegates a classification Template to a healthcare party", description = "It delegates a classification Template to a healthcare party (By current healthcare party). Returns the element with new delegations.")
-	@PostMapping("/{classificationTemplateId}/delegate")
-	fun newClassificationTemplateDelegations(@PathVariable classificationTemplateId: String, @RequestBody ds: List<DelegationDto>) = mono {
-		classificationTemplateService.addDelegations(classificationTemplateId, ds.map { delegationMapper.map(it) })
-		val classificationTemplateWithDelegation = classificationTemplateService.getClassificationTemplate(classificationTemplateId)
-
-		val succeed = classificationTemplateWithDelegation?.delegations != null && classificationTemplateWithDelegation.delegations.isNotEmpty()
-		if (succeed) {
-			classificationTemplateWithDelegation?.let { classificationTemplateMapper.map(it) }
-		} else {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delegation creation for classification Template failed.")
-		}
-	}
-
 	@Operation(summary = "List all classification templates with pagination", description = "Returns a list of classification templates.")
 	@GetMapping
 	fun listClassificationTemplates(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
-	): PaginatedFlux {
+	): PaginatedFlux<ClassificationTemplateDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
 		return classificationTemplateService

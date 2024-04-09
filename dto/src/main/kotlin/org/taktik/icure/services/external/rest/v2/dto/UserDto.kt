@@ -24,11 +24,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.constants.Users
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationTagDto
+import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
+import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto
 import org.taktik.icure.services.external.rest.v2.dto.security.PermissionDto
 import org.taktik.icure.utils.InstantDeserializer
@@ -49,8 +50,8 @@ data class UserDto(
 	@Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
 	@Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system") val permissions: Set<PermissionDto> = emptySet(),
 	@Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system") val roles: Set<String> = emptySet(),
-	@Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: Users.Type? = null,
-	@Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: Users.Status? = null,
+	@Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: UsersTypeDto? = null,
+	@Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: UsersStatusDto? = null,
 	@Schema(description = "Username for this user. We encourage using an email address") val login: String? = null,
 	@Schema(description = "Hashed version of the password (BCrypt is used for hashing)") val passwordHash: String? = null,
 	@Schema(description = "id of the group (practice/hospital) the user is member of") val groupId: String? = null,
@@ -74,7 +75,7 @@ data class UserDto(
 	@get:Deprecated("Long lived authentication tokens used for inter-applications authentication.") val applicationTokens: Map<String, String> = emptyMap(),
 	@Schema(description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication") val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
 
-	@Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.") val systemMetadata: UserDto.SystemMetadata? = null,
+	@Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.") val systemMetadata: SystemMetadata? = null,
 ) : StoredDocumentDto, PrincipalDto, Cloneable, Serializable {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -89,4 +90,5 @@ data class UserDto(
 		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).")
 		val inheritsRoles: Boolean
 	): Serializable
+
 }

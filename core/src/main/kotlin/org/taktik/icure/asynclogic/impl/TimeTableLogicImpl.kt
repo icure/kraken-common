@@ -13,7 +13,7 @@ import org.taktik.icure.asyncdao.TimeTableDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.TimeTableLogic
-import org.taktik.icure.asynclogic.base.impl.EncryptableEntityLogic
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -27,7 +27,7 @@ class TimeTableLogicImpl(
     sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
-) : EncryptableEntityLogic<TimeTable, TimeTableDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), TimeTableLogic {
+) : EntityWithEncryptionMetadataLogic<TimeTable, TimeTableDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), TimeTableLogic {
 
     override suspend fun createTimeTable(timeTable: TimeTable) = fix(timeTable) { fixedTimeTable ->
         if(fixedTimeTable.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
