@@ -19,8 +19,10 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.ClassificationDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.utils.distinctByIdIf
@@ -33,8 +35,9 @@ internal class ClassificationDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<Classification>(Classification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Classification::class.java), designDocumentProvider), ClassificationDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<Classification>(Classification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Classification::class.java), designDocumentProvider, daoConfig = daoConfig), ClassificationDAO {
 
 	override fun listClassificationByPatient(datastoreInformation: IDatastoreInformation, patientId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -87,4 +90,12 @@ internal class ClassificationDAOImpl(
 			compareBy({it.components[0] as String}, {it.components[1] as String}))
 		)
 	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
+
 }

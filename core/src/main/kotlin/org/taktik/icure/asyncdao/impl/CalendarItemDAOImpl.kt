@@ -27,8 +27,10 @@ import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.utils.FuzzyValues
@@ -36,7 +38,6 @@ import org.taktik.icure.utils.distinctBy
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.interleaveNoValue
-import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
 
 @Repository("calendarItemDAO")
@@ -46,8 +47,9 @@ class CalendarItemDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItem::class.java), designDocumentProvider), CalendarItemDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItem::class.java), designDocumentProvider, daoConfig = daoConfig), CalendarItemDAO {
 
 	@Views(
         View(name = "by_hcparty_and_startdate", map = "classpath:js/calendarItem/By_hcparty_and_startdate.js"),
@@ -261,5 +263,13 @@ class CalendarItemDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patient_start_time_desc" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
 	}
 }

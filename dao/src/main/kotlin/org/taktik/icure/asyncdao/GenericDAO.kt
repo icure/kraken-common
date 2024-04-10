@@ -215,4 +215,6 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param client the database client.
 	 */
 	suspend fun initSystemDocumentIfAbsent(client: Client)
+
+	suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions)
 }

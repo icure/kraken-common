@@ -18,8 +18,10 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
@@ -32,8 +34,9 @@ internal class HealthElementDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<HealthElement>(HealthElement::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(HealthElement::class.java), designDocumentProvider), HealthElementDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<HealthElement>(HealthElement::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(HealthElement::class.java), designDocumentProvider, daoConfig = daoConfig), HealthElementDAO {
 
 	@Views(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),
@@ -224,4 +227,13 @@ internal class HealthElementDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.getForPagination(healthElementIds, HealthElement::class.java))
 	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
+
 }

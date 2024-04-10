@@ -20,8 +20,10 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.FormDAO
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
 import org.taktik.icure.utils.*
@@ -33,8 +35,9 @@ internal class FormDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<Form>(Form::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Form::class.java), designDocumentProvider), FormDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<Form>(Form::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Form::class.java), designDocumentProvider, daoConfig = daoConfig), FormDAO {
 
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/form/By_hcparty_patientfk_map.js"),
@@ -121,5 +124,13 @@ internal class FormDAOImpl(
 			.includeDocs(true)
 
 		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc /*postLoad(datastoreInformation, it.doc)*/ }.toList().sortedByDescending { it.created ?: 0 }
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_parentId" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+
 	}
 }

@@ -30,6 +30,7 @@ import io.icure.asyncjacksonhttpclient.net.web.ResponseStatus
 import io.icure.asyncjacksonhttpclient.net.web.WebClient
 import io.netty.handler.codec.http.DefaultHttpHeaders
 import io.netty.handler.codec.http.HttpHeaders
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.asFlux
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
@@ -37,6 +38,7 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SpringWebfluxWebClient(val reactorClientHttpConnector: ReactorClientHttpConnector? = null, val filters: Consumer<MutableList<ExchangeFilterFunction>>? = null) : WebClient {
 	override fun uri(uri: URI): Request {
 		return SpringWebfluxRequest(
@@ -48,6 +50,7 @@ class SpringWebfluxWebClient(val reactorClientHttpConnector: ReactorClientHttpCo
 	}
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SpringWebfluxRequest(
 	private val client: org.springframework.web.reactive.function.client.WebClient,
 	private val uri: URI,
@@ -69,6 +72,7 @@ class SpringWebfluxRequest(
 	}
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SpringWebfluxResponse(
 	private val requestHeaderSpec: org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec<*>,
 	private val statusHandlers: Map<Int, (ResponseStatus) -> Mono<out Throwable>> = mapOf(),

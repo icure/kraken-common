@@ -21,6 +21,7 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
+import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.db.PaginationOffset
 import java.time.Duration
 import java.util.*
@@ -250,16 +251,44 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 	}
 }
 
+suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, useDataOwner: Boolean) =
+	createQueries(client, metadataSource, clazz, useDataOwner, viewQueryOnMain.main(), viewQueryOnSecondary)
 
-suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
-	createQueries(client, metadataSource, clazz, viewQueryOnMain.main(), viewQueryOnSecondary)
-suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, vararg viewQueries: Pair<String, String?>) =
-	NoDocViewQueries(viewQueries.map { (v,p) -> createQuery(client, metadataSource, v, clazz, p) })
+suspend fun DesignDocumentProvider.createQueries(client: Client, metadataSource: Any, clazz: Class<*>, useDataOwner: Boolean, vararg viewQueries: Pair<String, String?>) =
+	NoDocViewQueries(viewQueries.mapNotNull { (v,p) ->
+		if(p != DATA_OWNER_PARTITION || useDataOwner) {
+			createQuery(client, metadataSource, v, clazz, p)
+		} else null
+	})
 
-suspend fun <P> DesignDocumentProvider.createPagedQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
-	createPagedQueries(client, metadataSource, clazz, listOf(viewQueryOnMain.main(), viewQueryOnSecondary), startKey, endKey, pagination, descending)
-suspend fun <P> DesignDocumentProvider.createPagedQueries(client: Client, metadataSource: Any, clazz: Class<*>, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
-	ViewQueries(viewQueries.map { (v,p) -> pagedViewQuery(client, metadataSource, v, clazz, startKey, endKey, pagination, descending, p) })
+suspend fun <P> DesignDocumentProvider.createPagedQueries(
+	client: Client,
+	metadataSource: Any,
+	clazz: Class<*>,
+	viewQueryOnMain: String,
+	viewQueryOnSecondary: Pair<String, String?>,
+	startKey: P?,
+	endKey: P?,
+	pagination: PaginationOffset<P>,
+	descending: Boolean,
+	useDataOwner: Boolean
+) = createPagedQueries(client, metadataSource, clazz, listOf(viewQueryOnMain.main(), viewQueryOnSecondary), startKey, endKey, pagination, descending, useDataOwner)
+
+suspend fun <P> DesignDocumentProvider.createPagedQueries(
+	client: Client,
+	metadataSource: Any,
+	clazz: Class<*>,
+	viewQueries: List<Pair<String, String?>>,
+	startKey: P?,
+	endKey: P?,
+	pagination: PaginationOffset<P>,
+	descending: Boolean,
+	useDataOwner: Boolean
+): ViewQueries = ViewQueries(viewQueries.mapNotNull { (v,p) ->
+	if(p != DATA_OWNER_PARTITION || useDataOwner) {
+		pagedViewQuery(client, metadataSource, v, clazz, startKey, endKey, pagination, descending, p)
+	} else null
+})
 
 @Suppress("unused")
 data class ViewQueries(val queries: List<ViewQuery> = emptyList()) : List<ViewQuery> by queries {

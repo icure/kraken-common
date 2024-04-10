@@ -19,8 +19,10 @@ import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.Contact
@@ -35,8 +37,9 @@ class ContactDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Contact::class.java), designDocumentProvider), ContactDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Contact::class.java), designDocumentProvider, daoConfig = daoConfig), ContactDAO {
 
 	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? {
 		return get(datastoreInformation, id)
@@ -89,7 +92,7 @@ class ContactDAOImpl(
 			pagination,
 			false
 		)
-        emitAll(client.interleave<String, String, Contact>(viewQueries, compareBy({ it })))
+        emitAll(client.interleave<String, String, Contact>(viewQueries, compareBy { it }))
 	}
 
 	@Views(
@@ -128,7 +131,7 @@ class ContactDAOImpl(
         val viewQueries = createQueries(datastoreInformation, "by_hcparty", "by_data_owner" to DATA_OWNER_PARTITION).startKey(hcPartyId)
 			.endKey(hcPartyId)
             .doNotIncludeDocs()
-        emitAll(client.interleave<String, String>(viewQueries, compareBy({it})).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinctUntilChanged())
+        emitAll(client.interleave<String, String>(viewQueries, compareBy { it }).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinctUntilChanged())
 	}
 
 	@Views(
@@ -286,7 +289,7 @@ class ContactDAOImpl(
 		)
 			.keys(searchKeys)
 			.doNotIncludeDocs()
-		emitAll(client.interleave<String, String>(viewQueries, compareBy({it}), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value })
+		emitAll(client.interleave<String, String>(viewQueries, compareBy { it }, DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value })
 	}.distinctIf(searchKeys.size > 1)
 
 	@OptIn(ExperimentalCoroutinesApi::class)
@@ -443,25 +446,23 @@ class ContactDAOImpl(
 	override fun listContactIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		var startValueDate = startValueDate
-		var endValueDate = endValueDate
-		if (startValueDate != null && startValueDate < 99999999) {
-			startValueDate = startValueDate * 1000000
-		}
-		if (endValueDate != null && endValueDate < 99999999) {
-			endValueDate = endValueDate * 1000000
-		}
+		val normalizedStartValueDate = if (startValueDate != null && startValueDate < 99999999) {
+			startValueDate * 1000000
+		} else startValueDate
+		val normalizedEndValueDate = if (endValueDate != null && endValueDate < 99999999) {
+			endValueDate * 1000000
+		} else endValueDate
 		val from = ComplexKey.of(
 			hcPartyId,
 			tagType,
 			tagCode,
-			startValueDate
+			normalizedStartValueDate
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			tagType ?: ComplexKey.emptyObject(),
 			tagCode ?: ComplexKey.emptyObject(),
-			endValueDate ?: ComplexKey.emptyObject()
+			normalizedEndValueDate ?: ComplexKey.emptyObject()
 		)
 
 		val viewQueries = createQueries(
@@ -543,25 +544,23 @@ class ContactDAOImpl(
 	override fun listContactIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		var startValueDate = startValueDate
-		var endValueDate = endValueDate
-		if (startValueDate != null && startValueDate < 99999999) {
-			startValueDate = startValueDate * 1000000
-		}
-		if (endValueDate != null && endValueDate < 99999999) {
-			endValueDate = endValueDate * 1000000
-		}
+		val normalizedStartValueDate = if (startValueDate != null && startValueDate < 99999999) {
+			startValueDate * 1000000
+		} else startValueDate
+		val normalizedEndValueDate = if (endValueDate != null && endValueDate < 99999999) {
+			endValueDate * 1000000
+		} else endValueDate
 		val from = ComplexKey.of(
 			hcPartyId,
 			codeType,
 			codeCode,
-			startValueDate
+			normalizedStartValueDate
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			codeType ?: ComplexKey.emptyObject(),
 			codeCode ?: ComplexKey.emptyObject(),
-			endValueDate ?: ComplexKey.emptyObject()
+			normalizedEndValueDate ?: ComplexKey.emptyObject()
 		)
 
 		val viewQueries = createQueries(
@@ -702,5 +701,13 @@ class ContactDAOImpl(
 
 		val viewQuery = createQuery(datastoreInformation, "conflicts").includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, Contact>(viewQuery).map { it.doc })
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "service_by_linked_id" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
 	}
 }

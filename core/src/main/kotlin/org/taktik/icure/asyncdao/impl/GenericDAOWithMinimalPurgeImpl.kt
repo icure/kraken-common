@@ -16,6 +16,7 @@ import org.taktik.icure.asyncdao.GenericDAOWithMinimalPurge
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheChainLink
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.base.StoredDocument
 
 abstract class GenericDAOWithMinimalPurgeImpl<T : StoredDocument>(
@@ -23,13 +24,15 @@ abstract class GenericDAOWithMinimalPurgeImpl<T : StoredDocument>(
 	couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	cacheChain: EntityCacheChainLink<T>? = null,
-	designDocumentProvider: DesignDocumentProvider
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
 ) : GenericDAOImpl<T>(
 	entityClass,
 	couchDbDispatcher,
 	idGenerator,
 	cacheChain,
-	designDocumentProvider
+	designDocumentProvider,
+	daoConfig = daoConfig
 ), GenericDAOWithMinimalPurge<T> {
 	override fun purgeByIdAndRev(
 		datastoreInformation: IDatastoreInformation,

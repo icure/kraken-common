@@ -25,6 +25,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.utils.writeTo
 import java.nio.ByteBuffer
@@ -36,8 +37,9 @@ internal class FormTemplateDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<FormTemplate>(FormTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(FormTemplate::class.java), designDocumentProvider), FormTemplateDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<FormTemplate>(FormTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(FormTemplate::class.java), designDocumentProvider, daoConfig = daoConfig), FormTemplateDAO {
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FormTemplate' && !doc.deleted && doc.author) emit([doc.author,doc.guid], null )}")
 	override fun listFormTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?, loadLayout: Boolean) = flow {
@@ -187,6 +189,7 @@ internal class FormTemplateDAOImpl(
 				}
 			}
 
+			@Suppress("DEPRECATION")
 			val formLayout = formTemplate.layoutAttachmentId?.takeIf { formTemplateLayout == null }?.let { laId ->
 				val attachmentFlow = getAttachment(datastoreInformation, formTemplate.id, laId, formTemplate.rev)
 				ByteArrayOutputStream().use {

@@ -25,6 +25,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DocumentTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 import org.taktik.icure.utils.writeTo
@@ -37,8 +38,9 @@ class DocumentTemplateDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<DocumentTemplate>(DocumentTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(DocumentTemplate::class.java), designDocumentProvider), DocumentTemplateDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<DocumentTemplate>(DocumentTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(DocumentTemplate::class.java), designDocumentProvider, daoConfig = daoConfig), DocumentTemplateDAO {
 
 	override fun getAllDocumentTemplates(
 		datastoreInformation: IDatastoreInformation,

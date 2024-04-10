@@ -7,6 +7,7 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Qualifier
@@ -22,8 +23,10 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ClassificationTemplateDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.utils.distinctByIdIf
@@ -37,8 +40,9 @@ internal class ClassificationTemplateDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<ClassificationTemplate>(ClassificationTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(ClassificationTemplate::class.java), designDocumentProvider), ClassificationTemplateDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<ClassificationTemplate>(ClassificationTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(ClassificationTemplate::class.java), designDocumentProvider, daoConfig = daoConfig), ClassificationTemplateDAO {
 
 	override suspend fun getClassificationTemplate(datastoreInformation: IDatastoreInformation, classificationTemplateId: String): ClassificationTemplate? {
 		return get(datastoreInformation, classificationTemplateId)
@@ -88,5 +92,12 @@ internal class ClassificationTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(datastoreInformation, "all", null, "\ufff0", paginationOffset, false)
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, ClassificationTemplate::class.java))
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
 	}
 }

@@ -17,9 +17,11 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Patient
@@ -35,8 +37,9 @@ class PatientDAOImpl(
 	@Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Patient::class.java), designDocumentProvider), PatientDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Patient::class.java), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
 
 	@Views(
 	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
@@ -818,5 +821,20 @@ class PatientDAOImpl(
 				}
 			}
 		emitAll(duplicatePatients)
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_ssin" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> {
+				val client = couchDbDispatcher.getClient(datastoreInformation)
+				val viewQueries = createQueries(
+					datastoreInformation,
+					"by_hcparty_name" to MAURICE_PARTITION
+				).doNotIncludeDocs()
+				client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
+			}
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
 	}
 }

@@ -22,6 +22,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.InsuranceDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.db.PaginationOffset
@@ -33,8 +34,9 @@ class InsuranceDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<Insurance>(Insurance::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Insurance::class.java), designDocumentProvider), InsuranceDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<Insurance>(Insurance::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Insurance::class.java), designDocumentProvider, daoConfig = daoConfig), InsuranceDAO {
 
 	@View(name = "all_by_code", map = "classpath:js/insurance/All_by_code_map.js")
 	override fun listInsurancesByCode(datastoreInformation: IDatastoreInformation, code: String) = flow {

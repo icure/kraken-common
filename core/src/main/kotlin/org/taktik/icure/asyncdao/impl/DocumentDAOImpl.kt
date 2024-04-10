@@ -20,8 +20,10 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Document
 import org.taktik.icure.utils.distinctById
@@ -35,13 +37,15 @@ class DocumentDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
 ) : GenericDAOImpl<Document>(
 	Document::class.java,
 	couchDbDispatcher,
 	idGenerator,
 	entityCacheFactory.localOnlyCache(Document::class.java),
-	designDocumentProvider
+	designDocumentProvider,
+	daoConfig = daoConfig
 ), DocumentDAO {
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc._conflicts) emit(doc._id )}")
@@ -146,6 +150,14 @@ class DocumentDAOImpl(
 	override suspend fun deleteAttachment(datastoreInformation: IDatastoreInformation, documentId: String, rev: String, attachmentId: String): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return client.deleteAttachment(documentId, attachmentId, rev)
+	}
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when(partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_message" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+
 	}
 
 }

@@ -18,6 +18,7 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Agenda
 
 @Repository("AgendaDAO")
@@ -27,8 +28,9 @@ class AgendaDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: EntityCacheFactory,
-	designDocumentProvider: DesignDocumentProvider
-) : GenericDAOImpl<Agenda>(Agenda::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Agenda::class.java), designDocumentProvider), AgendaDAO {
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig
+) : GenericDAOImpl<Agenda>(Agenda::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Agenda::class.java), designDocumentProvider, daoConfig = daoConfig), AgendaDAO {
 
 	@View(name = "by_user", map = "classpath:js/agenda/By_user.js")
 	override fun getAgendasByUser(datastoreInformation: IDatastoreInformation, userId: String) = flow {
