@@ -19,8 +19,8 @@ abstract class JarUtils {
         // Note : This will only work when packaged as JAR
         try {
             val jarPath = URI(
-                this::class.java.protectionDomain.codeSource.location.path.replace(
-                    "jar\\!/.+".toRegex(),
+                this::class.java.protectionDomain.codeSource.location.path.replace("nested:","").replace(
+                    "jar/\\!.+".toRegex(),
                     "jar"
                 )
             ).path
