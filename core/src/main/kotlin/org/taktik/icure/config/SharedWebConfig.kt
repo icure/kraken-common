@@ -23,6 +23,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
+import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
 
 @Configuration
@@ -65,6 +66,8 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)
+
+		configurer.customCodecs().register(FluxStringJsonEncoder())
 
 		configurer.defaultCodecs().jackson2JsonEncoder(getJackson2JsonEncoder())
 

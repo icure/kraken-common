@@ -4,13 +4,18 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -20,6 +25,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
@@ -113,23 +119,43 @@ class AccessLogDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>,String, AccessLog>>().map { it.doc })
 	}.distinct()
 
-	override fun findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation: IDatastoreInformation, searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
+	@View(name = "by_hcparty_patient_date", map = "classpath:js/accesslog/By_hcparty_patient_date_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun findAccessLogIdsByDataOwnerPatientDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val key = ComplexKey.of(searchKey, secretPatientKey)
+		val keys = secretForeignKeys.flatMap { fk ->
+			searchKeys.map { key -> ComplexKey.of(key, fk)}
+		}.sortedWith(compareBy({ it.components[0] as String }, { it.components[1] as String }))
 
-		val viewQueries = createPagedQueries(
+		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patient",
-			"by_data_owner_patient" to DATA_OWNER_PARTITION,
-			key,
-			key,
-			paginationOffset,
-			false
-		)
+			"by_hcparty_patient_date" to MAURICE_PARTITION,
+			"by_data_owner_patient" to DATA_OWNER_PARTITION
+		).doNotIncludeDocs().keys(keys)
 
-		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]})))
-	}
+		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, Long>>()
+			.mapNotNull {
+				if(it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
+					it.id to it.value!!
+				} else null
+			}
+			.toList()
+			.sortedWith(if(descending) Comparator { o1, o2 ->
+					o2.second.compareTo(o1.second).let {
+						if(it == 0) o2.first.compareTo(o1.first) else it
+					}
+				} else compareBy({ it.second }, { it.first })
+			)
+			.forEach { emit(it.first) }
+	}.distinctUntilChanged() // This works because ids will be sorted by date first
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {

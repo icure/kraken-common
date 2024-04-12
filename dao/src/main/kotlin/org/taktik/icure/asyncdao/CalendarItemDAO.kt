@@ -49,4 +49,23 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 	 * @return a [Flow] of [CalendarItem]s.
 	 */
 	fun listCalendarItemsByRecurrenceId(datastoreInformation: IDatastoreInformation, recurrenceId: String): Flow<CalendarItem>
+
+	/**
+	 * Retrieves the ids of all the [CalendarItem]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [CalendarItem.secretForeignKeys].
+	 * Only the ids of the Calendar Items where [CalendarItem.startTime] is not null are returned and the results are sorted by
+	 * [CalendarItem.startTime] in ascending or descending order according to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [CalendarItem.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Calendar Items where [CalendarItem.startTime] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Calendar Items where [CalendarItem.startTime] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
+	 * @return a [Flow] of Calendar Item ids.
+	 */
+	fun listCalendarItemsIdsByDataOwnerPatientStartTime(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

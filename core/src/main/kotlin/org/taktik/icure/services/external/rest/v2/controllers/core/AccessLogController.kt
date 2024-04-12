@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -136,21 +137,21 @@ class AccessLogController(
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "List access logs found by Healthcare Party id and secret foreign key element id with pagination.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findAccessLogsByHCPartyPatientForeignKey(
-		@RequestParam("hcPartyId") hcPartyId: String,
-		@RequestParam("secretFKey") secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<AccessLogDto> {
-		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
+	@PostMapping("/byDataOwnerSecretForeignKeys", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun findAccessLogsIdsByDataOwnerPatientForeignKeys(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return accessLogService
-			.listAccessLogsBySearchKeyAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
-			.mapElements(accessLogV2Mapper::map)
-			.asPaginatedFlux()
+			.findAccessLogIdsByDataOwnerPatientDate(dataOwnerId, secretPatientKeys.ids.toSet(), startDate, endDate, descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign keyelementIds.")
