@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
@@ -32,20 +31,13 @@ import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginationElement
-import org.taktik.icure.pagination.limitIncludingKey
-import org.taktik.icure.pagination.toPaginatedFlow
-import org.taktik.icure.properties.CouchDbProperties
 import org.taktik.icure.validation.aspect.Fixer
-import java.net.URI
 import java.nio.ByteBuffer
 
 @Service
 @Profile("app")
 class DocumentLogicImpl(
-    couchDbProperties: CouchDbProperties,
     private val documentDAO: DocumentDAO,
     sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -54,7 +46,6 @@ class DocumentLogicImpl(
     @Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
     fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), DocumentLogic {
-	private val dbInstanceUri = URI(couchDbProperties.url)
 
 	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document) { fixedDocument ->
 		if(fixedDocument.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
@@ -217,16 +208,23 @@ class DocumentLogicImpl(
 		)
 	}
 
-	override fun listDocumentsByHcPartyIdAndSecretMessageKey(
-		hcPartyId: String,
-		secretForeignKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun listDocumentIdsByDataOwnerPatientCrated(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			documentDAO.listDocumentsByHcPartyIdAndSecretMessageKey(
-				datastoreInformation, hcPartyId, secretForeignKey, paginationOffset.limitIncludingKey()
-			).toPaginatedFlow<Document>(paginationOffset.limit)
+			documentDAO.listDocumentIdsByDataOwnerPatientCrated(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				secretForeignKeys,
+				startDate,
+				endDate,
+				descending
+			)
 		)
 	}
 

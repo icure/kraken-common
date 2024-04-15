@@ -4,8 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -40,35 +38,27 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.asyncservice.DocumentService
 import org.taktik.icure.cache.ReactorCacheInjector
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
-import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -83,9 +73,7 @@ class DocumentController(
 	private val bulkShareResultV2Mapper: DocumentBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector,
-	private val paginationConfig: SharedPaginationConfig,
-	private val objectMapper: ObjectMapper,
+	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -241,21 +229,26 @@ class DocumentController(
 		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List documents found By Healthcare Party and secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findDocumentsByHCPartyMessageForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretMessageKeys: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<DocumentDto> {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Document ids by data owner id, patient secret keys and creation date.")
+	@PostMapping("/byDataOwnerPatientCreated")
+	fun listDocumentIdsByDataOwnerPatientCreated(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return documentService
-			.listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId, secretMessageKeys, paginationOffset)
-			.mapElements(documentV2Mapper::map)
-			.asPaginatedFlux()
+			.listDocumentIdsByDataOwnerPatientCrated(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate,
+				endDate = endDate,
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List documents with no delegation")

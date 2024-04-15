@@ -4,11 +4,15 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -20,11 +24,11 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.config.DaoConfig
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Document
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
@@ -78,22 +82,23 @@ class DocumentDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Document>>().map { it.doc })
 	}.distinctById()
 
-	override fun listDocumentsByHcPartyIdAndSecretMessageKey(
+	@View(name = "by_hcparty_message_date", map = "classpath:js/document/By_hcparty_message_date_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listDocumentIdsByDataOwnerPatientCrated(
 		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		secretForeignKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<ViewQueryResultEvent> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(hcPartyId, secretForeignKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_message",
-			"by_data_owner_message" to DATA_OWNER_PARTITION,
-			key, key, paginationOffset, false
-		)
-		emitAll(client.interleave<Array<String>, String, Document>(viewQueries, compareBy({it[0]}, {it[1]})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_message_date" to MAURICE_PARTITION, "by_data_owner_message" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@View(name = "without_delegations", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && (!doc.delegations || Object.keys(doc.delegations).length === 0)) emit(doc._id )}")
 	override fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int) = flow {
@@ -155,6 +160,7 @@ class DocumentDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_message" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_message_date" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 

@@ -88,7 +88,7 @@ class ClassificationController(
 		return elementList.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and opening date.")
+	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and creation date.")
 	@PostMapping("/byDataOwnerPatientCreated")
 	fun listClassificationIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
