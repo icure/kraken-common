@@ -40,6 +40,6 @@ interface ClassificationDAO : GenericDAO<Classification> {
 	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
 	 * @return a [Flow] of Classification ids.
 	 */
-	fun listClassificationIdsByDataOwnerPatientCrated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listClassificationIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 }

@@ -47,7 +47,7 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
 	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun listClassificationIdsByDataOwnerPatientCrated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listClassificationIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	/**
 	 * Deletes [Classification]s in batch.

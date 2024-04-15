@@ -42,7 +42,7 @@ interface ClassificationLogic : EntityPersister<Classification, String>, EntityW
 	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
 	 * @return a [Flow] of Classification ids.
 	 */
-	fun listClassificationIdsByDataOwnerPatientCrated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listClassificationIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier>
 	fun deleteClassifications(ids: Flow<String>): Flow<DocIdentifier>

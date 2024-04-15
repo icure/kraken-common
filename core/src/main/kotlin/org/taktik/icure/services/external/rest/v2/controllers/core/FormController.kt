@@ -4,10 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -35,18 +32,11 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.MissingRequirementsException
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
@@ -61,7 +51,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
-import org.taktik.icure.utils.JsonString
+import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
@@ -82,9 +72,7 @@ class FormController(
 	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector,
-	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -224,21 +212,26 @@ class FormController(
 		return formsList.map { contact -> formV2Mapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List forms found By Healthcare Party and secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findFormsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretPatientKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<FormDto> {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Forms ids by data owner id, patient secret keys and opening date")
+	@PostMapping("/byDataOwnerPatientOpeningDate")
+	fun findFormIdsByDataOwnerPatientOpeningDate(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return formService
-			.listFormsByHcPartyIdPatientSecretKey(hcPartyId, secretPatientKey, paginationOffset)
-			.mapElements(formV2Mapper::map)
-			.asPaginatedFlux()
+			.listFormIdsByDataOwnerPatientOpeningDate(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")

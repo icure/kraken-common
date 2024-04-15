@@ -101,7 +101,7 @@ class ClassificationController(
 			"You need to provide at least one secret patient key"
 		}
 		return classificationService
-			.listClassificationIdsByDataOwnerPatientCrated(
+			.listClassificationIdsByDataOwnerPatientCreated(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate,
