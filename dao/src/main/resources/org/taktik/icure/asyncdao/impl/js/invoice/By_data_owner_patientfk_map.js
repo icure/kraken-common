@@ -38,7 +38,7 @@ function(doc) {
   if (doc.java_type === 'org.taktik.icure.entities.Invoice' && !doc.deleted && doc.secretForeignKeys && doc.secretForeignKeys.length) {
     emit_for_delegates(doc, function (dataOwnerId, doc) {
       doc.secretForeignKeys.forEach(function(fk) {
-        emit([dataOwnerId, fk], null);
+        emit([dataOwnerId, fk], doc.invoiceDate);
       })
     })
   }

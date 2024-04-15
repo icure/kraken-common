@@ -55,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Ma
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.InvoiceBulkShareResultV2Mapper
+import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -239,21 +240,26 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and a single secret foreign patient key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findInvoicesByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux<InvoiceDto> {
-		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val offset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Invoices ids by data owner id, patient secret keys and invoice date")
+	@PostMapping("/byDataOwnerPatientInvoiceDate")
+	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return invoiceService
-			.listInvoicesByHcPartyAndPatientSfk(hcPartyId, secretFKey, offset)
-			.mapElements(invoiceV2Mapper::map)
-			.asPaginatedFlux()
+			.listInvoiceIdsByDataOwnerPatientInvoiceDate(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")

@@ -50,7 +50,7 @@ interface FormService : EntityWithSecureDelegationsService<Form> {
 	 * @param descending whether to sort the results by [Form.openingDate] ascending or descending.
 	 * @return a [Flow] of Form ids.
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
-	 * and the current user does not have the permission to search Calendar Items for other users.
+	 * and the current user does not have the permission to search Forms for other users.
 	 */
 	fun listFormIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 

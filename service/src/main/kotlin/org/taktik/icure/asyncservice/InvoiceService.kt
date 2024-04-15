@@ -5,6 +5,7 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -67,19 +68,23 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice> {
 	fun listInvoicesByHcPartyAndPatientSfks(hcPartyId: String, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**
-	 * Retrieves all the [Invoice]s for a data owner and which [Invoice.secretForeignKeys] contains the [secretPatientKey].
-	 * Note: if the current data owner id is equal to [hcPartyId], then also the search keys currently available for the
-	 * user will be considered when retrieving the results.
-	 * This method will automatically filter out all the entities that the current user is not allowed to access, but
-	 * it guarantees that the limit specified in hte [paginationOffset] is reached as long as there are available entities.
+	 * Retrieves the ids of all the [Invoice]s given the [dataOwnerId] (plus all the current access keys if that is
+	 * equal to the data owner id of the user making the request) and a set of [Invoice.secretForeignKeys].
+	 * Only the ids of the Invoices where [Invoice.invoiceDate] is not null are returned and the results are sorted by
+	 * [Invoice.invoiceDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the data owner id.
-	 * @param secretPatientKey a secret foreign key that should be contained in [Invoice.secretForeignKeys].
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [Invoice]s.
-	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Invoice]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [Invoice.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Invoice.invoiceDate] ascending or descending.
+	 * @return a [Flow] of Invoice ids.
+	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+	 * and the current user does not have the permission to search Invoices for other users.
 	 */
-	fun listInvoicesByHcPartyAndPatientSfk(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(hcPartyId: String, sentMediumType: MediumType, invoiceType: InvoiceType, sent: Boolean, fromDate: Long?, toDate: Long?): Flow<Invoice>
 	fun listInvoicesByHcPartySendingModeStatus(hcPartyId: String, sendingMode: String?, status: String?, fromDate: Long?, toDate: Long?): Flow<Invoice>
