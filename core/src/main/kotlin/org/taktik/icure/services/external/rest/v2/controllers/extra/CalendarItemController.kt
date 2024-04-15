@@ -220,7 +220,7 @@ class CalendarItemController(
 
 	@Operation(summary = "Find CalendarItems ids by data owner id, patient secret keys and start time")
 	@PostMapping("/byDataOwnerPatientStartTime")
-	fun findCalendarItemsIdsByDataOwnerPatientStartTime(
+	fun findCalendarItemIdsByDataOwnerPatientStartTime(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -231,7 +231,7 @@ class CalendarItemController(
 			"You need to provide at least one secret patient key"
 		}
 		return calendarItemService
-			.listCalendarItemsIdsByDataOwnerPatientStartTime(
+			.listCalendarItemIdsByDataOwnerPatientStartTime(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

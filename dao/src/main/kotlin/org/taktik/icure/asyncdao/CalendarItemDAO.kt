@@ -67,5 +67,5 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 	 * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
 	 * @return a [Flow] of Calendar Item ids.
 	 */
-	fun listCalendarItemsIdsByDataOwnerPatientStartTime(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listCalendarItemIdsByDataOwnerPatientStartTime(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

@@ -82,22 +82,6 @@ class ContactLogicImpl(
 			)
 		}
 
-	override fun listContactByHCPartyIdAndSecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			contactDAO.listContactsByHcPartyIdAndPatientSecretKey(
-				datastoreInformation,
-				hcPartyId,
-				secretPatientKey,
-				paginationOffset.limitIncludingKey()
-			).toPaginatedFlow<Contact>(paginationOffset.limit)
-		)
-	}
-
 	override fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
@@ -109,6 +93,25 @@ class ContactLogicImpl(
 				)
 			)
 		}
+
+	override fun listContactIdsByDataOwnerPatientOpeningDate(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(contactDAO.listContactIdsByDataOwnerPatientOpeningDate(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				secretForeignKeys,
+				startDate,
+				endDate,
+				descending
+			)
+		)
+	}
 
 	override suspend fun addDelegation(contactId: String, delegation: Delegation): Contact? {
 		val datastoreInformation = getInstanceAndGroup()

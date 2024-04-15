@@ -127,35 +127,15 @@ class AccessLogDAOImpl(
 		startDate: Long?,
 		endDate: Long?,
 		descending: Boolean
-	): Flow<String> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val keys = secretForeignKeys.flatMap { fk ->
-			searchKeys.map { key -> ComplexKey.of(key, fk)}
-		}.sortedWith(compareBy({ it.components[0] as String }, { it.components[1] as String }))
-
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"by_hcparty_patient_date" to MAURICE_PARTITION,
-			"by_data_owner_patient" to DATA_OWNER_PARTITION
-		).doNotIncludeDocs().keys(keys)
-
-		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, Long>>()
-			.mapNotNull {
-				if(it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
-					it.id to it.value!!
-				} else null
-			}
-			.toList()
-			.sortedWith(if(descending) Comparator { o1, o2 ->
-					o2.second.compareTo(o1.second).let {
-						if(it == 0) o2.first.compareTo(o1.first) else it
-					}
-				} else compareBy({ it.second }, { it.first })
-			)
-			.forEach { emit(it.first) }
-	}.distinctUntilChanged() // This works because ids will be sorted by date first
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {

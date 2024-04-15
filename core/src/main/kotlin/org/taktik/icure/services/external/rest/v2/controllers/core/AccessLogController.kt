@@ -139,7 +139,7 @@ class AccessLogController(
 
 	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
 	@PostMapping("/byDataOwnerSecretForeignKeys", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun findAccessLogsIdsByDataOwnerPatientForeignKeys(
+	fun findAccessLogIdsByDataOwnerPatientForeignKeys(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,

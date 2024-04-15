@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
@@ -39,16 +40,23 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listContactsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Contact>
 
 	/**
-	 * Retrieves all the [Contact]s for a healthcare party id and secret patient key pair.
-	 * The result will be returned in a format for pagination.
+	 * Retrieves the ids of all the [Contact]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [Contact.secretForeignKeys].
+	 * Only the ids of the Contacts where [Contact.openingDate] is not null are returned and the results are sorted by
+	 * [Contact.openingDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param hcPartyId the id of the healthcare party.
-	 * @param secretPatientKey the secret patient key.
-	 * @param pagination a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [ViewQueryResultEvent]s wrapping the [Contact]s.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Contact.openingDate].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Contacts where [Contact.openingDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Contacts where [Contact.openingDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
+	 * @return a [Flow] of Contact ids.
 	 */
-	fun listContactsByHcPartyIdAndPatientSecretKey(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun listContactIdsByDataOwnerPatientOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listContactIdsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String>
 	fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String): Flow<Contact>
 	fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>): Flow<Contact>

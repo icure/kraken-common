@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -22,11 +24,13 @@ import org.slf4j.LoggerFactory
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.View
@@ -545,6 +549,50 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				oldAttachments - oldAttachmentId
 			} ?: oldAttachments
 		}
+
+	/**
+	 * Retrieves all the ids for an entity in the legacy and secure delegation views given a set of search keys and
+	 * a set of secret foreign keys.
+	 * This method will work if the provided partition emit a key that is [accessKey, secretForeignKey] and as value the
+	 * date (as timestamp or fuzzy date).
+	 */
+	protected fun getEntityIdsByDataOwnerPatientDate(
+		views: List<Pair<String, String>>,
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val keys = secretForeignKeys.flatMap { fk ->
+			searchKeys.map { key -> ComplexKey.of(key, fk)}
+		}.sortedWith(compareBy({ it.components[0] as String }, { it.components[1] as String }))
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			*views.toTypedArray()
+		).doNotIncludeDocs().keys(keys)
+
+		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, Long>>()
+			.mapNotNull {
+				if(it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
+					it.id to it.value!!
+				} else null
+			}
+			.toList()
+			.sortedWith(if(descending) Comparator { o1, o2 ->
+				o2.second.compareTo(o1.second).let {
+					if(it == 0) o2.first.compareTo(o1.first) else it
+				}
+			} else compareBy({ it.second }, { it.first })
+			)
+			.forEach { emit(it.first) }
+	}.distinctUntilChanged() // This works because ids will be sorted by date first
+
 
 	protected suspend fun warmup(datastoreInformation: IDatastoreInformation, view: Pair<String, String?>) {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

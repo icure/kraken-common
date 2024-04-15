@@ -7,15 +7,16 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.pagination.PaginationElement
 
 interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDelegationsLogic<Contact> {
@@ -34,19 +35,24 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
      */
     fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
 
-    /**
-     * Retrieves all the [Contact]s for a healthcare party id and secret patient key pair.
-     * The result will be returned in a format for pagination.
-     * Note: differently from [listContactsByHCPartyAndPatient], this method will NOT use all the search keys for the
-     * current data owner if the current data owner id is equal to [hcPartyId].
-     *
-     * @param hcPartyId the id of the healthcare party.
-     * @param secretPatientKey the secret patient key.
-     * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [PaginationElement]s wrapping the [Contact]s.
-     */
-    fun listContactByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
     fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
+
+    /**
+     * Retrieves the ids of all the [Contact]s given the [dataOwnerId] (plus all the current access keys if that is
+     * equal to the data owner id of the user making the request) and a set of [Contact.secretForeignKeys].
+     * Only the ids of the Contacts where [Contact.openingDate] is not null are returned and the results are sorted by
+     * [Contact.openingDate] in ascending or descending order according to the [descending] parameter.
+     *
+     * @param dataOwnerId the id of the data owner.
+     * @param secretForeignKeys a [Set] of [Contact.openingDate].
+     * @param startDate a fuzzy date. If not null, only the ids of the Contacts where [Contact.openingDate] is greater or equal than [startDate]
+     * will be returned.
+     * @param endDate a fuzzy date. If not null, only the ids of the Contacts where [Contact.openingDate] is less or equal than [endDate]
+     * will be returned.
+     * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
+     * @return a [Flow] of Contact ids.
+     */
+    fun listContactIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
 
