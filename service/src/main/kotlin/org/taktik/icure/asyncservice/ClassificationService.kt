@@ -7,13 +7,10 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginationElement
 
 interface ClassificationService : EntityWithSecureDelegationsService<Classification> {
 	suspend fun createClassification(classification: Classification): Classification?
@@ -34,20 +31,23 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**
-	 * Retrieves all the [Classification]s for a healthcare party and a list of [Classification.secretForeignKeys],
-	 * and a single [Classification.secretForeignKeys] in a format for pagination.
-	 * Note: differently from [listClassificationsByHCPartyAndSecretPatientKeys] this method will NOT consider the
-	 * available search keys for the current user, even if their data owner id is equal to [hcPartyId].
-	 * This method will filter out all the entities that the current user is not allowed to access, but it will guarantee
-	 * that the page size specified in the [paginationOffset] is reached as long as there are available elements.
+	 * Retrieves the ids of all the [Classification]s given the [dataOwnerId] (and its access keys if it is the current
+	 * user making the request) and a set of [Classification.secretForeignKeys].
+	 * Only the ids of the Classifications where [Classification.created] is not null are returned and the results are sorted by
+	 * [Classification.created] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the healthcare party id.
-	 * @param secretPatientKey the patient secret foreign key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] wrapping the [Classification]s.
-	 * @throws AccessDeniedException if the current user does not meet the precondition to list [Classification]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [Classification.secretForeignKeys].
+	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
+	 * @return a [Flow] of Classification ids.
+	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun listClassificationsByHCPartyAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun listClassificationIdsByDataOwnerPatientCrated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	/**
 	 * Deletes [Classification]s in batch.

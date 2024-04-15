@@ -6,12 +6,9 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.pagination.PaginationElement
 
 interface ClassificationLogic : EntityPersister<Classification, String>, EntityWithSecureDelegationsLogic<Classification> {
 
@@ -31,17 +28,21 @@ interface ClassificationLogic : EntityPersister<Classification, String>, EntityW
 	fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**
-	 * Retrieves all the [Classification]s for a healthcare party and a list of [Classification.secretForeignKeys],
-	 * and a single [Classification.secretForeignKeys] in a format for pagination.
-	 * Note: differently from [listClassificationsByHCPartyAndSecretPatientKeys] this method will NOT consider the
-	 * available search keys for the current user, even if their data owner id is equal to [hcPartyId].
+	 * Retrieves the ids of all the [Classification]s given the [dataOwnerId] (and its access keys if it is the current
+	 * user making the request) and a set of [Classification.secretForeignKeys].
+	 * Only the ids of the Classifications where [Classification.created] is not null are returned and the results are sorted by
+	 * [Classification.created] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the healthcare party id.
-	 * @param secretPatientKey the patient secret foreign key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] wrapping the [Classification]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [Classification.secretForeignKeys].
+	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
+	 * @return a [Flow] of Classification ids.
 	 */
-	fun listClassificationsByHCPartyAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun listClassificationIdsByDataOwnerPatientCrated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier>
 	fun deleteClassifications(ids: Flow<String>): Flow<DocIdentifier>

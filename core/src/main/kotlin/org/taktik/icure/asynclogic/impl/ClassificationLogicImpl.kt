@@ -73,16 +73,22 @@ class ClassificationLogicImpl(
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	override fun listClassificationsByHCPartyAndSecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun listClassificationIdsByDataOwnerPatientCrated(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(classificationDAO
-			.listClassificationsByHCPartyAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
-			.toPaginatedFlow<Classification>(paginationOffset.limit)
-		)
+		emitAll(classificationDAO.listClassificationIdsByDataOwnerPatientCrated(
+			datastoreInformation,
+			getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+			secretForeignKeys,
+			startDate,
+			endDate,
+			descending
+		))
 	}
 
 	override fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier> =
