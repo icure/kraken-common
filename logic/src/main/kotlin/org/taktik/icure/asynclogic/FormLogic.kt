@@ -40,9 +40,9 @@ interface FormLogic : EntityPersister<Form, String>, EntityWithSecureDelegations
 	 *
 	 * @param dataOwnerId the id of a data owner.
 	 * @param secretForeignKeys a [Set] of [Form.secretForeignKeys].
-	 * @param startDate a fuzzy date. If not null, only the ids of the Calendar Items where [Form.openingDate] is greater or equal than [startDate]
+	 * @param startDate a fuzzy date. If not null, only the ids of the Forms where [Form.openingDate] is greater or equal than [startDate]
 	 * will be returned.
-	 * @param endDate a fuzzy date. If not null, only the ids of the Calendar Items where [Form.openingDate] is less or equal than [endDate]
+	 * @param endDate a fuzzy date. If not null, only the ids of the Forms where [Form.openingDate] is less or equal than [endDate]
 	 * will be returned.
 	 * @param descending whether to sort the results by [Form.openingDate] ascending or descending.
 	 * @return a [Flow] of Form ids.

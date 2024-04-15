@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -27,8 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
@@ -36,9 +33,6 @@ import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -52,13 +46,13 @@ import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.HealthElementBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
-import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -121,21 +115,26 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List healthcare elements found By Healthcare Party and a secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findHealthElementsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	): PaginatedFlux<HealthElementDto> {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Health Element ids by data owner id, patient secret keys and opening date")
+	@PostMapping("/byDataOwnerPatientOpeningDate")
+	fun findHealthElementIdsByDataOwnerPatientOpeningDate(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return healthElementService
-			.listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
-			.mapElements(healthElementV2Mapper::map)
-			.asPaginatedFlux()
+			.listHealthElementIdsByDataOwnerPatientOpeningDate(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")

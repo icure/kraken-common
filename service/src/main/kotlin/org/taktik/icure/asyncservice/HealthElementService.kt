@@ -9,16 +9,14 @@ import kotlinx.coroutines.flow.asFlow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginationElement
 
 interface HealthElementService : EntityWithSecureDelegationsService<HealthElement> {
 	suspend fun createHealthElement(healthElement: HealthElement): HealthElement?
@@ -41,20 +39,23 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<HealthElement>
 
 	/**
-	 * Retrieves all the [HealthElement]s for a given healthcare party id and secret patient key in a format for
-	 * pagination.
-	 * This method will filter out all the [HealthElement]s that the current user is not allowed to access, but it will
-	 * guarantee that the page limit specified in the [offset] is reached as long as there are available elements.
-	 * Note: differently from [listHealthElementsByHcPartyAndSecretPatientKeys], this method will NOT consider the
-	 * available search keys for the current user if their data owner id is equal to [hcPartyId].
+	 * Retrieves the ids of all the [HealthElement]s given the [dataOwnerId] (plus all the current access keys if that is
+	 * equal to the data owner id of the user making the request) and a set of [HealthElement.secretForeignKeys].
+	 * Only the ids of the HealthElements where [HealthElement.openingDate] is not null are returned and the results are sorted by
+	 * [HealthElement.openingDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the id of the healthcare party to look for in the delegations.
-	 * @param secretPatientKey the secret patient key, that will be searched in [HealthElement.secretForeignKeys].
-	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] containing the [HealthElement]s.
-	 * @throws AccessDeniedException if the current user does not meet the precondition to list [HealthElement]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [HealthElement.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the HealthElements where [HealthElement.openingDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the HealthElements where [HealthElement.openingDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [HealthElement.openingDate] ascending or descending.
+	 * @return a [Flow] of HealthElement ids.
+	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun listHealthElementsByHCPartyIdAndSecretPatientKey(hcPartyId: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>
