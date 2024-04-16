@@ -30,6 +30,7 @@ class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>()
 		for (subClass in classes) {
 			val discriminated = subClass.getAnnotation(JsonDiscriminated::class.java)
 			val discriminatedString = discriminated?.value ?: subClass.simpleName
+			@Suppress("UNCHECKED_CAST")
 			subclasses[discriminatedString] = subClass as Class<AbstractFilterDto<*>>
 			reverseSubclasses[subClass] = discriminatedString
 		}

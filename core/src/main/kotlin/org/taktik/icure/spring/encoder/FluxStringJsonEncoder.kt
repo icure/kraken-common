@@ -44,13 +44,21 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 		try {
 			val helper = StringArrayJoinHelper()
 
-			Flux.from(inputStream).map {
-				bufferFactory.wrap("${helper.getPrefix()}\"$it\"".toByteArray())
-			}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
+			if(inputStream is Flux<*>) {
+				Flux.from(inputStream).map {
+					bufferFactory.wrap("${helper.getPrefix()}\"$it\"".toByteArray())
+				}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
 				.concatWith(Mono.fromCallable { bufferFactory.wrap(FLUX_SUFFIX.toByteArray()) })
 				.doOnNext { dataBuffer ->
 					Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
 				}
+			} else {
+				Flux.from(inputStream).map {
+					bufferFactory.wrap(it.toByteArray())
+				}.doOnNext { dataBuffer ->
+					Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
+				}
+			}
 		} catch (e: IOException) {
 			Flux.error(e)
 		}
