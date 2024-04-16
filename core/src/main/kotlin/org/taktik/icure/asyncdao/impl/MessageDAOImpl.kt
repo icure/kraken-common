@@ -27,6 +27,7 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -34,7 +35,8 @@ import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Message
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.interleave
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted) emit( null, doc._id )}")
@@ -374,22 +376,23 @@ open class MessageDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc }.distinctUntilChangedBy { it.id })
 	}.distinctById()
 
-	override fun listMessagesByHcPartyAndPatient(
+	@View(name = "by_hcparty_patientfk_sent", map = "classpath:js/message/By_hcparty_patientfk_sent_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listMessageIdsByDataOwnerPatientSentDate(
 		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<ViewQueryResultEvent> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(hcPartyId, secretPatientKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
-			key, key, paginationOffset,false
-		)
-		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patientfk_sent" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@View(name = "by_parent_id", map = "classpath:js/message/By_parent_id_map.js")
 	override fun getChildren(datastoreInformation: IDatastoreInformation, messageId: String) = flow {
@@ -459,6 +462,7 @@ open class MessageDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_transport_guid" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patientfk_sent" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

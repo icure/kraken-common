@@ -42,7 +42,7 @@ function(doc) {
     });
     emit_for_delegates(doc, function (dataOwnerId, doc) {
       Object.keys(fkIds).forEach(function (fk) {
-        emit([dataOwnerId, fk], null);
+        emit([dataOwnerId, fk], doc.sent);
       });
     })
   }

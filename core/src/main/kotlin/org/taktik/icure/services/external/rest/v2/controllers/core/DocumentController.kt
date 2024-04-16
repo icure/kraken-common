@@ -231,7 +231,7 @@ class DocumentController(
 
 	@Operation(summary = "Find Document ids by data owner id, patient secret keys and creation date.")
 	@PostMapping("/byDataOwnerPatientCreated")
-	fun listDocumentIdsByDataOwnerPatientCreated(
+	fun findDocumentIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -242,7 +242,7 @@ class DocumentController(
 			"You need to provide at least one secret patient key"
 		}
 		return documentService
-			.listDocumentIdsByDataOwnerPatientCrated(
+			.findDocumentIdsByDataOwnerPatientCreated(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate,

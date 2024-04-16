@@ -175,7 +175,7 @@ class ContactDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_hcparty_patientfk_openingdate", map = "classpath:js/contact/By_hcparty_patientfk_openingdate_map.js", secondaryPartition = MAURICE_PARTITION)
-	override fun listContactIdsByDataOwnerPatientOpeningDate(
+	override fun findContactIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

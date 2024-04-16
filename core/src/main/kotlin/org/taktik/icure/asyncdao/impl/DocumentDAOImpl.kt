@@ -83,7 +83,7 @@ class DocumentDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_hcparty_message_date", map = "classpath:js/document/By_hcparty_message_date_map.js", secondaryPartition = MAURICE_PARTITION)
-	override fun listDocumentIdsByDataOwnerPatientCrated(
+	override fun findDocumentIdsByDataOwnerPatientCreated(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

@@ -58,7 +58,7 @@ interface ContactService: EntityWithSecureDelegationsService<Contact> {
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
 	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun listContactIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findContactIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
 

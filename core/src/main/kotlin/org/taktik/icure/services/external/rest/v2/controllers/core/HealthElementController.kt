@@ -128,7 +128,7 @@ class HealthElementController(
 			"You need to provide at least one secret patient key"
 		}
 		return healthElementService
-			.listHealthElementIdsByDataOwnerPatientOpeningDate(
+			.findHealthElementIdsByDataOwnerPatientOpeningDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

@@ -74,7 +74,7 @@ internal class ClassificationDAOImpl(
 	}.distinctByIdIf(searchKeys.size > 1)
 
 	@View(name = "by_hcparty_patient_date_as_value", map = "classpath:js/classification/By_hcparty_patient_date_as_value_map.js", secondaryPartition = MAURICE_PARTITION)
-	override fun listClassificationIdsByDataOwnerPatientCreated(
+	override fun findClassificationIdsByDataOwnerPatientCreated(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

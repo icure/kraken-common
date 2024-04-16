@@ -118,16 +118,22 @@ interface MessageDAO : GenericDAO<Message> {
 	fun listMessagesByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Message>
 
 	/**
-	 * Retrieves all the [Message]s for the given healthcare party id and [Message.secretForeignKeys] in a format for
-	 * pagination.
+	 * Retrieves the ids of all the [Message]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of [Message.secretForeignKeys].
+	 * Only the ids of the Messages where [Message.sent] is not null are returned and the results are sorted by
+	 * [Message.sent] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
-	 * @param hcPartyId the id of the healthcare party.
-	 * @param secretPatientKey a [Message.secretForeignKeys].
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [Message]s wrapped in [ViewQueryResultEvent]s, for pagination.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Message.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Message.sent] ascending or descending.
+	 * @return a [Flow] of Message ids.
 	 */
-	fun listMessagesByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun listMessageIdsByDataOwnerPatientSentDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun getChildren(datastoreInformation: IDatastoreInformation, messageId: String): Flow<Message>
 	fun listMessagesByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>): Flow<Message>
 	fun getMessagesByTransportGuids(datastoreInformation: IDatastoreInformation, hcPartyId: String, transportGuids: Collection<String>): Flow<Message>

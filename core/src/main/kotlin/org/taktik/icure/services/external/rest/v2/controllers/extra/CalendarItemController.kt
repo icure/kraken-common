@@ -231,7 +231,7 @@ class CalendarItemController(
 			"You need to provide at least one secret patient key"
 		}
 		return calendarItemService
-			.listCalendarItemIdsByDataOwnerPatientStartTime(
+			.findCalendarItemIdsByDataOwnerPatientStartTime(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

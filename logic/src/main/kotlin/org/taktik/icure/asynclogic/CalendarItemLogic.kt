@@ -64,5 +64,5 @@ interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithS
 	 * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
 	 * @return a [Flow] of Calendar Item ids.
 	 */
-	fun listCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

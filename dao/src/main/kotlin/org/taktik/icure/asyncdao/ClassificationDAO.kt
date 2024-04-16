@@ -33,13 +33,13 @@ interface ClassificationDAO : GenericDAO<Classification> {
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
 	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
 	 * @param secretForeignKeys a [Set] of [Classification.secretForeignKeys].
-	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is greater or equal than [startDate]
+	 * @param startDate a timestamp. If not null, only the ids of the Classifications where [Classification.created] is greater or equal than [startDate]
 	 * will be returned.
-	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is less or equal than [endDate]
+	 * @param endDate a timestamp. If not null, only the ids of the Classifications where [Classification.created] is less or equal than [endDate]
 	 * will be returned.
 	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
 	 * @return a [Flow] of Classification ids.
 	 */
-	fun listClassificationIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findClassificationIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 }

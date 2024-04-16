@@ -114,14 +114,14 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	 *
 	 * @param dataOwnerId the id of the data owner.
 	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
-	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Document.created] is greater or equal than [startDate]
+	 * @param startDate a timestamp. If not null, only the ids of the Documents where [Document.created] is greater or equal than [startDate]
 	 * will be returned.
-	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Document.created] is less or equal than [endDate]
+	 * @param endDate a timestamp. If not null, only the ids of the Documents where [Document.created] is less or equal than [endDate]
 	 * will be returned.
 	 * @param descending whether to sort the results by [Document.created] ascending or descending.
 	 * @return a [Flow] of Document ids.
 	 */
-	fun listDocumentIdsByDataOwnerPatientCrated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 

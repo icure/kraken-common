@@ -15,12 +15,13 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.DocumentLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
@@ -30,7 +31,6 @@ import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
@@ -208,7 +208,7 @@ class DocumentLogicImpl(
 		)
 	}
 
-	override fun listDocumentIdsByDataOwnerPatientCrated(
+	override fun findDocumentIdsByDataOwnerPatientCreated(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -217,7 +217,7 @@ class DocumentLogicImpl(
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			documentDAO.listDocumentIdsByDataOwnerPatientCrated(
+			documentDAO.findDocumentIdsByDataOwnerPatientCreated(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,

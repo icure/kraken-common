@@ -12,9 +12,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.ClassificationDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.Classification
@@ -68,7 +68,7 @@ class ClassificationLogicImpl(
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	override fun listClassificationIdsByDataOwnerPatientCreated(
+	override fun findClassificationIdsByDataOwnerPatientCreated(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -76,7 +76,7 @@ class ClassificationLogicImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(classificationDAO.listClassificationIdsByDataOwnerPatientCreated(
+		emitAll(classificationDAO.findClassificationIdsByDataOwnerPatientCreated(
 			datastoreInformation,
 			getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 			secretForeignKeys,

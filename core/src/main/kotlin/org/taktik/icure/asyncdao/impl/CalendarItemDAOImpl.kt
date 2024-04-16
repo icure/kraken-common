@@ -190,7 +190,7 @@ class CalendarItemDAOImpl(
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override fun listCalendarItemIdsByDataOwnerPatientStartTime(
+	override fun findCalendarItemIdsByDataOwnerPatientStartTime(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

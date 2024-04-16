@@ -22,14 +22,14 @@ interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> 
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
 	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
 	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
-	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Document.created] is greater or equal than [startDate]
+	 * @param startDate a timestamp. If not null, only the ids of the Documents where [Document.created] is greater or equal than [startDate]
 	 * will be returned.
-	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Document.created] is less or equal than [endDate]
+	 * @param endDate a timestamp. If not null, only the ids of the Documents where [Document.created] is less or equal than [endDate]
 	 * will be returned.
 	 * @param descending whether to sort the results by [Document.created] ascending or descending.
 	 * @return a [Flow] of Document ids.
 	 */
-	fun listDocumentIdsByDataOwnerPatientCrated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findDocumentIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int): Flow<Document>
 

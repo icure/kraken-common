@@ -156,7 +156,7 @@ class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoicesByHcPartyAndPatientSfks(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), secretPatientKeys))
 		}
 
-	override fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
+	override fun findInvoiceIdsByDataOwnerPatientInvoiceDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -165,7 +165,7 @@ class InvoiceLogicImpl (
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			invoiceDAO.listInvoiceIdsByDataOwnerPatientInvoiceDate(
+			invoiceDAO.findInvoiceIdsByDataOwnerPatientInvoiceDate(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,

@@ -94,7 +94,7 @@ class ContactLogicImpl(
 			)
 		}
 
-	override fun listContactIdsByDataOwnerPatientOpeningDate(
+	override fun findContactIdsByDataOwnerPatientOpeningDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -102,7 +102,7 @@ class ContactLogicImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(contactDAO.listContactIdsByDataOwnerPatientOpeningDate(
+		emitAll(contactDAO.findContactIdsByDataOwnerPatientOpeningDate(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,

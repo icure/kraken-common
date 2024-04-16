@@ -35,14 +35,14 @@ interface ClassificationLogic : EntityPersister<Classification, String>, EntityW
 	 *
 	 * @param dataOwnerId the id of the data owner.
 	 * @param secretForeignKeys a [Set] of [Classification.secretForeignKeys].
-	 * @param startDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is greater or equal than [startDate]
+	 * @param startDate a timestamp. If not null, only the ids of the Classifications where [Classification.created] is greater or equal than [startDate]
 	 * will be returned.
-	 * @param endDate a timestamp. If not null, only the ids of the Contacts where [Classification.created] is less or equal than [endDate]
+	 * @param endDate a timestamp. If not null, only the ids of the Classifications where [Classification.created] is less or equal than [endDate]
 	 * will be returned.
 	 * @param descending whether to sort the results by [Classification.created] ascending or descending.
 	 * @return a [Flow] of Classification ids.
 	 */
-	fun listClassificationIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findClassificationIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier>
 	fun deleteClassifications(ids: Flow<String>): Flow<DocIdentifier>

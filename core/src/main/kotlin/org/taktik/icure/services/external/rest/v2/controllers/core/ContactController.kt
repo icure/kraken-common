@@ -221,7 +221,7 @@ class ContactController(
 			"You need to provide at least one secret patient key"
 		}
 		return contactService
-			.listContactIdsByDataOwnerPatientOpeningDate(
+			.findContactIdsByDataOwnerPatientOpeningDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

@@ -197,7 +197,7 @@ class InvoiceDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_hcparty_patientfk_date", map = "classpath:js/invoice/By_hcparty_patientfk_date_map.js", secondaryPartition = MAURICE_PARTITION)
-	override fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
+	override fun findInvoiceIdsByDataOwnerPatientInvoiceDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

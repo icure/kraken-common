@@ -58,7 +58,7 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
 	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun listCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 
 	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem?

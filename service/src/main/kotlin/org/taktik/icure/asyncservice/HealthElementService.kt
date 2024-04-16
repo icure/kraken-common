@@ -53,9 +53,9 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	 * @param descending whether to sort the results by [HealthElement.openingDate] ascending or descending.
 	 * @return a [Flow] of HealthElement ids.
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
-	 * and the current user does not have the permission to search Calendar Items for other users.
+	 * and the current user does not have the permission to search HealthElements for other users.
 	 */
-	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun findHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>
