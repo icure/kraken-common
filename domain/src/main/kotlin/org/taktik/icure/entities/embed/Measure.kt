@@ -32,7 +32,7 @@ data class Measure(
      * higher bound of the reference range
      * @deprecated use referenceRanges instead
      */
-    @Deprecated(message = "min is deprecated, use referenceRanges instead", replaceWith = ReplaceWith("referenceRanges"))
+    @Deprecated(message = "max is deprecated, use referenceRanges instead", replaceWith = ReplaceWith("referenceRanges"))
     @param:ContentValue(ContentValues.ANY_DOUBLE) val max: Double? = null,
     @param:ContentValue(ContentValues.ANY_DOUBLE) val ref: Double? = null,
     @param:ContentValue(ContentValues.ANY_INT) val severity: Int? = null,
