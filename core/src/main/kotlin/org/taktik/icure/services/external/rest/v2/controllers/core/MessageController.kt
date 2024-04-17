@@ -129,7 +129,7 @@ class MessageController(
 
 	@Operation(summary = "Find Messages ids by data owner id, patient secret keys and sent date")
 	@PostMapping("/byDataOwnerPatientSentDate")
-	fun listMessageIdsByDataOwnerPatientOpeningDate(
+	fun listMessageIdsByDataOwnerPatientSentDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
