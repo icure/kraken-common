@@ -19,5 +19,10 @@ interface MeasureMapper {
 		Mapping(target = "referenceRanges", ignore = true)
 	)
 	fun map(measureDto: MeasureDto): Measure
+
+	@Mappings(
+		Mapping(target = "max", expression = """kotlin(measure.max ?: measure.referenceRanges.firstOrNull()?.high)"""),
+		Mapping(target = "min", expression = """kotlin(measure.min ?: measure.referenceRanges.firstOrNull()?.low)""")
+	)
 	fun map(measure: Measure): MeasureDto
 }
