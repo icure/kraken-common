@@ -208,7 +208,7 @@ class DocumentLogicImpl(
 		)
 	}
 
-	override fun findDocumentIdsByDataOwnerPatientCreated(
+	override fun listDocumentIdsByDataOwnerPatientCreated(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -217,7 +217,7 @@ class DocumentLogicImpl(
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			documentDAO.findDocumentIdsByDataOwnerPatientCreated(
+			documentDAO.listDocumentIdsByDataOwnerPatientCreated(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,

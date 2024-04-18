@@ -121,7 +121,7 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	 * @param descending whether to sort the results by [Document.created] ascending or descending.
 	 * @return a [Flow] of Document ids.
 	 */
-	fun findDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 

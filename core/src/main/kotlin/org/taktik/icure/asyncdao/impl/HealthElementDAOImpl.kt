@@ -211,7 +211,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION)
-	override fun findHealthElementIdsByDataOwnerPatientOpeningDate(
+	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

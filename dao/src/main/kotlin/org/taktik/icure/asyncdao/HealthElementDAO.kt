@@ -45,7 +45,7 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 	 * @param descending whether to sort the results by [HealthElement.openingDate] ascending or descending.
 	 * @return a [Flow] of HealthElement ids.
 	 */
-	fun findHealthElementIdsByDataOwnerPatientOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listHealthElementIdsByDataOwnerPatientOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<HealthElement>
 

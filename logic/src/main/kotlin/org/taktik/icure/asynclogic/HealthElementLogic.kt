@@ -46,7 +46,7 @@ interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWit
 	 * @param descending whether to sort the results by [HealthElement.openingDate] ascending or descending.
 	 * @return a [Flow] of HealthElement ids.
 	 */
-	fun findHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 

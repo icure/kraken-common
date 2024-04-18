@@ -117,7 +117,7 @@ class HealthElementController(
 
 	@Operation(summary = "Find Health Element ids by data owner id, patient secret keys and opening date")
 	@PostMapping("/byDataOwnerPatientOpeningDate")
-	fun findHealthElementIdsByDataOwnerPatientOpeningDate(
+	fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -128,7 +128,7 @@ class HealthElementController(
 			"You need to provide at least one secret patient key"
 		}
 		return healthElementService
-			.findHealthElementIdsByDataOwnerPatientOpeningDate(
+			.listHealthElementIdsByDataOwnerPatientOpeningDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

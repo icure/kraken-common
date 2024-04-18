@@ -29,7 +29,7 @@ interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> 
 	 * @param descending whether to sort the results by [Document.created] ascending or descending.
 	 * @return a [Flow] of Document ids.
 	 */
-	fun findDocumentIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listDocumentIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int): Flow<Document>
 

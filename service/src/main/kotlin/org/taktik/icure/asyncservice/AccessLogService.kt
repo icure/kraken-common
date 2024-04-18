@@ -98,5 +98,5 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @throws AccessDeniedException if the current user does not have the permission to get access logs by healthcare
 	 * party id.
 	 */
-	fun findAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

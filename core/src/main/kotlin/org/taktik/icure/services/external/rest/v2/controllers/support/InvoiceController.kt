@@ -242,7 +242,7 @@ class InvoiceController(
 
 	@Operation(summary = "Find Invoices ids by data owner id, patient secret keys and invoice date")
 	@PostMapping("/byDataOwnerPatientInvoiceDate")
-	fun findInvoiceIdsByDataOwnerPatientInvoiceDate(
+	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -253,7 +253,7 @@ class InvoiceController(
 			"You need to provide at least one secret patient key"
 		}
 		return invoiceService
-			.findInvoiceIdsByDataOwnerPatientInvoiceDate(
+			.listInvoiceIdsByDataOwnerPatientInvoiceDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

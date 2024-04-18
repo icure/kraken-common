@@ -44,5 +44,5 @@ interface AccessLogDAO : GenericDAO<AccessLog> {
 	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
 	 * @return a [Flow] of Access Log ids.
 	 */
-	fun findAccessLogIdsByDataOwnerPatientDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listAccessLogIdsByDataOwnerPatientDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

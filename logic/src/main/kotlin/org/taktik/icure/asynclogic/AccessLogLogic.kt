@@ -42,7 +42,7 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
 	 * @return a [Flow] of Access Log ids.
 	 */
-	fun findAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
 	/**

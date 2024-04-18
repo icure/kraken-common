@@ -52,7 +52,7 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
      * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
      * @return a [Flow] of Contact ids.
      */
-    fun findContactIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+    fun listContactIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
 

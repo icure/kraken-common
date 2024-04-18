@@ -81,7 +81,7 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	 * @param descending whether to sort the results by [Invoice.invoiceDate] ascending or descending.
 	 * @return a [Flow] of Invoice ids.
 	 */
-	fun findInvoiceIdsByDataOwnerPatientInvoiceDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listInvoicesByHcPartyAndRecipientIdsUnsent(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, recipientIds: Set<String?>): Flow<Invoice>
 

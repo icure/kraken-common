@@ -210,7 +210,7 @@ class ContactController(
 
 	@Operation(summary = "Find Contact ids by data owner id, patient secret keys and opening date.")
 	@PostMapping("/byDataOwnerPatientOpeningDate")
-	fun findContactIdsByDataOwnerPatientOpeningDate(
+	fun listContactIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -221,7 +221,7 @@ class ContactController(
 			"You need to provide at least one secret patient key"
 		}
 		return contactService
-			.findContactIdsByDataOwnerPatientOpeningDate(
+			.listContactIdsByDataOwnerPatientOpeningDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },

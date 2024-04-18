@@ -120,7 +120,7 @@ class AccessLogDAOImpl(
 	}.distinct()
 
 	@View(name = "by_hcparty_patient_date", map = "classpath:js/accesslog/By_hcparty_patient_date_map.js", secondaryPartition = MAURICE_PARTITION)
-	override fun findAccessLogIdsByDataOwnerPatientDate(
+	override fun listAccessLogIdsByDataOwnerPatientDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,

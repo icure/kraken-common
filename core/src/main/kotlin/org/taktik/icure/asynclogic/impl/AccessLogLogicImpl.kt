@@ -79,7 +79,7 @@ class AccessLogLogicImpl(
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))
 	}
 
-	override fun findAccessLogIdsByDataOwnerPatientDate(
+	override fun listAccessLogIdsByDataOwnerPatientDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -87,7 +87,7 @@ class AccessLogLogicImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(accessLogDAO.findAccessLogIdsByDataOwnerPatientDate(
+		emitAll(accessLogDAO.listAccessLogIdsByDataOwnerPatientDate(
 			datastoreInformation = datastoreInformation,
 			searchKeys = getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 			secretForeignKeys = secretForeignKeys,

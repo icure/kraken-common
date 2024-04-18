@@ -90,7 +90,7 @@ class ClassificationController(
 
 	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and creation date.")
 	@PostMapping("/byDataOwnerPatientCreated")
-	fun findClassificationIdsByDataOwnerPatientCreated(
+	fun listClassificationIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -101,7 +101,7 @@ class ClassificationController(
 			"You need to provide at least one secret patient key"
 		}
 		return classificationService
-			.findClassificationIdsByDataOwnerPatientCreated(
+			.listClassificationIdsByDataOwnerPatientCreated(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate,

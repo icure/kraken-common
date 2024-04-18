@@ -118,7 +118,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document> {
 	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
 	 * and the current user does not have the permission to search Documents for other users.
 	 */
-	fun findDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: List<String>): Flow<Document>
 

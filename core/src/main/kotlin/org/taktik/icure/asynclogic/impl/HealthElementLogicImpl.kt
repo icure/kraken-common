@@ -80,7 +80,7 @@ class HealthElementLogicImpl (
 			emitAll(healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 		}
 
-	override fun findHealthElementIdsByDataOwnerPatientOpeningDate(
+	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -89,7 +89,7 @@ class HealthElementLogicImpl (
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			healthElementDAO.findHealthElementIdsByDataOwnerPatientOpeningDate(
+			healthElementDAO.listHealthElementIdsByDataOwnerPatientOpeningDate(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,

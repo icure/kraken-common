@@ -68,7 +68,7 @@ class ClassificationLogicImpl(
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	override fun findClassificationIdsByDataOwnerPatientCreated(
+	override fun listClassificationIdsByDataOwnerPatientCreated(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
@@ -76,7 +76,7 @@ class ClassificationLogicImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(classificationDAO.findClassificationIdsByDataOwnerPatientCreated(
+		emitAll(classificationDAO.listClassificationIdsByDataOwnerPatientCreated(
 			datastoreInformation,
 			getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 			secretForeignKeys,

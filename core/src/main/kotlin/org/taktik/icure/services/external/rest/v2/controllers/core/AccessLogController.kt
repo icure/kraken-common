@@ -138,7 +138,7 @@ class AccessLogController(
 
 	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
 	@PostMapping("/byDataOwnerPatientDate")
-	fun findAccessLogIdsByDataOwnerPatientDate(
+	fun listAccessLogIdsByDataOwnerPatientDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
@@ -149,7 +149,7 @@ class AccessLogController(
 			"You need to provide at least one secret patient key"
 		}
 		return accessLogService
-			.findAccessLogIdsByDataOwnerPatientDate(dataOwnerId, secretPatientKeys.ids.toSet(), startDate, endDate, descending ?: false)
+			.listAccessLogIdsByDataOwnerPatientDate(dataOwnerId, secretPatientKeys.ids.toSet(), startDate, endDate, descending ?: false)
 			.injectReactorContext()
 	}
 
