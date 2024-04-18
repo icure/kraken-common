@@ -56,15 +56,23 @@ class MessageLogicImpl(
 		emitAll(messageDAO.listMessagesByHcPartyAndPatient(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	override fun listMessagesByHcPartySecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun listMessageIdsByDataOwnerPatientSentDate(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO
-			.listMessagesByHcPartyAndPatient(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
-			.toPaginatedFlow<Message>(paginationOffset.limit)
+		emitAll(
+			messageDAO.listMessageIdsByDataOwnerPatientSentDate(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				secretForeignKeys,
+				startDate,
+				endDate,
+				descending
+			)
 		)
 	}
 

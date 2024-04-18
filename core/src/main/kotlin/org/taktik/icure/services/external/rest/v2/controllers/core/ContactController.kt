@@ -208,21 +208,26 @@ class ContactController(
 		return contactList.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Get a list of contacts found by Healthcare Party and Patient foreign key.")
-	@GetMapping("/byHcPartyPatientForeignKey")
-	fun findContactsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam patientForeignKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<ContactDto> {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Contact ids by data owner id, patient secret keys and opening date.")
+	@PostMapping("/byDataOwnerPatientOpeningDate")
+	fun findContactIdsByDataOwnerPatientOpeningDate(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return contactService
-			.listContactByHCPartyIdAndSecretPatientKey(hcPartyId, patientForeignKey, paginationOffset)
-			.mapElements(contactV2Mapper::map)
-			.asPaginatedFlux()
+			.findContactIdsByDataOwnerPatientOpeningDate(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")

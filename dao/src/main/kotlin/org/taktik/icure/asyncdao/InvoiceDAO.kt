@@ -66,16 +66,22 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	fun listInvoicesByHcPartyAndPatientSfks(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**
-	 * Retrieves all the [Invoice]s for a data owner and which [Invoice.secretForeignKeys] the [secretPatientKey] in a
-	 * format for pagination.
+	 * Retrieves the ids of all the [Invoice]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of [Invoice.secretForeignKeys].
+	 * Only the ids of the Invoices where [Invoice.invoiceDate] is not null are returned and the results are sorted by
+	 * [Invoice.invoiceDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param searchKey a the data owner id.
-	 * @param secretPatientKey a secret foreign key that should be contained in [Invoice.secretForeignKeys].
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [ViewQueryResultEvent] containing the [Invoice]s.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Invoice.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Invoice.invoiceDate] ascending or descending.
+	 * @return a [Flow] of Invoice ids.
 	 */
-	fun listInvoicesByHcPartyAndPatientSfk(datastoreInformation: IDatastoreInformation, searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun findInvoiceIdsByDataOwnerPatientInvoiceDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listInvoicesByHcPartyAndRecipientIdsUnsent(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, recipientIds: Set<String?>): Flow<Invoice>
 

@@ -126,23 +126,6 @@ class AccessLogController(
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "List access logs found by Healthcare Party id and secret foreign key element id with pagination.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findAccessLogsByHCPartyPatientForeignKey(
-		@RequestParam("hcPartyId") hcPartyId: String,
-		@RequestParam("secretFKey") secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<AccessLogDto> {
-		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return accessLogService
-			.listAccessLogsBySearchKeyAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
-			.mapElements(accessLogMapper::map)
-			.asPaginatedFlux()
-	}
-
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(

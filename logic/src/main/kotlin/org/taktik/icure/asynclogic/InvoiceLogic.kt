@@ -60,16 +60,21 @@ interface InvoiceLogic : EntityPersister<Invoice, String>, EntityWithSecureDeleg
 	fun listInvoicesByHcPartyAndPatientSfks(hcParty: String, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**
-	 * Retrieves all the [Invoice]s for a data owner and which [Invoice.secretForeignKeys] contains the [secretPatientKey].
-	 * Note: differently from [listInvoicesByHcPartyAndPatientSfks], this method will NOT consider the available search
-	 * keys for the current user.
+	 * Retrieves the ids of all the [Invoice]s given the [dataOwnerId] (plus all the current access keys if that is
+	 * equal to the data owner id of the user making the request) and a set of [Invoice.secretForeignKeys].
+	 * Only the ids of the Invoices where [Invoice.invoiceDate] is not null are returned and the results are sorted by
+	 * [Invoice.invoiceDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcParty the data owner id.
-	 * @param secretPatientKey the secret foreign key that should be contained in [Invoice.secretForeignKeys].
-	 * @param offset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] containing the [Invoice]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [Invoice.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Invoices where [Invoice.invoiceDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Invoice.invoiceDate] ascending or descending.
+	 * @return a [Flow] of Invoice ids.
 	 */
-	fun listInvoicesByHcPartyAndPatientSfk(hcParty: String, secretPatientKey: String, offset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun findInvoiceIdsByDataOwnerPatientInvoiceDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(hcParty: String, sentMediumType: MediumType, invoiceType: InvoiceType, sent: Boolean, fromDate: Long?, toDate: Long?): Flow<Invoice>
 
 	fun listInvoicesByHcPartySendingModeStatus(hcParty: String, sendingMode: String?, status: String?, fromDate: Long?, toDate: Long?): Flow<Invoice>

@@ -4,13 +4,9 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -23,13 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncservice.ClassificationTemplateService
-import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
@@ -51,7 +43,6 @@ class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateV2Mapper: ClassificationTemplateV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 

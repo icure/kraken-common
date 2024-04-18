@@ -14,17 +14,35 @@ import org.taktik.icure.entities.AccessLog
 interface AccessLogDAO : GenericDAO<AccessLog> {
 	fun listAccessLogsByDate(datastoreInformation: IDatastoreInformation, fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<ViewQueryResultEvent>
 	fun findAccessLogsByUserAfterDate(datastoreInformation: IDatastoreInformation, userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves the all the [AccessLog]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [AccessLog.secretForeignKeys].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner iId + access keys).
+	 * @param secretPatientKeys a [List] of [AccessLog.secretForeignKeys].
+	 * @return a [Flow] of [AccessLog]s.
+	 */
 	fun findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<AccessLog>
 
 	/**
-	 * Finds all the [AccessLog]s for a given search key and secret patient key. All the result will be wrapped in a
-	 * [ViewQueryResultEvent] for pagination.
+	 * Retrieves the ids of all the [AccessLog]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [AccessLog.secretForeignKeys].
+	 * Only the ids of the Access Logs where [AccessLog.date] is not null are returned and the results are sorted by
+	 * [AccessLog.date] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and couchdb instance.
-	 * @param searchKey the search key.
-	 * @param secretPatientKey the secret patient key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [ViewQueryResultEvent] containing the matching [AccessLog]s.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [AccessLog.secretForeignKeys].
+	 * @param startDate a timestamp. If not null, only the ids of the Access Logs where [AccessLog.date] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a timestamp. If not null, only the ids of the Access Logs where [AccessLog.date] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
+	 * @return a [Flow] of Access Log ids.
 	 */
-	fun findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation: IDatastoreInformation, searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun findAccessLogIdsByDataOwnerPatientDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

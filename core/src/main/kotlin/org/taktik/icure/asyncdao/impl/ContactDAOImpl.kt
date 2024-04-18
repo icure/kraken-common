@@ -5,16 +5,31 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.*
+import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
+import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
+import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -28,7 +43,13 @@ import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.DeduplicationMode
+import org.taktik.icure.utils.distinct
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.distinctByIdIf
+import org.taktik.icure.utils.distinctIf
+import org.taktik.icure.utils.interleave
+import kotlin.collections.set
 
 @Repository("contactDAO")
 @Profile("app")
@@ -153,22 +174,23 @@ class ContactDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
 	}.distinctById()
 
-	override fun listContactsByHcPartyIdAndPatientSecretKey(
+	@View(name = "by_hcparty_patientfk_openingdate", map = "classpath:js/contact/By_hcparty_patientfk_openingdate_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun findContactIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		secretPatientKey: String,
-		pagination: PaginationOffset<ComplexKey>
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(hcPartyId, secretPatientKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
-			key, key, pagination, false
-		)
-		emitAll(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patientfk_openingdate" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),

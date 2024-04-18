@@ -4,16 +4,26 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.*
+import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
+import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.HealthElementDAO
@@ -22,10 +32,11 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.config.DaoConfig
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.distinct
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.interleave
 
 @Repository("healthElementDAO")
 @Profile("app")
@@ -199,22 +210,23 @@ internal class HealthElementDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, HealthElement>>().map { it.doc }.distinctById())
 	}
 
-	override fun listHealthElementsByHCPartyIdAndSecretPatientKey(
+	@View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION)
+	override fun findHealthElementIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		secretPatientKey: String,
-		offset: PaginationOffset<ComplexKey>
-	): Flow<ViewQueryResultEvent> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(hcPartyId, secretPatientKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_patient",
-			"by_data_owner_patient" to DATA_OWNER_PARTITION,
-			key, key, offset, false
-		)
-		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id )}")
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {

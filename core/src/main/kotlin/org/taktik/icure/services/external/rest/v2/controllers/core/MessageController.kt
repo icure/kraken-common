@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -56,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.MessageBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -127,19 +127,26 @@ class MessageController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List messages found By Healthcare Party and secret foreign key.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findMessagesByHCPartyPatientForeignKey(
-		@RequestParam secretFKey: String,
-		@RequestParam(required = false) startKey: JsonString?,
-		@RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<MessageDto> {
-		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return messageService.listMessagesByCurrentHCPartySecretPatientKey(secretFKey, paginationOffset)
-			.mapElements(messageV2Mapper::map)
-			.asPaginatedFlux()
+	@Operation(summary = "Find Messages ids by data owner id, patient secret keys and sent date")
+	@PostMapping("/byDataOwnerPatientSentDate")
+	fun listMessageIdsByDataOwnerPatientSentDate(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
+		return messageService
+			.listMessageIdsByDataOwnerPatientSentDate(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let{ FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "List messages found By Healthcare Party and secret foreign keys.")

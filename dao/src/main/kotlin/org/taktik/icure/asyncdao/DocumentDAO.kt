@@ -5,10 +5,7 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Document
 
 interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> {
@@ -17,15 +14,22 @@ interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> 
 	fun listDocumentsByHcPartyAndSecretMessageKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<Document>
 
 	/**
-	 * Retrieves all the [Document]s for the given healthcare party id and secret foreign key in a format for pagination.
+	 * Retrieves the ids of all the [Document]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of [Document.secretForeignKeys].
+	 * Only the ids of the Documents where [Document.created] is not null are returned and the results are sorted by
+	 * [Document.created] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param hcPartyId the healthcare party id.
-	 * @param secretForeignKey the patient secret foreign key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [ViewQueryResultEvent] wrapping the [Document]s.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
+	 * @param startDate a timestamp. If not null, only the ids of the Documents where [Document.created] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a timestamp. If not null, only the ids of the Documents where [Document.created] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Document.created] ascending or descending.
+	 * @return a [Flow] of Document ids.
 	 */
-	fun listDocumentsByHcPartyIdAndSecretMessageKey(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+	fun findDocumentIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int): Flow<Document>
 

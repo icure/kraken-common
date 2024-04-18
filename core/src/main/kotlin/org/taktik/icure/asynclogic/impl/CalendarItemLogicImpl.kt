@@ -131,6 +131,17 @@ class CalendarItemLogicImpl(
 		return entity.copy(securityMetadata = updatedMetadata)
 	}
 
+	override fun findCalendarItemIdsByDataOwnerPatientStartTime(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(calendarItemDAO.findCalendarItemIdsByDataOwnerPatientStartTime(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(dataOwnerId), secretForeignKeys, startDate, endDate, descending))
+	}
+
 	override fun getGenericDAO(): CalendarItemDAO {
 		return calendarItemDAO
 	}

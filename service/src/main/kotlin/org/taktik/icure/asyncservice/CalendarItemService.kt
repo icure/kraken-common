@@ -40,6 +40,25 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	suspend fun getCalendarItem(calendarItemId: String): CalendarItem?
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
 	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<CalendarItem>
+
+	/**
+	 * Retrieves the ids of all the [CalendarItem]s given the [dataOwnerId] (plus all the current access keys if that is
+	 * equal to the data owner id of the user making the request) and a set of [CalendarItem.secretForeignKeys].
+	 * Only the ids of the Calendar Items where [CalendarItem.startTime] is not null are returned and the results are sorted by
+	 * [CalendarItem.startTime] in ascending or descending order according to the [descending] parameter.
+	 *
+	 * @param dataOwnerId the id of a data owner.
+	 * @param secretForeignKeys a [Set] of [CalendarItem.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Calendar Items where [CalendarItem.startTime] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Calendar Items where [CalendarItem.startTime] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [CalendarItem.startTime] ascending or descending.
+	 * @return a [Flow] of Calendar Item ids.
+	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+	 * and the current user does not have the permission to search Calendar Items for other users.
+	 */
+	fun findCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 
 	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem?

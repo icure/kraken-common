@@ -6,14 +6,11 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
-import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginationElement
 import java.nio.ByteBuffer
 
 interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDelegationsLogic<Document> {
@@ -110,16 +107,21 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
 
 	/**
-	 * Retrieves all the [Document]s for the given healthcare party id and secret foreign key in a format for pagination.
-	 * Note: differently from [listDocumentsByHCPartySecretMessageKeys], this method will NOT consider the available
-	 * search keys for the current user if their data owner id is equal to [hcPartyId].
+	 * Retrieves the ids of all the [Document]s given the [dataOwnerId] (and its access keys if it is the current
+	 * 	 * user making the request) and a set of [Document.secretForeignKeys].
+	 * Only the ids of the Documents where [Document.created] is not null are returned and the results are sorted by
+	 * [Document.created] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the healthcare party id.
-	 * @param secretForeignKey the patient secret foreign key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] wrapping the [Document]s.
+	 * @param dataOwnerId the id of the data owner.
+	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
+	 * @param startDate a timestamp. If not null, only the ids of the Documents where [Document.created] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a timestamp. If not null, only the ids of the Documents where [Document.created] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Document.created] ascending or descending.
+	 * @return a [Flow] of Document ids.
 	 */
-	fun listDocumentsByHcPartyIdAndSecretMessageKey(hcPartyId: String, secretForeignKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun findDocumentIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 

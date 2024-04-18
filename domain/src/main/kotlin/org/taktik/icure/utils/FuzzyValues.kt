@@ -9,6 +9,8 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.Period
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 
@@ -30,7 +32,10 @@ import java.time.temporal.TemporalUnit
  *  * yyyy
  *
  */
+@Suppress("unused")
 object FuzzyValues {
+    val fuzzyDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+
     fun getMaxRangeOf(text: String): Int {
         val fullyFormedDate = toYYYYMMDDString(text)
         val year = fullyFormedDate.substring(0, 4)
@@ -110,27 +115,36 @@ object FuzzyValues {
         get() = getCurrentFuzzyDateTime(ChronoUnit.SECONDS)
 
     fun getFuzzyDateTime(dateTime: LocalDateTime, precision: TemporalUnit): Long {
-        var dateTime = dateTime
-        val seconds = dateTime.second
+        var returnDateTime = dateTime
+        val seconds = returnDateTime.second
         /*if (seconds == 0 && precision==ChronoUnit.SECONDS) {
 			seconds = 60;
 			dateTime = dateTime.minusMinutes(1);
 		}*/
-        var minutes = dateTime.minute
+        var minutes = returnDateTime.minute
         if (minutes == 0 && precision === ChronoUnit.MINUTES) {
             minutes = 60
-            dateTime = dateTime.minusHours(1)
+            returnDateTime = returnDateTime.minusHours(1)
         }
-        var hours = dateTime.hour
+        var hours = returnDateTime.hour
         if (hours == 0 && precision === ChronoUnit.HOURS) {
             hours = 24
-            dateTime = dateTime.minusDays(1)
+            returnDateTime = returnDateTime.minusDays(1)
         }
         return getFuzzyDate(
-            dateTime,
+            returnDateTime,
             precision
         ) * 1000000L + if (precision === ChronoUnit.DAYS) 0 else hours * 10000L + if (precision === ChronoUnit.HOURS) 0 else minutes * 100L + if (precision === ChronoUnit.MINUTES) 0 else seconds
     }
+
+    /**
+     * Converts an epoch timestamp in milliseconds to a fuzzy date time in YYYYMMDDHHMMSS format.
+     *
+     * @param timestamp an epoch timestamp in milliseconds.
+     * @param zoneOffset a [ZoneOffset].
+     * @return a fuzzy date.
+     */
+    fun getFuzzyDateTime(timestamp: Long, zoneOffset: ZoneOffset = ZoneOffset.UTC) = LocalDateTime.ofEpochSecond(timestamp / 1000, 0, zoneOffset).format(fuzzyDateFormatter).toLong()
 
     fun getFuzzyDate(dateTime: LocalDateTime, precision: TemporalUnit): Long {
         return dateTime.year * 10000L + if (precision === ChronoUnit.YEARS) 0 else dateTime.monthValue * 100L + if (precision === ChronoUnit.MONTHS) 0 else dateTime.dayOfMonth
@@ -177,8 +191,7 @@ object FuzzyValues {
 
     private fun toYYYYMMDDString(text: String): String {
         val result: String
-        val fields: Array<String>
-        fields = if (isPartiallyFormedDashDate(text)) {
+        val fields: Array<String> = if (isPartiallyFormedDashDate(text)) {
             text.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         } else if (isPartiallyFormedSlashDate(text)) {
             text.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()

@@ -4,24 +4,25 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.TotalCount
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.HealthElementDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -30,9 +31,6 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.pagination.PaginationElement
-import org.taktik.icure.pagination.limitIncludingKey
-import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
@@ -82,16 +80,23 @@ class HealthElementLogicImpl (
 			emitAll(healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 		}
 
-	override fun listHealthElementsByHCPartyIdAndSecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		offset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun findHealthElementIdsByDataOwnerPatientOpeningDate(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			healthElementDAO
-				.listHealthElementsByHCPartyIdAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, offset.limitIncludingKey())
-				.toPaginatedFlow<HealthElement>(offset.limit)
+			healthElementDAO.findHealthElementIdsByDataOwnerPatientOpeningDate(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				secretForeignKeys,
+				startDate,
+				endDate,
+				descending
+			)
 		)
 	}
 

@@ -12,9 +12,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.pagination.PaginationElement
-import javax.security.auth.login.LoginException
 
 interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDelegationsLogic<Message> {
 
@@ -102,10 +100,8 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
 
     fun createMessages(entities: Collection<Message>): Flow<Message>
 
-    @Throws(CreationException::class, LoginException::class)
     suspend fun createMessage(message: Message): Message?
 
-    @Throws(LoginException::class)
     suspend fun getMessage(messageId: String): Message?
 
     /**
@@ -120,17 +116,21 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
     fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Message>
 
     /**
-     * Retrieves all the [Message]s for the given healthcare party id and [Message.secretForeignKeys] in a format for
-     * pagination.
-     * Note: differently from [listMessagesByHCPartySecretPatientKeys], this method will only take into account the
-     * [hcPartyId] and not the search keys of the current user.
+     * Retrieves the ids of all the [Message]s given the [dataOwnerId] (plus all the current access keys if that is
+     * equal to the data owner id of the user making the request) and a set of [Message.secretForeignKeys].
+     * Only the ids of the Messages where [Message.sent] is not null are returned and the results are sorted by
+     * [Message.sent] in ascending or descending order according to the [descending] parameter.
      *
-     * @param hcPartyId the id of the healthcare party.
-     * @param secretPatientKey a [Message.secretForeignKeys].
-     * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     * @param dataOwnerId the data owner id.
+     * @param secretForeignKeys a [Set] of [Message.secretForeignKeys].
+     * @param startDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is greater or equal than [startDate]
+     * will be returned.
+     * @param endDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is less or equal than [endDate]
+     * will be returned.
+     * @param descending whether to sort the results by [Message.sent] ascending or descending.
+     * @return a [Flow] of Message ids.
      */
-    fun listMessagesByHcPartySecretPatientKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+    fun listMessageIdsByDataOwnerPatientSentDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     fun setStatus(messages: Collection<Message>, status: Int): Flow<Message>
     fun setReadStatus(messages: Collection<Message>, userId: String, status: Boolean, time: Long): Flow<Message>

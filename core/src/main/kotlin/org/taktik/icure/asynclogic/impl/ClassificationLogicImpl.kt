@@ -11,20 +11,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.ClassificationDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.pagination.PaginationElement
-import org.taktik.icure.pagination.limitIncludingKey
-import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service
@@ -73,16 +68,22 @@ class ClassificationLogicImpl(
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
 	}
 
-	override fun listClassificationsByHCPartyAndSecretPatientKey(
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun findClassificationIdsByDataOwnerPatientCreated(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(classificationDAO
-			.listClassificationsByHCPartyAndSecretPatientKey(datastoreInformation, hcPartyId, secretPatientKey, paginationOffset.limitIncludingKey())
-			.toPaginatedFlow<Classification>(paginationOffset.limit)
-		)
+		emitAll(classificationDAO.findClassificationIdsByDataOwnerPatientCreated(
+			datastoreInformation,
+			getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+			secretForeignKeys,
+			startDate,
+			endDate,
+			descending
+		))
 	}
 
 	override fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier> =

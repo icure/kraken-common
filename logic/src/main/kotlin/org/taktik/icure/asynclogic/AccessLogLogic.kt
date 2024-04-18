@@ -16,17 +16,33 @@ import org.taktik.icure.pagination.PaginationElement
 interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPersister<AccessLog, String> {
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
 	fun deleteAccessLogs(ids: List<String>): Flow<DocIdentifier>
+
+	/**
+	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making
+	 * the request) and a set of [AccessLog.secretForeignKeys].
+	 *
+	 * @param hcPartyId the id of the Data Owner allowed to access the [AccessLog]s.
+	 * @param secretForeignKeys a [List] of [AccessLog.secretForeignKeys].
+	 * @return a [Flow] of [AccessLog]s.
+	 */
 	fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog>
 
 	/**
-	 * Retrieves all the [AccessLog]s by search key and secret patient key with support for pagination.
+	 * Retrieves the ids of all the [AccessLog]s given the [dataOwnerId] (and its access keys if it is the current
+	 * user making the request) and a set of [AccessLog.secretForeignKeys].
+	 * Only the ids of the Access Logs where [AccessLog.date] is not null are returned and the results are sorted by
+	 * [AccessLog.date] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param searchKey the search key.
-	 * @param secretPatientKey the secret patient key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] containing the [AccessLog]s.
+	 * @param dataOwnerId the id of a data owner.
+	 * @param secretForeignKeys a [Set] of [AccessLog.secretForeignKeys].
+	 * @param startDate if not null, only the ids of the Access Logs where [AccessLog.date] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate if not null, only the ids of the Access Logs where [AccessLog.date] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
+	 * @return a [Flow] of Access Log ids.
 	 */
-	fun listAccessLogBySearchKeyAndSecretPatientKey(searchKey: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun findAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
 	/**

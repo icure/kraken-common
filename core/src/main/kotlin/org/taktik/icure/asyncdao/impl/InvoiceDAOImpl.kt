@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
@@ -30,6 +29,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.InvoiceDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
@@ -196,23 +196,23 @@ class InvoiceDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}.distinctById()
 
-	override fun listInvoicesByHcPartyAndPatientSfk(
+	@View(name = "by_hcparty_patientfk_date", map = "classpath:js/invoice/By_hcparty_patientfk_date_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun findInvoiceIdsByDataOwnerPatientInvoiceDate(
 		datastoreInformation: IDatastoreInformation,
-		searchKey: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<ViewQueryResultEvent> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(searchKey, secretPatientKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
-			key, key, paginationOffset, false
-		)
-
-		emitAll(client.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@Views(
 	    View(name = "by_hcparty_recipient_unsent", map = "classpath:js/invoice/By_hcparty_recipient_unsent_map.js"),
@@ -413,6 +413,7 @@ class InvoiceDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patientfk" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patientfk_date" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

@@ -34,10 +34,22 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 *
 	 * @param id the id of the [AccessLog] to delete.
 	 * @return a [DocIdentifier] related to the [AccessLog] if the operation completes successfully.
-	 * @throws [AccessDeniedException] if the current user does not have the permission to delete the [AccessLog].
-	 * @throws [NotFoundRequestException] if an [AccessLog] with the specified [id] does not exist.
+	 * @throws AccessDeniedException if the current user does not have the permission to delete the [AccessLog].
+	 * @throws NotFoundRequestException if an [AccessLog] with the specified [id] does not exist.
 	 */
 	suspend fun deleteAccessLog(id: String): DocIdentifier
+
+	/**
+	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making
+	 * the request) and a set of [AccessLog.secretForeignKeys].
+	 * This method will automatically filter out all the [AccessLog] that the current user is not allowed to access.
+	 *
+	 * @param hcPartyId the id of a data owner.
+	 * @param secretForeignKeys a [List] of [AccessLog.secretForeignKeys].
+	 * @return a [Flow] of [AccessLog]s.
+	 * @throws AccessDeniedException if the current user does not have the permission to get access logs by healthcare
+	 * party id.
+	 */
 	fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog>
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
@@ -70,18 +82,21 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int): AggregatedAccessLogs
 
 	/**
-	 * Retrieves all the [AccessLog]s by search key and secret patient key with support for pagination.
-	 * All the [AccessLog]s that the current user cannot access will be filtered out by the final result.
+	 * Retrieves the ids of all the [AccessLog]s given the [dataOwnerId] (and its access keys if it is the current
+	 * user making the request) and a set of [AccessLog.secretForeignKeys].
+	 * Only the ids of the Access Logs where [AccessLog.date] is not null are returned and the results are sorted by
+	 * [AccessLog.date] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param searchKey the search key.
-	 * @param secretPatientKey the secret patient key.
-	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-	 * @return a [Flow] of [PaginationElement] containing the [AccessLog]s.
-	 * @throws AccessDeniedException if the user does not meet the precondition to execute this
+	 * @param dataOwnerId the id of the Data Owner allowed to access the [AccessLog]s.
+	 * @param secretForeignKeys a [Set] of [AccessLog.secretForeignKeys].
+	 * @param startDate if not null, only the ids of the Access Logs where [AccessLog.date] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate if not null, only the ids of the Access Logs where [AccessLog.date] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
+	 * @return a [Flow] of Access Log ids.
+	 * @throws AccessDeniedException if the current user does not have the permission to get access logs by healthcare
+	 * party id.
 	 */
-	fun listAccessLogsBySearchKeyAndSecretPatientKey(
-		searchKey: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement>
+	fun findAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 }

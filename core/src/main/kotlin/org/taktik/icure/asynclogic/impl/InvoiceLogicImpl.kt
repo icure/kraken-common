@@ -156,15 +156,23 @@ class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoicesByHcPartyAndPatientSfks(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), secretPatientKeys))
 		}
 
-	override fun listInvoicesByHcPartyAndPatientSfk(
-		hcParty: String,
-		secretPatientKey: String,
-		offset: PaginationOffset<ComplexKey>
-	): Flow<PaginationElement> = flow {
+	override fun findInvoiceIdsByDataOwnerPatientInvoiceDate(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(invoiceDAO
-			.listInvoicesByHcPartyAndPatientSfk(datastoreInformation, hcParty, secretPatientKey, offset.limitIncludingKey())
-			.toPaginatedFlow<Invoice>(offset.limit)
+		emitAll(
+			invoiceDAO.findInvoiceIdsByDataOwnerPatientInvoiceDate(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				secretForeignKeys,
+				startDate,
+				endDate,
+				descending
+			)
 		)
 	}
 

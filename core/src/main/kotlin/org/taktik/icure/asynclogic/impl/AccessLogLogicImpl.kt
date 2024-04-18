@@ -18,8 +18,8 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.AccessLogLogic
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
@@ -79,16 +79,21 @@ class AccessLogLogicImpl(
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))
 	}
 
-	override fun listAccessLogBySearchKeyAndSecretPatientKey(
-		searchKey: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	) = flow {
+	override fun findAccessLogIdsByDataOwnerPatientDate(
+		dataOwnerId: String,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			accessLogDAO
-				.findAccessLogsBySearchKeyAndSecretPatientKey(datastoreInformation, searchKey, secretPatientKey, paginationOffset.limitIncludingKey())
-				.toPaginatedFlow<AccessLog>(paginationOffset.limit)
+		emitAll(accessLogDAO.findAccessLogIdsByDataOwnerPatientDate(
+			datastoreInformation = datastoreInformation,
+			searchKeys = getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+			secretForeignKeys = secretForeignKeys,
+			startDate = startDate,
+			endDate = endDate,
+			descending = descending)
 		)
 	}
 

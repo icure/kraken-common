@@ -4,29 +4,35 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.FormDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.distinctByIdIf
+import org.taktik.icure.utils.interleave
 
 @Repository("formDAO")
 @Profile("app")
@@ -59,22 +65,23 @@ internal class FormDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>().map { it.doc })
 	}.distinctById()
 
-	override fun listFormsByHcPartyIdPatientSecretKey(
+	@View(name = "by_hcparty_patientfk_date", map = "classpath:js/form/By_hcparty_patientfk_date_map.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listFormIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		secretPatientKey: String,
-		paginationOffset: PaginationOffset<ComplexKey>
-	): Flow<ViewQueryResultEvent>  = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val key = ComplexKey.of(hcPartyId, secretPatientKey)
-		val viewQueries = createPagedQueries(
-			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
-			key, key, paginationOffset, false
-		)
-		emitAll(client.interleave<Array<String>, String, Form>(viewQueries, compareBy({it[0]}, {it[1]})))
-	}
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
+		views = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		secretForeignKeys = secretForeignKeys,
+		startDate = startDate,
+		endDate = endDate,
+		descending = descending
+	)
 
 	@Views(
     	View(name = "by_hcparty_parentId", map = "classpath:js/form/By_hcparty_parent_id.js"),
@@ -129,6 +136,7 @@ internal class FormDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_parentId" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patientfk_date" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 

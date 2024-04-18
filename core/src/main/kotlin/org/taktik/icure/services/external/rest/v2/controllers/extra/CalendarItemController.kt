@@ -43,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -215,6 +216,28 @@ class CalendarItemController(
 		val elementList = calendarItemService.findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys, paginationOffset)
 
 		elementList.paginatedList(calendarItemV2Mapper::map, limit)
+	}
+
+	@Operation(summary = "Find CalendarItems ids by data owner id, patient secret keys and start time")
+	@PostMapping("/byDataOwnerPatientStartTime")
+	fun findCalendarItemIdsByDataOwnerPatientStartTime(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
+		return calendarItemService
+			.findCalendarItemIdsByDataOwnerPatientStartTime(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")

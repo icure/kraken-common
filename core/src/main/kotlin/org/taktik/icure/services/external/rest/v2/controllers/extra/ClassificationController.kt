@@ -4,10 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -26,16 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
-import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -45,7 +35,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -60,9 +49,7 @@ class ClassificationController(
 	private val bulkShareResultV2Mapper: ClassificationBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
-	private val objectMapper: ObjectMapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -101,21 +88,26 @@ class ClassificationController(
 		return elementList.map { classificationV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and a single secret foreign key elementId.")
-	@GetMapping("/byHcPartySecretForeignKey")
-	fun findClassificationsByHCPartyPatientForeignKey(
-		@RequestParam hcPartyId: String,
-		@RequestParam secretFKey: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
-		@Parameter(description = "A Classification ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<ClassificationDto> {
-		val keyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
-		val paginationOffset = PaginationOffset(keyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and creation date.")
+	@PostMapping("/byDataOwnerPatientCreated")
+	fun findClassificationIdsByDataOwnerPatientCreated(
+		@RequestParam dataOwnerId: String,
+		@RequestParam(required = false) startDate: Long?,
+		@RequestParam(required = false) endDate: Long?,
+		@RequestParam(required = false) descending: Boolean?,
+		@RequestBody secretPatientKeys: ListOfIdsDto
+	): Flux<String> {
+		require(secretPatientKeys.ids.isNotEmpty()) {
+			"You need to provide at least one secret patient key"
+		}
 		return classificationService
-			.listClassificationsByHCPartyAndSecretPatientKey(hcPartyId, secretFKey, paginationOffset)
-			.mapElements(classificationV2Mapper::map)
-			.asPaginatedFlux()
+			.findClassificationIdsByDataOwnerPatientCreated(
+				dataOwnerId = dataOwnerId,
+				secretForeignKeys = secretPatientKeys.ids.toSet(),
+				startDate = startDate,
+				endDate = endDate,
+				descending = descending ?: false)
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Delete a batch of classifications", description = "Response is a set containing the ID's of deleted classifications.")

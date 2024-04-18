@@ -142,19 +142,23 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
     fun listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys: List<String>): Flow<Message>
 
     /**
-     * Retrieves all the [Message]s for the current healthcare party id and a [Message.secretForeignKeys] in a format for
-     * pagination.
-     * This method will theoretically filter out all the entities that the current user cannot access (but this
-     * should not happen, as we are getting the [Message]s by delegate) but it will ensure that the page size specified
-     * in the [paginationOffset] will be reached as long as there are available elements.
-     * Note: differently from [listMessagesByCurrentHCPartySecretPatientKeys], this method only uses the healthcare party
-     * if of the current user to retrieve the result and will ignore the available search keys.
+     * Retrieves the ids of all the [Message]s given the [dataOwnerId] (plus all the current access keys if that is
+     * equal to the data owner id of the user making the request) and a set of [Message.secretForeignKeys].
+     * Only the ids of the Messages where [Message.sent] is not null are returned and the results are sorted by
+     * [Message.sent] in ascending or descending order according to the [descending] parameter.
      *
-     * @param secretPatientKey a [Message.secretForeignKeys].
-     * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
-     * @return a [Flow] of [Message]s wrapped in [PaginationElement]s, for pagination.
+     * @param dataOwnerId the data owner id.
+     * @param secretForeignKeys a [Set] of [Message.secretForeignKeys].
+     * @param startDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is greater or equal than [startDate]
+     * will be returned.
+     * @param endDate a fuzzy date. If not null, only the ids of the Messages where [Message.sent] is less or equal than [endDate]
+     * will be returned.
+     * @param descending whether to sort the results by [Message.sent] ascending or descending.
+     * @return a [Flow] of Message ids.
+     * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+     * and the current user does not have the permission to search Messages for other users.
      */
-    fun listMessagesByCurrentHCPartySecretPatientKey(secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+    fun listMessageIdsByDataOwnerPatientSentDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     fun setStatus(messageIds: List<String>, status: Int): Flow<Message>
     fun setReadStatus(messageIds: List<String>, userId: String, status: Boolean, time: Long): Flow<Message>

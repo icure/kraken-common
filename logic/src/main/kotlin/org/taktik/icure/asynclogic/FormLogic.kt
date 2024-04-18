@@ -6,13 +6,10 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.pagination.PaginationElement
 
 interface FormLogic : EntityPersister<Form, String>, EntityWithSecureDelegationsLogic<Form> {
 	suspend fun getForm(id: String): Form?
@@ -36,16 +33,21 @@ interface FormLogic : EntityPersister<Form, String>, EntityWithSecureDelegations
 	fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form>
 
 	/**
-	 * Retrieves all the [Form]s for the provided healthcare party id and secret patient key in a format for pagination.
-	 * Note: differently from [listFormsByHCPartyAndPatient], this method will NOT take into account the available search
-	 * keys for the current user.
+	 * Retrieves the ids of all the [Form]s given the [dataOwnerId] (plus all the current access keys if that is
+	 * equal to the data owner id of the user making the request) and a set of [Form.secretForeignKeys].
+	 * Only the ids of the Forms where [Form.openingDate] is not null are returned and the results are sorted by
+	 * [Form.openingDate] in ascending or descending order according to the [descending] parameter.
 	 *
-	 * @param hcPartyId the healthcare party id.
-	 * @param secretPatientKey the secret patient key.
-	 * @return a [Flow] of [PaginationElement]s wrapping the [Form]s.
-	 * @throws AccessDeniedException if the current user does not meet the precondition to list [Form]s.
+	 * @param dataOwnerId the id of a data owner.
+	 * @param secretForeignKeys a [Set] of [Form.secretForeignKeys].
+	 * @param startDate a fuzzy date. If not null, only the ids of the Forms where [Form.openingDate] is greater or equal than [startDate]
+	 * will be returned.
+	 * @param endDate a fuzzy date. If not null, only the ids of the Forms where [Form.openingDate] is less or equal than [endDate]
+	 * will be returned.
+	 * @param descending whether to sort the results by [Form.openingDate] ascending or descending.
+	 * @return a [Flow] of Form ids.
 	 */
-	fun listFormsByHcPartyIdPatientSecretKey(hcPartyId: String, secretPatientKey: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
+	fun listFormIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	suspend fun addDelegation(formId: String, delegation: Delegation): Form?
 
 	suspend fun createForm(form: Form): Form?

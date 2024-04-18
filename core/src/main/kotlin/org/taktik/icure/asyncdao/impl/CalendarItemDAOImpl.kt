@@ -4,14 +4,20 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -22,6 +28,7 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -181,6 +188,51 @@ class CalendarItemDAOImpl(
 			compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[1] as? Number)?.toLong() })
 		))
 	}
+
+	@OptIn(ExperimentalCoroutinesApi::class)
+	override fun findCalendarItemIdsByDataOwnerPatientStartTime(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		secretForeignKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val queries = searchKeys.flatMap { searchKey ->
+			secretForeignKeys.map { fk ->
+				Pair(
+					ComplexKey.of(searchKey, fk, startDate),
+					ComplexKey.of(searchKey, fk, endDate ?: ComplexKey.emptyObject())
+				)
+			}
+		}.flatMap {
+			listOf(
+				createQuery(datastoreInformation, "by_hcparty_patient_start_time_desc", MAURICE_PARTITION).startKey(it.first).endKey(it.second).includeDocs(false),
+				createQuery(datastoreInformation, "by_data_owner_patient_start_time_desc", DATA_OWNER_PARTITION).startKey(it.first).endKey(it.second).includeDocs(false)
+			)
+		}
+
+		queries.asFlow()
+			.flatMapConcat { q -> client.queryView<ComplexKey, Long>(q) }
+			.mapNotNull {
+				it.key?.let { key ->
+					val startTime = key.components[2] as? Long
+					if(startTime !== null && (startDate == null || startTime >= startDate) && (endDate == null || startTime <= endDate)) {
+						it.id to startTime
+					} else null
+				}
+			}
+			.toList()
+			.sortedWith(if(descending) Comparator { o1, o2 ->
+				o2.second.compareTo(o1.second).let {
+					if(it == 0) o2.first.compareTo(o1.first) else it
+				}
+			} else compareBy({ it.second }, { it.first })
+			)
+			.forEach { emit(it.first) }
+	}.distinctUntilChanged() // This works because ids will be sorted by start time first
 
 	override fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKeys: List<String>, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

@@ -54,7 +54,6 @@ import org.taktik.icure.validation.ValidCode
  * @property formTemplateId Id of the form template being used to display the form
  * @property contactId Id of the contact for which the form is being used.
  * @property parent The parent of this form, used to determine the forms hierarchy
- * @property externalUuid A unique external id (from another external source).
  * @property delegations The delegations giving access to all connected healthcare information.
  * @property encryptionKeys The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors.
  * @property encryptedSelf The encrypted fields of this Form.
