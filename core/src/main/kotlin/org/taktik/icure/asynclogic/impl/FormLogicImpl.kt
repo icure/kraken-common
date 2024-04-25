@@ -4,6 +4,7 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
@@ -153,12 +154,13 @@ class FormLogicImpl(
 		return formDAO
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> =
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> =
 		flow {
 			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
 			emitAll(
-				formDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
+				(ids?.asFlow()?.mapNotNull { formDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+					?: formDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
 					formDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { form ->
 						form.conflicts?.mapNotNull { conflictingRevision -> formDAO.get(datastoreInformation, form.id, conflictingRevision) }
 							?.fold(form) { kept, conflict -> kept.merge(conflict).also { formDAO.purge(datastoreInformation, conflict) } }

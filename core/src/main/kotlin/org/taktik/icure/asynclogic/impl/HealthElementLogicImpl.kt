@@ -204,12 +204,13 @@ class HealthElementLogicImpl (
 		}
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> =
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> =
 		flow {
 			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
 			emitAll(
-				healthElementDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
+				(ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+					?: healthElementDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
 					healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { healthElement ->
 						healthElement.conflicts?.mapNotNull { conflictingRevision -> healthElementDAO.get(datastoreInformation, healthElement.id, conflictingRevision) }
 							?.fold(healthElement) { kept, conflict -> kept.merge(conflict).also { healthElementDAO.purge(datastoreInformation, conflict) } }

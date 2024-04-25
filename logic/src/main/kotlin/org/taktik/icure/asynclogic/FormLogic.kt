@@ -57,7 +57,7 @@ interface FormLogic : EntityPersister<Form, String>, EntityWithSecureDelegations
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 	suspend fun getAllByLogicalUuid(formUuid: String): List<Form>
 	suspend fun getAllByUniqueId(lid: String): List<Form>
 }

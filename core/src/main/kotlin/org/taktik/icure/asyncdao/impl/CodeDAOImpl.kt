@@ -41,6 +41,7 @@ import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
+import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.Code
 
 @Repository("codeDAO")
@@ -760,6 +761,14 @@ import org.taktik.icure.entities.base.Code
 				row.doc.takeIf { it.matchesRegion(region) && it.matchesAllLabelParts(lang, otherParts) }
 			}.firstOrNull()
 		}
+	}
+
+	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "conflicts").includeDocs(true)
+		emitAll(client.queryViewIncludeDocsNoValue<String, Contact>(viewQuery).map { it.doc })
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {

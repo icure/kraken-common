@@ -5,6 +5,7 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
@@ -490,9 +491,10 @@ class ContactLogicImpl(
 		).forEach { emit(it) }
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
 		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
-		emitAll(contactDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }
+		emitAll((ids?.asFlow()?.mapNotNull { contactDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: contactDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }
 			.mapNotNull {
 				contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { contact ->
 					contact.conflicts?.mapNotNull { conflictingRevision ->

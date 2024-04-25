@@ -552,11 +552,12 @@ class PatientLogicImpl(
 		return patientDAO.getPatientByExternalId(datastoreInformation, externalId)
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 
 		emitAll(
-			patientDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
+			(ids?.asFlow()?.mapNotNull { patientDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+				?: patientDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
 				patientDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { patient ->
 					patient.conflicts?.mapNotNull { conflictingRevision -> patientDAO.get(datastoreInformation, patient.id, conflictingRevision) }
 						?.fold(patient) { kept, conflict -> kept.merge(conflict).also { patientDAO.purge(datastoreInformation, conflict) } }

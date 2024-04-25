@@ -92,7 +92,7 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
 
     fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
 
-    fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+    fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
     /**
      * Retrieves all the [Contact]s that a healthcare party can access and which [Contact.openingDate] is between the

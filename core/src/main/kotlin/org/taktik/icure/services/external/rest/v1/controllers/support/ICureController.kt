@@ -90,19 +90,27 @@ class ICureController(
 
 	@Operation(summary = "Resolve contacts conflicts")
 	@PostMapping("/conflicts/contact")
-	fun resolveContactsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = contactService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveContactsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = contactService.solveConflicts(
+        limit
+    ).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "resolve forms conflicts")
 	@PostMapping("/conflicts/form")
-	fun resolveFormsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = formService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveFormsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = formService.solveConflicts(
+        limit
+    ).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "resolve healthcare elements conflicts")
 	@PostMapping("/conflicts/healthelement")
-	fun resolveHealthElementsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = healthElementService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveHealthElementsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = healthElementService.solveConflicts(
+        limit
+    ).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "resolve invoices conflicts")
 	@PostMapping("/conflicts/invoice")
-	fun resolveInvoicesConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = invoiceService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveInvoicesConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = invoiceService.solveConflicts(
+        limit
+    ).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "resolve messages conflicts")
 	@PostMapping("/conflicts/message")

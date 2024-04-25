@@ -19,13 +19,14 @@ import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
 
-interface PatientService : EntityWithSecureDelegationsService<Patient> {
+interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWithConflictResolutionService {
 	suspend fun countByHcParty(healthcarePartyId: String): Int
 	fun listByHcPartyIdsOnly(healthcarePartyId: String): Flow<String>
 	fun listByHcPartyAndSsinIdsOnly(ssin: String, healthcarePartyId: String): Flow<String>
@@ -119,7 +120,7 @@ interface PatientService : EntityWithSecureDelegationsService<Patient> {
 
 	suspend fun getByExternalId(externalId: String): Patient?
 
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 
 	@Deprecated(message = "A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	suspend fun getHcPartyKeysForDelegate(healthcarePartyId: String): Map<String, String>

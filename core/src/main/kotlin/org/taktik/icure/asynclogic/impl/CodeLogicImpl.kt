@@ -10,6 +10,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.collect.ImmutableMap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
@@ -18,7 +19,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.beanutils.PropertyUtilsBean
@@ -26,6 +30,8 @@ import org.apache.commons.logging.LogFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewRowWithDoc
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asynclogic.CodeLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -708,4 +714,24 @@ class CodeLogicImpl(
 	override fun getGenericDAO(): CodeDAO {
 		return codeDAO
 	}
+
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll((ids?.asFlow()?.mapNotNull { codeDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: codeDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }
+			.mapNotNull {
+				codeDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { contact ->
+					contact.conflicts?.mapNotNull { conflictingRevision ->
+						codeDAO.get(
+							datastoreInformation, contact.id, conflictingRevision
+						)
+					}?.fold(contact) { kept, conflict ->
+						kept.merge(conflict).also {
+							codeDAO.purge(datastoreInformation, conflict)
+						}
+					}?.let { mergedContact -> codeDAO.save(datastoreInformation, mergedContact) }
+				}
+			}.map { IdAndRev(it.id, it.rev) })
+	}
+
 }

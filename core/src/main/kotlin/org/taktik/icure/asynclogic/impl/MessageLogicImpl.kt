@@ -4,6 +4,7 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -32,7 +33,6 @@ import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -235,10 +235,11 @@ class MessageLogicImpl(
 
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
 		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
-		emitAll(messageDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
+		emitAll((ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: messageDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
 			messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { message ->
 				message.conflicts?.mapNotNull { conflictingRevision -> messageDAO.get(datastoreInformation, message.id, conflictingRevision) }?.fold(message) { kept, conflict -> kept.merge(conflict).also { messageDAO.purge(datastoreInformation, conflict) } }?.let { mergedMessage -> messageDAO.save(datastoreInformation, mergedMessage) }
 			}

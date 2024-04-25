@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.Code
 
 interface CodeDAO : GenericDAO<Code> {
@@ -132,4 +133,5 @@ interface CodeDAO : GenericDAO<Code> {
 	fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, region: String?, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 	fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?): Flow<String>
 	fun getCodesByIdsForPagination(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<ViewQueryResultEvent>
+    fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Contact>
 }

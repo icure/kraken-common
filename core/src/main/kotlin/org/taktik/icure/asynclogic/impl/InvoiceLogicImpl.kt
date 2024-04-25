@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic.impl
 import com.google.common.base.Strings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
@@ -380,11 +381,12 @@ class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoicesHcpsByStatus(datastoreInformation, status, from, to, hcpIds))
 		}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> =
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> =
 		flow {
 			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 			emitAll(
-				invoiceDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
+				(ids?.asFlow()?.mapNotNull { invoiceDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+					?: invoiceDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
 					invoiceDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { invoice ->
 						invoice.conflicts?.mapNotNull { conflictingRevision -> invoiceDAO.get(datastoreInformation, invoice.id, conflictingRevision) }
 							?.fold(invoice) { kept, conflict -> kept.merge(conflict).also { invoiceDAO.purge(datastoreInformation, conflict) } }
