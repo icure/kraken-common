@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -142,14 +143,14 @@ class CodeController(
 			.injectReactorContext()
 
 	@Operation(summary = "Finding code types.", description = "Returns a list of code types matched with given input.")
-	@GetMapping("/codetype/byRegionType")
+	@GetMapping("/codetype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun listCodeTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
 	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Finding tag types.", description = "Returns a list of tag types matched with given input.")
-	@GetMapping("/tagtype/byRegionType")
+	@GetMapping("/tagtype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun listTagTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
@@ -270,7 +271,7 @@ class CodeController(
 	}
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(@RequestBody filter: AbstractFilterDto<CodeDto>) =
 		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 

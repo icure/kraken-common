@@ -19,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -209,7 +210,7 @@ class ContactController(
 	}
 
 	@Operation(summary = "Find Contact ids by data owner id, patient secret keys and opening date.")
-	@PostMapping("/byDataOwnerPatientOpeningDate")
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [APPLICATION_JSON_VALUE])
 	fun listContactIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,

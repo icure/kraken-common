@@ -213,7 +213,7 @@ class FormController(
 	}
 
 	@Operation(summary = "Find Forms ids by data owner id, patient secret keys and opening date")
-	@PostMapping("/byDataOwnerPatientOpeningDate")
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listFormIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,

@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -207,6 +208,6 @@ class UserController(
 	}
 
 	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
+	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -137,7 +138,7 @@ class AccessLogController(
 	}.injectReactorContext()
 
 	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
-	@PostMapping("/byDataOwnerPatientDate")
+	@PostMapping("/byDataOwnerPatientDate", produces = [APPLICATION_JSON_VALUE])
 	fun listAccessLogIdsByDataOwnerPatientDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
