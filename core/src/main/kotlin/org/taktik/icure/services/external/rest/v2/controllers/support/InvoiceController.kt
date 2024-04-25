@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -241,7 +242,7 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "Find Invoices ids by data owner id, patient secret keys and invoice date")
-	@PostMapping("/byDataOwnerPatientInvoiceDate")
+	@PostMapping("/byDataOwnerPatientInvoiceDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,

@@ -30,9 +30,7 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 	}
 
 	override fun canEncode(elementType: ResolvableType, mimeType: MimeType?): Boolean =
-		MimeType.valueOf("application/json") == mimeType
-			&& elementType.resolve() == String::class.java
-			&& super.canEncode(elementType, mimeType)
+		MimeType.valueOf(MediaType.APPLICATION_JSON_VALUE) == mimeType && elementType.resolve() == String::class.java && super.canEncode(elementType, mimeType)
 
 
 	override fun encode(

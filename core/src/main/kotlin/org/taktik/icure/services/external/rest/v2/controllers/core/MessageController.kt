@@ -20,6 +20,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -128,7 +129,7 @@ class MessageController(
 	}
 
 	@Operation(summary = "Find Messages ids by data owner id, patient secret keys and sent date")
-	@PostMapping("/byDataOwnerPatientSentDate")
+	@PostMapping("/byDataOwnerPatientSentDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listMessageIdsByDataOwnerPatientSentDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,

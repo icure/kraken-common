@@ -17,6 +17,7 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -140,14 +141,14 @@ class CodeController(
 			.injectReactorContext()
 
 	@Operation(summary = "Get list of code types by region and type.", description = "Returns a list of code types matched with given input.")
-	@GetMapping("/codetype/byRegionType")
+	@GetMapping("/codetype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun findCodeTypes(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
 	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Gets list of tag types by region and type.", description = "Returns a list of tag types matched with given input.")
-	@GetMapping("/tagtype/byRegionType")
+	@GetMapping("/tagtype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun findTagTypes(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?

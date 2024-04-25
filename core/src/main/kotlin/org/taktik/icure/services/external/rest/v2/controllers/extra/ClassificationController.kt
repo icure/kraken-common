@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -89,7 +90,7 @@ class ClassificationController(
 	}
 
 	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and creation date.")
-	@PostMapping("/byDataOwnerPatientCreated")
+	@PostMapping("/byDataOwnerPatientCreated", produces = [APPLICATION_JSON_VALUE])
 	fun listClassificationIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
