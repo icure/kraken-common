@@ -29,9 +29,11 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 		const val FLUX_SUFFIX = "]"
 	}
 
-	override fun canEncode(elementType: ResolvableType, mimeType: MimeType?): Boolean {
-		return elementType.resolve() == String::class.java && super.canEncode(elementType, mimeType)
-	}
+	override fun canEncode(elementType: ResolvableType, mimeType: MimeType?): Boolean =
+		MimeType.valueOf("application/json") == mimeType
+			&& elementType.resolve() == String::class.java
+			&& super.canEncode(elementType, mimeType)
+
 
 	override fun encode(
 		inputStream: Publisher<out String>,
