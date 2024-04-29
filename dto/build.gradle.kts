@@ -44,7 +44,7 @@ dependencies {
 
 val postProcessDtoTask =
     tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
-        inputDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/dto/build/generated/ksp/main/kotlin/com/icure/sdk/model")
+        inputDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/dto/build/generated/ksp/main/resources/com/icure/sdk/model")
     }
 
 tasks.withType<PostProcessDtoTask> {
