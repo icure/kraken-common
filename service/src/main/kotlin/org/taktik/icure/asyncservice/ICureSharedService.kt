@@ -11,8 +11,7 @@ interface ICureSharedService {
 	suspend fun getReplicationInfo(): ReplicationInfo
 	suspend fun getIndexingStatus(): IndexingInfo
 	fun getVersion(): String
-	fun getProcessInfo(): String
-	fun tokenCheck(token: String): String
+	suspend fun getProcessInfo(): String
 	suspend fun setLogLevel(logLevel: String, packageName: String): String
 	suspend fun updateDesignDocForCurrentUser(daoEntityName: String, warmup: Boolean = false)
 }

@@ -14,6 +14,5 @@ interface ICureLogic {
 	fun getSemanticVersion(): String
 	suspend fun getReplicationInfo(): ReplicationInfo
 	suspend fun setLogLevel(logLevel: String, packageName: String): String
-	fun tokenCheck(token: String): String
 	fun getProcessInfo(): String
 }

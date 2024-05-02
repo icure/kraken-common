@@ -62,7 +62,7 @@ class ICureController(
 
 	@Operation(summary = "Get process info")
 	@GetMapping("/p", produces = [MediaType.TEXT_PLAIN_VALUE])
-	fun getProcessInfo(): String = iCureService.getProcessInfo()
+	fun getProcessInfo() = mono { iCureService.getProcessInfo() }
 
 	@Operation(summary = "Get index info")
 	@GetMapping("/i")
