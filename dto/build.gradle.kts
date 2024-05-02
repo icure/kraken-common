@@ -42,11 +42,6 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
-val postProcessDtoTask =
-    tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
-        inputDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/dto/build/generated/ksp/main/resources/com/icure/sdk/model")
-    }
-
 tasks.withType<PostProcessDtoTask> {
     dependsOn("kspKotlin")
 }
