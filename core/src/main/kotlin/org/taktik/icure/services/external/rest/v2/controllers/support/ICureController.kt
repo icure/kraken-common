@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.annotations.permissions.AccessControl
+import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.asyncservice.DocumentService
 import org.taktik.icure.asyncservice.FormService
@@ -40,6 +41,7 @@ import reactor.core.publisher.Flux
 class ICureController(
 	private val iCureService: ICureSharedService,
 	private val patientService: PatientService,
+	private val codeService: CodeService,
 	private val contactService: ContactService,
 	private val messageService: MessageService,
 	private val invoiceService: InvoiceService,
@@ -125,4 +127,9 @@ class ICureController(
 	@Operation(summary = "resolve documents conflicts")
 	@PostMapping("/conflicts/document")
 	fun resolveDocumentsConflicts(@RequestParam(required = false) ids: String?, @RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = documentService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+
+	@AccessControl("CanAccessAsHcp")
+	@Operation(summary = "resolve codes conflicts")
+	@PostMapping("/conflicts/code")
+	fun resolveCodesConflicts(@RequestParam(required = false) ids: String?, @RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = codeService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
 }
