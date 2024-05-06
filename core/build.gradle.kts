@@ -1,5 +1,6 @@
 plugins {
     id("com.icure.kotlin-library-conventions")
+    kotlin("plugin.serialization")
 
     alias(coreLibs.plugins.springBootPlugin) apply(true)
     alias(coreLibs.plugins.springBootDependenciesManagement) apply(true)
@@ -8,7 +9,6 @@ plugins {
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion) apply(true)
     alias(coreLibs.plugins.helmRepository) apply(true)
-    alias(coreLibs.plugins.kotlinxSerialization) apply(true)
     alias(coreLibs.plugins.licenceReport) apply(true)
     alias(coreLibs.plugins.ksp) apply(true)
     `maven-publish`
