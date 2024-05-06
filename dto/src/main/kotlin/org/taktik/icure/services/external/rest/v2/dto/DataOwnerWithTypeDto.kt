@@ -3,6 +3,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import org.taktik.icure.AlwaysEncrypted
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import java.io.Serializable
 
@@ -22,7 +23,9 @@ sealed interface DataOwnerWithTypeDto : Serializable {
     data class HcpDataOwner(override val dataOwner: HealthcarePartyDto): DataOwnerWithTypeDto
 
     @JsonSerialize
-    data class PatientDataOwner(override val dataOwner: PatientDto): DataOwnerWithTypeDto
+    data class PatientDataOwner(
+	    @AlwaysEncrypted override val dataOwner: PatientDto
+	): DataOwnerWithTypeDto
 
     @JsonSerialize
     data class DeviceDataOwner(override val dataOwner: DeviceDto): DataOwnerWithTypeDto
