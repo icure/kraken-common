@@ -53,28 +53,43 @@ class DocumentTemplateLogicImpl(
 		return documentTemplateDAO.get(datastoreInformation, documentTemplateId)
 	}
 
-	override fun getDocumentTemplatesBySpecialty(specialityCode: String): Flow<DocumentTemplate> =
+	override fun getDocumentTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<DocumentTemplate> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation, specialityCode, null))
+			emitAll(documentTemplateDAO.listDocumentTemplatesBySpecialtyAndGuid(
+				datastoreInformation,
+				specialityCode,
+				null,
+				loadLayout
+			))
 		}
 
-	override fun getDocumentTemplatesByDocumentType(documentTypeCode: String): Flow<DocumentTemplate>  =
+	override fun getDocumentTemplatesByDocumentType(documentTypeCode: String, loadLayout: Boolean): Flow<DocumentTemplate>  =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(datastoreInformation, documentTypeCode, null, null))
+			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(datastoreInformation, documentTypeCode, null, null, loadLayout))
 		}
 
-	override fun getDocumentTemplatesByDocumentTypeAndUser(documentTypeCode: String, userId: String): Flow<DocumentTemplate> =
+	override fun getDocumentTemplatesByDocumentTypeAndUser(
+		documentTypeCode: String,
+		userId: String,
+		loadLayout: Boolean
+	): Flow<DocumentTemplate> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(datastoreInformation, documentTypeCode, userId, null))
+			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(
+				datastoreInformation,
+				documentTypeCode,
+				userId,
+				null,
+				loadLayout
+			))
 		}
 
-	override fun getDocumentTemplatesByUser(userId: String): Flow<DocumentTemplate>  =
+	override fun getDocumentTemplatesByUser(userId: String, loadLayout: Boolean): Flow<DocumentTemplate>  =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentTemplatesByUserGuid(datastoreInformation, userId, null))
+			emitAll(documentTemplateDAO.listDocumentTemplatesByUserGuid(datastoreInformation, userId, null, loadLayout))
 		}
 
 	override suspend fun modifyDocumentTemplate(documentTemplate: DocumentTemplate) =

@@ -11,11 +11,11 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 
 interface DocumentTemplateDAO : GenericDAO<DocumentTemplate>, AttachmentManagementDAO<DocumentTemplate> {
-	fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?): Flow<DocumentTemplate>
+	fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String? = null, loadLayout: Boolean = true): Flow<DocumentTemplate>
 
-	fun listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, guid: String?): Flow<DocumentTemplate>
+	fun listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, healthcarePartyId: String? = null, guid: String? = null, loadLayout: Boolean = true): Flow<DocumentTemplate>
 
-	fun listDocumentsByTypeUserGuid(datastoreInformation: IDatastoreInformation, documentTypeCode: String, userId: String?, guid: String?): Flow<DocumentTemplate>
+	fun listDocumentsByTypeUserGuid(datastoreInformation: IDatastoreInformation, documentTypeCode: String, userId: String? = null, guid: String? = null, loadLayout: Boolean = true): Flow<DocumentTemplate>
 
 	fun evictFromCache(entity: DocumentTemplate)
 	suspend fun createDocumentTemplate(datastoreInformation: IDatastoreInformation, entity: DocumentTemplate): DocumentTemplate
