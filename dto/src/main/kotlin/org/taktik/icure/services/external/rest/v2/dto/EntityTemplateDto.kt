@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.JsonNode
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,7 +35,7 @@ data class EntityTemplateDto(
 	var entityType: String? = null,
 	var subType: String? = null,
 	var defaultTemplate: Boolean? = null,
-	var entity: List<Map<String, Any>> = emptyList()
+	var entity: List<JsonNode> = emptyList()
 ) : StoredDocumentDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
