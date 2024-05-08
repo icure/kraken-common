@@ -55,7 +55,12 @@ class DocumentTemplateDAOImpl(
 	}
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.owner) emit([doc.owner,doc.guid], null )}")
-	override fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?) = flow {
+	override fun listDocumentTemplatesByUserGuid(
+		datastoreInformation: IDatastoreInformation,
+		userId: String,
+		guid: String?,
+		loadLayout: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val from = ComplexKey.of(userId, "")
@@ -66,13 +71,18 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadLayout) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
 
 	@View(name = "by_specialty_code_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.specialty) emit([doc.specialty.code,doc.guid], null )}")
-	override fun listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, guid: String?) = flow {
+	override fun listDocumentTemplatesBySpecialtyAndGuid(
+		datastoreInformation: IDatastoreInformation,
+		healthcarePartyId: String?,
+		guid: String?,
+		loadLayout: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val documentTemplates = if (guid != null) {
@@ -89,13 +99,19 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadLayout) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
 
 	@View(name = "by_document_type_code_and_user_id_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.documentType ) emit([doc.documentType,doc.owner,doc.guid], null )}")
-	override fun listDocumentsByTypeUserGuid(datastoreInformation: IDatastoreInformation, documentTypeCode: String, userId: String?, guid: String?) = flow {
+	override fun listDocumentsByTypeUserGuid(
+		datastoreInformation: IDatastoreInformation,
+		documentTypeCode: String,
+		userId: String?,
+		guid: String?,
+		loadLayout: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = if (userId != null && guid != null) {
@@ -115,7 +131,7 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadLayout) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
