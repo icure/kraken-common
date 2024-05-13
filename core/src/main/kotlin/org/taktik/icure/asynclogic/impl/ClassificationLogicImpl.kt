@@ -128,7 +128,7 @@ class ClassificationLogicImpl(
 			)
 	}
 
-	override fun getClassifications(ids: List<String>) = getEntities()
+	override fun getClassifications(ids: List<String>) = getEntities(ids)
 
 	companion object {
 		private val log = LoggerFactory.getLogger(ClassificationLogicImpl::class.java)

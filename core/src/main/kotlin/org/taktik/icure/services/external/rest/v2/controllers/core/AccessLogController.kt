@@ -154,6 +154,16 @@ class AccessLogController(
 			.injectReactorContext()
 	}
 
+	@Operation(summary = "Get AccessLogs by ids")
+	@PostMapping("/byIds")
+	fun getAccessLogByIds(@RequestBody accessLogIds: ListOfIdsDto): Flux<AccessLogDto> {
+		require(accessLogIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return accessLogService
+			.getAccessLogs(accessLogIds.ids)
+			.map(accessLogV2Mapper::map)
+			.injectReactorContext()
+	}
+
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign keyelementIds.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestBody secretPatientKeys: List<String>) = flow {

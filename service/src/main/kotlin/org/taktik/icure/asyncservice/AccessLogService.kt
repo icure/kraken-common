@@ -54,6 +54,15 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
 	/**
+	 * Retrieves all the [AccessLog]s with the provided [ids], filtering out the ones that the current user cannot access.
+	 *
+	 * @param ids the ids of the [AccessLog] to retrieve.
+	 * @return a [Flow] of [AccessLog] that the current user can access.
+	 * @throws AccessDeniedException if the current user does not have the permission to get the access logs.
+	 */
+	fun getAccessLogs(ids: List<String>): Flow<AccessLog>
+
+	/**
 	 * Retrieves all the [AccessLog]s which [AccessLog.created] date is between [fromEpoch] and [toEpoch] in a flow for
 	 * pagination.
 	 *

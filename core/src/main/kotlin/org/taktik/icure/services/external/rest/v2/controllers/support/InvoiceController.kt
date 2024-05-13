@@ -106,9 +106,12 @@ class InvoiceController(
 
 	@Operation(summary = "Gets an invoice")
 	@PostMapping("/byIds")
-	fun getInvoices(@RequestBody invoiceIds: ListOfIdsDto) = invoiceService.getInvoices(invoiceIds.ids)
-		.map { invoiceV2Mapper.map(it) }
-		.injectReactorContext()
+	fun getInvoices(@RequestBody invoiceIds: ListOfIdsDto): Flux<InvoiceDto> {
+		require(invoiceIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return invoiceService.getInvoices(invoiceIds.ids)
+			.map { invoiceV2Mapper.map(it) }
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Modifies an invoice")
 	@PutMapping

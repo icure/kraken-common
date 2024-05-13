@@ -87,8 +87,8 @@ class FormController(
 	@Operation(summary = "Get a list of forms by ids", description = "Keys must be delimited by coma")
 	@PostMapping("/byIds")
 	fun getForms(@RequestBody formIds: ListOfIdsDto): Flux<FormDto> {
-		val forms = formService.getForms(formIds.ids)
-		return forms.map { formV2Mapper.map(it) }.injectReactorContext()
+		require(formIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return formService.getForms(formIds.ids).map(formV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "Gets the most recent form with the given logicalUuid")

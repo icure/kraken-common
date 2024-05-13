@@ -142,14 +142,15 @@ class ContactController(
 
 	@Operation(summary = "Get contacts")
 	@PostMapping("/byIds")
-	fun getContacts(@RequestBody contactIds: ListOfIdsDto) = contactIds.ids.takeIf { it.isNotEmpty() }
-			?.let { ids ->
-				contactService.getContacts(ids.toSet())
-					.map { c -> contactV2Mapper.map(c) }
-					.injectReactorContext()
-			}
-			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
-
+	fun getContacts(@RequestBody contactIds: ListOfIdsDto): Flux<ContactDto> {
+		require(contactIds.ids.isNotEmpty()) {
+			"You must specify at least one id."
+		}
+		return contactService
+			.getContacts(contactIds.ids)
+			.map(contactV2Mapper::map)
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Get the list of all used codes frequencies in services")
 	@GetMapping("/service/codes/{codeType}/{minOccurrences}")

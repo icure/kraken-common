@@ -72,12 +72,11 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@Operation(summary = "Get a list of classifications", description = "Ids are seperated by a coma")
-	@GetMapping("/byIds/{ids}")
-	fun getClassificationByHcPartyId(@PathVariable ids: String): Flux<ClassificationDto> {
-		val elements = classificationService.getClassifications(ids.split(','))
-
-		return elements.map { classificationV2Mapper.map(it) }.injectReactorContext()
+	@Operation(summary = "Get a list of classifications")
+	@PostMapping("/byIds")
+	fun getClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<ClassificationDto> {
+		require(classificationIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return classificationService.getClassifications(classificationIds.ids).map(classificationV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")

@@ -100,10 +100,10 @@ class HealthElementController(
 
 	@Operation(summary = "Get healthElements by batch", description = "Get a list of healthElement by ids/keys.")
 	@PostMapping("/byIds")
-	fun getHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<HealthElementDto> = flow {
-		val healthElements = healthElementService.getHealthElements(healthElementIds.ids)
-		emitAll(healthElements.map { c -> healthElementV2Mapper.map(c) })
-	}.injectReactorContext()
+	fun getHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<HealthElementDto> {
+		require(healthElementIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return healthElementService.getHealthElements(healthElementIds.ids).map(healthElementV2Mapper::map).injectReactorContext()
+	}
 
 	@Operation(summary = "List health elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
