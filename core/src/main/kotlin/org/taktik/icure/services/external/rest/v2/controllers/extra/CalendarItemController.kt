@@ -158,10 +158,8 @@ class CalendarItemController(
 
 	@Operation(summary = "Get calendarItems by ids")
 	@PostMapping("/byIds")
-	fun getCalendarItemsWithIds(@RequestBody calendarItemIds: ListOfIdsDto?): Flux<CalendarItemDto> {
-		if (calendarItemIds == null) {
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "calendarItemIds was empty")
-		}
+	fun getCalendarItemsWithIds(@RequestBody calendarItemIds: ListOfIdsDto): Flux<CalendarItemDto> {
+		require(calendarItemIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		val calendars = calendarItemService.getCalendarItems(calendarItemIds.ids)
 		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
 	}

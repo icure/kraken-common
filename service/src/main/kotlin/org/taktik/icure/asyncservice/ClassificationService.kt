@@ -74,6 +74,15 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	suspend fun addDelegation(classificationId: String, healthcarePartyId: String, delegation: Delegation): Classification?
 
 	suspend fun addDelegations(classificationId: String, delegations: List<Delegation>): Classification?
+
+	/**
+	 * Retrieves a batch of [Classification]s by their ids.
+	 * This method will automatically filter out all the [Classification]s that the current user cannot access.
+	 *
+	 * @param ids the ids of the Classifications to retrieve.
+	 * @return a [Flow] of [Classification]s.
+	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Classification]s.
+	 */
 	fun getClassifications(ids: List<String>): Flow<Classification>
 
 	/**

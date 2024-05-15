@@ -114,6 +114,13 @@ class MessageController(
 				.also { logger.error(it.message) }
 	}
 
+	@Operation(summary = "Gets multiple messages by their ids")
+	@PostMapping("/byIds")
+	fun getMessages(@RequestBody messageIds: ListOfIdsDto): Flux<MessageDto> {
+		require(messageIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return messageService.getMessages(messageIds.ids).map(messageV2Mapper::map).injectReactorContext()
+	}
+
 	@Operation(summary = "Get all messages for current HC Party and provided transportGuids")
 	@PostMapping("/byTransportGuid/list")
 	fun listMessagesByTransportGuids(@RequestParam("hcpId") hcpId: String, @RequestBody transportGuids: ListOfIdsDto) =

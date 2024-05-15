@@ -128,6 +128,16 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
 
     suspend fun getMessage(messageId: String): Message?
 
+    /**
+     * Retrieves a batch of [Message]s by their ids.
+     * This method will filter out all the entities that the current user cannot access.
+     *
+     * @param messageIds the ids of the messages to retrieve.
+     * @return a [Flow] of [Message]s.
+     * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Message]s.
+     */
+    fun getMessages(messageIds: List<String>): Flow<Message>
+
     suspend fun modifyMessage(message: Message): Message?
 
     /**

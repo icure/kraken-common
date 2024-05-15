@@ -194,10 +194,15 @@ class DocumentController(
 		documentService.getDocumentsByExternalUuid(externalUuid).map { documentV2Mapper.map(it) }
 	}
 
-	@Operation(summary = "Gets a document")
+	@Operation(summary = "Get one or more documents by their ids.")
 	@PostMapping("/byIds")
-	fun getDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocumentDto> =
-		documentService.getDocuments(documentIds.ids).map { doc -> documentV2Mapper.map(doc) }.injectReactorContext()
+	fun getDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocumentDto> {
+		require(documentIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return documentService
+			.getDocuments(documentIds.ids)
+			.map(documentV2Mapper::map)
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Updates a document")
 	@PutMapping

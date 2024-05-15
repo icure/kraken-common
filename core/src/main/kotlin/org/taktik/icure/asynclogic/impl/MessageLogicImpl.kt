@@ -18,9 +18,9 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.MessageDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MessageLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -32,7 +32,6 @@ import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -234,6 +233,8 @@ class MessageLogicImpl(
 	}
 
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
+
+	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
 
 	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
 		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
