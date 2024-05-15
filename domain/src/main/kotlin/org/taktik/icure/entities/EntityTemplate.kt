@@ -6,6 +6,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.JsonNode
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -27,7 +28,7 @@ data class EntityTemplate(
 	val entityType: String? = null,
 	val subType: String? = null,
 	@JsonProperty("isDefaultTemplate") val defaultTemplate: Boolean? = null,
-	val entity: List<Map<String, Any>> = emptyList(),
+	val entity: List<JsonNode> = emptyList(),
 
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
