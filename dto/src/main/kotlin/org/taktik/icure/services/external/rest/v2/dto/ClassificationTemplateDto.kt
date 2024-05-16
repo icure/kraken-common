@@ -43,7 +43,7 @@ data class ClassificationTemplateDto(
     override val endOfLife: Long? = null,
     override val deletionDate: Long? = null,
 
-    val parentId: String?,
+    val parentId: String? = null,
     val label: String = "",
 ) : StoredDocumentDto, ICureDocumentDto<String> {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

@@ -1,3 +1,9 @@
 package org.taktik.icure.services.external.rest.v2.dto.security
 
-data class TokenWithGroupDto(val token: String, val groupId: String, val groupName: String?)
+import io.swagger.v3.oas.annotations.media.Schema
+
+data class TokenWithGroupDto(
+	@Schema(required = true) val token: String,
+	@Schema(required = true) val groupId: String,
+	val groupName: String? = null
+)

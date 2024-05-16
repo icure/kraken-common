@@ -7,4 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity embeds a User and its linked Healthcare Party.""")
-data class UserAndHealthcarePartyDto(val user: UserDto, val healthcareParty: HealthcarePartyDto)
+data class UserAndHealthcarePartyDto(
+	@Schema(required = true) val user: UserDto,
+	@Schema(required = true) val healthcareParty: HealthcarePartyDto
+)

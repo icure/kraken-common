@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.notification
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyHexStringDto
@@ -9,7 +10,9 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessCont
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SubscriptionDto<O : IdentifiableDto<String>>(
+	@Schema(required = true)
 	val eventTypes: List<SubscriptionEventType>,
+	@Schema(required = true)
 	val entityClass: String,
 	val filter: FilterChain<O>?,
 	val accessControlKeys: List<AccessControlKeyHexStringDto>?

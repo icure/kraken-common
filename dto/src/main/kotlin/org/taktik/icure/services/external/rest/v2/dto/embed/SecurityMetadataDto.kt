@@ -15,7 +15,7 @@ data class SecurityMetadataDto(
 anonymous data owners (see [DataOwnerAuthenticationDetails]) and in some cases also by the sdks to quickly find the appropriate
 exchange key needed for the decryption of the content of the corresponding [SecureDelegation].
 Note that it is also possible for a secure delegation in this map to have no entry for secretId, encryptionKey or owningEntityId.
-This could happen in situations where a user should have access only to the unencrypted content of an entity.""")
+This could happen in situations where a user should have access only to the unencrypted content of an entity.""", required = true)
     val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
     @get:Schema(description = """Holds aliases for secure delegation keys that apply to this entity: `a -> b` means that anyone with key `a` has access to the
 secure delegation in `secureDelegations['b']`.

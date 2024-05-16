@@ -11,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DatabaseInfoDto(
 	val id: String,
-	val updateSeq: String?,
-	val fileSize: Long?,
-	val externalSize: Long?,
-	val activeSize: Long?,
-	val docs: Long?,
-	val q: Int?,
-	val n: Int?,
-	val w: Int?,
-	val r: Int?
+	val updateSeq: String? = null,
+	val fileSize: Long? = null,
+	val externalSize: Long? = null,
+	val activeSize: Long? = null,
+	val docs: Long? = null,
+	val q: Int? = null,
+	val n: Int? = null,
+	val w: Int? = null,
+	val r: Int? = null
 ) : Serializable

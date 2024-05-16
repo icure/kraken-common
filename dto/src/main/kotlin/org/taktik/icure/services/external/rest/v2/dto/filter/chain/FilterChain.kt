@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.filter.chain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate
@@ -26,6 +27,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FilterChain<O : IdentifiableDto<String>> (
+	@Schema(required = true)
 	val filter: AbstractFilterDto<O>,
 	val predicate: Predicate? = null
 )

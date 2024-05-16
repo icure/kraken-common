@@ -83,11 +83,11 @@ data class UserDto(
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	data class SystemMetadata(
-		@Schema(description = "The roles that the user for acting on the cloud environment.")
+		@Schema(description = "The roles that the user for acting on the cloud environment.", required = true)
 		val roles: Set<String>,
-		@Schema(description = "Specifies if the user is an admin in the cloud environment. An admin user is considered to have the permissions to do anything on his group and on children groups.")
+		@Schema(description = "Specifies if the user is an admin in the cloud environment. An admin user is considered to have the permissions to do anything on his group and on children groups.", required = true)
 		val isAdmin: Boolean,
-		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).")
+		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).", required = true)
 		val inheritsRoles: Boolean
 	): Serializable
 

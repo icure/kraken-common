@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,6 +43,6 @@ data class TimeTableItemDto(
 	val homeVisit: Boolean = false,
 	val placeId: String? = null,
 	val publicTimeTableItem: Boolean = false,
-	val acceptsNewPatient: Boolean = true,
+	@Schema(defaultValue = "true") val acceptsNewPatient: Boolean = true,
 	val unavailable: Boolean = false
 ) : Serializable

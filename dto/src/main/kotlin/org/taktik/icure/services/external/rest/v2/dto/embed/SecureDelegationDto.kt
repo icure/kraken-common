@@ -65,6 +65,6 @@ Top level delegations must not specify any permissions, as any top-level delegat
 All other delegations instead must specify at least a permission.
 The full syntax of permissions is to be defined, currently only "*" is allowed as a key, meaning all entries: essentially
 currently it is only possible to give full-read-permissions or full-write-permissions. This should allow for a smoother
-transition when fine-grained permissions will be implemented.""")
+transition when fine-grained permissions will be implemented.""", required = true)
     val permissions: AccessLevelDto
 )
