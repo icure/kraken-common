@@ -59,7 +59,7 @@ class DocumentTemplateDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
 		guid: String?,
-		loadLayout: Boolean
+		loadAttachment: Boolean
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -71,7 +71,7 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				if (loadLayout) postLoad(datastoreInformation, it) else it
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
@@ -81,7 +81,7 @@ class DocumentTemplateDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String?,
 		guid: String?,
-		loadLayout: Boolean
+		loadAttachment: Boolean
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -99,7 +99,7 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				if (loadLayout) postLoad(datastoreInformation, it) else it
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
@@ -110,7 +110,7 @@ class DocumentTemplateDAOImpl(
 		documentTypeCode: String,
 		userId: String?,
 		guid: String?,
-		loadLayout: Boolean
+		loadAttachment: Boolean
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -131,7 +131,7 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				if (loadLayout) postLoad(datastoreInformation, it) else it
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}

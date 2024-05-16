@@ -53,27 +53,27 @@ class DocumentTemplateLogicImpl(
 		return documentTemplateDAO.get(datastoreInformation, documentTemplateId)
 	}
 
-	override fun getDocumentTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<DocumentTemplate> =
+	override fun getDocumentTemplatesBySpecialty(specialityCode: String, loadAttachment: Boolean): Flow<DocumentTemplate> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			emitAll(documentTemplateDAO.listDocumentTemplatesBySpecialtyAndGuid(
 				datastoreInformation,
 				specialityCode,
 				null,
-				loadLayout
+				loadAttachment
 			))
 		}
 
-	override fun getDocumentTemplatesByDocumentType(documentTypeCode: String, loadLayout: Boolean): Flow<DocumentTemplate>  =
+	override fun getDocumentTemplatesByDocumentType(documentTypeCode: String, loadAttachment: Boolean): Flow<DocumentTemplate>  =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(datastoreInformation, documentTypeCode, null, null, loadLayout))
+			emitAll(documentTemplateDAO.listDocumentsByTypeUserGuid(datastoreInformation, documentTypeCode, null, null, loadAttachment))
 		}
 
 	override fun getDocumentTemplatesByDocumentTypeAndUser(
 		documentTypeCode: String,
 		userId: String,
-		loadLayout: Boolean
+		loadAttachment: Boolean
 	): Flow<DocumentTemplate> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
@@ -82,14 +82,14 @@ class DocumentTemplateLogicImpl(
 				documentTypeCode,
 				userId,
 				null,
-				loadLayout
+				loadAttachment
 			))
 		}
 
-	override fun getDocumentTemplatesByUser(userId: String, loadLayout: Boolean): Flow<DocumentTemplate>  =
+	override fun getDocumentTemplatesByUser(userId: String, loadAttachment: Boolean): Flow<DocumentTemplate>  =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(documentTemplateDAO.listDocumentTemplatesByUserGuid(datastoreInformation, userId, null, loadLayout))
+			emitAll(documentTemplateDAO.listDocumentTemplatesByUserGuid(datastoreInformation, userId, null, loadAttachment))
 		}
 
 	override suspend fun modifyDocumentTemplate(documentTemplate: DocumentTemplate) =
