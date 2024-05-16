@@ -8,11 +8,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 
-/**
- * Represents a medication.
- *
- * @param expirationDate the expiration date of the medication. Format: yyyyMMdd
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MedicationDto(
@@ -21,6 +16,9 @@ data class MedicationDto(
 	val medicinalProduct: MedicinalproductDto? = null,
 	val numberOfPackages: Int? = null,
 	val batch: String? = null,
+	/**
+	 * The expiration date of the medication. Format: yyyyMMdd
+	 */
 	val expirationDate: Long? = null,
 	val instructionForPatient: String? = null,
 	val instructionForReimbursement: String? = null,

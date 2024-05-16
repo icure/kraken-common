@@ -12,11 +12,6 @@ import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 
-/**
- * Represents a medication.
- *
- * @param expirationDate the expiration date of the medication. Format: yyyyMMdd
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Medication(
@@ -25,6 +20,9 @@ data class Medication(
 	val medicinalProduct: Medicinalproduct? = null,
 	val numberOfPackages: Int? = null,
 	val batch: String? = null,
+	/**
+	 * The expiration date of the medication. Format: yyyyMMdd
+	 */
 	val expirationDate: Long? = null,
 	val instructionForPatient: String? = null,
 	val instructionForReimbursement: String? = null,
