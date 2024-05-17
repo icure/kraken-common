@@ -45,7 +45,7 @@ private const val DEFAULT_USER_CACHE_TTL_SECONDS = 15 * 60
 @Component
 @Profile("app")
 @ConfigurationProperties(prefix = "icure.entitiescache")
-data class IcureEntitiesCacheProperties(
+final data class IcureEntitiesCacheProperties(
 	var code: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
 	var entityTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
 	var healthcareParty: EntityConfiguration = EntityConfiguration(DEFAULT_HCP_CACHE_TTL_SECONDS, CacheType.GLOBAL),
@@ -80,6 +80,7 @@ data class IcureEntitiesCacheProperties(
 	var timeTable: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var recoveryData: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST)
+	// When adding also add to allConfigurationsByClassName
 ) {
 	data class EntityConfiguration(
 		/**
@@ -112,42 +113,49 @@ data class IcureEntitiesCacheProperties(
 		 */
 		GLOBAL
 	}
-	
-	fun getConfigurationForClass(clazz: Class<*>): EntityConfiguration = when (clazz) {
-		Code::class.java -> code
-		EntityTemplate::class.java -> entityTemplate
-		HealthcareParty::class.java -> healthcareParty
-		User::class.java -> user
-		AccessLog::class.java -> accessLog
-		Agenda::class.java -> agenda
-		Article::class.java -> article
-		CalendarItem::class.java -> calendarItem
-		CalendarItemType::class.java -> calendarItemType
-		Classification::class.java -> classification
-		ClassificationTemplate::class.java -> classificationTemplate
-		Contact::class.java -> contact
-		Device::class.java -> device
-		Document::class.java -> document
-		DocumentTemplate::class.java -> documentTemplate
-		EntityReference::class.java -> entityReference
-		ExchangeData::class.java -> exchangeData
-		ExchangeDataMap::class.java -> exchangeDataMap
-		Form::class.java -> form
-		FormTemplate::class.java -> formTemplate
-		HealthElement::class.java -> healthElement
-		Insurance::class.java -> insurance
-		Invoice::class.java -> invoice
-		Keyword::class.java -> keyword
-		MaintenanceTask::class.java -> maintenanceTask
-		MedicalLocation::class.java -> medicalLocation
-		Message::class.java -> message
-		Patient::class.java -> patient
-		Place::class.java -> place
-		Receipt::class.java -> receipt
-		Tarification::class.java -> tarification
-		TimeTable::class.java -> timeTable
-		RecoveryData::class.java -> recoveryData
-		SecureDelegationKeyMap::class.java -> secureDelegationKeyMap
-		else -> throw IllegalArgumentException("Can't find cache configuration for class $clazz")
+
+	val allConfigurationsByClassName: Map<String, EntityConfiguration> by lazy {
+		mapOf(
+			Code::class.java.name to code,
+			EntityTemplate::class.java.name to entityTemplate,
+			HealthcareParty::class.java.name to healthcareParty,
+			User::class.java.name to user,
+			AccessLog::class.java.name to accessLog,
+			Agenda::class.java.name to agenda,
+			Article::class.java.name to article,
+			CalendarItem::class.java.name to calendarItem,
+			CalendarItemType::class.java.name to calendarItemType,
+			Classification::class.java.name to classification,
+			ClassificationTemplate::class.java.name to classificationTemplate,
+			Contact::class.java.name to contact,
+			Device::class.java.name to device,
+			Document::class.java.name to document,
+			DocumentTemplate::class.java.name to documentTemplate,
+			EntityReference::class.java.name to entityReference,
+			ExchangeData::class.java.name to exchangeData,
+			ExchangeDataMap::class.java.name to exchangeDataMap,
+			Form::class.java.name to form,
+			FormTemplate::class.java.name to formTemplate,
+			HealthElement::class.java.name to healthElement,
+			Insurance::class.java.name to insurance,
+			Invoice::class.java.name to invoice,
+			Keyword::class.java.name to keyword,
+			MaintenanceTask::class.java.name to maintenanceTask,
+			MedicalLocation::class.java.name to medicalLocation,
+			Message::class.java.name to message,
+			Patient::class.java.name to patient,
+			Place::class.java.name to place,
+			Receipt::class.java.name to receipt,
+			Tarification::class.java.name to tarification,
+			TimeTable::class.java.name to timeTable,
+			RecoveryData::class.java.name to recoveryData,
+			SecureDelegationKeyMap::class.java.name to secureDelegationKeyMap,
+		)
 	}
+	
+	fun getConfigurationForClass(clazz: Class<*>): EntityConfiguration =
+		allConfigurationsByClassName[clazz.name] ?: throw IllegalArgumentException("Can't find cache configuration for class $clazz")
+
+	fun getConfigurationForName(name: String): EntityConfiguration =
+		allConfigurationsByClassName[name] ?: throw IllegalArgumentException("Can't find cache configuration for name $name")
 }
