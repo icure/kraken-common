@@ -8,7 +8,9 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ExchangeDataMapDAO
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.ExchangeDataMap
 
@@ -18,7 +20,7 @@ import org.taktik.icure.entities.ExchangeDataMap
 class ExchangeDataMapDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<ExchangeDataMap>(ExchangeDataMap::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(ExchangeDataMap::class.java), designDocumentProvider, daoConfig = daoConfig), ExchangeDataMapDAO
+) : GenericDAOImpl<ExchangeDataMap>(ExchangeDataMap::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ExchangeDataMapDAO

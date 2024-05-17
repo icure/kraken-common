@@ -17,7 +17,9 @@ import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.KeywordDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Keyword
 
@@ -27,10 +29,10 @@ import org.taktik.icure.entities.Keyword
 internal class KeywordDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Keyword>(Keyword::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Keyword::class.java), designDocumentProvider, daoConfig = daoConfig), KeywordDAO {
+) : GenericIcureDAOImpl<Keyword>(Keyword::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), KeywordDAO {
 	override suspend fun getKeyword(datastoreInformation: IDatastoreInformation, keywordId: String): Keyword? {
 		return get(datastoreInformation, keywordId)
 	}

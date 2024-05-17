@@ -36,7 +36,9 @@ import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
@@ -53,10 +55,10 @@ import java.time.temporal.ChronoUnit
 class CalendarItemDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(CalendarItem::class.java), designDocumentProvider, daoConfig = daoConfig), CalendarItemDAO {
+) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CalendarItemDAO {
 
 	@Views(
         View(name = "by_hcparty_and_startdate", map = "classpath:js/calendarItem/By_hcparty_and_startdate.js"),

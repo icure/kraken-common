@@ -26,7 +26,9 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitize
@@ -40,10 +42,10 @@ import org.taktik.icure.entities.embed.Identifier
 internal class HealthcarePartyDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<HealthcareParty>(HealthcareParty::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(HealthcareParty::class.java), designDocumentProvider, daoConfig = daoConfig), HealthcarePartyDAO {
+) : GenericDAOImpl<HealthcareParty>(HealthcareParty::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), HealthcarePartyDAO {
 
 	@View(name = "by_nihii", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.nihii.substr(0,8), doc._id )}")
 	override fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?) = flow {

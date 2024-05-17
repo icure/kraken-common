@@ -37,7 +37,9 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -49,10 +51,10 @@ import org.taktik.icure.entities.base.Code
  class CodeDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(Code::class.java), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
+) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"

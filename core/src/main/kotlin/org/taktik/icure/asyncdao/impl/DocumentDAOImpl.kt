@@ -27,7 +27,9 @@ import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Document
 import org.taktik.icure.utils.distinctById
@@ -40,14 +42,14 @@ import java.nio.ByteBuffer
 class DocumentDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<Document>(
 	Document::class.java,
 	couchDbDispatcher,
 	idGenerator,
-	entityCacheFactory.localOnlyCache(Document::class.java),
+	entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider,
 	daoConfig = daoConfig
 ), DocumentDAO {

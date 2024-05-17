@@ -12,7 +12,9 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ArticleDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Article
 
@@ -22,7 +24,7 @@ import org.taktik.icure.entities.Article
 class ArticleDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<Article>(Article::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Article::class.java), designDocumentProvider, daoConfig = daoConfig), ArticleDAO
+) : GenericDAOImpl<Article>(Article::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ArticleDAO

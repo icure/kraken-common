@@ -23,9 +23,3 @@ interface EntityCacheFactory {
      */
     fun <T : StoredDocument> localAndDistributedCache(entityClass: Class<T>): EntityCacheChainLink<T>?
 }
-
-inline fun <reified T : StoredDocument> EntityCacheFactory.localOnlyCache(): EntityCacheChainLink<T>? =
-    localOnlyCache(T::class.java)
-
-inline fun <reified T : StoredDocument> EntityCacheFactory.localAndDistributedCache(): EntityCacheChainLink<T>? =
-    localAndDistributedCache(T::class.java)

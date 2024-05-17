@@ -16,7 +16,9 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.EntityReferenceDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.EntityReference
 
@@ -26,10 +28,10 @@ import org.taktik.icure.entities.EntityReference
 class EntityReferenceDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<EntityReference>(EntityReference::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(EntityReference::class.java), designDocumentProvider, daoConfig = daoConfig), EntityReferenceDAO {
+) : GenericDAOImpl<EntityReference>(EntityReference::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), EntityReferenceDAO {
 
 	override suspend fun getLatest(datastoreInformation: IDatastoreInformation, prefix: String): EntityReference? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

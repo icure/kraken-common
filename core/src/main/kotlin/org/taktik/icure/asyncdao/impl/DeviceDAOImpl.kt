@@ -17,7 +17,9 @@ import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Device
 
@@ -27,10 +29,10 @@ import org.taktik.icure.entities.Device
 class DeviceDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Device>(Device::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Device::class.java), designDocumentProvider, daoConfig = daoConfig), DeviceDAO {
+) : GenericIcureDAOImpl<Device>(Device::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), DeviceDAO {
 
 	override fun findDevicesByIds(datastoreInformation: IDatastoreInformation, deviceIds: Flow<String>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

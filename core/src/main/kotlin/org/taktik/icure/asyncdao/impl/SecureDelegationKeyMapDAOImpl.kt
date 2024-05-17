@@ -11,8 +11,8 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.SecureDelegationKeyMapDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.cache.EntityCacheFactory
-import org.taktik.icure.cache.localOnlyCache
+import org.taktik.icure.cache.ConfiguredCacheProvider
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.SecureDelegationKeyMap
 
@@ -22,14 +22,14 @@ import org.taktik.icure.entities.SecureDelegationKeyMap
 class SecureDelegationKeyMapDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
     daoConfig: DaoConfig
 ) : GenericDAOImpl<SecureDelegationKeyMap>(
     SecureDelegationKeyMap::class.java,
     couchDbDispatcher,
     idGenerator,
-    entityCacheFactory.localOnlyCache(),
+    entityCacheFactory.getConfiguredCache(),
     designDocumentProvider,
     daoConfig = daoConfig
 ), SecureDelegationKeyMapDAO {

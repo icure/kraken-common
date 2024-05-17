@@ -20,7 +20,9 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -36,10 +38,10 @@ import kotlin.collections.set
 class PatientDAOImpl(
 	@Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Patient::class.java), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
+) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
 
 	@Views(
 	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
