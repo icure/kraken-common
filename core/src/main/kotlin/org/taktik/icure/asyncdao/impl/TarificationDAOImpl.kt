@@ -18,7 +18,9 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -30,10 +32,10 @@ import org.taktik.icure.entities.Tarification
 class TarificationDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<Tarification>(Tarification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Tarification::class.java), designDocumentProvider, daoConfig = daoConfig), TarificationDAO {
+) : GenericDAOImpl<Tarification>(Tarification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), TarificationDAO {
 
 	@View(name = "by_type_code_version", map = "classpath:js/tarif/By_type_code_version.js", reduce = "_count")
 	override fun listTarificationsBy(datastoreInformation: IDatastoreInformation, type: String?, code: String?, version: String?) = flow {

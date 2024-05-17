@@ -15,10 +15,10 @@ import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.RecoveryDataDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.cache.EntityCacheFactory
-import org.taktik.icure.cache.localOnlyCache
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.cache.ConfiguredCacheProvider
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 
 @Repository("RecoveryDataDAO")
@@ -27,14 +27,14 @@ import org.taktik.icure.config.DaoConfig
 class RecoveryDataDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
     daoConfig: DaoConfig
 ) : GenericDAOWithMinimalPurgeImpl<RecoveryData>(
     RecoveryData::class.java,
     couchDbDispatcher,
     idGenerator,
-    entityCacheFactory.localOnlyCache(),
+    entityCacheFactory.getConfiguredCache(),
     designDocumentProvider,
     daoConfig = daoConfig
 ), RecoveryDataDAO {
