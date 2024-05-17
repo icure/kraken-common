@@ -38,44 +38,48 @@ import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
 
+private const val DEFAULT_CACHE_TTL_SECONDS = 30 * 60
+private const val DEFAULT_HCP_CACHE_TTL_SECONDS = 1 * 60
+private const val DEFAULT_USER_CACHE_TTL_SECONDS = 15 * 60
+
 @Component
 @Profile("app")
 @ConfigurationProperties(prefix = "icure.entitiescache")
 data class IcureEntitiesCacheProperties(
-	var code: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.GLOBAL),
-	var entityTemplate: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.GLOBAL),
-	var healthcareParty: EntityConfiguration = EntityConfiguration(60, CacheType.GLOBAL),
-	var user: EntityConfiguration = EntityConfiguration(15 * 60, CacheType.GLOBAL),
-	var accessLog: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var agenda: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var article: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var calendarItem: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var calendarItemType: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var classification: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var classificationTemplate: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var contact: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var device: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var document: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var documentTemplate: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var entityReference: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var exchangeData: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var exchangeDataMap: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var form: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var formTemplate: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var healthElement: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var insurance: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var invoice: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var keyword: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var maintenanceTask: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var medicalLocation: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var message: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var patient: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var place: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var receipt: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var tarification: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var timeTable: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var recoveryData: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST),
-	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(30 * 60, CacheType.REQUEST)
+	var code: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
+	var entityTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
+	var healthcareParty: EntityConfiguration = EntityConfiguration(DEFAULT_HCP_CACHE_TTL_SECONDS, CacheType.GLOBAL),
+	var user: EntityConfiguration = EntityConfiguration(DEFAULT_USER_CACHE_TTL_SECONDS, CacheType.GLOBAL),
+	var accessLog: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var agenda: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var article: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var calendarItem: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var calendarItemType: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var classification: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var classificationTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var contact: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var device: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var document: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var documentTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var entityReference: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var exchangeData: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var exchangeDataMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var form: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var formTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var healthElement: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var insurance: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var invoice: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var keyword: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var maintenanceTask: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var medicalLocation: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var message: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var patient: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var place: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var receipt: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var tarification: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var timeTable: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var recoveryData: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST)
 ) {
 	data class EntityConfiguration(
 		/**
