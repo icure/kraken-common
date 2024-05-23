@@ -26,9 +26,9 @@ abstract class AbstractSecurityConfigAdapter {
 		// First I check for the JWT Header
 		(exchange.authorizationBearerToken
 			?: exchange.webSocketBearerToken
-			?: exchange.request.queryParams["jwt"]?.firstOrNull())?.let {
+			?: exchange.getJwtFromPath())?.let {
 			Mono.just(EncodedJwtAuthenticationToken(encodedJwt = it))
-		} ?: getAuthenticationFromPathOneTimeToken(exchange) ?: if (sessionEnabled) {
+		} ?: exchange.getOneTimeTokenAuthenticationFromPath() ?: if (sessionEnabled) {
 			exchange.session.flatMap { webSession -> //Otherwise, I check the session
 				ServerHttpBasicAuthenticationConverter().convert(exchange).flatMap { auth ->
 					//Ignore basic auth if SPRING_SECURITY_CONTEXT was loaded from session
@@ -57,8 +57,21 @@ abstract class AbstractSecurityConfigAdapter {
 				}
 			}
 
-	private fun getAuthenticationFromPathOneTimeToken(exchange: ServerWebExchange): Mono<Authentication>? {
-		val path = exchange.request.path.toString()
+	private fun ServerWebExchange.getJwtFromPath(): String? {
+		val path = request.path.toString()
+		return if (path.contains(';')) {
+			val token = path.split(';')[1]
+			token.let {
+				if (it.contains('=')) {
+					val (key, value) = it.split('=')
+					if (key == "jwt") value else null
+				} else null
+			}
+		} else null
+	}
+
+	private fun ServerWebExchange.getOneTimeTokenAuthenticationFromPath(): Mono<Authentication>? {
+		val path = request.path.toString()
 		return if (path.contains(';')) {
 			val token = path.split(';')[1]
 			token.let {
@@ -68,7 +81,7 @@ abstract class AbstractSecurityConfigAdapter {
 						mono {
 							cache.get(value)?.let { restriction ->
 								cache.evict(value)
-								if (exchange.request.method == restriction.method && path.startsWith(restriction.path)) {
+								if (request.method == restriction.method && path.startsWith(restriction.path)) {
 									restriction.authentication
 								} else null
 							} ?: throw UnauthorizedRequestException("Invalid token")
