@@ -55,4 +55,11 @@ data class EntityBulkShareResultDto<T>(
         val reason: String
     )
 
+    fun minimal(): EntityBulkShareResultDto<Nothing> = EntityBulkShareResultDto(
+        updatedEntity = null,
+        entityId = entityId,
+        entityRev = entityRev,
+        rejectedRequests = rejectedRequests
+    )
+
 }
