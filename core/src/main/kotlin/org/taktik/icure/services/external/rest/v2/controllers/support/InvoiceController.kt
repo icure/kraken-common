@@ -435,9 +435,9 @@ class InvoiceController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<InvoiceDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(invoiceService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }
