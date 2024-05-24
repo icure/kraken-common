@@ -28,11 +28,13 @@ import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -48,6 +50,7 @@ class ClassificationController(
 	private val classificationService: ClassificationService,
 	private val classificationV2Mapper: ClassificationV2Mapper,
 	private val bulkShareResultV2Mapper: ClassificationBulkShareResultV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
@@ -133,6 +136,17 @@ class ClassificationController(
 			?: throw DocumentNotFoundException("Classification modification failed.")
 
 		classificationV2Mapper.map(classification)
+	}
+
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@PostMapping("/byHcPartySecretForeignKeys/delegations")
+	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<IcureStubDto> {
+		return classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { classification -> stubV2Mapper.mapToStub(classification) }
+			.injectReactorContext()
 	}
 
 	@Operation(description = "Shares one or more classifications with one or more data owners")

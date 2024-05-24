@@ -36,11 +36,13 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -59,6 +61,7 @@ class CalendarItemController(
 	private val calendarItemService: CalendarItemService,
 	private val calendarItemV2Mapper: CalendarItemV2Mapper,
 	private val bulkShareResultV2Mapper: CalendarItemBulkShareResultV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
@@ -236,6 +239,17 @@ class CalendarItemController(
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				descending = descending ?: false)
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@PostMapping("/byHcPartySecretForeignKeys/delegations")
+	fun findCalendarItemsDelegationsStubsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<IcureStubDto> {
+		return calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
 			.injectReactorContext()
 	}
 

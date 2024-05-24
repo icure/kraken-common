@@ -236,7 +236,7 @@ class FormController(
 
 	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
-	fun listFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
+	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKeys: String
 	): Flux<IcureStubDto> {
@@ -246,7 +246,7 @@ class FormController(
 
 	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
-	fun listFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
+	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
