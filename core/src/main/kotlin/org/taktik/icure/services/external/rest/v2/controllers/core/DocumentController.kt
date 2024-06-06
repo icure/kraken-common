@@ -224,14 +224,14 @@ class DocumentController(
 	fun listDocumentsByHcPartyMessageForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam(required = false) documentTypeCode: String?,
-		@RequestBody secretMessageKeys: List<String>,
+		@RequestBody secretMessageKeys: ListOfIdsDto,
 	): Flux<DocumentDto> {
 		val documentList = documentTypeCode?.let {
 			if (DocumentType.fromName(documentTypeCode) == null) {
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid documentTypeCode.")
 			}
-			documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys)
-		} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
+			documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys.ids)
+		} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys.ids)
 		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
 	}
 
