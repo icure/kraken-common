@@ -103,13 +103,20 @@ class AccessLogController(
 		@RequestParam(required = false) descending: Boolean?
 	): PaginatedFlux<AccessLogDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+
+		val (from, to) = when {
+			descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
+			descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
+			fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
+			fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
+			descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
+			else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
+		}
+
 		return accessLogService
-			.listAccessLogsBy(
-				if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
-				if (descending == true) fromEpoch ?: 0 else toEpoch ?: Long.MAX_VALUE,
-				paginationOffset,
-				descending == true
-			).mapElements(accessLogV2Mapper::map).asPaginatedFlux()
+			.listAccessLogsBy(from, to, paginationOffset, descending == true)
+			.mapElements(accessLogV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get Paginated List of Access logs by user after date")
