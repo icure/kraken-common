@@ -234,6 +234,6 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		partitionsWithRepo: Map<String, String>,
 		updateIfExists: Boolean,
 		dryRun: Boolean,
-		ignoreIfUnchanged: Boolean
+		ignoreIfUnchanged: Boolean = false
 	): List<DesignDocument>
 }

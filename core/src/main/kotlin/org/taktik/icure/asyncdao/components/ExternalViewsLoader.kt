@@ -2,31 +2,33 @@ package org.taktik.icure.asyncdao.components
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.support.views.ExternalViewRepository
 import java.security.MessageDigest
 import java.time.Duration
 import java.util.*
 
-abstract class ExternalViewLoader(
+@Component
+class ExternalViewsLoader(
 	private val objectMapper: ObjectMapper,
-	rawPublicSigningKey: String
+	@Value("\${icure.couchdb.external.publicSigningKey}") rawPublicSigningKey: String
 ) {
 
 	companion object {
-		private data class SignedContent(
-			val content: JsonNode,
+		data class SignedContent(
+			val jsonContent: JsonNode,
 			val signature: String
 		)
 	}
@@ -39,18 +41,14 @@ abstract class ExternalViewLoader(
 		OpenSSHPublicKeyUtil.parsePublicKey(Base64.getDecoder().decode(it))
 	}
 
-	private val httpClient = HttpClient(CIO) {
-		install(ContentNegotiation) {
-			register(ContentType.Application.Json, JacksonConverter(objectMapper))
-		}
-	}
+	private val httpClient = HttpClient(CIO)
 
 	private fun gitHubRawUrlForResource(baseUrl: String, resourcePath: String): String = baseUrl
-		.replace("https://github.com/", "https://raw.githubusercontent.com/") + resourcePath.trim('/')
-
+		.replace("https://github.com/", "https://raw.githubusercontent.com/")
+		.trimEnd('/') + "/" + resourcePath.trim('/')
 
 	private fun verifySignature(signedContent: SignedContent): Boolean {
-		val content = objectMapper.writeValueAsString(signedContent.content)
+		val content = objectMapper.writeValueAsString(signedContent.jsonContent)
 		val signature = Base64.getDecoder().decode(signedContent.signature)
 		val contentHash = MessageDigest.getInstance("SHA-256").digest(content.toByteArray())
 		val verifier = Ed25519Signer()
@@ -61,11 +59,17 @@ abstract class ExternalViewLoader(
 
 	private suspend inline fun <reified T> downloadAndVerifyResource(baseUrl: String, resourcePath: String): T {
 		val resourceUrl = gitHubRawUrlForResource(baseUrl, resourcePath)
-		val signedContent = httpClient.get(resourceUrl).body<SignedContent>()
+		val signedContent = httpClient.get(resourceUrl).also {
+			if (!it.status.isSuccess()) {
+				throw IllegalStateException("Resource not found: $resourceUrl")
+			}
+		}.bodyAsText().let {
+			objectMapper.readValue<SignedContent>(it)
+		}
 		check(verifySignature(signedContent)) {
 			"Cannot verify the signature for the manifest"
 		}
-		return objectMapper.treeToValue(signedContent.content)
+		return objectMapper.treeToValue(signedContent.jsonContent)
 	}
 
 	private suspend fun getOrDownloadManifest(repoUrl: String): Map<String, String> = manifestCache.getIfPresent(repoUrl) ?:
@@ -75,7 +79,7 @@ abstract class ExternalViewLoader(
 
 	suspend fun loadExternalViews(entityClass: Class<*>, repoUrl: String, partition: String): ExternalViewRepository? =
 		getOrDownloadManifest(repoUrl)[entityClass.simpleName.lowercase()]?.let { viewUrl ->
-			val views = downloadAndVerifyResource<Map<String, View>>(repoUrl, viewUrl)
+			val views = downloadAndVerifyResource<Map<String, View>>(repoUrl, viewUrl).mapKeys { (k, _) -> k.replaceFirstChar { it.uppercase() } }
 			ExternalViewRepository(
 				secondaryPartition = partition,
 				klass = entityClass,
