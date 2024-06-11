@@ -217,4 +217,23 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	suspend fun initSystemDocumentIfAbsent(client: Client)
 
 	suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions)
+
+	/**
+	 * Creates or updates the view design documents for this entity type from one or more external sources.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param partitionsWithRepo a [Map] that associates a partition name to the url of the repository where the view
+	 * for that partition are located.
+	 * @param updateIfExists updates the design docs if already existing
+	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
+	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
+	 * @return a [List] containing the updated [DesignDocument]s.
+	 */
+	suspend fun forceInitExternalDesignDocument(
+		datastoreInformation: IDatastoreInformation,
+		partitionsWithRepo: Map<String, String>,
+		updateIfExists: Boolean,
+		dryRun: Boolean,
+		ignoreIfUnchanged: Boolean
+	): List<DesignDocument>
 }

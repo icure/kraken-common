@@ -478,6 +478,22 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)
 	}
 
+	override suspend fun forceInitExternalDesignDocument(
+		datastoreInformation: IDatastoreInformation,
+		partitionsWithRepo: Map<String, String>,
+		updateIfExists: Boolean,
+		dryRun: Boolean,
+		ignoreIfUnchanged: Boolean
+	): List<DesignDocument> {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val generatedDocs = designDocumentProvider.generateExternalDesignDocuments(
+			entityClass = this.entityClass,
+			partitionsWithRepo = partitionsWithRepo,
+			client = client,
+			ignoreIfUnchanged = ignoreIfUnchanged)
+		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
+	}
+
 	override suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
 		updateIfExists: Boolean,
@@ -494,25 +510,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		ignoreIfUnchanged: Boolean
 	): List<DesignDocument> {
 		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client, partition, ignoreIfUnchanged)
-		return generatedDocs.mapNotNull { generated ->
-			suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
-				val fromDatabase = client.get(generated.id, DesignDocument::class.java)
-				val (merged, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
-				if (changed && (updateIfExists || fromDatabase == null)) {
-					if (!dryRun) {
-						try {
-							fromDatabase?.let {
-								client.update(merged.copy(rev = it.rev))
-							} ?: client.create(merged)
-						} catch (e: CouchDbConflictException) {
-							log.error("Cannot create DD: ${merged.id} with revision ${merged.rev}")
-							throw e
-						}
-					} else {
-						merged
+		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
+	}
+
+	private suspend fun saveDesignDocs(
+		generatedDocs: Set<DesignDocument>,
+		client: Client,
+		updateIfExists: Boolean,
+		dryRun: Boolean
+	) = generatedDocs.mapNotNull { generated ->
+		suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
+			val fromDatabase = client.get(generated.id, DesignDocument::class.java)
+			val (merged, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
+			if (changed && (updateIfExists || fromDatabase == null)) {
+				if (!dryRun) {
+					try {
+						fromDatabase?.let {
+							client.update(merged.copy(rev = it.rev))
+						} ?: client.create(merged)
+					} catch (e: CouchDbConflictException) {
+						log.error("Cannot create DD: ${merged.id} with revision ${merged.rev}")
+						throw e
 					}
-				} else null
-			}
+				} else {
+					merged
+				}
+			} else null
 		}
 	}
 

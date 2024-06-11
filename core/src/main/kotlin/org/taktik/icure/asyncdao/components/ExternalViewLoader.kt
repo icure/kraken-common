@@ -73,7 +73,7 @@ abstract class ExternalViewLoader(
 			manifestCache.put(repoUrl, it)
 		}
 
-	protected suspend fun loadExternalViews(repoUrl: String, entityClass: Class<*>, partition: String): ExternalViewRepository? =
+	suspend fun loadExternalViews(entityClass: Class<*>, repoUrl: String, partition: String): ExternalViewRepository? =
 		getOrDownloadManifest(repoUrl)[entityClass.simpleName.lowercase()]?.let { viewUrl ->
 			val views = downloadAndVerifyResource<Map<String, View>>(repoUrl, viewUrl)
 			ExternalViewRepository(
