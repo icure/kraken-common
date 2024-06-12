@@ -14,6 +14,7 @@ import io.ktor.serialization.jackson.*
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.support.views.ExternalViewRepository
@@ -22,6 +23,7 @@ import java.time.Duration
 import java.util.*
 
 @Component
+@ConditionalOnProperty(prefix = "icure.couchdb.external", name = ["publicSigningKey"], matchIfMissing = false)
 class ExternalViewsLoader(
 	private val objectMapper: ObjectMapper,
 	@Value("\${icure.couchdb.external.publicSigningKey}") rawPublicSigningKey: String
