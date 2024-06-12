@@ -53,6 +53,7 @@ import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.PersistenceException
@@ -63,11 +64,12 @@ import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
+import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
 import java.util.concurrent.CancellationException
 
 abstract class GenericDAOImpl<T : StoredDocument>(
-	protected val entityClass: Class<T>,
+	override val entityClass: Class<T>,
 	protected val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<T>? = null,
@@ -616,6 +618,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			.forEach { emit(it.first) }
 	}.distinctUntilChanged() // This works because ids will be sorted by date first
 
+	override fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		partitionName: String,
+		startKey: ExternalFilterKey<*>?,
+		endKey: ExternalFilterKey<*>?
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val query = createQuery(
+			datastoreInformation = datastoreInformation,
+			viewName = viewName,
+			secondaryPartition = partitionName
+		).includeDocs(false).let {
+			if(startKey != null) it.startKey(startKey.key)
+			else it
+		}.let {
+			if(endKey != null) it.endKey(endKey.key)
+			else it
+		}
+
+		emitAll(client.queryView<Any?, Any?, Any?>(query)
+			.filterIsInstance<ViewRowNoDoc<*, *>>()
+			.map { it.id }
+		)
+	}
 
 	protected suspend fun warmup(datastoreInformation: IDatastoreInformation, view: Pair<String, String?>) {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -636,6 +664,20 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			Partitions.Main -> getEntityIds(datastoreInformation, 1).firstOrNull()
 			else -> {}
 		}
+	}
+
+	override suspend fun warmupExternalDesignDocs(
+		datastoreInformation: IDatastoreInformation,
+		designDocuments: List<DesignDocument>
+	) = designDocuments.mapNotNull {
+		if(it.id.contains("-")) {
+			val (dd, partition) = it.id.split("-", limit = 2)
+			if(dd.contains(entityClass.simpleName) && it.views.isNotEmpty()) {
+				it.views.keys.first() to partition
+			} else null
+		} else null
+	}.forEach {
+		warmup(datastoreInformation, it)
 	}
 
 	protected suspend fun createQuery(

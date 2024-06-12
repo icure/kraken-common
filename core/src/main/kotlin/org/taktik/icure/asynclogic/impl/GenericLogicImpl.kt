@@ -14,7 +14,7 @@ import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.validation.DataOwnerProvider
+import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.validation.aspect.Fixer
 
 abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
@@ -84,5 +84,23 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().remove(getInstanceAndGroup(), entities))
 	}
 
+	override fun listEntityIdsInCustomView(
+		viewName: String,
+		partitionName: String,
+		startKey: ExternalFilterKey<*>?,
+		endKey: ExternalFilterKey<*>?
+	): Flow<String> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(getGenericDAO().listEntitiesIdInCustomView(
+			datastoreInformation = datastoreInformation,
+			viewName = viewName,
+			partitionName = partitionName,
+			startKey = startKey,
+			endKey = endKey
+		))
+	}
+
 	protected abstract fun getGenericDAO(): D
+
+	fun getEntityClass(): Class<E> = getGenericDAO().entityClass
 }

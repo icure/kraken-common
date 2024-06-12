@@ -8,11 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.utils.ExternalFilterKey
 
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
@@ -25,6 +27,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * If true the DAO is for group-level entities, if false the DAO is for global entities.
 	 */
 	val isGroupDao get() = true
+	val entityClass: Class<T>
 
 	/**
 	 * Retrieves all the entities [T]s in a group in a format for pagination.
@@ -216,7 +219,22 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 */
 	suspend fun initSystemDocumentIfAbsent(client: Client)
 
+	/**
+	 * Makes a simple query to a view in the specified [partition] to ensure that the indexation starts for that
+	 * design document.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param partition the [Partitions] to index.
+	 */
 	suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions)
+
+	/**
+	 * Makes a simple query to all the specified [designDocuments] to ensure tha the indexation starts for their partition.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param designDocuments a [List] of [DesignDocument] to index.
+	 */
+	suspend fun warmupExternalDesignDocs(datastoreInformation: IDatastoreInformation, designDocuments: List<DesignDocument>)
 
 	/**
 	 * Creates or updates the view design documents for this entity type from one or more external sources.
@@ -236,4 +254,22 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		dryRun: Boolean,
 		ignoreIfUnchanged: Boolean = false
 	): List<DesignDocument>
+
+	/**
+	 * Retrieves all the entities id for a custom view.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param viewName the name of the view to query.
+	 * @param partitionName the secondary partition where the view is located.
+	 * @param startKey an optional start key for the query.
+	 * @param endKey an optional end key for the query.
+	 * @return a [Flow] containing the ids of the entities between [startKey] (if provided) and [endKey] (if provided).
+	 */
+	fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		partitionName: String,
+		startKey: ExternalFilterKey<*>?,
+		endKey: ExternalFilterKey<*>?
+	): Flow<String>
 }
