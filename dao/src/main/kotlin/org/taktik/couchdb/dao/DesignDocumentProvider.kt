@@ -67,7 +67,7 @@ interface DesignDocumentProvider {
     suspend fun generateExternalDesignDocuments(
         entityClass: Class<*>,
         partitionsWithRepo: Map<String, String>,
-        client: Client?,
-        ignoreIfUnchanged: Boolean
+        client: Client? = null,
+        ignoreIfUnchanged: Boolean = false
     ): Set<DesignDocument>
 }

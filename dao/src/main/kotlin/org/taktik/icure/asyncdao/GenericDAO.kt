@@ -20,7 +20,20 @@ import org.taktik.icure.entities.utils.ExternalFilterKey
 const val DATA_OWNER_PARTITION = "DataOwner"
 const val MAURICE_PARTITION = "Maurice"
 
-enum class Partitions(val partitionName: String) { All(""), Main(""), DataOwner(DATA_OWNER_PARTITION), Maurice(MAURICE_PARTITION) }
+enum class Partitions(val partitionName: String) {
+	All(""),
+	Main(""),
+	DataOwner(DATA_OWNER_PARTITION),
+	Maurice(MAURICE_PARTITION);
+
+	companion object {
+
+		fun valueOfOrNull(partition: String): Partitions? = runCatching {
+			Partitions.valueOf(partition)
+		}.getOrNull()
+
+	}
+}
 
 interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	/**
