@@ -11,6 +11,7 @@ import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadata
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
@@ -48,6 +49,7 @@ data class ContactDto(
 	@Schema(description = "Location where the contact was recorded.") val location: String? = null,
 	@Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
 	@Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
+	@Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
 	@Schema(description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.") val subContacts: Set<SubContactDto> = emptySet(),
 	@Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
 
