@@ -13,6 +13,7 @@ import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
+import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
@@ -61,6 +62,7 @@ import org.taktik.icure.validation.ValidCode
  * @property location Location where the contact was recorded.
  * @property externalId An external (from another source) id with no guarantee or requirement for unicity.
  * @property encounterType The type of encounter made for the contact
+ * @property encounterLocation The location where the encounter took place.
  * @property subContacts Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.
  * @property services Set of all services provided to the patient during the contact.
  * @property delegations The delegations giving access to connected healthcare information.
@@ -96,6 +98,7 @@ data class Contact(
 	val externalId: String? = null,
 	@Deprecated("Contacts should be linked together using formId in subcontact") val modifiedContactId: String? = null,
 	val encounterType: CodeStub? = null,
+	val encounterLocation: Address? = null,
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val subContacts: Set<SubContact> = emptySet(),
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val services: Set<Service> = emptySet(),
 
