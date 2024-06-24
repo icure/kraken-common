@@ -34,9 +34,9 @@ data class ContactByHcPartyTagCodeDateFilter(
 	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (
 			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+					(tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
+					(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
 			item.services.any { svc -> // Search on service fields instead of contact fields is intentional
-				(tagType == null || svc.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
-				(codeType == null || svc.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
 				(startOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate > startOfContactOpeningDate || svc.openingDate != null && svc.openingDate > startOfContactOpeningDate) &&
 				(endOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate < endOfContactOpeningDate || svc.openingDate != null && svc.openingDate < endOfContactOpeningDate)
 			}

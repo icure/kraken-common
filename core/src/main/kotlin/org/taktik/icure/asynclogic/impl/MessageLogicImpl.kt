@@ -19,9 +19,9 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.MessageDAO
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MessageLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -234,6 +234,8 @@ class MessageLogicImpl(
 	}
 
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
+
+	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
 
 	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
 		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()

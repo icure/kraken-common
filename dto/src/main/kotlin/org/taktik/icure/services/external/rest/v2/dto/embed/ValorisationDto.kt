@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,6 +35,6 @@ data class ValorisationDto(
 	val patientIntervention: Double? = null,
 	val doctorSupplement: Double? = null,
 	val vat: Double? = null,
-	val label: Map<String, String>? = emptyMap(), //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	@Schema(defaultValue = "emptyMap()") val label: Map<String, String>? = emptyMap(), //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto, Serializable

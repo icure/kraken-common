@@ -78,36 +78,40 @@ class DocumentTemplateController(
 
 	@Operation(summary = "Gets all document templates")
 	@GetMapping("/bySpecialty/{specialityCode}")
-	fun listDocumentTemplatesBySpeciality(@PathVariable specialityCode: String): Flux<DocumentTemplateDto> {
-		val documentTemplates = documentTemplateService.getDocumentTemplatesBySpecialty(specialityCode)
+	fun findDocumentTemplatesBySpeciality(@PathVariable specialityCode: String, @RequestParam(required = false) loadAttachment: Boolean? = null): Flux<DocumentTemplateDto> {
+		val documentTemplates = documentTemplateService.getDocumentTemplatesBySpecialty(specialityCode, loadAttachment ?: true)
 		return documentTemplates.map { ft -> documentTemplateV2Mapper.map(ft) }.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets all document templates by Type")
 	@GetMapping("/byDocumentType/{documentTypeCode}")
-	fun listDocumentTemplatesByDocumentType(@PathVariable documentTypeCode: String): Flux<DocumentTemplateDto> {
+	fun listDocumentTemplatesByDocumentType(@PathVariable documentTypeCode: String, @RequestParam(required = false) loadAttachment: Boolean? = null): Flux<DocumentTemplateDto> {
 		DocumentType.fromName(documentTypeCode)
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot retrieve document templates: provided Document Type Code doesn't exists")
-		val documentTemplates = documentTemplateService.getDocumentTemplatesByDocumentType(documentTypeCode)
+		val documentTemplates = documentTemplateService.getDocumentTemplatesByDocumentType(documentTypeCode, loadAttachment ?: true)
 		return documentTemplates.map { ft -> documentTemplateV2Mapper.map(ft) }.injectReactorContext()
 	}
 
 	@Operation(summary = "Gets all document templates by Type For currentUser")
 	@GetMapping("/byDocumentTypeForCurrentUser/{documentTypeCode}")
-	fun listDocumentTemplatesByDocumentTypeForCurrentUser(@PathVariable documentTypeCode: String): Flux<DocumentTemplateDto> = flow {
+	fun listDocumentTemplatesByDocumentTypeForCurrentUser(@PathVariable documentTypeCode: String, @RequestParam(required = false) loadAttachment: Boolean? = null): Flux<DocumentTemplateDto> = flow {
 		DocumentType.fromName(documentTypeCode)
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot retrieve document templates: provided Document Type Code doesn't exists")
 		emitAll(
-			documentTemplateService.getDocumentTemplatesByDocumentTypeAndUser(documentTypeCode, sessionLogic.getCurrentUserId())
+			documentTemplateService.getDocumentTemplatesByDocumentTypeAndUser(
+				documentTypeCode,
+				sessionLogic.getCurrentUserId(),
+				loadAttachment ?: true
+			)
 				.map { ft -> documentTemplateV2Mapper.map(ft) }
 		)
 	}.injectReactorContext()
 
 	@Operation(summary = "Gets all document templates for current user")
 	@GetMapping
-	fun listDocumentTemplates(): Flux<DocumentTemplateDto> = flow {
+	fun listDocumentTemplates(@RequestParam(required = false) loadAttachment: Boolean? = null): Flux<DocumentTemplateDto> = flow {
 		emitAll(
-			documentTemplateService.getDocumentTemplatesByUser(sessionLogic.getCurrentUserId())
+			documentTemplateService.getDocumentTemplatesByUser(sessionLogic.getCurrentUserId(), loadAttachment ?: true)
 				.map { ft -> documentTemplateV2Mapper.map(ft) }
 		)
 	}.injectReactorContext()

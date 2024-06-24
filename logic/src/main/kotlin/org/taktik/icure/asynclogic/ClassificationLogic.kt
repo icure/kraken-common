@@ -49,5 +49,12 @@ interface ClassificationLogic : EntityPersister<Classification, String>, EntityW
 
 	suspend fun addDelegation(classification: Classification, healthcarePartyId: String, delegation: Delegation): Classification?
 	suspend fun addDelegations(classification: Classification, delegations: List<Delegation>): Classification?
+
+	/**
+	 * Retrieves a batch of [Classification]s by their ids.
+	 *
+	 * @param ids the ids of the Classifications to retrieve.
+	 * @return a [Flow] of [Classification]s.
+	 */
 	fun getClassifications(ids: List<String>): Flow<Classification>
 }

@@ -46,6 +46,14 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 
 	/**
+	 * Retrieves all the [AccessLog]s with the provided [ids].
+	 *
+	 * @param ids the ids of the [AccessLog] to retrieve.
+	 * @return a [Flow] of [AccessLog].
+	 */
+	fun getAccessLogs(ids: List<String>): Flow<AccessLog>
+
+	/**
 	 * Retrieves all the [AccessLog]s which [AccessLog.created] date is between [fromEpoch] and [toEpoch] in a [Flow] for
 	 * pagination.
 	 *

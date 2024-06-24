@@ -24,6 +24,7 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -193,10 +194,15 @@ class DocumentController(
 		documentService.getDocumentsByExternalUuid(externalUuid).map { documentV2Mapper.map(it) }
 	}
 
-	@Operation(summary = "Gets a document")
+	@Operation(summary = "Get one or more documents by their ids.")
 	@PostMapping("/byIds")
-	fun getDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocumentDto> =
-		documentService.getDocuments(documentIds.ids).map { doc -> documentV2Mapper.map(doc) }.injectReactorContext()
+	fun getDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocumentDto> {
+		require(documentIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return documentService
+			.getDocuments(documentIds.ids)
+			.map(documentV2Mapper::map)
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Updates a document")
 	@PutMapping
@@ -218,19 +224,19 @@ class DocumentController(
 	fun listDocumentsByHcPartyMessageForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam(required = false) documentTypeCode: String?,
-		@RequestBody secretMessageKeys: List<String>,
+		@RequestBody secretMessageKeys: ListOfIdsDto,
 	): Flux<DocumentDto> {
 		val documentList = documentTypeCode?.let {
 			if (DocumentType.fromName(documentTypeCode) == null) {
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid documentTypeCode.")
 			}
-			documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys)
-		} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys)
+			documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys.ids)
+		} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys.ids)
 		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
 	}
 
 	@Operation(summary = "Find Document ids by data owner id, patient secret keys and creation date.")
-	@PostMapping("/byDataOwnerPatientCreated")
+	@PostMapping("/byDataOwnerPatientCreated", produces = [APPLICATION_JSON_VALUE])
 	fun listDocumentIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -447,9 +453,9 @@ class DocumentController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<DocumentDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(documentService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

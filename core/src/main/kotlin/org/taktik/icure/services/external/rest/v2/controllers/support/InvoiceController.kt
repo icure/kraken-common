@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -105,9 +106,12 @@ class InvoiceController(
 
 	@Operation(summary = "Gets an invoice")
 	@PostMapping("/byIds")
-	fun getInvoices(@RequestBody invoiceIds: ListOfIdsDto) = invoiceService.getInvoices(invoiceIds.ids)
-		.map { invoiceV2Mapper.map(it) }
-		.injectReactorContext()
+	fun getInvoices(@RequestBody invoiceIds: ListOfIdsDto): Flux<InvoiceDto> {
+		require(invoiceIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return invoiceService.getInvoices(invoiceIds.ids)
+			.map { invoiceV2Mapper.map(it) }
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Modifies an invoice")
 	@PutMapping
@@ -241,7 +245,7 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "Find Invoices ids by data owner id, patient secret keys and invoice date")
-	@PostMapping("/byDataOwnerPatientInvoiceDate")
+	@PostMapping("/byDataOwnerPatientInvoiceDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -431,9 +435,9 @@ class InvoiceController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<InvoiceDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(invoiceService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

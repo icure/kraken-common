@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -35,11 +36,13 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -58,6 +61,7 @@ class CalendarItemController(
 	private val calendarItemService: CalendarItemService,
 	private val calendarItemV2Mapper: CalendarItemV2Mapper,
 	private val bulkShareResultV2Mapper: CalendarItemBulkShareResultV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
@@ -157,10 +161,8 @@ class CalendarItemController(
 
 	@Operation(summary = "Get calendarItems by ids")
 	@PostMapping("/byIds")
-	fun getCalendarItemsWithIds(@RequestBody calendarItemIds: ListOfIdsDto?): Flux<CalendarItemDto> {
-		if (calendarItemIds == null) {
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "calendarItemIds was empty")
-		}
+	fun getCalendarItemsWithIds(@RequestBody calendarItemIds: ListOfIdsDto): Flux<CalendarItemDto> {
+		require(calendarItemIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		val calendars = calendarItemService.getCalendarItems(calendarItemIds.ids)
 		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
 	}
@@ -219,7 +221,7 @@ class CalendarItemController(
 	}
 
 	@Operation(summary = "Find CalendarItems ids by data owner id, patient secret keys and start time")
-	@PostMapping("/byDataOwnerPatientStartTime")
+	@PostMapping("/byDataOwnerPatientStartTime", produces = [APPLICATION_JSON_VALUE])
 	fun findCalendarItemIdsByDataOwnerPatientStartTime(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -237,6 +239,17 @@ class CalendarItemController(
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				descending = descending ?: false)
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@PostMapping("/byHcPartySecretForeignKeys/delegations")
+	fun findCalendarItemsDelegationsStubsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<IcureStubDto> {
+		return calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
 			.injectReactorContext()
 	}
 
@@ -266,9 +279,9 @@ class CalendarItemController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<CalendarItemDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(calendarItemService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

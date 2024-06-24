@@ -18,7 +18,16 @@
 
 package org.taktik.icure.services.external.rest.v2.dto
 
+import io.swagger.v3.oas.annotations.media.Schema
+
 /**
  * @author Bernard Paulus on 23/05/17.
  */
-class WsExceptionDto(val level: String, val error: String, val translations: Map<String, String>)
+class WsExceptionDto(
+	@Schema(required = true)
+	val level: String,
+	@Schema(required = true)
+	val error: String,
+	@Schema(required = true)
+	val translations: Map<String, String>
+)

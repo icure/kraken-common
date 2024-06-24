@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
@@ -16,6 +17,7 @@ data class EntitySharedMetadataUpdateRequestDto(
     /**
      * Access control hash of the metadata to update.
      */
+    @Schema(required = true)
     val metadataAccessControlHash: SecureDelegationKeyStringDto,
     /**
      * Updates for secret ids: the key is an encrypted secret id and the value is if an entry with that encrypted secret

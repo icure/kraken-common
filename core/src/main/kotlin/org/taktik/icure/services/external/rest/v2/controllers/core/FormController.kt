@@ -87,8 +87,8 @@ class FormController(
 	@Operation(summary = "Get a list of forms by ids", description = "Keys must be delimited by coma")
 	@PostMapping("/byIds")
 	fun getForms(@RequestBody formIds: ListOfIdsDto): Flux<FormDto> {
-		val forms = formService.getForms(formIds.ids)
-		return forms.map { formV2Mapper.map(it) }.injectReactorContext()
+		require(formIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return formService.getForms(formIds.ids).map(formV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "Gets the most recent form with the given logicalUuid")
@@ -213,7 +213,7 @@ class FormController(
 	}
 
 	@Operation(summary = "Find Forms ids by data owner id, patient secret keys and opening date")
-	@PostMapping("/byDataOwnerPatientOpeningDate")
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listFormIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -236,7 +236,7 @@ class FormController(
 
 	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
-	fun listFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
+	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKeys: String
 	): Flux<IcureStubDto> {
@@ -246,7 +246,7 @@ class FormController(
 
 	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
-	fun listFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
+	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
@@ -355,9 +355,9 @@ class FormController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<FormDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(formService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -102,13 +103,20 @@ class AccessLogController(
 		@RequestParam(required = false) descending: Boolean?
 	): PaginatedFlux<AccessLogDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+
+		val (from, to) = when {
+			descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
+			descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
+			fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
+			fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
+			descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
+			else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
+		}
+
 		return accessLogService
-			.listAccessLogsBy(
-				if (descending == true) toEpoch ?: Long.MAX_VALUE else fromEpoch ?: 0,
-				if (descending == true) fromEpoch ?: 0 else toEpoch ?: Long.MAX_VALUE,
-				paginationOffset,
-				descending == true
-			).mapElements(accessLogV2Mapper::map).asPaginatedFlux()
+			.listAccessLogsBy(from, to, paginationOffset, descending == true)
+			.mapElements(accessLogV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Get Paginated List of Access logs by user after date")
@@ -137,7 +145,7 @@ class AccessLogController(
 	}.injectReactorContext()
 
 	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
-	@PostMapping("/byDataOwnerPatientDate")
+	@PostMapping("/byDataOwnerPatientDate", produces = [APPLICATION_JSON_VALUE])
 	fun listAccessLogIdsByDataOwnerPatientDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -150,6 +158,16 @@ class AccessLogController(
 		}
 		return accessLogService
 			.listAccessLogIdsByDataOwnerPatientDate(dataOwnerId, secretPatientKeys.ids.toSet(), startDate, endDate, descending ?: false)
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "Get AccessLogs by ids")
+	@PostMapping("/byIds")
+	fun getAccessLogByIds(@RequestBody accessLogIds: ListOfIdsDto): Flux<AccessLogDto> {
+		require(accessLogIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return accessLogService
+			.getAccessLogs(accessLogIds.ids)
+			.map(accessLogV2Mapper::map)
 			.injectReactorContext()
 	}
 

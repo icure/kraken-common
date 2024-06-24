@@ -1,9 +1,6 @@
-import com.icure.codegen.task.MoveCommonSdkTask
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.deleteRecursively
-
 plugins {
     id("com.icure.kotlin-library-conventions")
+    kotlin("plugin.serialization")
 
     alias(coreLibs.plugins.springBootPlugin) apply(true)
     alias(coreLibs.plugins.springBootDependenciesManagement) apply(true)
@@ -12,7 +9,6 @@ plugins {
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion) apply(true)
     alias(coreLibs.plugins.helmRepository) apply(true)
-    alias(coreLibs.plugins.kotlinxSerialization) apply(true)
     alias(coreLibs.plugins.licenceReport) apply(true)
     alias(coreLibs.plugins.ksp) apply(true)
     `maven-publish`
@@ -89,24 +85,8 @@ dependencies {
     testImplementation(coreLibs.bundles.ktorClientLibs)
 }
 
-@OptIn(ExperimentalPathApi::class)
-val moveCommonSdkTask = tasks.register<MoveCommonSdkTask>("MoveCommonSdkTask") {
-    val cleanUpFolder = File("${project.rootDir.path.trimEnd('/')}/kspGenerated")
-    if(cleanUpFolder.exists()) {
-        cleanUpFolder.toPath().deleteRecursively()
-    }
-    val dst = File("${project.rootDir.path.trimEnd('/')}/kspGenerated/main/kotlin/com/icure/sdk/api/raw")
-    dst.mkdirs()
-    srcDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/core/build/generated/ksp/main/kotlin/com/icure/sdk/api/raw")
-    dstDir = dst
-}
-
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
     onlyIf {
         gradle.startParameter.taskNames.contains(":kraken-common:core:kspKotlin")
     }
-}
-
-tasks.named("MoveCommonSdkTask") {
-    dependsOn("kspKotlin")
 }

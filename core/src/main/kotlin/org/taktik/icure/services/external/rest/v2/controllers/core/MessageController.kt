@@ -20,6 +20,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -113,6 +114,13 @@ class MessageController(
 				.also { logger.error(it.message) }
 	}
 
+	@Operation(summary = "Gets multiple messages by their ids")
+	@PostMapping("/byIds")
+	fun getMessages(@RequestBody messageIds: ListOfIdsDto): Flux<MessageDto> {
+		require(messageIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return messageService.getMessages(messageIds.ids).map(messageV2Mapper::map).injectReactorContext()
+	}
+
 	@Operation(summary = "Get all messages for current HC Party and provided transportGuids")
 	@PostMapping("/byTransportGuid/list")
 	fun listMessagesByTransportGuids(@RequestParam("hcpId") hcpId: String, @RequestBody transportGuids: ListOfIdsDto) =
@@ -128,7 +136,7 @@ class MessageController(
 	}
 
 	@Operation(summary = "Find Messages ids by data owner id, patient secret keys and sent date")
-	@PostMapping("/byDataOwnerPatientSentDate")
+	@PostMapping("/byDataOwnerPatientSentDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listMessageIdsByDataOwnerPatientSentDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,

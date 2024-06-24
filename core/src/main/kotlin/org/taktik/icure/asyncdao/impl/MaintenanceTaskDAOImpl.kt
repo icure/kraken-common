@@ -25,7 +25,9 @@ import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MaintenanceTaskDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.embed.Identifier
@@ -38,10 +40,10 @@ import org.taktik.icure.utils.interleave
 class MaintenanceTaskDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<MaintenanceTask>(MaintenanceTask::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(MaintenanceTask::class.java), designDocumentProvider, daoConfig = daoConfig), MaintenanceTaskDAO {
+) : GenericIcureDAOImpl<MaintenanceTask>(MaintenanceTask::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), MaintenanceTaskDAO {
 
 	@Views(
     	View(name = "by_hcparty_identifier", map = "classpath:js/maintenancetask/By_hcparty_identifier_map.js"),

@@ -19,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -141,14 +142,15 @@ class ContactController(
 
 	@Operation(summary = "Get contacts")
 	@PostMapping("/byIds")
-	fun getContacts(@RequestBody contactIds: ListOfIdsDto) = contactIds.ids.takeIf { it.isNotEmpty() }
-			?.let { ids ->
-				contactService.getContacts(ids.toSet())
-					.map { c -> contactV2Mapper.map(c) }
-					.injectReactorContext()
-			}
-			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
-
+	fun getContacts(@RequestBody contactIds: ListOfIdsDto): Flux<ContactDto> {
+		require(contactIds.ids.isNotEmpty()) {
+			"You must specify at least one id."
+		}
+		return contactService
+			.getContacts(contactIds.ids)
+			.map(contactV2Mapper::map)
+			.injectReactorContext()
+	}
 
 	@Operation(summary = "Get the list of all used codes frequencies in services")
 	@GetMapping("/service/codes/{codeType}/{minOccurrences}")
@@ -209,7 +211,7 @@ class ContactController(
 	}
 
 	@Operation(summary = "Find Contact ids by data owner id, patient secret keys and opening date.")
-	@PostMapping("/byDataOwnerPatientOpeningDate")
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [APPLICATION_JSON_VALUE])
 	fun listContactIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -467,9 +469,9 @@ class ContactController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<ContactDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(contactService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

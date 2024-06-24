@@ -20,7 +20,8 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.ConfiguredCacheProvider
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -36,10 +37,10 @@ import kotlin.collections.set
 class PatientDAOImpl(
 	@Qualifier("patientCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Patient::class.java), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
+) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
 
 	@Views(
 	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
@@ -790,11 +791,11 @@ class PatientDAOImpl(
 
 		val startDocumentId = paginationOffset.startDocumentId
 		var sentElements = 0
-		var lastVisited: ViewRowWithDoc<ComplexKey, Int, Patient>? = null
-		val duplicatePatients = client.interleave<ComplexKey, Int, Patient>(
+		var lastVisited: ViewRowWithDoc<ComplexKey, String, Patient>? = null
+		val duplicatePatients = client.interleave<ComplexKey, String, Patient>(
 			createQueries(datastoreInformation, *viewNames.toTypedArray()).keys(keysWithDuplicates).reduce(false).includeDocs(),
 			compareBy({it.components[0] as? String}, {it.components[1] as? String})
-		).filterIsInstance<ViewRowWithDoc<ComplexKey, Int, Patient>>()
+		).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Patient>>()
 			.transform {
 				// Skips all the documents of the start key group until we reach the start document id
 				if(it.doc.active && (it.key != from || startDocumentId == null || it.doc.id >= startDocumentId)) {

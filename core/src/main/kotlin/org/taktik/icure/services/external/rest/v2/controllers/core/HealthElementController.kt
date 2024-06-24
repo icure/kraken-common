@@ -16,6 +16,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -99,10 +100,10 @@ class HealthElementController(
 
 	@Operation(summary = "Get healthElements by batch", description = "Get a list of healthElement by ids/keys.")
 	@PostMapping("/byIds")
-	fun getHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<HealthElementDto> = flow {
-		val healthElements = healthElementService.getHealthElements(healthElementIds.ids)
-		emitAll(healthElements.map { c -> healthElementV2Mapper.map(c) })
-	}.injectReactorContext()
+	fun getHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<HealthElementDto> {
+		require(healthElementIds.ids.isNotEmpty()) { "You must specify at least one id." }
+		return healthElementService.getHealthElements(healthElementIds.ids).map(healthElementV2Mapper::map).injectReactorContext()
+	}
 
 	@Operation(summary = "List health elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
@@ -116,7 +117,7 @@ class HealthElementController(
 	}
 
 	@Operation(summary = "Find Health Element ids by data owner id, patient secret keys and opening date")
-	@PostMapping("/byDataOwnerPatientOpeningDate")
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -254,9 +255,9 @@ class HealthElementController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<HealthElementDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(healthElementService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

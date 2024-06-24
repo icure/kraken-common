@@ -6,8 +6,7 @@ package org.taktik.icure.spring.asynccache
 
 import org.springframework.cache.Cache
 
-interface Cache<K, V> {
-	suspend fun getWrapper(key: K?): Cache.ValueWrapper?
+interface Cache<K : Any, V> {
 	fun getName(): String
 	suspend fun get(key: K): V?
 	fun clear()

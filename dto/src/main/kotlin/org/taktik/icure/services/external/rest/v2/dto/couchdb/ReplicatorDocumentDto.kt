@@ -13,7 +13,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ReplicatorDocumentDto(
 	override val id: String,
-	override val rev: String?,
+	override val rev: String? = null,
 	val source: RemoteDto? = null,
 	val target: RemoteDto? = null,
 	val owner: String? = null,

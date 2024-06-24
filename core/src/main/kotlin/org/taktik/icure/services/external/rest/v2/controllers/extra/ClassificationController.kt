@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -27,11 +28,13 @@ import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -47,6 +50,7 @@ class ClassificationController(
 	private val classificationService: ClassificationService,
 	private val classificationV2Mapper: ClassificationV2Mapper,
 	private val bulkShareResultV2Mapper: ClassificationBulkShareResultV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
@@ -71,12 +75,11 @@ class ClassificationController(
 		classificationV2Mapper.map(element)
 	}
 
-	@Operation(summary = "Get a list of classifications", description = "Ids are seperated by a coma")
-	@GetMapping("/byIds/{ids}")
-	fun getClassificationByHcPartyId(@PathVariable ids: String): Flux<ClassificationDto> {
-		val elements = classificationService.getClassifications(ids.split(','))
-
-		return elements.map { classificationV2Mapper.map(it) }.injectReactorContext()
+	@Operation(summary = "Get a list of classifications")
+	@PostMapping("/byIds")
+	fun getClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<ClassificationDto> {
+		require(classificationIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return classificationService.getClassifications(classificationIds.ids).map(classificationV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
@@ -89,7 +92,7 @@ class ClassificationController(
 	}
 
 	@Operation(summary = "Find Classification ids by data owner id, patient secret keys and creation date.")
-	@PostMapping("/byDataOwnerPatientCreated")
+	@PostMapping("/byDataOwnerPatientCreated", produces = [APPLICATION_JSON_VALUE])
 	fun listClassificationIdsByDataOwnerPatientCreated(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -135,6 +138,17 @@ class ClassificationController(
 		classificationV2Mapper.map(classification)
 	}
 
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@PostMapping("/byHcPartySecretForeignKeys/delegations")
+	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<IcureStubDto> {
+		return classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { classification -> stubV2Mapper.mapToStub(classification) }
+			.injectReactorContext()
+	}
+
 	@Operation(description = "Shares one or more classifications with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
@@ -149,9 +163,9 @@ class ClassificationController(
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<ClassificationDto>> = flow {
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
 		emitAll(classificationService.bulkShareOrUpdateMetadata(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).copy(updatedEntity = null) })
+		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

@@ -30,7 +30,9 @@ import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
@@ -44,10 +46,10 @@ import org.taktik.icure.utils.interleave
 internal class HealthElementDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<HealthElement>(HealthElement::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(HealthElement::class.java), designDocumentProvider, daoConfig = daoConfig), HealthElementDAO {
+) : GenericDAOImpl<HealthElement>(HealthElement::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), HealthElementDAO {
 
 	@Views(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),

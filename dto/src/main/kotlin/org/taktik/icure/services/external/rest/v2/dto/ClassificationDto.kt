@@ -45,7 +45,7 @@ data class ClassificationDto(
     override val endOfLife: Long? = null,
     override val deletionDate: Long? = null,
 
-    val parentId: String?,
+    val parentId: String? = null,
     @Schema(defaultValue = "\"\"") val label: String = "",
     val templateId: String? = null,
 

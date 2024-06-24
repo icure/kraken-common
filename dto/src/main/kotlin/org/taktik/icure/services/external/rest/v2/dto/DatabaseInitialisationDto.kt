@@ -19,13 +19,14 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DatabaseInitialisationDto(
-    val users: List<UserDto>? = emptyList(),
-    val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
+    @Schema(defaultValue = "emptyList()") val users: List<UserDto>? = emptyList(),
+    @Schema(defaultValue = "emptyList()") val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
     val replication: ReplicationDto? = null,
     val minimumKrakenVersion: String? = null,
 ) : Serializable

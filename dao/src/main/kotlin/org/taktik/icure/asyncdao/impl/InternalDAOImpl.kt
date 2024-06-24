@@ -28,6 +28,7 @@ import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewRowWithDoc
+import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.DesignDocument
@@ -189,9 +190,11 @@ open class InternalDAOImpl<T : StoredDocument>(
 
 		generateds.forEach { generated ->
 			val fromDatabase = client.get(generated.id, DesignDocument::class.java)
-			val (_, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
+			val (merged, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
 			if (changed && updateIfExists) {
-				client.update(generated)
+				fromDatabase?.let {
+					client.update(merged.copy(rev = it.rev))
+				} ?: client.create(merged)
 			}
 		}
 	}

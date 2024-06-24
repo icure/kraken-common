@@ -1,5 +1,4 @@
 import com.google.devtools.ksp.gradle.KspTask
-import com.icure.codegen.task.PostProcessDtoTask
 
 plugins {
     id("com.icure.kotlin-library-conventions")
@@ -42,17 +41,8 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
-val postProcessDtoTask =
-    tasks.register<PostProcessDtoTask>("PostProcessDtoTask") {
-        inputDir = File("${project.rootDir.path.trimEnd('/')}/kraken-common/dto/build/generated/ksp/main/kotlin/com/icure/sdk/model")
-    }
-
-tasks.withType<PostProcessDtoTask> {
-    dependsOn("kspKotlin")
-}
-
 tasks.withType<KspTask> {
-	onlyIf {
-		gradle.startParameter.taskNames.contains(":kraken-common:dto:kspKotlin")
-	}
+    onlyIf {
+        gradle.startParameter.taskNames.contains(":kraken-common:dto:kspKotlin")
+    }
 }

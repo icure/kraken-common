@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 
 /**
  * Result of a bulk share operation.
@@ -16,6 +17,7 @@ data class EntityBulkShareResultDto<T>(
     /**
      * Id of the entity for which the update was requested.
      */
+    @Schema(required = true)
     val entityId: String,
     /**
      * Last known revision of the entity before any update, non-null only if an entity matching the requests could be
@@ -37,6 +39,7 @@ data class EntityBulkShareResultDto<T>(
         /**
          * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
          */
+        @Schema(required = true)
         val code: Int,
         /**
          * If true a new share request with the same content may succeed so the user is encouraged to retry. This could
@@ -48,7 +51,15 @@ data class EntityBulkShareResultDto<T>(
         /**
          * Human-friendly message explaining the reason of the failure.
          */
+        @Schema(required = true)
         val reason: String
+    )
+
+    fun minimal(): EntityBulkShareResultDto<Nothing> = EntityBulkShareResultDto(
+        updatedEntity = null,
+        entityId = entityId,
+        entityRev = entityRev,
+        rejectedRequests = rejectedRequests
     )
 
 }

@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.requests
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyHexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
@@ -28,7 +29,8 @@ data class EntityShareRequestDto(
      * Values generated using the access control secret of the exchange data used for the encryption of the ids and keys
      * to share. Once hashed they are used as secure delegation keys.
      */
-    val accessControlKeys: Set<AccessControlKeyHexStringDto>,
+	@Schema(required = true)
+	val accessControlKeys: Set<AccessControlKeyHexStringDto>,
 	/**
      * Encrypted secret ids to share with the delegate.
      */

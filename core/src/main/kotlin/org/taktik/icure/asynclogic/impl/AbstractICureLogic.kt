@@ -87,16 +87,5 @@ abstract class AbstractICureLogic(
 		return retVal
 	}
 
-    override fun tokenCheck(token: String): String {
-		val nf = DecimalFormat("000000")
-		for (i in 0..1000000) {
-			val formatted = nf.format(i)
-			if (passwordEncoder.matches(formatted, token)) {
-				return formatted
-			}
-		}
-		return ""
-    }
-
 	override fun getProcessInfo(): String = ManagementFactory.getRuntimeMXBean().name
 }

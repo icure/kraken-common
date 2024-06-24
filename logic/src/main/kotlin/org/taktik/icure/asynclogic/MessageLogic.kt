@@ -4,6 +4,7 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
+import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -103,6 +104,14 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
     suspend fun createMessage(message: Message): Message?
 
     suspend fun getMessage(messageId: String): Message?
+
+    /**
+     * Retrieves a batch of [Message]s by their ids.
+     *
+     * @param messageIds the ids of the messages to retrieve.
+     * @return a [Flow] of [Message]s.
+     */
+    fun getMessages(messageIds: List<String>): Flow<Message>
 
     /**
      * Retrieves all the [Message]s for the given set of search keys and a set of [Message.secretForeignKeys].

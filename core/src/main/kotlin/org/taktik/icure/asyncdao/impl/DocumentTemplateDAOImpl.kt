@@ -24,7 +24,9 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DocumentTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
@@ -37,10 +39,10 @@ import java.nio.ByteBuffer
 class DocumentTemplateDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<DocumentTemplate>(DocumentTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(DocumentTemplate::class.java), designDocumentProvider, daoConfig = daoConfig), DocumentTemplateDAO {
+) : GenericDAOImpl<DocumentTemplate>(DocumentTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), DocumentTemplateDAO {
 
 	override fun getAllDocumentTemplates(
 		datastoreInformation: IDatastoreInformation,
@@ -55,7 +57,12 @@ class DocumentTemplateDAOImpl(
 	}
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.owner) emit([doc.owner,doc.guid], null )}")
-	override fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?) = flow {
+	override fun listDocumentTemplatesByUserGuid(
+		datastoreInformation: IDatastoreInformation,
+		userId: String,
+		guid: String?,
+		loadAttachment: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val from = ComplexKey.of(userId, "")
@@ -66,13 +73,18 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
 
 	@View(name = "by_specialty_code_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.specialty) emit([doc.specialty.code,doc.guid], null )}")
-	override fun listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, guid: String?) = flow {
+	override fun listDocumentTemplatesBySpecialtyAndGuid(
+		datastoreInformation: IDatastoreInformation,
+		healthcarePartyId: String?,
+		guid: String?,
+		loadAttachment: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val documentTemplates = if (guid != null) {
@@ -89,13 +101,19 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}
 
 	@View(name = "by_document_type_code_and_user_id_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.documentType ) emit([doc.documentType,doc.owner,doc.guid], null )}")
-	override fun listDocumentsByTypeUserGuid(datastoreInformation: IDatastoreInformation, documentTypeCode: String, userId: String?, guid: String?) = flow {
+	override fun listDocumentsByTypeUserGuid(
+		datastoreInformation: IDatastoreInformation,
+		documentTypeCode: String,
+		userId: String?,
+		guid: String?,
+		loadAttachment: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = if (userId != null && guid != null) {
@@ -115,7 +133,7 @@ class DocumentTemplateDAOImpl(
 		// invoke postLoad()
 		emitAll(
 			documentTemplates.map {
-				postLoad(datastoreInformation, it)
+				if (loadAttachment) postLoad(datastoreInformation, it) else it
 			}
 		)
 	}

@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -37,12 +36,14 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.ConfiguredCacheProvider
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.Code
+import kotlin.math.min
 
 @Repository("codeDAO")
 @Profile("app")
@@ -50,14 +51,34 @@ import org.taktik.icure.entities.base.Code
  class CodeDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(Code::class.java), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
+) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"
 		const val LATEST_VERSION = "latest"
+		private val semVerRegex = "^[0-9]+(\\.[0-9]+)*$".toRegex()
+
+		private val semanticComparator: (a: String, b: String) -> Int = { a, b ->
+			if(semVerRegex.matches(a) && semVerRegex.matches(b)) {
+				val aComponents = a.split(".").map { it.toInt() }
+				val bComponents = b.split(".").map { it.toInt() }
+				var compareResult: Int? = null
+				var i = 0
+				while(compareResult == null && i < min(aComponents.size, bComponents.size)) {
+					compareResult = (aComponents[i].compareTo(bComponents[i])).takeIf { it != 0 }
+					i++
+				}
+				when {
+					compareResult != null -> compareResult
+					aComponents.size > bComponents.size -> 1
+					aComponents.size < bComponents.size -> -1
+					else -> 0
+				}
+			} else a.compareTo(b)
+		}
 
 		/**
 		 * Utility class to store partial results during version filtering.
@@ -79,15 +100,21 @@ import org.taktik.icure.entities.base.Code
 				private set
 
 			fun setLatestRow(row: ViewRowWithDoc<*, *, *>, limit: Int) {
-				if (lastVisited != null && sentElements < limit && // If I have something to emit and I still have space on the page
-					((lastVisited?.doc as Code).code != (row.doc as Code).code || // The codes are sorted, If this one is different for something
-							(lastVisited?.doc as Code).type != (row.doc as Code).type)) {
+				val lastCode = lastVisited?.doc as? Code
+				val newCode = row.doc as Code
+				if (lastCode != null && sentElements < limit && // If I have something to emit and I still have space on the page
+					(lastCode.code != newCode.code || lastCode.type != newCode.type)
+				) { // The codes are sorted, If this one is different for something
 					seenElements++
 					sentElements++
 					toEmit = lastVisited
 					lastVisited = row
-				}
-				else {
+				} else if (lastCode?.version != null  // If the new code is an instance of the same code, but of a previous or equal version
+					&& newCode.version != null && semanticComparator(lastCode.version!!, newCode.version!!) >= 0
+				) {
+					seenElements++
+					toEmit = null
+				} else {
 					lastVisited = row
 					seenElements++
 					toEmit = null
@@ -202,14 +229,14 @@ import org.taktik.icure.entities.base.Code
 			region ?: SMALLEST_CHAR,
 			type ?: SMALLEST_CHAR,
 			code ?: SMALLEST_CHAR,
-			if (version == null || version == "latest") SMALLEST_CHAR else version
+			if (version == null || version == LATEST_VERSION) SMALLEST_CHAR else version
 		)
 
 		val endKey = ComplexKey.of(
 			region ?: ComplexKey.emptyObject(),
 			type ?: ComplexKey.emptyObject(),
 			code ?: ComplexKey.emptyObject(),
-			if (version == null || version == "latest") ComplexKey.emptyObject() else version
+			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version
 		)
 
 		var lastCode: Code? = null
@@ -228,9 +255,18 @@ import org.taktik.icure.entities.base.Code
 						flw.scan(CodeAccumulator()) { acc, code ->
 							lastCode = code // I save the last code I visit
 							acc.code?.let { // If I have a previous code
-								// If I reached a different code, then I have to emit the previous one
-								if (code.type != it.type || code.code != it.code) CodeAccumulator(code, it)
-								else CodeAccumulator(code)//Otherwise, I save the current one
+								when {
+									// If I reached a different code, then I have to emit the previous one
+									code.type != it.type || code.code != it.code -> CodeAccumulator(code, it)
+									// If the code is the same, I return the new one only if the version is a greater one
+									// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
+									// not correctly sorted.
+									code.version != null
+										&& it.version != null
+										&& semanticComparator(code.version!!, it.version!!) > 0 -> CodeAccumulator(code)
+									// Otherwise, I keep the current one
+									else -> acc
+								}
 							} ?: CodeAccumulator(code)
 						}.mapNotNull{
 							it.toEmit
@@ -428,7 +464,7 @@ import org.taktik.icure.entities.base.Code
 		}.also { emitAll(it) }
 	}
 
-	private fun findLatestVersionOfCodesByLabel(
+	private fun  findLatestVersionOfCodesByLabel(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		region: String?,
@@ -520,10 +556,10 @@ import org.taktik.icure.entities.base.Code
 		}
 
 		val validCodes = findKeyByTypeCode(datastoreInformation, client, region, language, type, label, offset).toList().toMap()
-		var lastCode: Code? = null
+		var toEmit: Code? = null
 
 		// Given the type and code pairs of all the codes that match the label, it will use the by_type_code view
-		// to get all the versions of each code, returning always the latest.
+		// to get all the versions of each code, returning always the one that will be the next key for the page, if any.
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
 				createQuery(datastoreInformation, "by_type_code", MAURICE_PARTITION)
@@ -531,13 +567,24 @@ import org.taktik.icure.entities.base.Code
 					.reduce(false)
 					.keys(validCodes.keys)
 			).transform {
-				if(lastCode != null && (lastCode?.type != it.doc.type || lastCode?.code != it.doc.code)) {
-					val code = lastCode!!
+				// The old code is emitted when a new type is found
+				if(toEmit != null && (toEmit?.type != it.doc.type || toEmit?.code != it.doc.code)) {
+					val code = toEmit!!
 					emit(ViewRowWithDoc(code.id, validCodes.getValue(listOf(code.type!!, code.code!!)), code.id, code))
 				}
-				lastCode = it.doc
+				when {
+					toEmit == null -> {
+						toEmit = it.doc
+					}
+					toEmit != null && (toEmit?.type != it.doc.type || toEmit?.code != it.doc.code) -> {
+						toEmit = it.doc
+					}
+					toEmit?.version != null && it.doc.version != null && semanticComparator(it.doc.version!!, toEmit?.version!!) > 0 -> {
+						toEmit = it.doc
+					}
+				}
 			}.onCompletion {
-				lastCode?.also { code ->
+				toEmit?.also { code ->
 					emit(ViewRowWithDoc(code.id, validCodes.getValue(listOf(code.type!!, code.code!!)), code.id, code))
 				}
 			}

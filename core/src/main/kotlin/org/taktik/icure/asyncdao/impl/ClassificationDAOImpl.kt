@@ -26,7 +26,9 @@ import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.utils.distinctByIdIf
@@ -38,10 +40,10 @@ import org.taktik.icure.utils.interleave
 internal class ClassificationDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Classification>(Classification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localOnlyCache(Classification::class.java), designDocumentProvider, daoConfig = daoConfig), ClassificationDAO {
+) : GenericIcureDAOImpl<Classification>(Classification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ClassificationDAO {
 
 	override fun listClassificationByPatient(datastoreInformation: IDatastoreInformation, patientId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

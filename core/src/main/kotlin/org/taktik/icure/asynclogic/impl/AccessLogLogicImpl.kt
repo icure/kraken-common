@@ -99,6 +99,8 @@ class AccessLogLogicImpl(
 
 	override suspend fun getAccessLog(accessLogId: String): AccessLog? = getEntity(accessLogId)
 
+	override fun getAccessLogs(ids: List<String>): Flow<AccessLog> = getEntities(ids)
+
 	override fun listAccessLogsBy(fromEpoch: Long, toEpoch: Long, paginationOffset: PaginationOffset<Long>, descending: Boolean): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO
@@ -135,9 +137,11 @@ class AccessLogLogicImpl(
 				val newPatientIds = accessLogPaginatedList.rows
 					.let { accessLogs ->
 						if (decomposeStartKey(startKey) != null && startDocumentId != null && patientIds.isEmpty()) {
-							accessLogs.dropWhile { it.patientId != startDocumentId }
+							@Suppress("DEPRECATION") accessLogs.dropWhile { it.patientId != startDocumentId }
 						} else accessLogs
-					}.mapNotNull { it.patientId }.filter { !previousPatientIds.contains(it) }.distinct()
+					}.mapNotNull {
+						@Suppress("DEPRECATION") it.patientId
+					}.filter { !previousPatientIds.contains(it) }.distinct()
 
 				val newPatients = patientDAO.getPatients(datastoreInformation, newPatientIds).filter { it.deletionDate == null }.toList()
 				((patientIds + newPatientIds) to (patients + newPatients)).let { (updatedPatientIds, updatedPatients) ->
@@ -155,7 +159,10 @@ class AccessLogLogicImpl(
 					} else if (updatedPatients.size > limit) {
 						updatedPatients.take(limit + 1).let { patientsPlusNextKey ->
 							val lastKeyMillis = accessLogPaginatedList.rows
-								.firstOrNull { it.patientId == patientsPlusNextKey.last().id }?.date?.toEpochMilli()
+								.firstOrNull {
+									@Suppress("DEPRECATION")
+									it.patientId == patientsPlusNextKey.last().id
+								}?.date?.toEpochMilli()
 							AggregatedAccessLogs(
 								accessLogPaginatedList.totalSize,
 								totalCount + count,

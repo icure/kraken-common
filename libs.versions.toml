@@ -84,6 +84,8 @@ ktorClientContentNegotiation = { group = "io.ktor", name = "ktor-client-content-
 ktorClientWebSocket = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.0" }
 kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
+kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 
 [bundles]
 springBootLibs = ["springBootWebflux", "springBootSecurity", "springBootActuator", "springBootCache"]

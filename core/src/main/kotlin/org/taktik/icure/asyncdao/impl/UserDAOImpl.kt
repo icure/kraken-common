@@ -24,7 +24,8 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.cache.EntityCacheFactory
+import org.taktik.icure.cache.ConfiguredCacheProvider
+import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.User
@@ -34,10 +35,10 @@ import org.taktik.icure.entities.User
 open class UserDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	entityCacheFactory: EntityCacheFactory,
+	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
-) : GenericDAOImpl<User>(User::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.localAndDistributedCache(User::class.java), designDocumentProvider, daoConfig = daoConfig), UserDAO {
+) : GenericDAOImpl<User>(User::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), UserDAO {
 
 	@View(name = "by_username", map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}")
 	override fun listUsersByUsername(datastoreInformation: IDatastoreInformation, username: String) = flow {
