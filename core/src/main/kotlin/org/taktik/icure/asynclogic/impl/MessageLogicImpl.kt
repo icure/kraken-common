@@ -8,12 +8,9 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toSet
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -28,7 +25,6 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
-import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.MessageReadStatus
@@ -38,7 +34,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.*
+import java.util.TreeSet
 import javax.security.auth.login.LoginException
 
 open class MessageLogicImpl(
@@ -248,7 +244,6 @@ open class MessageLogicImpl(
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
 	) =  flow {
-		val datastoreInformation = getInstanceAndGroup()
 		val flow = ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
 			?: messageDAO.listConflicts(datastoreInformation)
 				.mapNotNull { messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
