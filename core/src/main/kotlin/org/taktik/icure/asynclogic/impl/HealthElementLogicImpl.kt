@@ -24,6 +24,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -34,11 +35,9 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.*
+import java.util.TreeSet
 
-@Service
-@Profile("app")
-class HealthElementLogicImpl (
+open class HealthElementLogicImpl (
     private val filters: Filters,
     private val healthElementDAO: HealthElementDAO,
     sessionLogic: SessionInformationProvider,
@@ -204,22 +203,38 @@ class HealthElementLogicImpl (
 		}
 	}
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> =
-		flow {
-			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
 
-			emitAll(
-				(ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-					?: healthElementDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-					healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { healthElement ->
-						healthElement.conflicts?.mapNotNull { conflictingRevision -> healthElementDAO.get(datastoreInformation, healthElement.id, conflictingRevision) }
-							?.fold(healthElement) { kept, conflict -> kept.merge(conflict).also { healthElementDAO.purge(datastoreInformation, conflict) } }
-							?.let { mergedHealthElement -> healthElementDAO.save(datastoreInformation, mergedHealthElement) }
-							?.let { savedHealthElement -> IdAndRev(savedHealthElement.id, savedHealthElement.rev) }
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: healthElementDAO.listConflicts(datastoreInformation)
+				.mapNotNull { healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { healthElement ->
+				healthElement.conflicts?.mapNotNull { conflictingRevision ->
+					healthElementDAO.get(
+						datastoreInformation, healthElement.id, conflictingRevision
+					)
+				}?.fold(healthElement to emptyList<HealthElement>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedHealthElement, toBePurged) ->
+					healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
+						toBePurged.forEach {
+							healthElementDAO.purge(datastoreInformation, it)
+						}
 					}
 				}
-			)
-		}
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
+	}
 
 	override fun filter(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthElement>) =
 			flow {

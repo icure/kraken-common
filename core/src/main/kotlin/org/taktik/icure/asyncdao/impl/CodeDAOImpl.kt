@@ -41,7 +41,6 @@ import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
-import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.Code
 import kotlin.math.min
 
@@ -810,12 +809,12 @@ import kotlin.math.min
 		}
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "conflicts").includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<String, Contact>(viewQuery).map { it.doc })
+		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
+		emitAll(client.queryViewIncludeDocsNoValue<String, Code>(viewQuery).map { it.doc })
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {

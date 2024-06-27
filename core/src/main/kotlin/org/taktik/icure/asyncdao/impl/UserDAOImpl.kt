@@ -22,6 +22,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -191,4 +192,13 @@ open class UserDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.getForPagination(userIds, User::class.java))
 	}
+
+	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
+		emitAll(client.queryViewIncludeDocsNoValue<String, User>(viewQuery).map { it.doc })
+	}
+
 }

@@ -144,8 +144,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			log.debug(entityClass.simpleName + ".get: " + id + " [" + ArrayUtils.toString(options) + "]")
 		}
 		return try {
-			cacheChain?.getEntity(datastoreInformation.getFullIdFor(id))
-				?: rev?.let { client.get(id, it, entityClass, *options) }?.also { cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it) }
+			cacheChain?.getEntity(datastoreInformation.getFullIdFor(id))?.takeIf { it.rev == rev }
+				?: rev?.let { client.get(id, it, entityClass, *options) }
 				?: client.get(id, entityClass, *options)?.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
 					postLoad(datastoreInformation, it)

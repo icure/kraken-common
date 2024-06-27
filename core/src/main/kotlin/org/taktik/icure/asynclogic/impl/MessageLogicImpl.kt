@@ -24,9 +24,11 @@ import org.taktik.icure.asynclogic.MessageLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.MessageReadStatus
@@ -39,13 +41,11 @@ import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 import javax.security.auth.login.LoginException
 
-@Service
-@Profile("app")
-class MessageLogicImpl(
+open class MessageLogicImpl(
     private val messageDAO: MessageDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
-    private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     private val filters: Filters,
 	private val userLogic: UserLogic,
     fixer: Fixer
@@ -237,16 +237,40 @@ class MessageLogicImpl(
 
 	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev> = flow {
-		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
 
-		emitAll((ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-			?: messageDAO.listConflicts(datastoreInformation)).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-			messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { message ->
-				message.conflicts?.mapNotNull { conflictingRevision -> messageDAO.get(datastoreInformation, message.id, conflictingRevision) }?.fold(message) { kept, conflict -> kept.merge(conflict).also { messageDAO.purge(datastoreInformation, conflict) } }?.let { mergedMessage -> messageDAO.save(datastoreInformation, mergedMessage) }
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val flow = ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: messageDAO.listConflicts(datastoreInformation)
+				.mapNotNull { messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { message ->
+				message.conflicts?.mapNotNull { conflictingRevision ->
+					messageDAO.get(
+						datastoreInformation, message.id, conflictingRevision
+					)
+				}?.fold(message to emptyList<Message>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedMessage, toBePurged) ->
+					messageDAO.save(datastoreInformation, mergedMessage).also {
+						toBePurged.forEach {
+							messageDAO.purge(datastoreInformation, it)
+						}
+					}
+				}
 			}
-		}.map { IdAndRev(it.id, it.rev) })
+			.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
+
 
 	override fun filterMessages(
 		paginationOffset: PaginationOffset<Nothing>,
@@ -259,7 +283,7 @@ class MessageLogicImpl(
 		} else {
 			ids
 		}
-		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more contacts for the start key of the next page
+		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more messages for the start key of the next page
 
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
