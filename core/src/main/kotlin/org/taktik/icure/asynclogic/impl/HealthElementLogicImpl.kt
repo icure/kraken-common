@@ -228,7 +228,9 @@ open class HealthElementLogicImpl (
 				}?.let { (mergedHealthElement, toBePurged) ->
 					healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
 						toBePurged.forEach {
-							healthElementDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedHealthElement.rev) {
+								healthElementDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

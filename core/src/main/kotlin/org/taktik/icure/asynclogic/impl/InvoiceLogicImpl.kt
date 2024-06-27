@@ -403,7 +403,9 @@ open class InvoiceLogicImpl (
 				}?.let { (mergedInvoice, toBePurged) ->
 					invoiceDAO.save(datastoreInformation, mergedInvoice).also {
 						toBePurged.forEach {
-							invoiceDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedInvoice.rev) {
+								invoiceDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

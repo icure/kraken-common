@@ -513,7 +513,9 @@ open class ContactLogicImpl(
 				}?.let { (mergedContact, toBePurged) ->
 					contactDAO.save(datastoreInformation, mergedContact).also {
 						toBePurged.forEach {
-							contactDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedContact.rev) {
+								contactDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

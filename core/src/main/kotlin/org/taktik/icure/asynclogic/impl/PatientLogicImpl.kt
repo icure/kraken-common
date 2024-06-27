@@ -590,7 +590,9 @@ open class PatientLogicImpl(
 				}?.let { (mergedPatient, toBePurged) ->
 					patientDAO.save(datastoreInformation, mergedPatient).also {
 						toBePurged.forEach {
-							patientDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedPatient.rev) {
+								patientDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

@@ -176,7 +176,9 @@ open class FormLogicImpl(
 				}?.let { (mergedForm, toBePurged) ->
 					formDAO.save(datastoreInformation, mergedForm).also {
 						toBePurged.forEach {
-							formDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedForm.rev) {
+								formDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

@@ -296,7 +296,9 @@ open class UserLogicImpl (
 				}?.let { (mergedUser, toBePurged) ->
 					userDAO.save(datastoreInformation, mergedUser).also {
 						toBePurged.forEach {
-							userDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedUser.rev) {
+								userDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

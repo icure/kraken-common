@@ -263,7 +263,9 @@ open class MessageLogicImpl(
 				}?.let { (mergedMessage, toBePurged) ->
 					messageDAO.save(datastoreInformation, mergedMessage).also {
 						toBePurged.forEach {
-							messageDAO.purge(datastoreInformation, it)
+							if (it.rev != null && it.rev != mergedMessage.rev) {
+								messageDAO.purge(datastoreInformation, it)
+							}
 						}
 					}
 				}

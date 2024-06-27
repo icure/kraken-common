@@ -850,17 +850,19 @@ open class CodeLogicImpl(
             ?: codeDAO.listConflicts(datastoreInformation)
                 .mapNotNull { codeDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
         (limit?.let { flow.take(it) } ?: flow)
-            .mapNotNull { contact ->
-                contact.conflicts?.mapNotNull { conflictingRevision ->
+            .mapNotNull { code ->
+                code.conflicts?.mapNotNull { conflictingRevision ->
                     codeDAO.get(
-                        datastoreInformation, contact.id, conflictingRevision,
+                        datastoreInformation, code.id, conflictingRevision,
                     )
-                }?.fold(contact to emptyList<Code>()) { (kept, toBePurged), conflict ->
+                }?.fold(code to emptyList<Code>()) { (kept, toBePurged), conflict ->
                     kept.merge(conflict) to toBePurged + conflict
-                }?.let { (mergedContact, toBePurged) ->
-                    codeDAO.save(datastoreInformation, mergedContact).also {
+                }?.let { (mergedCode, toBePurged) ->
+                    codeDAO.save(datastoreInformation, mergedCode).also {
                         toBePurged.forEach {
-                            codeDAO.purge(datastoreInformation, it)
+                            if (it.rev != null && it.rev != mergedCode.rev) {
+                                codeDAO.purge(datastoreInformation, it)
+                            }
                         }
                     }
                 }
