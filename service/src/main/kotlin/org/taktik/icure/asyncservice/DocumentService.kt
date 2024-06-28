@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
@@ -17,7 +18,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
-interface DocumentService : EntityWithSecureDelegationsService<Document> {
+interface DocumentService : EntityWithSecureDelegationsService<Document>, EntityWithConflictResolutionService {
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws
@@ -122,7 +123,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document> {
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: List<String>): Flow<Document>
 
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	suspend fun getDocumentsByExternalUuid(documentId: String): List<Document>
 
 	/**

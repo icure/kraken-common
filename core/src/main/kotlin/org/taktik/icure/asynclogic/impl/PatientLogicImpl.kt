@@ -4,12 +4,23 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
@@ -18,12 +29,13 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
@@ -45,21 +57,22 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlowOfIds
-import org.taktik.icure.utils.*
+import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.aggregateResults
+import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
+import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 import java.time.Instant
-import java.util.*
+import java.util.TreeSet
 
-@Service
-@Profile("app")
-class PatientLogicImpl(
-    private val sessionLogic: SessionInformationProvider,
-    private val patientDAO: PatientDAO,
-    private val userLogic: UserLogic,
-    private val filters: Filters,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-    fixer: Fixer
+open class PatientLogicImpl(
+	private val sessionLogic: SessionInformationProvider,
+	protected val patientDAO: PatientDAO,
+	private val userLogic: UserLogic,
+	private val filters: Filters,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), PatientLogic {
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
@@ -552,18 +565,39 @@ class PatientLogicImpl(
 		return patientDAO.getPatientByExternalId(datastoreInformation, externalId)
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
-		val datastoreInformation = getInstanceAndGroup()
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
 
-		emitAll(
-			patientDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-				patientDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { patient ->
-					patient.conflicts?.mapNotNull { conflictingRevision -> patientDAO.get(datastoreInformation, patient.id, conflictingRevision) }
-						?.fold(patient) { kept, conflict -> kept.merge(conflict).also { patientDAO.purge(datastoreInformation, conflict) } }
-						?.let { mergedPatient -> patientDAO.save(datastoreInformation, mergedPatient) }
-				}?.let { patient -> IdAndRev(patient.id, patient.rev) }
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { patientDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: patientDAO.listConflicts(datastoreInformation)
+				.mapNotNull { patientDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { patient ->
+				patient.conflicts?.mapNotNull { conflictingRevision ->
+					patientDAO.get(
+						datastoreInformation, patient.id, conflictingRevision
+					)
+				}?.fold(patient to emptyList<Patient>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedPatient, toBePurged) ->
+					patientDAO.save(datastoreInformation, mergedPatient).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedPatient.rev) {
+								patientDAO.purge(datastoreInformation, it)
+							}
+						}
+					}
+				}
 			}
-		)
+			.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	@Deprecated("A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")

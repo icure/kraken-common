@@ -35,4 +35,5 @@ interface UserDAO : GenericDAO<User> {
 	fun getUsersOnDb(datastoreInformation: IDatastoreInformation): Flow<User>
 	fun findUsersByIds(datastoreInformation: IDatastoreInformation, userIds: Flow<String>): Flow<ViewQueryResultEvent>
 	fun findUsersByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
+	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<User>
 }

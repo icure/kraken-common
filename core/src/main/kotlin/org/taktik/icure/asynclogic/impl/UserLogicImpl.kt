@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.UserLogic
@@ -39,7 +41,7 @@ import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 open class UserLogicImpl (
 	datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -267,6 +269,43 @@ open class UserLogicImpl (
 			?: getUserByLogin(genericIdentifier)
 			?: getUserByEmail(genericIdentifier)
 			?: getUserByPhone(genericIdentifier)
+
+
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
+
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { userDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: userDAO.listConflicts(datastoreInformation)
+				.mapNotNull { userDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { user ->
+				user.conflicts?.mapNotNull { conflictingRevision ->
+					userDAO.get(
+						datastoreInformation, user.id, conflictingRevision
+					)
+				}?.fold(user to emptyList<User>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedUser, toBePurged) ->
+					userDAO.save(datastoreInformation, mergedUser).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedUser.rev) {
+								userDAO.purge(datastoreInformation, it)
+							}
+						}
+					}
+				}
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
+	}
+
 
 	/**
 	 * Creates a new user, abstracting all the differences between the different implementations of the user logic.

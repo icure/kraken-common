@@ -6,6 +6,8 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
@@ -13,7 +15,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.pagination.PaginationElement
 import java.io.InputStream
 
-interface CodeService {
+interface CodeService : EntityWithConflictResolutionService {
 	fun getTagTypeCandidates(): List<String>
 	fun getRegions(): List<String>
 	suspend fun get(id: String): Code?

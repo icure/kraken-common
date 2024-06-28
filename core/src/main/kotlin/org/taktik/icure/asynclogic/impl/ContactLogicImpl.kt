@@ -5,6 +5,7 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
@@ -18,8 +19,6 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -30,6 +29,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -46,11 +46,9 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.*
+import java.util.TreeSet
 
-@Service
-@Profile("app")
-class ContactLogicImpl(
+open class ContactLogicImpl(
     private val contactDAO: ContactDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
@@ -490,22 +488,39 @@ class ContactLogicImpl(
 		).forEach { emit(it) }
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
-		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
-		emitAll(contactDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }
-			.mapNotNull {
-				contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { contact ->
-					contact.conflicts?.mapNotNull { conflictingRevision ->
-						contactDAO.get(
-							datastoreInformation, contact.id, conflictingRevision
-						)
-					}?.fold(contact) { kept, conflict ->
-						kept.merge(conflict).also {
-							contactDAO.purge(datastoreInformation, conflict)
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
+
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { contactDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: contactDAO.listConflicts(datastoreInformation)
+				.mapNotNull { contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { contact ->
+				contact.conflicts?.mapNotNull { conflictingRevision ->
+					contactDAO.get(
+						datastoreInformation, contact.id, conflictingRevision
+					)
+				}?.fold(contact to emptyList<Contact>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedContact, toBePurged) ->
+					contactDAO.save(datastoreInformation, mergedContact).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedContact.rev) {
+								contactDAO.purge(datastoreInformation, it)
+							}
 						}
-					}?.let { mergedContact -> contactDAO.save(datastoreInformation, mergedContact) }
+					}
 				}
-			}.map { IdAndRev(it.id, it.rev) })
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun listContactsByOpeningDate(

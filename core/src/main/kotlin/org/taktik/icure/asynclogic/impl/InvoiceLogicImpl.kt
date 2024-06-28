@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic.impl
 import com.google.common.base.Strings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
@@ -15,8 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -30,6 +29,7 @@ import org.taktik.icure.asynclogic.InvoiceLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -54,13 +54,11 @@ import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.LinkedList
 import kotlin.math.abs
 import kotlin.math.max
 
-@Service
-@Profile("app")
-class InvoiceLogicImpl (
+open class InvoiceLogicImpl (
 	private val filters: Filters,
 	private val userLogic: UserLogic,
 	private val insuranceLogic: InsuranceLogic,
@@ -380,19 +378,41 @@ class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoicesHcpsByStatus(datastoreInformation, status, from, to, hcpIds))
 		}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> =
-		flow {
-			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
-			emitAll(
-				invoiceDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-					invoiceDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { invoice ->
-						invoice.conflicts?.mapNotNull { conflictingRevision -> invoiceDAO.get(datastoreInformation, invoice.id, conflictingRevision) }
-							?.fold(invoice) { kept, conflict -> kept.merge(conflict).also { invoiceDAO.purge(datastoreInformation, conflict) } }
-							?.let { mergedInvoice -> invoiceDAO.save(datastoreInformation, mergedInvoice) }
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
+
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { invoiceDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: invoiceDAO.listConflicts(datastoreInformation)
+				.mapNotNull { invoiceDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { invoice ->
+				invoice.conflicts?.mapNotNull { conflictingRevision ->
+					invoiceDAO.get(
+						datastoreInformation, invoice.id, conflictingRevision
+					)
+				}?.fold(invoice to emptyList<Invoice>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedInvoice, toBePurged) ->
+					invoiceDAO.save(datastoreInformation, mergedInvoice).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedInvoice.rev) {
+								invoiceDAO.purge(datastoreInformation, it)
+							}
+						}
 					}
-				}.map { IdAndRev(it.id, it.rev) }
-			)
-		}
+				}
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
+	}
+
 
 	override suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence> {
 		val datastoreInformation = getInstanceAndGroup()

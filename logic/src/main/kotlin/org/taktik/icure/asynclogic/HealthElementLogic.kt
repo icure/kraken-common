@@ -64,7 +64,7 @@ interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWit
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
 
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	fun filter(
 		paginationOffset: PaginationOffset<Nothing>,

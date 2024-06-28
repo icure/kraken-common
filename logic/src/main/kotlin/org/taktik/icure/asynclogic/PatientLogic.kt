@@ -146,7 +146,7 @@ interface PatientLogic: EntityPersister<Patient, String>, EntityWithSecureDelega
 	suspend fun modifyPatientReferral(patient: Patient, referralId: String?, start: Instant?, end: Instant?): Patient?
 
 	suspend fun getByExternalId(externalId: String): Patient?
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	@Deprecated(message = "A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	suspend fun getHcPartyKeysForDelegate(healthcarePartyId: String): Map<String, String>

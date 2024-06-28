@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -18,7 +19,8 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface HealthElementService : EntityWithSecureDelegationsService<HealthElement> {
+interface HealthElementService : EntityWithSecureDelegationsService<HealthElement>,
+	EntityWithConflictResolutionService {
 	suspend fun createHealthElement(healthElement: HealthElement): HealthElement?
 
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
@@ -89,7 +91,7 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
 
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	fun filter(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthElement>

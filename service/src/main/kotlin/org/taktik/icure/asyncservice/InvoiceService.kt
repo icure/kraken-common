@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.constants.Permissions
 import org.taktik.icure.db.PaginationOffset
@@ -20,7 +21,7 @@ import org.taktik.icure.entities.embed.InvoicingCode
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.pagination.PaginationElement
 
-interface InvoiceService : EntityWithSecureDelegationsService<Invoice> {
+interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWithConflictResolutionService {
 	suspend fun createInvoice(invoice: Invoice): Invoice?
 	suspend fun deleteInvoice(invoiceId: String): DocIdentifier?
 
@@ -98,7 +99,7 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice> {
 	suspend fun addDelegations(invoiceId: String, delegations: List<Delegation>): Invoice?
 	fun removeCodes(userId: String, secretPatientKeys: Set<String>, serviceId: String, inputTarificationIds: List<String>): Flow<Invoice>
 	fun listInvoicesHcpsByStatus(status: String, from: Long?, to: Long?, hcpIds: List<String>): Flow<Invoice>
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	fun listInvoicesByHcPartyAndGroupId(hcPartyId: String, inputGroupId: String): Flow<Invoice>
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<org.taktik.icure.entities.data.LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>

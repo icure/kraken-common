@@ -9,6 +9,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -17,7 +18,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface MessageService : EntityWithSecureDelegationsService<Message> {
+interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWithConflictResolutionService {
 
     /**
      * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],
@@ -190,7 +191,7 @@ interface MessageService : EntityWithSecureDelegationsService<Message> {
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
     fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
-    fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+    override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,
         filter: FilterChain<Message>

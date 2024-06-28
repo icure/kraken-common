@@ -7,6 +7,7 @@ package org.taktik.icure.asynclogic
 import java.io.InputStream
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
@@ -151,4 +152,6 @@ interface CodeLogic : EntityPersister<Code, String> {
 	 * @return a [Code] that matches the criteria or null.
 	 */
 	suspend fun getCodeByLabel(region: String?, label: String, type: String, languages: List<String> = listOf("fr", "nl")): Code?
+
+	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 }

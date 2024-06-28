@@ -93,7 +93,7 @@ interface InvoiceLogic : EntityPersister<Invoice, String>, EntityWithSecureDeleg
 	fun removeCodes(userId: String, secretPatientKeys: Set<String>, serviceId: String, inputTarificationIds: List<String>): Flow<Invoice>
 	fun listInvoicesHcpsByStatus(status: String, from: Long?, to: Long?, hcpIds: List<String>): Flow<Invoice>
 
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>

@@ -159,7 +159,7 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
     fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
-    fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+    fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,
         filter: FilterChain<Message>

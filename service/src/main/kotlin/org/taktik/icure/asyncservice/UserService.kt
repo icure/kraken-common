@@ -6,13 +6,14 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserService {
+interface UserService : EntityWithConflictResolutionService {
 	// region create
 
 	suspend fun createUser(user: User): User?

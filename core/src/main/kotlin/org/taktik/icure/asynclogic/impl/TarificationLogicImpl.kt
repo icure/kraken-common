@@ -25,8 +25,6 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
 class TarificationLogicImpl(
 	private val tarificationDAO: TarificationDAO,
 	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,

@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -21,7 +22,7 @@ import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface ContactService: EntityWithSecureDelegationsService<Contact> {
+interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWithConflictResolutionService {
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
 	fun findContactsByIds(selectedIds: Collection<String>): Flow<ViewQueryResultEvent>
@@ -120,7 +121,7 @@ interface ContactService: EntityWithSecureDelegationsService<Contact> {
 
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
 
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 
 	/**
 	 * Retrieves all the [Contact]s that a healthcare party can access and which [Contact.openingDate] is between the

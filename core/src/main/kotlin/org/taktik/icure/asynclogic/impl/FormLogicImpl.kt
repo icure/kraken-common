@@ -4,6 +4,7 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
@@ -13,8 +14,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -24,18 +23,17 @@ import org.taktik.icure.asynclogic.FormLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class FormLogicImpl(
+open class FormLogicImpl(
     private val formDAO: FormDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     sessionLogic: SessionInformationProvider,
-    private val datastoreInstanceProvider: DatastoreInstanceProvider,
+    datastoreInstanceProvider: DatastoreInstanceProvider,
     fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), FormLogic {
 
@@ -153,20 +151,40 @@ class FormLogicImpl(
 		return formDAO
 	}
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> =
-		flow {
-			val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
 
-			emitAll(
-				formDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-					formDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { form ->
-						form.conflicts?.mapNotNull { conflictingRevision -> formDAO.get(datastoreInformation, form.id, conflictingRevision) }
-							?.fold(form) { kept, conflict -> kept.merge(conflict).also { formDAO.purge(datastoreInformation, conflict) } }
-							?.let { mergedForm -> formDAO.save(datastoreInformation, mergedForm) }
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { formDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: formDAO.listConflicts(datastoreInformation)
+				.mapNotNull { formDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { form ->
+				form.conflicts?.mapNotNull { conflictingRevision ->
+					formDAO.get(
+						datastoreInformation, form.id, conflictingRevision
+					)
+				}?.fold(form to emptyList<Form>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedForm, toBePurged) ->
+					formDAO.save(datastoreInformation, mergedForm).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedForm.rev) {
+								formDAO.purge(datastoreInformation, it)
+							}
+						}
 					}
-				}.map { IdAndRev(it.id, it.rev) }
-			)
-		}
+				}
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
+	}
 
 	companion object {
 		private val logger = LoggerFactory.getLogger(FormLogicImpl::class.java)

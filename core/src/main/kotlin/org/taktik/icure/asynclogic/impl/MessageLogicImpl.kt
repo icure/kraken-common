@@ -4,15 +4,13 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toSet
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -23,6 +21,7 @@ import org.taktik.icure.asynclogic.MessageLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -35,16 +34,14 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.*
+import java.util.TreeSet
 import javax.security.auth.login.LoginException
 
-@Service
-@Profile("app")
-class MessageLogicImpl(
+open class MessageLogicImpl(
     private val messageDAO: MessageDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
-    private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     private val filters: Filters,
 	private val userLogic: UserLogic,
     fixer: Fixer
@@ -236,15 +233,41 @@ class MessageLogicImpl(
 
 	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
 
-	override fun solveConflicts(limit: Int?): Flow<IdAndRev> = flow {
-		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
 
-		emitAll(messageDAO.listConflicts(datastoreInformation).let { if (limit != null) it.take(limit) else it }.mapNotNull {
-			messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS)?.let { message ->
-				message.conflicts?.mapNotNull { conflictingRevision -> messageDAO.get(datastoreInformation, message.id, conflictingRevision) }?.fold(message) { kept, conflict -> kept.merge(conflict).also { messageDAO.purge(datastoreInformation, conflict) } }?.let { mergedMessage -> messageDAO.save(datastoreInformation, mergedMessage) }
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: messageDAO.listConflicts(datastoreInformation)
+				.mapNotNull { messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { message ->
+				message.conflicts?.mapNotNull { conflictingRevision ->
+					messageDAO.get(
+						datastoreInformation, message.id, conflictingRevision
+					)
+				}?.fold(message to emptyList<Message>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedMessage, toBePurged) ->
+					messageDAO.save(datastoreInformation, mergedMessage).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedMessage.rev) {
+								messageDAO.purge(datastoreInformation, it)
+							}
+						}
+					}
+				}
 			}
-		}.map { IdAndRev(it.id, it.rev) })
+			.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
+
 
 	override fun filterMessages(
 		paginationOffset: PaginationOffset<Nothing>,
@@ -257,7 +280,7 @@ class MessageLogicImpl(
 		} else {
 			ids
 		}
-		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more contacts for the start key of the next page
+		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more messages for the start key of the next page
 
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(

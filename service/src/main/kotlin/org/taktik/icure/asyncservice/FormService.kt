@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface FormService : EntityWithSecureDelegationsService<Form> {
+interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConflictResolutionService {
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 
@@ -82,7 +83,7 @@ interface FormService : EntityWithSecureDelegationsService<Form> {
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?
-	fun solveConflicts(limit: Int? = null): Flow<IdAndRev>
+	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	suspend fun getAllByLogicalUuid(formUuid: String): List<Form>
 	suspend fun getAllByUniqueId(lid: String): List<Form>
 

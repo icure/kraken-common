@@ -132,4 +132,5 @@ interface CodeDAO : GenericDAO<Code> {
 	fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, region: String?, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 	fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?): Flow<String>
 	fun getCodesByIdsForPagination(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<ViewQueryResultEvent>
+    fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Code>
 }
