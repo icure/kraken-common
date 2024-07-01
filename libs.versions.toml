@@ -44,7 +44,7 @@ jakartaServlet = { group = "jakarta.servlet", name = "jakarta.servlet-api", vers
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 hibernateValidatorAnnotationProcessor = { group = "org.hibernate.validator", name = "hibernate-validator-annotation-processor", version.ref = "hibernateValidator" }
 hibernateValidatorCdi = { group = "org.hibernate.validator", name = "hibernate-validator-cdi", version.ref = "hibernateValidator" }
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.43-feature.add-external.gf9c98ab3ac" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.45-gf2180b2b38" }
 asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.14-g05fa58f2eb" }
 mapperProcessor = { group = "io.icure", name = "mapper-processor", version = "0.1.1-32d45af2a6" }
 guava = { group = "com.google.guava", name = "guava", version = "31.1-jre" }

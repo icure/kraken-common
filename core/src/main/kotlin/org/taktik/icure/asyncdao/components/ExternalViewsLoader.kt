@@ -23,13 +23,15 @@ import java.time.Duration
 import java.util.*
 
 @Component
-@ConditionalOnProperty(prefix = "icure.couchdb.external", name = ["publicSigningKey"], matchIfMissing = false)
+@ConditionalOnProperty(prefix = "icure.couchdb.external.loading", name = ["publicSigningKey"], matchIfMissing = false)
 class ExternalViewsLoader(
 	private val objectMapper: ObjectMapper,
-	@Value("\${icure.couchdb.external.publicSigningKey}") rawPublicSigningKey: String
+	@Value("\${icure.couchdb.external.loading.publicSigningKey}") rawPublicSigningKey: String
 ) {
 
 	companion object {
+		private const val ONE_MEGABYTE = 1_048_576L
+
 		data class SignedContent(
 			val jsonContent: JsonNode,
 			val signature: String
@@ -54,7 +56,7 @@ class ExternalViewsLoader(
 		}
 	}
 
-	private fun gitHubRawUrlForResource(baseUrl: String, resourcePath: String): String = baseUrl
+	private fun preprocessResourcePath(baseUrl: String, resourcePath: String): String = baseUrl
 		.replace("https://github.com/", "https://raw.githubusercontent.com/")
 		.trimEnd('/') + "/" + resourcePath.trim('/')
 
@@ -69,10 +71,11 @@ class ExternalViewsLoader(
 	}
 
 	private suspend inline fun <reified T> downloadAndVerifyResource(baseUrl: String, resourcePath: String): T {
-		val resourceUrl = gitHubRawUrlForResource(baseUrl, resourcePath)
+		val resourceUrl = preprocessResourcePath(baseUrl, resourcePath)
 		val signedContent = httpClient.get(resourceUrl).also {
-			if (!it.status.isSuccess()) {
-				throw IllegalStateException("Resource not found: $resourceUrl")
+			when {
+				!it.status.isSuccess() -> throw IllegalStateException("Resource not found: $resourceUrl")
+				it.contentLength().let { cl -> cl == null || cl > ONE_MEGABYTE }-> throw IllegalStateException("Content length is missing or exceeding 1MB")
 			}
 		}.body<SignedContent>()
 		check(verifySignature(signedContent)) {
