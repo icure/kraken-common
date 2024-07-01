@@ -53,6 +53,7 @@ import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.PersistenceException
@@ -63,11 +64,12 @@ import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
+import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
 import java.util.concurrent.CancellationException
 
 abstract class GenericDAOImpl<T : StoredDocument>(
-	protected val entityClass: Class<T>,
+	override val entityClass: Class<T>,
 	protected val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<T>? = null,
@@ -478,6 +480,22 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)
 	}
 
+	override suspend fun forceInitExternalDesignDocument(
+		datastoreInformation: IDatastoreInformation,
+		partitionsWithRepo: Map<String, String>,
+		updateIfExists: Boolean,
+		dryRun: Boolean,
+		ignoreIfUnchanged: Boolean
+	): List<DesignDocument> {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val generatedDocs = designDocumentProvider.generateExternalDesignDocuments(
+			entityClass = this.entityClass,
+			partitionsWithRepo = partitionsWithRepo,
+			client = client,
+			ignoreIfUnchanged = ignoreIfUnchanged)
+		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
+	}
+
 	override suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
 		updateIfExists: Boolean,
@@ -494,25 +512,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		ignoreIfUnchanged: Boolean
 	): List<DesignDocument> {
 		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client, partition, ignoreIfUnchanged)
-		return generatedDocs.mapNotNull { generated ->
-			suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
-				val fromDatabase = client.get(generated.id, DesignDocument::class.java)
-				val (merged, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
-				if (changed && (updateIfExists || fromDatabase == null)) {
-					if (!dryRun) {
-						try {
-							fromDatabase?.let {
-								client.update(merged.copy(rev = it.rev))
-							} ?: client.create(merged)
-						} catch (e: CouchDbConflictException) {
-							log.error("Cannot create DD: ${merged.id} with revision ${merged.rev}")
-							throw e
-						}
-					} else {
-						merged
+		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
+	}
+
+	private suspend fun saveDesignDocs(
+		generatedDocs: Set<DesignDocument>,
+		client: Client,
+		updateIfExists: Boolean,
+		dryRun: Boolean
+	) = generatedDocs.mapNotNull { generated ->
+		suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
+			val fromDatabase = client.get(generated.id, DesignDocument::class.java)
+			val (merged, changed) = fromDatabase?.mergeWith(generated, true) ?: (generated to true)
+			if (changed && (updateIfExists || fromDatabase == null)) {
+				if (!dryRun) {
+					try {
+						fromDatabase?.let {
+							client.update(merged.copy(rev = it.rev))
+						} ?: client.create(merged)
+					} catch (e: CouchDbConflictException) {
+						log.error("Cannot create DD: ${merged.id} with revision ${merged.rev}")
+						throw e
 					}
-				} else null
-			}
+				} else {
+					merged
+				}
+			} else null
 		}
 	}
 
@@ -593,6 +618,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			.forEach { emit(it.first) }
 	}.distinctUntilChanged() // This works because ids will be sorted by date first
 
+	override fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		partitionName: String,
+		startKey: ExternalFilterKey<*>?,
+		endKey: ExternalFilterKey<*>?
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val query = createQuery(
+			datastoreInformation = datastoreInformation,
+			viewName = viewName,
+			secondaryPartition = partitionName
+		).includeDocs(false).let {
+			if(startKey != null) it.startKey(startKey.key)
+			else it
+		}.let {
+			if(endKey != null) it.endKey(endKey.key)
+			else it
+		}
+
+		emitAll(client.queryView<Any?, Any?, Any?>(query)
+			.filterIsInstance<ViewRowNoDoc<*, *>>()
+			.map { it.id }
+		)
+	}
 
 	protected suspend fun warmup(datastoreInformation: IDatastoreInformation, view: Pair<String, String?>) {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -613,6 +664,20 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			Partitions.Main -> getEntityIds(datastoreInformation, 1).firstOrNull()
 			else -> {}
 		}
+	}
+
+	override suspend fun warmupExternalDesignDocs(
+		datastoreInformation: IDatastoreInformation,
+		designDocuments: List<DesignDocument>
+	) = designDocuments.mapNotNull {
+		if(it.id.contains("-")) {
+			val (dd, partition) = it.id.split("-", limit = 2)
+			if(dd.contains(entityClass.simpleName) && it.views.isNotEmpty()) {
+				it.views.keys.first() to partition
+			} else null
+		} else null
+	}.forEach {
+		warmup(datastoreInformation, it)
 	}
 
 	protected suspend fun createQuery(

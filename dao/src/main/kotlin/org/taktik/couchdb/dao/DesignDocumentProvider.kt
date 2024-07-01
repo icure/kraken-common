@@ -53,4 +53,21 @@ interface DesignDocumentProvider {
      * @return a [Set] of generated [DesignDocument]s.
      */
     suspend fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any, client: Client? = null, partition: Partitions = Partitions.All, ignoreIfUnchanged: Boolean = false): Set<DesignDocument>
+
+    /**
+     * Generates the design documents from a given metadata source.
+     *
+     * @param entityClass the class of entities that are indexed by the views of the design document.
+     * @param partitionsWithRepo a [Map] that associates a partition name to the url of the repository where the view
+     * for that partition are located.
+     * @param client a [Client] for when is necessary to compare the newly created design documents to the existing one.
+     * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
+     * @return a [Set] of generated [DesignDocument]s.
+     */
+    suspend fun generateExternalDesignDocuments(
+        entityClass: Class<*>,
+        partitionsWithRepo: Map<String, String>,
+        client: Client? = null,
+        ignoreIfUnchanged: Boolean = false
+    ): Set<DesignDocument>
 }

@@ -1,6 +1,5 @@
 package org.taktik.icure.entities
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.asCryptoActorStub
 import java.io.Serializable

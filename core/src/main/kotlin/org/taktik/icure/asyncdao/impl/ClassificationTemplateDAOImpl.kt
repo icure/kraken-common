@@ -44,11 +44,4 @@ internal class ClassificationTemplateDAOImpl(
 		val viewQuery = pagedViewQuery(datastoreInformation, "all", null, "\ufff0", paginationOffset, false)
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, ClassificationTemplate::class.java))
 	}
-
-	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
-		when(partition) {
-			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient" to DATA_OWNER_PARTITION)
-			else -> super.warmupPartition(datastoreInformation, partition)
-		}
-	}
 }

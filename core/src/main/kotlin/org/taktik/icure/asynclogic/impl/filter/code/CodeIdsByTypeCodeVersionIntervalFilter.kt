@@ -1,6 +1,5 @@
 package org.taktik.icure.asynclogic.impl.filter.code
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
@@ -11,7 +10,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.code.CodeIdsByTypeCodeVersionIntervalFilter
 import org.taktik.icure.entities.base.Code
 
-@ExperimentalCoroutinesApi
 @Service
 @Profile("app")
 class CodeIdsByTypeCodeVersionIntervalFilter(private val codeLogic: CodeLogic) :

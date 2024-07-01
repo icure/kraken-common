@@ -68,6 +68,7 @@ dependencies {
     implementation(coreLibs.libRecur)
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64")
     implementation(coreLibs.googleApiClient)
+    implementation(coreLibs.bundles.ktorClientLibs)
 
     testImplementation(coreLibs.jupiter)
     testImplementation(coreLibs.mockk)
@@ -82,7 +83,6 @@ dependencies {
     testImplementation(coreLibs.bundles.kotestLibs)
     testImplementation(coreLibs.bundles.hibernateValidatorLibs)
     testImplementation(coreLibs.bundles.ktorServerLibs)
-    testImplementation(coreLibs.bundles.ktorClientLibs)
 }
 
 tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
