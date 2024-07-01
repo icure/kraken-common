@@ -143,15 +143,7 @@ open class ContactLogicImpl(
 	override suspend fun createContact(contact: Contact) = fix(contact) { fixedContact ->
 		try { // Fetching the hcParty
 			if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-			val dataOwnerId = sessionLogic.getCurrentDataOwnerId()
-
-			createEntities(
-				setOf(
-					if (fixedContact.healthcarePartyId == null) fixedContact.copy(
-						healthcarePartyId = dataOwnerId,
-					) else fixedContact
-				)
-			).firstOrNull()
+			createEntities(setOf(fixedContact)).firstOrNull()
 		} catch (e: BulkUpdateConflictException) {
 			throw UpdateConflictException("Contact already exists")
 		} catch (e: Exception) {
