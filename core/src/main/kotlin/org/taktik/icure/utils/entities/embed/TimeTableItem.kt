@@ -13,7 +13,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.TimeZone
 
 fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration) = object : Iterator<Long> {
 	val constrainedStartDateTime = startDateTime.coerceAtLeast(notBeforeInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
@@ -23,7 +23,6 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 
 	val startLdt = FuzzyValues.getDateTime(constrainedStartDateTime - (constrainedStartDateTime % 100))!!
 	val endLdt = FuzzyValues.getDateTime(constrainedEndDateTime - (constrainedEndDateTime % 100))!!
-	val coercedEndLdt = (startLdt + Duration.ofDays(120)).coerceAtMost(endLdt)
 
 	val daysIterator = object : Iterator<LocalDateTime> {
 		var day = startLdt.withHour(0).withMinute(0).withSecond(0).withNano(0)
@@ -39,13 +38,13 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 			}
 		}
 
-		private fun getNextValidLegacyDay() = generateSequence(day) { (it + Duration.ofDays(1)).takeIf { d -> d <= coercedEndLdt } }.firstOrNull { d ->
+		private fun getNextValidLegacyDay() = generateSequence(day) { (it + Duration.ofDays(1)).takeIf { d -> d <= endLdt } }.firstOrNull { d ->
 			(days.any { dd ->
 				dd.toInt() == d.dayOfWeek.value
 			} && //The day of week of the timestamp is listed in the days property
 				recurrenceTypes.any { r -> //The day of the week of the slot matches a weekly recurrence condition
 					r == "EVERY_WEEK" || listOf("ONE" to 1, "TWO" to 2, "THREE" to 3, "FOUR" to 4, "FIVE" to 5).any { (rt, i) ->
-						(r == rt && isXDayweekOfMonthInRange(d.dayOfWeek, i.toLong(), startLdt, coercedEndLdt))
+						(r == rt && isXDayweekOfMonthInRange(d.dayOfWeek, i.toLong(), startLdt, endLdt))
 					}
 				})
 		}
@@ -54,7 +53,7 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 			return rrit?.let {
 				try {
 					it.peekMillis().let { n ->
-						LocalDateTime.ofInstant(Instant.ofEpochMilli(n), ZoneOffset.UTC) <= coercedEndLdt
+						LocalDateTime.ofInstant(Instant.ofEpochMilli(n), ZoneOffset.UTC) <= endLdt
 					}
 				} catch(e:ArrayIndexOutOfBoundsException) { false } } ?: (getNextValidLegacyDay() != null)
 		}
