@@ -25,8 +25,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.logging.LogFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -113,8 +111,7 @@ open class CodeLogicImpl(
         }
 
 
-    // Do we need fix? No annotations on code
-    override suspend fun create(batch: List<Code>) =
+    protected fun validateForCreation(batch: List<Code>) =
         batch.fold(setOf<Code>()) { acc, code ->    // First, I check that all the codes are valid
             code.code ?: error("Code field is null")
             code.type ?: error("Type field is null")
@@ -123,7 +120,12 @@ open class CodeLogicImpl(
             if (acc.contains(code)) error("Batch contains duplicate elements. id: ${code.type}|${code.code}|${code.version}")
 
             acc + code.copy(id = code.type + "|" + code.code + "|" + code.version)
-        }.also { codeList ->
+        }
+
+
+    // Do we need fix? No annotations on code
+    override suspend fun create(batch: List<Code>) =
+        validateForCreation(batch).also { codeList ->
             this.getCodes(codeList.map { it.id }).firstOrNull()?.let { duplicatedCode ->
                 error("Code with id ${duplicatedCode.id} already exists")
             }
@@ -142,6 +144,14 @@ open class CodeLogicImpl(
     override fun modify(batch: List<Code>) = flow {
         emitAll(
             modifyEntities(
+                validateForModification(batch).also { codeList ->
+                    if (getCodes(codeList.map { it.id }).count() != batch.size) error("You are trying to modify a code that does not exists")
+                }.toSet()
+            )
+        )
+    }
+
+    protected fun validateForModification(batch: List<Code>) =
                 batch.fold(mapOf<String, Code>()) { acc, code -> // First, I check that all the codes are valid
                     code.code ?: error("Code field is null")
                     code.type ?: error("Type field is null")
@@ -156,12 +166,7 @@ open class CodeLogicImpl(
                     .map {
                         it.value
                     }
-                    .also { codeList ->
-                        if (getCodes(codeList.map { it.id }).count() != batch.size) error("You are trying to modify a code that does not exists")
-                    }.toSet()
-            )
-        )
-    }
+
 
     override fun listCodeTypesBy(region: String?, type: String?) =
         flow {
