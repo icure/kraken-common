@@ -15,10 +15,13 @@ import org.taktik.icure.validation.ValidCode
 data class Medicinalproduct(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val intendedcds: List<CodeStub> = emptyList(),
-
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val deliveredcds: List<CodeStub> = emptyList(),
 	val intendedname: String? = null,
 	val deliveredname: String? = null,
-	val productId: String? = null
+	val productId: String? = null,
+	/**
+	 * Codes that indicates the diseases or conditions that the medicinal product is intended to treat, cure, or vaccinate against
+	 */
+	val diseaseCodes: List<CodeStub> = emptyList()
 ) : Serializable
