@@ -32,6 +32,12 @@ data class Address(
 	@Deprecated("Use notes instead") @param:ContentValue(ContentValues.ANY_STRING) val note: String? = null,
 	val notes: List<Annotation> = emptyList(),
 	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
+	/**
+	 * The id of the healthcare professional bound to this address
+	 *
+	 * Used to link the address to a healthcare professional when the address is nested in another entity (like an `Contact` as `encounterLocation`)
+	 */
+	val hcpId: String? = null,
 	override val encryptedSelf: String? = null
 ) : Encryptable, Serializable, Comparable<Address> {
 	companion object : DynamicInitializer<Address>

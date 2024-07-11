@@ -43,6 +43,7 @@ data class AddressDto(
 	@Schema(description = "Additional notes", deprecated = true) val note: String? = null,
 	@Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
 	@Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
+	@Schema(description = "The id of the healthcare professional bound to this address\n\nUsed to link the address to a healthcare professional when the address is nested in another entity (like an `Contact` as `encounterLocation`)") val hcpId: String? = null,
 	override val encryptedSelf: Base64StringDto? = null
 ) : EncryptableDto, Serializable, Comparable<AddressDto> {
 	override fun compareTo(other: AddressDto): Int {
