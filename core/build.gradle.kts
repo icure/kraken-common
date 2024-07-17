@@ -65,6 +65,7 @@ dependencies {
     implementation(coreLibs.caffeine)
     implementation(coreLibs.kotp)
     implementation(coreLibs.kryptom)
+    implementation(coreLibs.kotlinDateTime)
     implementation(coreLibs.mapstruct)
     implementation(coreLibs.libRecur)
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64")

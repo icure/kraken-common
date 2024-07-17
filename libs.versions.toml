@@ -70,6 +70,7 @@ jsonWebTokenImpl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref 
 jsonWebTokenJackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jwt" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.0" } # 2FA
 kryptom = { group = "com.icure.kryptom", name = "kryptom", version = "1.0.7" }
+kotlinDateTime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.6.0-RC.2" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 icureTestSetup = { group = "io.icure", name = "icure-e2e-test-setup", version = "0.0.24-gc854bb2431" }
