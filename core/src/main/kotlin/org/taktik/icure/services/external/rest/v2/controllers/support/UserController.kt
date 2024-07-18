@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -34,6 +35,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -109,6 +111,13 @@ class UserController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
 		userV2Mapper.mapOmittingSecrets(user)
 	}
+
+	@Operation(summary = "Get multiple users by their ids", description = "General information about the user")
+	@GetMapping("/byIds")
+	fun getUsers(@RequestBody userIds: ListOfIdsDto) =
+		userService.getUsers(userIds.ids).map { user ->
+			userV2Mapper.mapOmittingSecrets(user)
+		}.injectReactorContext()
 
 	@Operation(summary = "Get a user by his Email/Login", description = "General information about the user")
 	@GetMapping("/byEmail/{email}")
@@ -207,7 +216,7 @@ class UserController(
 		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get ids of users matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 }

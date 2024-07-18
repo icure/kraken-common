@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -32,18 +33,20 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.MaintenanceTaskV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
-import org.taktik.icure.utils.orThrow
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.MaintenanceTaskBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 
 @RestController("maintenanceTaskControllerV2")
@@ -51,6 +54,8 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/maintenancetask")
 @Tag(name = "maintenanceTask")
 class MaintenanceTaskController(
+	private val filters: Filters,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val maintenanceTaskService: MaintenanceTaskService,
 	private val maintenanceTaskMapper: MaintenanceTaskV2Mapper,
 	private val filterChainMapper: FilterChainV2Mapper,
@@ -113,6 +118,10 @@ class MaintenanceTaskController(
 			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 			.paginatedList(maintenanceTaskMapper::map, realLimit, objectMapper = objectMapper)
 	}
+
+	@Operation(summary = "Get ids of MaintenanceTasks matching the provided filter for the current user.")
+	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun matchMaintenanceTasksBy(@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
