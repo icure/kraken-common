@@ -96,11 +96,18 @@ class MaintenanceTaskController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask not found")
 	}
 
+	@Operation(summary = "Retrieves multiple MaintenanceTasks by their ids")
+	@PostMapping("/byIds")
+	fun getMaintenanceTasks(@RequestBody ids: ListOfIdsDto) =
+		maintenanceTaskService.getMaintenanceTasks(ids.ids)
+			.map(maintenanceTaskMapper::map)
+			.injectReactorContext()
+
 	@Operation(summary = "Updates a maintenanceTask")
 	@PutMapping
 	fun modifyMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
 		maintenanceTaskService.modifyMaintenanceTask(maintenanceTaskMapper.map(maintenanceTaskDto))
-			?.let{ maintenanceTaskMapper.map(it) }
+			?.let { maintenanceTaskMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask modification failed.")
 	}
 
