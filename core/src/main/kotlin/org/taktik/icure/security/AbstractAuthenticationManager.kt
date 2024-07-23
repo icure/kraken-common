@@ -175,7 +175,7 @@ abstract class AbstractAuthenticationManager <
                         lenAsStr.toIntOrNull()?.let { it to s }
                     } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
                     val verificationCode = password.split("|").last()
-                    if (Totp(secret, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode, length = expectedLength)) {
+                    if (Totp(secret, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode, expectedLength = expectedLength)) {
                         return PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
                     }
                     return PasswordValidationStatus.Failed2fa
