@@ -20,6 +20,7 @@ import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.embed.AuthenticationClass
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.InvalidJwtException
+import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.security.jwt.JwtAuthenticationToken
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
@@ -170,8 +171,11 @@ abstract class AbstractAuthenticationManager <
                  */
                 val strippedPw = strip2fa(password)
                 if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
+                    val (expectedLength, secret) = u.secret?.split(":", limit = 2)?.let { (lenAsStr, s) ->
+                        lenAsStr.toIntOrNull()?.let { it to s }
+                    } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
                     val verificationCode = password.split("|").last()
-                    if (Totp(u.secret!!, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode)) {
+                    if (Totp(secret, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode, length = expectedLength)) {
                         return PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
                     }
                     return PasswordValidationStatus.Failed2fa
