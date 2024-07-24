@@ -37,7 +37,6 @@ jobs:
             -   name: Updated kraken-common in the repo
                 run: |
                     cd ${{ matrix.repo }}
-                    git checkout -b ${{ env.BRANCH_NAME }}
                     cd kraken-common
                     git checkout main
                     git pull
