@@ -1,0 +1,60 @@
+name: Open PRs in repos that depend on common
+
+on:
+    push:
+        branches:
+            - 'main'
+    workflow_dispatch:
+
+jobs:
+    pull-request:
+        name: Create pull requests
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                repo: ["kraken-cloud", "kmehr-module"]
+        steps:
+            -   name: Generate branch name
+                id: generate_branch_name
+                run: |
+                    echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
+
+            -   name: Checkout repo
+                uses: actions/checkout@v4
+                with:
+                    submodules: 'recursive'
+                    repository: 'icure/${{ matrix.repo }}'
+                    token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+                    path: ${{ matrix.repo }}
+                    fetch-depth: 1
+
+            -   name: Configure git user in cloned repo
+                run: |
+                    cd ${{ matrix.repo }}
+                    git config user.name "dev"
+                    git config user.email "dev@icure.com"
+
+            -   name: Updated kraken-common in the repo
+                run: |
+                    cd ${{ matrix.repo }}
+                    cd kraken-common
+                    git checkout main
+                    git pull
+
+            -   name: Bot Details
+                id: bot-details
+                uses: raven-actions/bot-details@v1
+
+            -   name: Create a Pull Request
+                uses: peter-evans/create-pull-request@v6
+                with:
+                    token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+                    commit-message: "Updated kraken-common ${{ env.BRANCH_NAME }}"
+                    title: "Updated kraken-common submodule"
+                    branch: ${{ env.BRANCH_NAME }}
+                    base: 'main'
+                    path: ${{ matrix.repo }}
+                    author: ${{ steps.bot-details.outputs.name-email }}
+                    committer: ${{ steps.bot-details.outputs.name-email }}
+                    team-reviewers: 'icure/dev'
+                    labels: 'automation'

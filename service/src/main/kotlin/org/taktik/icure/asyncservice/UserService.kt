@@ -38,6 +38,15 @@ interface UserService : EntityWithConflictResolutionService {
 	fun listUserIdsByHcpartyId(hcpartyId: String): Flow<String>
 	fun findByPatientId(patientId: String): Flow<String>
 	fun findByNameEmailPhone(searchString: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves multiple users by their [ids]. All the ids that do not correspond to existing users will be ignored.
+	 * Also, this method will filter out all the [User]s that the current user is not allowed to access.
+	 *
+	 * @param ids the ids of the users to retrieve
+	 * @return a [Flow] of [User].
+	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve users.
+	 */
 	fun getUsers(ids: List<String>): Flow<User>
 	fun getUsersByLogin(login: String): Flow<User>
 	fun listUserIdsByNameEmailPhone(searchString: String): Flow<String>

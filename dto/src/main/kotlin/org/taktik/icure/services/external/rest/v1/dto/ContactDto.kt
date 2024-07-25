@@ -17,6 +17,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SubContactDto
+import org.taktik.icure.services.external.rest.v1.dto.base.ParticipantTypeDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -52,6 +53,7 @@ data class ContactDto(
 	@Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
 	@Schema(description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.") val subContacts: Set<SubContactDto> = emptySet(),
 	@Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
+	@Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id") val participants: Map<ParticipantTypeDto, String> = emptyMap(),
 
 	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, //Redundant... Should be responsible
 	@get:Deprecated("Use groupId") val modifiedContactId: String? = null,
