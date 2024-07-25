@@ -67,6 +67,16 @@ interface MaintenanceTaskService : EntityWithSecureDelegationsService<Maintenanc
 	suspend fun getMaintenanceTask(id: String): MaintenanceTask?
 
 	/**
+	 * Retrieves a multiple [MaintenanceTask]s by their ids. It will automatically filter out the entities that the
+	 * current user cannot access.
+	 *
+	 * @param ids a [List] containing the ids of the entities to retrieve.
+	 * @return a [Flow] containing the matching [MaintenanceTask]s.
+	 * @throws [AccessDeniedException] if the user does not have the permission to search maintenance tasks.
+	 */
+	fun getMaintenanceTasks(ids: List<String>): Flow<MaintenanceTask>
+
+	/**
 	 * Creates a batch of [MaintenanceTask]s.
 	 * @param entities a [Collection] of [MaintenanceTask]s to create.
 	 * @return a [Flow] containing all the [MaintenanceTask]s that were successfully creates.

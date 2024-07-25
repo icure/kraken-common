@@ -12,6 +12,7 @@ import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
@@ -65,6 +66,7 @@ import org.taktik.icure.validation.ValidCode
  * @property encounterLocation The location where the encounter took place.
  * @property subContacts Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.
  * @property services Set of all services provided to the patient during the contact.
+ * @property participants The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id
  * @property delegations The delegations giving access to connected healthcare information.
  * @property secretForeignKeys The secret patient key, encrypted in the patient document, in clear here.
  * @property cryptedForeignKeys The public patient key, encrypted here for separate Crypto Actors.
@@ -101,6 +103,7 @@ data class Contact(
 	val encounterLocation: Address? = null,
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val subContacts: Set<SubContact> = emptySet(),
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val services: Set<Service> = emptySet(),
+	val participants: Map<ParticipantType, String> = emptyMap(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),

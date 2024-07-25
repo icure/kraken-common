@@ -30,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -47,6 +48,7 @@ import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoiceTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoicingCodeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MediumTypeDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
@@ -54,6 +56,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.InvoiceBulkShareResultV2Mapper
 import org.taktik.icure.utils.FuzzyValues
@@ -68,11 +71,13 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/invoice")
 @Tag(name = "invoice")
 class InvoiceController(
+	private val filters: Filters,
 	private val invoiceService: InvoiceService,
 	private val sessionLogic: SessionInformationProvider,
 	private val uuidGenerator: UUIDGenerator,
 	private val invoiceV2Mapper: InvoiceV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val invoicingCodeV2Mapper: InvoicingCodeV2Mapper,
 	private val stubV2Mapper: StubV2Mapper,
 	private val objectMapper: ObjectMapper,
@@ -406,6 +411,10 @@ class InvoiceController(
 		val invoices = invoiceService.filter(filterChainV2Mapper.tryMap(filterChain).orThrow())
 		return invoices.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
 	}
+
+	@Operation(summary = "Get ids of Invoices matching the provided filter for the current user.")
+	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun matchInvoicesBy(@RequestBody filter: AbstractFilterDto<InvoiceDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "Modify a batch of invoices", description = "Returns the modified invoices.")
 	@PutMapping("/batch")
