@@ -6,12 +6,12 @@ import org.taktik.couchdb.entity.ComplexKey
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-sealed interface ExternalFilterKey<T> {
+sealed interface ExternalFilterKey {
 
-	val key: T
+	val key: Any
 
-	data class ExternalFilterStringKey(override val key: String) : ExternalFilterKey<String>
-	data class ExternalFilterLongKey(override val key: Long) : ExternalFilterKey<Long>
-	data class ExternalFilterComplexKey(override val key: ComplexKey) : ExternalFilterKey<ComplexKey>
+	data class ExternalFilterStringKey(override val key: String) : ExternalFilterKey
+	data class ExternalFilterLongKey(override val key: Long) : ExternalFilterKey
+	data class ExternalFilterComplexKey(override val key: ComplexKey) : ExternalFilterKey
 
 }

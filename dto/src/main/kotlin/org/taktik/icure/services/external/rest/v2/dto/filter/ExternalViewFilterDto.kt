@@ -17,6 +17,6 @@ data class ExternalViewFilterDto(
 	val view: String,
 	val partition: String,
 	val entityQualifiedName: String,
-	val startKey: ExternalFilterKeyDto<*>?,
-	val endKey: ExternalFilterKeyDto<*>?,
+	val startKey: ExternalFilterKeyDto?,
+	val endKey: ExternalFilterKeyDto?,
 ) : AbstractFilterDto<IdentifiableDto<String>>

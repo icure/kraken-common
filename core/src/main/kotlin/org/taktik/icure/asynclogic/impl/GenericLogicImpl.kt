@@ -87,8 +87,8 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 	override fun listEntityIdsInCustomView(
 		viewName: String,
 		partitionName: String,
-		startKey: ExternalFilterKey<*>?,
-		endKey: ExternalFilterKey<*>?
+		startKey: ExternalFilterKey?,
+		endKey: ExternalFilterKey?
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(getGenericDAO().listEntitiesIdInCustomView(

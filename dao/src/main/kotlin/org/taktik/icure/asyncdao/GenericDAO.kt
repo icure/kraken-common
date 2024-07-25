@@ -282,7 +282,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
 		partitionName: String,
-		startKey: ExternalFilterKey<*>?,
-		endKey: ExternalFilterKey<*>?
+		startKey: ExternalFilterKey?,
+		endKey: ExternalFilterKey?
 	): Flow<String>
 }
