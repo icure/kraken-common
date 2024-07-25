@@ -1,11 +1,12 @@
 package org.taktik.icure.security
 
+import com.icure.kotp.Totp
+import com.icure.kryptom.crypto.HmacAlgorithm
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.security.SecurityException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
-import org.jboss.aerogear.security.otp.Totp
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -15,11 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.embed.AuthenticationClass
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.InvalidJwtException
+import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.security.jwt.JwtAuthenticationToken
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
@@ -68,7 +69,7 @@ abstract class AbstractAuthenticationManager <
      * this operation.
      * @param encodedRefreshToken the JwtRefreshDetails to create a new authentication JWT.
      * @param bypassRefreshValidityCheck whether to bypass the validity check for the refresh token.
-     * @param totpToken if the refresh details have [JwtCloudRefreshDetails.tokenAuthenticationClass] password or 2fa the
+     * @param totpToken if the refresh details have authentication class `password` or `2fa` the
      * totp token can be used to make the newly generated token valid for elevated security operations.
      * @return some JwtDetails.
      */
@@ -146,7 +147,7 @@ abstract class AbstractAuthenticationManager <
      * - [PasswordValidationStatus.Missing2fa]: Password validated, but 2FA verification code is missing
      * - [PasswordValidationStatus.Failed2fa]: Password validated, but 2FA verification code is wrong
      */
-    protected fun isPasswordValid(u: BaseUser, password: String): PasswordValidationStatus {
+    protected suspend fun isPasswordValid(u: BaseUser, password: String): PasswordValidationStatus {
         val containsTokenResult = doesUserContainsToken(u, appToken = password)
         if (containsTokenResult.containsToken) return PasswordValidationStatus.Success(
             if (containsTokenResult.isShortLivedToken)
@@ -170,8 +171,11 @@ abstract class AbstractAuthenticationManager <
                  */
                 val strippedPw = strip2fa(password)
                 if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
+                    val (expectedLength, secret) = u.secret?.split(":", limit = 2)?.let { (lenAsStr, s) ->
+                        lenAsStr.toIntOrNull()?.let { it to s }
+                    } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
                     val verificationCode = password.split("|").last()
-                    if (Totp(u.secret).verify(verificationCode)) {
+                    if (Totp(secret, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode, expectedLength = expectedLength)) {
                         return PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
                     }
                     return PasswordValidationStatus.Failed2fa
@@ -190,7 +194,6 @@ abstract class AbstractAuthenticationManager <
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun doesUserContainsToken(
         u: BaseUser, appToken: String
     ) = if (u.applicationTokens?.containsValue(appToken) == true) {

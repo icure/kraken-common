@@ -12,7 +12,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                repo: ["kraken-cloud", "kraken-lite", "kmehr-module"]
+                repo: ["kraken-cloud", "kmehr-module"]
         steps:
             -   name: Generate branch name
                 id: generate_branch_name
