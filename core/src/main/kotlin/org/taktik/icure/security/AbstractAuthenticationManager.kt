@@ -1,7 +1,7 @@
 package org.taktik.icure.security
 
+import com.icure.kotp.ShaVersion
 import com.icure.kotp.Totp
-import com.icure.kryptom.crypto.HmacAlgorithm
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.security.SecurityException
@@ -175,7 +175,7 @@ abstract class AbstractAuthenticationManager <
                         lenAsStr.toIntOrNull()?.let { it to s }
                     } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
                     val verificationCode = password.split("|").last()
-                    if (Totp(secret, algorithm = HmacAlgorithm.HmacSha256).verify(verificationCode, expectedLength = expectedLength)) {
+                    if (Totp(secret, shaVersion = ShaVersion.Sha256).verify(verificationCode, expectedLength = expectedLength)) {
                         return PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
                     }
                     return PasswordValidationStatus.Failed2fa

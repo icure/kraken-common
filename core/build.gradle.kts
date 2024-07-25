@@ -64,7 +64,6 @@ dependencies {
     implementation(coreLibs.taktikBoot)
     implementation(coreLibs.caffeine)
     implementation(coreLibs.kotp)
-    implementation(coreLibs.kryptom)
     implementation(coreLibs.kotlinDateTime)
     implementation(coreLibs.mapstruct)
     implementation(coreLibs.libRecur)
