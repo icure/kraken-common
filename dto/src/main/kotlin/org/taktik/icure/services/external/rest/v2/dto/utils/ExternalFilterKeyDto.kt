@@ -14,11 +14,11 @@ import com.fasterxml.jackson.databind.JsonNode
 	JsonSubTypes.Type(value = ExternalFilterKeyDto.ExternalFilterLongKeyDto::class, name = "long"),
 	JsonSubTypes.Type(value = ExternalFilterKeyDto.ExternalFilterComplexKeyDto::class, name = "complexKey"),
 ])
-sealed interface ExternalFilterKeyDto<T> {
+sealed interface ExternalFilterKeyDto {
 
-	val key: T
+	val key: Any
 
-	data class ExternalFilterStringKeyDto(override val key: String) : ExternalFilterKeyDto<String>
-	data class ExternalFilterLongKeyDto(override val key: Long) : ExternalFilterKeyDto<Long>
-	data class ExternalFilterComplexKeyDto(override val key: JsonNode) : ExternalFilterKeyDto<JsonNode>
+	data class ExternalFilterStringKeyDto(override val key: String) : ExternalFilterKeyDto
+	data class ExternalFilterLongKeyDto(override val key: Long) : ExternalFilterKeyDto
+	data class ExternalFilterComplexKeyDto(override val key: JsonNode) : ExternalFilterKeyDto
 }

@@ -622,8 +622,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
 		partitionName: String,
-		startKey: ExternalFilterKey<*>?,
-		endKey: ExternalFilterKey<*>?
+		startKey: ExternalFilterKey?,
+		endKey: ExternalFilterKey?
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 

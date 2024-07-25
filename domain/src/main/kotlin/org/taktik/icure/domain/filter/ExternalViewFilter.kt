@@ -7,6 +7,6 @@ interface ExternalViewFilter<O : Identifiable<String>> : Filter<String, O> {
 	val entityQualifiedName: String
 	val view: String
 	val partition: String
-	val startKey: ExternalFilterKey<*>?
-	val endKey: ExternalFilterKey<*>?
+	val startKey: ExternalFilterKey?
+	val endKey: ExternalFilterKey?
 }

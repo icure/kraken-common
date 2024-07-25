@@ -9,8 +9,8 @@ data class ExternalViewFilter<O : Identifiable<String>> (
 	override val entityQualifiedName: String,
 	override val view: String,
 	override val partition: String,
-	override val startKey: ExternalFilterKey<*>?,
-	override val endKey: ExternalFilterKey<*>?,
+	override val startKey: ExternalFilterKey?,
+	override val endKey: ExternalFilterKey?,
 	override val desc: String?,
 ) : AbstractFilter<O>, org.taktik.icure.domain.filter.ExternalViewFilter<O> {
 
