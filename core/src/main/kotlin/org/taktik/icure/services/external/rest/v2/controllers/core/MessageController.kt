@@ -291,15 +291,16 @@ class MessageController(
 	@Operation(summary = "Set read status for given list of messages")
 	@PutMapping("/readstatus")
 	fun setMessagesReadStatus(@RequestBody data: MessagesReadStatusUpdate) = flow {
-		emitAll(
-			messageService.setReadStatus(
-				data.ids ?: listOf(),
-				data.userId ?: sessionLogic.getCurrentUserId(),
-				data.status
-					?: false,
-				data.time ?: System.currentTimeMillis()
-			).map { messageV2Mapper.map(it) }
-		)
+		data.ids?.takeIf { it.isNotEmpty() }?.let {
+			emitAll(
+				messageService.setReadStatus(
+					it,
+					data.userId,
+					data.status ?: false,
+					data.time
+				).map { messageV2Mapper.map(it) }
+			)
+		}
 	}.injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
