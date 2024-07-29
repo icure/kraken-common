@@ -83,13 +83,15 @@ open class MessageLogicImpl(
 		)
 	}
 
-	override fun setReadStatus(messages: Collection<Message>, userId: String, status: Boolean, time: Long) = flow {
+	override fun setReadStatus(messages: Collection<Message>, userId: String?, status: Boolean, time: Long?) = flow {
 		val datastoreInformation = getInstanceAndGroup()
+		val timeOrNow = time ?: System.currentTimeMillis()
+		val userOrSelf = userId ?: sessionLogic.getCurrentUserId()
 		emitAll(
 			messageDAO.save(
 				datastoreInformation, messages.map { m: Message ->
-					if ((m.readStatus[userId]?.time ?: 0) < time) m.copy(
-						readStatus = m.readStatus + (userId to MessageReadStatus(
+					if ((m.readStatus[userId]?.time ?: 0) < timeOrNow) m.copy(
+						readStatus = m.readStatus + (userOrSelf to MessageReadStatus(
 							read = status, time = time
 						))
 					) else m

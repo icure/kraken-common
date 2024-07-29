@@ -172,7 +172,7 @@ interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWi
     fun listMessageIdsByDataOwnerPatientSentDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     fun setStatus(messageIds: List<String>, status: Int): Flow<Message>
-    fun setReadStatus(messageIds: List<String>, userId: String, status: Boolean, time: Long): Flow<Message>
+    fun setReadStatus(messageIds: List<String>, userId: String?, status: Boolean, time: Long?): Flow<Message>
 
     /**
      * Finds all the [Message]s related to the current data owner, sorted by [Message.received], in a format for pagination.

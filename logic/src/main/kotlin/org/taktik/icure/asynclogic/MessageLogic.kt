@@ -4,7 +4,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -142,7 +141,7 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
     fun listMessageIdsByDataOwnerPatientSentDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
     fun setStatus(messages: Collection<Message>, status: Int): Flow<Message>
-    fun setReadStatus(messages: Collection<Message>, userId: String, status: Boolean, time: Long): Flow<Message>
+    fun setReadStatus(messages: Collection<Message>, userId: String?, status: Boolean, time: Long?): Flow<Message>
 
     /**
      * Finds all the [Message]s related to a specific HCP, sorted by [Message.received], in a format for pagination.
