@@ -54,7 +54,7 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	fun getAccessLogs(ids: List<String>): Flow<AccessLog>
 
 	/**
-	 * Retrieves all the [AccessLog]s which [AccessLog.created] date is between [fromEpoch] and [toEpoch] in a [Flow] for
+	 * Retrieves all the [AccessLog]s which [AccessLog.date] date is between [fromEpoch] and [toEpoch] in a [Flow] for
 	 * pagination.
 	 *
 	 * @param fromEpoch the starting date
@@ -67,7 +67,7 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 
 	/**
 	 * Retrieves all the [AccessLog]s where [AccessLog.user] equals [userId], [AccessLog.accessType] equals [accessType],
-	 * if present, and [AccessLog.date] equals [startDate], if present, in a [Flow] for pagination.
+	 * if present, and [AccessLog.date] is greater than or equal to [startDate], if present, in a [Flow] for pagination.
 	 *
 	 * @param userId the id of the user the [AccessLog]s refer to.
 	 * @param accessType the type of access to the [AccessLog].

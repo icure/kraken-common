@@ -11,9 +11,9 @@ import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.embed.Identifier
 
 interface MaintenanceTaskDAO : GenericDAO<MaintenanceTask> {
-	fun listMaintenanceTasksByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
-	fun listMaintenanceTasksAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long): Flow<String>
-	fun listMaintenanceTasksByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long? = null, endDate: Long? = null): Flow<String>
+	fun listMaintenanceTaskIdsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
+	fun listMaintenanceTaskIdsAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long): Flow<String>
+	fun listMaintenanceTaskIdsByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long? = null, endDate: Long? = null): Flow<String>
 
 	/**
 	 * @param datastoreInformation the [IDatastoreInformation] that identify group and CouchDB instance.

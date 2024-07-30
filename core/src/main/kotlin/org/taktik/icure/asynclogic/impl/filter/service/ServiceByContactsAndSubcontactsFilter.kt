@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asynclogic.ContactLogic
+import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -17,16 +17,17 @@ import org.taktik.icure.domain.filter.service.ServiceByContactsAndSubcontactsFil
 
 @Service
 @Profile("app")
-class ServiceByContactsAndSubcontactsFilter(private val contactLogic: ContactLogic) :
-    Filter<String, org.taktik.icure.entities.embed.Service, ServiceByContactsAndSubcontactsFilter> {
+class ServiceByContactsAndSubcontactsFilter(
+	private val contactDAO: ContactDAO,
+) : Filter<String, org.taktik.icure.entities.embed.Service, ServiceByContactsAndSubcontactsFilter> {
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
         filter: ServiceByContactsAndSubcontactsFilter,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
+        datastoreInformation: IDatastoreInformation
     ): Flow<String> {
-		val contacts = contactLogic.getContacts(filter.contacts)
+		val contacts = contactDAO.getContacts(datastoreInformation, filter.contacts)
 		return if (filter.subContacts != null) {
 			contacts.flatMapConcat { c -> c.subContacts.flatMap { sc -> if (filter.subContacts!!.contains(sc.id)) sc.services.mapNotNull { it.serviceId } else listOf() }.asFlow() }
 		} else {

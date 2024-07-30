@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.asynclogic.FormTemplateLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -20,8 +21,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class FormTemplateLogicImpl(
 	private val formTemplateDAO: FormTemplateDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<FormTemplate, FormTemplateDAO>(fixer, datastoreInstanceProvider), FormTemplateLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<FormTemplate, FormTemplateDAO>(fixer, datastoreInstanceProvider, filters), FormTemplateLogic {
 
 	override fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>) = flow {
 		emitAll(super.createEntities(entities))

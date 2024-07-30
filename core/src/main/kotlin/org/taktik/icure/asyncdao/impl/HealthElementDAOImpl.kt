@@ -55,7 +55,7 @@ internal class HealthElementDAOImpl(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),
 		View(name = "by_data_owner", map = "classpath:js/healthelement/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION)
 	)
-	override fun listHealthElementsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
+	override fun listHealthElementIdsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(client.interleave<Array<String>, String>(
@@ -91,7 +91,7 @@ internal class HealthElementDAOImpl(
 	    View(name = "by_hcparty_and_codes", map = "classpath:js/healthelement/By_hcparty_code_map.js"),
 	    View(name = "by_data_owner_and_codes", map = "classpath:js/healthelement/By_data_owner_code_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String) = flow {
+	override fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -110,7 +110,7 @@ internal class HealthElementDAOImpl(
 	    View(name = "by_hcparty_and_tags", map = "classpath:js/healthelement/By_hcparty_tag_map.js"),
 	    View(name = "by_data_owner_and_tags", map = "classpath:js/healthelement/By_data_owner_tag_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String) = flow {
+	override fun listHealthElementIdsByHcPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -129,7 +129,7 @@ internal class HealthElementDAOImpl(
 	    View(name = "by_hcparty_and_status", map = "classpath:js/healthelement/By_hcparty_status_map.js"),
 	    View(name = "by_data_owner_and_status", map = "classpath:js/healthelement/By_data_owner_status_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?) = flow {
+	override fun listHealthElementIdsByHcPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(

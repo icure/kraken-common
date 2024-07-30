@@ -32,7 +32,7 @@ class CodeByIdsFilter : Filter<String, Code, org.taktik.icure.domain.filter.Filt
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, Code>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
+        datastoreInformation: IDatastoreInformation
     ): Flow<String> {
 		return filter.ids.asFlow()
 	}

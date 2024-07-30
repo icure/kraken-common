@@ -33,8 +33,7 @@ class HealthcarePartyByIdsFilter :
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, HealthcareParty>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ): Flow<String> {
-		return filter.ids.asFlow()
-	}
+        datastoreInformation: IDatastoreInformation
+    ): Flow<String> = filter.ids.asFlow()
+
 }

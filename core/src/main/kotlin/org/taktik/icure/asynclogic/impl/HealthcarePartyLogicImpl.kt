@@ -21,23 +21,21 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.*
 
 @Service
 @Profile("app")
 class HealthcarePartyLogicImpl(
-    private val filters: Filters,
+    filters: Filters,
     private val healthcarePartyDAO: HealthcarePartyDAO,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     fixer: Fixer
-) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider), HealthcarePartyLogic {
+) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider, filters), HealthcarePartyLogic {
 
 	companion object {
 		private val log = LoggerFactory.getLogger(HealthcarePartyLogicImpl::class.java)
@@ -197,7 +195,7 @@ class HealthcarePartyLogicImpl(
 
 	override fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		val ids = filters.resolve(filter.filter)
+		val ids = filters.resolve(filter.filter, datastoreInformation)
 		val sortedIds = paginationOffset.takeUnless { it.startDocumentId == null }?.let { paginationOffset -> // Sub-set starting from startDocId to the end (including last element)
 			ids.dropWhile { id -> id != paginationOffset.startDocumentId }
 		} ?: ids
@@ -206,44 +204,4 @@ class HealthcarePartyLogicImpl(
 		emitAll(healthcarePartyDAO.findHealthcarePartiesByIds(datastoreInformation, selectedIds))
 	}
 
-	override fun listHealthcarePartyIdsByIdentifiers(hcpIdentifiers: List<Identifier>): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-
-		emitAll(
-			healthcarePartyDAO.listHealthcarePartyIdsByIdentifiers(
-				datastoreInformation = datastoreInformation,
-				hcpIdentifiers = hcpIdentifiers
-			)
-		)
-	}
-
-	override fun listHealthcarePartyIdsByCode(codeType: String, codeCode: String?): Flow<String> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-
-			emitAll(
-				healthcarePartyDAO.listHealthcarePartyIdsByCode(
-					datastoreInformation = datastoreInformation,
-					codeType = codeType,
-					codeCode = codeCode
-				)
-			)
-		}
-
-	override fun listHealthcarePartyIdsByTag(tagType: String, tagCode: String?): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-
-		emitAll(
-			healthcarePartyDAO.listHealthcarePartyIdsByTag(
-				datastoreInformation = datastoreInformation,
-				tagType = tagType,
-				tagCode = tagCode
-			)
-		)
-	}
-
-	override fun listHealthcarePartyIdsByName(name: String, desc: Boolean) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(healthcarePartyDAO.listHealthcarePartyIdsByName(datastoreInformation, name, desc))
-	}
 }

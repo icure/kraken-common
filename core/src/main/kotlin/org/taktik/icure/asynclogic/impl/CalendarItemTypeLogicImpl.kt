@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.exceptions.DeletionException
@@ -22,10 +24,11 @@ import org.taktik.icure.validation.aspect.Fixer
 @Service
 @Profile("app")
 class CalendarItemTypeLogicImpl(
-    private val calendarItemTypeDAO: CalendarItemTypeDAO,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<CalendarItemType, CalendarItemTypeDAO>(fixer, datastoreInstanceProvider), CalendarItemTypeLogic {
+	private val calendarItemTypeDAO: CalendarItemTypeDAO,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<CalendarItemType, CalendarItemTypeDAO>(fixer, datastoreInstanceProvider, filters), CalendarItemTypeLogic {
 
 	override fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastore = getInstanceAndGroup()

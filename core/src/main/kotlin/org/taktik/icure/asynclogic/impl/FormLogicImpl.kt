@@ -24,6 +24,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -34,8 +35,9 @@ open class FormLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), FormLogic {
+    fixer: Fixer,
+    filters: Filters
+) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), FormLogic {
 
 	override suspend fun getForm(id: String) = getEntity(id)
 

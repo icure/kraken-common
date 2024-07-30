@@ -36,7 +36,6 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.exceptions.BulkUpdateConflictException
@@ -44,18 +43,17 @@ import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
-import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.TreeSet
+import java.util.*
 
 open class ContactLogicImpl(
     private val contactDAO: ContactDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
-    private val datastoreInstanceProvider: DatastoreInstanceProvider,
-    private val filters: Filters,
+    datastoreInstanceProvider: DatastoreInstanceProvider,
+    filters: Filters,
     fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ContactLogic {
+) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ContactLogic {
 
 	companion object {
 		private val logger = LoggerFactory.getLogger(ContactLogicImpl::class.java)
@@ -76,18 +74,6 @@ open class ContactLogicImpl(
 			emitAll(
 				contactDAO.listContactsByHcPartyAndPatient(
 					datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys
-				)
-			)
-		}
-
-	override fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-				contactDAO.listContactIdsByHcPartyAndPatient(
-					datastoreInformation,
-					getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-					secretPatientKeys
 				)
 			)
 		}
@@ -216,185 +202,19 @@ open class ContactLogicImpl(
 			emitAll(contactDAO.listServiceIdsByAssociationId(datastoreInformation, associationId))
 		}
 
-	override fun listServiceIdsByHcParty(hcPartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(contactDAO.listServiceIdsByHcParty(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId)))
-	}
-
-	override fun listServiceIdsByTag(
-		hcPartyId: String,
-		patientSecretForeignKeys: List<String>?,
-		tagType: String,
-		tagCode: String,
-		startValueDate: Long?,
-		endValueDate: Long?,
-		descending: Boolean,
-	): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcPartyId)) { key ->
-				if (patientSecretForeignKeys == null)
-					contactDAO.listServiceIdsByTag(
-						datastoreInformation,
-						key,
-						tagType,
-						tagCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-				else
-					contactDAO.listServiceIdsByPatientAndTag(
-						datastoreInformation,
-						key,
-						patientSecretForeignKeys,
-						tagType,
-						tagCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-			}
-		)
-	}
-
-	override fun listServiceIdsByCode(
-		hcPartyId: String,
-		patientSecretForeignKeys: List<String>?,
-		codeType: String,
-		codeCode: String,
-		startValueDate: Long?,
-		endValueDate: Long?,
-		descending: Boolean
-	): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcPartyId)) { key ->
-				if (patientSecretForeignKeys == null)
-					contactDAO.listServiceIdsByCode(
-						datastoreInformation,
-						key,
-						codeType,
-						codeCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-				else
-					contactDAO.listServicesIdsByPatientAndCode(
-						datastoreInformation,
-						key,
-						patientSecretForeignKeys,
-						codeType,
-						codeCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-			}
-		)
-	}
-
-	override fun listContactIdsByTag(
-		hcPartyId: String,
-		tagType: String,
-		tagCode: String,
-		startValueDate: Long?,
-		endValueDate: Long?,
-	) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcPartyId)) { key ->
-				contactDAO.listContactIdsByTag(
-					datastoreInformation,
-					key,
-					tagType,
-					tagCode,
-					startValueDate,
-					endValueDate
-				)
-			}
-		)
-	}
-
-	override fun listServiceIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			contactDAO.listServiceIdsByHcPartyAndIdentifiers(
-				datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), identifiers
-			)
-		)
-	}
-
-	override fun listContactIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-				contactDAO.listContactIdsByHcPartyAndIdentifiers(
-					datastoreInformation,
-					getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-					identifiers
-				)
-			)
-		}
-
 	override fun listServicesByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>) = flow {
-		val serviceIds = listServiceIdsByHcPartyAndHealthElementIds(hcPartyId, healthElementIds)
-		emitAll(getServices(serviceIds.toList()))
-	}
-
-	override fun listServiceIdsByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			contactDAO.listServiceIdsByHcPartyHealthElementIds(
+		val serviceIds = contactDAO.listServiceIdsByHcPartyHealthElementIds(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
 				healthElementIds
 			)
-		)
-	}
-
-	override fun listContactIdsByCode(
-		hcPartyId: String,
-		codeType: String,
-		codeCode: String,
-		startValueDate: Long?,
-		endValueDate: Long?,
-	) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcPartyId)) { key ->
-				contactDAO.listContactIdsByTag(
-					datastoreInformation, key, codeType, codeCode, startValueDate, endValueDate
-				)
-			}
-		)
-	}
-
-	override fun listContactIds(hcPartyId: String): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcPartyId)) { key ->
-				contactDAO.listContactIdsByHealthcareParty(datastoreInformation, key)
-			}
-		)
+		emitAll(getServices(serviceIds.toList()))
 	}
 
 	override fun listIdsByServices(services: Collection<String>): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(contactDAO.listIdsByServices(datastoreInformation, services).map { it.contactId })
-	}
-
-	override fun listServicesByHcPartyAndSecretForeignKeys(
-		hcPartyId: String,
-		patientSecretForeignKeys: Set<String>,
-	): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			contactDAO.listServicesIdsByPatientForeignKeys(
-				datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), patientSecretForeignKeys
-			)
-		)
 	}
 
 	override fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact> = flow {
@@ -455,7 +275,8 @@ open class ContactLogicImpl(
 	}
 
 	override fun filterContacts(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Contact>) = flow {
-		val ids = filters.resolve(filter.filter).toSet(TreeSet())
+		val datastoreInformation = getInstanceAndGroup()
+		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 
 		val sortedIds =
 			if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
@@ -466,7 +287,6 @@ open class ContactLogicImpl(
 		val selectedIds =
 			sortedIds.take(paginationOffset.limit + 1) // Fetching one more contacts for the start key of the next page
 
-		val datastoreInformation = getInstanceAndGroup()
 		emitAll(contactDAO.findContactsByIds(datastoreInformation, selectedIds))
 	}
 
@@ -474,7 +294,8 @@ open class ContactLogicImpl(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<org.taktik.icure.entities.embed.Service>,
 	) = flow {
-		val ids = filters.resolve(filter.filter).toSet(LinkedHashSet())
+		val datastoreInformation = getInstanceAndGroup()
+		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(LinkedHashSet())
 		aggregateResults(
 			ids = ids,
 			limit = paginationOffset.limit,

@@ -34,7 +34,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -81,7 +80,6 @@ import java.util.*
 @RequestMapping("/rest/v2/contact")
 @Tag(name = "contact")
 class ContactController(
-	private val filters: Filters,
 	private val contactService: ContactService,
 	private val sessionLogic: SessionInformationProvider,
 	private val contactV2Mapper: ContactV2Mapper,
@@ -366,10 +364,9 @@ class ContactController(
 	}
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) =
+		contactService.matchContactsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "Get a service by id")
 	@GetMapping("/service/{serviceId}")
@@ -407,9 +404,8 @@ class ContactController(
 
 	@Operation(summary = "Get ids of services matching the provided filter for the current user")
 	@PostMapping("/service/match")
-	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) =
+		contactService.matchServicesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")
 	@PostMapping("/service")

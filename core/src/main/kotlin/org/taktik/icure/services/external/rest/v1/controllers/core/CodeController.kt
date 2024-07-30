@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -53,7 +51,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/code")
 @Tag(name = "code")
 class CodeController(
-    private val filters: Filters,
     private val codeService: CodeService,
     private val codeMapper: CodeMapper,
     private val filterChainMapper: FilterChainMapper,
@@ -272,10 +269,9 @@ class CodeController(
 	}
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchCodesBy(@RequestBody filter: AbstractFilterDto<CodeDto>) = mono {
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
-	}
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchCodesBy(@RequestBody filter: AbstractFilterDto<CodeDto>) =
+		codeService.matchCodesBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")
 	@PostMapping("/{codeType}")

@@ -18,22 +18,34 @@
 
 package org.taktik.icure.asynclogic.impl.filter.contact
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asynclogic.ContactLogic
+import org.taktik.icure.asyncdao.ContactDAO
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 
 @Service
 @Profile("app")
 class ContactByHcPartyFilter(
-    private val contactLogic: ContactLogic
+    private val contactDAO: ContactDAO,
+    private val sessionInformationProvider: SessionInformationProvider
 ) : Filter<String, Contact, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Contact>> {
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Contact>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ) = contactLogic.listContactIds(filter.hcpId)
+        datastoreInformation: IDatastoreInformation
+    ): Flow<String> = flow {
+        emitAll(
+            mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.hcpId)) { key ->
+                contactDAO.listContactIdsByHealthcareParty(datastoreInformation, key)
+            }
+        )
+    }
 }

@@ -112,16 +112,6 @@ interface CodeLogic : EntityPersister<Code, String> {
 	 */
 	fun findCodesByLabel(region: String?, language: String, types: Set<String>, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginationElement>
 
-	/**
-	 * Retrieves the ids of all the [Code]s of a certain [type] that match the provided [label] in a certain [language].
-	 * If a [region] is provided, only the codes for that region will be returned.
-	 *
-	 * @param region the region of the code to match.
-	 * @param language the language of the label to search.
-	 * @param type the type of the code to search.
-	 * @param label a label or a prefix to search.
-	 */
-	fun listCodeIdsByLabel(region: String?, language: String, type: String, label: String?): Flow<String>
 	fun listCodeIdsByTypeCodeVersionInterval(startType: String?, startCode: String?, startVersion: String?, endType: String?, endCode: String?, endVersion: String?): Flow<String>
 	fun findCodesByQualifiedLinkId(region: String?, linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>): Flow<PaginationElement>
 	fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?): Flow<String>

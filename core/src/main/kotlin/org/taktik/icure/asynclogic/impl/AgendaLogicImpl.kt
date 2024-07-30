@@ -13,6 +13,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.exceptions.DeletionException
@@ -26,8 +27,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class AgendaLogicImpl(
     private val agendaDAO: AgendaDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider), AgendaLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider, filters), AgendaLogic {
 
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()

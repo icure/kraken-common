@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.security.access.AccessDeniedException
@@ -14,6 +13,7 @@ import org.taktik.icure.asyncdao.ExchangeDataMapDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.HexString
@@ -28,8 +28,9 @@ import java.lang.IllegalStateException
 class ExchangeDataMapLogicImpl(
     private val exchangeDataMapDAO: ExchangeDataMapDAO,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : GenericLogicImpl<ExchangeDataMap, ExchangeDataMapDAO>(fixer, datastoreInstanceProvider), ExchangeDataMapLogic {
+    fixer: Fixer,
+    filters: Filters
+) : GenericLogicImpl<ExchangeDataMap, ExchangeDataMapDAO>(fixer, datastoreInstanceProvider, filters), ExchangeDataMapLogic {
     override fun getGenericDAO(): ExchangeDataMapDAO = exchangeDataMapDAO
 
     override suspend fun modifyExchangeDataMap(exchangeDataMap: ExchangeDataMap): ExchangeDataMap? =

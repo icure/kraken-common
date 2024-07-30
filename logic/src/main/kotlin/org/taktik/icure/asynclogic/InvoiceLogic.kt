@@ -97,7 +97,6 @@ interface InvoiceLogic : EntityPersister<Invoice, String>, EntityWithSecureDeleg
 
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>
-	fun listInvoiceIdsByTarificationsByCode(hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>
 
 	fun filter(filter: FilterChain<Invoice>): Flow<Invoice>
 

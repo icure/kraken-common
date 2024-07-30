@@ -13,13 +13,16 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-import org.taktik.icure.entities.utils.ExternalFilterKey
+import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.validation.aspect.Fixer
 
 abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 	fixer: Fixer,
-	private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+	private val datastoreInstanceProvider: DatastoreInstanceProvider,
+	protected val filters: Filters
 ) : AutoFixableLogic<E>(fixer), EntityPersister<E, String> {
 
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
@@ -84,20 +87,9 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().remove(getInstanceAndGroup(), entities))
 	}
 
-	override fun listEntityIdsInCustomView(
-		viewName: String,
-		partitionName: String,
-		startKey: ExternalFilterKey?,
-		endKey: ExternalFilterKey?
-	): Flow<String> = flow {
+	override fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(getGenericDAO().listEntitiesIdInCustomView(
-			datastoreInformation = datastoreInformation,
-			viewName = viewName,
-			partitionName = partitionName,
-			startKey = startKey,
-			endKey = endKey
-		))
+		emitAll(filters.resolve(filter, datastoreInformation))
 	}
 
 	protected abstract fun getGenericDAO(): D

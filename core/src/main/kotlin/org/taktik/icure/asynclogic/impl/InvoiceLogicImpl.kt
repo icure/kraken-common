@@ -29,6 +29,7 @@ import org.taktik.icure.asynclogic.InvoiceLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -59,7 +60,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 open class InvoiceLogicImpl (
-	private val filters: Filters,
+	filters: Filters,
 	private val userLogic: UserLogic,
 	private val insuranceLogic: InsuranceLogic,
 	private val uuidGenerator: UUIDGenerator,
@@ -67,9 +68,9 @@ open class InvoiceLogicImpl (
 	private val invoiceDAO: InvoiceDAO,
 	sessionLogic: SessionInformationProvider,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
-	private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), InvoiceLogic {
+) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), InvoiceLogic {
 
 	override suspend fun createInvoice(invoice: Invoice) =
 		fix(invoice) { fixedInvoice ->
@@ -428,15 +429,9 @@ open class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoiceIdsByTarificationsAndCode(datastoreInformation, hcPartyId, codeCode, startValueDate, endValueDate))
 		}
 
-
-	override fun listInvoiceIdsByTarificationsByCode(hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(invoiceDAO.listInvoiceIdsByTarificationsByCode(datastoreInformation, hcPartyId, codeCode, startValueDate, endValueDate))
-		}
-
 	override fun filter(filter: FilterChain<Invoice>) = flow {
-		val ids = filters.resolve(filter.filter).toList()
+		val dataStoreInformation = getInstanceAndGroup()
+		val ids = filters.resolve(filter.filter, dataStoreInformation).toList()
 		val invoices = getInvoices(ids)
 		val predicate = filter.predicate
 		emitAll(if (predicate != null) invoices.filter { predicate.apply(it) } else invoices)

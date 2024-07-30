@@ -74,8 +74,6 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
         paginationOffset: PaginationOffset<ComplexKey>
     ): Flow<PaginationElement>
 
-    fun listMessageIdsByTransportGuid(hcPartyId: String, transportGuid: String?): Flow<String>
-
     /**
      * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and which [Message.sent]
      * date is between [fromDate] and [toDate] in a format for pagination.

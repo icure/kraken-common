@@ -29,10 +29,11 @@ import org.taktik.icure.entities.Device
 @Service
 @Profile("app")
 class DeviceByIdsFilter : Filter<String, Device, org.taktik.icure.domain.filter.Filters.IdsFilter<String, Device>> {
+
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, Device>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
+        datastoreInformation: IDatastoreInformation
     ): Flow<String> {
 		return filter.ids.asFlow()
 	}

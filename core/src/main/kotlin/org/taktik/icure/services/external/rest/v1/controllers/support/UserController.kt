@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.UserService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -53,7 +53,6 @@ import org.taktik.icure.utils.warn
 @RequestMapping("/rest/v1/user")
 @Tag(name = "user") // otherwise would default to "user-controller"
 class UserController (
-	private val filters: Filters,
 	private val userService: UserService,
 	private val sessionInfo: SessionInformationProvider,
 	private val userMapper: SecureUserV1Mapper,
@@ -203,7 +202,7 @@ class UserController (
 	}
 
 	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
+	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) =
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+		userService.matchUsersBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
 }

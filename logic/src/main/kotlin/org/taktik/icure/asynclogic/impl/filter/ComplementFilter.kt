@@ -20,10 +20,10 @@ class ComplementFilter<T : Serializable, O : Identifiable<T>> :
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.ComplementFilter<T, O>,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation?
+		datastoreInformation: IDatastoreInformation
     ): Flow<T> = flow {
-		val superFlow: Flow<T> = context.resolve(filter.superSet)
-		val subList: List<T> = context.resolve(filter.subSet).toList()
+		val superFlow: Flow<T> = context.resolve(filter.superSet, datastoreInformation)
+		val subList: List<T> = context.resolve(filter.subSet, datastoreInformation).toList()
 		superFlow.collect {
 			if (!subList.contains(it)) emit(it)
 		}

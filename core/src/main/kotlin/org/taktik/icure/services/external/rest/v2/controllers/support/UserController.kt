@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.UserService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -57,7 +56,6 @@ import org.taktik.icure.utils.orThrow
 @RequestMapping("/rest/v2/user")
 @Tag(name = "user") // otherwise would default to "user-controller"
 class UserController(
-	private val filters: Filters,
 	private val userService: UserService,
 	private val sessionInfo: SessionInformationProvider,
 	private val userV2Mapper: SecureUserV2Mapper,
@@ -218,5 +216,6 @@ class UserController(
 
 	@Operation(summary = "Get ids of users matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) =
+		userService.matchUsersBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 }

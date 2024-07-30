@@ -10,15 +10,6 @@ import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class FilterChain<O : Identifiable<String>>(val filter: AbstractFilter<O>, val predicate: org.taktik.icure.domain.filter.predicate.Predicate? = null) {
-	/**
-	 * Refer to [AbstractFilter.requiresSecurityPrecondition]
-	 */
-	val includesFiltersUnboundByDataOwnerId = filter.requiresSecurityPrecondition
-
-	/**
-	 * Refer to [AbstractFilter.requestedDataOwnerIds]
-	 */
-	fun requestedDataOwnerIds(): Set<String> = filter.requestedDataOwnerIds()
 
 	fun applyTo(items: List<O>,  searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> {
 		val filteredItems: List<O> = filter.applyTo(items, searchKeyMatcher)

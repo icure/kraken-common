@@ -49,7 +49,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_identifier", map = "classpath:js/maintenancetask/By_hcparty_identifier_map.js"),
     	View(name = "by_data_owner_identifier", map = "classpath:js/maintenancetask/By_data_owner_identifier_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
+	override fun listMaintenanceTaskIdsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -78,7 +78,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_date", map = "classpath:js/maintenancetask/By_hcparty_date_map.js"),
     	View(name = "by_data_owner_date", map = "classpath:js/maintenancetask/By_data_owner_date_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long) = flow {
+	override fun listMaintenanceTaskIdsAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
             datastoreInformation,
@@ -100,7 +100,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_type", map = "classpath:js/maintenancetask/By_hcparty_type_map.js"),
     	View(name = "by_data_owner_type", map = "classpath:js/maintenancetask/By_data_owner_type_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long?, endDate: Long?) = flow {
+	override fun listMaintenanceTaskIdsByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long?, endDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
             datastoreInformation,

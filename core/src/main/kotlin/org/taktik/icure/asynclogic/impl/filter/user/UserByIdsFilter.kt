@@ -32,8 +32,6 @@ class UserByIdsFilter : Filter<String, User, org.taktik.icure.domain.filter.Filt
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, User>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ): Flow<String> {
-		return filter.ids.asFlow()
-	}
+        datastoreInformation: IDatastoreInformation
+    ): Flow<String> = filter.ids.asFlow()
 }

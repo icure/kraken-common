@@ -37,15 +37,18 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.AccessLogV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.AccessLogBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -61,7 +64,8 @@ class AccessLogController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val filterV2Mapper: FilterV2Mapper
 ) {
 
 	@Operation(summary = "Creates an access log")
@@ -171,7 +175,7 @@ class AccessLogController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List access logs found by Healthcare Party and secret foreign keyelementIds.")
+	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key elementIds.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestBody secretPatientKeys: List<String>) = flow {
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
@@ -194,4 +198,9 @@ class AccessLogController(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
 		).map { bulkShareResultV2Mapper.map(it) })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(summary = "Get the ids of the AccessLogs matching the provided filter")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchAccessLogsBy(@RequestBody filter: AbstractFilterDto<AccessLogDto>) =
+		accessLogService.matchAccessLogsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 }

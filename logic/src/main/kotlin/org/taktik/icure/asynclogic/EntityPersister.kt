@@ -6,8 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.entities.utils.ExternalFilterKey
+import org.taktik.icure.domain.filter.AbstractFilter
 
 interface EntityPersister<E, I> {
 
@@ -21,7 +20,6 @@ interface EntityPersister<E, I> {
 	fun getEntities(identifiers: Collection<I>): Flow<E>
 	fun getEntities(): Flow<E>
 	fun getEntityIds(): Flow<I>
-	fun listEntityIdsInCustomView(viewName: String, partitionName: String, startKey: ExternalFilterKey?, endKey: ExternalFilterKey?): Flow<I>
 
 	suspend fun hasEntities(): Boolean
 
@@ -34,4 +32,11 @@ interface EntityPersister<E, I> {
 	fun modifyEntities(entities: Flow<E>): Flow<E>
 	fun deleteEntities(identifiers: Flow<I>): Flow<DocIdentifier>
 
+	/**
+	 * Retrieves the ids of the entities [E] matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter].
+	 * @return a [Flow] of the ids matching the filter.
+	 */
+	fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String>
 }

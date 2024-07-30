@@ -18,8 +18,6 @@ class PatientByIdsFilter : Filter<String, Patient, org.taktik.icure.domain.filte
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, Patient>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ): Flow<String> {
-		return filter.ids.asFlow()
-	}
+        datastoreInformation: IDatastoreInformation
+    ): Flow<String> = filter.ids.asFlow()
 }

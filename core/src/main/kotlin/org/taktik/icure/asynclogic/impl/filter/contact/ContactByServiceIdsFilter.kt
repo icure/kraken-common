@@ -5,9 +5,10 @@ package org.taktik.icure.asynclogic.impl.filter.contact
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asynclogic.ContactLogic
+import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -16,14 +17,15 @@ import org.taktik.icure.entities.Contact
 
 @Service
 @Profile("app")
-class ContactByServiceIdsFilter(private val contactLogic: ContactLogic) :
-    Filter<String, Contact, ContactByServiceIdsFilter> {
+class ContactByServiceIdsFilter(
+	private val contactDAO: ContactDAO
+) : Filter<String, Contact, ContactByServiceIdsFilter> {
 
 	override fun resolve(
         filter: ContactByServiceIdsFilter,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ): Flow<String> {
-		return filter.ids?.let { contactLogic.listIdsByServices(it) } ?: flowOf()
-	}
+        datastoreInformation: IDatastoreInformation
+    ): Flow<String> = filter.ids?.let {
+		contactDAO.listIdsByServices(datastoreInformation, it)
+	}?.map { it.contactId } ?: flowOf()
 }

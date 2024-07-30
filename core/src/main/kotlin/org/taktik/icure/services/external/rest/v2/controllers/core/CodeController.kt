@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -54,7 +53,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/code")
 @Tag(name = "code")
 class CodeController(
-	private val filters: Filters,
 	private val codeService: CodeService,
 	private val codeV2Mapper: CodeV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
@@ -273,7 +271,7 @@ class CodeController(
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(@RequestBody filter: AbstractFilterDto<CodeDto>) =
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+		codeService.matchCodesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")
 	@PostMapping("/{codeType}")

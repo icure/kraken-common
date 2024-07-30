@@ -53,6 +53,7 @@ commonsIO = { group = "commons-io", name = "commons-io", version = "2.11.0" }
 apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.13.0" }
 apacheCommonsCompress = { group = "org.apache.commons", name = "commons-compress", version = "1.21" }
 apacheCommonsMath3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
+apacheCommonsText = { group = "org.apache.commons", name = "commons-text", version = "1.12.0" }
 taktikCommons = { group = "org.taktik.commons", name = "commons-uti", version = "1.0" }
 gcpAuthProvider = { group = "com.icure", name = "icure-gcp_auth_provider", version = "1.0.13-gb7ba77828a" }
 taktikBoot = { group = "com.taktik.boot", name = "spring-boot-starter-gke-logging", version = "2.1.179-2746294715" }
@@ -98,7 +99,7 @@ hibernateValidatorLibs = ["hibernateValidator", "hibernateValidatorAnnotationPro
 springSecurityLibs = ["springSecurityMessaging"]
 springLibs = ["springAspects", "springWebsocket", "springMessaging"]
 krouchLibs = ["krouch", "asyncJacksonHttpClient"]
-commonsLibs = ["commonsBeanUtils", "commonsIO", "apacheCommonsLang3", "apacheCommonsCompress", "apacheCommonsMath3", "taktikCommons"]
+commonsLibs = ["commonsBeanUtils", "commonsIO", "apacheCommonsLang3", "apacheCommonsCompress", "apacheCommonsMath3", "taktikCommons", "apacheCommonsText"]
 xmlLibs = ["activation"]
 swaggerLibs = ["springdocWebflux", "springdocKotlin"]
 bouncyCastleLibs = ["bouncyCastleBcprov", "bouncyCastleBcmail"]

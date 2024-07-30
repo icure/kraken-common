@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.EntityReferenceDAO
 import org.taktik.icure.asynclogic.EntityReferenceLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.EntityReference
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -17,8 +18,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class EntityReferenceLogicImpl(
 	private val entityReferenceDAO: EntityReferenceDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<EntityReference, EntityReferenceDAO>(fixer, datastoreInstanceProvider), EntityReferenceLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<EntityReference, EntityReferenceDAO>(fixer, datastoreInstanceProvider, filters), EntityReferenceLogic {
 
 	override suspend fun getLatest(prefix: String): EntityReference? {
 		val datastoreInformation = getInstanceAndGroup()

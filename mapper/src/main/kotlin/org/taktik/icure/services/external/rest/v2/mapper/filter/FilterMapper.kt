@@ -27,6 +27,7 @@ import org.taktik.icure.domain.filter.impl.predicate.KeyValuePredicate
 import org.taktik.icure.domain.filter.impl.predicate.NotPredicate
 import org.taktik.icure.domain.filter.impl.predicate.OrPredicate
 import org.taktik.icure.domain.filter.predicate.Predicate
+import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthElement
@@ -38,6 +39,7 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -55,6 +57,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.ComplementFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.ExternalViewFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.IntersectionFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.AllCodesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeLabelLanguageFilter
@@ -115,6 +120,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.utils.ExternalFilterKey
 abstract class FilterV2Mapper {
 
 	abstract fun <O : Identifiable<String>> map(filterDto: ExternalViewFilterDto): org.taktik.icure.domain.filter.impl.ExternalViewFilter<O>
+
+	abstract fun map(filterDto: AccessLogByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByDataOwnerPatientDateFilter
+	abstract fun map(filterDto: AccessLogByDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByDateFilter
+	abstract fun map(filterDto: AccessLogByUserIdUserTypeDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByUserIdUserTypeDateFilter
+
+	@JvmName("tryMapAccessLogFilter")
+	fun tryMap(filterDto: AbstractFilterDto<AccessLogDto>): AbstractFilter<AccessLog>? = when(filterDto) {
+		is AccessLogByDataOwnerPatientDateFilter -> map(filterDto)
+		is AccessLogByDateFilter -> map(filterDto)
+		is AccessLogByUserIdUserTypeDateFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
 
 	abstract fun map(filterDto: CodeByRegionTypeLabelLanguageFilter): org.taktik.icure.domain.filter.impl.code.CodeByRegionTypeLabelLanguageFilter
 	abstract fun map(filterDto: CodeIdsByTypeCodeVersionIntervalFilter): org.taktik.icure.domain.filter.impl.code.CodeIdsByTypeCodeVersionIntervalFilter

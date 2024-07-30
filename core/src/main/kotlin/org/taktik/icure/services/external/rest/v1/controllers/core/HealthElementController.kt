@@ -10,11 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
@@ -56,7 +54,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/helement")
 @Tag(name = "helement")
 class HealthElementController(
-	private val filters: Filters,
 	private val healthElementService: HealthElementService,
 	private val healthElementMapper: HealthElementMapper,
 	private val delegationMapper: DelegationMapper,
@@ -235,8 +232,8 @@ class HealthElementController(
 	}
 
 	@Operation(summary = "Get ids of health element matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchHealthElementsBy(@RequestBody filter: AbstractFilterDto<HealthElementDto>) = mono {
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
-	}
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchHealthElementsBy(@RequestBody filter: AbstractFilterDto<HealthElementDto>) =
+		healthElementService.matchHealthElementsBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+
 }

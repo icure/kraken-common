@@ -19,6 +19,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,11 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -76,7 +75,6 @@ import java.util.*
 @RequestMapping("/rest/v1/contact")
 @Tag(name = "contact")
 class ContactController(
-	private val filters: Filters,
 	private val contactService: ContactService,
 	private val sessionLogic: SessionInformationProvider,
 	private val contactMapper: ContactMapper,
@@ -363,10 +361,9 @@ class ContactController(
 	}
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) = mono {
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
-	}
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) =
+		contactService.matchContactsBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "Get a service by id")
 	@GetMapping("/service/{serviceId}")
@@ -404,9 +401,8 @@ class ContactController(
 
 	@Operation(summary = "Get ids of services matching the provided filter for the current user")
 	@PostMapping("/service/match")
-	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) = mono {
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
-	}
+	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) =
+		contactService.matchServicesBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")
 	@PostMapping("/service/byIds")

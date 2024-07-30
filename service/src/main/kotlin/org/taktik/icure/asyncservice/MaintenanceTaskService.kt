@@ -10,15 +10,12 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.MaintenanceTask
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface MaintenanceTaskService : EntityWithSecureDelegationsService<MaintenanceTask> {
-	fun listMaintenanceTasksByHcPartyAndIdentifier(healthcarePartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listMaintenanceTasksByHcPartyAndType(healthcarePartyId: String, type: String, startDate: Long? = null, endDate: Long? = null): Flow<String>
-	fun listMaintenanceTasksAfterDate(healthcarePartyId: String, date: Long): Flow<String>
 
 	/**
 	 * Deletes [MaintenanceTask]s in batch.
@@ -83,4 +80,15 @@ interface MaintenanceTaskService : EntityWithSecureDelegationsService<Maintenanc
 	 * @throws [AccessDeniedException] if the user does not have the permission to create a [MaintenanceTask].
 	 */
 	fun createMaintenanceTasks(entities: Collection<MaintenanceTask>): Flow<MaintenanceTask>
+
+	/**
+	 * Retrieves the ids of the [MaintenanceTask]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [MaintenanceTask].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchMaintenanceTasksBy(filter: AbstractFilter<MaintenanceTask>): Flow<String>
 }

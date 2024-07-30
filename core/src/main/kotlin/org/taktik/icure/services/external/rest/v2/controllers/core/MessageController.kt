@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -77,7 +75,6 @@ class MessageController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val filters: Filters,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -333,7 +330,6 @@ class MessageController(
 
 	@Operation(summary = "Get ids of messages matching the provided filter")
 	@PostMapping("/match")
-	fun matchMessagesBy(@RequestBody filter: AbstractFilterDto<MessageDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	fun matchMessagesBy(@RequestBody filter: AbstractFilterDto<MessageDto>) =
+		messageService.matchMessagesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 }

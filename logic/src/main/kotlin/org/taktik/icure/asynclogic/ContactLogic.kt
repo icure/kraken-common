@@ -15,7 +15,6 @@ import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.pagination.PaginationElement
 
@@ -34,8 +33,6 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
      * @return a [Flow] of [Contact]s.
      */
     fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
-
-    fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
     /**
      * Retrieves the ids of all the [Contact]s given the [dataOwnerId] (plus all the current access keys if that is
@@ -62,21 +59,11 @@ interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDeleg
     fun getServicesLinkedTo(ids: List<String>, linkType: String?): Flow<Service>
     fun listServicesByAssociationId(associationId: String): Flow<Service>
 
-    fun listServiceIdsByHcParty(hcPartyId: String): Flow<String>
-    fun listServiceIdsByTag(hcPartyId: String, patientSecretForeignKeys: List<String>?, tagType: String, tagCode: String, startValueDate: Long?, endValueDate: Long?, descending: Boolean = false): Flow<String>
-    fun listServiceIdsByCode(hcPartyId: String, patientSecretForeignKeys: List<String>?, codeType: String, codeCode: String, startValueDate: Long?, endValueDate: Long?, descending: Boolean = false): Flow<String>
-    fun listContactIdsByTag(hcPartyId: String, tagType: String, tagCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-    fun listServiceIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-    fun listContactIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-    fun listContactIdsByCode(hcPartyId: String, codeType: String, codeCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-    fun listContactIds(hcPartyId: String): Flow<String>
     fun listIdsByServices(services: Collection<String>): Flow<String>
-    fun listServicesByHcPartyAndSecretForeignKeys(hcPartyId: String, patientSecretForeignKeys: Set<String>): Flow<String>
     fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact>
     fun listContactsByHcPartyServiceId(hcPartyId: String, serviceId: String): Flow<Contact>
     fun listContactsByExternalId(externalId: String): Flow<Contact>
     fun listServicesByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>): Flow<Service>
-    fun listServiceIdsByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>): Flow<String>
 
     suspend fun getServiceCodesOccurences(
         hcPartyId: String,

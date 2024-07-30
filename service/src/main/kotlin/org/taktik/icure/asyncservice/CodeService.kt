@@ -6,9 +6,9 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
@@ -130,4 +130,13 @@ interface CodeService : EntityWithConflictResolutionService {
 	 * @return a [Code] that matches the criteria or null.
 	 */
 	suspend fun getCodeByLabel(region: String?, label: String, type: String, languages: List<String> = listOf("fr", "nl")): Code?
+
+	/**
+	 * Retrieves the ids of the [Code]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Code].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the current user does not have the Permission to search codes with a filter.
+	 */
+	fun matchCodesBy(filter: AbstractFilter<Code>): Flow<String>
 }

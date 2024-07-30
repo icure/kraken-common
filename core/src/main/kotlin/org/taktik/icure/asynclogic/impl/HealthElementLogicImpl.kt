@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.entity.IdAndRev
@@ -24,27 +22,26 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.utils.aggregateResults
-import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.TreeSet
+import java.util.*
 
 open class HealthElementLogicImpl (
-    private val filters: Filters,
-    private val healthElementDAO: HealthElementDAO,
-    sessionLogic: SessionInformationProvider,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), HealthElementLogic {
+	filters: Filters,
+	private val healthElementDAO: HealthElementDAO,
+	sessionLogic: SessionInformationProvider,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer
+) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), HealthElementLogic {
 
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,
@@ -99,24 +96,6 @@ open class HealthElementLogicImpl (
 		)
 	}
 
-	override fun listHealthElementIdsByHcParty(hcpId: String) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-				mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(hcpId)) { key ->
-					healthElementDAO.listHealthElementsByHcParty(datastoreInformation, key)
-				}
-			)
-		}
-
-
-	override fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementIdsByHcPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
-		}
-
-
 	override suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement> {
 		val datastoreInformation = getInstanceAndGroup()
 		return healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys).toList()
@@ -126,34 +105,6 @@ open class HealthElementLogicImpl (
 				}
 			}
 	}
-
-	override fun listHealthElementIdsByHcPartyAndCodes(hcPartyId: String, codeType: String, codeNumber: String) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementsByHCPartyAndCodes(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), codeType, codeNumber))
-		}
-
-
-	override fun listHealthElementIdsByHcPartyAndTags(hcPartyId: String, tagType: String, tagCode: String) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementsByHCPartyAndTags(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), tagType, tagCode))
-		}
-
-
-	override fun listHealthElementsIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementsIdsByHcPartyAndIdentifiers(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), identifiers))
-		}
-
-
-	override fun listHealthElementIdsByHcPartyAndStatus(hcPartyId: String, status: Int) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementsByHCPartyAndStatus(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), status))
-		}
-
 
 	override fun deleteHealthElements(ids: Set<String>): Flow<DocIdentifier> =
 		flow {
@@ -241,7 +192,7 @@ open class HealthElementLogicImpl (
 	override fun filter(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthElement>) =
 			flow {
 				val datastoreInformation = getInstanceAndGroup()
-				val ids = filters.resolve(filter.filter).toSet(TreeSet())
+				val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 				aggregateResults(
 					ids = ids,
 					limit = paginationOffset.limit,

@@ -13,6 +13,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.MedicalLocationDAO
 import org.taktik.icure.asynclogic.MedicalLocationLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.exceptions.DeletionException
@@ -26,8 +27,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class MedicalLocationLogicImpl(
 	private val medicalLocationDAO: MedicalLocationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<MedicalLocation, MedicalLocationDAO>(fixer, datastoreInstanceProvider), MedicalLocationLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<MedicalLocation, MedicalLocationDAO>(fixer, datastoreInstanceProvider, filters), MedicalLocationLogic {
 
 	override suspend fun createMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation) { fixedMedicalLocation ->
 		if(fixedMedicalLocation.rev != null) throw IllegalArgumentException("A new entity should not have a rev")

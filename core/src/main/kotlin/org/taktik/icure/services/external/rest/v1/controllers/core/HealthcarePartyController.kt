@@ -13,12 +13,12 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -29,10 +29,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -63,7 +61,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v1/hcparty")
 @Tag(name = "hcparty")
 class HealthcarePartyController(
-	private val filters: Filters,
 	private val healthcarePartyService: HealthcarePartyService,
 	private val sessionLogic: SessionInformationProvider,
 	private val healthcarePartyMapper: HealthcarePartyMapper,
@@ -273,8 +270,8 @@ class HealthcarePartyController(
 	}
 
 	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchHealthcarePartiesBy(@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>) = mono {
-		filters.resolve(filterMapper.tryMap(filter).orThrow()).toList()
-	}
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchHealthcarePartiesBy(@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>) =
+		healthcarePartyService.matchHealthcarePartiesBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+
 }

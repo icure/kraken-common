@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asynclogic.impl.filter
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toCollection
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import java.io.Serializable
 
 @Service
 @Profile("app")
@@ -21,15 +21,15 @@ class IntersectionFilter<T : Serializable, O : Identifiable<T>> :
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.IntersectionFilter<T, O>,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation?
+		datastoreInformation: IDatastoreInformation
     ): Flow<T> = flow {
 		val filters = filter.filters
 		val result = LinkedHashSet<T>()
 		for (i in filters.indices) {
 			if (i == 0) {
-				result.addAll(context.resolve(filters[i]).toList())
+				result.addAll(context.resolve(filters[i], datastoreInformation).toList())
 			} else {
-				result.retainAll(context.resolve(filters[i]).toCollection(LinkedHashSet()))
+				result.retainAll(context.resolve(filters[i], datastoreInformation).toCollection(LinkedHashSet()))
 			}
 		}
 		result.forEach { emit(it) } // TODO SH MB: not reactive... can be optimized?

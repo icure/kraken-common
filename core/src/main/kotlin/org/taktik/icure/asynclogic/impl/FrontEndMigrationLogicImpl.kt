@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.FrontEndMigrationDAO
 import org.taktik.icure.asynclogic.FrontEndMigrationLogic
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.FrontEndMigration
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.validation.aspect.Fixer
@@ -22,8 +23,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class FrontEndMigrationLogicImpl(
 	private val frontEndMigrationDAO: FrontEndMigrationDAO,
 	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider), FrontEndMigrationLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider, filters), FrontEndMigrationLogic {
 
 	override suspend fun createFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration? {
 		val datastoreInformation = getInstanceAndGroup()

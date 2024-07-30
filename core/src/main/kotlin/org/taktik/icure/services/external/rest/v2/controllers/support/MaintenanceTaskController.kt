@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -54,7 +53,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/maintenancetask")
 @Tag(name = "maintenanceTask")
 class MaintenanceTaskController(
-	private val filters: Filters,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val maintenanceTaskService: MaintenanceTaskService,
 	private val maintenanceTaskMapper: MaintenanceTaskV2Mapper,
@@ -128,7 +126,8 @@ class MaintenanceTaskController(
 
 	@Operation(summary = "Get ids of MaintenanceTasks matching the provided filter for the current user.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchMaintenanceTasksBy(@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchMaintenanceTasksBy(@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>) =
+		maintenanceTaskService.matchMaintenanceTasksBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")

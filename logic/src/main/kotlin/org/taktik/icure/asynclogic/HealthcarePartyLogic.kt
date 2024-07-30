@@ -11,7 +11,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.pagination.PaginationElement
 
 interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
@@ -88,8 +87,4 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
 	suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String>
 	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>
-	fun listHealthcarePartyIdsByIdentifiers(hcpIdentifiers: List<Identifier>): Flow<String>
-	fun listHealthcarePartyIdsByCode(codeType: String, codeCode: String?): Flow<String>
-	fun listHealthcarePartyIdsByTag(tagType: String, tagCode: String?): Flow<String>
-	fun listHealthcarePartyIdsByName(name: String, desc: Boolean = false): Flow<String>
 }
