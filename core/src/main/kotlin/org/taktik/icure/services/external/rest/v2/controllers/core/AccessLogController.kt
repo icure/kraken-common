@@ -201,6 +201,11 @@ class AccessLogController(
 
 	@Operation(summary = "Get the ids of the AccessLogs matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchAccessLogsBy(@RequestBody filter: AbstractFilterDto<AccessLogDto>) =
-		accessLogService.matchAccessLogsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchAccessLogsBy(
+		@RequestBody filter: AbstractFilterDto<AccessLogDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = accessLogService.matchAccessLogsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate?: false
+	).injectReactorContext()
 }

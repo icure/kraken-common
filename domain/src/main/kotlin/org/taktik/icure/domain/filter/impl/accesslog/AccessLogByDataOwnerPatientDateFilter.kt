@@ -15,7 +15,7 @@ data class AccessLogByDataOwnerPatientDateFilter(
 	override val desc: String? = null
 ) : AbstractFilter<AccessLog>, IAccessLogByDataOwnerPatientDateFilter {
 
-	override val requiresSecurityPrecondition: Boolean = true
+	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
 	override fun matches(item: AccessLog, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =

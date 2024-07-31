@@ -4,15 +4,18 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -45,6 +48,17 @@ class AgendaDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
 	}
 
+	override fun listAgendaIdsByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_user")
+			.startKey(userId)
+			.endKey(userId)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
+	}
+
 	@View(name = "readable_by_user", map = "classpath:js/agenda/Readable_by_user.js")
 	override fun getReadableAgendaByUser(datastoreInformation: IDatastoreInformation, userId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -55,5 +69,19 @@ class AgendaDAOImpl(
 			.includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
+	}
+
+	override fun listReadableAgendaIdsByUser(
+		datastoreInformation: IDatastoreInformation,
+		userId: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "readable_by_user")
+			.startKey(userId)
+			.endKey(userId)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 }

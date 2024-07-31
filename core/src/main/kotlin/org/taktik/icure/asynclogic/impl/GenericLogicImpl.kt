@@ -5,9 +5,11 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.GenericDAO
@@ -87,9 +89,14 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().remove(getInstanceAndGroup(), entities))
 	}
 
-	override fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String> = flow {
+	override fun matchEntitiesBy(filter: AbstractFilter<*>, deduplicate: Boolean): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(filters.resolve(filter, datastoreInformation))
+		emitAll(filters.resolve(filter, datastoreInformation).let {
+			if(!deduplicate) it
+			// LinkedHashSet is a set that keeps the order of addition.
+			// It's the default value of .toSet(), so it's more for future reference.
+			else it.toSet(LinkedHashSet()).asFlow()
+		})
 	}
 
 	protected abstract fun getGenericDAO(): D

@@ -412,8 +412,13 @@ class InvoiceController(
 
 	@Operation(summary = "Get ids of Invoices matching the provided filter for the current user.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchInvoicesBy(@RequestBody filter: AbstractFilterDto<InvoiceDto>) =
-		invoiceService.matchInvoicesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchInvoicesBy(
+		@RequestBody filter: AbstractFilterDto<InvoiceDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = invoiceService.matchInvoicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Modify a batch of invoices", description = "Returns the modified invoices.")
 	@PutMapping("/batch")

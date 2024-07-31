@@ -365,8 +365,13 @@ class ContactController(
 
 	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) =
-		contactService.matchContactsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchContactsBy(
+		@RequestBody filter: AbstractFilterDto<ContactDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = contactService.matchContactsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Get a service by id")
 	@GetMapping("/service/{serviceId}")
@@ -404,8 +409,13 @@ class ContactController(
 
 	@Operation(summary = "Get ids of services matching the provided filter for the current user")
 	@PostMapping("/service/match")
-	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) =
-		contactService.matchServicesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchServicesBy(
+		@RequestBody filter: AbstractFilterDto<ServiceDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = contactService.matchServicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")
 	@PostMapping("/service")

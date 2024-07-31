@@ -9,6 +9,39 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Agenda
 
 interface AgendaDAO : GenericDAO<Agenda> {
+	/**
+	 * Retrieves all the [Agenda]s where [Agenda.userId] equals [userId]
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param userId the id of the user the [Agenda]s refer to.
+	 * @return a [Flow] of [Agenda]s
+	 */
 	fun getAgendasByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<Agenda>
+
+	/**
+	 * Retrieves all the [Agenda.id]s for the agendas where [Agenda.userId] is equal to [userId]
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param userId the id of the user the [Agenda]s refer to.
+	 * @return a [Flow] of [Agenda.id]s
+	 */
+	fun listAgendaIdsByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Agenda]s where one of the [Agenda.rights] contains [userId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param userId the id of that can read the [Agenda].
+	 * @return a [Flow] of [Agenda]s
+	 */
 	fun getReadableAgendaByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<Agenda>
+
+	/**
+	 * Retrieves all the [Agenda.id]s for the agendas where one of the [Agenda.rights] contains [userId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param userId the id of that can read the [Agenda].
+	 * @return a [Flow] of [Agenda.id]s
+	 */
+	fun listReadableAgendaIdsByUser(datastoreInformation: IDatastoreInformation, userId: String): Flow<String>
 }

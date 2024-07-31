@@ -271,7 +271,13 @@ class HealthcarePartyController(
 
 	@Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchHealthcarePartiesBy(@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>) =
-		healthcarePartyService.matchHealthcarePartiesBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchHealthcarePartiesBy(
+		@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) =
+		healthcarePartyService.matchHealthcarePartiesBy(
+			filter = filterMapper.tryMap(filter).orThrow(),
+			deduplicate = deduplicate ?: false
+		).injectReactorContext()
 
 }

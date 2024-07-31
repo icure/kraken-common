@@ -48,10 +48,10 @@ import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.utils.orThrow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -306,8 +306,13 @@ class HealthcarePartyController(
 
     @Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
     @PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-    fun matchHealthcarePartiesBy(@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>) =
-        healthcarePartyService.matchHealthcarePartiesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+    fun matchHealthcarePartiesBy(
+        @RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
+        @RequestParam(required = false) deduplicate: Boolean? = null
+    ) = healthcarePartyService.matchHealthcarePartiesBy(
+        filter = filterV2Mapper.tryMap(filter).orThrow(),
+        deduplicate = deduplicate ?: false
+    ).injectReactorContext()
 
     @Operation(
         summary = "Filter healthcare parties for the current user (HcParty)",

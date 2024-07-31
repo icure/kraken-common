@@ -11,6 +11,8 @@ import java.time.Instant
  * If [accessType] is null, then [startDate] will have no effect on the results.
  * The retrieved [AccessLog]s will be sorted by [AccessLog.accessType] and [AccessLog.date] in ascending or descending
  * order according to the value of the [descending] parameter.
+ * As [AccessLog] is an encryptable entity but this filter does not require any data owner id, it requires a security
+ * precondition.
  */
 interface AccessLogByUserIdUserTypeDateFilter : Filter<String, AccessLog> {
 	val userId: String

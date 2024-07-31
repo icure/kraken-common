@@ -129,8 +129,13 @@ class DeviceController(
 
 	@Operation(summary = "Get ids of devices matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchDevicesBy(@RequestBody filter: AbstractFilterDto<DeviceDto>) =
-		deviceService.matchDevicesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchDevicesBy(
+		@RequestBody filter: AbstractFilterDto<DeviceDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = deviceService.matchDevicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
 	@DeleteMapping("/{deviceId}")

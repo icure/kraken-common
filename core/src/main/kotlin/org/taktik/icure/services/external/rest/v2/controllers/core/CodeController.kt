@@ -270,8 +270,13 @@ class CodeController(
 
 	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchCodesBy(@RequestBody filter: AbstractFilterDto<CodeDto>) =
-		codeService.matchCodesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchCodesBy(
+		@RequestBody filter: AbstractFilterDto<CodeDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = codeService.matchCodesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")
 	@PostMapping("/{codeType}")

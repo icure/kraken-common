@@ -233,7 +233,12 @@ class HealthElementController(
 
 	@Operation(summary = "Get ids of health element matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchHealthElementsBy(@RequestBody filter: AbstractFilterDto<HealthElementDto>) =
-		healthElementService.matchHealthElementsBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchHealthElementsBy(
+		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = healthElementService.matchHealthElementsBy(
+		filter = filterMapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 }

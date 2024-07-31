@@ -12,7 +12,7 @@ import org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ExternalViewFilterDto(
+data class ExternalViewFilter(
 	override val desc: String? = null,
 	val view: String,
 	val partition: String,

@@ -15,7 +15,6 @@ import org.taktik.icure.constants.Permissions
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
-import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.InvoiceType
@@ -145,10 +144,11 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWi
 	 * Retrieves the ids of the [Invoice]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Invoice].
+	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchInvoicesBy(filter: AbstractFilter<Invoice>): Flow<String>
+	fun matchInvoicesBy(filter: AbstractFilter<Invoice>, deduplicate: Boolean): Flow<String>
 }

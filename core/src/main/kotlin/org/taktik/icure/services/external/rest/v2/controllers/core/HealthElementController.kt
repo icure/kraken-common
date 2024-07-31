@@ -245,8 +245,13 @@ class HealthElementController(
 
 	@Operation(summary = "Get ids of health element matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchHealthElementsBy(@RequestBody filter: AbstractFilterDto<HealthElementDto>) =
-		healthElementService.matchHealthElementsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchHealthElementsBy(
+		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = healthElementService.matchHealthElementsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(description = "Shares one or more health elements with one or more data owners but does not return the updated entity.")
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")

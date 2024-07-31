@@ -50,8 +50,8 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
-import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -324,8 +324,13 @@ class PatientController(
 
 	@Operation(summary = "Get ids of patients matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchPatientsBy(@RequestBody filter: AbstractFilterDto<PatientDto>) =
-		patientService.matchPatientsBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchPatientsBy(
+		@RequestBody filter: AbstractFilterDto<PatientDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = patientService.matchPatientsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")

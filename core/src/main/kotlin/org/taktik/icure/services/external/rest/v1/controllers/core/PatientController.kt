@@ -335,8 +335,13 @@ class PatientController(
 
 	@Operation(summary = "Get ids of patients matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchPatientsBy(@RequestBody filter: AbstractFilterDto<PatientDto>) =
-		patientService.matchPatientsBy(filterMapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchPatientsBy(
+		@RequestBody filter: AbstractFilterDto<PatientDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = patientService.matchPatientsBy(
+		filter = filterMapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")

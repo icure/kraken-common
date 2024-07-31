@@ -14,6 +14,7 @@ import java.time.Instant
  * If [endDate] is null, all the [AccessLog]s until the end of time will be returned.
  * The results will be sorted by [AccessLog.date] in ascending or descending order according to the value of the
  * [descending] parameter.
+ * This filter explicitly requires a [dataOwnerId], so it does not require any security precondition.
  */
 interface AccessLogByDataOwnerPatientDateFilter : Filter<String, AccessLog> {
 	val dataOwnerId: String

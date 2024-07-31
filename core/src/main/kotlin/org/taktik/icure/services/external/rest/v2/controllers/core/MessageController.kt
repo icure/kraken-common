@@ -330,6 +330,11 @@ class MessageController(
 
 	@Operation(summary = "Get ids of messages matching the provided filter")
 	@PostMapping("/match")
-	fun matchMessagesBy(@RequestBody filter: AbstractFilterDto<MessageDto>) =
-		messageService.matchMessagesBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchMessagesBy(
+		@RequestBody filter: AbstractFilterDto<MessageDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = messageService.matchMessagesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 }

@@ -54,7 +54,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.ComplementFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.ExternalViewFilterDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.ExternalViewFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.IntersectionFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
@@ -119,7 +119,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.utils.ExternalFilterKey
 @Mapper(componentModel = "default", uses = [IdentifierV2Mapper::class, GenderV2Mapper::class, ExternalFilterKeyV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class FilterV2Mapper {
 
-	abstract fun <O : Identifiable<String>> map(filterDto: ExternalViewFilterDto): org.taktik.icure.domain.filter.impl.ExternalViewFilter<O>
+	abstract fun <O : Identifiable<String>> map(filterDto: ExternalViewFilter): org.taktik.icure.domain.filter.impl.ExternalViewFilter<O>
 
 	abstract fun map(filterDto: AccessLogByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByDataOwnerPatientDateFilter
 	abstract fun map(filterDto: AccessLogByDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByDateFilter
@@ -343,7 +343,7 @@ abstract class FilterV2Mapper {
 			is UnionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
 			is ComplementFilter<I> -> mapToDomain(filterDto, tryMapFilter)
 			is IntersectionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
-			is ExternalViewFilterDto -> map(filterDto)
+			is ExternalViewFilter -> map(filterDto)
 			else -> null
 		}
 

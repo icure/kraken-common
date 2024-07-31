@@ -216,6 +216,11 @@ class UserController(
 
 	@Operation(summary = "Get ids of users matching the provided filter for the current user (HcParty) ")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) =
-		userService.matchUsersBy(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchUsersBy(
+		@RequestBody filter: AbstractFilterDto<UserDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = userService.matchUsersBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate ?: false
+	).injectReactorContext()
 }
