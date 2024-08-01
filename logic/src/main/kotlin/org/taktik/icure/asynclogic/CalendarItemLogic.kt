@@ -18,7 +18,20 @@ interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithS
 	fun deleteCalendarItems(ids: Flow<String>): Flow<DocIdentifier>
 	suspend fun getCalendarItem(calendarItemId: String): CalendarItem?
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
-	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<CalendarItem>
+
+	/**
+	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.agendaId] is equal to the provided [agendaId],
+	 * [CalendarItem.startTime] is greater or equal than [startDate], and [CalendarItem.endTime] is less
+	 * or equal than [endDate].
+	 * The entities will be sorted by [CalendarItem.startTime] in ascending or descending order according to the value
+	 * of [descending].
+	 *
+	 * @param startDate a fuzzy date.
+	 * @param endDate a fuzzy date.
+	 * @param agendaId the [CalendarItem.agendaId].
+	 * @return a [Flow] containing the matching [CalendarItem]s.
+	 */
+	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String, descending: Boolean): Flow<CalendarItem>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 	fun findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>, paginationOffset: PaginationOffset<List<Any>>): Flow<ViewQueryResultEvent>
 

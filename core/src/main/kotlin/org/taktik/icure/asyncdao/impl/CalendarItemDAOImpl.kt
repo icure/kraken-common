@@ -18,10 +18,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -37,7 +39,6 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
@@ -47,6 +48,7 @@ import org.taktik.icure.utils.distinctBy
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.interleaveNoValue
+import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
 
 @Repository("calendarItemDAO")
@@ -86,12 +88,8 @@ class CalendarItemDAOImpl(
 	override fun listCalendarItemByEndDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val from = ComplexKey.of(
-			hcPartyId, startDate
-		)
-		val to = ComplexKey.of(
-			hcPartyId, endDate ?: ComplexKey.emptyObject()
-		)
+		val from = ComplexKey.of(hcPartyId, startDate)
+		val to = ComplexKey.of(hcPartyId, endDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
 			datastoreInformation,
@@ -102,51 +100,106 @@ class CalendarItemDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<Array<String>, Nothing, CalendarItem>>().map { it.doc })
 	}
 
+	suspend fun listCalendarItemIdsByDateAndDataOwnerId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		dataOwnerId: String,
+		vararg views: Pair<String, String?>
+	): Set<String> {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = ComplexKey.of(dataOwnerId, startDate)
+		val to = ComplexKey.of(dataOwnerId, endDate ?: ComplexKey.emptyObject())
+
+		val viewQueries = createQueries(datastoreInformation, *views)
+			.startKey(from)
+			.endKey(to)
+			.doNotIncludeDocs()
+		return client
+			.interleave<Array<String>, CalendarItem>(viewQueries, compareBy({it[0]}, {it[1]}))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, Nothing>>()
+			.map { it.id }
+			.toSet(LinkedHashSet()) // More for documentation purposes as it is the default behaviour of .toSet()
+	}
+
+	override fun listCalendarItemIdsByPeriodAndDataOwnerId(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		startDate: Long?,
+		endDate: Long?
+	): Flow<String> = flow {
+		val idsByStartDate = listCalendarItemIdsByDateAndDataOwnerId(
+			datastoreInformation,
+			startDate,
+			endDate,
+			dataOwnerId,
+			"by_hcparty_and_startdate".main(),
+			"by_data_owner_and_startdate" to DATA_OWNER_PARTITION
+		)
+		val idsByEndDate = listCalendarItemIdsByDateAndDataOwnerId(
+			datastoreInformation,
+			startDate,
+			endDate,
+			dataOwnerId,
+			"by_hcparty_and_enddate".main(),
+			"by_data_owner_and_enddate" to DATA_OWNER_PARTITION
+		)
+		emitAll(idsByStartDate.union(idsByEndDate).asFlow())
+	}
+
 	override fun listCalendarItemByPeriodAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem> = flow {
 		emitAll(listCalendarItemByStartDateAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
 		emitAll(listCalendarItemByEndDateAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
 	}.distinctById()
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")
-	override fun listCalendarItemByStartDateAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
+	fun listCalendarItemByStartDateAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long,
+		endDate: Long,
+		agendaId: String,
+		descending: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val from = ComplexKey.of(
-			agendaId, startDate
+			agendaId,
+			if (descending) endDate else startDate
 		)
 		val to = ComplexKey.of(
-			agendaId, endDate ?: ComplexKey.emptyObject()
+			agendaId,
+			if (descending) startDate else endDate
 		)
 
-		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_startdate").startKey(from).endKey(to).includeDocs(true)
+		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_startdate")
+			.startKey(from)
+			.endKey(to)
+			.descending(descending)
+			.includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, CalendarItem>(viewQuery).map { it.doc })
 	}
 
-	@View(name = "by_agenda_and_enddate", map = "classpath:js/calendarItem/By_agenda_and_enddate.js")
-	override fun listCalendarItemByEndDateAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agenda: String) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val from = ComplexKey.of(
-			agenda, startDate
-		)
-		val to = ComplexKey.of(
-			agenda, endDate ?: ComplexKey.emptyObject()
-		)
-
-		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_enddate").startKey(from).endKey(to).includeDocs(true)
-
-		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, CalendarItem>(viewQuery).map { it.doc })
-	}
-
-	override fun listCalendarItemByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
+	override fun listCalendarItemByPeriodAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long,
+		endDate: Long,
+		agendaId: String,
+		descending: Boolean
+	) = flow {
 		emitAll(listCalendarItemByStartDateAndAgendaId(
-			datastoreInformation, startDate?.let {
+			datastoreInformation,
+			startDate.let {
 				/* 1 day in the past to catch long-lasting events that could bracket the search period */
-				FuzzyValues.getFuzzyDateTime(FuzzyValues.getDateTime(it)?.minusDays(1) ?: throw IllegalStateException("Failed to compute startDate"), ChronoUnit.SECONDS)
-			}, endDate, agendaId
+				FuzzyValues.getFuzzyDateTime(FuzzyValues.getDateTime(it)?.minusDays(1)
+					?: throw IllegalStateException("Failed to compute startDate"), ChronoUnit.SECONDS)
+			},
+			endDate,
+			agendaId,
+			descending
 		).filter {
-			it.endTime?.let { et -> et > (startDate ?: 0) } ?: true
+			it.endTime?.let { et -> et > startDate } ?: true
 		})
 	}
 
@@ -192,7 +245,7 @@ class CalendarItemDAOImpl(
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override fun findCalendarItemIdsByDataOwnerPatientStartTime(
+	override fun listCalendarItemIdsByDataOwnerPatientStartTime(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,
@@ -317,6 +370,15 @@ class CalendarItemDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
+	}
+
+	override fun listCalendarItemIdsByRecurrenceId(
+		datastoreInformation: IDatastoreInformation,
+		recurrenceId: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(false)
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {

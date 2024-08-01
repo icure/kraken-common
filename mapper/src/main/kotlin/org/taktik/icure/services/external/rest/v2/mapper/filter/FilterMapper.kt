@@ -28,6 +28,8 @@ import org.taktik.icure.domain.filter.impl.predicate.NotPredicate
 import org.taktik.icure.domain.filter.impl.predicate.OrPredicate
 import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.AccessLog
+import org.taktik.icure.entities.Agenda
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthElement
@@ -40,6 +42,8 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
+import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
+import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -60,6 +64,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByRecurrenceIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.AllCodesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeLabelLanguageFilter
@@ -130,6 +140,30 @@ abstract class FilterV2Mapper {
 		is AccessLogByDataOwnerPatientDateFilter -> map(filterDto)
 		is AccessLogByDateFilter -> map(filterDto)
 		is AccessLogByUserIdUserTypeDateFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: AgendaByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByUserIdFilter
+	abstract fun map(filterDto: AgendaReadableByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserIdFilter
+
+	@JvmName("tryMapAgendaFilter")
+	fun tryMap(filterDto: AbstractFilterDto<AgendaDto>): AbstractFilter<Agenda>? = when(filterDto) {
+		is AgendaByUserIdFilter -> map(filterDto)
+		is AgendaReadableByUserIdFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: CalendarItemByPeriodAndAgendaIdFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByPeriodAndAgendaIdFilter
+	abstract fun map(filterDto: CalendarItemByPeriodAndDataOwnerIdFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByPeriodAndDataOwnerIdFilter
+	abstract fun map(filterDto: CalendarItemByDataOwnerPatientStartTimeFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByDataOwnerPatientStartTimeFilter
+	abstract fun map(filterDto: CalendarItemByRecurrenceIdFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByRecurrenceIdFilter
+
+	@JvmName("tryMapCalendarItemFilter")
+	fun tryMap(filterDto: AbstractFilterDto<CalendarItemDto>): AbstractFilter<CalendarItem>? = when(filterDto) {
+		is CalendarItemByPeriodAndAgendaIdFilter -> map(filterDto)
+		is CalendarItemByPeriodAndDataOwnerIdFilter -> map(filterDto)
+		is CalendarItemByDataOwnerPatientStartTimeFilter -> map(filterDto)
+		is CalendarItemByRecurrenceIdFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

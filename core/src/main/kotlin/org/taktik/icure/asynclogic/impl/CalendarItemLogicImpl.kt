@@ -87,9 +87,14 @@ class CalendarItemLogicImpl(
 			)
 		}
 
-	override fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<CalendarItem> = flow {
+	override fun getCalendarItemByPeriodAndAgendaId(
+		startDate: Long,
+		endDate: Long,
+		agendaId: String,
+		descending: Boolean
+	): Flow<CalendarItem> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(calendarItemDAO.listCalendarItemByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId))
+		emitAll(calendarItemDAO.listCalendarItemByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId, descending))
 	}
 
 	override fun getCalendarItemsByRecurrenceId(recurrenceId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
@@ -142,7 +147,7 @@ class CalendarItemLogicImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(calendarItemDAO.findCalendarItemIdsByDataOwnerPatientStartTime(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(dataOwnerId), secretForeignKeys, startDate, endDate, descending))
+		emitAll(calendarItemDAO.listCalendarItemIdsByDataOwnerPatientStartTime(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(dataOwnerId), secretForeignKeys, startDate, endDate, descending))
 	}
 
 	override fun getGenericDAO(): CalendarItemDAO {
