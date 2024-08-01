@@ -30,6 +30,7 @@ import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.entities.CalendarItem
+import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthElement
@@ -44,6 +45,7 @@ import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
+import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -70,6 +72,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.Calend
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByRecurrenceIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.classification.ClassificationByDataOwnerPatientCreatedDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.AllCodesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeLabelLanguageFilter
@@ -164,6 +167,14 @@ abstract class FilterV2Mapper {
 		is CalendarItemByPeriodAndDataOwnerIdFilter -> map(filterDto)
 		is CalendarItemByDataOwnerPatientStartTimeFilter -> map(filterDto)
 		is CalendarItemByRecurrenceIdFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDot: ClassificationByDataOwnerPatientCreatedDateFilter): org.taktik.icure.domain.filter.impl.classification.ClassificationByDataOwnerPatientCreatedDateFilter
+
+	@JvmName("tryMapClassificationFilter")
+	fun tryMap(filterDto: AbstractFilterDto<ClassificationDto>): AbstractFilter<Classification>? = when(filterDto) {
+		is ClassificationByDataOwnerPatientCreatedDateFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
