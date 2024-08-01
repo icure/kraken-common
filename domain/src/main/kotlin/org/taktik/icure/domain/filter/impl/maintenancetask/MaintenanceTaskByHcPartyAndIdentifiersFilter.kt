@@ -12,6 +12,7 @@ data class MaintenanceTaskByHcPartyAndIdentifiersFilter(
 	override val identifiers: List<Identifier>,
 ) : AbstractFilter<MaintenanceTask>, MaintenanceTaskByHcPartyAndIdentifiersFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

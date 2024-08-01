@@ -124,7 +124,7 @@ class CodeController(
 		val startKeyElements: List<String>? = startKey?.let { objectMapper.readValue<List<String>>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return codeService
-			.findCodesByQualifiedLinkId(null, linkType, linkedId, paginationOffset)
+			.findCodesByQualifiedLinkId(linkType, linkedId, paginationOffset)
 			.mapElements(codeV2Mapper::map)
 			.asPaginatedFlux()
 	}

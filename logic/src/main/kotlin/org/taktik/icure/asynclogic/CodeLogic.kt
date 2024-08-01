@@ -8,6 +8,7 @@ import java.io.InputStream
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
@@ -113,8 +114,18 @@ interface CodeLogic : EntityPersister<Code, String> {
 	fun findCodesByLabel(region: String?, language: String, types: Set<String>, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<PaginationElement>
 
 	fun listCodeIdsByTypeCodeVersionInterval(startType: String?, startCode: String?, startVersion: String?, endType: String?, endCode: String?, endVersion: String?): Flow<String>
-	fun findCodesByQualifiedLinkId(region: String?, linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>): Flow<PaginationElement>
-	fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?): Flow<String>
+
+	/**
+	 * Retrieves all the [Code]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
+	 * will only include the codes that have [linkedId] as value for [linkType].
+	 *
+	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
+	 * @param linkedId the value corresponding to [linkType] in [Code.qualifiedLinks]. If null, it will suffice that the
+	 * code has [linkType] in [Code.qualifiedLinks] to be included in th result.
+	 * @param pagination a [PaginationOffset] of [List] of [String] for pagination.
+	 * @return a [Flow] of [PaginationElement]s the wrap the [Code]s for pagination.
+	 */
+	fun findCodesByQualifiedLinkId(linkType: String, linkedId: String?, pagination: PaginationOffset<List<String>>): Flow<PaginationElement>
 	suspend fun <T : Enum<*>> importCodesFromEnum(e: Class<T>)
 
 	suspend fun importCodesFromXml(md5: String, type: String, stream: InputStream)

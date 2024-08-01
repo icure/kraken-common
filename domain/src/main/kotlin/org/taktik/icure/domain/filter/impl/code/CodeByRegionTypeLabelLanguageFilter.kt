@@ -4,11 +4,11 @@
 
 package org.taktik.icure.domain.filter.impl.code
 
-import java.util.Objects
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import java.util.*
 
 data class CodeByRegionTypeLabelLanguageFilter(
 	override val desc: String? = null,
@@ -18,6 +18,7 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	override val label: String? = null
 ) : AbstractFilter<Code>, org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

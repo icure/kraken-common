@@ -27,6 +27,7 @@ data class HealthElementByHcPartyTagCodeFilter(
 		}
 	}
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

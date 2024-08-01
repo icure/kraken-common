@@ -10,6 +10,7 @@ data class AgendaByUserIdFilter(
 	override val desc: String? = null
 ) : AbstractFilter<Agenda>, IAgendaByUserIdFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

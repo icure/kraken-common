@@ -27,6 +27,7 @@ data class HealthElementByHcPartyFilter(
 	override val desc: String? = null
 ) : AbstractFilter<HealthElement>, Filters.ByHcpartyFilter<String, HealthElement> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 

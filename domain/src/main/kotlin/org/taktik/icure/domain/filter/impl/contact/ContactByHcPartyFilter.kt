@@ -27,6 +27,7 @@ data class ContactByHcPartyFilter(
 	override val desc: String? = null
 ) : AbstractFilter<Contact>, Filters.ByHcpartyFilter<String, Contact> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchKeyMatcher(hcpId, item)

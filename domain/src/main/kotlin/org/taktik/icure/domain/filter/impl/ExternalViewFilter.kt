@@ -14,6 +14,7 @@ data class ExternalViewFilter<O : Identifiable<String>> (
 	override val desc: String?,
 ) : AbstractFilter<O>, org.taktik.icure.domain.filter.ExternalViewFilter<O> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

@@ -15,6 +15,7 @@ data class ComplementFilter<O : Identifiable<String>>(
 	override val subSet: AbstractFilter<O>
 ) : AbstractFilter<O>, Filters.ComplementFilter<String, O> {
 
+	override val canBeUsedInWebsocket = subSet.canBeUsedInWebsocket && superSet.canBeUsedInWebsocket
 	override val requiresSecurityPrecondition: Boolean =
 		subSet.requiresSecurityPrecondition || superSet.requiresSecurityPrecondition
 	override fun requestedDataOwnerIds(): Set<String> =

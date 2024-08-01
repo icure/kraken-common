@@ -39,6 +39,7 @@ data class HealthcarePartyByTagCodeFilter(
 		require(tagType != null || codeType != null) { "You must specify at least one of tagType or codeType" }
 	}
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

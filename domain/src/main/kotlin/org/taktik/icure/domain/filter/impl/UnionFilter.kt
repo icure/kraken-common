@@ -14,6 +14,7 @@ data class UnionFilter<O : Identifiable<String>>(
 	override val filters: List<AbstractFilter<O>> = listOf()
 ) : AbstractFilter<O>, Filters.UnionFilter<String, O> {
 
+	override val canBeUsedInWebsocket = filters.all { it.canBeUsedInWebsocket }
 	override val requiresSecurityPrecondition: Boolean = filters.any { it.requiresSecurityPrecondition }
 	override fun requestedDataOwnerIds(): Set<String> = filters.flatMap { it.requestedDataOwnerIds() }.toSet()
 

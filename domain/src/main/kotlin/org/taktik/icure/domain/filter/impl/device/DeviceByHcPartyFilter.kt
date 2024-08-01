@@ -9,6 +9,7 @@ data class DeviceByHcPartyFilter(
 	override val responsibleId: String? = null
 ) : AbstractFilter<Device>, org.taktik.icure.domain.filter.device.DeviceByHcPartyFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = responsibleId?.let { setOf(it) } ?: emptySet()

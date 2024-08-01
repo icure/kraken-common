@@ -12,6 +12,7 @@ data class ContactByServiceIdsFilter(
 	override val ids: List<String>? = null
 ) : AbstractFilter<Contact>, org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

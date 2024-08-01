@@ -14,6 +14,7 @@ data class ClassificationByDataOwnerPatientCreatedDateFilter(
 	override val desc: String? = null
 ) : AbstractFilter<Classification>, ClassificationByDataOwnerPatientCreatedDateFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 

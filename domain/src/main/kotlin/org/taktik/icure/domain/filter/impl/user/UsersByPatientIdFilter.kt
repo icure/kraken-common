@@ -9,6 +9,7 @@ data class UsersByPatientIdFilter(
 	override val patientId: String
 ) : AbstractFilter<User>, org.taktik.icure.domain.filter.user.UsersByPatientIdFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

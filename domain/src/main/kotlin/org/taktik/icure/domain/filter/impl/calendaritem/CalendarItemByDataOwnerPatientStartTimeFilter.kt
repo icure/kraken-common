@@ -14,6 +14,7 @@ data class CalendarItemByDataOwnerPatientStartTimeFilter(
 	override val desc: String? = null
 ) : AbstractFilter<CalendarItem>, CalendarItemByDataOwnerPatientStartTimeFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 

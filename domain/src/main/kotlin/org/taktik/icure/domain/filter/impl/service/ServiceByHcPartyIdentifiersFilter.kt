@@ -15,6 +15,7 @@ data class ServiceByHcPartyIdentifiersFilter(
 	override val identifiers: List<Identifier> = emptyList(),
 ) : AbstractFilter<Service>, org.taktik.icure.domain.filter.service.ServiceByHcPartyIdentifiersFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 

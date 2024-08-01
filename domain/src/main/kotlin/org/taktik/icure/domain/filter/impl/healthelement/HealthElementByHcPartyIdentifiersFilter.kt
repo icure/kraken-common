@@ -11,6 +11,7 @@ data class HealthElementByHcPartyIdentifiersFilter(
 	override val identifiers: List<Identifier>
 ) : AbstractFilter<HealthElement>, org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyIdentifiersFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = hcPartyId?.let { setOf(it) } ?: emptySet()

@@ -28,6 +28,7 @@ data class HealthcarePartyByNameFilter(
 	override val descending: Boolean? = null,
 ) : AbstractFilter<HealthcareParty>, org.taktik.icure.domain.filter.hcparty.HealthcarePartyByNameFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

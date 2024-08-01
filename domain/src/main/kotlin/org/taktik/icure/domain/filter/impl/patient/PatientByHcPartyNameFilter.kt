@@ -4,11 +4,11 @@
 
 package org.taktik.icure.domain.filter.impl.patient
 
-import java.util.Optional
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import java.util.*
 
 data class PatientByHcPartyNameFilter(
 	override val desc: String? = null,
@@ -16,6 +16,7 @@ data class PatientByHcPartyNameFilter(
 	override val healthcarePartyId: String? = null
 ) : AbstractFilter<Patient>, org.taktik.icure.domain.filter.patient.PatientByHcPartyNameFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

@@ -12,6 +12,7 @@ data class CalendarItemByPeriodAndDataOwnerIdFilter(
 	override val desc: String? = null
 ) : AbstractFilter<CalendarItem>, CalendarItemByPeriodAndDataOwnerIdFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

@@ -26,6 +26,7 @@ data class UserByNameEmailPhoneFilter(
 	override val desc: String? = null
 ) : AbstractFilter<User>, org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

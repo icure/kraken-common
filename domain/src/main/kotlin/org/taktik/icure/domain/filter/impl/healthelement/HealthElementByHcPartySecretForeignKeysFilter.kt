@@ -10,6 +10,7 @@ data class HealthElementByHcPartySecretForeignKeysFilter(
 	override val patientSecretForeignKeys: Set<String> = emptySet()
 ) : AbstractFilter<HealthElement>, org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

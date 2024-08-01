@@ -278,7 +278,6 @@ open class CodeLogicImpl(
     }
 
     override fun findCodesByQualifiedLinkId(
-        region: String?,
         linkType: String,
         linkedId: String?,
         pagination: PaginationOffset<List<String>>
@@ -289,19 +288,12 @@ open class CodeLogicImpl(
                 codeDAO
                     .findCodesByQualifiedLinkId(
                         datastoreInformation,
-                        region,
                         linkType,
                         linkedId,
                         pagination.limitIncludingKey()
                     )
                     .toPaginatedFlow<Code>(pagination.limit)
             )
-        }
-
-    override fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?) =
-        flow {
-            val datastoreInformation = getInstanceAndGroup()
-            emitAll(codeDAO.listCodeIdsByQualifiedLinkId(datastoreInformation, linkType, linkedId))
         }
 
 

@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2020. Taktik SA, All rights reserved.
- */
-
 package org.taktik.icure.asynclogic.impl.filter.code
 
 import kotlinx.coroutines.flow.Flow
@@ -11,23 +7,25 @@ import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter
+import org.taktik.icure.domain.filter.code.CodeByRegionTypeCodeVersionFilter
 import org.taktik.icure.entities.base.Code
 
 @Service
 @Profile("app")
-class CodeByRegionTypeLabelLanguageFilter(
+class CodeByRegionTypeCodeVersionFilter(
 	private val codeDAO: CodeDAO
-) : Filter<String, Code, CodeByRegionTypeLabelLanguageFilter> {
+) : Filter<String, Code, CodeByRegionTypeCodeVersionFilter> {
+
 	override fun resolve(
-        filter: CodeByRegionTypeLabelLanguageFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ): Flow<String> = codeDAO.listCodeIdsByLabel(
+		filter: CodeByRegionTypeCodeVersionFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation
+	): Flow<String> = codeDAO.listCodeIdsBy(
 		datastoreInformation = datastoreInformation,
 		region = filter.region,
-		language = filter.language,
 		type = filter.type,
-		label = filter.label
+		code = filter.code,
+		version = filter.version
 	)
+
 }

@@ -42,6 +42,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.base.Code
+import org.taktik.icure.utils.LATEST_VERSION
 import kotlin.math.min
 
 @Repository("codeDAO")
@@ -57,7 +58,6 @@ import kotlin.math.min
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"
-		const val LATEST_VERSION = "latest"
 		private val semVerRegex = "^[0-9]+(\\.[0-9]+)*$".toRegex()
 
 		private val semanticComparator: (a: String, b: String) -> Int = { a, b ->
@@ -310,7 +310,7 @@ import kotlin.math.min
 		)
 	}
 
-	private fun findCodesByRecursively(datastoreInformation: IDatastoreInformation, client: Client, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>, extensionFactor: Float?): Flow<ViewQueryResultEvent> = flow {
+	private fun getFindCodesQueryLimits(region: String?, type: String?, code: String?, version: String?): Pair<ComplexKey, ComplexKey> {
 		val from = ComplexKey.of(
 			region ?: SMALLEST_CHAR,
 			type ?: SMALLEST_CHAR,
@@ -323,7 +323,11 @@ import kotlin.math.min
 			if (code == null) ComplexKey.emptyObject() else if (version == null) code + "\ufff0" else code,
 			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version + "\ufff0"
 		)
+		return from to to
+	}
 
+	private fun findCodesByRecursively(datastoreInformation: IDatastoreInformation, client: Client, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>, extensionFactor: Float?): Flow<ViewQueryResultEvent> = flow {
+		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
 		val extendedLimit = (paginationOffset.limit * ( extensionFactor ?: 1f) ).toInt()
 
 		val viewQuery = pagedViewQuery(
@@ -372,6 +376,52 @@ import kotlin.math.min
 							emit(versionAccumulator.lastVisited as ViewQueryResultEvent) //If the version filter is "latest" then the last code must be always emitted
 						emit(TotalCount(versionAccumulator.elementsFound ?: 0))
 					}
+				}
+			}
+		)
+	}
+
+	override fun listCodeIdsBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
+
+		val viewQuery = createQuery(datastoreInformation, "by_region_type_code_version")
+			.startKey(from)
+			.endKey(to)
+			.includeDocs(false)
+
+		var lastCode: Code? = null
+		emitAll(
+			client.queryView<ComplexKey, String>(viewQuery).let { flw ->
+				if (version == null || version != LATEST_VERSION) flw.map { it.id }
+				else flw.scan(CodeAccumulator()) { acc, row ->
+					val (_, keyType, keyCode, keyVersion) = checkNotNull(row.key).components
+					lastCode = Code(
+						id = row.id,
+						type = keyType as? String,
+						code = keyCode as? String,
+						version = keyVersion as? String
+					) // I save the last code I visit
+					acc.code?.let { // If I have a previous code
+						when {
+							// If I reached a different code, then I have to emit the previous one
+							keyType != it.type ||keyCode != it.code -> CodeAccumulator(lastCode, it)
+							// If the code is the same, I return the new one only if the version is a greater one
+							// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
+							// not correctly sorted.
+							keyVersion != null
+								&& it.version != null
+								&& semanticComparator(keyVersion as String, it.version!!) > 0 -> CodeAccumulator(lastCode)
+							// Otherwise, I keep the current one
+							else -> acc
+						}
+					} ?: CodeAccumulator(lastCode)
+				}.mapNotNull{
+					it.toEmit?.id
+				}.onCompletion {
+					// If last code is not null, I have to emit it
+					// This can happen only with the latest filter
+					if (lastCode != null) emit(checkNotNull(lastCode?.id))
 				}
 			}
 		)
@@ -688,7 +738,7 @@ import kotlin.math.min
 	}
 
 	@View(name = "by_qualifiedlink_id", map = "classpath:js/code/By_qualifiedlink_id.js")
-	override fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, region: String?, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>) = flow {
+	override fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from =
 			ComplexKey.of(

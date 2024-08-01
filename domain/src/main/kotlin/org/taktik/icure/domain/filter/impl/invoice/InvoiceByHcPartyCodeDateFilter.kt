@@ -15,6 +15,7 @@ data class InvoiceByHcPartyCodeDateFilter(
 	override val endInvoiceDate: Long? = null
 ) : AbstractFilter<Invoice>, org.taktik.icure.domain.filter.invoice.InvoiceByHcPartyCodeDateFilter {
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
