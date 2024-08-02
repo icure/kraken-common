@@ -85,7 +85,7 @@ abstract class AbstractAuthenticationManager <
         try {
             // TODO: the "if" will be removed when the SESSION will be dismissed
             if (authentication is UsernamePasswordAuthenticationToken) {
-                authenticateWithUsernameAndPassword(authentication, null).map {
+                authenticateWithUsernameAndPassword(authentication, null, null).map {
                     JwtAuthenticationToken(
                         claims = it.principal as JwtDetails,
                         authorities = (it.authorities as Collection<Any?>)

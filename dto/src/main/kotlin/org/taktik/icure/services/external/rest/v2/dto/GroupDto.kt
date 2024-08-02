@@ -47,7 +47,9 @@ data class GroupDto(
 	@Schema(description = "Minimum version of Kraken required to access API")	val minimumKrakenVersion: String? = null,
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 
-	val superGroup: String? = null
+	val superGroup: String? = null,
+	@Schema(description = "A user-chosen identifier for the applications for which this group holds data. Helps to isolate environments when working with multi-group applications.")
+	val applicationId: String? = null
 ) : StoredDocumentDto, HasTagsDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
