@@ -137,6 +137,8 @@ abstract class WebSocketOperationHandler(
 
     protected suspend fun handleOperationError(session: WebSocketSession, e: Throwable) {
         when (e) {
+            is UnsupportedOperationException ->
+                HttpStatus.BAD_REQUEST to e.message
             is IllegalArgumentException ->
                 HttpStatus.BAD_REQUEST to e.message
             is org.springframework.security.access.AccessDeniedException ->

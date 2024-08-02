@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.mapper.filter
 
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthElement
@@ -30,6 +31,7 @@ import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
+import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -81,9 +83,11 @@ open class FilterChainV2Mapper(
 	@JvmName("tryMapUser")
 	fun tryMap(filterChainDto: FilterChain<UserDto>): org.taktik.icure.domain.filter.chain.FilterChain<User>? =
 		tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }
-
 	@JvmName("tryMapMessage")
 	fun tryMap(filterChainDto: FilterChain<MessageDto>): org.taktik.icure.domain.filter.chain.FilterChain<Message>? =
+		tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }
+	@JvmName("tryMapCalendarItem")
+	fun tryMap(filterChainDto: FilterChain<CalendarItemDto>): org.taktik.icure.domain.filter.chain.FilterChain<CalendarItem>? =
 		tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }
 
 	protected fun <I : IdentifiableDto<String>, O : Identifiable<String>> tryMap(
