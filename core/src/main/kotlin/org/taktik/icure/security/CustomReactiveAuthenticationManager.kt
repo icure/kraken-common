@@ -6,6 +6,6 @@ import reactor.core.publisher.Mono
 
 interface CustomReactiveAuthenticationManager: ReactiveAuthenticationManager {
 
-	fun authenticateWithUsernameAndPassword(authentication: Authentication, groupId: String?): Mono<Authentication>
+	fun authenticateWithUsernameAndPassword(authentication: Authentication, groupId: String?, applicationId: String?): Mono<Authentication>
 
 }

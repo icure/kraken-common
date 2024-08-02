@@ -26,9 +26,9 @@ class AsyncSessionLogicImpl(
 
 	val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?): Authentication? {
+	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?, applicationId: String?): Authentication? {
 		val token = UsernamePasswordAuthenticationToken(username, password)
-		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId).awaitFirstOrNull()
+		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId, applicationId).awaitFirstOrNull()
 		if (session != null) session.attributes[SESSION_LOCALE_ATTRIBUTE] = "fr" // TODO MB : add locale support
 		return authentication
 	}
