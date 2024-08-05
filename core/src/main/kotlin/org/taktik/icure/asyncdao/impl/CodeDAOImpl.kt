@@ -238,7 +238,7 @@ import kotlin.math.min
 			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version
 		)
 
-		var lastCode: Code? = null
+		var lastAcc = CodeAccumulator()
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
 				createQuery(datastoreInformation, "by_region_type_code_version")
@@ -252,8 +252,7 @@ import kotlin.math.min
 				when {
 					version == "latest" -> { // If the version is latest
 						flw.scan(CodeAccumulator()) { acc, code ->
-							lastCode = code // I save the last code I visit
-							acc.code?.let { // If I have a previous code
+							val newAcc = acc.code?.let { // If I have a previous code
 								when {
 									// If I reached a different code, then I have to emit the previous one
 									code.type != it.type || code.code != it.code -> CodeAccumulator(code, it)
@@ -267,6 +266,9 @@ import kotlin.math.min
 									else -> acc
 								}
 							} ?: CodeAccumulator(code)
+							newAcc.also {
+								lastAcc = it
+							}
 						}.mapNotNull{
 							it.toEmit
 						}
@@ -281,7 +283,7 @@ import kotlin.math.min
 			}.onCompletion {
 				// If last code is not null, I have to emit it
 				// This can happen only with the latest filter
-				if (lastCode != null) emit(lastCode!!)
+				if (lastAcc.code != null) emit(checkNotNull(lastAcc.code))
 			}
 		)
 	}
@@ -389,39 +391,43 @@ import kotlin.math.min
 			.startKey(from)
 			.endKey(to)
 			.includeDocs(false)
+			.reduce(false)
 
-		var lastCode: Code? = null
+		var lastAcc = CodeAccumulator()
 		emitAll(
 			client.queryView<ComplexKey, String>(viewQuery).let { flw ->
 				if (version == null || version != LATEST_VERSION) flw.map { it.id }
 				else flw.scan(CodeAccumulator()) { acc, row ->
 					val (_, keyType, keyCode, keyVersion) = checkNotNull(row.key).components
-					lastCode = Code(
+					val rowAsCode = Code(
 						id = row.id,
 						type = keyType as? String,
 						code = keyCode as? String,
 						version = keyVersion as? String
 					) // I save the last code I visit
-					acc.code?.let { // If I have a previous code
+					val newAcc = acc.code?.let { // If I have a previous code
 						when {
 							// If I reached a different code, then I have to emit the previous one
-							keyType != it.type ||keyCode != it.code -> CodeAccumulator(lastCode, it)
+							keyType != it.type || keyCode != it.code -> CodeAccumulator(rowAsCode, it)
 							// If the code is the same, I return the new one only if the version is a greater one
 							// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
 							// not correctly sorted.
 							keyVersion != null
 								&& it.version != null
-								&& semanticComparator(keyVersion as String, it.version!!) > 0 -> CodeAccumulator(lastCode)
+								&& semanticComparator(keyVersion as String, it.version!!) > 0 -> CodeAccumulator(rowAsCode)
 							// Otherwise, I keep the current one
 							else -> acc
 						}
-					} ?: CodeAccumulator(lastCode)
+					} ?: CodeAccumulator(rowAsCode)
+					newAcc.also {
+						lastAcc = it
+					}
 				}.mapNotNull{
 					it.toEmit?.id
 				}.onCompletion {
 					// If last code is not null, I have to emit it
 					// This can happen only with the latest filter
-					if (lastCode != null) emit(checkNotNull(lastCode?.id))
+					if (lastAcc.code != null) emit(checkNotNull(lastAcc.code?.id))
 				}
 			}
 		)
@@ -773,20 +779,20 @@ import kotlin.math.min
 			)
 		val to = ComplexKey.of(
 			language,
-			if (sanitizedLabel == null) type + "\ufff0" else type,
+			type,
 			sanitizedLabel?.let { it + "\ufff0" } ?: ComplexKey.emptyObject(),
 			ComplexKey.emptyObject()
 		)
 
+		val query = createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
+			.includeDocs(false)
+			.reduce(false)
+			.startKey(from)
+			.endKey(to)
+
 		emitAll(
-			client.queryView<Array<String>, Array<String>?>(
-				createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
-					.includeDocs(false)
-					.reduce(false)
-					.startKey(from)
-					.endKey(to)
-			).mapNotNull { row ->
-				row.id.takeIf { row.value?.contains(region) != false }
+			client.queryView<Array<String>, Array<String>?>(query).mapNotNull { row ->
+				row.id.takeIf { region == null || row.value?.contains(region) == true }
 			}
 		)
 	}
