@@ -826,7 +826,7 @@ import kotlin.math.min
 		)
 
 		emitAll(
-			client.queryView<String, String>(
+			client.queryView<ComplexKey, String>(
 				createQuery(datastoreInformation, "by_qualifiedlink_id")
 					.includeDocs(false)
 					.startKey(from)

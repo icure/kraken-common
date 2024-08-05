@@ -104,7 +104,7 @@ interface CodeService : EntityWithConflictResolutionService {
 
 	/**
 	 * Retrieves all the [Code]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
-	 * will only include the codes that have [linkedId] as value for [linkType].
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
 	 *
 	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
 	 * @param linkedId the value corresponding to [linkType] in [Code.qualifiedLinks]. If null, it will suffice that the

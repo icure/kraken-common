@@ -4,16 +4,15 @@
 
 package org.taktik.icure.asynclogic
 
-import java.io.InputStream
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.pagination.PaginationElement
+import java.io.InputStream
 
 interface CodeLogic : EntityPersister<Code, String> {
 	fun getTagTypeCandidates(): List<String>
@@ -117,7 +116,7 @@ interface CodeLogic : EntityPersister<Code, String> {
 
 	/**
 	 * Retrieves all the [Code]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
-	 * will only include the codes that have [linkedId] as value for [linkType].
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
 	 *
 	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
 	 * @param linkedId the value corresponding to [linkType] in [Code.qualifiedLinks]. If null, it will suffice that the

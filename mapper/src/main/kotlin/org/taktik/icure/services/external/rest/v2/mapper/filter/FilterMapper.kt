@@ -75,6 +75,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.Calend
 import org.taktik.icure.services.external.rest.v2.dto.filter.classification.ClassificationByDataOwnerPatientCreatedDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.AllCodesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByQualifiedLinkFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeCodeVersionFilters
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeLabelLanguageFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypesLanguageLabelVersionFilters
@@ -186,6 +187,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: CodeByIdsFilter): org.taktik.icure.domain.filter.impl.code.CodeByIdsFilter
 	abstract fun map(filterDto: CodeByRegionTypesLanguageLabelVersionFilters): org.taktik.icure.domain.filter.impl.code.CodeByRegionTypesLanguageLabelVersionFilter
 	abstract fun map(filterDto: CodeByRegionTypeCodeVersionFilters): org.taktik.icure.domain.filter.impl.code.CodeByRegionTypeCodeVersionFilter
+	abstract fun map(filterDto: CodeByQualifiedLinkFilter): org.taktik.icure.domain.filter.impl.code.CodeByQualifiedLinkFilter
 
 	@JvmName("tryMapCodeFilter")
 	fun tryMap(filterDto: AbstractFilterDto<CodeDto>): AbstractFilter<Code>? = when (filterDto) {
@@ -195,6 +197,7 @@ abstract class FilterV2Mapper {
 		is CodeByIdsFilter -> map(filterDto)
 		is CodeByRegionTypesLanguageLabelVersionFilters -> map(filterDto)
 		is CodeByRegionTypeCodeVersionFilters -> map(filterDto)
+		is CodeByQualifiedLinkFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

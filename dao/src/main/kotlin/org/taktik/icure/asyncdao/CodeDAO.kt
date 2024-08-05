@@ -132,7 +132,7 @@ interface CodeDAO : GenericDAO<Code> {
 
 	/**
 	 * Retrieves all the [Code]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
-	 * will only include the codes that have [linkedId] as value for [linkType].
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
 	 *
 	 * @param datastoreInformation an [IDatastoreInformation] instance containing the group and db info.
 	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
@@ -145,7 +145,7 @@ interface CodeDAO : GenericDAO<Code> {
 
 	/**
 	 * Retrieves all the [Code.id]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
-	 * will only include the codes that have [linkedId] as value for [linkType].
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
 	 *
 	 * @param datastoreInformation an [IDatastoreInformation] instance containing the group and db info.
 	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
