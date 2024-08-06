@@ -463,7 +463,7 @@ class DocumentController(
 		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	@Operation(summary = "Get the ids of the AccessLogs matching the provided filter")
+	@Operation(summary = "Get the ids of the Documents matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDocumentsBy(
 		@RequestBody filter: AbstractFilterDto<DocumentDto>,

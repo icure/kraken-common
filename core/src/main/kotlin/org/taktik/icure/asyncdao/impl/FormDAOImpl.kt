@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -27,11 +28,11 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
+import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.interleave
@@ -100,6 +101,25 @@ internal class FormDAOImpl(
 		).filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>().map { it.doc })
 	}.distinctByIdIf(searchKeys.size > 1)
 
+	override fun listFormIdsByDataOwnerAndParentId(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		formId: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val queries = createQueries(
+			datastoreInformation,
+			"by_hcparty_parentId",
+			"by_data_owner_parentId" to DATA_OWNER_PARTITION
+		).keys(searchKeys.map { arrayOf(it, formId) }).doNotIncludeDocs()
+
+		emitAll(client.interleave<Array<String>, String>(
+			queries,
+			compareBy({it[0]}, {it[1]}),
+		).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id })
+	}.distinct()
+
 	override fun findForms(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(datastoreInformation, "all", null, null, pagination, false)
@@ -121,7 +141,7 @@ internal class FormDAOImpl(
 			.key(formUuid)
 			.includeDocs(true)
 
-		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc /*postLoad(datastoreInformation, it.doc)*/ }.toList().sortedByDescending { it.created ?: 0 }
+		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc }.toList().sortedByDescending { it.created ?: 0 }
 	}
 
 	@View(name = "by_uniqueId", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc.uniqueId) emit( doc.uniqueId, doc._id )}")
@@ -132,7 +152,7 @@ internal class FormDAOImpl(
 			.key(externalUuid)
 			.includeDocs(true)
 
-		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc /*postLoad(datastoreInformation, it.doc)*/ }.toList().sortedByDescending { it.created ?: 0 }
+		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc }.toList().sortedByDescending { it.created ?: 0 }
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
