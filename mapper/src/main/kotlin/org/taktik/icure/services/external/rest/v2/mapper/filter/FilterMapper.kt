@@ -33,6 +33,7 @@ import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
+import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Invoice
@@ -49,6 +50,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
+import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
@@ -91,6 +93,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactBySe
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.AllDevicesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerPatientDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByTypeDataOwnerPatientFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.AllHealthcarePartiesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdsFilter
@@ -223,6 +227,16 @@ abstract class FilterV2Mapper {
 		is ContactByDataOwnerPatientOpeningDateFilter -> map(filterDto)
 		is ContactByDataOwnerFormIdsFilter -> map(filterDto)
 		is ContactByExternalIdFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: DocumentByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.document.DocumentByDataOwnerPatientDateFilter
+	abstract fun map(filterDto: DocumentByTypeDataOwnerPatientFilter): org.taktik.icure.domain.filter.impl.document.DocumentByTypeDataOwnerPatientFilter
+
+	@JvmName("tryMapDocumentFilter")
+	fun tryMap(filterDto: AbstractFilterDto<DocumentDto>): AbstractFilter<Document>? = when (filterDto) {
+		is DocumentByDataOwnerPatientDateFilter -> map(filterDto)
+		is DocumentByTypeDataOwnerPatientFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

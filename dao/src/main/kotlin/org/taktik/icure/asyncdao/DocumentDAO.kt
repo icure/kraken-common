@@ -33,7 +33,33 @@ interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> 
 
 	fun listDocumentsWithNoDelegations(datastoreInformation: IDatastoreInformation, limit: Int): Flow<Document>
 
+	/**
+	 * Retrieves all the [Document]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [Document.secretForeignKeys].
+	 * Only the Documents where [Document.documentType] is equal to [documentTypeCode] will be retrieved by this method.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param documentTypeCode the [Document.documentType].
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
+	 * @return a [Flow] of [Document]s.
+	 */
 	fun listDocumentsByDocumentTypeHcPartySecretMessageKeys(datastoreInformation: IDatastoreInformation, documentTypeCode: String, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<Document>
+
+	/**
+	 * Retrieves all the [Document.id]s given the delegation keys in [searchKeys] (that are the data owner
+	 * ids for non-anonymous data owners and the access keys for the anonymous data owners) and a set of
+	 * [Document.secretForeignKeys].
+	 * Only the Documents where [Document.documentType] is equal to [documentTypeCode] will be retrieved by this method.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param documentTypeCode the [Document.documentType].
+	 * @param searchKeys a [Set] of search keys (Data Owner Id + access keys).
+	 * @param secretForeignKeys a [Set] of [Document.secretForeignKeys].
+	 * @return a [Flow] of [Document.id]s.
+	 */
+	fun listDocumentIdsByDocumentTypeHcPartySecretMessageKeys(datastoreInformation: IDatastoreInformation, documentTypeCode: String, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<String>
 
 	suspend fun listDocumentsByExternalUuid(datastoreInformation: IDatastoreInformation, externalUuid: String): List<Document>
 }

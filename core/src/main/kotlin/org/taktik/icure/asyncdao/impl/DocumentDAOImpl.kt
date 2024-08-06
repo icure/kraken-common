@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
@@ -28,7 +29,6 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Document
@@ -132,6 +132,32 @@ class DocumentDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Document>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}, {it.components[2] as? String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Document>>().map { it.doc })
 	}.distinctById()
+
+	override fun listDocumentIdsByDocumentTypeHcPartySecretMessageKeys(
+		datastoreInformation: IDatastoreInformation,
+		documentTypeCode: String,
+		searchKeys: Set<String>,
+		secretForeignKeys: List<String>
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val keys = secretForeignKeys.flatMap { fk ->
+			searchKeys.map { ComplexKey.of(documentTypeCode, it, fk) }
+		}
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_type_hcparty_message",
+			"by_type_data_owner_message" to DATA_OWNER_PARTITION
+		).keys(keys).doNotIncludeDocs()
+
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy({it.components[0] as? String}, {it.components[1] as? String}, {it.components[2] as? String})
+			).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().map { it.id }
+		)
+	}
 
 	@View(name = "by_externalUuid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc.externalUuid) emit( doc.externalUuid, doc._id )}")
 	override suspend fun listDocumentsByExternalUuid(datastoreInformation: IDatastoreInformation, externalUuid: String): List<Document> {

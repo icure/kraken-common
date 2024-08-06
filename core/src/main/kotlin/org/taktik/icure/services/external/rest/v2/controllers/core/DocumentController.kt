@@ -51,15 +51,18 @@ import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -72,6 +75,7 @@ class DocumentController(
 	private val documentV2Mapper: DocumentV2Mapper,
 	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	private val bulkShareResultV2Mapper: DocumentBulkShareResultV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
@@ -458,4 +462,14 @@ class DocumentController(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
 		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(summary = "Get the ids of the AccessLogs matching the provided filter")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchDocumentsBy(
+		@RequestBody filter: AbstractFilterDto<DocumentDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = documentService.matchDocumentsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+		deduplicate = deduplicate?: false
+	).injectReactorContext()
 }
