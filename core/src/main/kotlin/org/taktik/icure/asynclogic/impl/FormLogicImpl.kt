@@ -43,14 +43,14 @@ open class FormLogicImpl(
 
 	override fun getForms(selectedIds: Collection<String>) = getEntities(selectedIds)
 
-	override suspend fun getAllByLogicalUuid(formUuid: String): List<Form> {
+	override fun listFormsByLogicalUuid(formUuid: String, descending: Boolean): Flow<Form> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		return formDAO.getAllByLogicalUuid(datastoreInformation, formUuid)
+		emitAll(formDAO.listFormsByLogicalUuid(datastoreInformation, formUuid, descending))
 	}
 
-	override suspend fun getAllByUniqueId(lid: String): List<Form> {
+	override fun listFormsByUniqueId(lid: String, descending: Boolean): Flow<Form> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		return formDAO.getAllByUniqueId(datastoreInformation, lid)
+		emitAll(formDAO.listFormsByUniqueId(datastoreInformation, lid, descending))
 	}
 
 	override fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form> =

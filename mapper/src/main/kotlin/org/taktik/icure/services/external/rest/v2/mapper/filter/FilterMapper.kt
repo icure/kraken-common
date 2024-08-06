@@ -99,6 +99,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentBy
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByTypeDataOwnerPatientFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerParentIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerPatientOpeningDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByLogicalUuidFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByUniqueUuidFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.AllHealthcarePartiesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdsFilter
@@ -246,11 +248,15 @@ abstract class FilterV2Mapper {
 
 	abstract fun map(filterDto: FormByDataOwnerPatientOpeningDateFilter): org.taktik.icure.domain.filter.impl.form.FormByDataOwnerPatientOpeningDateFilter
 	abstract fun map(filterDto: FormByDataOwnerParentIdFilter): org.taktik.icure.domain.filter.impl.form.FormByDataOwnerParentIdFilter
+	abstract fun map(filterDto: FormByLogicalUuidFilter): org.taktik.icure.domain.filter.impl.form.FormByLogicalUuidFilter
+	abstract fun map(filterDto: FormByUniqueUuidFilter): org.taktik.icure.domain.filter.impl.form.FormByUniqueUuidFilter
 
 	@JvmName("tryMapFormFilter")
 	fun tryMap(filterDto: AbstractFilterDto<FormDto>): AbstractFilter<Form>? = when (filterDto) {
 		is FormByDataOwnerPatientOpeningDateFilter -> map(filterDto)
 		is FormByDataOwnerParentIdFilter -> map(filterDto)
+		is FormByLogicalUuidFilter -> map(filterDto)
+		is FormByUniqueUuidFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

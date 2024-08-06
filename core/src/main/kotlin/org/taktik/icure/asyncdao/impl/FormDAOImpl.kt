@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -18,7 +17,9 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -133,26 +134,68 @@ internal class FormDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Form>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map { it.doc })
 	}
 
-	@View(name = "by_logicalUuid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc.logicalUuid) emit( doc.logicalUuid, doc._id )}")
-	override suspend fun getAllByLogicalUuid(datastoreInformation: IDatastoreInformation, formUuid: String): List<Form> {
+	@Views(
+		View(name = "by_logicalUuid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc.logicalUuid) emit( doc.logicalUuid, doc._id )}"),
+		View(name = "by_logical_uuid_created", map = "classpath:js/form/By_logical_uuid_created.js", secondaryPartition = MAURICE_PARTITION)
+	)
+	override fun listFormsByLogicalUuid(datastoreInformation: IDatastoreInformation, formUuid: String, descending: Boolean): Flow<Form> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "by_logicalUuid")
-			.key(formUuid)
+		val viewQuery = createQuery(datastoreInformation, "by_logical_uuid_created", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(formUuid, if (descending) ComplexKey.emptyObject() else null))
+			.endKey(ComplexKey.of(formUuid, if (descending) null else ComplexKey.emptyObject()))
+			.descending(descending)
 			.includeDocs(true)
 
-		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc }.toList().sortedByDescending { it.created ?: 0 }
+		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Form>(viewQuery).map { it.doc })
 	}
 
-	@View(name = "by_uniqueId", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc.uniqueId) emit( doc.uniqueId, doc._id )}")
-	override suspend fun getAllByUniqueId(datastoreInformation: IDatastoreInformation, externalUuid: String): List<Form> {
+	override fun listFormIdsByLogicalUuid(
+		datastoreInformation: IDatastoreInformation,
+		formUuid: String,
+		descending: Boolean
+	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "by_uniqueId")
-			.key(externalUuid)
+		val viewQuery = createQuery(datastoreInformation, "by_logical_uuid_created", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(formUuid, if (descending) ComplexKey.emptyObject() else null))
+			.endKey(ComplexKey.of(formUuid, if (descending) null else ComplexKey.emptyObject()))
+			.descending(descending)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
+	}
+
+	@Views(
+		View(name = "by_uniqueId", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc.uniqueId) emit( doc.uniqueId, doc._id )}"),
+		View(name = "by_unique_id_created", map = "classpath:js/form/By_unique_id_created.js", secondaryPartition = MAURICE_PARTITION)
+	)
+	override fun listFormsByUniqueId(datastoreInformation: IDatastoreInformation, externalUuid: String, descending: Boolean): Flow<Form> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_unique_id_created", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(externalUuid, if (descending) ComplexKey.emptyObject() else null))
+			.endKey(ComplexKey.of(externalUuid, if (descending) null else ComplexKey.emptyObject()))
+			.descending(descending)
 			.includeDocs(true)
 
-		return client.queryViewIncludeDocs<String, String, Form>(viewQuery).map { it.doc }.toList().sortedByDescending { it.created ?: 0 }
+		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Form>(viewQuery).map { it.doc })
+	}
+
+	override fun listFormIdsByUniqueId(
+		datastoreInformation: IDatastoreInformation,
+		externalUuid: String,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_unique_id_created", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(externalUuid, if (descending) ComplexKey.emptyObject() else null))
+			.endKey(ComplexKey.of(externalUuid, if (descending) null else ComplexKey.emptyObject()))
+			.descending(descending)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {

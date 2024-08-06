@@ -304,7 +304,7 @@ class HealthcarePartyController(
         } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
     }
 
-    @Operation(summary = "Get ids of healthcare party matching the provided filter for the current user (HcParty) ")
+    @Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
     @PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
     fun matchHealthcarePartiesBy(
         @RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,

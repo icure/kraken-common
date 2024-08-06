@@ -59,7 +59,47 @@ interface FormDAO : GenericDAO<Form> {
 
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Form>
 
-	suspend fun getAllByLogicalUuid(datastoreInformation: IDatastoreInformation, formUuid: String): List<Form>
+	/**
+	 * Returns all the [Form]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param formUuid the [Form.logicalUuid].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form]s.
+	 */
+	fun listFormsByLogicalUuid(datastoreInformation: IDatastoreInformation, formUuid: String, descending: Boolean): Flow<Form>
 
-	suspend fun getAllByUniqueId(datastoreInformation: IDatastoreInformation, externalUuid: String): List<Form>
+	/**
+	 * Returns all the [Form.id]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param formUuid the [Form.logicalUuid].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form.id]s.
+	 */
+	fun listFormIdsByLogicalUuid(datastoreInformation: IDatastoreInformation, formUuid: String, descending: Boolean): Flow<String>
+
+	/**
+	 * Returns all the [Form]s where [Form.uniqueId] is equal to [externalUuid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param externalUuid the [Form.uniqueId].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form]s.
+	 */
+	fun listFormsByUniqueId(datastoreInformation: IDatastoreInformation, externalUuid: String, descending: Boolean): Flow<Form>
+
+	/**
+	 * Returns all the [Form.id]s where [Form.uniqueId] is equal to [externalUuid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param externalUuid the [Form.uniqueId].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form.id]s.
+	 */
+	fun listFormIdsByUniqueId(datastoreInformation: IDatastoreInformation, externalUuid: String, descending: Boolean): Flow<String>
 }

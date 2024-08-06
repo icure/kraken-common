@@ -99,8 +99,7 @@ class FormController(
 	@Operation(summary = "Gets the most recent form with the given logicalUuid")
 	@GetMapping("/logicalUuid/{logicalUuid}")
 	fun getFormByLogicalUuid(@PathVariable logicalUuid: String) = mono {
-		val form = formService.getAllByLogicalUuid(logicalUuid)
-			.sortedByDescending { it.created }
+		val form = formService.listFormsByLogicalUuid(logicalUuid, true)
 			.firstOrNull()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
 		formV2Mapper.map(form)
@@ -108,25 +107,22 @@ class FormController(
 
 	@Operation(summary = "Gets all forms with given logicalUuid")
 	@GetMapping("/all/logicalUuid/{logicalUuid}")
-	fun getFormsByLogicalUuid(@PathVariable logicalUuid: String) = flow {
-		formService.getAllByLogicalUuid(logicalUuid)
+	fun getFormsByLogicalUuid(@PathVariable logicalUuid: String) =
+		formService.listFormsByLogicalUuid(logicalUuid, true)
 			.map { form -> formV2Mapper.map(form) }
-			.forEach { emit(it) }
-	}.injectReactorContext()
+			.injectReactorContext()
 
 	@Operation(summary = "Gets all forms by uniqueId")
 	@GetMapping("/all/uniqueId/{uniqueId}")
-	fun getFormsByUniqueId(@PathVariable uniqueId: String) = flow {
-		formService.getAllByUniqueId(uniqueId)
+	fun getFormsByUniqueId(@PathVariable uniqueId: String) =
+		formService.listFormsByUniqueId(uniqueId, true)
 			.map { form -> formV2Mapper.map(form) }
-			.forEach { emit(it) }
-	}.injectReactorContext()
+			.injectReactorContext()
 
 	@Operation(summary = "Gets the most recent form with the given uniqueId")
 	@GetMapping("/uniqueId/{uniqueId}")
 	fun getFormByUniqueId(@PathVariable uniqueId: String) = mono {
-		val form = formService.getAllByUniqueId(uniqueId)
-			.sortedByDescending { it.created }
+		val form = formService.listFormsByUniqueId(uniqueId, true)
 			.firstOrNull()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
 		formV2Mapper.map(form)
