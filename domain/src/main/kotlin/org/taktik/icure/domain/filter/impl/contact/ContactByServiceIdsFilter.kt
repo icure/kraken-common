@@ -13,7 +13,7 @@ data class ContactByServiceIdsFilter(
 ) : AbstractFilter<Contact>, org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter {
 
 	override val canBeUsedInWebsocket = true
-	override val requiresSecurityPrecondition: Boolean = false
+	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
 	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {

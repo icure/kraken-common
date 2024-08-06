@@ -1,6 +1,5 @@
 package org.taktik.icure.asynclogic.impl.filter.contact
 
-import javax.security.auth.login.LoginException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -14,6 +13,7 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.contact.ContactByHcPartyIdentifiersFilter
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
+import javax.security.auth.login.LoginException
 
 @Service
 @Profile("app")
@@ -30,7 +30,7 @@ class ContactByHcPartyIdentifiersFilter(
 		try {
 			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			emitAll(contactDAO.listContactIdsByHcPartyAndIdentifiers(
-				datastoreInformation =datastoreInformation,
+				datastoreInformation = datastoreInformation,
 				searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId),
 				identifiers = filter.identifiers
 			))

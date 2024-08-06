@@ -89,7 +89,6 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	fun getServicesLinkedTo(ids: List<String>, linkType: String?): Flow<Service>
 	fun listServicesByAssociationId(associationId: String): Flow<Service>
 
-	fun listIdsByServices(services: Collection<String>): Flow<String>
 	fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact>
 	fun listContactsByHcPartyServiceId(hcPartyId: String, formId: String): Flow<Contact>
 	fun listContactsByExternalId(externalId: String): Flow<Contact>

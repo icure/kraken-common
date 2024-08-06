@@ -212,11 +212,6 @@ open class ContactLogicImpl(
 		emitAll(getServices(serviceIds.toList()))
 	}
 
-	override fun listIdsByServices(services: Collection<String>): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(contactDAO.listIdsByServices(datastoreInformation, services).map { it.contactId })
-	}
-
 	override fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
