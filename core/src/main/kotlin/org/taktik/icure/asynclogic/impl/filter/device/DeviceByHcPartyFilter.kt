@@ -27,7 +27,10 @@ class DeviceByHcPartyFilter(
 		datastoreInformation: IDatastoreInformation
 	) = flow {
 		try {
-			emitAll(deviceDAO.listDeviceIdsByResponsible(datastoreInformation, filter.responsibleId ?: getLoggedHealthCarePartyId(sessionLogic)))
+			deviceDAO.listDeviceIdsByResponsible(
+				datastoreInformation = datastoreInformation,
+				healthcarePartyId = filter.responsibleId ?: getLoggedHealthCarePartyId(sessionLogic)
+			).also { emitAll(it) }
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)
 		}

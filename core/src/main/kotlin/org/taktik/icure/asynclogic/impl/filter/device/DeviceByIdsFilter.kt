@@ -34,7 +34,5 @@ class DeviceByIdsFilter : Filter<String, Device, org.taktik.icure.domain.filter.
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, Device>,
         context: Filters,
         datastoreInformation: IDatastoreInformation
-    ): Flow<String> {
-		return filter.ids.asFlow()
-	}
+    ): Flow<String> = filter.ids.asFlow()
 }
