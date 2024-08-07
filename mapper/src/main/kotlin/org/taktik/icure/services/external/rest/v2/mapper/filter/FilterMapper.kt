@@ -39,6 +39,7 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.MaintenanceTask
+import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.User
@@ -57,6 +58,7 @@ import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
+import org.taktik.icure.services.external.rest.v2.dto.MedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
@@ -119,6 +121,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.Mai
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.AllMedicalLocationsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.MedicalLocationByPostCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
@@ -298,6 +302,16 @@ abstract class FilterV2Mapper {
 		is MaintenanceTaskByHcPartyAndIdentifiersFilter -> map(filterDto)
 		is MaintenanceTaskByIdsFilter -> map(filterDto)
 		is MaintenanceTaskAfterDateFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: AllMedicalLocationsFilter): org.taktik.icure.domain.filter.impl.medicallocation.AllMedicalLocationsFilter
+	abstract fun map(filterDto: MedicalLocationByPostCodeFilter): org.taktik.icure.domain.filter.impl.medicallocation.MedicalLocationByPostCodeFilter
+
+	@JvmName("tryMapMedicalLocationFilter")
+	fun tryMap(filterDto: AbstractFilterDto<MedicalLocationDto>): AbstractFilter<MedicalLocation>? = when (filterDto) {
+		is AllMedicalLocationsFilter -> map(filterDto)
+		is MedicalLocationByPostCodeFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

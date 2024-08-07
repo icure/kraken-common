@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -11,12 +12,12 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MedicalLocationDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.MedicalLocation
@@ -38,5 +39,13 @@ open class MedicalLocationDAOImpl(
 			datastoreInformation,
 			"by_post_code"
 		).includeDocs(true).key(postCode)).map { it.doc })
+	}
+
+	override fun idsByPostCode(datastoreInformation: IDatastoreInformation, postCode: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryView<String, String>(createQuery(
+			datastoreInformation,
+			"by_post_code"
+		).includeDocs(false).key(postCode)).map { it.id })
 	}
 }
