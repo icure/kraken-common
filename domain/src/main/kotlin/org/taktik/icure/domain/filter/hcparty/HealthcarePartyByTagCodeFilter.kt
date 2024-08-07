@@ -20,6 +20,11 @@ package org.taktik.icure.domain.filter.hcparty
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthcareParty
 
+/**
+ * Retrieves all the [HealthcareParty]s that either have a code stub in [HealthcareParty.tags] with type [tagType] and code [tagCode] and/or
+ * a stub with type [codeType] and code [codeCode] in [HealthcareParty.tags].
+ * This filter requires a special permission to be used.
+ */
 interface HealthcarePartyByTagCodeFilter : Filter<String, HealthcareParty> {
 	val tagType: String?
 	val tagCode: String?

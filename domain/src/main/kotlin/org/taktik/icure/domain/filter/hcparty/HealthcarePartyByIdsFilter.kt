@@ -20,6 +20,10 @@ package org.taktik.icure.domain.filter.hcparty
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthcareParty
 
+/**
+ * Retrieves all the [HealthcareParty] entities with the specified [ids].
+ * As you must know the ids beforehand to use this filter, it does not have security precondition.
+ */
 interface HealthcarePartyByIdsFilter : Filter<String, HealthcareParty> {
 	val ids: List<String>?
 }

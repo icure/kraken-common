@@ -7,7 +7,7 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Contact
 
 /**
- * Retrieves all the [Contact]s that either have a [Contact.tags] a code stub with type [tagType] and code [tagCode] or
+ * Retrieves all the [Contact]s that either have a code stub in [Contact.tags] with type [tagType] and code [tagCode] and/or
  * a stub with type [codeType] and code [codeCode] in [Contact.tags].
  * If the [startOfContactOpeningDate] fuzzy date is not null, only the ids of the [Contact]s with a successive opening date will be returned.
  * If the [endOfContactOpeningDate] timestamp is not null, only the ids of the [Contact]s with a previous opening date will be returned.

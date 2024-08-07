@@ -21,6 +21,11 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
 
+/**
+ * Retrieves all the [HealthcareParty] entities where [HealthcareParty.identifier] contains at least one of the provided
+ * [identifiers].
+ * This filter requires a special permission to be used.
+ */
 interface HealthcarePartyByIdentifiersFilter : Filter<String, HealthcareParty> {
 	val identifiers: List<Identifier>
 }
