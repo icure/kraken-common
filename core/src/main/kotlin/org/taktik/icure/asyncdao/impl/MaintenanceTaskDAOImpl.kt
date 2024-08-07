@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
@@ -26,7 +26,6 @@ import org.taktik.icure.asyncdao.MaintenanceTaskDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.MaintenanceTask
@@ -87,7 +86,8 @@ class MaintenanceTaskDAOImpl(
         )
 			.startKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
 			.endKey(ComplexKey.of(healthcarePartyId, date))
-			.descending(true).doNotIncludeDocs()
+			.descending(true)
+			.doNotIncludeDocs()
 
 		emitAll(
 			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String? }, { it.components[1] as? String? }))
