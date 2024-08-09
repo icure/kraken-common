@@ -30,6 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Deprecated("This filter is deprecated")
 data class ServiceByContactsAndSubcontactsFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,

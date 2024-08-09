@@ -199,7 +199,7 @@ open class ContactLogicImpl(
 	override fun listServicesByAssociationId(associationId: String): Flow<org.taktik.icure.entities.embed.Service> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			emitAll(contactDAO.listServiceIdsByAssociationId(datastoreInformation, associationId))
+			emitAll(contactDAO.listServicesByAssociationId(datastoreInformation, associationId))
 		}
 
 	override fun listServicesByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>) = flow {

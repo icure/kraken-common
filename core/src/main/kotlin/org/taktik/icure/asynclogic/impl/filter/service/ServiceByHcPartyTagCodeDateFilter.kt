@@ -37,26 +37,30 @@ class ServiceByHcPartyTagCodeDateFilter(
 			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId)
 			var ids: LinkedHashSet<String>? = null
-			val patientSfks = filter.patientSecretForeignKey?.let { listOf(it) }
-			if (filter.tagType != null && filter.tagCode != null) {
+			val patientSfks = filter.patientSecretForeignKeys
+			val tagType = filter.tagType
+			val tagCode = filter.tagCode
+			val codeType = filter.codeType
+			val codeCode = filter.codeCode
+			if (tagType != null && tagCode != null) {
 				ids = listServiceIdsByTag(
 					datastoreInformation = datastoreInformation,
 					searchKeys = searchKeys,
 					patientSecretForeignKeys = patientSfks,
-					tagType = filter.tagType!!,
-					tagCode = filter.tagCode!!,
+					tagType = tagType,
+					tagCode = tagCode,
 					startValueDate = filter.startValueDate,
 					endValueDate = filter.endValueDate,
 					descending = filter.descending
 				).toCollection(LinkedHashSet())
 			}
-			if (filter.codeType != null && filter.codeCode != null) {
+			if (codeType != null && codeCode != null) {
 				val byCode = listServiceIdsByCode(
 					datastoreInformation = datastoreInformation,
 					searchKeys = searchKeys,
 					patientSecretForeignKeys = patientSfks,
-					codeType = filter.tagType!!,
-					codeCode = filter.tagCode!!,
+					codeType = codeType,
+					codeCode = codeCode,
 					startValueDate = filter.startValueDate,
 					endValueDate = filter.endValueDate,
 					descending = filter.descending
@@ -83,28 +87,28 @@ class ServiceByHcPartyTagCodeDateFilter(
 		endValueDate: Long?,
 		descending: Boolean
 	): Flow<String> = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
-				if (patientSecretForeignKeys == null)
-					contactDAO.listServiceIdsByCode(
-						datastoreInformation,
-						key,
-						codeType,
-						codeCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-				else
-					contactDAO.listServicesIdsByPatientAndCode(
-						datastoreInformation,
-						key,
-						patientSecretForeignKeys,
-						codeType,
-						codeCode,
-						startValueDate,
-						endValueDate,
-						descending
-					)
-			}
+		if (patientSecretForeignKeys == null)
+			contactDAO.listServiceIdsByCode(
+				datastoreInformation,
+				key,
+				codeType,
+				codeCode,
+				startValueDate,
+				endValueDate,
+				descending
+			)
+		else
+			contactDAO.listServicesIdsByPatientAndCode(
+				datastoreInformation,
+				key,
+				patientSecretForeignKeys,
+				codeType,
+				codeCode,
+				startValueDate,
+				endValueDate,
+				descending
+			)
+	}
 
 	private fun listServiceIdsByTag(
 		datastoreInformation: IDatastoreInformation,

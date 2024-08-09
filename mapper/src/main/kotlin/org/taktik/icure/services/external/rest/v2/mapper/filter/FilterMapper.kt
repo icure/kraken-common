@@ -141,15 +141,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyDateOfBirthFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyGenderEducationProfession
-import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameContainsFuzzyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByIdsFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByContactsAndSubcontactsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByAssociationIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyHealthElementIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByQualifiedLinkFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySecretForeignKeys
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.AllUsersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilter
@@ -332,12 +332,14 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: PatientByHcPartyDateOfBirthFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyDateOfBirthFilter
 	abstract fun map(filterDto: PatientByHcPartyFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyFilter
 	abstract fun map(filterDto: PatientByHcPartyGenderEducationProfession): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyGenderEducationProfession
-	abstract fun map(filterDto: PatientByHcPartyNameContainsFuzzyFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameContainsFuzzyFilter
+	@Suppress("DEPRECATION")
+	abstract fun map(filterDto: org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameContainsFuzzyFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameContainsFuzzyFilter
 	abstract fun map(filterDto: PatientByHcPartyNameFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameFilter
 	abstract fun map(filterDto: PatientByHcPartyAndIdentifiersFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndIdentifiersFilter
 	abstract fun map(filterDto: PatientByIdsFilter): org.taktik.icure.domain.filter.impl.patient.PatientByIdsFilter
 	abstract fun map(filterDto: PatientByDataOwnerModifiedAfterFilter): org.taktik.icure.domain.filter.impl.patient.PatientByDataOwnerModifiedAfterFilter
 
+	@Suppress("DEPRECATION")
 	@JvmName("tryMapPatientFilter")
 	fun tryMap(filterDto: AbstractFilterDto<PatientDto>): AbstractFilter<Patient>? = when (filterDto) {
 		is PatientByHcPartyAndActiveFilter -> map(filterDto)
@@ -350,7 +352,7 @@ abstract class FilterV2Mapper {
 		is PatientByHcPartyDateOfBirthFilter -> map(filterDto)
 		is PatientByHcPartyFilter -> map(filterDto)
 		is PatientByHcPartyGenderEducationProfession -> map(filterDto)
-		is PatientByHcPartyNameContainsFuzzyFilter -> map(filterDto)
+		is org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameContainsFuzzyFilter -> map(filterDto)
 		is PatientByHcPartyNameFilter -> map(filterDto)
 		is PatientByHcPartyAndIdentifiersFilter -> map(filterDto)
 		is PatientByIdsFilter -> map(filterDto)
@@ -358,23 +360,29 @@ abstract class FilterV2Mapper {
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
-	abstract fun map(filterDto: ServiceByContactsAndSubcontactsFilter): org.taktik.icure.domain.filter.impl.service.ServiceByContactsAndSubcontactsFilter
+	@Suppress("DEPRECATION")
+	abstract fun map(filterDto: org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByContactsAndSubcontactsFilter): org.taktik.icure.domain.filter.impl.service.ServiceByContactsAndSubcontactsFilter
 	abstract fun map(filterDto: ServiceByHcPartyTagCodeDateFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyTagCodeDateFilter
 	abstract fun map(filterDto: ServiceByHcPartyIdentifiersFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyIdentifiersFilter
 	abstract fun map(filterDto: ServiceByHcPartyHealthElementIdsFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyHealthElementIdsFilter
 	abstract fun map(filterDto: ServiceBySecretForeignKeys): org.taktik.icure.domain.filter.impl.service.ServiceBySecretForeignKeys
 	abstract fun map(filterDto: ServiceByHcPartyFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyFilter
 	abstract fun map(filterDto: ServiceByIdsFilter): org.taktik.icure.domain.filter.impl.service.ServiceByIdsFilter
+	abstract fun map(filterDto: ServiceByQualifiedLinkFilter): org.taktik.icure.domain.filter.impl.service.ServiceByQualifiedLinkFilter
+	abstract fun map(filterDto: ServiceByAssociationIdFilter): org.taktik.icure.domain.filter.impl.service.ServiceByAssociationIdFilter
 
+	@Suppress("DEPRECATION")
 	@JvmName("tryMapServiceFilter")
 	fun tryMap(filterDto: AbstractFilterDto<ServiceDto>): AbstractFilter<Service>? = when (filterDto) {
-		is ServiceByContactsAndSubcontactsFilter -> map(filterDto)
+		is org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByContactsAndSubcontactsFilter -> map(filterDto)
 		is ServiceByHcPartyTagCodeDateFilter -> map(filterDto)
 		is ServiceByHcPartyIdentifiersFilter -> map(filterDto)
 		is ServiceByHcPartyHealthElementIdsFilter -> map(filterDto)
 		is ServiceBySecretForeignKeys -> map(filterDto)
 		is ServiceByHcPartyFilter -> map(filterDto)
 		is ServiceByIdsFilter -> map(filterDto)
+		is ServiceByQualifiedLinkFilter -> map(filterDto)
+		is ServiceByAssociationIdFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

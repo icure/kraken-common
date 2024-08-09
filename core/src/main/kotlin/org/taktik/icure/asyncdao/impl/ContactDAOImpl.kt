@@ -291,29 +291,28 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
-	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, ids: List<String>, linkType: String?) = flow {
+	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, linkValues: List<String>, linkQualification: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id", MAURICE_PARTITION)
-			.keys(ids)
+			.keys(linkValues)
 			.includeDocs(false)
 		val res = client.queryView<String, Array<String>>(viewQuery)
 		emitAll(
-			(linkType?.let { lt -> res.filter { it.value!![0] == lt } } ?: res)
+			(linkQualification?.let { lt -> res.filter { it.value!![0] == lt } } ?: res)
 				.map { it.value!![1] }
 		)
 	}
 
-	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun listServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
-			.includeDocs(true)
-		val res = client.queryViewIncludeDocs<String, String, Contact>(viewQuery)
+			.includeDocs(false)
 		emitAll(
-			res.mapNotNull { it.doc }
-				.flatMapConcat { it.services.filter { it.qualifiedLinks.values.flatMap { it.keys }.contains(associationId) }.asFlow() }
+			client.queryView<String, String>(viewQuery).map {
+				checkNotNull(it.value) { "A Service cannot have a null id" }
+			}
 		)
 	}
 
@@ -335,7 +334,7 @@ class ContactDAOImpl(
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
-	override fun findServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
+	override fun listServicesByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
@@ -344,7 +343,11 @@ class ContactDAOImpl(
 		val res = client.queryViewIncludeDocs<String, String, Contact>(viewQuery)
 		emitAll(
 			res.mapNotNull { it.doc }
-				.flatMapConcat { it.services.filter { it.qualifiedLinks.values.flatMap { it.keys }.contains(associationId) }.asFlow() }
+				.flatMapConcat { contact ->
+					contact.services.filter { service ->
+						service.qualifiedLinks.values.flatMap { it.keys }.contains(associationId)
+					}.asFlow()
+				}
 		)
 	}
 
