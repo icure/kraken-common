@@ -12,28 +12,31 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter
+import org.taktik.icure.domain.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
 @Profile("app")
-class HealthElementByHcPartySecretForeignKeysFilter(
+class HealthElementByDataOwnerPatientOpeningDate(
 	private val healthElementDAO: HealthElementDAO,
 	private val sessionLogic: SessionInformationProvider
-) : Filter<String, HealthElement, HealthElementByHcPartySecretForeignKeysFilter> {
+) : Filter<String, HealthElement, HealthElementByDataOwnerPatientOpeningDate> {
 	override fun resolve(
-        filter: HealthElementByHcPartySecretForeignKeysFilter,
+        filter: HealthElementByDataOwnerPatientOpeningDate,
         context: Filters,
         datastoreInformation: IDatastoreInformation
     ) = flow {
 		try {
 			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
-			emitAll(healthElementDAO.listHealthElementIdsByHcPartyAndSecretPatientKeys(
+			emitAll(healthElementDAO.listHealthElementIdsByDataOwnerPatientOpeningDate(
 				datastoreInformation = datastoreInformation,
 				searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				secretPatientKeys = filter.patientSecretForeignKeys.toList()
+				secretForeignKeys = filter.patientSecretForeignKeys,
+				startDate = filter.startDate,
+				endDate = filter.endDate,
+				descending = filter.descending
 			))
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)

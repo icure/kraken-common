@@ -21,7 +21,14 @@ package org.taktik.icure.domain.filter.healthelement
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthElement
 
-interface HealthElementByHcPartySecretForeignKeysFilter : Filter<String, HealthElement> {
-	val healthcarePartyId: String?
-	val patientSecretForeignKeys: Set<String>
+/**
+ * Retrieves all the [HealthElement]s that the data owner with id [hcPartyId] can access and [HealthElement.status] is equal to [status].
+ * If [hcPartyId] is the data owner making the request, then also the available secret access keys will be used to
+ * retrieve the results.
+ *
+ * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
+ */
+interface HealthElementByHcPartyStatusFilter : Filter<String, HealthElement> {
+    val hcPartyId: String
+    val status: Int
 }
