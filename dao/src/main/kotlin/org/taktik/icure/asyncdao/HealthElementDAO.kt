@@ -23,8 +23,6 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 
 	fun listHealthElementsIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
 
-	suspend fun getHealthElementByPlanOfActionId(datastoreInformation: IDatastoreInformation, planOfActionId: String): HealthElement?
-
 	suspend fun getHealthElement(datastoreInformation: IDatastoreInformation, healthElementId: String): HealthElement?
 
 	fun listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<HealthElement>

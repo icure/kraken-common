@@ -11,7 +11,7 @@ import org.taktik.icure.entities.base.containsStubWithTypeAndCode
 
 data class HealthElementByHcPartyTagCodeFilter(
 	override val desc: String? = null,
-	override val healthcarePartyId: String? = null,
+	override val healthcarePartyId: String,
 	override val codeType: String? = null,
 	override val codeCode: String? = null,
 	override val tagType: String? = null,
@@ -30,11 +30,11 @@ data class HealthElementByHcPartyTagCodeFilter(
 	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
-	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
+	override fun requestedDataOwnerIds(): Set<String> = setOf(healthcarePartyId)
 
 	override fun matches(item: HealthElement, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (
-			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+			(searchKeyMatcher(healthcarePartyId, item)) &&
 			(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
 			(tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
 			(status == null || item.status == status)
