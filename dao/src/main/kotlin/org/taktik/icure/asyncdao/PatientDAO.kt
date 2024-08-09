@@ -10,31 +10,141 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
 
 interface PatientDAO : GenericDAO<Patient> {
 
-	fun listPatientIdsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsOfHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String, healthcarePartyId: String): Flow<String>
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.ssin] starts with the
+	 * provided [ssin].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param ssin the ssin to search.
+	 * @param healthcarePartyId a data owner id or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsOfHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String, healthcarePartyId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s delegated to a data owner (by checking their [searchKeys]) and where [Patient.active]
+	 * is [active].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param active whether to get the active or inactive users.
+	 * @param searchKeys the data owner id + access control keys.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByActive(datastoreInformation: IDatastoreInformation, active: Boolean, searchKeys: Set<String>): Flow<String>
 	fun listOfMergesAfter(datastoreInformation: IDatastoreInformation, date: Long?): Flow<Patient>
 	suspend fun countByHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int
 	suspend fun countOfHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int
+
+	/**
+	 * Return all the [Patient.id]s with a delegation for [healthcarePartyId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param healthcarePartyId the data owner id or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for a data owner given their [searchKeys] where [Patient.dateOfBirth]
+	 * is equal to [date].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
+	 * @param date the date of birth.
+	 * @param searchKeys the search keys for a data owner (data owner id + access control keys).
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndDateOfBirth(datastoreInformation: IDatastoreInformation, date: Int?, searchKeys: Set<String>): Flow<String>
 
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.dateOfBirth] is between [startDate] (if
+	 * provided) and [endDate] (if provided).
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
+	 * @param startDate the upper bound for [Patient.dateOfBirth] as fuzzy date. If null all the patients since the
+	 * beginning of time will be retrieved
+	 * @param endDate the lower bound for [Patient.dateOfBirth] as fuzzy date. If null all the patients until the end
+	 * of time will be retrieved.
+	 * @param healthcarePartyId the healthcare party id.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndDateOfBirth(datastoreInformation: IDatastoreInformation, startDate: Int?, endDate: Int?, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsByHcPartyGenderEducationProfession(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, gender: Gender?, education: String?, profession: String?): Flow<String>
-	fun listPatientIdsForHcPartyDateOfBirth(datastoreInformation: IDatastoreInformation, date: Int?, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int? = null): Flow<String>
-	fun listPatientIdsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?): Flow<String>
 
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.gender] is equal to
+	 * [gender], [Patient.education] is equal to [education], and [Patient.profession] is equal to [profession].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @param gender the gender to search. If null, all the results will be returned.
+	 * @param education the education to search. If null, the patients then the [profession] parameter will have no effect.
+	 * @param profession the profession to search.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
+	fun listPatientIdsByHcPartyGenderEducationProfession(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, gender: Gender?, education: String?, profession: String?): Flow<String>
+
+	/**
+	 * Returns all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.firstName], [Patient.lastName],
+	 * [Patient.maidenName], or [Patient.spouseName] start with the specified [searchString].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
+	 * @param searchString the part of the name to search.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
+	fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int? = null): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.externalId] starts with
+	 * [externalId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param externalId the external id to search.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndExternalId(datastoreInformation: IDatastoreInformation, externalId: String?, healthcarePartyId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s that have among the available telecoms (that are nested in the [Address] objects
+	 * in [Patient.addresses]) there is at least one that starts with [searchString].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchString the search string for the telecom numbers.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndTelecom(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where at least an address in [Patient.addresses]
+	 * has a concatenation of [Address.street] + [Address.postalCode] + [Address.city] that starts with the specified
+	 * [searchString].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchString the string to search in the addresses.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndAddress(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where at least an address in [Patient.addresses]
+	 * has a concatenation of [Address.street] + [Address.city] that starts with [streetAndCity], where [Address.postalCode]
+	 * starts with [postalCode], and where [Address.houseNumber] starts with [houseNumber].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param streetAndCity the string to search in the address street + city.
+	 * @param postalCode the postal code to search.
+	 * @param houseNumber the house number to search.
+	 * @param healthcarePartyId the id of a data owner or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndAddress(datastoreInformation: IDatastoreInformation, streetAndCity: String?, postalCode: String?, houseNumber: String?, healthcarePartyId: String): Flow<String>
 
 	/**
@@ -106,12 +216,8 @@ interface PatientDAO : GenericDAO<Patient> {
 	 */
 	fun findPatientsOfHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
 
-	fun findPatientsByHcPartyModificationDate(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
-
-	fun findPatientsOfHcPartyModificationDate(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
-
 	/**
-	 * Retrieves all the [Patient]s for a given healthcare party which [Patient.dateOfBirth] is between [startDate] (if
+	 * Retrieves all the [Patient]s with a delegation for [healthcarePartyId] where [Patient.dateOfBirth] is between [startDate] (if
 	 * provided) and [endDate] (if provided) in a format for pagination.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group id and CouchDB instance.
@@ -174,6 +280,15 @@ interface PatientDAO : GenericDAO<Patient> {
 	 */
 	fun findPatientsModifiedAfter(datastoreInformation: IDatastoreInformation, date: Long, paginationOffset: PaginationOffset<Long>): Flow<ViewQueryResultEvent>
 
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.ssin] is equal to one of
+	 * the provided [ssins].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param ssins the ssin numbers to search.
+	 * @param healthcarePartyId a data owner id or a search key.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndSsins(datastoreInformation: IDatastoreInformation, ssins: Collection<String>, healthcarePartyId: String): Flow<String>
 
 	@Deprecated(message = "A Data Owner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
@@ -207,12 +322,31 @@ interface PatientDAO : GenericDAO<Patient> {
 
 	fun findPatients(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<ViewQueryResultEvent>
 
+	/**
+	 * Retrieves all the [Patient.id]s that have a delegation to a data owner given their [searchKeys] and that have at least
+	 * one of the provided [identifiers] in [Patient.identifier].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchKeys a [Set] of search keys (access control keys + data owner id).
+	 * @param identifiers the identifiers to search.
+	 * @return a [Flow] of [Patient.id]s.
+	 */
 	fun listPatientIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
 
-	fun listPatientsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, system: String, id: String): Flow<Patient>
+	/**
+	 * Retrieves all the [Patient]s that have a delegation to a data owner given their [searchKeys] and that have at least
+	 * one identifier in [Patient.identifier] with the specified [system] and [value].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchKeys a [Set] of search keys (access control keys + data owner id).
+	 * @param system the identifier system.
+	 * @param value the identifier value.
+	 * @return a [Flow] of [Patient]s.
+	 */
+	fun listPatientsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, system: String, value: String): Flow<Patient>
 
 	/**
-	 * Retrieves all the [Patient] entities for a given healthcare party id, sorted by the concatenation of [Patient.lastName] and
+	 * Retrieves all the [Patient]s for a given healthcare party id, sorted by the concatenation of [Patient.lastName] and
 	 * [Patient.firstName] normalized removing all the characters that are not letters and mapping all the characters
 	 * outside the standard english alphabet to letters of the alphabet.
 	 * If a [searchString] is passed, only the patients which normalized key starts with the normalized [searchString]
@@ -243,4 +377,28 @@ interface PatientDAO : GenericDAO<Patient> {
 	 * @return a [Flow] of [ViewQueryResultEvent] wrapping the [Patient]s.
 	 */
 	fun findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [Patient.id]s with a delegation a data owner (through their data owner id + access control keys),
+	 * where [Patient.modified] is not null and greater than or equal to[startDate] (if provided, otherwise not lower
+	 * bound will be set), and less than or equal to [endDate] (if provided, otherwise no upper bound will be set).
+	 * If the [Patient.modified] timestamp is null, then [Patient.created] will be considered. If also [Patient.created]
+	 * is null, then this patient will be considered in the results.
+	 * The results will be sorted by [Patient.modified] or [Patient.created] in ascending or descending order according
+	 * to the [descending] parameter.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchKeys the data owner id + access control keys.
+	 * @param startDate the lower bound for the [Patient.modified] timestamp.
+	 * @param endDate the upper bound for the [Patient.modified] timestamp.
+	 * @param descending whether to sort the result in descending or ascending order by [Patient.modified].
+	 * @return a [Flow] of [Patient.id]s.
+	 */
+	fun listPatientIdsByDataOwnerModificationDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean,
+	): Flow<String>
 }

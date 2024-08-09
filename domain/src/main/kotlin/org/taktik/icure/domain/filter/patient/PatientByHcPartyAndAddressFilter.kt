@@ -19,7 +19,19 @@ package org.taktik.icure.domain.filter.patient
 
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.embed.Address
 
+/**
+ * Retrieves all the [Patient]s with a delegation for [healthcarePartyId] that match one of the two conditions:
+ * - If [postalCode] and [houseNumber] are both not null, [Patient] must have at least an address in [Patient.addresses]
+ *   where a concatenation of [Address.street] + [Address.city] starts with [searchString], where [Address.postalCode]
+ *   starts with [postalCode], and where [Address.houseNumber] starts with [houseNumber].
+ *
+ * - Otherwise, [Patient] must have at least an address in [Patient.addresses] that has a concatenation of
+ *   [Address.street] + [Address.postalCode] + [Address.city] that starts with the specified [searchString].
+ *
+ * As this filter explicitly specifies a data owner id, it does not require any security precondition to be used.
+ */
 interface PatientByHcPartyAndAddressFilter : Filter<String, Patient> {
 	val searchString: String?
 	val healthcarePartyId: String?

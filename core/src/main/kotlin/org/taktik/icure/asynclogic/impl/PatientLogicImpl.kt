@@ -59,7 +59,6 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlowOfIds
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.aggregateResults
-import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 import java.time.Instant
@@ -272,11 +271,6 @@ open class PatientLogicImpl(
 	override fun findByHcPartyDateOfBirth(date: Int?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, date, date, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), false))
-	}
-
-	override fun findByHcPartyModificationDate(start: Long?, end: Long?, healthcarePartyId: String, descending: Boolean, paginationOffset: PaginationOffset<List<String>>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.findPatientsByHcPartyModificationDate(datastoreInformation, start, end, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), descending))
 	}
 
 	override suspend fun findByUserId(id: String): Patient? {

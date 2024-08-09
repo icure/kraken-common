@@ -111,9 +111,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcareP
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByParentIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTypeSpecialtyPostCodeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
@@ -129,6 +129,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDa
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHcPartyTransportGuidReceivedFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByInvoiceIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByParentIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByDataOwnerModifiedAfterFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
@@ -335,6 +336,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: PatientByHcPartyNameFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameFilter
 	abstract fun map(filterDto: PatientByHcPartyAndIdentifiersFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndIdentifiersFilter
 	abstract fun map(filterDto: PatientByIdsFilter): org.taktik.icure.domain.filter.impl.patient.PatientByIdsFilter
+	abstract fun map(filterDto: PatientByDataOwnerModifiedAfterFilter): org.taktik.icure.domain.filter.impl.patient.PatientByDataOwnerModifiedAfterFilter
 
 	@JvmName("tryMapPatientFilter")
 	fun tryMap(filterDto: AbstractFilterDto<PatientDto>): AbstractFilter<Patient>? = when (filterDto) {
@@ -352,6 +354,7 @@ abstract class FilterV2Mapper {
 		is PatientByHcPartyNameFilter -> map(filterDto)
 		is PatientByHcPartyAndIdentifiersFilter -> map(filterDto)
 		is PatientByIdsFilter -> map(filterDto)
+		is PatientByDataOwnerModifiedAfterFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

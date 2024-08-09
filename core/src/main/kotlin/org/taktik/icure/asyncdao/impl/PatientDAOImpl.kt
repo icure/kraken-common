@@ -43,29 +43,27 @@ class PatientDAOImpl(
 ) : GenericIcureDAOImpl<Patient>(Patient::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), PatientDAO {
 
 	@Views(
-	    View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
-	    View(name = "by_data_owner_name", map = "classpath:js/patient/By_data_owner_name_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
-	)
-	override fun listPatientIdsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForName(datastoreInformation, name, healthcarePartyId, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION))
-	}
-
-	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
-	override fun listPatientIdsOfHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForName(datastoreInformation, name, healthcarePartyId, listOf("of_hcparty_name".main()))
-	}
-
-	@Views(
 	    View(name = "by_hcparty_ssin", map = "classpath:js/patient/By_hcparty_ssin_map.js", reduce = "_count"),
 	    View(name = "by_data_owner_ssin", map = "classpath:js/patient/By_data_owner_ssin_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listPatientIdsByHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForSsin(datastoreInformation, ssin, healthcarePartyId, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION))
-	}
+	override fun listPatientIdsByHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String, healthcarePartyId: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val normalizedSsin = ssin.replace(" ".toRegex(), "").replace("\\W".toRegex(), "")
+		val startKey = ComplexKey.of(healthcarePartyId, normalizedSsin)
+		val endKey = ComplexKey.of(healthcarePartyId, normalizedSsin + "\ufff0")
 
-	@View(name = "of_hcparty_ssin", map = "classpath:js/patient/Of_hcparty_ssin_map.js", reduce = "_count")
-	override fun listPatientIdsOfHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForSsin(datastoreInformation, ssin, healthcarePartyId, listOf("of_hcparty_ssin".main()))
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_ssin".main(),
+			"by_data_owner_ssin" to DATA_OWNER_PARTITION
+		)
+			.startKey(startKey)
+			.endKey(endKey)
+			.reduce(false)
+			.doNotIncludeDocs()
+
+		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 	}
 
 	@Views(
@@ -115,7 +113,9 @@ class PatientDAOImpl(
 			datastoreInformation,
 			"by_hcparty_date_of_birth",
 			"by_data_owner_date_of_birth" to DATA_OWNER_PARTITION
-		).startKey(ComplexKey.of(healthcarePartyId, null)).endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())).doNotIncludeDocs()
+		).startKey(ComplexKey.of(healthcarePartyId, null))
+			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
+			.doNotIncludeDocs()
 		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {(it.components[1] as? Number)?.toLong()}))
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 
@@ -139,7 +139,9 @@ class PatientDAOImpl(
 			datastoreInformation,
 			"by_hcparty_date_of_birth",
 			"by_data_owner_date_of_birth" to DATA_OWNER_PARTITION
-		).startKey(ComplexKey.of(healthcarePartyId, startDate)).endKey(ComplexKey.of(healthcarePartyId, endDate)).doNotIncludeDocs()
+		).startKey(ComplexKey.of(healthcarePartyId, startDate))
+			.endKey(ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject()))
+			.doNotIncludeDocs()
 		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {(it.components[1] as? Number)?.toLong()}))
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 	}
@@ -170,93 +172,28 @@ class PatientDAOImpl(
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 	}
 
-	@View(name = "of_hcparty_date_of_birth", map = "classpath:js/patient/Of_hcparty_date_of_birth_map.js")
-	override fun listPatientIdsForHcPartyDateOfBirth(datastoreInformation: IDatastoreInformation, date: Int?, healthcarePartyId: String) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "of_hcparty_date_of_birth").key(ComplexKey.of(healthcarePartyId, date)).includeDocs(false)
-		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.id })
-	}
-
-	private fun listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?, viewNames: List<Pair<String, String?>>): Flow<String> = flow {
+	@Views(
+	    View(name = "by_hcparty_contains_name", map = "classpath:js/patient/By_hcparty_contains_name_map.js"),
+	    View(name = "by_data_owner_contains_name", map = "classpath:js/patient/By_data_owner_contains_name_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+	)
+	override fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val name = if (searchString != null) sanitizeString(searchString) else null
-		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_contains_name".main(),
+			"by_data_owner_contains_name" to DATA_OWNER_PARTITION
+		)
 			.startKey(ComplexKey.of(healthcarePartyId, name))
 			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0"))
 			.also { q -> limit?.let { q.limit(it) } ?: q }
 			.doNotIncludeDocs()
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
-	}
-
-	@Views(
-	    View(name = "by_hcparty_contains_name", map = "classpath:js/patient/By_hcparty_contains_name_map.js"),
-	    View(name = "by_data_owner_contains_name", map = "classpath:js/patient/By_data_owner_contains_name_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
-	override fun listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) =
-		listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit, listOf("by_hcparty_contains_name".main(), "by_data_owner_contains_name" to DATA_OWNER_PARTITION))
-
-	@View(name = "of_hcparty_contains_name", map = "classpath:js/patient/Of_hcparty_contains_name_map.js")
-	override fun listPatientIdsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, limit: Int?) =
-		listPatientIdsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, limit, listOf("of_hcparty_contains_name".main()))
-
-	private fun listPatientIdsForName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, viewNames: List<Pair<String, String?>>) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val startKey: ComplexKey
-		val endKey: ComplexKey
-
-		//Not transactional aware
-		if (name != null) {
-			val sanitizedName = sanitizeString(name)
-			startKey = ComplexKey.of(healthcarePartyId, sanitizedName)
-			endKey = ComplexKey.of(healthcarePartyId, sanitizedName + "\ufff0")
-		} else {
-			startKey = ComplexKey.of(healthcarePartyId, null)
-			endKey = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
-		}
-
-		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
-			.startKey(startKey).endKey(endKey).reduce(false)
-			.doNotIncludeDocs()
-
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
-	}
-
-	private fun listPatientIdsForSsin(datastoreInformation: IDatastoreInformation, ssin: String?, healthcarePartyId: String, viewNames: List<Pair<String, String?>>) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val startKey: ComplexKey
-		val endKey: ComplexKey
-
-		if (ssin != null) {
-			val cssin = ssin.replace(" ".toRegex(), "").replace("\\W".toRegex(), "")
-			startKey = ComplexKey.of(healthcarePartyId, cssin)
-			endKey = ComplexKey.of(healthcarePartyId, cssin + "\ufff0")
-		} else {
-			startKey = ComplexKey.of(healthcarePartyId, null)
-			endKey = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
-		}
-
-		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
-			.startKey(startKey).endKey(endKey).reduce(false)
-			.doNotIncludeDocs()
-
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
-	}
-
-	private fun listPatientIdsForSsins(datastoreInformation: IDatastoreInformation, ssins: Collection<String>, healthcarePartyId: String, viewNames: List<Pair<String, String?>>) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val viewQueries = createQueries(datastoreInformation, *viewNames.toTypedArray())
-			.keys(ssins.map { ssin -> ComplexKey.of(healthcarePartyId, ssin) })
-			.reduce(false)
-			.doNotIncludeDocs()
-
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
+		emitAll(client
+			.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+			.mapNotNull { it.id })
 	}
 
 	private fun listPatientIdsForActive(datastoreInformation: IDatastoreInformation, active: Boolean, searchKeys: Set<String>, viewNames: List<Pair<String, String?>>) = flow {
@@ -426,19 +363,6 @@ class PatientDAOImpl(
 		return findPatientsBySsin(datastoreInformation, ssin, healthcarePartyId, pagination, descending, listOf("of_hcparty_ssin".main()))
 	}
 
-	@Views(
-	    View(name = "by_hcparty_modification_date", map = "classpath:js/patient/By_hcparty_modification_date_map.js"),
-	    View(name = "by_data_owner_modification_date", map = "classpath:js/patient/By_data_owner_modification_date_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
-	override fun findPatientsByHcPartyModificationDate(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
-		return findPatientsByModificationDate(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("by_hcparty_modification_date".main(), "by_data_owner_modification_date" to DATA_OWNER_PARTITION))
-	}
-
-	@View(name = "of_hcparty_modification_date", map = "classpath:js/patient/Of_hcparty_modification_date_map.js")
-	override fun findPatientsOfHcPartyModificationDate(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
-		return findPatientsByModificationDate(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("of_hcparty_modification_date".main()))
-	}
-
 	override fun findPatientsByHcPartyDateOfBirth(datastoreInformation: IDatastoreInformation, startDate: Int?, endDate: Int?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
 		return findPatientsByDateOfBirth(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("by_hcparty_date_of_birth".main(), "by_data_owner_date_of_birth" to DATA_OWNER_PARTITION))
 	}
@@ -532,20 +456,42 @@ class PatientDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Patient>(viewQueries, compareBy({it.components[0] as? String}, {(it.components[1] as? Number)?.toLong()})))
 	}
 
-	private fun findPatientsByModificationDate(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean, viewNames: List<Pair<String, String?>>) = flow {
+	@Views(
+		View(name = "by_hcparty_modification_date", map = "classpath:js/patient/By_hcparty_modification_date_map.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_data_owner_modification_date", map = "classpath:js/patient/By_data_owner_modification_date_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+	)
+	override fun listPatientIdsByDataOwnerModificationDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean,
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKeyStartDate = if (descending) endDate else startDate
-		val endKeyEndDate = if (descending) startDate else endDate
-		val smallestKey = if (descending) ComplexKey.emptyObject() else null
-		val largestKey = if (descending) null else ComplexKey.emptyObject()
 
-		val from = ComplexKey.of(healthcarePartyId, startKeyStartDate ?: smallestKey)
-		val to = ComplexKey.of(healthcarePartyId, endKeyEndDate ?: largestKey)
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_modification_date" to MAURICE_PARTITION,
+			"by_data_owner_modification_date" to DATA_OWNER_PARTITION
+		).keys(searchKeys)
 
-		val viewQueries = createPagedQueries(datastoreInformation, viewNames, from, to, pagination, descending)
-		emitAll(client.interleave<ComplexKey, String, Patient>(viewQueries, compareBy({it.components[0] as? String}, {(it.components[1] as? Number)?.toLong()})))
-	}
+		client.interleave<String, Long>(viewQueries, compareBy { it })
+			.filterIsInstance<ViewRowNoDoc<String, Long>>()
+			.mapNotNull {
+				if(it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
+					it.id to it.value!!
+				} else null
+			}
+			.toList()
+			.sortedWith(if(descending) Comparator { o1, o2 ->
+				o2.second.compareTo(o1.second).let {
+					if(it == 0) o2.first.compareTo(o1.first) else it
+				}
+			} else compareBy({ it.second }, { it.first })
+			)
+			.forEach { emit(it.first) }
+	}.distinctUntilChanged()
 
 	@View(name = "by_user_id", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc.userId) emit( doc.userId, doc._id )}")
 	override suspend fun findPatientsByUserId(datastoreInformation: IDatastoreInformation, id: String): Patient? {
@@ -638,15 +584,30 @@ class PatientDAOImpl(
 			datastoreInformation,
 			"by_modification_date",
 			date,
-			java.lang.Long.MAX_VALUE,
+			Long.MAX_VALUE,
 			paginationOffset,
 			false
 		)
 		emitAll(client.queryView(viewQuery, Long::class.java, Any::class.java, Patient::class.java))
 	}
 
-	override fun listPatientIdsByHcPartyAndSsins(datastoreInformation: IDatastoreInformation, ssins: Collection<String>, healthcarePartyId: String): Flow<String> {
-		return listPatientIdsForSsins(datastoreInformation, ssins, healthcarePartyId, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION))
+	override fun listPatientIdsByHcPartyAndSsins(datastoreInformation: IDatastoreInformation, ssins: Collection<String>, healthcarePartyId: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = ssins.map { ssin ->
+			ssin.replace(" ".toRegex(), "").replace("\\W".toRegex(), "")
+		}.map { ComplexKey.of(healthcarePartyId, it) }
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_ssin".main(),
+			"by_data_owner_ssin" to DATA_OWNER_PARTITION
+		)
+			.keys(keys)
+			.reduce(false)
+			.doNotIncludeDocs()
+
+		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id })
 	}
 
 	@Deprecated("A Data Owner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
@@ -696,12 +657,12 @@ class PatientDAOImpl(
 		}
 	}
 
-	override fun listPatientsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, system: String, id: String) = flow {
+	override fun listPatientsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, system: String, value: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queryView = createQuery(datastoreInformation, "by_hcparty_identifier")
 			.includeDocs(true)
-			.keys(searchKeys.map {ComplexKey.of(it, system, id) })
+			.keys(searchKeys.map {ComplexKey.of(it, system, value) })
 		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Patient>(queryView).map { it.doc })
 	}.distinctByIdIf(searchKeys.size > 1)
 

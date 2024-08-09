@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyStatusFilter
 import org.taktik.icure.entities.HealthElement
-import javax.security.auth.login.LoginException
 
 @Service
 @Profile("app")
@@ -24,15 +23,10 @@ class HealthElementByHcPartyStatusFilter(
         context: Filters,
         datastoreInformation: IDatastoreInformation
     ) = flow {
-		try {
-			val hcPartyId = filter.hcPartyId
-			emitAll(healthElementDAO.listHealthElementIdsByHcPartyAndStatus(
-				datastoreInformation = datastoreInformation,
-				searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				status = filter.status,
-			))
-		} catch (e: LoginException) {
-			throw IllegalArgumentException(e)
-		}
+		emitAll(healthElementDAO.listHealthElementIdsByHcPartyAndStatus(
+			datastoreInformation = datastoreInformation,
+			searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.hcPartyId),
+			status = filter.status,
+		))
 	}
 }
