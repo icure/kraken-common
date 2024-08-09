@@ -188,10 +188,9 @@ interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWi
 
     suspend fun addDelegations(messageId: String, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>
-    fun getMessagesChildren(parentIds: List<String>): Flow<List<Message>>
+    fun getMessagesChildren(parentIds: List<String>): Flow<Message>
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-    fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
     override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,

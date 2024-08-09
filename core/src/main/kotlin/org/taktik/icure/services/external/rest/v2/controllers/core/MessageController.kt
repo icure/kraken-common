@@ -9,17 +9,14 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -133,7 +130,7 @@ class MessageController(
 	}
 
 	@Operation(summary = "Find Messages ids by data owner id, patient secret keys and sent date")
-	@PostMapping("/byDataOwnerPatientSentDate", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/byDataOwnerPatientSentDate", produces = [APPLICATION_JSON_VALUE])
 	fun listMessageIdsByDataOwnerPatientSentDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -183,13 +180,11 @@ class MessageController(
 	fun getChildrenMessages(@PathVariable messageId: String) =
 		messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
 
-	@OptIn(ExperimentalCoroutinesApi::class)
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getMessagesChildren(@RequestBody parentIds: ListOfIdsDto) =
 		messageService.getMessagesChildren(parentIds.ids)
-			.map { m -> m.map { mm -> messageV2Mapper.map(mm) }.asFlow() }
-			.flattenConcat()
+			.map(messageV2Mapper::map)
 			.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
@@ -329,7 +324,7 @@ class MessageController(
 	}
 
 	@Operation(summary = "Get ids of messages matching the provided filter")
-	@PostMapping("/match")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMessagesBy(
 		@RequestBody filter: AbstractFilterDto<MessageDto>,
 		@RequestParam(required = false) deduplicate: Boolean? = null

@@ -199,11 +199,6 @@ open class MessageLogicImpl(
 		emitAll(messageDAO.listMessagesByInvoiceIds(datastoreInformation, ids.toSet()))
 	}
 
-	override fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.getMessagesByExternalRefs(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), externalRefs.toSet()))
-	}
-
 	override fun createMessages(entities: Collection<Message>) = flow {
 		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId()) ?: throw NotFoundRequestException("Current user not found")
 

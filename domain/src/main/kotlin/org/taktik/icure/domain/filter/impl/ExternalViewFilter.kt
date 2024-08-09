@@ -14,10 +14,12 @@ data class ExternalViewFilter<O : Identifiable<String>> (
 	override val desc: String?,
 ) : AbstractFilter<O>, org.taktik.icure.domain.filter.ExternalViewFilter<O> {
 
-	override val canBeUsedInWebsocket = true
+	override val canBeUsedInWebsocket = false
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: O, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = true
+	override fun matches(item: O, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
+		throw UnsupportedOperationException("This filter cannot be used in websocket")
+	}
 
 }

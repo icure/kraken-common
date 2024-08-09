@@ -152,10 +152,9 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
 
     suspend fun addDelegations(message: Message, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>
-    fun getMessagesChildren(parentIds: List<String>): Flow<List<Message>>
+    fun getMessagesChildren(parentIds: List<String>): Flow<Message>
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-    fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
     fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,
