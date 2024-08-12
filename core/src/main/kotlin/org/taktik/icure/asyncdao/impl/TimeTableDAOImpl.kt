@@ -16,12 +16,12 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.TimeTableDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.TimeTable
@@ -47,6 +47,15 @@ class TimeTableDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, TimeTable>(viewQuery).map { it.doc })
 	}
 
+	override fun listTimeTableIdsByAgendaId(datastoreInformation: IDatastoreInformation, agendaId: String) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = createQuery(datastoreInformation, "by_agenda")
+			.startKey(agendaId)
+			.endKey(agendaId)
+			.includeDocs(false)
+		emitAll(client.queryView<String, Any?>(viewQuery).map { it.id })
+	}
+
 	override fun listTimeTablesByAgendaIds(datastoreInformation: IDatastoreInformation, agendaIds: Collection<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "by_agenda")
@@ -56,48 +65,45 @@ class TimeTableDAOImpl(
 	}
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/timeTable/By_agenda_and_startdate.js")
-	override fun listTimeTablesByStartDateAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
+	private fun listTimeTablesByStartDateAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		agendaId: String,
+		descending: Boolean
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val from = ComplexKey.of(
-			agendaId,
-			startDate
-		)
+		val from = ComplexKey.of(agendaId, null)
 		val to = ComplexKey.of(
 			agendaId,
-			endDate ?: ComplexKey.emptyObject()
+			ComplexKey.emptyObject()
 		)
 		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_startdate")
-			.startKey(from)
-			.endKey(to)
+			.startKey(if (descending) to else from)
+			.endKey(if (descending) from else to)
 			.includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<Array<String>, TimeTable>(viewQuery).map { it.doc })
+			.descending(descending)
+		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, TimeTable>(viewQuery).map { it.doc })
 	}
 
-	@View(name = "by_agenda_and_enddate", map = "classpath:js/timeTable/By_agenda_and_enddate.js")
-	override fun listTimeTablesByEndDateAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val from = ComplexKey.of(
-			agendaId,
-			startDate
-		)
-		val to = ComplexKey.of(
-			agendaId,
-			endDate ?: ComplexKey.emptyObject()
-		)
-		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_enddate")
-			.startKey(from)
-			.endKey(to)
-			.includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<Array<String>, TimeTable>(viewQuery).map { it.doc })
-	}
+	override fun listTimeTablesByPeriodAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		agendaId: String,
+		descending: Boolean
+	): Flow<TimeTable> =
+		listTimeTablesByStartDateAndAgendaId(datastoreInformation, agendaId, descending).filter {
+			(it.endTime?.let { et -> et > (startDate ?: 0) } ?: true)
+				&& (it.startTime?.let { st -> st < (endDate ?: 99999999999999L) } ?: true)
+		}
 
-	override fun listTimeTablesByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String): Flow<TimeTable> =
-		listTimeTablesByStartDateAndAgendaId(
-			datastoreInformation,
-			null,
-			null,
-			agendaId
-		).filter { (it.endTime?.let { et -> et > (startDate ?: 0) } ?: true) && (it.startTime?.let { st -> st < (endDate ?: 99999999999999L) } ?: true) }
+	override fun listTimeTableIdsByPeriodAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		agendaId: String,
+		descending: Boolean
+	): Flow<String> =
+		listTimeTablesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId, descending).map { it.id }
 
 	override fun listTimeTablesByPeriodAndAgendaIds(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaIds: Collection<String>): Flow<TimeTable> =
 		listTimeTablesByAgendaIds(

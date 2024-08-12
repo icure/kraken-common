@@ -42,6 +42,7 @@ import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.embed.Service
@@ -61,6 +62,7 @@ import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.MedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
@@ -151,6 +153,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByQualifiedLinkFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySecretForeignKeys
+import org.taktik.icure.services.external.rest.v2.dto.filter.timetable.TimeTableByAgendaIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.timetable.TimeTableByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.AllUsersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByNameEmailPhoneFilter
@@ -417,6 +421,16 @@ abstract class FilterV2Mapper {
 		is HealthcarePartyByTypeSpecialtyPostCodeFilter -> map(filterDto)
 		is HealthcarePartyByNationalIdentifierFilter -> map(filterDto)
 		is HealthcarePartyByParentIdFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: TimeTableByAgendaIdFilter): org.taktik.icure.domain.filter.impl.timetable.TimeTableByAgendaIdFilter
+	abstract fun map(filterDto: TimeTableByPeriodAndAgendaIdFilter): org.taktik.icure.domain.filter.impl.timetable.TimeTableByPeriodAndAgendaIdFilter
+
+	@JvmName("tryMapTimeTableFilter")
+	fun tryMap(filterDto: AbstractFilterDto<TimeTableDto>): AbstractFilter<TimeTable>? = when (filterDto) {
+		is TimeTableByAgendaIdFilter -> map(filterDto)
+		is TimeTableByPeriodAndAgendaIdFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

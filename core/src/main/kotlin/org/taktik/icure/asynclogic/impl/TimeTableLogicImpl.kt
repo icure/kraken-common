@@ -46,7 +46,7 @@ class TimeTableLogicImpl(
     override fun getTimeTablesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<TimeTable> =
         flow {
             val datastoreInformation = getInstanceAndGroup()
-            emitAll(timeTableDAO.listTimeTablesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId))
+            emitAll(timeTableDAO.listTimeTablesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId, false))
         }
 
     override fun getTimeTablesByAgendaId(agendaId: String): Flow<TimeTable> = flow {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.exceptions.NotFoundRequestException
 
@@ -38,4 +39,16 @@ interface TimeTableService : EntityWithSecureDelegationsService<TimeTable> {
 	fun getTimeTablesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<TimeTable>
 	fun getTimeTablesByAgendaId(agendaId: String): Flow<TimeTable>
 	suspend fun modifyTimeTable(timeTable: TimeTable): TimeTable
+
+	/**
+	 * Retrieves the ids of the [TimeTable]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [TimeTable].
+	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchTimeTablesBy(filter: AbstractFilter<TimeTable>, deduplicate: Boolean): Flow<String>
 }
