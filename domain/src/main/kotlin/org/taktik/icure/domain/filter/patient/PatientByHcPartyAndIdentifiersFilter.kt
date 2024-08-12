@@ -5,7 +5,7 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Identifier
 
 /**
- * Retrieves all the [Patient]s that have a delegation to [healthcarePartyId] and that have at least
+ * Retrieves all the [Patient]s with a delegation to [healthcarePartyId] and that have at least
  * one of the provided [identifiers] in [Patient.identifier].
  * As this filter explicitly specifies a data owner id, it does not require any security precondition to be used.
  */

@@ -4,9 +4,7 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Form
 
 /**
- * Retrieves all the [Form]s that the data owner with id [dataOwnerId] can access and [Form.parent] is equal to [parentId].
- * If [dataOwnerId] is the data owner making the request, then also the available secret access keys will be used to
- * retrieve the results.
+ * Retrieves all the [Form]s with a delegation for [dataOwnerId] and where [Form.parent] is equal to [parentId].
  * This filter explicitly requires a [dataOwnerId], so it does not require any security precondition.
  */
 interface FormByDataOwnerParentIdFilter : Filter<String, Form> {

@@ -4,7 +4,7 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Form
 
 /**
- * Retrieves all the [Form]s that the data owner with id [dataOwnerId] can access, where [Form.secretForeignKeys]
+ * Retrieves all the [Form]s with a delegation for [dataOwnerId], where [Form.secretForeignKeys]
  * contains at least one of [secretPatientKeys] and where [Form.openingDate] is greater than or
  * equal to [startDate] (if provided) and less than or equal to [endDate] (if provided).
  * If [dataOwnerId] is the data owner making the request, then also the available secret access keys will be used to

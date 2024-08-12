@@ -4,7 +4,7 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.CalendarItem
 
 /**
- * Retrieves all the [CalendarItem]s that the data owner with id [dataOwnerId] can access and where [CalendarItem.startTime]
+ * Retrieves all the [CalendarItem]s with a delegation for [dataOwnerId] where [CalendarItem.startTime]
  * is between [startTime] and [endTime] or [CalendarItem.endTime] is between that same interval.
  * Both [startTime] and [endTime] are fuzzy dates in the YYYYMMDDHHMMSS format.
  * As the result comes from different views, the result of this filtered is not sorted.

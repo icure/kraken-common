@@ -24,7 +24,7 @@ import org.taktik.icure.entities.User
 /**
  * Retrieves all the [User] where any among [User.login], [User.name], [User.email], [User.mobilePhone], or [User.status]
  * contains a word that starts with [searchString].
- * Are considered different words the substring separated by the characters ' ', '|', '/' and '`'.
+ * In each of those fields, are considered different words the substring separated by the characters ' ', '|', '/' and '`'.
  */
 interface UserByNameEmailPhoneFilter : Filter<String, User> {
 	val searchString: String

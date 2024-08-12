@@ -5,7 +5,7 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DocumentType
 
 /**
- * Retrieves all the [Document]s that the data owner with id [dataOwnerId] can access, where [Document.secretForeignKeys]
+ * Retrieves all the [Document]s with a delegation for [dataOwnerId], where [Document.secretForeignKeys]
  * contains at least one of [secretPatientKeys] and where [Document.documentType] is equal to [documentType].
  * If [dataOwnerId] is the data owner making the request, then also the available secret access keys will be used to
  * retrieve the results.

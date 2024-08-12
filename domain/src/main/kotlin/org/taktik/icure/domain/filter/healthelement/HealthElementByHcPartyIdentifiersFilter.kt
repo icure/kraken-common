@@ -23,10 +23,8 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
 
 /**
- * Retrieves all the [HealthElement]s that the data owner with id [hcPartyId] can access and [HealthElement.identifiers] intersects the provided [identifiers].
- * If [hcPartyId] is the data owner making the request, then also the available secret access keys will be used to
- * retrieve the results.
- *
+ * Retrieves all the [HealthElement]s that the data owner with id [hcPartyId] can access and [HealthElement.identifiers]
+ * intersects the provided [identifiers].
  * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
  */
 interface HealthElementByHcPartyIdentifiersFilter : Filter<String, HealthElement> {

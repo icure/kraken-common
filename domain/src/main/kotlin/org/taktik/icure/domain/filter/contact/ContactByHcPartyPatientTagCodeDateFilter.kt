@@ -9,6 +9,8 @@ import org.taktik.icure.entities.Contact
 /**
  * Retrieves all the [Contact]s that either have a [Contact.tags] a code stub with type [tagType] and code [tagCode] or
  * a stub with type [codeType] and code [codeCode] in [Contact.tags].
+ * The filter will return only  the [Contact]s with a delegation for [healthcarePartyId], or for the data owner making
+ * the request if [healthcarePartyId] is null.
  * If [patientSecretForeignKeys] is not null, then only the [Contact]s with those keys in [Contact.secretForeignKeys]
  * will be returned.
  * If the [startOfContactOpeningDate] fuzzy date is not null, only the ids of the [Contact]s with a successive opening date will be returned.

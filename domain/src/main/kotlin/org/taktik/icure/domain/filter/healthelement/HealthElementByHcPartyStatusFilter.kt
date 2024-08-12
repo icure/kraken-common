@@ -22,10 +22,8 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthElement
 
 /**
- * Retrieves all the [HealthElement]s that the data owner with id [hcPartyId] can access and [HealthElement.status] is equal to [status].
- * If [hcPartyId] is the data owner making the request, then also the available secret access keys will be used to
- * retrieve the results.
- *
+ * Retrieves all the [HealthElement]s with a delegation for [hcPartyId] and where [HealthElement.status] is equal to
+ * [status].
  * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
  */
 interface HealthElementByHcPartyStatusFilter : Filter<String, HealthElement> {

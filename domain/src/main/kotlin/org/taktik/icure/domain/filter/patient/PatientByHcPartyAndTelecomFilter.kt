@@ -22,8 +22,8 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Address
 
 /**
- * Retrieves all the [Patient.id]s that have among the available telecoms (that are nested in the [Address] objects
- * in [Patient.addresses]) there is at least one that starts with [searchString].
+ * Retrieves all the [Patient]s with a delegation for [healthcarePartyId] that have among the available telecoms
+ * (that are nested in the [Address] objects in [Patient.addresses]) at least one that starts with [searchString].
  * As this filter explicitly specifies a data owner id, it does not require any security precondition to be used.
  */
 interface PatientByHcPartyAndTelecomFilter : Filter<String, Patient> {

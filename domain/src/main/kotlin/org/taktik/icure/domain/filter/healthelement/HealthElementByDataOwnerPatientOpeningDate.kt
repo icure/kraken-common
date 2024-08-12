@@ -22,11 +22,9 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthElement
 
 /**
- * Retrieves all the [HealthElement]s that the data owner with id [healthcarePartyId] can access, where [HealthElement.secretForeignKeys]
+ * Retrieves all the [HealthElement]s with a delegation for [healthcarePartyId], where [HealthElement.secretForeignKeys]
  * contains at least one of [patientSecretForeignKeys].
- * If [healthcarePartyId] is the data owner making the request, then also the available secret access keys will be used to
- * retrieve the results.
- *
+ * If [healthcarePartyId] is null, then the healthcare party id of the user making the request will be used.
  * This filter explicitly requires a [healthcarePartyId], so it does not require any security precondition.
  */
 interface HealthElementByDataOwnerPatientOpeningDate : Filter<String, HealthElement> {

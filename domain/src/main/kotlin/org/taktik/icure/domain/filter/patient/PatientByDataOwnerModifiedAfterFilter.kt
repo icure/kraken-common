@@ -4,8 +4,8 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Patient
 
 /**
- * Retrieves all the [Patient.id]s with a delegation a data owner (through their data owner id + access control keys),
- * where [Patient.modified] is not null and greater than or equal to[startDate] (if provided, otherwise not lower
+ * Retrieves all the [Patient.id]s with a delegation for [dataOwnerId],
+ * where [Patient.modified] is not null and greater than or equal to[startDate] (if provided, otherwise no lower
  * bound will be set), and less than or equal to [endDate] (if provided, otherwise no upper bound will be set).
  * If the [Patient.modified] timestamp is null, then [Patient.created] will be considered. If also [Patient.created]
  * is null, then this patient will be considered in the results.

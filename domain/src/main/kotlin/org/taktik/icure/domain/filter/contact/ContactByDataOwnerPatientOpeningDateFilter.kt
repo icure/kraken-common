@@ -4,8 +4,7 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.Contact
 
 /**
- * Retrieves the ids of all the [Contact]s given the [dataOwnerId] (and its access keys if it is the current
- * user making the request) and a set of [Contact.secretForeignKeys].
+ * Retrieves the ids of all the [Contact]s with a delegation for [dataOwnerId] and a set of [Contact.secretForeignKeys].
  * Only the ids of the Contacts where [Contact.openingDate] is not null are returned and the results are sorted by
  * [Contact.openingDate] in ascending or descending order according to the [descending] parameter.
  * If the [startDate] fuzzy date is not null, only the ids of the [Contact]s with a successive opening date will be returned.
