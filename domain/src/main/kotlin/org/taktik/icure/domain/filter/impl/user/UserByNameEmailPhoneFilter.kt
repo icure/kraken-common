@@ -17,6 +17,7 @@
  */
 package org.taktik.icure.domain.filter.impl.user
 
+import org.taktik.icure.db.sanitize
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.HasEncryptionMetadata
@@ -30,13 +31,14 @@ data class UserByNameEmailPhoneFilter(
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: User, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchString.lowercase().let { ss ->
-		listOfNotNull(
+	override fun matches(item: User, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
+		val sanitizedQuery = checkNotNull(searchString.sanitize())
+		return listOfNotNull(
 			item.name?.lowercase(),
 			item.login?.lowercase(),
 			item.email?.lowercase(),
 			item.mobilePhone?.lowercase(),
 			item.status?.toString()?.lowercase()
-		).any { it.startsWith(ss) }
+		).any { checkNotNull(it.sanitize()).startsWith(sanitizedQuery) }
 	}
 }

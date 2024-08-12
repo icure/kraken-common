@@ -20,6 +20,9 @@ package org.taktik.icure.domain.filter.user
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.User
 
+/**
+ * Retrieves all the [User] which [User.id] is among the provided [ids].
+ */
 interface UserByIdsFilter : Filter<String, User> {
 	val ids: List<String>?
 }

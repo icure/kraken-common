@@ -68,7 +68,7 @@ open class UserLogicImpl (
 
 	override fun findByPatientId(patientId: String): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userDAO.listUsersByPatientId(datastoreInformation, patientId).mapNotNull { v: User -> v.id })
+		emitAll(userDAO.listUserIdsByPatientId(datastoreInformation, patientId))
 	}
 
 	override suspend fun getUserByEmail(email: String): EnhancedUser? {
@@ -80,7 +80,7 @@ open class UserLogicImpl (
 
 	override fun listUserIdsByHcpartyId(hcpartyId: String): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userDAO.listUsersByHcpId(datastoreInformation, hcpartyId).mapNotNull { v: User -> v.id })
+		emitAll(userDAO.listUserIdsByHcpId(datastoreInformation, hcpartyId))
 	}
 
 	override fun findByNameEmailPhone(

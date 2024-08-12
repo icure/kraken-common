@@ -7,17 +7,17 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.user.UsersByPatientIdFilter
+import org.taktik.icure.domain.filter.user.UserByHealthcarePartyIdFilter
 import org.taktik.icure.entities.User
 
 @Service
 @Profile("app")
-class UsersByPatientIdFilter(
+class UserByHealthcarePartyIdFilter(
 	private val userDAO: UserDAO
-) : Filter<String, User, UsersByPatientIdFilter> {
+) : Filter<String, User, UserByHealthcarePartyIdFilter> {
 	override fun resolve(
-		filter: UsersByPatientIdFilter,
+		filter: UserByHealthcarePartyIdFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
-	): Flow<String> = userDAO.listUserIdsByPatientId(datastoreInformation, filter.patientId)
+	): Flow<String> = userDAO.listUserIdsByHcpId(datastoreInformation, filter.healthcarePartyId)
 }

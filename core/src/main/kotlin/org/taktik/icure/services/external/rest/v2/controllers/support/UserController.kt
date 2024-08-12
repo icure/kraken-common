@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -133,17 +132,16 @@ class UserController(
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
-	@Operation(summary = "Get the list of users by healthcare party id")
-	@GetMapping("/byHealthcarePartyId/{id}")
-	fun findByHcpartyId(@PathVariable id: String) = mono {
-		userService.listUserIdsByHcpartyId(id).toList()
-	}
+	@Operation(summary = "Get the list of User ids by healthcare party id")
+	@GetMapping("/byHealthcarePartyId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun findByHcpartyId(@PathVariable id: String) =
+		userService.listUserIdsByHcpartyId(id).injectReactorContext()
 
-	@Operation(summary = "Get the list of users by patient id")
-	@GetMapping("/byPatientId/{id}")
-	fun findByPatientId(@PathVariable id: String) = mono {
-		userService.findByPatientId(id).toList()
-	}
+
+	@Operation(summary = "Get the list of User ids by patient id")
+	@GetMapping("/byPatientId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun findByPatientId(@PathVariable id: String) =
+		userService.findByPatientId(id).injectReactorContext()
 
 	@Operation(summary = "Delete a User based on his/her ID.", description = "Delete a User based on his/her ID. The return value is an array containing the ID of deleted user.")
 	@DeleteMapping("/{userId}")

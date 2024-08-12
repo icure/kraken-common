@@ -156,6 +156,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySe
 import org.taktik.icure.services.external.rest.v2.dto.filter.timetable.TimeTableByAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.timetable.TimeTableByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.AllUsersFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByHealthcarePartyIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByNameEmailPhoneFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatientIdFilter
@@ -438,6 +439,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: UserByIdsFilter): org.taktik.icure.domain.filter.impl.user.UserByIdsFilter
 	abstract fun map(filterDto: UserByNameEmailPhoneFilter): org.taktik.icure.domain.filter.impl.user.UserByNameEmailPhoneFilter
 	abstract fun map(filterDto: UsersByPatientIdFilter): org.taktik.icure.domain.filter.impl.user.UsersByPatientIdFilter
+	abstract fun map(filterDto: UserByHealthcarePartyIdFilter): org.taktik.icure.domain.filter.impl.user.UserByHealthcarePartyIdFilter
 
 	@JvmName("tryMapUserFilter")
 	fun tryMap(filterDto: AbstractFilterDto<UserDto>): AbstractFilter<User>? = when (filterDto) {
@@ -445,6 +447,7 @@ abstract class FilterV2Mapper {
 		is UserByIdsFilter -> map(filterDto)
 		is UserByNameEmailPhoneFilter -> map(filterDto)
 		is UsersByPatientIdFilter -> map(filterDto)
+		is UserByHealthcarePartyIdFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
