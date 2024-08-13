@@ -73,10 +73,11 @@ class LoginController(
 		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
-		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
+		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null,
+		@Parameter(description = "If not null the returned credentials will be valid only for access to groups where the application id matches this") @RequestParam(required = false) applicationId: String? = null
 	) = mono {
 		try {
-			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, if (sessionEnabled) session else null, groupId)
+			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, applicationId)
 			if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))

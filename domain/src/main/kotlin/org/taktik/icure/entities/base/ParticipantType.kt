@@ -53,13 +53,13 @@ enum class ParticipantType {
     /**
      * A person assisting in an act through his substantial presence and involvement. This includes: assistants, technicians, associates, or whatever the job titles may be.
      */
-    @JsonProperty("secondary-performer")
+    @JsonProperty("secondaryPerformer")
     SecondaryPerformer,
 
     /**
      * The principal or primary performer of the act.
      */
-    @JsonProperty("primary-performer")
+    @JsonProperty("primaryPerformer")
     PrimaryPerformer,
 
     /**
