@@ -147,11 +147,10 @@ class ClassificationController(
 	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-	): Flux<IcureStubDto> {
-		return classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+	): Flux<IcureStubDto> =
+		classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 			.map { classification -> stubV2Mapper.mapToStub(classification) }
 			.injectReactorContext()
-	}
 
 	@Operation(summary = "Get the ids of the Classifications matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])

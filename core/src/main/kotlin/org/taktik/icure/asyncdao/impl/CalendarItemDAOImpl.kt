@@ -244,6 +244,7 @@ class CalendarItemDAOImpl(
 		))
 	}
 
+	// Here I cannot use the function in the generic DAO because the date is in the key, not in the value.
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun listCalendarItemIdsByDataOwnerPatientStartTime(
 		datastoreInformation: IDatastoreInformation,
@@ -274,8 +275,8 @@ class CalendarItemDAOImpl(
 			.mapNotNull {
 				it.key?.let { key ->
 					val startTime = key.components[2] as? Long
-					if(startTime !== null && (startDate == null || startTime >= startDate) && (endDate == null || startTime <= endDate)) {
-						it.id to startTime
+					if((startTime == null && startDate == null && endDate == null) || startTime !== null && (startDate == null || startTime >= startDate) && (endDate == null || startTime <= endDate)) {
+						it.id to (startTime ?: 0)
 					} else null
 				}
 			}

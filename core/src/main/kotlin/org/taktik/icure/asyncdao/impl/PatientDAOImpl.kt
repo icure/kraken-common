@@ -347,10 +347,15 @@ class PatientDAOImpl(
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, String::class.java, Any::class.java))
 	}
 
+	@Views(
+		View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_data_owner_name", map = "classpath:js/patient/By_data_owner_name_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
+	)
 	override fun findPatientsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
 		return findPatientsByName(datastoreInformation, name, healthcarePartyId, pagination, descending, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION))
 	}
 
+	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
 	override fun findPatientsOfHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
 		return findPatientsByName(datastoreInformation, name, healthcarePartyId, pagination, descending, listOf("of_hcparty_name".main()))
 	}
@@ -359,6 +364,7 @@ class PatientDAOImpl(
 		return findPatientsBySsin(datastoreInformation, ssin, healthcarePartyId, pagination, descending, listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION))
 	}
 
+	@View(name = "of_hcparty_ssin", map = "classpath:js/patient/Of_hcparty_ssin_map.js", reduce = "_count")
 	override fun findPatientsOfHcPartyAndSsin(datastoreInformation: IDatastoreInformation, ssin: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
 		return findPatientsBySsin(datastoreInformation, ssin, healthcarePartyId, pagination, descending, listOf("of_hcparty_ssin".main()))
 	}
@@ -367,6 +373,7 @@ class PatientDAOImpl(
 		return findPatientsByDateOfBirth(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("by_hcparty_date_of_birth".main(), "by_data_owner_date_of_birth" to DATA_OWNER_PARTITION))
 	}
 
+	@View(name = "of_hcparty_date_of_birth", map = "classpath:js/patient/Of_hcparty_date_of_birth_map.js")
 	override fun findPatientsOfHcPartyDateOfBirth(datastoreInformation: IDatastoreInformation, startDate: Int?, endDate: Int?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
 		return findPatientsByDateOfBirth(datastoreInformation, startDate, endDate, healthcarePartyId, pagination, descending, listOf("of_hcparty_date_of_birth".main()))
 	}
@@ -374,6 +381,7 @@ class PatientDAOImpl(
 	override fun findPatientsByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean) =
 		findPatientsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, pagination, descending, listOf("by_hcparty_contains_name".main(), "by_data_owner_contains_name" to DATA_OWNER_PARTITION))
 
+	@View(name = "of_hcparty_contains_name", map = "classpath:js/patient/Of_hcparty_contains_name_map.js")
 	override fun findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean) =
 		findPatientsForHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, pagination, descending, listOf("of_hcparty_contains_name".main()))
 
@@ -395,7 +403,14 @@ class PatientDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Patient>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
 	}
 
-	private fun findPatientsByName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean, viewNames: List<Pair<String, String?>>) = flow {
+	private fun findPatientsByName(
+		datastoreInformation: IDatastoreInformation,
+		name: String?,
+		healthcarePartyId: String,
+		pagination: PaginationOffset<ComplexKey>,
+		descending: Boolean,
+		viewNames: List<Pair<String, String?>>
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKeyNameKeySuffix = if (descending) "\ufff0" else "\u0000"
