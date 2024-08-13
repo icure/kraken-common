@@ -36,8 +36,7 @@ interface EntityPersister<E, I> {
 	 * Retrieves the ids of the entities [E] matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 */
-	fun matchEntitiesBy(filter: AbstractFilter<*>, deduplicate: Boolean): Flow<String>
+	fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String>
 }

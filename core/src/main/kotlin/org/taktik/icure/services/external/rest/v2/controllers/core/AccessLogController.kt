@@ -199,13 +199,11 @@ class AccessLogController(
 		).map { bulkShareResultV2Mapper.map(it) })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	@Operation(summary = "Get the ids of the AccessLogs matching the provided filter")
+	@Operation(summary = "Get the ids of the Access Logs matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchAccessLogsBy(
-		@RequestBody filter: AbstractFilterDto<AccessLogDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<AccessLogDto>
 	) = accessLogService.matchAccessLogsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 }

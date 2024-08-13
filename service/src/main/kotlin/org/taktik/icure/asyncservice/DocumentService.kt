@@ -169,10 +169,9 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 *
 	 * @param filter an [AbstractFilter] of [Document].
 	 * @return a [Flow] of the ids matching the filter.
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchDocumentsBy(filter: AbstractFilter<Document>, deduplicate: Boolean): Flow<String>
+	fun matchDocumentsBy(filter: AbstractFilter<Document>): Flow<String>
 }

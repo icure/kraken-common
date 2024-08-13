@@ -95,13 +95,12 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	 * Retrieves the ids of the [HealthElement]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [HealthElement].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchHealthElementsBy(filter: AbstractFilter<HealthElement>, deduplicate: Boolean): Flow<String>
+	fun matchHealthElementsBy(filter: AbstractFilter<HealthElement>): Flow<String>
 
 	fun modifyEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 	fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement>

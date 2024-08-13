@@ -31,15 +31,18 @@ import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 
 @RestController("classificationControllerV2")
@@ -54,6 +57,7 @@ class ClassificationController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -148,6 +152,14 @@ class ClassificationController(
 			.map { classification -> stubV2Mapper.mapToStub(classification) }
 			.injectReactorContext()
 	}
+
+	@Operation(summary = "Get the ids of the Classifications matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchCalendarItemsBy(
+		@RequestBody filter: AbstractFilterDto<ClassificationDto>
+	) = classificationService.matchClassificationsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(description = "Shares one or more classifications with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")

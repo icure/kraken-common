@@ -114,11 +114,10 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * Retrieves the ids of the [AccessLog]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [AccessLog].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchAccessLogsBy(filter: AbstractFilter<AccessLog>, deduplicate: Boolean): Flow<String>
+	fun matchAccessLogsBy(filter: AbstractFilter<AccessLog>): Flow<String>
 }

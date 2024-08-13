@@ -268,14 +268,12 @@ class CalendarItemController(
 		.mapElements(calendarItemV2Mapper::map)
 		.asPaginatedFlux()
 
-	@Operation(summary = "Get the ids of the CalendarItems matching the provided filter")
+	@Operation(summary = "Get the ids of the CalendarItems matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCalendarItemsBy(
-		@RequestBody filter: AbstractFilterDto<CalendarItemDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<CalendarItemDto>
 	) = calendarItemService.matchCalendarItemsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 

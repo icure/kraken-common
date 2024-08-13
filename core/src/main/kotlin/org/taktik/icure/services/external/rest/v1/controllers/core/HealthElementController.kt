@@ -231,14 +231,12 @@ class HealthElementController(
 		healthElements.paginatedList(healthElementMapper::map, realLimit)
 	}
 
-	@Operation(summary = "Get ids of health element matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Health Elements matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthElementsBy(
-		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<HealthElementDto>
 	) = healthElementService.matchHealthElementsBy(
-		filter = filterMapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterMapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 }

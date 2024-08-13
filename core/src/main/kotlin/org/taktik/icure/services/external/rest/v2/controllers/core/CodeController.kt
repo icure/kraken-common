@@ -268,14 +268,12 @@ class CodeController(
 			.paginatedList(codeV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of code matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Codes matching a filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(
-		@RequestBody filter: AbstractFilterDto<CodeDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<CodeDto>
 	) = codeService.matchCodesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")

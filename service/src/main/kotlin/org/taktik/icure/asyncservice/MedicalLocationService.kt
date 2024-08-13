@@ -46,9 +46,8 @@ interface MedicalLocationService {
 	 * Retrieves the ids of the [MedicalLocation]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [MedicalLocation].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the current user does not have the Permission to search medical locations with a filter.
 	 */
-	fun matchMedicalLocationsBy(filter: AbstractFilter<MedicalLocation>, deduplicate: Boolean): Flow<String>
+	fun matchMedicalLocationsBy(filter: AbstractFilter<MedicalLocation>): Flow<String>
 }

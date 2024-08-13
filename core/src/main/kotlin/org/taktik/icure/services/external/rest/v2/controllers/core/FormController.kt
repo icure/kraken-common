@@ -362,13 +362,11 @@ class FormController(
 		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	@Operation(summary = "Get the ids of the Forms matching the provided filter")
+	@Operation(summary = "Get the ids of the Forms matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchDocumentsBy(
-		@RequestBody filter: AbstractFilterDto<FormDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+	fun matchFormsBy(
+		@RequestBody filter: AbstractFilterDto<FormDto>
 	) = formService.matchFormsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 }

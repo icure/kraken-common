@@ -15,7 +15,6 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -115,7 +114,7 @@ class HealthElementController(
 	}
 
 	@Operation(summary = "Find Health Element ids by data owner id, patient secret keys and opening date")
-	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [APPLICATION_JSON_VALUE])
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -243,14 +242,12 @@ class HealthElementController(
 		).map { bulkShareResultV2Mapper.map(it) })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	@Operation(summary = "Get ids of health element matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Health Elements matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthElementsBy(
 		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
 	) = healthElementService.matchHealthElementsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(description = "Shares one or more health elements with one or more data owners but does not return the updated entity.")

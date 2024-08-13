@@ -102,11 +102,10 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	 * Retrieves the ids of the [Classification]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Classification].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchClassificationsBy(filter: AbstractFilter<Classification>, deduplicate: Boolean): Flow<String>
+	fun matchClassificationsBy(filter: AbstractFilter<Classification>): Flow<String>
 }

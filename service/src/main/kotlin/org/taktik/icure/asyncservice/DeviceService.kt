@@ -26,9 +26,8 @@ interface DeviceService {
 	 * Retrieves the ids of the [Device]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Device].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the current user does not have the Permission to search devices with a filter.
 	 */
-	fun matchDevicesBy(filter: AbstractFilter<Device>, deduplicate: Boolean): Flow<String>
+	fun matchDevicesBy(filter: AbstractFilter<Device>): Flow<String>
 }

@@ -272,11 +272,9 @@ class CodeController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(
 		@RequestBody filter: AbstractFilterDto<CodeDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
 	) =
 		codeService.matchCodesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
-			deduplicate = deduplicate ?: false
 		).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")

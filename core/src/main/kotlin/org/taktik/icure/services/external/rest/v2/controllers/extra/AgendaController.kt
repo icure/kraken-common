@@ -124,11 +124,9 @@ class AgendaController(
 	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(
-		@RequestBody filter: AbstractFilterDto<AgendaDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<AgendaDto>
 	) = agendaService.matchAgendasBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
 	).injectReactorContext()
 }
 

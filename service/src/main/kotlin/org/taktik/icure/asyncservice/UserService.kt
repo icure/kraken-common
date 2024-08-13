@@ -71,11 +71,10 @@ interface UserService : EntityWithConflictResolutionService {
 	 * Retrieves the ids of the [User]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [User].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the current user does not have the Permission to search users with a filter.
 	 */
-	fun matchUsersBy(filter: AbstractFilter<User>, deduplicate: Boolean): Flow<String>
+	fun matchUsersBy(filter: AbstractFilter<User>): Flow<String>
 	// endregion
 
 	// region modify

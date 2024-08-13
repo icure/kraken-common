@@ -363,14 +363,13 @@ class ContactController(
 		contacts.paginatedList(contactV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Contacts matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchContactsBy(
 		@RequestBody filter: AbstractFilterDto<ContactDto>,
 		@RequestParam(required = false) deduplicate: Boolean? = null
 	) = contactService.matchContactsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(summary = "Get a service by id")
@@ -407,14 +406,12 @@ class ContactController(
 		}
 	}
 
-	@Operation(summary = "Get ids of services matching the provided filter for the current user")
+	@Operation(summary = "Get the ids of the Services matching the provided filter.")
 	@PostMapping("/service/match")
 	fun matchServicesBy(
-		@RequestBody filter: AbstractFilterDto<ServiceDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<ServiceDto>
 	) = contactService.matchServicesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")

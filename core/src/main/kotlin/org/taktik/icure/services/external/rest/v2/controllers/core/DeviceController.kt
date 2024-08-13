@@ -127,14 +127,12 @@ class DeviceController(
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
 
-	@Operation(summary = "Get ids of devices matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Devices matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDevicesBy(
-		@RequestBody filter: AbstractFilterDto<DeviceDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<DeviceDto>
 	) = deviceService.matchDevicesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")

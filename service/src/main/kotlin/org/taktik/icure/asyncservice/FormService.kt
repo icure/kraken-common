@@ -126,10 +126,9 @@ interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConf
 	 *
 	 * @param filter an [AbstractFilter] of [Form].
 	 * @return a [Flow] of the ids matching the filter.
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchFormsBy(filter: AbstractFilter<Form>, deduplicate: Boolean): Flow<String>
+	fun matchFormsBy(filter: AbstractFilter<Form>): Flow<String>
 }

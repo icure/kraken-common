@@ -323,13 +323,11 @@ class MessageController(
 		messages.paginatedList(messageV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of messages matching the provided filter")
+	@Operation(summary = "Get ids of the Messages matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMessagesBy(
-		@RequestBody filter: AbstractFilterDto<MessageDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<MessageDto>
 	) = messageService.matchMessagesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 }

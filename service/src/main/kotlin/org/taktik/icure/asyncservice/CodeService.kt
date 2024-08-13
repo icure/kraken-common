@@ -145,9 +145,8 @@ interface CodeService : EntityWithConflictResolutionService {
 	 * Retrieves the ids of the [Code]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Code].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 * @throws AccessDeniedException if the current user does not have the Permission to search codes with a filter.
 	 */
-	fun matchCodesBy(filter: AbstractFilter<Code>, deduplicate: Boolean): Flow<String>
+	fun matchCodesBy(filter: AbstractFilter<Code>): Flow<String>
 }

@@ -60,8 +60,7 @@ interface AgendaService {
 	 * Retrieves the ids of the [Agenda]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Agenda].
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @return a [Flow] of the ids matching the filter.
 	 */
-	fun matchAgendasBy(filter: AbstractFilter<Agenda>, deduplicate: Boolean): Flow<String>
+	fun matchAgendasBy(filter: AbstractFilter<Agenda>): Flow<String>
 }

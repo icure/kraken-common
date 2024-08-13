@@ -127,11 +127,9 @@ class MaintenanceTaskController(
 	@Operation(summary = "Get ids of MaintenanceTasks matching the provided filter for the current user.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchMaintenanceTasksBy(
-		@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>
 	) = maintenanceTaskService.matchMaintenanceTasksBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
 	).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")

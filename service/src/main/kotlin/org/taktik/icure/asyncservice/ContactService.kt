@@ -164,22 +164,20 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	 *
 	 * @param filter an [AbstractFilter] of [Contact].
 	 * @return a [Flow] of the ids matching the filter.
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchContactsBy(filter: AbstractFilter<Contact>, deduplicate: Boolean): Flow<String>
+	fun matchContactsBy(filter: AbstractFilter<Contact>): Flow<String>
 
 	/**
 	 * Retrieves the ids of the [Service]s matching the provided [filter].
 	 *
 	 * @param filter an [AbstractFilter] of [Service].
 	 * @return a [Flow] of the ids matching the filter.
-	 * @param deduplicate whether to remove the duplicate ids from the result, if any.
 	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
 	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
 	 * rights to access their data.
 	 */
-	fun matchServicesBy(filter: AbstractFilter<Service>, deduplicate: Boolean): Flow<String>
+	fun matchServicesBy(filter: AbstractFilter<Service>): Flow<String>
 }

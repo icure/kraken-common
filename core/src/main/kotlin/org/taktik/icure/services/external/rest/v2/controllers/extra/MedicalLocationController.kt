@@ -105,13 +105,11 @@ class MedicalLocationController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "Get the ids of the MedicalLocations matching the provided filter")
+	@Operation(summary = "Get the ids of the Medical Locations matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMedicalLocationsBy(
 		@RequestBody filter: AbstractFilterDto<MedicalLocationDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
 	) = medicalLocationService.matchMedicalLocationsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 }

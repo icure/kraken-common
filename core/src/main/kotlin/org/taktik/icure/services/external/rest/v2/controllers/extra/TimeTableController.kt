@@ -154,11 +154,9 @@ class TimeTableController(
 	@Operation(summary = "Get the ids of the TimeTables matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchAccessLogsBy(
-		@RequestBody filter: AbstractFilterDto<TimeTableDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<TimeTableDto>
 	) = timeTableService.matchTimeTablesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")

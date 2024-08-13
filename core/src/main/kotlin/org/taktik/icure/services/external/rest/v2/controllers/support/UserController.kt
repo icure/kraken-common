@@ -212,13 +212,11 @@ class UserController(
 		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of users matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Users matching the provided filter.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(
-		@RequestBody filter: AbstractFilterDto<UserDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null
+		@RequestBody filter: AbstractFilterDto<UserDto>
 	) = userService.matchUsersBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-		deduplicate = deduplicate ?: false
+		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 }
