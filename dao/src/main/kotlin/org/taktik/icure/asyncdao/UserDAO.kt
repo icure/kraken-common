@@ -28,7 +28,23 @@ interface UserDAO : GenericDAO<User> {
 	 * @return a [Flow] of [ViewQueryResultEvent] containing the [User]s.
 	 */
 	fun findUsers(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, skipPatients: Boolean = false): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [User]s where [User.healthcarePartyId] is equal to [hcPartyId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param hcPartyId the healthcare party id to use as key.
+	 * @return a [Flow] of [User]s.
+	 */
 	fun listUsersByHcpId(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<User>
+
+	/**
+	 * Retrieves the ids of all the [User]s where [User.patientId] is equal to [patientId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param patientId the patient id to use as key.
+	 * @return a [Flow] of [User.id]s.
+	 */
 	fun listUsersByPatientId(datastoreInformation: IDatastoreInformation, patientId: String): Flow<User>
 	suspend fun getUserOnUserDb(datastoreInformation: IDatastoreInformation, userId: String, bypassCache: Boolean): User
 	suspend fun findUserOnUserDb(datastoreInformation: IDatastoreInformation, userId: String, bypassCache: Boolean): User?
@@ -36,4 +52,22 @@ interface UserDAO : GenericDAO<User> {
 	fun findUsersByIds(datastoreInformation: IDatastoreInformation, userIds: Flow<String>): Flow<ViewQueryResultEvent>
 	fun findUsersByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<User>
+
+	/**
+	 * Retrieves the ids of all the [User]s where [User.healthcarePartyId] is equal to [hcPartyId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param hcPartyId the healthcare party id to use as key.
+	 * @return a [Flow] of [User.id]s.
+	 */
+	fun listUserIdsByHcpId(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
+
+	/**
+	 * Retrieves the ids of all the [User]s where [User.patientId] is equal to [patientId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param patientId the patient id to use as key.
+	 * @return a [Flow] of [User.id]s.
+	 */
+	fun listUserIdsByPatientId(datastoreInformation: IDatastoreInformation, patientId: String): Flow<String>
 }

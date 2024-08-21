@@ -133,11 +133,33 @@ open class UserDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_hcp_id").key(hcPartyId).includeDocs(true)).map { it.doc })
 	}
 
+	override fun listUserIdsByHcpId(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(client.queryView<String, String>(
+			createQuery(datastoreInformation, "by_hcp_id")
+				.key(hcPartyId)
+				.includeDocs(false)
+		).map { it.id })
+
+	}
+
 	@View(name = "by_patient_id", map = "classpath:js/user/by_patient_id.js")
 	override fun listUsersByPatientId(datastoreInformation: IDatastoreInformation, patientId: String): Flow<User> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_patient_id").key(patientId).includeDocs(true)).map { it.doc })
+	}
+
+	override fun listUserIdsByPatientId(datastoreInformation: IDatastoreInformation, patientId: String): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(client.queryView<String, String>(
+			createQuery(datastoreInformation, "by_patient_id")
+				.key(patientId)
+				.includeDocs(false)
+		).map { it.id })
+
 	}
 
 	@View(name = "by_name_email_phone", map = "classpath:js/user/By_name_email_phone.js")

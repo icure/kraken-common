@@ -29,6 +29,7 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 		}
 	}
 
+	override val canBeUsedInWebsocket = true
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
@@ -36,7 +37,7 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		return (
 			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
-				(patientSecretForeignKeys == null || item.secretForeignKeys.any { o: String? -> patientSecretForeignKeys.contains(o) }) &&
+				(patientSecretForeignKeys == null || item.secretForeignKeys.intersect(patientSecretForeignKeys.toSet()).isNotEmpty()) &&
 				(
 					tagType == null || item.services.any { svc ->
 						(svc.tags.any { t -> tagType == t.type && (tagCode == null || tagCode == t.code) } &&

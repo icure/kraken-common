@@ -13,7 +13,6 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 
 interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWithSecureDelegationsLogic<HealthElement> {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
@@ -48,14 +47,7 @@ interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWit
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
-	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
-
-	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
-	fun listHealthElementIdsByHcPartyAndCodes(hcPartyId: String, codeType: String, codeNumber: String): Flow<String>
-	fun listHealthElementIdsByHcPartyAndTags(hcPartyId: String, tagType: String, tagCode: String): Flow<String>
-	fun listHealthElementsIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listHealthElementIdsByHcPartyAndStatus(hcPartyId: String, status: Int): Flow<String>
 	fun deleteHealthElements(ids: Set<String>): Flow<DocIdentifier>
 
 	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement?

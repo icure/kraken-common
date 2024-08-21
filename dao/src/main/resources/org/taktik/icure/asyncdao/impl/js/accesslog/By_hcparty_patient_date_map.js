@@ -5,7 +5,7 @@ function(doc) {
         });
     };
 
-    if (doc.java_type === 'org.taktik.icure.entities.AccessLog' && !doc.deleted && doc.secretForeignKeys && doc.secretForeignKeys.length && doc.delegations && doc.date) {
+    if (doc.java_type === 'org.taktik.icure.entities.AccessLog' && !doc.deleted && doc.secretForeignKeys && doc.secretForeignKeys.length && doc.delegations) {
         Object.keys(doc.delegations).forEach(function (k) {
             var ds = doc.delegations[k];
 

@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -39,17 +38,20 @@ import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
 
@@ -63,6 +65,7 @@ class CalendarItemController(
 	private val bulkShareResultV2Mapper: CalendarItemBulkShareResultV2Mapper,
 	private val stubV2Mapper: StubV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
@@ -264,6 +267,15 @@ class CalendarItemController(
 		.getCalendarItemsByRecurrenceId(recurrenceId, PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit))
 		.mapElements(calendarItemV2Mapper::map)
 		.asPaginatedFlux()
+
+	@Operation(summary = "Get the ids of the CalendarItems matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchCalendarItemsBy(
+		@RequestBody filter: AbstractFilterDto<CalendarItemDto>
+	) = calendarItemService.matchCalendarItemsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
+
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")

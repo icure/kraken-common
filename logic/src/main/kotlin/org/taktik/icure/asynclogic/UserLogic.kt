@@ -46,7 +46,6 @@ interface UserLogic : EntityPersister<User, String> {
 	fun findByNameEmailPhone(searchString: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 	fun getUsers(ids: List<String>): Flow<User>
 	fun getUsersByLogin(login: String): Flow<EnhancedUser>
-	fun listUserIdsByNameEmailPhone(searchString: String): Flow<String>
 
 	/**
 	 * Retrieves all the [User]s in a group in a format for pagination.

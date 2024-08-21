@@ -9,17 +9,16 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.db.Sorting
-import org.taktik.icure.domain.filter.chain.FilterChain
-import org.taktik.icure.entities.Patient
-import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Gender
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
+import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.db.Sorting
+import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -28,18 +27,6 @@ import java.time.Instant
 
 interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWithConflictResolutionService {
 	suspend fun countByHcParty(healthcarePartyId: String): Int
-	fun listByHcPartyIdsOnly(healthcarePartyId: String): Flow<String>
-	fun listByHcPartyAndSsinIdsOnly(ssin: String, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyAndSsinsIdsOnly(ssins: Collection<String>, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyDateOfBirthIdsOnly(date: Int, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyGenderEducationProfessionIdsOnly(healthcarePartyId: String, gender: Gender?, education: String?, profession: String?): Flow<String>
-	fun listByHcPartyDateOfBirthIdsOnly(startDate: Int?, endDate: Int?, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyNameContainsFuzzyIdsOnly(searchString: String?, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyName(searchString: String?, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyAndExternalIdsOnly(externalId: String?, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsByHcPartyAndTelecomOnly(searchString: String?, healthcarePartyId: String): Flow<String>
-	fun listPatientIdsByHcPartyAndAddressOnly(searchString: String?, healthcarePartyId: String): Flow<String>
-	fun listByHcPartyAndActiveIdsOnly(active: Boolean, healthcarePartyId: String): Flow<String>
 	fun listOfMergesAfter(date: Long?): Flow<Patient>
 
 	/**
@@ -97,7 +84,6 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	fun findOfHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>): Flow<PaginationElement>
 	fun findByHcPartyAndSsin(ssin: String?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 	fun findByHcPartyDateOfBirth(date: Int?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
-	fun findByHcPartyModificationDate(start: Long?, end: Long?, healthcarePartyId: String, descending: Boolean, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
 
 	suspend fun findByUserId(id: String): Patient?
 
@@ -200,7 +186,6 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<PaginationElement>
 	fun listDeletedPatientsByNames(firstName: String?, lastName: String?): Flow<Patient>
 	fun undeletePatients(ids: Set<String>): Flow<DocIdentifier>
-	fun listPatientIdsByHcpartyAndIdentifiers(healthcarePartyId: String, identifiers: List<Identifier>): Flow<String>
 	fun getEntityIds(): Flow<String>
 
 	/**
@@ -237,4 +222,15 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	 * @throws AccessDeniedException if the current user does not have write rights to the `into` and/or `from` patient.
 	 */
 	suspend fun mergePatients(fromId: String, expectedFromRev: String, updatedInto: Patient): Patient
+
+	/**
+	 * Retrieves the ids of the [Patient]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Patient].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchPatientsBy(filter: AbstractFilter<Patient>): Flow<String>
 }

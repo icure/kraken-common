@@ -35,9 +35,9 @@ function(doc) {
         }
     }
 
-    if (doc.java_type === 'org.taktik.icure.entities.Patient' && !doc.deleted) {
+    if (doc.java_type === 'org.taktik.icure.entities.Patient' && !doc.deleted && (!!doc.modified || !!doc.created)) {
         emit_for_delegates(doc, function (dataOwnerId, doc) {
-            emit([dataOwnerId, doc.modified], null);
+            emit(dataOwnerId, doc.modified || doc.created);
         })
     }
 }

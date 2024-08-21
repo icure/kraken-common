@@ -24,6 +24,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
@@ -38,12 +39,13 @@ import java.nio.ByteBuffer
 open class DocumentLogicImpl(
     private val documentDAO: DocumentDAO,
     sessionLogic: SessionInformationProvider,
-    private val datastoreInstanceProvider: DatastoreInstanceProvider,
+    datastoreInstanceProvider: DatastoreInstanceProvider,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
     @Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), DocumentLogic {
+    fixer: Fixer,
+    filters: Filters
+) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), DocumentLogic {
 
 	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document) { fixedDocument ->
 		if(fixedDocument.rev != null) throw IllegalArgumentException("A new entity should not have a rev")

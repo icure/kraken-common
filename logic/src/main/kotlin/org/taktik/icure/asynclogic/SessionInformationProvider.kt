@@ -21,6 +21,14 @@ interface SessionInformationProvider: DataOwnerProvider {
 	 */
 	suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean
 
+	/**
+	 * This method returns all the keys that can be used by a Data Owner to access their own encryptable entities, given their
+	 * id. If the Data Owner that is currently logged in is not the one passed as parameter, only the Data Owner id is returned.
+	 * @param dataOwnerId the id of the DataOwner to retrieve the access keys for.
+	 * @return a [Set] of [String]
+	 */
+	suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String>
+
 	// TODO probably this should be cached in the coroutine context to avoid calculating the hash every time
 	suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails
 

@@ -8,6 +8,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
@@ -49,7 +50,6 @@ interface UserService : EntityWithConflictResolutionService {
 	 */
 	fun getUsers(ids: List<String>): Flow<User>
 	fun getUsersByLogin(login: String): Flow<User>
-	fun listUserIdsByNameEmailPhone(searchString: String): Flow<String>
 
 	/**
 	 * Retrieves all the [User]s in a group in a format for pagination.
@@ -66,6 +66,15 @@ interface UserService : EntityWithConflictResolutionService {
 	 */
 	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<PaginationElement>
 	fun filterUsers(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<User>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves the ids of the [User]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [User].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the current user does not have the Permission to search users with a filter.
+	 */
+	fun matchUsersBy(filter: AbstractFilter<User>): Flow<String>
 	// endregion
 
 	// region modify

@@ -9,11 +9,13 @@ import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.GenericLogicImpl
+import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.embed.AccessLevel
@@ -23,9 +25,9 @@ import org.taktik.icure.entities.embed.parentsGraph
 import org.taktik.icure.entities.requests.BulkShareOrUpdateMetadataParams
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.entities.requests.EntityBulkShareResult.RejectedShareOrMetadataUpdateRequest
-import org.taktik.icure.entities.requests.ShareEntityRequestDetails
 import org.taktik.icure.entities.requests.EntityShareRequest
 import org.taktik.icure.entities.requests.EntitySharedMetadataUpdateRequest
+import org.taktik.icure.entities.requests.ShareEntityRequestDetails
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.HexString
 import org.taktik.icure.entities.utils.KeypairFingerprintV2String
@@ -41,8 +43,9 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
     fixer: Fixer,
     private val sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
-    private val exchangeDataMapLogic: ExchangeDataMapLogic
-) : GenericLogicImpl<E, D>(fixer, datastoreInstanceProvider),
+    private val exchangeDataMapLogic: ExchangeDataMapLogic,
+    filters: Filters
+) : GenericLogicImpl<E, D>(fixer, datastoreInstanceProvider, filters),
     EntityWithSecureDelegationsLogic<E>
 where
     E : HasEncryptionMetadata, E : Versionable<String>,
@@ -50,17 +53,10 @@ where
 {
 
     /**
-     * This method returns all the keys that can be used by a Data Owner to access their own encryptable entities, given their
-     * id. If the Data Owner that is currently logged in is not the one passed as parameter, only the Data Owner id is returned.
-     * @param dataOwnerId the id of the DataOwner to retrieve the access keys for.
-     * @return a [Set] of [String]
+     * @see [SessionInformationProvider.getAllSearchKeysIfCurrentDataOwner]
      */
-    suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String> {
-        val authenticationDetails = sessionLogic.getDataOwnerAuthenticationDetails()
-        return if (dataOwnerId == authenticationDetails.dataOwner?.id)
-            setOf(dataOwnerId) + authenticationDetails.accessControlKeysHashes
-        else setOf(dataOwnerId)
-    }
+    suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String> =
+        sessionLogic.getAllSearchKeysIfCurrentDataOwner(dataOwnerId)
 
     override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
         emitAll(getGenericDAO().save(datastoreInstanceProvider.getInstanceAndGroup(), filterValidEntityChanges(entities.map { fix(it) }).toList()))

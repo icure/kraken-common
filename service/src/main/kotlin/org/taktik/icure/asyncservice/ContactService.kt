@@ -13,11 +13,11 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
@@ -39,8 +39,6 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Contact]s.
 	 */
 	fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
-
-	fun listContactIdsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
 	/**
 	 * Retrieves the ids of all the [Contact]s given the [dataOwnerId] (plus all the current access keys if that is
@@ -91,21 +89,10 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	fun getServicesLinkedTo(ids: List<String>, linkType: String?): Flow<Service>
 	fun listServicesByAssociationId(associationId: String): Flow<Service>
 
-	fun listServiceIdsByHcParty(hcPartyId: String): Flow<String>
-	fun listServiceIdsByTag(hcPartyId: String, patientSecretForeignKeys: List<String>?, tagType: String, tagCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-	fun listServiceIdsByCode(hcPartyId: String, patientSecretForeignKeys: List<String>?, codeType: String, codeCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-	fun listContactIdsByTag(hcPartyId: String, tagType: String, tagCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-	fun listServiceIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listContactIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listContactIdsByCode(hcPartyId: String, codeType: String, codeCode: String, startValueDate: Long?, endValueDate: Long?): Flow<String>
-	fun listContactIds(hcPartyId: String): Flow<String>
-	fun listIdsByServices(services: Collection<String>): Flow<String>
-	fun listServicesByHcPartyAndSecretForeignKeys(hcPartyId: String, patientSecretForeignKeys: Set<String>): Flow<String>
 	fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact>
 	fun listContactsByHcPartyServiceId(hcPartyId: String, formId: String): Flow<Contact>
 	fun listContactsByExternalId(externalId: String): Flow<Contact>
 	fun listServicesByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>): Flow<Service>
-	fun listServiceIdsByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>): Flow<String>
 
 	suspend fun getServiceCodesOccurences(
 		hcPartyId: String,
@@ -171,4 +158,26 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	 * @return a [Flow] containing all the [Contact]s that were successfully modified.
 	 */
 	fun modifyContacts(contacts: Collection<Contact>): Flow<Contact>
+
+	/**
+	 * Retrieves the ids of the [Contact]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Contact].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchContactsBy(filter: AbstractFilter<Contact>): Flow<String>
+
+	/**
+	 * Retrieves the ids of the [Service]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Service].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchServicesBy(filter: AbstractFilter<Service>): Flow<String>
 }

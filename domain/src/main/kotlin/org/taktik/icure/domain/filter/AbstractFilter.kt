@@ -3,11 +3,11 @@
  */
 package org.taktik.icure.domain.filter
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import java.io.Serializable
 
 interface AbstractFilter<O : Identifiable<String>> : Filter<String, O>, Serializable {
 	val desc: String?
@@ -26,6 +26,13 @@ interface AbstractFilter<O : Identifiable<String>> : Filter<String, O>, Serializ
 	 * Note that even if [requestedDataOwnerIds] is  not empty this method may still return true.
 	 */
 	val requiresSecurityPrecondition: Boolean
+
+	/**
+	 * Whether this filter can be used to filter entities in a WebSocket subscription. If false, the WebSocket will
+	 * throw a [UnsupportedOperationException] on connecting with this filter.
+	 */
+	val canBeUsedInWebsocket: Boolean
+
 	/**
 	 * Returns the ids of all data owners for which data is requested by this filter.
 	 * This includes:

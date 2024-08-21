@@ -5,10 +5,11 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class UsersByPatientIdFilter(
-	override val desc: String?,
-	override val patientId: String
+	override val patientId: String,
+	override val desc: String? = null
 ) : AbstractFilter<User>, org.taktik.icure.domain.filter.user.UsersByPatientIdFilter {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

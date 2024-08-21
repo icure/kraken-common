@@ -27,6 +27,7 @@ data class DeviceByIdsFilter(
 	override val desc: String? = null
 ) : AbstractFilter<Device>, Filters.IdsFilter<String, Device> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

@@ -14,6 +14,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.KeywordDAO
 import org.taktik.icure.asynclogic.KeywordLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
@@ -26,8 +27,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class KeywordLogicImpl(
 	private val keywordDAO: KeywordDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<Keyword, KeywordDAO>(fixer, datastoreInstanceProvider), KeywordLogic{
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<Keyword, KeywordDAO>(fixer, datastoreInstanceProvider, filters), KeywordLogic{
 	private val log = LoggerFactory.getLogger(KeywordLogicImpl::class.java)
 
 	override fun getGenericDAO(): KeywordDAO {

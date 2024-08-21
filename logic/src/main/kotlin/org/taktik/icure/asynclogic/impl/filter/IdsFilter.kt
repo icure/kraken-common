@@ -4,14 +4,13 @@
 
 package org.taktik.icure.asynclogic.impl.filter
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
-
+import java.io.Serializable
 
 @Service
 @Profile("app")
@@ -20,8 +19,7 @@ class IdsFilter<T : Serializable, O : Identifiable<T>> :
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<T, O>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
-    ): Flow<T> {
-		return filter.ids.asFlow()
-	}
+        datastoreInformation: IDatastoreInformation
+    ): Flow<T> = filter.ids.asFlow()
+
 }

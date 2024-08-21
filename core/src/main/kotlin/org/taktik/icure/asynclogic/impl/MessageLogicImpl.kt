@@ -34,7 +34,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.TreeSet
+import java.util.*
 import javax.security.auth.login.LoginException
 
 open class MessageLogicImpl(
@@ -42,10 +42,10 @@ open class MessageLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-    private val filters: Filters,
+    filters: Filters,
 	private val userLogic: UserLogic,
     fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), MessageLogic {
+) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), MessageLogic {
 
 	override fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
@@ -149,14 +149,6 @@ open class MessageLogicImpl(
 		)
 	}
 
-	override fun listMessageIdsByTransportGuid(
-		hcPartyId: String,
-		transportGuid: String?
-	): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.listMessageIdsByTransportGuid(datastoreInformation, hcPartyId, transportGuid))
-	}
-
 	override fun findMessagesByTransportGuidSentDate(partyId: String, transportGuid: String, fromDate: Long, toDate: Long, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO
@@ -205,11 +197,6 @@ open class MessageLogicImpl(
 	override fun listMessagesByInvoiceIds(ids: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO.listMessagesByInvoiceIds(datastoreInformation, ids.toSet()))
-	}
-
-	override fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(messageDAO.getMessagesByExternalRefs(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), externalRefs.toSet()))
 	}
 
 	override fun createMessages(entities: Collection<Message>) = flow {
@@ -275,7 +262,8 @@ open class MessageLogicImpl(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<Message>
 	): Flow<ViewQueryResultEvent> = flow {
-		val ids = filters.resolve(filter.filter).toSet(TreeSet())
+		val datastoreInformation = getInstanceAndGroup()
+		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 
 		val sortedIds = if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
 			ids.dropWhile { it != paginationOffset.startDocumentId }
@@ -284,7 +272,6 @@ open class MessageLogicImpl(
 		}
 		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more messages for the start key of the next page
 
-		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			messageDAO.findMessagesByIds(datastoreInformation, selectedIds)
 		)

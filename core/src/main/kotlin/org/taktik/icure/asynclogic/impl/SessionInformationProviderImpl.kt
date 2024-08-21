@@ -10,10 +10,10 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication
 import org.springframework.web.server.ServerWebExchange
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Sha256HexString
-import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 import org.taktik.icure.security.SessionAccessControlKeysProvider
 import org.taktik.icure.security.UserDetails
@@ -48,6 +48,13 @@ open class SessionInformationProviderImpl(
             else
                 item.hasDataOwnerOrDelegationKey(hcpId)
         }
+    }
+
+   override suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String> {
+        val authenticationDetails = getDataOwnerAuthenticationDetails()
+        return if (dataOwnerId == authenticationDetails.dataOwner?.id)
+            setOf(dataOwnerId) + authenticationDetails.accessControlKeysHashes
+        else setOf(dataOwnerId)
     }
 
     override suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails {

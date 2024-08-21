@@ -27,6 +27,7 @@ data class AllDevicesFilter(
 	override val desc: String? = null,
 ) : AbstractFilter<Device>, Filters.AllFilter<String, Device> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 	override fun matches(item: Device, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = true

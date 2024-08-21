@@ -3,12 +3,12 @@
  */
 package org.taktik.icure.db
 
+import org.apache.commons.lang3.StringUtils
+import org.jetbrains.annotations.Contract
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 import java.text.Normalizer
-import org.apache.commons.lang3.StringUtils
-import org.jetbrains.annotations.Contract
 
 @Contract("null -> null; !null -> !null")
 fun sanitizeString(key: String?): String? {

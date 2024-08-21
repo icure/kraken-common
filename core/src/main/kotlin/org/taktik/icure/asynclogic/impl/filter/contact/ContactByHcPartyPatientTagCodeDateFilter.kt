@@ -3,55 +3,65 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.contact
 
-import javax.security.auth.login.LoginException
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
+import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.contact.ContactByHcPartyPatientTagCodeDateFilter
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
+import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
+import javax.security.auth.login.LoginException
 
 @Service
 @Profile("app")
 class ContactByHcPartyPatientTagCodeDateFilter(
-	private val contactLogic: ContactLogic,
+	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider
 ) : Filter<String, Contact, ContactByHcPartyPatientTagCodeDateFilter> {
 
 	override fun resolve(
         filter: ContactByHcPartyPatientTagCodeDateFilter,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
+        datastoreInformation: IDatastoreInformation
     ) = flow {
 		try {
-			val hcPartyId: String = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
+			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(
+				filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
+			)
 
 			val ids = mutableSetOf<String>()
 			if (filter.tagType != null && filter.tagCode != null) {
-				ids.addAll(
-					contactLogic.listContactIdsByTag(
-						hcPartyId,
+				val contactIds = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
+					contactDAO.listContactIdsByTag(
+						datastoreInformation,
+						key,
 						filter.tagType!!,
 						filter.tagCode!!,
-						filter.startOfContactOpeningDate, filter.endOfContactOpeningDate
-					).toSet()
-				)
+						filter.startOfContactOpeningDate,
+						filter.endOfContactOpeningDate
+					)
+				}.toSet()
+				ids.addAll(contactIds)
 			}
 			if (filter.codeType != null && filter.codeCode != null) {
-				val byCode = contactLogic.listContactIdsByCode(
-					hcPartyId,
-					filter.codeType!!,
-					filter.codeCode!!,
-					filter.startOfContactOpeningDate, filter.endOfContactOpeningDate
-				).toSet()
+				val byCode = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
+					contactDAO.listContactIdsByCode(
+						datastoreInformation,
+						key,
+						filter.codeType!!,
+						filter.codeCode!!,
+						filter.startOfContactOpeningDate,
+						filter.endOfContactOpeningDate
+					)
+				}.toSet()
 				if (ids.isEmpty()) {
 					ids.addAll(byCode)
 				} else {
@@ -59,7 +69,11 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 				}
 			}
 			if (!filter.patientSecretForeignKeys.isNullOrEmpty()) {
-				val byPatient = contactLogic.listContactIdsByHCPartyAndPatient(hcPartyId, filter.patientSecretForeignKeys!!).toSet()
+				val byPatient = contactDAO.listContactIdsByHcPartyAndPatient(
+					datastoreInformation = datastoreInformation,
+					searchKeys = searchKeys,
+					secretPatientKeys = filter.patientSecretForeignKeys!!
+				).toSet()
 
 				if (ids.isEmpty()) {
 					ids.addAll(byPatient)

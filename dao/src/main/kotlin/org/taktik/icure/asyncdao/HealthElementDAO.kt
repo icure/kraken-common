@@ -11,19 +11,17 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
 
 interface HealthElementDAO : GenericDAO<HealthElement> {
-	fun listHealthElementsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
+	fun listHealthElementIdsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
 
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String>
 
-	fun listHealthElementsByHCPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String): Flow<String>
+	fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String): Flow<String>
 
-	fun listHealthElementsByHCPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String): Flow<String>
+	fun listHealthElementIdsByHcPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String): Flow<String>
 
-	fun listHealthElementsByHCPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?): Flow<String>
+	fun listHealthElementIdsByHcPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?): Flow<String>
 
 	fun listHealthElementsIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
-
-	suspend fun getHealthElementByPlanOfActionId(datastoreInformation: IDatastoreInformation, planOfActionId: String): HealthElement?
 
 	suspend fun getHealthElement(datastoreInformation: IDatastoreInformation, healthElementId: String): HealthElement?
 

@@ -17,6 +17,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.entities.embed.Delegation
@@ -32,8 +33,9 @@ class ClassificationTemplateLogicImpl(
     private val classificationTemplateDAO: ClassificationTemplateDAO,
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : GenericLogicImpl<ClassificationTemplate, ClassificationTemplateDAO>(fixer, datastoreInstanceProvider), ClassificationTemplateLogic {
+    fixer: Fixer,
+    filters: Filters
+) : GenericLogicImpl<ClassificationTemplate, ClassificationTemplateDAO>(fixer, datastoreInstanceProvider, filters), ClassificationTemplateLogic {
 	override fun getGenericDAO(): ClassificationTemplateDAO {
 		return classificationTemplateDAO
 	}

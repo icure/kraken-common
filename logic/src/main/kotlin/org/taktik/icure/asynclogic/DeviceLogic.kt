@@ -25,7 +25,5 @@ interface DeviceLogic : EntityPersister<Device, String> {
 	fun deleteDevices(ids: Collection<String>): Flow<DocIdentifier>
 	fun deleteDevices(ids: Flow<String>): Flow<DocIdentifier>
 
-	fun listDeviceIdsByResponsible(hcpId: String): Flow<String>
-
 	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 }

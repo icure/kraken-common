@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
@@ -26,7 +26,6 @@ import org.taktik.icure.asyncdao.MaintenanceTaskDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.MaintenanceTask
@@ -49,7 +48,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_identifier", map = "classpath:js/maintenancetask/By_hcparty_identifier_map.js"),
     	View(name = "by_data_owner_identifier", map = "classpath:js/maintenancetask/By_data_owner_identifier_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
+	override fun listMaintenanceTaskIdsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -78,7 +77,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_date", map = "classpath:js/maintenancetask/By_hcparty_date_map.js"),
     	View(name = "by_data_owner_date", map = "classpath:js/maintenancetask/By_data_owner_date_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long) = flow {
+	override fun listMaintenanceTaskIdsAfterDate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
             datastoreInformation,
@@ -87,7 +86,8 @@ class MaintenanceTaskDAOImpl(
         )
 			.startKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
 			.endKey(ComplexKey.of(healthcarePartyId, date))
-			.descending(true).doNotIncludeDocs()
+			.descending(true)
+			.doNotIncludeDocs()
 
 		emitAll(
 			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String? }, { it.components[1] as? String? }))
@@ -100,7 +100,7 @@ class MaintenanceTaskDAOImpl(
     	View(name = "by_hcparty_type", map = "classpath:js/maintenancetask/By_hcparty_type_map.js"),
     	View(name = "by_data_owner_type", map = "classpath:js/maintenancetask/By_data_owner_type_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listMaintenanceTasksByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long?, endDate: Long?) = flow {
+	override fun listMaintenanceTaskIdsByHcPartyAndType(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, type: String, startDate: Long?, endDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
             datastoreInformation,

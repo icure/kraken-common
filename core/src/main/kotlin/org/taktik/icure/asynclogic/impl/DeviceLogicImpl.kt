@@ -27,9 +27,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class DeviceLogicImpl(
     datastoreInstanceProvider: DatastoreInstanceProvider,
     private val deviceDAO: DeviceDAO,
-    private val filters: Filters,
+    filters: Filters,
 	fixer: Fixer
-) : GenericLogicImpl<Device, DeviceDAO>(fixer, datastoreInstanceProvider), DeviceLogic {
+) : GenericLogicImpl<Device, DeviceDAO>(fixer, datastoreInstanceProvider, filters), DeviceLogic {
 
 	companion object {
 		private val log = LoggerFactory.getLogger(DeviceLogicImpl::class.java)
@@ -105,13 +105,6 @@ class DeviceLogicImpl(
 	override suspend fun deleteDevice(id: String): DocIdentifier? {
 		return deleteEntities(setOf(id)).map { Device(id = it.id!!, rev = it.rev) }.singleOrNull()?.let { DocIdentifier(it.id, it.rev) }
 	}
-
-	override fun listDeviceIdsByResponsible(hcpId: String): Flow<String> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(deviceDAO.listDeviceIdsByResponsible(datastoreInformation, hcpId))
-		}
-
 
 	override fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()

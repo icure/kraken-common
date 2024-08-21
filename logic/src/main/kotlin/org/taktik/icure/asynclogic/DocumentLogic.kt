@@ -11,6 +11,7 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
+import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
 interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDelegationsLogic<Document> {
@@ -84,7 +85,7 @@ interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDel
 	 * @param secondaryAttachmentsChanges specifies how to change the secondary attachments. Only secondary attachments specified
 	 * in this map will be changed, other attachments in the document will be ignored.
 	 * @return the updated document.
-	 * @throws [ObjectStorageException] if one or more attachments must be stored using the object
+	 * @throws ObjectStorageException if one or more attachments must be stored using the object
 	 * storage service but this is not possible at the moment.
 	 */
 	suspend fun updateAttachments(

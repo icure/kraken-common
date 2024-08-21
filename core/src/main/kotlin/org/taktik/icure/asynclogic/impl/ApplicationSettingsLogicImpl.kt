@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.ApplicationSettingsDAO
 import org.taktik.icure.asynclogic.ApplicationSettingsLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.ApplicationSettings
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -17,8 +18,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class ApplicationSettingsLogicImpl(
 	private val applicationSettingsDAO: ApplicationSettingsDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<ApplicationSettings, ApplicationSettingsDAO>(fixer, datastoreInstanceProvider), ApplicationSettingsLogic {
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<ApplicationSettings, ApplicationSettingsDAO>(fixer, datastoreInstanceProvider, filters), ApplicationSettingsLogic {
 	override fun getGenericDAO(): ApplicationSettingsDAO {
 		return applicationSettingsDAO
 	}

@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
@@ -27,9 +27,10 @@ import org.taktik.icure.validation.aspect.Fixer
 
 class TarificationLogicImpl(
 	private val tarificationDAO: TarificationDAO,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider), TarificationLogic {
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer,
+	filters: Filters
+) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters), TarificationLogic {
 
 	override suspend fun getTarification(id: String): Tarification? {
 		val datastoreInformation = getInstanceAndGroup()

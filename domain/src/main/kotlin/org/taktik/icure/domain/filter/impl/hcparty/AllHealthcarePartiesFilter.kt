@@ -27,6 +27,7 @@ data class AllHealthcarePartiesFilter(
 	override val desc: String? = null,
 ) : AbstractFilter<HealthcareParty>, Filters.AllFilter<String, HealthcareParty> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

@@ -27,11 +27,10 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Classification
-import org.taktik.icure.utils.distinctByIdIf
+import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 
 @Repository("classificationDAO")
@@ -73,7 +72,7 @@ internal class ClassificationDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Classification>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Classification>>().map { it.doc }.distinctUntilChangedBy { it.id })
 
-	}.distinctByIdIf(searchKeys.size > 1)
+	}.distinctById()
 
 	@View(name = "by_hcparty_patient_date_as_value", map = "classpath:js/classification/By_hcparty_patient_date_as_value_map.js", secondaryPartition = MAURICE_PARTITION)
 	override fun listClassificationIdsByDataOwnerPatientCreated(

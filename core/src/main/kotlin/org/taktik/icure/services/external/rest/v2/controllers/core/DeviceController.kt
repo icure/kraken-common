@@ -10,6 +10,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -48,7 +48,6 @@ import reactor.core.publisher.Mono
 @Tag(name = "device")
 @Profile("app")
 class DeviceController(
-	private val filters: Filters,
 	private val deviceService: DeviceService,
 	private val deviceV2Mapper: DeviceV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
@@ -128,11 +127,13 @@ class DeviceController(
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
 
-	@Operation(summary = "Get ids of devices matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchDevicesBy(@RequestBody filter: AbstractFilterDto<DeviceDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	@Operation(summary = "Get the ids of the Devices matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchDevicesBy(
+		@RequestBody filter: AbstractFilterDto<DeviceDto>
+	) = deviceService.matchDevicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
 	@DeleteMapping("/{deviceId}")

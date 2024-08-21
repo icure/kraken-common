@@ -13,10 +13,10 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface HealthElementService : EntityWithSecureDelegationsService<HealthElement>,
@@ -58,14 +58,8 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	 * and the current user does not have the permission to search HealthElements for other users.
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<String>
 
-	fun listHealthElementIdsByHcParty(hcpId: String): Flow<String>
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
-	fun listHealthElementIdsByHcPartyAndCodes(hcPartyId: String, codeType: String, codeNumber: String): Flow<String>
-	fun listHealthElementIdsByHcPartyAndTags(hcPartyId: String, tagType: String, tagCode: String): Flow<String>
-	fun listHealthElementsIdsByHcPartyAndIdentifiers(hcPartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listHealthElementIdsByHcPartyAndStatus(hcPartyId: String, status: Int): Flow<String>
 
 	/**
 	 * Deletes a batch of [HealthElement]s.
@@ -96,6 +90,18 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthElement>
 	): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves the ids of the [HealthElement]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [HealthElement].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchHealthElementsBy(filter: AbstractFilter<HealthElement>): Flow<String>
+
 	fun modifyEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 	fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 }

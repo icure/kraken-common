@@ -16,11 +16,11 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,11 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.AccessLogService
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.asyncservice.PatientService
@@ -52,8 +50,8 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
-import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -87,7 +85,6 @@ import javax.security.auth.login.LoginException
 class PatientController(
 	private val sessionLogic: SessionInformationProvider,
 	private val accessLogService: AccessLogService,
-	private val filters: Filters,
 	private val patientService: PatientService,
 	private val healthcarePartyService: HealthcarePartyService,
 	private val patientV2Mapper: PatientV2Mapper,
@@ -325,11 +322,13 @@ class PatientController(
 		}
 	}
 
-	@Operation(summary = "Get ids of patients matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchPatientsBy(@RequestBody filter: AbstractFilterDto<PatientDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	@Operation(summary = "Get the ids of Patients matching the provided filter.")
+	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun matchPatientsBy(
+		@RequestBody filter: AbstractFilterDto<PatientDto>
+	) = patientService.matchPatientsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(summary = "Filter patients for the current user (HcParty) ", description = "Returns a list of patients")
 	@GetMapping("/fuzzy")

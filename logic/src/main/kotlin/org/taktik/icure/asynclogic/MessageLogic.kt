@@ -74,8 +74,6 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
         paginationOffset: PaginationOffset<ComplexKey>
     ): Flow<PaginationElement>
 
-    fun listMessageIdsByTransportGuid(hcPartyId: String, transportGuid: String?): Flow<String>
-
     /**
      * Retrieves all [Message]s for a healthcare party, with the provided [Message.transportGuid] and which [Message.sent]
      * date is between [fromDate] and [toDate] in a format for pagination.
@@ -154,10 +152,9 @@ interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDeleg
 
     suspend fun addDelegations(message: Message, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>
-    fun getMessagesChildren(parentIds: List<String>): Flow<List<Message>>
+    fun getMessagesChildren(parentIds: List<String>): Flow<Message>
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-    fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
     fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,

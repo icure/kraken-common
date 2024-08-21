@@ -13,6 +13,7 @@ data class AllCodesFilter(
 	override val desc: String? = null,
 ) : AbstractFilter<Code>, Filters.AllFilter<String, Code> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

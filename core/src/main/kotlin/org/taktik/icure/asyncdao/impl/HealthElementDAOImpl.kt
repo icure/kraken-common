@@ -7,7 +7,6 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -22,7 +21,6 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
-import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -31,7 +29,6 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.HealthElement
@@ -55,7 +52,7 @@ internal class HealthElementDAOImpl(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),
 		View(name = "by_data_owner", map = "classpath:js/healthelement/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION)
 	)
-	override fun listHealthElementsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
+	override fun listHealthElementIdsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(client.interleave<Array<String>, String>(
@@ -80,18 +77,18 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patient",
+			"by_hcparty_patient_date" to MAURICE_PARTITION,
 			"by_data_owner_patient" to DATA_OWNER_PARTITION
 		).keys(keys).doNotIncludeDocs()
-		emitAll(client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id })
+		emitAll(client.interleave<Array<String>, Long>(viewQueries, compareBy({it[0]}, {it[1]}))
+			.filterIsInstance<ViewRowNoDoc<Array<String>, Long>>().map { it.id })
 	}.distinct()
 
 	@Views(
 	    View(name = "by_hcparty_and_codes", map = "classpath:js/healthelement/By_hcparty_code_map.js"),
 	    View(name = "by_data_owner_and_codes", map = "classpath:js/healthelement/By_data_owner_code_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String) = flow {
+	override fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeCode: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -99,7 +96,7 @@ internal class HealthElementDAOImpl(
 			"by_hcparty_and_codes",
 			"by_data_owner_and_codes" to DATA_OWNER_PARTITION
 		)
-			.keys(searchKeys.map { arrayOf(it, "$codeType:$codeNumber") })
+			.keys(searchKeys.map { arrayOf(it, "$codeType:$codeCode") })
 			.doNotIncludeDocs()
 
 		emitAll(client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
@@ -110,7 +107,7 @@ internal class HealthElementDAOImpl(
 	    View(name = "by_hcparty_and_tags", map = "classpath:js/healthelement/By_hcparty_tag_map.js"),
 	    View(name = "by_data_owner_and_tags", map = "classpath:js/healthelement/By_data_owner_tag_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String) = flow {
+	override fun listHealthElementIdsByHcPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -129,7 +126,7 @@ internal class HealthElementDAOImpl(
 	    View(name = "by_hcparty_and_status", map = "classpath:js/healthelement/By_hcparty_status_map.js"),
 	    View(name = "by_data_owner_and_status", map = "classpath:js/healthelement/By_data_owner_status_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listHealthElementsByHCPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?) = flow {
+	override fun listHealthElementIdsByHcPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
@@ -171,30 +168,13 @@ internal class HealthElementDAOImpl(
 			.mapNotNull { it.id })
 	}.distinct()
 
-	@View(
-		name = "by_planOfActionId",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted) {\n" +
-			"            for(var i= 0;i<doc.plansOfAction.length;i++) {\n" +
-			"        emit([doc.plansOfAction[i].id], doc._id);\n" +
-			"    }\n" +
-			"}}"
-	)
-	override suspend fun getHealthElementByPlanOfActionId(datastoreInformation: IDatastoreInformation, planOfActionId: String): HealthElement? {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		return client.queryViewIncludeDocs<ComplexKey, String, HealthElement>(createQuery(
-			datastoreInformation,
-			"by_planOfActionId"
-		).key(planOfActionId).includeDocs(true)).map { it.doc }.firstOrNull()
-	}
-
 	override suspend fun getHealthElement(datastoreInformation: IDatastoreInformation, healthElementId: String): HealthElement? {
 		return get(datastoreInformation, healthElementId)
 	}
 
 	@Views(
-	    View(name = "by_hcparty_patient", map = "classpath:js/healthelement/By_hcparty_patient_map.js"),
-	    View(name = "by_data_owner_patient", map = "classpath:js/healthelement/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_data_owner_patient", map = "classpath:js/healthelement/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -205,14 +185,13 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patient",
+			"by_hcparty_patient_date" to MAURICE_PARTITION,
 			"by_data_owner_patient" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
-		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, String, HealthElement>>().map { it.doc }.distinctById())
+		emitAll(client.interleave<Array<String>, Long, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
+			.filterIsInstance<ViewRowWithDoc<Array<String>, Long, HealthElement>>().map { it.doc }.distinctById())
 	}
 
-	@View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION)
 	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,

@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -28,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
@@ -47,7 +43,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.JsonString
-import org.taktik.icure.utils.error
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 
@@ -73,8 +68,7 @@ class MessageController(
 	@PostMapping
 	fun createMessage(@RequestBody messageDto: MessageDto) = mono {
 		messageService.createMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
-				.also { logger.error { it.message } }
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed").also { logger.error (it.message) }
 	}
 
 	@Operation(summary = "Deletes a message delegation")
@@ -157,13 +151,11 @@ class MessageController(
 	fun getChildrenMessages(@PathVariable messageId: String) =
 		messageService.getMessageChildren(messageId).map { messageMapper.map(it) }.injectReactorContext()
 
-	@OptIn(ExperimentalCoroutinesApi::class)
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getChildrenMessagesOfList(@RequestBody parentIds: ListOfIdsDto) =
 		messageService.getMessagesChildren(parentIds.ids)
-			.map { m -> m.map { mm -> messageMapper.map(mm) }.asFlow() }
-			.flattenConcat()
+			.map(messageMapper::map)
 			.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")

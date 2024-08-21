@@ -5,15 +5,11 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
@@ -23,6 +19,7 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -32,7 +29,6 @@ import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
@@ -49,101 +45,6 @@ open class MessageDAOImpl(
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
 ) : GenericIcureDAOImpl<Message>(Message::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), MessageDAO {
-
-	@Views(
-		View(name = "by_hcparty_from_address_actor", map = "classpath:js/message/By_hcparty_from_address_actor_map.js"),
-		View(
-			name = "by_data_owner_from_address_actor",
-			map = "classpath:js/message/By_data_owner_from_address_actor_map.js",
-			secondaryPartition = DATA_OWNER_PARTITION
-		),
-	)
-	override fun listMessagesByFromAddressAndActor(
-		datastoreInformation: IDatastoreInformation,
-		partyId: String,
-		fromAddress: String,
-		actorKeys: List<String>?
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		actorKeys?.takeIf { it.isNotEmpty() }?.let { it ->
-			val viewQueries = createQueries(
-				datastoreInformation,
-				"by_hcparty_from_address_actor",
-				"by_data_owner_from_address_actor" to DATA_OWNER_PARTITION
-			).keys(it.map { k: String -> ComplexKey.of(partyId, fromAddress, k) }).includeDocs()
-
-			emitAll(client.interleave<ComplexKey, String, Message>(
-				viewQueries,
-				compareBy(
-					{ it.components[0] as? String },
-					{ it.components[1] as? String },
-					{ it.components[2] as? String })
-			).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc })
-		}
-	}
-
-	@Views(
-		View(name = "by_hcparty_to_address_actor", map = "classpath:js/message/By_hcparty_to_address_actor_map.js"),
-		View(
-			name = "by_data_owner_to_address_actor",
-			map = "classpath:js/message/By_data_owner_to_address_actor_map.js",
-			secondaryPartition = DATA_OWNER_PARTITION
-		),
-	)
-	override fun listMessagesByToAddressAndActor(
-		datastoreInformation: IDatastoreInformation,
-		partyId: String,
-		toAddress: String,
-		actorKeys: List<String>?
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		actorKeys?.takeIf { it.isNotEmpty() }?.let { keys ->
-			emitAll(client.interleave<ComplexKey, String, Message>(
-				createQueries(
-					datastoreInformation,
-					"by_hcparty_to_address_actor",
-					"by_data_owner_to_address_actor" to DATA_OWNER_PARTITION
-				).keys(keys.map { ComplexKey.of(partyId, toAddress, it) }).includeDocs(),
-				compareBy({ it.components[0] as? String },
-					{ it.components[1] as? String },
-					{ it.components[2] as? String })
-			).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc })
-		}
-	}
-
-	@Views(
-		View(
-			name = "by_hcparty_transport_guid_actor",
-			map = "classpath:js/message/By_hcparty_transport_guid_actor_map.js"
-		),
-		View(
-			name = "by_data_owner_transport_guid_actor",
-			map = "classpath:js/message/By_data_owner_transport_guid_actor_map.js",
-			secondaryPartition = DATA_OWNER_PARTITION
-		),
-	)
-	override fun listMessagesByTransportGuidAndActor(
-		datastoreInformation: IDatastoreInformation,
-		partyId: String,
-		transportGuid: String,
-		actorKeys: List<String>?
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		actorKeys?.takeIf { it.isNotEmpty() }?.let { keys ->
-			emitAll(client.interleave<ComplexKey, String, Message>(
-				createQueries(
-					datastoreInformation,
-					"by_hcparty_transport_guid_actor",
-					"by_data_owner_transport_guid_actor" to DATA_OWNER_PARTITION
-				).keys(keys.map { ComplexKey.of(partyId, transportGuid, it) }).includeDocs(),
-				compareBy({ it.components[0] as? String },
-					{ it.components[1] as? String },
-					{ it.components[2] as? String })
-			).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc })
-		}
-	}
 
 	@Views(
 		View(name = "by_hcparty_from_address", map = "classpath:js/message/By_hcparty_from_address_map.js"),
@@ -184,6 +85,34 @@ open class MessageDAOImpl(
 		)
 	}
 
+	override fun listMessageIdsByFromAddress(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		fromAddress: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val startKey = ComplexKey.of(dataOwnerId, fromAddress, null)
+		val endKey = ComplexKey.of(dataOwnerId, fromAddress, ComplexKey.emptyObject())
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_from_address",
+			"by_data_owner_from_address" to DATA_OWNER_PARTITION,
+		).startKey(startKey)
+			.endKey(endKey)
+			.doNotIncludeDocs()
+
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy({ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ (it.components[2] as? Number)?.toLong() })
+			).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().map { it.id }
+		)
+	}
+
 	@Views(
 		View(name = "by_hcparty_to_address", map = "classpath:js/message/By_hcparty_to_address_map.js"),
 		View(
@@ -219,6 +148,37 @@ open class MessageDAOImpl(
 			)
 		}
 
+	override fun listMessageIdsByToAddress(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		toAddress: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val startKey = ComplexKey.of(dataOwnerId, toAddress, null)
+		val endKey = ComplexKey.of(dataOwnerId, toAddress, ComplexKey.emptyObject())
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_to_address",
+			"by_data_owner_to_address" to DATA_OWNER_PARTITION,
+		).startKey(startKey)
+			.endKey(endKey)
+			.doNotIncludeDocs()
+
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy({ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ (it.components[2] as? Number)?.toLong() })
+			).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().map { it.id }
+		)
+	}
+
+	private fun getGuidPrefix(transportGuid: String?): String? =
+		transportGuid?.takeIf { it.endsWith(":*") }?.substring(0, transportGuid.length - 1)
+
 	@Views(
     	View(name = "by_hcparty_transport_guid", map = "classpath:js/message/By_hcparty_transport_guid_map.js"),
     	View(name = "by_data_owner_transport_guid", map = "classpath:js/message/By_data_owner_transport_guid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -231,15 +191,8 @@ open class MessageDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKey = transportGuid?.takeIf { it.endsWith(":*") }?.let {
-			val prefix = transportGuid.substring(0, transportGuid.length - 1)
-			ComplexKey.of(partyId, prefix)
-		} ?: ComplexKey.of(partyId, transportGuid)
-
-		val endKey = transportGuid?.takeIf { it.endsWith(":*") }?.let {
-			val prefix = transportGuid.substring(0, transportGuid.length - 1)
-			ComplexKey.of(partyId, prefix + "\ufff0")
-		} ?: ComplexKey.of(partyId, transportGuid)
+		val startKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(partyId, it) } ?: ComplexKey.of(partyId, transportGuid)
+		val endKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(partyId, it + "\ufff0") } ?: ComplexKey.of(partyId, transportGuid)
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation,
@@ -248,31 +201,6 @@ open class MessageDAOImpl(
 			startKey, endKey, paginationOffset, false
 		)
 		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String})))
-	}
-
-	override fun listMessageIdsByTransportGuid(
-		datastoreInformation: IDatastoreInformation,
-		hcPartyId: String,
-		transportGuid: String?
-	): Flow<String> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val startKey = ComplexKey.of(hcPartyId, transportGuid)
-		val endKey = ComplexKey.of(hcPartyId, transportGuid)
-
-		val viewQueries = createQueries(
-			datastoreInformation, "by_hcparty_transport_guid", "by_data_owner_transport_guid" to DATA_OWNER_PARTITION
-		)
-			.startKey(startKey)
-			.endKey(endKey)
-			.doNotIncludeDocs()
-
-		emitAll(
-			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String? }, { (it.components[1] as? Number?)?.toLong() }))
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id }
-				.distinctUntilChanged()
-		)
 	}
 
 	@Views(
@@ -287,14 +215,8 @@ open class MessageDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKey = transportGuid?.takeIf { it.endsWith(":*") }?.let {
-			val prefix = transportGuid.substring(0, transportGuid.length - 1)
-			ComplexKey.of(partyId, prefix, null)
-		} ?: ComplexKey.of(partyId, transportGuid, null)
-		val endKey = transportGuid?.takeIf { it.endsWith(":*") }?.let {
-			val prefix = transportGuid.substring(0, transportGuid.length - 1)
-			ComplexKey.of(partyId, prefix + "\ufff0", ComplexKey.emptyObject())
-		} ?: ComplexKey.of(partyId, transportGuid, ComplexKey.emptyObject())
+		val startKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(partyId, it, null) } ?: ComplexKey.of(partyId, transportGuid, null)
+		val endKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(partyId, it + "\ufff0", ComplexKey.emptyObject()) } ?: ComplexKey.of(partyId, transportGuid, ComplexKey.emptyObject())
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation,
@@ -306,6 +228,33 @@ open class MessageDAOImpl(
 			false
 		)
 		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}, { (it.components[2] as? Number)?.toLong() })))
+	}
+
+	override fun listMessageIdsByTransportGuidReceived(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		transportGuid: String,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val startKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(dataOwnerId, it, null) } ?: ComplexKey.of(dataOwnerId, transportGuid, null)
+		val endKey = getGuidPrefix(transportGuid)?.let { ComplexKey.of(dataOwnerId, it + "\ufff0", ComplexKey.emptyObject()) } ?: ComplexKey.of(dataOwnerId, transportGuid, ComplexKey.emptyObject())
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_transport_guid_received",
+			"by_data_owner_transport_guid_received" to DATA_OWNER_PARTITION,
+		).let {
+			if (descending) it.startKey(endKey).endKey(startKey)
+			else it.startKey(startKey).endKey(endKey)
+		}.descending(descending).doNotIncludeDocs()
+
+		emitAll(client
+			.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}, { (it.components[2] as? Number)?.toLong() }))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+			.map { it.id }
+		)
 	}
 
 	@Views(
@@ -329,6 +278,34 @@ open class MessageDAOImpl(
 			)
 			emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}, { (it.components[2] as? Number)?.toLong() })))
 		}
+
+	override fun listMessageIdsByTransportGuidAndSentDate(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		transportGuid: String,
+		fromDate: Long,
+		toDate: Long,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val startKey = ComplexKey.of(dataOwnerId, transportGuid, fromDate)
+		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate)
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_transport_guid_sent_date",
+			"by_data_owner_transport_guid_sent_date" to DATA_OWNER_PARTITION
+		).let {
+			if (descending) it.startKey(endKey).endKey(startKey)
+			else it.startKey(startKey).endKey(endKey)
+		}.descending(descending)
+
+		emitAll(client
+			.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}, { (it.components[2] as? Number)?.toLong() }))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+			.map { it.id }
+		)
+	}
 
 	@Views(
 		View(name = "by_hcparty", map = "classpath:js/message/By_hcParty_map.js"),
@@ -404,11 +381,14 @@ open class MessageDAOImpl(
 
 	override fun getMessagesChildren(datastoreInformation: IDatastoreInformation, parentIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val byParentId = client.queryViewIncludeDocs<String, Int, Message>(createQuery(
-			datastoreInformation,
-			"by_parent_id"
-		).includeDocs(true).keys(parentIds)).map { it.doc }.toList()
-		emitAll(parentIds.asFlow().map { parentId -> byParentId.filter { message -> message.id == parentId } })
+		val query = createQuery(datastoreInformation, "by_parent_id").includeDocs(true).keys(parentIds)
+		emitAll(client.queryViewIncludeDocs<String, Int, Message>(query).map { it.doc })
+	}
+
+	override fun listMessageIdsByParents(datastoreInformation: IDatastoreInformation, parentIds: List<String>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val query = createQuery(datastoreInformation, "by_parent_id").includeDocs(false).keys(parentIds)
+		emitAll(client.queryView<String, Int>(query).map { it.id })
 	}
 
 	override fun findMessagesByIds(
@@ -423,6 +403,11 @@ open class MessageDAOImpl(
 	override fun listMessagesByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.queryViewIncludeDocs<String, Int, Message>(createQuery(datastoreInformation, "by_invoice_id").includeDocs(true).keys(invoiceIds)).map { it.doc })
+	}
+
+	override fun listMessageIdsByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryView<String, Int>(createQuery(datastoreInformation, "by_invoice_id").includeDocs(false).keys(invoiceIds)).map { it.id })
 	}
 
 	@Views(
@@ -440,20 +425,6 @@ open class MessageDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc }.distinctUntilChangedBy { it.id })
 
 	}
-
-	@View(name = "by_external_ref", map = "classpath:js/message/By_hcparty_external_ref_map.js")
-	override fun getMessagesByExternalRefs(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, externalRefs: Set<String>) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(
-			client.queryViewIncludeDocs<Array<String>, String, Message>(
-				createQuery(datastoreInformation, "by_hcparty_transport_guid")
-					.includeDocs(true)
-					.keys(externalRefs.flatMap {
-						searchKeys.map { key -> ComplexKey.of(key, it) }
-					})
-			).map { it.doc }
-		)
-	}.distinctById()
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc._conflicts) emit(doc._id )}")
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {

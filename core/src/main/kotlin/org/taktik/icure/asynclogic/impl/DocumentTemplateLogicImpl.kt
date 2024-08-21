@@ -12,6 +12,7 @@ import org.taktik.icure.asyncdao.DocumentTemplateDAO
 import org.taktik.icure.asynclogic.DocumentTemplateLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 import org.taktik.icure.pagination.PaginationElement
@@ -25,8 +26,9 @@ class DocumentTemplateLogicImpl(
     private val documentTemplateDAO: DocumentTemplateDAO,
     private val sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : GenericLogicImpl<DocumentTemplate, DocumentTemplateDAO>(fixer, datastoreInstanceProvider), DocumentTemplateLogic {
+    fixer: Fixer,
+    filters: Filters
+) : GenericLogicImpl<DocumentTemplate, DocumentTemplateDAO>(fixer, datastoreInstanceProvider, filters), DocumentTemplateLogic {
 
 	override fun createEntities(entities: Collection<DocumentTemplate>): Flow<DocumentTemplate> =
 		flow {

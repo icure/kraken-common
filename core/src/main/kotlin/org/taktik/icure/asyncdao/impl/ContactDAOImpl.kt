@@ -37,7 +37,6 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
@@ -213,6 +212,18 @@ class ContactDAOImpl(
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().mapNotNull { it.id })
 	}.distinct()
 
+	private suspend fun createQueriesForSearchKeysAndFormIds(
+		datastoreInformation: IDatastoreInformation,
+		formIds: List<String>,
+		searchKeys: Set<String>
+	) = createQueries(
+		datastoreInformation,
+		"by_hcparty_formid",
+		"by_data_owner_formid" to DATA_OWNER_PARTITION
+	).keys(formIds.flatMap { k ->
+		searchKeys.map { arrayOf(it, k) }
+	})
+
 	@Views(
     	View(name = "by_hcparty_formid", map = "classpath:js/contact/By_hcparty_formid_map.js"),
     	View(name = "by_data_owner_formid", map = "classpath:js/contact/By_data_owner_formid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -220,11 +231,7 @@ class ContactDAOImpl(
 	override fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"by_hcparty_formid",
-			"by_data_owner_formid" to DATA_OWNER_PARTITION
-		).keys(searchKeys.map { arrayOf(it, formId) }).includeDocs()
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, listOf(formId), searchKeys).includeDocs()
 		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
 	}.distinctByIdIf(searchKeys.size > 1)
@@ -232,17 +239,27 @@ class ContactDAOImpl(
 	override fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"by_hcparty_formid",
-			"by_data_owner_formid" to DATA_OWNER_PARTITION
-		).keys(ids.flatMap { k ->
-			searchKeys.map { arrayOf(it, k) }
-		}).doNotIncludeDocs()
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, ids, searchKeys).doNotIncludeDocs()
 		val result = client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().mapNotNull { it.id }.distinct()
 
 		emitAll(relink(getContacts(datastoreInformation, result)))
+	}
+
+	override fun listContactIdsByDataOwnerAndFormIds(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		formIds: List<String>
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, formIds, searchKeys).doNotIncludeDocs()
+		client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
+			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
+			.mapNotNull { it.id }
+			.distinct().also {
+				emitAll(it)
+			}
 	}
 
 	@Views(
@@ -274,29 +291,28 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
-	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, ids: List<String>, linkType: String?) = flow {
+	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, linkValues: List<String>, linkQualification: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_linked_id", MAURICE_PARTITION)
-			.keys(ids)
+			.keys(linkValues)
 			.includeDocs(false)
 		val res = client.queryView<String, Array<String>>(viewQuery)
 		emitAll(
-			(linkType?.let { lt -> res.filter { it.value!![0] == lt } } ?: res)
+			(linkQualification?.let { lt -> res.filter { it.value!![0] == lt } } ?: res)
 				.map { it.value!![1] }
 		)
 	}
 
-	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun listServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
-			.includeDocs(true)
-		val res = client.queryViewIncludeDocs<String, String, Contact>(viewQuery)
+			.includeDocs(false)
 		emitAll(
-			res.mapNotNull { it.doc }
-				.flatMapConcat { it.services.filter { it.qualifiedLinks.values.flatMap { it.keys }.contains(associationId) }.asFlow() }
+			client.queryView<String, String>(viewQuery).map {
+				checkNotNull(it.value) { "A Service cannot have a null id" }
+			}
 		)
 	}
 
@@ -318,7 +334,7 @@ class ContactDAOImpl(
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
-	override fun findServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
+	override fun listServicesByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
@@ -327,7 +343,11 @@ class ContactDAOImpl(
 		val res = client.queryViewIncludeDocs<String, String, Contact>(viewQuery)
 		emitAll(
 			res.mapNotNull { it.doc }
-				.flatMapConcat { it.services.filter { it.qualifiedLinks.values.flatMap { it.keys }.contains(associationId) }.asFlow() }
+				.flatMapConcat { contact ->
+					contact.services.filter { service ->
+						service.qualifiedLinks.values.flatMap { it.keys }.contains(associationId)
+					}.asFlow()
+				}
 		)
 	}
 
@@ -717,6 +737,19 @@ class ContactDAOImpl(
 			.includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocs<String, String, Contact>(viewQuery).mapNotNull { it.doc })
+	}
+
+	override fun listContactIdsByExternalId(
+		datastoreInformation: IDatastoreInformation,
+		externalId: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_externalid")
+			.key(externalId)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
 	}
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted && doc._conflicts) emit(doc._id )}")

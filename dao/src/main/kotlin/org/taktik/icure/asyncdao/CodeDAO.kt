@@ -77,7 +77,7 @@ interface CodeDAO : GenericDAO<Code> {
 	 * @param code the code of the codes to return.
 	 * @param version the version of the codes to return, if not null, or "latest".
 	 * @param paginationOffset a [PaginationOffset] for pagination.
-	 * @return a [Flow] containing the [Code]s matching the criteriam, wrapped in a [ViewQueryResultEvent] for pagination.
+	 * @return a [Flow] containing the [Code]s matching the criteria, wrapped in a [ViewQueryResultEvent] for pagination.
 	 */
 	fun findCodesBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent>
 
@@ -129,8 +129,57 @@ interface CodeDAO : GenericDAO<Code> {
 	 * @return a [Code] that matches the criteria or null.
 	 */
 	suspend fun getCodeByLabel(datastoreInformation: IDatastoreInformation, region: String?, label: String, type: String, languages: List<String> = listOf("fr", "nl")): Code?
-	fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, region: String?, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [Code]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
+	 *
+	 * @param datastoreInformation an [IDatastoreInformation] instance containing the group and db info.
+	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
+	 * @param linkedId the value corresponding to [linkType] in [Code.qualifiedLinks]. If null, it will suffice that the
+	 * code has [linkType] in [Code.qualifiedLinks] to be included in th result.
+	 * @param paginationOffset a [PaginationOffset] of [List] of [String] for pagination.
+	 * @return a [Flow] of codes, wrapped in a [ViewQueryResultEvent] for pagination.
+	 */
+	fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the [Code.id]s where [Code.qualifiedLinks] contains [linkType]. If [linkedId] is not null, then it
+	 * will only include the codes that have [linkedId] as one of the values for [linkType].
+	 *
+	 * @param datastoreInformation an [IDatastoreInformation] instance containing the group and db info.
+	 * @param linkType the link type that is a key in [Code.qualifiedLinks].
+	 * @param linkedId the value corresponding to [linkType] in [Code.qualifiedLinks]. If null, it will suffice that the
+	 * code has [linkType] in [Code.qualifiedLinks] to be included in th result.
+	 * @return a [Flow] of [Code.id]s.
+	 */
 	fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?): Flow<String>
 	fun getCodesByIdsForPagination(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<ViewQueryResultEvent>
     fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Code>
+
+	/**
+	 * Retrieves all the [Code.id]s with the specified region, type, code, and version.
+	 * If [region] is null, all the [Code]s for the group are returned.
+	 * If [type] is null, all the [Code]s with the specified region are returned.
+	 * If [code] is null, all the [Code]s with the specified type are returned.
+	 * There are three possible options for [version]:
+	 * - if it is null, all the versions for a code are returned.
+	 * - if it is the string "latest", only the latest version for each code is returned.
+	 * - any other non-null value will be interpreted as a specific version and only the codes with that specific
+	 * version will be returned.
+	 *
+	 * @param datastoreInformation an [IDatastoreInformation] instance containing the group and db info.
+	 * @param region the region of the codes to return.
+	 * @param type the type of the codes to return.
+	 * @param code the code of the codes to return.
+	 * @param version the version of the codes to return, if not null, or "latest".
+	 * @return a [Flow] containing the [Code.id]s matching the criteria.
+	 */
+	fun listCodeIdsBy(
+		datastoreInformation: IDatastoreInformation,
+		region: String?,
+		type: String?,
+		code: String?,
+		version: String?
+	): Flow<String>
 }

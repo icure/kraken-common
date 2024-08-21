@@ -4,8 +4,8 @@
 
 package org.taktik.icure.asynclogic.impl.filter
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.Serializable
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -18,11 +18,13 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 @Profile("app")
 class UnionFilter<T : Serializable, O : Identifiable<T>> :
     Filter<T, O, org.taktik.icure.domain.filter.Filters.UnionFilter<T, O>> {
+
+	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.UnionFilter<T, O>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?
+        datastoreInformation: IDatastoreInformation
     ): Flow<T> {
-		return filter.filters.asFlow().flatMapConcat { context.resolve(it) }
+		return filter.filters.asFlow().flatMapConcat { context.resolve(it, datastoreInformation) }
 	}
 }

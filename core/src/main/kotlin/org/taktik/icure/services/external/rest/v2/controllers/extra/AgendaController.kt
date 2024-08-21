@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,11 +32,15 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
+import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 
 @RestController("agendaControllerV2")
@@ -45,6 +50,7 @@ import reactor.core.publisher.Flux
 class AgendaController(
 	private val agendaService: AgendaService,
 	private val agendaV2Mapper: AgendaV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
@@ -112,7 +118,15 @@ class AgendaController(
 	fun modifyAgenda(@RequestBody agendaDto: AgendaDto) = mono {
 		val agenda = agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
-
 		agendaV2Mapper.map(agenda)
 	}
+
+	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchCodesBy(
+		@RequestBody filter: AbstractFilterDto<AgendaDto>
+	) = agendaService.matchAgendasBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow(),
+	).injectReactorContext()
 }
+

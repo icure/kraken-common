@@ -47,16 +47,16 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.io.InputStream
 import java.lang.reflect.InvocationTargetException
-import java.util.LinkedList
+import java.util.*
 import javax.xml.parsers.SAXParserFactory
 import kotlin.coroutines.coroutineContext
 
 open class CodeLogicImpl(
     protected val codeDAO: CodeDAO,
-    private val filters: Filters,
+    filters: Filters,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
     fixer: Fixer
-) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider), CodeLogic {
+) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters), CodeLogic {
 
     companion object {
         private val log = LogFactory.getLog(this::class.java)
@@ -255,12 +255,6 @@ open class CodeLogicImpl(
             }
         }.toPaginatedFlow<Code>(paginationOffset.limit)
 
-    override fun listCodeIdsByLabel(region: String?, language: String, type: String, label: String?) =
-        flow {
-            val datastoreInformation = getInstanceAndGroup()
-            emitAll(codeDAO.listCodeIdsByLabel(datastoreInformation, region, language, type, label))
-        }
-
     override fun listCodeIdsByTypeCodeVersionInterval(
         startType: String?,
         startCode: String?,
@@ -284,7 +278,6 @@ open class CodeLogicImpl(
     }
 
     override fun findCodesByQualifiedLinkId(
-        region: String?,
         linkType: String,
         linkedId: String?,
         pagination: PaginationOffset<List<String>>
@@ -295,19 +288,12 @@ open class CodeLogicImpl(
                 codeDAO
                     .findCodesByQualifiedLinkId(
                         datastoreInformation,
-                        region,
                         linkType,
                         linkedId,
                         pagination.limitIncludingKey()
                     )
                     .toPaginatedFlow<Code>(pagination.limit)
             )
-        }
-
-    override fun listCodeIdsByQualifiedLinkId(linkType: String, linkedId: String?) =
-        flow {
-            val datastoreInformation = getInstanceAndGroup()
-            emitAll(codeDAO.listCodeIdsByQualifiedLinkId(datastoreInformation, linkType, linkedId))
         }
 
 
@@ -739,8 +725,8 @@ open class CodeLogicImpl(
         desc: Boolean?
     ) =
         flow {
-            val ids = filters.resolve(filterChain.filter).toList().sorted()
             val datastoreInformation = getInstanceAndGroup()
+            val ids = filters.resolve(filterChain.filter, datastoreInformation).toList().sorted()
             val codes = codeDAO.getCodesByIdsForPagination(datastoreInformation, ids)
             if (filterChain.predicate != null || sort != null && sort != "id") {
                 filterChain.predicate?.let {

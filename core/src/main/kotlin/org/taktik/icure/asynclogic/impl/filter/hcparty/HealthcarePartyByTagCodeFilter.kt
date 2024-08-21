@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.asynclogic.impl.filter.hcparty
 
-import javax.security.auth.login.LoginException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -26,38 +25,41 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asynclogic.HealthcarePartyLogic
+import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.hcparty.HealthcarePartyByTagCodeFilter
 import org.taktik.icure.entities.HealthcareParty
+import javax.security.auth.login.LoginException
 
 @Service
 @Profile("app")
 class HealthcarePartyByTagCodeFilter(
-	private val healthcarePartyLogic: HealthcarePartyLogic,
+	private val healthcarePartyDAO: HealthcarePartyDAO,
 ) : Filter<String, HealthcareParty, HealthcarePartyByTagCodeFilter> {
 
 	override fun resolve(
         filter: HealthcarePartyByTagCodeFilter,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?,
+        datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
 		try {
 			val idsByTag = if (filter.tagType != null) {
-				healthcarePartyLogic.listHealthcarePartyIdsByTag(
-					filter.tagType!!,
-					filter.tagCode
+				healthcarePartyDAO.listHealthcarePartyIdsByTag(
+					datastoreInformation = datastoreInformation,
+					tagType = filter.tagType!!,
+					tagCode = filter.tagCode
 				).toSet()
 			} else {
 				null
 			}
 
 			val idsByCode = if (filter.codeType != null) {
-				healthcarePartyLogic.listHealthcarePartyIdsByCode(
-					filter.codeType!!,
-					filter.codeCode
+				healthcarePartyDAO.listHealthcarePartyIdsByCode(
+					datastoreInformation = datastoreInformation,
+					codeType = filter.codeType!!,
+					codeCode = filter.codeCode
 				).toSet()
 			} else {
 				null

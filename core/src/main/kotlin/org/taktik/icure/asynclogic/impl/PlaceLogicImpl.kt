@@ -13,6 +13,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.PlaceDAO
 import org.taktik.icure.asynclogic.PlaceLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
 import org.taktik.icure.exceptions.DeletionException
@@ -26,8 +27,9 @@ import org.taktik.icure.validation.aspect.Fixer
 class PlaceLogicImpl(
     private val placeDAO: PlaceDAO,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider), PlaceLogic {
+	fixer: Fixer,
+    filters: Filters
+) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters), PlaceLogic {
 
 	override suspend fun createPlace(place: Place): Place? = fix(place) { fixedPlace ->
 		if(fixedPlace.rev != null) throw IllegalArgumentException("A new entity should not have a rev")

@@ -20,6 +20,7 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -42,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.FormTemplateV2Mapper
@@ -49,11 +51,13 @@ import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.FormBulkShareResultV2Mapper
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
 
@@ -69,6 +73,7 @@ class FormController(
 	private val formTemplateV2Mapper: FormTemplateV2Mapper,
 	private val rawFormTemplateV2Mapper: RawFormTemplateV2Mapper,
 	private val stubV2Mapper: StubV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper,
 	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
@@ -94,8 +99,7 @@ class FormController(
 	@Operation(summary = "Gets the most recent form with the given logicalUuid")
 	@GetMapping("/logicalUuid/{logicalUuid}")
 	fun getFormByLogicalUuid(@PathVariable logicalUuid: String) = mono {
-		val form = formService.getAllByLogicalUuid(logicalUuid)
-			.sortedByDescending { it.created }
+		val form = formService.listFormsByLogicalUuid(logicalUuid, true)
 			.firstOrNull()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
 		formV2Mapper.map(form)
@@ -103,25 +107,22 @@ class FormController(
 
 	@Operation(summary = "Gets all forms with given logicalUuid")
 	@GetMapping("/all/logicalUuid/{logicalUuid}")
-	fun getFormsByLogicalUuid(@PathVariable logicalUuid: String) = flow {
-		formService.getAllByLogicalUuid(logicalUuid)
+	fun getFormsByLogicalUuid(@PathVariable logicalUuid: String) =
+		formService.listFormsByLogicalUuid(logicalUuid, true)
 			.map { form -> formV2Mapper.map(form) }
-			.forEach { emit(it) }
-	}.injectReactorContext()
+			.injectReactorContext()
 
 	@Operation(summary = "Gets all forms by uniqueId")
 	@GetMapping("/all/uniqueId/{uniqueId}")
-	fun getFormsByUniqueId(@PathVariable uniqueId: String) = flow {
-		formService.getAllByUniqueId(uniqueId)
+	fun getFormsByUniqueId(@PathVariable uniqueId: String) =
+		formService.listFormsByUniqueId(uniqueId, true)
 			.map { form -> formV2Mapper.map(form) }
-			.forEach { emit(it) }
-	}.injectReactorContext()
+			.injectReactorContext()
 
 	@Operation(summary = "Gets the most recent form with the given uniqueId")
 	@GetMapping("/uniqueId/{uniqueId}")
 	fun getFormByUniqueId(@PathVariable uniqueId: String) = mono {
-		val form = formService.getAllByUniqueId(uniqueId)
-			.sortedByDescending { it.created }
+		val form = formService.listFormsByUniqueId(uniqueId, true)
 			.firstOrNull()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
 		formV2Mapper.map(form)
@@ -213,7 +214,7 @@ class FormController(
 	}
 
 	@Operation(summary = "Find Forms ids by data owner id, patient secret keys and opening date")
-	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/byDataOwnerPatientOpeningDate", produces = [APPLICATION_JSON_VALUE])
 	fun listFormIdsByDataOwnerPatientOpeningDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -306,7 +307,7 @@ class FormController(
 	}
 
 	@Operation(summary = "Modify a form template with the current user", description = "Returns an instance of created form template.")
-	@PutMapping("/template/{formTemplateId}", consumes = [MediaType.APPLICATION_JSON_VALUE])
+	@PutMapping("/template/{formTemplateId}", consumes = [APPLICATION_JSON_VALUE])
 	fun updateFormTemplate(@PathVariable formTemplateId: String, @RequestBody ft: FormTemplateDto) = mono {
 		val template = formTemplateV2Mapper.map(ft).copy(id = formTemplateId)
 		val formTemplate = formTemplateService.modifyFormTemplate(template)
@@ -360,4 +361,12 @@ class FormController(
 			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
 		).map { bulkShareResultV2Mapper.map(it).minimal() })
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(summary = "Get the ids of the Forms matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchFormsBy(
+		@RequestBody filter: AbstractFilterDto<FormDto>
+	) = formService.matchFormsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 }

@@ -27,7 +27,6 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
@@ -89,6 +88,24 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView(viewQuery, ComplexKey::class.java, String::class.java, HealthcareParty::class.java))
 	}
 
+	override fun listHealthcarePartyIdsBySpecialityAndPostcode(
+		datastoreInformation: IDatastoreInformation,
+		type: String,
+		spec: String,
+		firstCode: String,
+		lastCode: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_speciality_postcode")
+			.startKey(ComplexKey.of(type, spec, firstCode))
+			.endKey(ComplexKey.of(type, spec, lastCode))
+			.includeDocs(false)
+			.descending(false)
+
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
+	}
+
 	@View(name = "allForPagination", map = "classpath:js/healthcareparty/All_for_pagination.js")
 	override fun findHealthCareParties(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -120,13 +137,31 @@ internal class HealthcarePartyDAOImpl(
 	override fun findHealthcarePartiesBySsinOrNihii(datastoreInformation: IDatastoreInformation, searchValue: String?, offset: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val isDesc = desc != null && desc
-		val from = if (isDesc) searchValue!! + "\ufff0" else searchValue
-		val to = if (searchValue != null) searchValue.takeIf { isDesc } ?: (searchValue + "\ufff0") else "\ufff0"
+		val from = if (desc == true) (searchValue ?: "") + "\ufff0" else searchValue
+		val to = if (searchValue != null) searchValue.takeIf { desc ?: false } ?: (searchValue + "\ufff0") else "\ufff0"
 
-		val viewQuery = pagedViewQuery(datastoreInformation, "by_ssin_or_nihii", from, to, offset, isDesc)
+		val viewQuery = pagedViewQuery(datastoreInformation, "by_ssin_or_nihii", from, to, offset, desc ?: false)
 
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, HealthcareParty::class.java))
+	}
+
+	override fun listHealthcarePartyIdsBySsinOrNihii(
+		datastoreInformation: IDatastoreInformation,
+		searchValue: String?,
+		desc: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = if (desc) (searchValue ?: "") + "\ufff0" else searchValue
+		val to = if (searchValue != null) searchValue.takeIf { desc } ?: (searchValue + "\ufff0") else "\ufff0"
+
+		val viewQuery = createQuery(datastoreInformation, "by_ssin_or_nihii")
+			.startKey(from)
+			.endKey(to)
+			.descending(desc)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
 	@View(name = "by_hcParty_name", map = "classpath:js/healthcareparty/By_hcparty_name_map.js")
@@ -145,7 +180,6 @@ internal class HealthcarePartyDAOImpl(
 
 	override fun listHealthcareParties(datastoreInformation: IDatastoreInformation, searchString: String, offset: Int, limit: Int) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		// TODO test
 		val r = sanitizeString(searchString)
 		val from = ComplexKey.of(r)
 		val to = ComplexKey.of(r + "\ufff0")
@@ -212,6 +246,19 @@ internal class HealthcarePartyDAOImpl(
 			datastoreInformation,
 			"by_parent"
 		).key(parentId).includeDocs(true)).map { it.doc })
+	}
+
+	override fun listHealthcarePartyIdsByParentId(
+		datastoreInformation: IDatastoreInformation,
+		parentId: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_parent")
+			.key(parentId)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
 	override fun findHealthcarePartiesByIds(datastoreInformation: IDatastoreInformation, hcpIds: Flow<String>): Flow<ViewQueryResultEvent> = flow {

@@ -34,7 +34,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -81,7 +80,6 @@ import java.util.*
 @RequestMapping("/rest/v2/contact")
 @Tag(name = "contact")
 class ContactController(
-	private val filters: Filters,
 	private val contactService: ContactService,
 	private val sessionLogic: SessionInformationProvider,
 	private val contactV2Mapper: ContactV2Mapper,
@@ -365,11 +363,14 @@ class ContactController(
 		contacts.paginatedList(contactV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of contacts matching the provided filter for the current user (HcParty) ")
-	@PostMapping("/match")
-	fun matchContactsBy(@RequestBody filter: AbstractFilterDto<ContactDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	@Operation(summary = "Get the ids of the Contacts matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchContactsBy(
+		@RequestBody filter: AbstractFilterDto<ContactDto>,
+		@RequestParam(required = false) deduplicate: Boolean? = null
+	) = contactService.matchContactsBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(summary = "Get a service by id")
 	@GetMapping("/service/{serviceId}")
@@ -405,11 +406,13 @@ class ContactController(
 		}
 	}
 
-	@Operation(summary = "Get ids of services matching the provided filter for the current user")
+	@Operation(summary = "Get the ids of the Services matching the provided filter.")
 	@PostMapping("/service/match")
-	fun matchServicesBy(@RequestBody filter: AbstractFilterDto<ServiceDto>) = mono {
-		filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).toList()
-	}
+	fun matchServicesBy(
+		@RequestBody filter: AbstractFilterDto<ServiceDto>
+	) = contactService.matchServicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")
 	@PostMapping("/service")

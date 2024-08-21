@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.UserService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -57,7 +55,6 @@ import org.taktik.icure.utils.orThrow
 @RequestMapping("/rest/v2/user")
 @Tag(name = "user") // otherwise would default to "user-controller"
 class UserController(
-	private val filters: Filters,
 	private val userService: UserService,
 	private val sessionInfo: SessionInformationProvider,
 	private val userV2Mapper: SecureUserV2Mapper,
@@ -135,17 +132,16 @@ class UserController(
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
-	@Operation(summary = "Get the list of users by healthcare party id")
-	@GetMapping("/byHealthcarePartyId/{id}")
-	fun findByHcpartyId(@PathVariable id: String) = mono {
-		userService.listUserIdsByHcpartyId(id).toList()
-	}
+	@Operation(summary = "Get the list of User ids by healthcare party id")
+	@GetMapping("/byHealthcarePartyId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun findByHcpartyId(@PathVariable id: String) =
+		userService.listUserIdsByHcpartyId(id).injectReactorContext()
 
-	@Operation(summary = "Get the list of users by patient id")
-	@GetMapping("/byPatientId/{id}")
-	fun findByPatientId(@PathVariable id: String) = mono {
-		userService.findByPatientId(id).toList()
-	}
+
+	@Operation(summary = "Get the list of User ids by patient id")
+	@GetMapping("/byPatientId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun findByPatientId(@PathVariable id: String) =
+		userService.findByPatientId(id).injectReactorContext()
 
 	@Operation(summary = "Delete a User based on his/her ID.", description = "Delete a User based on his/her ID. The return value is an array containing the ID of deleted user.")
 	@DeleteMapping("/{userId}")
@@ -216,7 +212,11 @@ class UserController(
 		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit, objectMapper = objectMapper)
 	}
 
-	@Operation(summary = "Get ids of users matching the provided filter for the current user (HcParty) ")
+	@Operation(summary = "Get the ids of the Users matching the provided filter.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchUsersBy(@RequestBody filter: AbstractFilterDto<UserDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchUsersBy(
+		@RequestBody filter: AbstractFilterDto<UserDto>
+	) = userService.matchUsersBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 }

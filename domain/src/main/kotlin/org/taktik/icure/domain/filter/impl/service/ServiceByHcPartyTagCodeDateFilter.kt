@@ -11,7 +11,9 @@ import org.taktik.icure.entities.embed.withEncryptionMetadata
 data class ServiceByHcPartyTagCodeDateFilter(
 	override val desc: String? = null,
 	override val healthcarePartyId: String? = null,
+	@Deprecated("Use patientSecretForeignKeys instead")
 	override val patientSecretForeignKey: String? = null,
+	override val patientSecretForeignKeys: List<String>? = null,
 	override val tagType: String? = null,
 	override val tagCode: String? = null,
 	override val codeType: String? = null,
@@ -29,6 +31,7 @@ data class ServiceByHcPartyTagCodeDateFilter(
 		}
 	}
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
@@ -36,7 +39,7 @@ data class ServiceByHcPartyTagCodeDateFilter(
 		return (
 			item.endOfLife == null &&
 			(healthcarePartyId == null || item.withEncryptionMetadata()?.let { searchKeyMatcher(healthcarePartyId, it) } == true) &&
-			(patientSecretForeignKey == null || item.secretForeignKeys != null && item.secretForeignKeys.contains(patientSecretForeignKey)) &&
+			(patientSecretForeignKeys == null || item.secretForeignKeys?.intersect(patientSecretForeignKeys.toSet())?.isNotEmpty() == true) &&
 			(tagType == null || item.tags.any { tagType == it.type && (tagCode == null || tagCode == it.code) }) &&
 			(codeType == null || item.codes.any { codeType == it.type && (codeCode == null || codeCode == it.code) }) &&
 			(startValueDate == null || item.valueDate != null && item.valueDate > startValueDate || item.openingDate != null && item.openingDate > startValueDate) &&

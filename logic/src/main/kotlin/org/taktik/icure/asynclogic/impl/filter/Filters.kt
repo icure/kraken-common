@@ -3,12 +3,12 @@
  */
 package org.taktik.icure.asynclogic.impl.filter
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.flow
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import java.io.Serializable
 
 class Filters : ApplicationContextAware {
 	private var applicationContext: ApplicationContext? = null
@@ -18,13 +18,14 @@ class Filters : ApplicationContextAware {
 		this.applicationContext = applicationContext
 	}
 
-	fun <T : Serializable, O : Identifiable<T>> resolve(filter: org.taktik.icure.domain.filter.Filter<T, O>, datastoreInformation: IDatastoreInformation? = null) = flow<T> {
+	fun <T : Serializable, O : Identifiable<T>> resolve(filter: org.taktik.icure.domain.filter.Filter<T, O>, datastoreInformation: IDatastoreInformation) = flow<T> {
 		val truncatedFullClassName = filter.javaClass.name.replace(".+?filter\\.impl\\.".toRegex(), "").replace(".+?dto\\.filter\\.".toRegex(), "")
 		val filterClass = try{
 			Class.forName("org.taktik.icure.asynclogic.impl.filter.$truncatedFullClassName")
 		} catch (e: ClassNotFoundException) {
 			throw IllegalStateException("Could not find class for filter $truncatedFullClassName", e)
 		}
+		@Suppress("UNCHECKED_CAST")
 		val filterToBeResolved = (filtersCache[truncatedFullClassName] as Filter<T, O, org.taktik.icure.domain.filter.Filter<T, O>>?) ?: kotlin.run {
 			try {
 				// Note that generic type is erased: at this point we only verify that the bean is a Filter, not a Filter<T, O, ..>

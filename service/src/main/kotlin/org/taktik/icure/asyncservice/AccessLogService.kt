@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.result.AggregatedAccessLogs
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -76,7 +77,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 
 	/**
 	 * Retrieves all the [AccessLog]s where [AccessLog.user] equals [userId], [AccessLog.accessType] equals [accessType],
-	 * if present, and [AccessLog.date] equals [startDate], if present, in a [Flow] for pagination.
+	 * if present, and [AccessLog.date] is greater than or equal to [startDate], if present, in a [Flow] for pagination.
 	 *
 	 * @param userId the id of the user the [AccessLog]s refer to.
 	 * @param accessType the type of access to the [AccessLog].
@@ -104,8 +105,19 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * will be returned.
 	 * @param descending whether to sort the results by [AccessLog.date] ascending or descending.
 	 * @return a [Flow] of Access Log ids.
-	 * @throws AccessDeniedException if the current user does not have the permission to get access logs by healthcare
+	 * @throws AccessDeniedException if the current user does not have the permission to get [AccessLog]s by healthcare
 	 * party id.
 	 */
 	fun listAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+
+	/**
+	 * Retrieves the ids of the [AccessLog]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [AccessLog].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchAccessLogsBy(filter: AbstractFilter<AccessLog>): Flow<String>
 }

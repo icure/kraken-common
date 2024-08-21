@@ -13,6 +13,7 @@ data class MaintenanceTaskByIdsFilter(
 	override val ids: Set<String>,
 ) : AbstractFilter<MaintenanceTask>, Filters.IdsFilter<String, MaintenanceTask> {
 
+	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 

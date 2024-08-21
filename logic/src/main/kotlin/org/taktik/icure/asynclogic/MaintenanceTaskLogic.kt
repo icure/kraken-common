@@ -11,15 +11,10 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.MaintenanceTask
-import org.taktik.icure.entities.embed.Identifier
 
 interface MaintenanceTaskLogic : EntityPersister<MaintenanceTask, String>, EntityWithSecureDelegationsLogic<MaintenanceTask> {
 	suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask?
-	fun listMaintenanceTasksByHcPartyAndIdentifier(healthcarePartyId: String, identifiers: List<Identifier>): Flow<String>
-	fun listMaintenanceTasksByHcPartyAndType(healthcarePartyId: String, type: String, startDate: Long? = null, endDate: Long? = null): Flow<String>
-	fun listMaintenanceTasksAfterDate(healthcarePartyId: String, date: Long): Flow<String>
 	fun deleteMaintenanceTasks(maintenanceTaskToDeletes: Collection<MaintenanceTask>): Flow<DocIdentifier>
-	fun filterMaintenanceTasksIds(filter: FilterChain<MaintenanceTask>, limit: Int, startDocumentId: String?): Flow<String>
 
 	/**
 	 * Retrieves all the [MaintenanceTask]s from the database that match the provided [FilterChain], using the provided

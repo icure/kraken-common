@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
@@ -187,10 +188,9 @@ interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWi
 
     suspend fun addDelegations(messageId: String, delegations: List<Delegation>): Message?
     fun getMessageChildren(messageId: String): Flow<Message>
-    fun getMessagesChildren(parentIds: List<String>): Flow<List<Message>>
+    fun getMessagesChildren(parentIds: List<String>): Flow<Message>
     fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
     fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-    fun listMessagesByExternalRefs(hcPartyId: String, externalRefs: List<String>): Flow<Message>
     override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
     fun filterMessages(
         paginationOffset: PaginationOffset<Nothing>,
@@ -217,4 +217,15 @@ interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWi
      * @throws [NotFoundRequestException] if an [Message] with the specified [id] does not exist.
      */
     suspend fun deleteMessage(id: String): DocIdentifier
+
+    /**
+     * Retrieves the ids of the [Message]s matching the provided [filter].
+     *
+     * @param filter an [AbstractFilter] of [Message].
+     * @return a [Flow] of the ids matching the filter.
+     * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+     * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+     * rights to access their data.
+     */
+    fun matchMessagesBy(filter: AbstractFilter<Message>): Flow<String>
 }

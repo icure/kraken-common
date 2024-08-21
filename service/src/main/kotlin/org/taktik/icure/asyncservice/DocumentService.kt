@@ -13,6 +13,7 @@ import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Document
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
@@ -25,6 +26,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * [IllegalArgumentException]), except for information related to the main attachment if [strict]
 	 * is set to false (for retro-compatibility).
 	 * It is never allowed to specify a non-empty value for deleted attachments.
+	 *
 	 * @param document the document to create
 	 * @param strict specifies whether to behave in a strict or lenient way for the main attachment.
 	 */
@@ -48,6 +50,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * is set to false the change will simply be ignored.
 	 * This method still allows updating non-id attachment information such as utis.
 	 * It is never allowed to modify deleted attachments.
+	 *
 	 * @param updatedDocument the new version of the document
 	 * @param currentDocument the current document if already available, else null
 	 * @param strict specifies whether to behave in a strict or lenient way for the main attachment.
@@ -62,6 +65,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * updated.
 	 * If running in strict mode all documents will be checked before performing any modification, therefore if this throws
 	 * [IllegalArgumentException] due to invalid document values no change has been performed to the stored data.
+	 *
 	 * @param documents information on documents to create / modify.
 	 * @param strict specifies whether to behave in a strict or lenient way.
 	 * @return the updated documents.
@@ -73,6 +77,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 
 	/**
 	 * Updates the attachments for a document. For additional details check [DataAttachmentChange].
+	 *
 	 * @param currentDocument the document to update
 	 * @param mainAttachmentChange specifies how to change the main attachment. If null the main attachment will be unchanged.
 	 * @param secondaryAttachmentsChanges specifies how to change the secondary attachments. Only secondary attachments specified
@@ -153,8 +158,20 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * ignore that modification.
 	 * This method still allows updating non-id attachment information such as utis.
 	 * It is never allowed to modify deleted attachments.
+	 *
 	 * @param documents a [Collection] of updated [Document]s.
 	 * @return a [Flow] containing all the successfully updated [Document]s.
 	 */
 	suspend fun modifyDocuments(documents: Collection<Document>): Flow<Document>
+
+	/**
+	 * Retrieves the ids of the [Document]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Document].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchDocumentsBy(filter: AbstractFilter<Document>): Flow<String>
 }

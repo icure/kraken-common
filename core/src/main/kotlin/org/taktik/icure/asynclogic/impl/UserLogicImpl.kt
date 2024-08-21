@@ -41,16 +41,16 @@ import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 open class UserLogicImpl (
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	protected val filters: Filters,
+	filters: Filters,
 	protected val userDAO: UserDAO,
 	protected val secretValidator: SecretValidator,
 	private val userEnhancer: UserEnhancer,
 	fixer: Fixer
-) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider), UserLogic {
+) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters), UserLogic {
 
 	private val shortTokenFormatter = DecimalFormat("000000")
 
@@ -68,7 +68,7 @@ open class UserLogicImpl (
 
 	override fun findByPatientId(patientId: String): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userDAO.listUsersByPatientId(datastoreInformation, patientId).mapNotNull { v: User -> v.id })
+		emitAll(userDAO.listUserIdsByPatientId(datastoreInformation, patientId))
 	}
 
 	override suspend fun getUserByEmail(email: String): EnhancedUser? {
@@ -78,14 +78,9 @@ open class UserLogicImpl (
 		return findByEmail.firstOrNull()?.let { userEnhancer.enhance(it) }
 	}
 
-	override fun listUserIdsByNameEmailPhone(searchString: String): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userDAO.listUserIdsByNameEmailPhone(datastoreInformation, searchString))
-	}
-
 	override fun listUserIdsByHcpartyId(hcpartyId: String): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userDAO.listUsersByHcpId(datastoreInformation, hcpartyId).mapNotNull { v: User -> v.id })
+		emitAll(userDAO.listUserIdsByHcpId(datastoreInformation, hcpartyId))
 	}
 
 	override fun findByNameEmailPhone(
@@ -233,7 +228,7 @@ open class UserLogicImpl (
 		filter: FilterChain<User>,
 	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		val ids = filters.resolve(filter.filter)
+		val ids = filters.resolve(filter.filter, datastoreInformation)
 		val sortedIds = paginationOffset.takeUnless { it.startDocumentId == null }?.let { paginationOffset -> // Sub-set starting from startDocId to the end (including last element)
 			ids.dropWhile { id -> id != paginationOffset.startDocumentId }
 		} ?: ids

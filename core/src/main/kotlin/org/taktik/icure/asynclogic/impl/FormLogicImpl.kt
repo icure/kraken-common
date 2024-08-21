@@ -24,6 +24,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -34,21 +35,22 @@ open class FormLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), FormLogic {
+    fixer: Fixer,
+    filters: Filters
+) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), FormLogic {
 
 	override suspend fun getForm(id: String) = getEntity(id)
 
 	override fun getForms(selectedIds: Collection<String>) = getEntities(selectedIds)
 
-	override suspend fun getAllByLogicalUuid(formUuid: String): List<Form> {
+	override fun listFormsByLogicalUuid(formUuid: String, descending: Boolean): Flow<Form> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		return formDAO.getAllByLogicalUuid(datastoreInformation, formUuid)
+		emitAll(formDAO.listFormsByLogicalUuid(datastoreInformation, formUuid, descending))
 	}
 
-	override suspend fun getAllByUniqueId(lid: String): List<Form> {
+	override fun listFormsByUniqueId(lid: String, descending: Boolean): Flow<Form> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		return formDAO.getAllByUniqueId(datastoreInformation, lid)
+		emitAll(formDAO.listFormsByUniqueId(datastoreInformation, lid, descending))
 	}
 
 	override fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form> =

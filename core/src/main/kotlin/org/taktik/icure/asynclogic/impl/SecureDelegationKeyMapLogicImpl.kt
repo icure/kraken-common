@@ -11,6 +11,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SecureDelegationKeyMapLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.SecureDelegationKeyMap
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
@@ -22,8 +23,9 @@ class SecureDelegationKeyMapLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     private val secureDelegationKeyMapDAO: SecureDelegationKeyMapDAO,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<SecureDelegationKeyMap, SecureDelegationKeyMapDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic),
+    fixer: Fixer,
+    filters: Filters
+) : EntityWithEncryptionMetadataLogic<SecureDelegationKeyMap, SecureDelegationKeyMapDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
     SecureDelegationKeyMapLogic {
     override fun entityWithUpdatedSecurityMetadata(
         entity: SecureDelegationKeyMap,

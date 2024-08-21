@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.text.similarity.LevenshteinDistance
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -35,6 +36,7 @@ import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -44,8 +46,6 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.encryptableMetadataEquals
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Gender
-import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.PatientHealthCareParty
 import org.taktik.icure.entities.embed.ReferralPeriod
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -59,168 +59,29 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlowOfIds
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.aggregateResults
-import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 import java.time.Instant
-import java.util.TreeSet
+import java.util.*
 
 open class PatientLogicImpl(
 	private val sessionLogic: SessionInformationProvider,
 	protected val patientDAO: PatientDAO,
 	private val userLogic: UserLogic,
-	private val filters: Filters,
+	filters: Filters,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), PatientLogic {
+) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), PatientLogic {
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
 	}
 
+	private val levenshtein = LevenshteinDistance()
+
 	override suspend fun countByHcParty(healthcarePartyId: String): Int {
 		val datastoreInformation = getInstanceAndGroup()
 		return patientDAO.countByHcParty(datastoreInformation, healthcarePartyId)
-	}
-
-	override fun listByHcPartyIdsOnly(healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcParty(datastoreInformation, key)
-			}
-		)
-	}
-
-	override fun listByHcPartyAndSsinIdsOnly(ssin: String, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndSsin(datastoreInformation, ssin, key)
-			}
-		)
-	}
-
-	override fun listByHcPartyAndSsinsIdsOnly(ssins: Collection<String>, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndSsins(datastoreInformation, ssins, key)
-			}
-		)
-	}
-
-	override fun listByHcPartyDateOfBirthIdsOnly(date: Int, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.listPatientIdsByHcPartyAndDateOfBirth(datastoreInformation, date, getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)))
-	}
-
-	override fun listByHcPartyGenderEducationProfessionIdsOnly(healthcarePartyId: String, gender: Gender?, education: String?, profession: String?) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyGenderEducationProfession(
-					datastoreInformation,
-					key,
-					gender,
-					education,
-					profession
-				)
-			}
-		)
-	}
-
-	override fun listByHcPartyDateOfBirthIdsOnly(startDate: Int?, endDate: Int?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndDateOfBirth(
-					datastoreInformation,
-					startDate,
-					endDate,
-					key
-				)
-			}
-		)
-	}
-
-	override fun listByHcPartyNameContainsFuzzyIdsOnly(searchString: String?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyNameContainsFuzzy(
-					datastoreInformation,
-					searchString,
-					key,
-					null
-				)
-			}
-		)
-	}
-
-	override fun listByHcPartyName(searchString: String?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyNameContainsFuzzy(datastoreInformation, searchString, key)
-			}
-		)
-	}
-
-	override fun listByHcPartyAndExternalIdsOnly(externalId: String?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndExternalId(
-					datastoreInformation,
-					externalId,
-					key
-				)
-			}
-		)
-	}
-
-	override fun listPatientIdsByHcPartyAndTelecomOnly(searchString: String?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndTelecom(datastoreInformation, searchString, key)
-			}
-		)
-	}
-
-	override fun listPatientIdsByHcPartyAndAddressOnly(searchString: String?, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndAddress(datastoreInformation, searchString, key)
-			}
-		)
-	}
-
-	override fun listPatientIdsByHcPartyAndAddressOnly(
-		streetAndCity: String?,
-		postalCode: String?,
-		houseNumber: String?,
-		healthcarePartyId: String
-	): Flow<String> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(
-			mergeUniqueIdsForSearchKeys(getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)) { key ->
-				patientDAO.listPatientIdsByHcPartyAndAddress(
-					datastoreInformation,
-					streetAndCity,
-					postalCode,
-					houseNumber,
-					key
-				)
-			}
-		)
-	}
-
-	override fun listByHcPartyAndActiveIdsOnly(active: Boolean, healthcarePartyId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.listPatientIdsByActive(datastoreInformation, active, getAllSearchKeysIfCurrentDataOwner(healthcarePartyId)))
 	}
 
 	override fun listOfMergesAfter(date: Long?) = flow {
@@ -283,7 +144,7 @@ open class PatientLogicImpl(
 		desc: Boolean?
 	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		val ids = filters.resolve(filterChain.filter).toSet(TreeSet())
+		val ids = filters.resolve(filterChain.filter, datastoreInformation).toSet(TreeSet())
 
 		val forPagination = aggregateResults(
 			ids = ids,
@@ -410,11 +271,6 @@ open class PatientLogicImpl(
 	override fun findByHcPartyDateOfBirth(date: Int?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, date, date, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), false))
-	}
-
-	override fun findByHcPartyModificationDate(start: Long?, end: Long?, healthcarePartyId: String, descending: Boolean, paginationOffset: PaginationOffset<List<String>>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.findPatientsByHcPartyModificationDate(datastoreInformation, start, end, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), descending))
 	}
 
 	override suspend fun findByUserId(id: String): Patient? {
@@ -655,8 +511,8 @@ open class PatientLogicImpl(
 				combined.flattenConcat()
 					.filterIsInstance<ViewRowWithDoc<*, *, *>>()
 					.map { it.doc as Patient }
-					.filter { p: Patient -> firstName == null || p.firstName == null || p.firstName.toString().lowercase().startsWith(firstName.lowercase()) || firstName.lowercase().startsWith(p.firstName.toString().lowercase()) || StringUtils.getLevenshteinDistance(firstName.lowercase(), p.firstName.toString().lowercase()) <= 2 }
-					.filter { p: Patient -> lastName == null || p.lastName == null || StringUtils.getLevenshteinDistance(lastName.lowercase(), p.lastName.toString().lowercase()) <= 2 }
+					.filter { p: Patient -> firstName == null || p.firstName == null || p.firstName.toString().lowercase().startsWith(firstName.lowercase()) || firstName.lowercase().startsWith(p.firstName.toString().lowercase()) || levenshtein.apply(firstName.lowercase(), p.firstName.toString().lowercase()) <= 2 }
+					.filter { p: Patient -> lastName == null || p.lastName == null || levenshtein.apply(lastName.lowercase(), p.lastName.toString().lowercase()) <= 2 }
 					.filter { p: Patient -> p.firstName != null && p.firstName.toString().length >= 3 || p.lastName != null && p.lastName.toString().length >= 3 }
 
 			)
@@ -671,8 +527,8 @@ open class PatientLogicImpl(
 					false
 				).filterIsInstance<ViewRowWithDoc<*, *, *>>()
 					.map { it.doc as Patient }
-					.filter { p: Patient -> firstName == null || p.firstName == null || p.firstName.toString().lowercase().startsWith(firstName.lowercase()) || firstName.lowercase().startsWith(p.firstName.toString().lowercase()) || StringUtils.getLevenshteinDistance(firstName.lowercase(), p.firstName.toString().lowercase()) <= 2 }
-					.filter { p: Patient -> p.lastName == null || StringUtils.getLevenshteinDistance(lastName.lowercase(), p.lastName.toString().lowercase()) <= 2 }
+					.filter { p: Patient -> firstName == null || p.firstName == null || p.firstName.toString().lowercase().startsWith(firstName.lowercase()) || firstName.lowercase().startsWith(p.firstName.toString().lowercase()) || levenshtein.apply(firstName.lowercase(), p.firstName.toString().lowercase()) <= 2 }
+					.filter { p: Patient -> p.lastName == null || levenshtein.apply(lastName.lowercase(), p.lastName.toString().lowercase()) <= 2 }
 					.filter { p: Patient -> p.firstName != null && p.firstName.toString().length >= 3 || p.lastName != null && p.lastName.toString().length >= 3 }
 			)
 		}
@@ -695,11 +551,6 @@ open class PatientLogicImpl(
 
 	override fun undeletePatients(ids: Set<String>) = flow {
 		emitAll(undeleteByIds(ids))
-	}
-
-	override fun listPatientIdsByHcpartyAndIdentifiers(healthcarePartyId: String, identifiers: List<Identifier>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(patientDAO.listPatientIdsByHcPartyAndIdentifiers(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(healthcarePartyId), identifiers))
 	}
 
 	override fun getGenericDAO(): PatientDAO {

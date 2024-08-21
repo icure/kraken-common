@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
@@ -119,4 +120,15 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 		secretPatientKeys: List<String>,
 		paginationOffset: PaginationOffset<List<Any>>
 	): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves the ids of the [CalendarItem]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [CalendarItem].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchCalendarItemsBy(filter: AbstractFilter<CalendarItem>): Flow<String>
 }

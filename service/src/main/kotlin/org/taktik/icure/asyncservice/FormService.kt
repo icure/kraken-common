@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -84,8 +85,26 @@ interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConf
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?
 	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
-	suspend fun getAllByLogicalUuid(formUuid: String): List<Form>
-	suspend fun getAllByUniqueId(lid: String): List<Form>
+
+	/**
+	 * Returns all the [Form]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param formUuid the [Form.logicalUuid].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form]s.
+	 */
+	fun listFormsByLogicalUuid(formUuid: String, descending: Boolean): Flow<Form>
+
+	/**
+	 * Returns all the [Form]s where [Form.uniqueId] is equal to [lid], sorted by [Form.created] in ascending or
+	 * descending order according to the [descending] parameter.
+	 *
+	 * @param lid the [Form.uniqueId].
+	 * @param descending whether to sort the result in descending or ascending order by [Form.created].
+	 * @return a [Flow] of [Form]s.
+	 */
+	fun listFormsByUniqueId(lid: String, descending: Boolean): Flow<Form>
 
 	/**
 	 * Updates a batch of [Form]s. If any of the [Form]s in the batch specifies an invalid modification, then will be
@@ -101,4 +120,15 @@ interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConf
 	 * @return a [Flow] containing the successfully created [Form]s
 	 */
 	fun createForms(forms: Collection<Form>): Flow<Form>
+
+	/**
+	 * Retrieves the ids of the [Form]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Form].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchFormsBy(filter: AbstractFilter<Form>): Flow<String>
 }

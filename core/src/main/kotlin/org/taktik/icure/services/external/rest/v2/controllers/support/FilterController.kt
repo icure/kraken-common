@@ -21,7 +21,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcareP
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByNameFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
@@ -74,7 +74,7 @@ class FilterController {
 		val healthcarePartyByNameFilter: HealthcarePartyByNameFilter? = null,
 		val healthElementByHcPartyFilter: HealthElementByHcPartyFilter? = null,
 		val healthElementByHcPartyIdentifiersFilter: HealthElementByHcPartyIdentifiersFilter? = null,
-		val healthElementByHcPartySecretForeignKeysFilter: HealthElementByHcPartySecretForeignKeysFilter? = null,
+		val healthElementByHcPartySecretForeignKeysFilter: HealthElementByDataOwnerPatientOpeningDate? = null,
 		val healthElementByHcPartyTagCodeFilter: HealthElementByHcPartyTagCodeFilter? = null,
 		val healthElementByIdsFilter: HealthElementByIdsFilter? = null,
 		val invoiceByHcPartyCodeDateFilter: InvoiceByHcPartyCodeDateFilter? = null,

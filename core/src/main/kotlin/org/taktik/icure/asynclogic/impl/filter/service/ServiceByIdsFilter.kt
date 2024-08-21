@@ -19,8 +19,6 @@ package org.taktik.icure.asynclogic.impl.filter.service
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
@@ -33,8 +31,6 @@ class ServiceByIdsFilter : Filter<String, Service, org.taktik.icure.domain.filte
 	override fun resolve(
         filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, Service>,
         context: Filters,
-        datastoreInformation: IDatastoreInformation?,
-	): Flow<String> = flow {
-		emitAll(filter.ids.asFlow())
-	}
+        datastoreInformation: IDatastoreInformation,
+	): Flow<String> = filter.ids.asFlow()
 }

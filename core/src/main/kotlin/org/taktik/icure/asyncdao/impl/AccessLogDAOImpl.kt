@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -18,6 +19,7 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -58,10 +60,24 @@ class AccessLogDAOImpl(
 		emitAll(client.queryView(viewQuery, Long::class.java, String::class.java, AccessLog::class.java))
 	}
 
-	@View(name = "all_by_user_date", map = "classpath:js/accesslog/All_by_user_type_and_date_map.js")
-	override fun findAccessLogsByUserAfterDate(datastoreInformation: IDatastoreInformation, userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean) = flow {
+	override fun listAccessLogIdsByDate(
+		datastoreInformation: IDatastoreInformation,
+		fromEpoch: Long,
+		toEpoch: Long,
+		descending: Boolean
+	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
+		val viewQuery = createQuery(datastoreInformation, "all_by_date")
+			.startKey(fromEpoch)
+			.endKey(toEpoch)
+			.includeDocs(false)
+			.descending(descending)
+
+		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
+	}
+
+	private fun getQueryKeysByUserAfterDate(userId: String, accessType: String?, startDate: Long?, descending: Boolean): Pair<ComplexKey, ComplexKey> {
 		val startKey = ComplexKey.of(
 			userId,
 			accessType ?: ComplexKey.emptyObject().takeIf { descending },
@@ -78,6 +94,14 @@ class AccessLogDAOImpl(
 				false -> ComplexKey.emptyObject()
 			}
 		)
+		return startKey to endKey
+	}
+
+	@View(name = "all_by_user_date", map = "classpath:js/accesslog/All_by_user_type_and_date_map.js")
+	override fun findAccessLogsByUserAfterDate(datastoreInformation: IDatastoreInformation, userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val (startKey, endKey) = getQueryKeysByUserAfterDate(userId, accessType, startDate, descending)
 
 		val items = client.queryView(
 			pagedViewQuery(
@@ -93,6 +117,26 @@ class AccessLogDAOImpl(
 			AccessLog::class.java
 		)
 		emitAll(items)
+	}
+
+	override fun listAccessLogIdsByUserAfterDate(
+		datastoreInformation: IDatastoreInformation,
+		userId: String,
+		accessType: String?,
+		startDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val (startKey, endKey) = getQueryKeysByUserAfterDate(userId, accessType, startDate, descending)
+
+		val viewQuery = createQuery(datastoreInformation, "all_by_user_date")
+			.startKey(startKey)
+			.endKey(endKey)
+			.includeDocs(false)
+			.descending(descending)
+
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).mapNotNull { it.id })
 	}
 
 	@Views(

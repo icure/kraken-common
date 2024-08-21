@@ -13,6 +13,7 @@ import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.constants.Permissions
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.Delegation
@@ -103,7 +104,6 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWi
 	fun listInvoicesByHcPartyAndGroupId(hcPartyId: String, inputGroupId: String): Flow<Invoice>
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<org.taktik.icure.entities.data.LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>
-	fun listInvoiceIdsByTarificationsByCode(hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>
 
 	fun filter(filter: FilterChain<Invoice>): Flow<Invoice>
 
@@ -139,4 +139,15 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWi
 	 * @return a [Flow] containing the successfully created [Invoice]s.
 	 */
 	fun createInvoices(invoices: Collection<Invoice>): Flow<Invoice>
+
+	/**
+	 * Retrieves the ids of the [Invoice]s matching the provided [filter].
+	 *
+	 * @param filter an [AbstractFilter] of [Invoice].
+	 * @return a [Flow] of the ids matching the filter.
+	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
+	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
+	 * rights to access their data.
+	 */
+	fun matchInvoicesBy(filter: AbstractFilter<Invoice>): Flow<String>
 }

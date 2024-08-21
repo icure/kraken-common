@@ -30,7 +30,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -71,7 +70,6 @@ import reactor.core.publisher.Flux
 @RequestMapping("/rest/v2/invoice")
 @Tag(name = "invoice")
 class InvoiceController(
-	private val filters: Filters,
 	private val invoiceService: InvoiceService,
 	private val sessionLogic: SessionInformationProvider,
 	private val uuidGenerator: UUIDGenerator,
@@ -414,7 +412,11 @@ class InvoiceController(
 
 	@Operation(summary = "Get ids of Invoices matching the provided filter for the current user.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun matchInvoicesBy(@RequestBody filter: AbstractFilterDto<InvoiceDto>) = filters.resolve(filterV2Mapper.tryMap(filter).orThrow()).injectReactorContext()
+	fun matchInvoicesBy(
+		@RequestBody filter: AbstractFilterDto<InvoiceDto>,
+	) = invoiceService.matchInvoicesBy(
+		filter = filterV2Mapper.tryMap(filter).orThrow()
+	).injectReactorContext()
 
 	@Operation(summary = "Modify a batch of invoices", description = "Returns the modified invoices.")
 	@PutMapping("/batch")

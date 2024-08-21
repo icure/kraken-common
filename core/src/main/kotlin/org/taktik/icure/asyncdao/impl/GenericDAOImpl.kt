@@ -604,8 +604,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, Long>>()
 			.mapNotNull {
-				if(it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
-					it.id to it.value!!
+				if((it.value == null && startDate == null && endDate == null) || it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
+					it.id to (it.value ?: 0)
 				} else null
 			}
 			.toList()

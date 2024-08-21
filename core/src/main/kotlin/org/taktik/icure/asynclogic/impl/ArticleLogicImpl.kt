@@ -16,6 +16,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Article
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -32,8 +33,9 @@ class ArticleLogicImpl(
     exchangeDataMapLogic: ExchangeDataMapLogic,
     sessionLogic: SessionInformationProvider,
     datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Article, ArticleDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic), ArticleLogic {
+    fixer: Fixer,
+    filters: Filters
+) : EntityWithEncryptionMetadataLogic<Article, ArticleDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ArticleLogic {
 
 	override suspend fun createArticle(article: Article) = fix(article) { fixedArticle ->
 		if(fixedArticle.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
