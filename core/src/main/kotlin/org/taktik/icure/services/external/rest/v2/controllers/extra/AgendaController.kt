@@ -33,6 +33,7 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
@@ -127,5 +128,12 @@ class AgendaController(
 	) = agendaService.matchAgendasBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow(),
 	).injectReactorContext()
+
+	@Operation(summary = "Get agendas by ids")
+	@PostMapping("/byIds")
+	fun getAgendasByIds(@RequestBody agendaIds: ListOfIdsDto): Flux<AgendaDto> {
+		require(agendaIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return agendaService.getAgendas(agendaIds.ids).map(agendaV2Mapper::map).injectReactorContext()
+	}
 }
 

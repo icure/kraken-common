@@ -37,6 +37,7 @@ interface AgendaService {
 	 */
 	suspend fun deleteAgenda(agendaId: String): DocIdentifier
 	suspend fun getAgenda(agendaId: String): Agenda?
+	fun getAgendas(agendaIds: List<String>): Flow<Agenda>
 	suspend fun modifyAgenda(agenda: Agenda): Agenda?
 	fun getAgendasByUser(userId: String): Flow<Agenda>
 	fun getReadableAgendaForUser(userId: String): Flow<Agenda>

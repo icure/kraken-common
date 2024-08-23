@@ -30,7 +30,6 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
-import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -161,7 +160,7 @@ class TimeTableController(
 
 	@Operation(summary = "Get the ids of the TimeTables matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchAccessLogsBy(
+	fun matchTimeTablesBy(
 		@RequestBody filter: AbstractFilterDto<TimeTableDto>
 	) = timeTableService.matchTimeTablesBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow()
