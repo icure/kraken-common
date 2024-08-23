@@ -30,6 +30,7 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
+import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -119,6 +120,13 @@ class TimeTableController(
 					?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TimeTable fetching failed")
 			}
 		}
+
+	@Operation(summary = "Get a list of time tables")
+	@PostMapping("/byIds")
+	fun getTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<TimeTableDto> {
+		require(timeTableIds.ids.isNotEmpty()) { "You must specify at least one id" }
+		return timeTableService.getTimeTables(timeTableIds.ids).map(timeTableV2Mapper::map).injectReactorContext()
+	}
 
 	@Operation(summary = "Modifies a timeTable")
 	@PutMapping

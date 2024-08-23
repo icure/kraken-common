@@ -32,7 +32,6 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
-import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -123,7 +122,7 @@ class AgendaController(
 
 	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchCodesBy(
+	fun matchAgendasBy(
 		@RequestBody filter: AbstractFilterDto<AgendaDto>
 	) = agendaService.matchAgendasBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow(),

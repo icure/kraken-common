@@ -154,7 +154,7 @@ class ClassificationController(
 
 	@Operation(summary = "Get the ids of the Classifications matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
-	fun matchCalendarItemsBy(
+	fun matchClassificationBy(
 		@RequestBody filter: AbstractFilterDto<ClassificationDto>
 	) = classificationService.matchClassificationsBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow()

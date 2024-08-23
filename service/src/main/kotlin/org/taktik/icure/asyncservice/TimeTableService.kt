@@ -36,6 +36,7 @@ interface TimeTableService : EntityWithSecureDelegationsService<TimeTable> {
 	 */
 	suspend fun deleteTimeTable(timeTableId: String): DocIdentifier
 	suspend fun getTimeTable(timeTableId: String): TimeTable?
+	fun getTimeTables(ids: List<String>): Flow<TimeTable>
 	fun getTimeTablesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<TimeTable>
 	fun getTimeTablesByAgendaId(agendaId: String): Flow<TimeTable>
 	suspend fun modifyTimeTable(timeTable: TimeTable): TimeTable
