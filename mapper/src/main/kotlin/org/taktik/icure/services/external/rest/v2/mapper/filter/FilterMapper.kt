@@ -76,6 +76,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLog
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AllAgendasFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter
@@ -181,11 +182,13 @@ abstract class FilterV2Mapper {
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
+	abstract fun map(filterDto: AllAgendasFilter): org.taktik.icure.domain.filter.impl.agenda.AllAgendasFilter
 	abstract fun map(filterDto: AgendaByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByUserIdFilter
 	abstract fun map(filterDto: AgendaReadableByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserIdFilter
 
 	@JvmName("tryMapAgendaFilter")
 	fun tryMap(filterDto: AbstractFilterDto<AgendaDto>): AbstractFilter<Agenda>? = when(filterDto) {
+		is AllAgendasFilter -> map(filterDto)
 		is AgendaByUserIdFilter -> map(filterDto)
 		is AgendaReadableByUserIdFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }

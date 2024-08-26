@@ -201,7 +201,7 @@ class CodeController(
 		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeV2Mapper::map)
 	}
 
-	@Operation(summary = "Get a list of codes by ids", description = "Keys must be delimited by coma")
+	@Operation(summary = "Get a list of codes by ids")
 	@PostMapping("/byIds")
 	fun getCodes(@RequestBody codeIds: ListOfIdsDto) = codeIds.ids.takeIf { it.isNotEmpty() }
 		?.let { ids -> codeService.getCodes(ids).map { f -> codeV2Mapper.map(f) }.injectReactorContext() }
