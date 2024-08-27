@@ -126,17 +126,25 @@ abstract class AbstractAuthenticationManager <
      * @param hierarchy the current hierarchy.
      * @return a [List] of [HealthcareParty]
      */
-    protected tailrec suspend fun getHcpHierarchy(childHcp: HealthcareParty, datastore: IDatastoreInformation, hierarchy: List<HealthcareParty> = emptyList()): List<HealthcareParty> =
-        if(childHcp.parentId == null) hierarchy
-        else {
-            if (hierarchy.drop(1).any { it.id == childHcp.id }) throw IllegalEntityException("Circular reference in the hcp hierarchy detected. You have set yourself as an ancestor in the hierarchy. Time loop threatening space time fabric detected.")
-            if (childHcp.parentId == childHcp.id) hierarchy.also {
-                log.info { "Hcp ${childHcp.id} set themself as a parent" }
+    protected tailrec suspend fun getHcpHierarchy(childHcp: HealthcareParty, datastore: IDatastoreInformation, hierarchy: List<HealthcareParty> = emptyList()): List<HealthcareParty> {
+        val parentId = childHcp.parentId
+        return if (parentId == null) {
+            hierarchy
+        } else {
+            if (hierarchy.drop(1).any { it.id == childHcp.id }) throw IllegalEntityException(
+                "Circular reference in the hcp hierarchy starting from ${hierarchy.last()} detected."
+            )
+            if (parentId.isBlank()) throw IllegalEntityException(
+                "Blank parent id for healthcare party $childHcp"
+            )
+            if (parentId == childHcp.id) {
+                hierarchy
             } else {
-                val parent = healthcarePartyDAO.get(datastore, childHcp.parentId!!)
+                val parent = healthcarePartyDAO.get(datastore, parentId)
                 if (parent == null) hierarchy else getHcpHierarchy(parent, datastore, listOf(parent) + hierarchy)
             }
         }
+    }
 
     /**
      * Checks if a password is valid, the password can contain the verification code of the 2FA following this format `password|123456`.
