@@ -47,6 +47,7 @@ import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("codeControllerV2")
 @Profile("app")
@@ -195,10 +196,11 @@ class CodeController(
 		@RequestParam label: String,
 		@RequestParam type: String,
 		@RequestParam languages: String?
-	) = mono {
-		(languages?.let {
+	): Mono<CodeDto?> = mono {
+		val code = languages?.let {
 			codeService.getCodeByLabel(region, label, type, it.split(","))
-		} ?: codeService.getCodeByLabel(region, label, type))?.let(codeV2Mapper::map)
+		} ?: codeService.getCodeByLabel(region, label, type)
+		code?.let { codeV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Get a list of codes by ids")
