@@ -2,15 +2,10 @@ package org.taktik.icure.asyncdao.components
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import kotlinx.coroutines.reactive.awaitFirst
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.springframework.beans.factory.annotation.Value
@@ -18,6 +13,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.support.views.ExternalViewRepository
+import reactor.netty.http.client.HttpClient
+import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Duration
 import java.util.*
@@ -49,12 +47,7 @@ class ExternalViewsLoader(
 		OpenSSHPublicKeyUtil.parsePublicKey(Base64.getDecoder().decode(it))
 	}
 
-	private val httpClient = HttpClient(CIO) {
-		install(ContentNegotiation) {
-			register(ContentType.Application.Json, JacksonConverter(objectMapper))
-			register(ContentType.Text.Plain, JacksonConverter(objectMapper))
-		}
-	}
+	private val httpClient = HttpClient.create()
 
 	private fun preprocessResourcePath(baseUrl: String, resourcePath: String): String = baseUrl
 		.replace("https://github.com/", "https://raw.githubusercontent.com/")
@@ -72,12 +65,20 @@ class ExternalViewsLoader(
 
 	private suspend inline fun <reified T> downloadAndVerifyResource(baseUrl: String, resourcePath: String): T {
 		val resourceUrl = preprocessResourcePath(baseUrl, resourcePath)
-		val signedContent = httpClient.get(resourceUrl).also {
-			when {
-				!it.status.isSuccess() -> throw IllegalStateException("Resource not found: $resourceUrl")
-				it.contentLength().let { cl -> cl == null || cl > ONE_MEGABYTE }-> throw IllegalStateException("Content length is missing or exceeding 1MB")
+		val signedContent = httpClient.get()
+			.uri(URI(resourceUrl))
+			.responseSingle { response, body ->
+				if (!response.status().code().let { it in 200..299 }) {
+					throw IllegalStateException("Resource not found: $resourceUrl")
+				}
+				val contentLength = response.responseHeaders().get("Content-Length")?.toLongOrNull()
+				if (contentLength == null || contentLength > ONE_MEGABYTE) {
+					throw IllegalStateException("Content length is missing or exceeding 1MB")
+				}
+				body.asString(StandardCharsets.UTF_8)
+			}.awaitFirst().let {
+				objectMapper.readValue<SignedContent>(it)
 			}
-		}.body<SignedContent>()
 		check(verifySignature(signedContent)) {
 			"Cannot verify the signature for the manifest"
 		}
