@@ -4,8 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -61,7 +59,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterChainMappe
 import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.FuzzyValues
-import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.warn
@@ -84,8 +81,7 @@ class ContactController(
 	private val filterMapper: FilterMapper,
 	private val stubMapper: StubMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
-	private val paginationConfig: SharedPaginationConfig,
-	private val objectMapper: ObjectMapper
+	private val paginationConfig: SharedPaginationConfig
 ) {
 
 	companion object {
@@ -439,17 +435,15 @@ class ContactController(
 	@Operation(summary = "List contacts by opening date parties with(out) pagination", description = "Returns a list of contacts.")
 	@GetMapping("/byOpeningDate")
 	fun listContactsByOpeningDate(
-		@Parameter(description = "The contact openingDate", required = true) @RequestParam startDate: Long,
-		@Parameter(description = "The contact max openingDate", required = true) @RequestParam endDate: Long,
-		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String,
-		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(description = "The contact openingDate", required = true) @RequestParam startKey: Long,
+		@Parameter(description = "The contact max openingDate", required = true) @RequestParam endKey: Long,
+		@Parameter(description = "hcPartyId", required = true) @RequestParam hcpartyid: String,
 		@Parameter(description = "A contact party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<ContactDto> {
-		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
+		val paginationOffset = PaginationOffset<ComplexKey>(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService
-			.listContactsByOpeningDate(hcPartyId, startDate, endDate, paginationOffset)
+			.listContactsByOpeningDate(hcpartyid, startKey, endKey, paginationOffset)
 			.mapElements(contactMapper::map)
 			.asPaginatedFlux()
 	}
