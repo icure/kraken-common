@@ -110,7 +110,7 @@ class UserController(
 	}
 
 	@Operation(summary = "Get multiple users by their ids", description = "General information about the user")
-	@GetMapping("/byIds")
+	@PostMapping("/byIds")
 	fun getUsers(@RequestBody userIds: ListOfIdsDto) =
 		userService.getUsers(userIds.ids).map { user ->
 			userV2Mapper.mapOmittingSecrets(user)
