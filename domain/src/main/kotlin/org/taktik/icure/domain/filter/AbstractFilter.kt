@@ -13,13 +13,17 @@ interface AbstractFilter<O : Identifiable<String>> : Filter<String, O>, Serializ
 	val desc: String?
 
 	/**
-	 * If the filter includes any search for data that is not limited to data for a (set of) specific data owner id(s)
-	 * AND may leak information on the content of an entity this method returns true.
+	 * This method returns true in one of two cases:
+	 * - The filter is for an encryptable entity and includes any search for data that is not limited to data for a
+	 *   (set of) specific data owner id(s) AND may leak information on the content of an entity.
+	 * - The filter is for a non-encryptable entity but the filter intrinsically leaks redacted information.
 	 * This could be for example the case if:
 	 * - The filter is a composition (union/intersection) of other filters and in at least one of the sub-filters
 	 *   [requiresSecurityPrecondition] returns true
 	 * - The filter does not have a field for data-owner id (or it is optional and set to null, returning values for
 	 *   all hcps) and allows to filter by codes or tags in the entity
+	 * - An HCP filter that allows to filter by tag (the user could get the id of the HCP with a certain tag even
+	 *   they do not have the permission to read the tags).
 	 * Note that a filter "byIds" only will always have this value as false, since the only information it could "leak"
 	 * is the id of the entity, already given in input to the filter.
 	 *

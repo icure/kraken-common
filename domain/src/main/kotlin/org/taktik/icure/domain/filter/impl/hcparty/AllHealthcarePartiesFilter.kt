@@ -28,7 +28,7 @@ data class AllHealthcarePartiesFilter(
 ) : AbstractFilter<HealthcareParty>, Filters.AllFilter<String, HealthcareParty> {
 
 	override val canBeUsedInWebsocket = true
-	override val requiresSecurityPrecondition: Boolean = true
+	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
 	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = true
