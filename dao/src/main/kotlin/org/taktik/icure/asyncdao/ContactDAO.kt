@@ -30,13 +30,33 @@ interface ContactDAO : GenericDAO<Contact> {
 	 * The results will be returned in a format for pagination.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param hcPartyId the id of the healthcare party.
+	 * @param hcPartyId the id of the healthcare party or a search key.
 	 * @param startOpeningDate the timestamp of the start opening date. If null, all the [Contact]s since the beginning of time will be retrieved.
 	 * @param endOpeningDate the timestamp of the end opening date. If null, all the [Contact]s until the end of time will be retrieved.
 	 * @param pagination a [PaginationOffset] of [ComplexKey] for pagination.
 	 * @return a [Flow] of [ViewQueryResultEvent] wrapping the [Contact]s.
 	 */
 	fun listContactsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves all the ids of the [Contact]s for a healthcare party and which [Contact.openingDate] is between the
+	 * [startOpeningDate], if provided, and the [endOpeningDate], if provided.
+	 * The results will be returned in a format for pagination.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param hcPartyId the id of the healthcare party or a search key.
+	 * @param startOpeningDate the timestamp of the start opening date. If null, all the [Contact]s since the beginning of time will be retrieved.
+	 * @param endOpeningDate the timestamp of the end opening date. If null, all the [Contact]s until the end of time will be retrieved.
+	 * @param descending whether to return the results in descending or ascending order by [Contact.openingDate].
+	 * @return a [Flow] of [Contact.id]s.
+	 */
+	fun listContactIdsByOpeningDate(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		startOpeningDate: Long?,
+		endOpeningDate: Long?,
+		descending: Boolean
+	): Flow<String>
 	fun findContactsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<ViewQueryResultEvent>
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Collection<String>): Flow<ViewQueryResultEvent>
@@ -140,6 +160,42 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Contact>
 	fun relink(cs: Flow<Contact>): Flow<Contact>
 
+	/**
+	 * Retrieves the ids of all the [Contact]s with a delegation for the specified [hcPartyId] that have in [Contact.services]
+	 * at least one service that has a tag with [tagType] and [tagCode] (only if provided, otherwise all the code stubs
+	 * with type [tagType] will match).
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param hcPartyId the id of a data owner or a search key.
+	 * @param tagType the type of stub in [Service.tags].
+	 * @param tagCode the code of stub in [Service.tags].
+	 * @return a [Flow] or [Contact.id]s.
+	 */
+	fun listContactIdsByServiceTag(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		tagType: String?,
+		tagCode: String?,
+	): Flow<String>
+
+	/**
+	 * Retrieves the ids of all the [Contact]s with a delegation for the specified [hcPartyId] that have in [Contact.services]
+	 * at least one service that has a code with [codeType] and [codeCode] (only if provided, otherwise all the code stubs
+	 * with type [codeType] will match).
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param hcPartyId the id of a data owner or a search key.
+	 * @param codeType the type of stub in [Service.codes].
+	 * @param codeCode the code of stub in [Service.codes].
+	 * @return a [Flow] or [Service.id]s.
+	 */
+	fun listContactIdsByServiceCode(
+		datastoreInformation: IDatastoreInformation,
+		hcPartyId: String,
+		codeType: String,
+		codeCode: String?
+	): Flow<String>
+
 	// endregion
 
 	// region service
@@ -176,7 +232,7 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listServiceIdsByHcParty(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>): Flow<String>
 
 	/**
-	 * Retrieves all the [Service.id]s with a delegation for the specified [hcPartyId].
+	 * Retrieves the ids of all the [Service]s with a delegation for the specified [hcPartyId].
 	 * If either [tagType] or [tagCode] are specified, then only the services with a stub in [Service.tags] with the
 	 * specified [tagType] and [tagCode] will be returned.
 	 * If either [startValueDate] or [endValueDate] are specified, only the Services where [Service.valueDate] (or
@@ -235,7 +291,7 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listServiceIdsByPatientAndTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, patientSecretForeignKeys: List<String>, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean = false): Flow<String>
 
 	/**
-	 * Retrieves all the [Service.id]s with a delegation for the specified [hcPartyId].
+	 * Retrieves the ids of all the [Service]s with a delegation for the specified [hcPartyId].
 	 * If either [codeType] or [codeCode] are specified, then only the services with a stub in [Service.codes] with the
 	 * specified [codeType] and [codeCode] will be returned.
 	 * If either [startValueDate] or [endValueDate] are specified, only the Services where [Service.valueDate] (or
@@ -294,5 +350,32 @@ interface ContactDAO : GenericDAO<Contact> {
 	 */
 	fun listServicesByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String): Flow<Service>
 
+	/**
+	 * Retrieves the ids of the [Service]s with a delegation for a data owner (given their search keys) and linked to a
+	 * patient (given their secretForeignKeys).
+	 * If the [startDate] fuzzy date is not null, only the [Service]s where [Service.valueDate] (or [Service.openingDate] if
+	 * the value date is null) is greater than or equal to [startDate] will be returned.
+	 * If the [endDate] fuzzy date is not null, only the [Service]s where [Service.valueDate] (or [Service.openingDate] if
+	 * the value date is null) is less than or equal to [startDate] will be returned.
+	 * The results will be sorted by [Service.valueDate] (or [Service.openingDate]) in descending or ascending order
+	 * according to [descending].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKeys a [Set] of search keys (access control keys + data owner id).
+	 * @param patientSecretForeignKeys a [Set] of secret foreign keys.
+	 * @param startDate the minimum fuzzy date.
+	 * @param endDate the maximum fuzzy date.
+	 * @param descending whether to return the results in descending or ascending order by [Service.valueDate] or
+	 * [Service.openingDate].
+	 * @return a [Flow] of [Service.id]s.
+	 */
+	fun listServiceIdsByDataOwnerPatientDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: List<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String>
 	// endregion
 }
