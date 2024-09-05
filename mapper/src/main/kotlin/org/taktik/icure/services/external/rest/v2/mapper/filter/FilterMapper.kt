@@ -90,7 +90,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTy
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypesLanguageLabelVersionFilters
 import org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeIdsByTypeCodeVersionIntervalFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerFormIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerOpeningDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerPatientOpeningDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerServiceCodeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerServiceTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByExternalIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByHcPartyIdentifiersFilter
@@ -147,6 +150,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByAssociationIdFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerPatientDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyHealthElementIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyIdentifiersFilter
@@ -244,6 +248,9 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: ContactByDataOwnerPatientOpeningDateFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerPatientOpeningDateFilter
 	abstract fun map(filterDto: ContactByDataOwnerFormIdsFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerFormIdsFilter
 	abstract fun map(filterDto: ContactByExternalIdFilter): org.taktik.icure.domain.filter.impl.contact.ContactByExternalIdFilter
+	abstract fun map(filterDto: ContactByDataOwnerOpeningDateFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerOpeningDateFilter
+	abstract fun map(filterDto: ContactByDataOwnerServiceTagFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerServiceTagFilter
+	abstract fun map(filterDto: ContactByDataOwnerServiceCodeFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerServiceCodeFilter
 
 	@JvmName("tryMapContactFilter")
 	fun tryMap(filterDto: AbstractFilterDto<ContactDto>): AbstractFilter<Contact>? = when (filterDto) {
@@ -255,6 +262,9 @@ abstract class FilterV2Mapper {
 		is ContactByDataOwnerPatientOpeningDateFilter -> map(filterDto)
 		is ContactByDataOwnerFormIdsFilter -> map(filterDto)
 		is ContactByExternalIdFilter -> map(filterDto)
+		is ContactByDataOwnerOpeningDateFilter -> map(filterDto)
+		is ContactByDataOwnerServiceTagFilter -> map(filterDto)
+		is ContactByDataOwnerServiceCodeFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
@@ -378,6 +388,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: ServiceByIdsFilter): org.taktik.icure.domain.filter.impl.service.ServiceByIdsFilter
 	abstract fun map(filterDto: ServiceByQualifiedLinkFilter): org.taktik.icure.domain.filter.impl.service.ServiceByQualifiedLinkFilter
 	abstract fun map(filterDto: ServiceByAssociationIdFilter): org.taktik.icure.domain.filter.impl.service.ServiceByAssociationIdFilter
+	abstract fun map(filterDto: ServiceByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.service.ServiceByDataOwnerPatientDateFilter
 
 	@Suppress("DEPRECATION")
 	@JvmName("tryMapServiceFilter")
@@ -391,6 +402,7 @@ abstract class FilterV2Mapper {
 		is ServiceByIdsFilter -> map(filterDto)
 		is ServiceByQualifiedLinkFilter -> map(filterDto)
 		is ServiceByAssociationIdFilter -> map(filterDto)
+		is ServiceByDataOwnerPatientDateFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
