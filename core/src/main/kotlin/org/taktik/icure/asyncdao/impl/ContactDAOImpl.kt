@@ -777,7 +777,7 @@ class ContactDAOImpl(
 		endDate: Long?,
 		descending: Boolean
 	) = flow {
-		val serviceByDate = mutableMapOf<String, Long>()
+		val serviceIdToDate = mutableMapOf<String, Long>()
 
 		listContactsByHcPartyAndPatient(
 			datastoreInformation = datastoreInformation,
@@ -790,14 +790,14 @@ class ContactDAOImpl(
 					service.id to (date ?: 0)
 				} else null
 			}.forEach { (serviceId, date) ->
-				val currentDate = serviceByDate[serviceId]
+				val currentDate = serviceIdToDate[serviceId]
 				if (currentDate == null || currentDate < date) {
-					serviceByDate[serviceId] = date
+					serviceIdToDate[serviceId] = date
 				}
 			}
 		}
 
-		serviceByDate.entries.sortedWith(
+		serviceIdToDate.entries.sortedWith(
 			if(descending) Comparator { o1, o2 ->
 				o2.value.compareTo(o1.value).let {
 					if(it == 0) o2.key.compareTo(o1.key) else it
