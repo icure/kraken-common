@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.GenericDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
@@ -32,7 +33,12 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
-		emitAll(getGenericDAO().save(getInstanceAndGroup(), entities.map { fix(it) }))
+		emitAll(getGenericDAO()
+			.saveBulk(
+				datastoreInformation = getInstanceAndGroup(),
+				entities = entities.map { fix(it) }
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	override fun deleteEntities(identifiers: Collection<String>): Flow<DocIdentifier> = flow {

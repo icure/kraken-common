@@ -29,6 +29,8 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
+import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -333,6 +335,7 @@ open class CodeLogicImpl(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun importCodesFromXml(md5: String, type: String, stream: InputStream) {
         val check = getCodes(listOf(Code.from("ICURE-SYSTEM", md5, version = "1").id)).toList()
 
@@ -350,17 +353,19 @@ open class CodeLogicImpl(
                 if (stack.size == 100 || flush == true) {
                     val existings =
                         getCodes(stack.map { it.id }).fold(HashMap<String, Code>()) { map, c -> map[c.id] = c; map }
-                    try {
                         val datastoreInformation = getInstanceAndGroup()
-                        codeDAO.save(
+                        codeDAO.saveBulk(
                             datastoreInformation,
                             stack.map { xc ->
                                 existings[xc.id]?.let { xc.copy(rev = it.rev) } ?: xc
                             }
-                        ).collect { log.debug("Code: ${it.id} from file $type.$md5.xml is saved") }
-                    } catch (e: BulkUpdateConflictException) {
-                        log.error("${e.conflicts.size} conflicts for type $type")
-                    }
+                        ).onEach {
+                            if (it is BulkSaveResult.Success) {
+                                log.debug("Code: ${it.entity.id} from file $type.$md5.xml is saved")
+                            }
+                        }.filter { it !is BulkSaveResult.Success }.count().also {
+                            log.error("$it conflicts")
+                        }
                     stack.clear()
                 }
             }
@@ -707,14 +712,16 @@ open class CodeLogicImpl(
         val codeList = objectMapper.readValue<List<Code>>(stream)
 
         val existing = getCodes(codeList.map { it.id }).fold(mapOf<String, Code>()) { map, c -> map + (c.id to c) }
-        try {
-            codeDAO.save(datastoreInformation,
-                codeList.map { newCode ->
-                    existing[newCode.id]?.let { newCode.copy(rev = it.rev) } ?: newCode
-                }
-            ).collect { log.debug("Code: ${it.id} is saved") }
-        } catch (e: BulkUpdateConflictException) {
-            log.error("${e.conflicts.size} conflicts")
+        codeDAO.saveBulk(datastoreInformation,
+            codeList.map { newCode ->
+                existing[newCode.id]?.let { newCode.copy(rev = it.rev) } ?: newCode
+            }
+        ).onEach {
+            if (it is BulkSaveResult.Success) {
+                log.debug("Code: ${it.entity.id} is saved")
+            }
+        }.filter { it !is BulkSaveResult.Success }.count().also {
+            log.error("$it conflicts")
         }
     }
 

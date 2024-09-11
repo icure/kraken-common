@@ -16,6 +16,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.MessageDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MessageLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -75,11 +76,12 @@ open class MessageLogicImpl(
 	override fun setStatus(messages: Collection<Message>, status: Int): Flow<Message> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			messageDAO.save(
-				datastoreInformation, messages.map {
+			messageDAO.saveBulk(
+				datastoreInformation = datastoreInformation,
+				entities = messages.map {
 					it.copy(status = status or (it.status ?: 0))
 				}.toList()
-			)
+			).filterSuccessfulUpdates()
 		)
 	}
 
@@ -88,15 +90,16 @@ open class MessageLogicImpl(
 		val timeOrNow = time ?: System.currentTimeMillis()
 		val userOrSelf = userId ?: sessionLogic.getCurrentUserId()
 		emitAll(
-			messageDAO.save(
-				datastoreInformation, messages.map { m: Message ->
+			messageDAO.saveBulk(
+				datastoreInformation = datastoreInformation,
+				entities = messages.map { m ->
 					if ((m.readStatus[userId]?.time ?: 0) < timeOrNow) m.copy(
 						readStatus = m.readStatus + (userOrSelf to MessageReadStatus(
 							read = status, time = time
 						))
 					) else m
 				}.toList()
-			)
+			).filterSuccessfulUpdates()
 		)
 	}
 
