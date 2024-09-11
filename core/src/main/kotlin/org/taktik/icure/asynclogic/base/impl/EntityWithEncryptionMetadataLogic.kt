@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.GenericLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.embed.AccessLevel
@@ -59,7 +59,12 @@ where
         sessionLogic.getAllSearchKeysIfCurrentDataOwner(dataOwnerId)
 
     override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
-        emitAll(getGenericDAO().save(datastoreInstanceProvider.getInstanceAndGroup(), filterValidEntityChanges(entities.map { fix(it) }).toList()))
+        emitAll(getGenericDAO()
+            .saveBulk(
+                datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup(),
+                entities = filterValidEntityChanges(entities.map { fix(it) }).toList()
+            ).filterSuccessfulUpdates()
+        )
     }
 
     override fun modifyEntities(entities: Flow<E>): Flow<E> = flow {
@@ -422,7 +427,7 @@ where
                 .getEntities(datastoreInstanceProvider.getInstanceAndGroup(), updatedEntities.map { it.id })
                 .collect { currentEntity ->
                     val updatedEntity = updatedEntitiesById.getValue(currentEntity.id)
-                    if (doValidateEntityChange(updatedEntity, currentEntity, throwErrorOnInvalid = false)) {
+                    if (doValidateEntityChange(updatedEntity, currentEntity, throwErrorOnInvalidRev = false)) {
                         emit(updatedEntity)
                     }
                 }
@@ -452,24 +457,24 @@ where
                 .toList()
                 .firstOrNull()
             ?: throw NotFoundRequestException("Could not find entity with id ${updatedEntity.id}"),
-            throwErrorOnInvalid = true
+            throwErrorOnInvalidRev = true
         )
     }
 
     private fun doValidateEntityChange(
         updatedEntity: E,
         currentEntity: E,
-        throwErrorOnInvalid: Boolean
+        throwErrorOnInvalidRev: Boolean
     ): Boolean {
         if (updatedEntity.rev != currentEntity.rev) {
-            if (throwErrorOnInvalid) throw ConflictRequestException(
+            if (throwErrorOnInvalidRev) throw ConflictRequestException(
                 "Rev of current entity is ${currentEntity.rev} but rev of updated is ${updatedEntity.rev}."
             ) else return false
         }
         if (currentEntity.securityMetadata != null && updatedEntity.securityMetadata != currentEntity.securityMetadata) {
-            if (throwErrorOnInvalid) throw IllegalArgumentException(
+            throw IllegalArgumentException(
                 "Impossible to modify directly security metadata: use `share` methods instead."
-            ) else return false
+            )
         }
         return true
     }
