@@ -4,6 +4,7 @@
 
 package org.taktik.icure.services.external.rest.v1.dto.filter.healthelement
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonDeserializer
@@ -18,7 +19,7 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementByHcPartyTagCodeFilter(
 	override val desc: String? = null,
-	val healthcarePartyId: String,
+	@JsonAlias("healthCarePartyId") val healthcarePartyId: String,
 	val codeType: String? = null,
 	val codeCode: String? = null,
 	val tagType: String? = null,
