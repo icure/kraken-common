@@ -43,9 +43,6 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	override fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entities: K): Flow<T> =
 		super.save(datastoreInformation, newEntity, entities.map { it.apply { setTimestamps(this) } })
 
-	override suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T) =
-		super.unRemove(datastoreInformation, entity.apply { setTimestamps(this) })
-
 	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) =
 		super.unRemove(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 
