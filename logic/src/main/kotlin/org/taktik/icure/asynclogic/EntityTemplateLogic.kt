@@ -7,7 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.EntityTemplate
 
-interface EntityTemplateLogic : EntityPersister<EntityTemplate, String> {
+interface EntityTemplateLogic : EntityPersister<EntityTemplate> {
 	suspend fun createEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate?
 
 	suspend fun modifyEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate?

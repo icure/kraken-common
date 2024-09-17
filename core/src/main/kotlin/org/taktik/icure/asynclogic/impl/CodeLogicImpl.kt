@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -852,7 +853,7 @@ open class CodeLogicImpl(
                     codeDAO.save(datastoreInformation, mergedCode).also {
                         toBePurged.forEach {
                             if (it.rev != null && it.rev != mergedCode.rev) {
-                                codeDAO.purge(datastoreInformation, it)
+                                codeDAO.purge(datastoreInformation, listOf(it)).single()
                             }
                         }
                     }

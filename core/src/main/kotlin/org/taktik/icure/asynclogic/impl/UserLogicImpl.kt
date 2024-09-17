@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
@@ -90,16 +91,6 @@ open class UserLogicImpl (
 		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByNameEmailPhone(datastoreInformation, searchString, pagination)))
 	}
 
-	override suspend fun deleteUser(userId: String): DocIdentifier? {
-		val user = getUser(userId)
-		return user?.let { deleteUser(it) }
-	}
-
-	override suspend fun undeleteUser(userId: String) {
-		val user = getUser(userId)
-		user?.let { undeleteUser(it) }
-	}
-
 	override fun getUsersByLogin(login: String): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
@@ -151,24 +142,6 @@ open class UserLogicImpl (
 		return doCreateToken(key, tokenValidity, token, useShortToken, datastoreInformation) {
 			getUserByGenericIdentifier(userIdentifier)
 				?: throw DocumentNotFoundException("User $userIdentifier not found")
-		}
-	}
-
-	private suspend fun deleteUser(user: User): DocIdentifier? {
-		return user.id.let { userId ->
-			getUser(userId)?.let {
-				val datastoreInformation = getInstanceAndGroup()
-				userDAO.remove(datastoreInformation, user)
-			}
-		}
-	}
-
-	private suspend fun undeleteUser(user: User) {
-		user.id.let { userId ->
-			getUser(userId)?.let {
-				val datastoreInformation = getInstanceAndGroup()
-				userDAO.unRemove(datastoreInformation, it)
-			}
 		}
 	}
 
@@ -292,7 +265,7 @@ open class UserLogicImpl (
 					userDAO.save(datastoreInformation, mergedUser).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedUser.rev) {
-								userDAO.purge(datastoreInformation, it)
+								userDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

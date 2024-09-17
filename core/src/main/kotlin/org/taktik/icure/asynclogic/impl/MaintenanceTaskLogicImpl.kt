@@ -76,11 +76,5 @@ class MaintenanceTaskLogicImpl(
 			super.createEntities( entities.map { fix(it) } )
 		)
 	}
-
-	override fun deleteMaintenanceTasks(maintenanceTaskToDeletes: Collection<MaintenanceTask>) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(maintenanceTaskDAO.remove(datastoreInformation, maintenanceTaskToDeletes))
-
-	}
 }
 

@@ -6,31 +6,34 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.domain.filter.AbstractFilter
 
-interface EntityPersister<E, I> {
+interface EntityPersister<E : Identifiable<String>> {
 
 	fun createEntities(entities: Collection<E>): Flow<E>
 
 	fun modifyEntities(entities: Collection<E>): Flow<E>
 
-	fun deleteEntities(identifiers: Collection<I>): Flow<DocIdentifier>
-	fun undeleteByIds(identifiers: Collection<I>): Flow<DocIdentifier>
+	fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier>
+	suspend fun undeleteEntity(id: String, rev: String?): E
+	suspend fun deleteEntity(id: String, rev: String?): DocIdentifier
+	suspend fun purgeEntity(id: String, rev: String): DocIdentifier
 
-	fun getEntities(identifiers: Collection<I>): Flow<E>
+	fun getEntities(identifiers: Collection<String>): Flow<E>
 	fun getEntities(): Flow<E>
-	fun getEntityIds(): Flow<I>
+	fun getEntityIds(): Flow<String>
 
 	suspend fun hasEntities(): Boolean
 
-	suspend fun exists(id: I): Boolean
+	suspend fun exists(id: String): Boolean
 
-	suspend fun getEntity(id: I): E?
+	suspend fun getEntity(id: String): E?
 
-	fun getEntities(identifiers: Flow<I>): Flow<E>
+	fun getEntities(identifiers: Flow<String>): Flow<E>
 	fun createEntities(entities: Flow<E>): Flow<E>
 	fun modifyEntities(entities: Flow<E>): Flow<E>
-	fun deleteEntities(identifiers: Flow<I>): Flow<DocIdentifier>
 
 	/**
 	 * Retrieves the ids of the entities [E] matching the provided [filter].

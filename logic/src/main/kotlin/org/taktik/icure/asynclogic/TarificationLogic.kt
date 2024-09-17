@@ -11,7 +11,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
 
-interface TarificationLogic: EntityPersister<Tarification, String> {
+interface TarificationLogic: EntityPersister<Tarification> {
 	suspend fun getTarification(id: String): Tarification?
 	suspend fun getTarification(type: String, tarification: String, version: String): Tarification?
 	fun getTarifications(ids: List<String>): Flow<Tarification>

@@ -6,7 +6,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 
-interface DeviceLogic : EntityPersister<Device, String> {
+interface DeviceLogic : EntityPersister<Device> {
 	suspend fun createDevice(device: Device): Device?
 	fun createDevices(devices: List<Device>): Flow<Device>
 
@@ -20,10 +20,6 @@ interface DeviceLogic : EntityPersister<Device, String> {
 	suspend fun getHcPartyKeysForDelegate(deviceId: String): Map<String, String>
 
 	suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
-
-	suspend fun deleteDevice(id: String): DocIdentifier?
-	fun deleteDevices(ids: Collection<String>): Flow<DocIdentifier>
-	fun deleteDevices(ids: Flow<String>): Flow<DocIdentifier>
 
 	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 }

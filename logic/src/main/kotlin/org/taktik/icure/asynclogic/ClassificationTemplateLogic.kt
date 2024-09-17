@@ -13,12 +13,10 @@ import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.pagination.PaginationElement
 
-interface ClassificationTemplateLogic : EntityPersister<ClassificationTemplate, String> {
+interface ClassificationTemplateLogic : EntityPersister<ClassificationTemplate> {
 	suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate): ClassificationTemplate?
 
 	suspend fun getClassificationTemplate(classificationTemplateId: String): ClassificationTemplate?
-	fun deleteClassificationTemplates(ids: Set<String>): Flow<DocIdentifier>
-	fun deleteClassificationTemplates(ids: Flow<String>): Flow<DocIdentifier>
 	fun getClassificationTemplates(ids: Collection<String>): Flow<ClassificationTemplate>
 
 	/**

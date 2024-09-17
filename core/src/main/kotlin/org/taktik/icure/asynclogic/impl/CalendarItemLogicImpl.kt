@@ -63,18 +63,6 @@ class CalendarItemLogicImpl(
 		)
 	}
 
-	override fun deleteCalendarItems(ids: List<String>): Flow<DocIdentifier> = try {
-		deleteEntities(ids)
-	} catch (e: Exception) {
-		throw DeletionException(e.message, e)
-	}
-
-	override fun deleteCalendarItems(ids: Flow<String>): Flow<DocIdentifier>  = try {
-		deleteEntities(ids)
-	} catch (e: Exception) {
-		throw DeletionException(e.message, e)
-	}
-
 	override suspend fun getCalendarItem(calendarItemId: String) = getEntity(calendarItemId)
 
 	override fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem> =

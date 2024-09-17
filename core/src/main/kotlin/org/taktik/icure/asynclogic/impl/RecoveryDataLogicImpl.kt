@@ -2,6 +2,7 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
@@ -32,14 +33,14 @@ class RecoveryDataLogicImpl(
     override suspend fun getRecoveryData(id: String): RecoveryData? =
         recoveryDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)?.let { data ->
             if (data.expirationInstant?.let { it < System.currentTimeMillis() } == true) {
-                recoveryDataDAO.purge(datastoreInstanceProvider.getInstanceAndGroup(), data)
+                recoveryDataDAO.purge(datastoreInstanceProvider.getInstanceAndGroup(), listOf(data)).single()
                 null
             } else data
         }
 
     override suspend fun deleteRecoveryData(id: String): DocIdentifier =
         recoveryDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)?.let { data ->
-            recoveryDataDAO.purge(datastoreInstanceProvider.getInstanceAndGroup(), data)
+            recoveryDataDAO.purge(datastoreInstanceProvider.getInstanceAndGroup(), listOf(data)).single().entityOrThrow()
         } ?: throw NotFoundRequestException("Recovery data with $id not found")
 
     override suspend fun deleteAllRecoveryDataForRecipient(recipientId: String): Int = deleteMany {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -106,13 +107,6 @@ open class HealthElementLogicImpl (
 			}
 	}
 
-	override fun deleteHealthElements(ids: Set<String>): Flow<DocIdentifier> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-					healthElementDAO.remove(datastoreInformation, getHealthElements(ids.toList()).toList())
-			)
-		}
 	override suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement? =
 			fix(healthElement) { fixedHealthElement ->
 					modifyEntities(setOf(fixedHealthElement)).firstOrNull()
@@ -180,7 +174,7 @@ open class HealthElementLogicImpl (
 					healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedHealthElement.rev) {
-								healthElementDAO.purge(datastoreInformation, it)
+								healthElementDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

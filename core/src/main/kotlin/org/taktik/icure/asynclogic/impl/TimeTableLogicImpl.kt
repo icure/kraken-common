@@ -37,10 +37,6 @@ class TimeTableLogicImpl(
         timeTableDAO.create(datastoreInformation, fixedTimeTable)
     }
 
-    override fun deleteTimeTables(ids: List<String>): Flow<DocIdentifier> = flow {
-        emitAll(deleteEntities(ids))
-    }
-
     override suspend fun getTimeTable(timeTableId: String): TimeTable? = getEntity(timeTableId)
 
     override fun getTimeTablesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<TimeTable> =

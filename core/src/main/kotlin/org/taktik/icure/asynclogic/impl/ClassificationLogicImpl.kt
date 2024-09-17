@@ -88,24 +88,6 @@ class ClassificationLogicImpl(
 		))
 	}
 
-	override fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier> =
-		flow {
-			try {
-				emitAll(deleteEntities(ids.toSet().toList()))
-			} catch (e: Exception) {
-				log.error(e.message, e)
-			}
-		}
-
-	override fun deleteClassifications(ids: Flow<String>): Flow<DocIdentifier> =
-		flow {
-			try {
-				emitAll(deleteEntities(ids))
-			} catch (e: Exception) {
-				log.error(e.message, e)
-			}
-		}
-
 	override suspend fun addDelegation(classification: Classification, healthcarePartyId: String, delegation: Delegation): Classification? {
 		val datastoreInformation = getInstanceAndGroup()
 		return  classificationDAO.save(

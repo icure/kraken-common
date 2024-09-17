@@ -10,7 +10,7 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.embed.ReceiptBlobType
 
-interface ReceiptLogic : EntityPersister<Receipt, String>, EntityWithSecureDelegationsLogic<Receipt> {
+interface ReceiptLogic : EntityPersister<Receipt>, EntityWithSecureDelegationsLogic<Receipt> {
 	suspend fun createReceipt(receipt: Receipt): Receipt?
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>

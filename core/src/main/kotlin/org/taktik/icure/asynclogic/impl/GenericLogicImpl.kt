@@ -6,24 +6,33 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.id.Identifiable
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Revisionable
 import org.taktik.icure.asyncdao.GenericDAO
+import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.exceptions.ConflictRequestException
+import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.validation.aspect.Fixer
 
-abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
+abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	fixer: Fixer,
 	private val datastoreInstanceProvider: DatastoreInstanceProvider,
 	protected val filters: Filters
-) : AutoFixableLogic<E>(fixer), EntityPersister<E, String> {
+) : AutoFixableLogic<E>(fixer), EntityPersister<E> {
 
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
@@ -35,15 +44,50 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().save(getInstanceAndGroup(), entities.map { fix(it) }))
 	}
 
-	override fun deleteEntities(identifiers: Collection<String>): Flow<DocIdentifier> = flow {
-		val entities = getGenericDAO().getEntities(getInstanceAndGroup(), identifiers).toList()
-		emitAll(getGenericDAO().remove(getInstanceAndGroup(), entities))
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		val datastoreInfo = getInstanceAndGroup()
+		val expectedRevById = identifiers.associate { it.id to it.rev }
+		val retrievedEntities = getGenericDAO().getEntities(
+			datastoreInfo,
+			identifiers.map { it.id }
+		).toList().filter {
+			expectedRevById.getValue(it.id).let { expectedRev -> expectedRev == null || expectedRev == it.rev }
+		}
+		emitAll(getGenericDAO().remove(datastoreInfo, retrievedEntities).mapNotNull { it.entityOrNull() })
 	}
 
-	override fun undeleteByIds(identifiers: Collection<String>): Flow<DocIdentifier> = flow {
-		val entities = getGenericDAO().getEntities(getInstanceAndGroup(), identifiers).toList()
-		emitAll(getGenericDAO().unRemove(getInstanceAndGroup(), entities))
+	private suspend fun getEntityWithExpectedRev(id: String, rev: String?): E {
+		val retrieved = getGenericDAO().get(getInstanceAndGroup(), id)
+			?: throw NotFoundRequestException("Entity with id $id not found")
+		if (rev != null && retrieved.rev != rev) {
+			throw ConflictRequestException("Revision does not match for entity with id $id")
+		}
+		return retrieved
 	}
+
+	override suspend fun undeleteEntity(id: String, rev: String?): E =
+		checkNotNull(getGenericDAO().unRemove(
+			getInstanceAndGroup(),
+			listOf(getEntityWithExpectedRev(id, rev))
+		).singleOrNull()) {
+			"Too many update result from undelete"
+		}.entityOrThrow()
+
+	override suspend fun deleteEntity(id: String, rev: String?): DocIdentifier =
+		checkNotNull(getGenericDAO().remove(
+			getInstanceAndGroup(),
+			listOf(getEntityWithExpectedRev(id, rev))
+		).singleOrNull()) {
+			"Too many update result from delete"
+		}.entityOrThrow()
+
+	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier =
+		checkNotNull(getGenericDAO().purge(
+			getInstanceAndGroup(),
+			listOf(getEntityWithExpectedRev(id, rev))
+		).singleOrNull()) {
+			"Too many update result from purge"
+		}.entityOrThrow()
 
 	override fun getEntities(identifiers: Collection<String>): Flow<E> = flow {
 		emitAll(getGenericDAO().getEntities(getInstanceAndGroup(), identifiers))
@@ -80,11 +124,6 @@ abstract class GenericLogicImpl<E : Identifiable<String>, D : GenericDAO<E>>(
 
 	override fun modifyEntities(entities: Flow<E>): Flow<E> = flow {
 		emitAll(this@GenericLogicImpl.modifyEntities(entities.toList()))
-	}
-
-	override fun deleteEntities(identifiers: Flow<String>): Flow<DocIdentifier> = flow{
-		val entities = getGenericDAO().getEntities(getInstanceAndGroup(), identifiers).toList()
-		emitAll(getGenericDAO().remove(getInstanceAndGroup(), entities))
 	}
 
 	override fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String> = flow {

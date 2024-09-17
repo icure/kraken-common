@@ -76,18 +76,6 @@ class HealthcarePartyLogicImpl(
 			modifyEntities(setOf(fixedHealthcareParty)).firstOrNull()
 		}
 
-	override fun deleteHealthcareParties(healthcarePartyIds: List<String>): Flow<DocIdentifier> =
-		flow {
-			try {
-				emitAll(
-					deleteEntities(healthcarePartyIds)
-				)
-			} catch (e: Exception) {
-				log.error(e.message, e)
-				throw DeletionException("The healthcare party (" + healthcarePartyIds + ") not found or " + e.message, e)
-			}
-		}
-
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) =
 		fix(healthcareParty) { fixedHealthcareParty ->
 			if (fixedHealthcareParty.nihii == null && fixedHealthcareParty.ssin == null && fixedHealthcareParty.name == null && fixedHealthcareParty.lastName == null) {

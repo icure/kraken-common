@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
@@ -259,7 +260,7 @@ open class DocumentLogicImpl(
 					documentDAO.save(datastoreInformation, mergedDocument).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedDocument.rev) {
-								documentDAO.purge(datastoreInformation, it)
+								documentDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

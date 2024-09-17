@@ -44,14 +44,6 @@ class AgendaLogicImpl(
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
 
-	override fun deleteAgendas(ids: Set<String>): Flow<DocIdentifier> {
-		return try {
-			deleteEntities(ids)
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
 	override suspend fun getAgenda(agenda: String): Agenda? {
 		val datastoreInformation = getInstanceAndGroup()
 		return agendaDAO.get(datastoreInformation, agenda)

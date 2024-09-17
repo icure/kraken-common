@@ -62,20 +62,6 @@ class AccessLogLogicImpl(
 			)
 		}
 
-	override fun deleteAccessLogs(ids: Flow<String>): Flow<DocIdentifier> =
-		try {
-			deleteEntities(ids)
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-
-	override fun deleteAccessLogs(ids: List<String>): Flow<DocIdentifier> =
-		try {
-			deleteEntities(ids)
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-
 	override fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))

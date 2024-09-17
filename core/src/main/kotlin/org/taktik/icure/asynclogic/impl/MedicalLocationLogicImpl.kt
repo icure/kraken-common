@@ -45,14 +45,6 @@ class MedicalLocationLogicImpl(
 		)
 	}
 
-	override fun deleteMedicalLocations(ids: List<String>): Flow<DocIdentifier> = flow {
-		try {
-			emitAll(deleteEntities(ids))
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
 	override suspend fun getMedicalLocation(medicalLocation: String): MedicalLocation? {
 		val datastoreInformation = getInstanceAndGroup()
 		return medicalLocationDAO.get(datastoreInformation, medicalLocation)

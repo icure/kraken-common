@@ -53,15 +53,6 @@ class KeywordLogicImpl(
 		return keywordDAO.getKeyword(datastoreInformation, keywordId)
 	}
 
-	override fun deleteKeywords(ids: Set<String>): Flow<DocIdentifier> =
-		flow {
-			try {
-				emitAll(deleteEntities(ids))
-			} catch (e: Exception) {
-				log.error(e.message, e)
-			}
-		}
-
 	override suspend fun modifyKeyword(keyword: Keyword): Keyword? =
 		modifyEntities(setOf(keyword)).firstOrNull()
 

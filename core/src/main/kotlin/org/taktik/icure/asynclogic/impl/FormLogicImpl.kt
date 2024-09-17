@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
@@ -109,16 +110,6 @@ open class FormLogicImpl(
 			createEntities(setOf(fixedForm)).firstOrNull()
 		}
 
-	override fun deleteForms(ids: Set<String>): Flow<DocIdentifier> =
-		flow {
-			val forms = getForms(ids)
-			try {
-				emitAll(deleteEntities(forms.map { it.id }.toList()))
-			} catch (e: Exception) {
-				logger.error(e.message, e)
-			}
-		}
-
 	override suspend fun modifyForm(form: Form) =
 		fix(form) { fixedForm ->
 			val datastoreInformation = getInstanceAndGroup()
@@ -179,7 +170,7 @@ open class FormLogicImpl(
 					formDAO.save(datastoreInformation, mergedForm).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedForm.rev) {
-								formDAO.purge(datastoreInformation, it)
+								formDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

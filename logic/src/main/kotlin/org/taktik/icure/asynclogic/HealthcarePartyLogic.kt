@@ -13,7 +13,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.pagination.PaginationElement
 
-interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
+interface HealthcarePartyLogic : EntityPersister<HealthcareParty> {
 
 	suspend fun getHealthcareParty(id: String): HealthcareParty?
 	fun listHealthcarePartiesBy(searchString: String, offset: Int, limit: Int): Flow<HealthcareParty>
@@ -24,7 +24,6 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty, String> {
 	suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
 
 	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
-	fun deleteHealthcareParties(healthcarePartyIds: List<String>): Flow<DocIdentifier>
 
 	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
 

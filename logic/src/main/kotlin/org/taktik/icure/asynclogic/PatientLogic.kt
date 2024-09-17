@@ -20,7 +20,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
 
-interface PatientLogic: EntityPersister<Patient, String>, EntityWithSecureDelegationsLogic<Patient> {
+interface PatientLogic: EntityPersister<Patient>, EntityWithSecureDelegationsLogic<Patient> {
 
 	companion object {
 		@Suppress("EnumEntryName")
@@ -166,7 +166,6 @@ interface PatientLogic: EntityPersister<Patient, String>, EntityWithSecureDelega
 	 */
 	fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun fuzzySearchPatients(firstName: String?, lastName: String?, dateOfBirth: Int?, healthcarePartyId: String? = null): Flow<Patient>
-	fun deletePatients(ids: Set<String>): Flow<DocIdentifier>
 
 	/**
 	 * Returns all the [Patient]s where [Patient.deletionDate] is after [start] and before [end], if provided, sorted
@@ -179,7 +178,6 @@ interface PatientLogic: EntityPersister<Patient, String>, EntityWithSecureDelega
 	 */
 	fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<PaginationElement>
 	fun listDeletedPatientsByNames(firstName: String?, lastName: String?): Flow<Patient>
-	fun undeletePatients(ids: Set<String>): Flow<DocIdentifier>
 
 	/**
 	 * Merges two different patients into one. `fromId` and `fromRev` are the id and revisions of a patient which will
