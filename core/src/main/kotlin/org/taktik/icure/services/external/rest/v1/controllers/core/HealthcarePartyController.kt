@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -239,7 +240,7 @@ class HealthcarePartyController(
 	@DeleteMapping("/{healthcarePartyIds}")
 	fun deleteHealthcareParties(@PathVariable healthcarePartyIds: String): Flux<DocIdentifierDto> = flow {
 		try {
-			emitAll(healthcarePartyService.deleteHealthcareParties(healthcarePartyIds.split(',')))
+			emitAll(healthcarePartyService.deleteHealthcareParties(healthcarePartyIds.split(',').map { IdAndRev(it, null) }))
 		} catch (e: DeletionException) {
 			log.warn(e) { e.message }
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.message)

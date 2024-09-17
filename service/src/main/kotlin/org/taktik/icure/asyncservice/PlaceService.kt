@@ -82,5 +82,4 @@ interface PlaceService {
     suspend fun undeletePlace(id: String, rev: String): Place
 	suspend fun getPlace(place: String): Place?
 	suspend fun modifyPlace(place: Place): Place?
-	fun deletePlaces(identifiers: Set<String>): Flow<DocIdentifier>
 }

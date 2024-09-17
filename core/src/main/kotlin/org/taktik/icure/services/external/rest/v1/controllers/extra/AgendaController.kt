@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asyncservice.AgendaService
 import org.taktik.icure.services.external.rest.v1.dto.AgendaDto
@@ -59,7 +60,7 @@ class AgendaController(
 	@Operation(summary = "Delete agendas by id")
 	@DeleteMapping("/{agendaIds}")
 	fun deleteAgenda(@PathVariable agendaIds: String): Flux<DocIdentifierDto> {
-		return agendaService.deleteAgendas(agendaIds.split(',').toSet())
+		return agendaService.deleteAgendas(agendaIds.split(',').toSet().map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 	}

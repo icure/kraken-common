@@ -70,7 +70,7 @@ class InsuranceController(
 	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
 	fun deleteInsurance(@PathVariable insuranceId: String) = mono {
-		insuranceService.deleteInsurance(insuranceId) ?: throw NotFoundRequestException("Insurance not found")
+		insuranceService.deleteInsurance(insuranceId, null)
 	}
 
 	@Operation(summary = "Gets an insurance")

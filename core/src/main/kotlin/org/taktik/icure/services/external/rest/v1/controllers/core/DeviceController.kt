@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -135,7 +136,7 @@ class DeviceController(
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
 	@DeleteMapping("/{deviceId}")
 	fun deleteDevice(@PathVariable deviceId: String) = mono {
-		deviceService.deleteDevice(deviceId)
+		deviceService.deleteDevice(deviceId, null)
 			?.let(docIdentifierMapper::map)
 			?: throw NotFoundRequestException("Device not found")
 	}
@@ -143,7 +144,7 @@ class DeviceController(
 	@Operation(summary = "Delete devices.", description = "Response is an array containing the id/rev of deleted devices.")
 	@PostMapping("/delete/batch")
 	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		deviceService.deleteDevices(deviceIds.ids.toSet())
+		deviceService.deleteDevices(deviceIds.ids.toSet().map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 }

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -56,7 +57,7 @@ class MaintenanceTaskController(
 	@Operation(summary = "Delete maintenanceTasks")
 	@DeleteMapping("/{maintenanceTaskIds}")
 	fun deleteMaintenanceTask(@PathVariable maintenanceTaskIds: String) =
-		maintenanceTaskService.deleteMaintenanceTasks(maintenanceTaskIds.split(','))
+		maintenanceTaskService.deleteMaintenanceTasks(maintenanceTaskIds.split(',').map { IdAndRev(it, null) })
 			.catch { e ->
 				if (e is AccessDeniedException)
 					throw ResponseStatusException(HttpStatus.FORBIDDEN, e.message)

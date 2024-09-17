@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.security.CryptoUtils
@@ -55,7 +56,7 @@ class ReceiptController(
 	@Operation(summary = "Deletes a receipt")
 	@DeleteMapping("/{receiptIds}")
 	fun deleteReceipt(@PathVariable receiptIds: String) =
-		receiptService.deleteReceipts(receiptIds.split(',')).injectReactorContext()
+		receiptService.deleteReceipts(receiptIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
 
 	@Operation(summary = "Get an attachment", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])
 	@GetMapping("/{receiptId}/attachment/{attachmentId}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])

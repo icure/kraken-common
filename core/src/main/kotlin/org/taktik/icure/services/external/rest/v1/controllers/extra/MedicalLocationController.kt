@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.MedicalLocationService
 import org.taktik.icure.services.external.rest.v1.dto.MedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.mapper.MedicalLocationMapper
@@ -43,7 +44,7 @@ class MedicalLocationController(
 	@Operation(summary = "Deletes a medical location")
 	@DeleteMapping("/{locationIds}")
 	fun deleteMedicalLocation(@PathVariable locationIds: String) =
-		medicalLocationService.deleteMedicalLocations(locationIds.split(',')).injectReactorContext()
+		medicalLocationService.deleteMedicalLocations(locationIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
 
 	@Operation(summary = "Gets a medical location")
 	@GetMapping("/{locationId}")

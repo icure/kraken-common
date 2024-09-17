@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.ContactService
@@ -293,7 +294,7 @@ class ContactController(
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		}
 		// TODO versioning?
-		return contactService.deleteContacts(contactIds.split(',').toSet())
+		return contactService.deleteContacts(contactIds.split(',').toSet().map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 	}
