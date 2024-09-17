@@ -13,6 +13,7 @@ import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConflictResolutionService {
@@ -60,25 +61,53 @@ interface FormService : EntityWithSecureDelegationsService<Form>, EntityWithConf
 
 	suspend fun createForm(form: Form): Form?
 
-	/**
-	 * Deletes a batch of [Form]s.
-	 * If the user does not have the permission to delete an [Form] or the [Form] does not exist, then it
-	 * is ignored without any warning.
-	 *
-	 * @param ids a [List] containing the ids of the [Form]s to delete.
-	 * @return a [Flow] containing the [DocIdentifier]s of the [Form]s successfully deleted.
-	 */
-	fun deleteForms(ids: Set<String>): Flow<DocIdentifier>
+    /**
+     * Marks a batch of entities as deleted.
+     * The data of the entities is preserved, but they won't appear in most queries.
+     * Ignores entities that:
+     * - don't exist
+     * - the user can't delete due to limited lack of write access
+     * - don't match the provided revision (if provided)
+     *
+     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     */
+    fun deleteForms(ids: List<IdAndRev>): Flow<DocIdentifier>
 
-	/**
-	 * Deletes a [Form].
-	 *
-	 * @param id the id of the [Form] to delete.
-	 * @return a [DocIdentifier] related to the [Form] if the operation completes successfully.
-	 * @throws [AccessDeniedException] if the current user does not have the permission to delete the [Form].
-	 * @throws [NotFoundRequestException] if an [Form] with the specified [id] does not exist.
-	 */
-	suspend fun deleteForm(id: String): DocIdentifier
+    /**
+     * Marks an entity as deleted.
+     * The data of the entity is preserved, but the entity won't appear in most queries.
+     *
+     * @param id the id of the entity to delete.
+     * @param rev
+     * @return the updated [DocIdentifier] for the entity.
+     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+     * @throws ConflictRequestException if the entity rev doesn't match.
+     */
+    suspend fun deleteForm(id: String, rev: String?): DocIdentifier
+
+    /**
+     * Deletes an entity.
+     * An entity deleted this way can't be restored.
+     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+     *
+     * @param id the id of the entity
+     * @param rev the latest known revision of the entity.
+     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+     * @throws ConflictRequestException if the entity rev doesn't match.
+     */
+    suspend fun purgeForm(id: String, rev: String): DocIdentifier
+
+    /**
+     * Restores an entity marked as deleted.
+     * The user needs to have write access to the entity
+     * @param id the id of the entity marked to restore
+     * @param rev the revision of the entity after it was marked as deleted
+     * @return the restored entity
+     */
+    suspend fun undeleteForm(id: String, rev: String): Form
 
 	suspend fun modifyForm(form: Form): Form?
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
