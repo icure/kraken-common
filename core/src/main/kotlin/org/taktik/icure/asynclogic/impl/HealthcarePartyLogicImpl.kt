@@ -28,9 +28,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class HealthcarePartyLogicImpl(
+open class HealthcarePartyLogicImpl(
     filters: Filters,
     private val healthcarePartyDAO: HealthcarePartyDAO,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,

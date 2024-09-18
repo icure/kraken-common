@@ -22,9 +22,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class DeviceLogicImpl(
+open class DeviceLogicImpl(
     datastoreInstanceProvider: DatastoreInstanceProvider,
     private val deviceDAO: DeviceDAO,
     filters: Filters,
