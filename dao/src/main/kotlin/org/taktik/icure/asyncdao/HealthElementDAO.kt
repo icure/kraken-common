@@ -45,6 +45,8 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
+	fun listHealthElementIdsByDataOwnerOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<HealthElement>
 
 	fun findHealthElementsByIds(datastoreInformation: IDatastoreInformation, healthElementIds: Flow<String>): Flow<ViewQueryResultEvent>

@@ -96,6 +96,24 @@ open class HealthElementLogicImpl (
 		)
 	}
 
+	override fun listHealthElementIdsByDataOwnerOpeningDate(
+		dataOwnerId: String,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			healthElementDAO.listHealthElementIdsByDataOwnerOpeningDate(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+				startDate,
+				endDate,
+				descending
+			)
+		)
+	}
+
 	override suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement> {
 		val datastoreInformation = getInstanceAndGroup()
 		return healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys).toList()
