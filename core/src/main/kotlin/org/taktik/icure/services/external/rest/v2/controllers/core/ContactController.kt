@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.ContactService
@@ -44,6 +45,7 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
@@ -56,6 +58,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
@@ -92,6 +95,7 @@ class ContactController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper
 ) {
 
@@ -306,22 +310,45 @@ class ContactController(
 		return savedOrFailed.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Delete contacts.", description = "Response is a set containing the ID's of deleted contacts.")
+	@Operation(summary = "Deletes multiple Contacts")
 	@PostMapping("/delete/batch")
 	fun deleteContacts(@RequestBody contactIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		contactIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			contactService.deleteContacts(ids.toSet())
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		contactService.deleteContacts(
+			contactIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Delete a contact", description = "Deletes a single contact and returns its identifier")
+	@Operation(summary = "Deletes a multiple Contacts if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteContactsWithRev(@RequestBody contactIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		contactService.deleteContacts(
+			contactIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Contact")
 	@DeleteMapping("/{contactId}")
-	fun deleteContact(@PathVariable contactId: String): Mono<DocIdentifierDto> = mono {
-		contactService.deleteContact(contactId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteContact(
+		@PathVariable contactId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		contactService.deleteContact(contactId, rev).let(docIdentifierV2Mapper::map)
 	}
 
+	@PostMapping("/undelete/{contactId}")
+	fun undeleteContact(
+		@PathVariable contactId: String,
+		@Parameter(required=true) rev: String
+	): Mono<ContactDto> = mono {
+		contactV2Mapper.map(contactService.undeleteContact(contactId, rev))
+	}
+
+	@DeleteMapping("/purge/{contactId}")
+	fun purgeContact(
+		@PathVariable contactId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		contactService.purgeContact(contactId, rev).let(docIdentifierV2Mapper::map)
+	}
+	
 	@Operation(summary = "Modify a contact", description = "Returns the modified contact.")
 	@PutMapping
 	fun modifyContact(@RequestBody contactDto: ContactDto) = mono {

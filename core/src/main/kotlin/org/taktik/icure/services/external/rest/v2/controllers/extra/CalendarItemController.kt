@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -36,12 +37,14 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -54,6 +57,7 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("calendarItemControllerV2")
 @Profile("app")
@@ -69,6 +73,7 @@ class CalendarItemController(
 	private val objectMapper: ObjectMapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -94,27 +99,44 @@ class CalendarItemController(
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Deletes a batch of calendarItems")
+	@Operation(summary = "Deletes multiple CalendarItems")
 	@PostMapping("/delete/batch")
 	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		calendarItemService.deleteCalendarItems(calendarItemIds.ids)
-			.map(docIdentifierV2Mapper::map)
-			.injectReactorContext()
-
-	@Operation(summary = "Deletes a calendarItem")
+		calendarItemService.deleteCalendarItems(
+			calendarItemIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+	
+	@Operation(summary = "Deletes a multiple CalendarItems if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteCalendarItemsWithRev(@RequestBody calendarItemIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		calendarItemService.deleteCalendarItems(
+			calendarItemIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+	
+	@Operation(summary = "Deletes an CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
-	fun deleteCalendarItem(@PathVariable calendarItemId: String) = mono {
-		calendarItemService.deleteCalendarItem(calendarItemId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteCalendarItem(
+		@PathVariable calendarItemId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		calendarItemService.deleteCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
-
-	@Deprecated(message = "Use deleteItemCalendars instead")
-	@Operation(summary = "Deletes an calendarItem")
-	@PostMapping("/{calendarItemIds}")
-	fun deleteCalendarItemsWithPost(@PathVariable calendarItemIds: String): Flux<DocIdentifierDto> =
-		calendarItemService.deleteCalendarItems(calendarItemIds.split(','))
-			.map(docIdentifierV2Mapper::map)
-			.injectReactorContext()
+	
+	@PostMapping("/undelete/{calendarItemId}")
+	fun undeleteCalendarItem(
+		@PathVariable calendarItemId: String,
+		@Parameter(required=true) rev: String
+	): Mono<CalendarItemDto> = mono {
+		calendarItemV2Mapper.map(calendarItemService.undeleteCalendarItem(calendarItemId, rev))
+	}
+	
+	@DeleteMapping("/purge/{calendarItemId}")
+	fun purgeCalendarItem(
+		@PathVariable calendarItemId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
+	}
 
 	@Operation(summary = "Gets an calendarItem")
 	@GetMapping("/{calendarItemId}")

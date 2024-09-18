@@ -84,7 +84,7 @@ class InvoiceController(
 	@Operation(summary = "Deletes an invoice")
 	@DeleteMapping("/{invoiceId}")
 	fun deleteInvoice(@PathVariable invoiceId: String) = mono {
-		invoiceService.deleteInvoice(invoiceId) ?: throw NotFoundRequestException("Insurance not found")
+		invoiceService.deleteInvoice(invoiceId, null) ?: throw NotFoundRequestException("Insurance not found")
 	}
 
 	@Operation(summary = "Gets an invoice")

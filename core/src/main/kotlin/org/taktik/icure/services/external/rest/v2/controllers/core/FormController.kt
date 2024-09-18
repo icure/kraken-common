@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
@@ -41,6 +43,7 @@ import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -48,6 +51,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.FormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
@@ -60,6 +64,7 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("formControllerV2")
 @Profile("app")
@@ -77,6 +82,7 @@ class FormController(
 	private val bulkShareResultV2Mapper: FormBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -159,20 +165,43 @@ class FormController(
 		formV2Mapper.map(modifiedForm)
 	}
 
-	@Operation(summary = "Deletes a batch of forms", description = "Response is a set containing the ID's of deleted forms.")
+	@Operation(summary = "Deletes multiple Forms")
 	@PostMapping("/delete/batch")
 	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		formIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			formService.deleteForms(HashSet(ids))
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		formService.deleteForms(
+			formIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a  form", description = "Deletes a single form returning its identifier")
+	@Operation(summary = "Deletes a multiple Forms if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteFormsWithRev(@RequestBody formIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		formService.deleteForms(
+			formIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Form")
 	@DeleteMapping("/{formId}")
-	fun deleteForm(@PathVariable formId: String) = mono {
-		formService.deleteForm(formId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteForm(
+		@PathVariable formId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		formService.deleteForm(formId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{formId}")
+	fun undeleteForm(
+		@PathVariable formId: String,
+		@Parameter(required=true) rev: String
+	): Mono<FormDto> = mono {
+		formV2Mapper.map(formService.undeleteForm(formId, rev))
+	}
+
+	@DeleteMapping("/purge/{formId}")
+	fun purgeForm(
+		@PathVariable formId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		formService.purgeForm(formId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a batch of forms", description = "Returns the modified forms.")

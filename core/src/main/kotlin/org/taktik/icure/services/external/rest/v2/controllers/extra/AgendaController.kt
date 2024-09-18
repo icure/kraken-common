@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asyncservice.AgendaService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -31,17 +32,21 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("agendaControllerV2")
 @Profile("app")
@@ -52,6 +57,7 @@ class AgendaController(
 	private val agendaV2Mapper: AgendaV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -78,17 +84,43 @@ class AgendaController(
 		agendaV2Mapper.map(agenda)
 	}
 
-	@Operation(summary = "Deletes a batch of agendas")
+	@Operation(summary = "Deletes multiple Agendas")
 	@PostMapping("/delete/batch")
 	fun deleteAgendas(@RequestBody agendaIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		agendaIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			agendaService.deleteAgendas(ids.toSet()).map(docIdentifierV2Mapper::map).injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		agendaService.deleteAgendas(
+			agendaIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a single agenda")
+	@Operation(summary = "Deletes a multiple Agendas if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteAgendasWithRev(@RequestBody agendaIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		agendaService.deleteAgendas(
+			agendaIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Agenda")
 	@DeleteMapping("/{agendaId}")
-	fun deleteAgenda(@PathVariable agendaId: String) = mono {
-		agendaService.deleteAgenda(agendaId).let(docIdentifierV2Mapper::map)
+	fun deleteAgenda(
+		@PathVariable agendaId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		agendaService.deleteAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{agendaId}")
+	fun undeleteAgenda(
+		@PathVariable agendaId: String,
+		@Parameter(required=true) rev: String
+	): Mono<AgendaDto> = mono {
+		agendaV2Mapper.map(agendaService.undeleteAgenda(agendaId, rev))
+	}
+
+	@DeleteMapping("/purge/{agendaId}")
+	fun purgeAgenda(
+		@PathVariable agendaId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		agendaService.purgeAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an agenda")

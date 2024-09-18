@@ -22,9 +22,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class MedicalLocationLogicImpl(
+open class MedicalLocationLogicImpl(
 	private val medicalLocationDAO: MedicalLocationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,

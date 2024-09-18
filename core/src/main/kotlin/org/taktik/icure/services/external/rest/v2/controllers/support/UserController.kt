@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.UserService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -33,18 +34,23 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /* Useful notes:
  * @RequestParam is required by default, but @ApiParam (which is useful to add a description)
@@ -63,6 +69,7 @@ class UserController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val objectMapper: ObjectMapper
 ) {
 
@@ -143,10 +150,29 @@ class UserController(
 	fun findByPatientId(@PathVariable id: String) =
 		userService.findByPatientId(id).injectReactorContext()
 
-	@Operation(summary = "Delete a User based on his/her ID.", description = "Delete a User based on his/her ID. The return value is an array containing the ID of deleted user.")
+	@Operation(summary = "Deletes an User")
 	@DeleteMapping("/{userId}")
-	fun deleteUser(@PathVariable userId: String) = mono {
-		userService.deleteUser(userId)
+	fun deleteUser(
+		@PathVariable userId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		userService.deleteUser(userId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{userId}")
+	fun undeleteUser(
+		@PathVariable userId: String,
+		@Parameter(required=true) rev: String
+	): Mono<UserDto> = mono {
+		userV2Mapper.mapOmittingSecrets(userService.undeleteUser(userId, rev))
+	}
+
+	@DeleteMapping("/purge/{userId}")
+	fun purgeUser(
+		@PathVariable userId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		userService.purgeUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a user.", description = "No particular return value. It's just a message.")

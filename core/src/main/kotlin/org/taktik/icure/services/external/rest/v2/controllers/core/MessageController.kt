@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -36,6 +37,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate
@@ -44,6 +46,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -57,6 +60,7 @@ import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("messageControllerV2")
 @Profile("app")
@@ -73,6 +77,7 @@ class MessageController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 	companion object {
@@ -87,17 +92,44 @@ class MessageController(
 				.also { logger.error(it.message) }
 	}
 
-	@Operation(summary = "Deletes multiple messages")
+
+	@Operation(summary = "Deletes multiple Messages")
 	@PostMapping("/delete/batch")
 	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		messageService.deleteMessages(messageIds.ids)
-			.map(docIdentifierV2Mapper::map)
-			.injectReactorContext()
+		messageService.deleteMessages(
+			messageIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a message")
+	@Operation(summary = "Deletes a multiple Messages if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteMessagesWithRev(@RequestBody messageIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		messageService.deleteMessages(
+			messageIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Message")
 	@DeleteMapping("/{messageId}")
-	fun deleteMessage(@PathVariable messageId: String) = mono {
-		messageService.deleteMessage(messageId).let(docIdentifierV2Mapper::map)
+	fun deleteMessage(
+		@PathVariable messageId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		messageService.deleteMessage(messageId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{messageId}")
+	fun undeleteMessage(
+		@PathVariable messageId: String,
+		@Parameter(required=true) rev: String
+	): Mono<MessageDto> = mono {
+		messageV2Mapper.map(messageService.undeleteMessage(messageId, rev))
+	}
+
+	@DeleteMapping("/purge/{messageId}")
+	fun purgeMessage(
+		@PathVariable messageId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		messageService.purgeMessage(messageId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a message")

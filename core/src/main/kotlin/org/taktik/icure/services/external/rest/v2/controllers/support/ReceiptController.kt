@@ -28,16 +28,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 
 
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.embed.ReceiptBlobType
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.ReceiptDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -46,6 +49,7 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.writeTo
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.ByteArrayOutputStream
 
 @RestController("receiptControllerV2")
@@ -58,6 +62,7 @@ class ReceiptController(
 	private val bulkShareResultV2Mapper: ReceiptBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -70,20 +75,44 @@ class ReceiptController(
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Receipt creation failed.")
 	}
 
-	@Operation(summary = "Deletes a batch of receipts")
+
+	@Operation(summary = "Deletes multiple Receipts")
 	@PostMapping("/delete/batch")
 	fun deleteReceipts(@RequestBody receiptIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		receiptIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			receiptService.deleteReceipts(LinkedHashSet(ids))
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		receiptService.deleteReceipts(
+			receiptIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a receipt")
+	@Operation(summary = "Deletes a multiple Receipts if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteReceiptsWithRev(@RequestBody receiptIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		receiptService.deleteReceipts(
+			receiptIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Receipt")
 	@DeleteMapping("/{receiptId}")
-	fun deleteReceipt(@PathVariable receiptId: String) = mono {
-		receiptService.deleteReceipt(receiptId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteReceipt(
+		@PathVariable receiptId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		receiptService.deleteReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{receiptId}")
+	fun undeleteReceipt(
+		@PathVariable receiptId: String,
+		@Parameter(required=true) rev: String
+	): Mono<ReceiptDto> = mono {
+		receiptV2Mapper.map(receiptService.undeleteReceipt(receiptId, rev))
+	}
+
+	@DeleteMapping("/purge/{receiptId}")
+	fun purgeReceipt(
+		@PathVariable receiptId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		receiptService.purgeReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Get an attachment", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])

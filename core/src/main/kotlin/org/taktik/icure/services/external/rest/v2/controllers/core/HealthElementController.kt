@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
@@ -34,6 +35,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -41,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -68,6 +71,7 @@ class HealthElementController(
 	private val bulkShareResultV2Mapper: HealthElementBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig
@@ -168,20 +172,43 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "Delete health elements.", description = "Response is a set containing the ID's of deleted health elements.")
+	@Operation(summary = "Deletes multiple HealthElements")
 	@PostMapping("/delete/batch")
 	fun deleteHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		healthElementIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			healthElementService.deleteHealthElements(ids.toSet())
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
+		healthElementService.deleteHealthElements(
+			healthElementIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes an health element", description = "Deletes an health element and returns its identifier.")
+	@Operation(summary = "Deletes a multiple HealthElements if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteHealthElementsWithRev(@RequestBody healthElementIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		healthElementService.deleteHealthElements(
+			healthElementIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an HealthElement")
 	@DeleteMapping("/{healthElementId}")
-	fun deleteHealthElement(@PathVariable healthElementId: String): Mono<DocIdentifierDto> = mono {
-		healthElementService.deleteHealthElement(healthElementId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteHealthElement(
+		@PathVariable healthElementId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		healthElementService.deleteHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{healthElementId}")
+	fun undeleteHealthElement(
+		@PathVariable healthElementId: String,
+		@Parameter(required=true) rev: String
+	): Mono<HealthElementDto> = mono {
+		healthElementV2Mapper.map(healthElementService.undeleteHealthElement(healthElementId, rev))
+	}
+
+	@DeleteMapping("/purge/{healthElementId}")
+	fun purgeHealthElement(
+		@PathVariable healthElementId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		healthElementService.purgeHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a health element", description = "Returns the modified health element.")
