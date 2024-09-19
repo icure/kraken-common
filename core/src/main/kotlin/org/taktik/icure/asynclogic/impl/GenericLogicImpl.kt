@@ -44,19 +44,26 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().save(getInstanceAndGroup(), entities.map { fix(it) }))
 	}
 
-	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+	protected suspend fun getEntitiesWithExpectedRev(identifiers: Collection<IdAndRev>): List<E> {
 		val datastoreInfo = getInstanceAndGroup()
 		val expectedRevById = identifiers.associate { it.id to it.rev }
-		val retrievedEntities = getGenericDAO().getEntities(
+		return getGenericDAO().getEntities(
 			datastoreInfo,
 			identifiers.map { it.id }
 		).toList().filter {
 			expectedRevById.getValue(it.id).let { expectedRev -> expectedRev == null || expectedRev == it.rev }
 		}
-		emitAll(getGenericDAO().remove(datastoreInfo, retrievedEntities).mapNotNull { it.entityOrNull() })
 	}
 
-	private suspend fun getEntityWithExpectedRev(id: String, rev: String?): E {
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		emitAll(
+			getGenericDAO()
+				.remove(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
+				.mapNotNull { it.entityOrNull() }
+		)
+	}
+
+	protected suspend fun getEntityWithExpectedRev(id: String, rev: String?): E {
 		val retrieved = getGenericDAO().get(getInstanceAndGroup(), id)
 			?: throw NotFoundRequestException("Entity with id $id not found")
 		if (rev != null && retrieved.rev != rev) {
@@ -72,6 +79,15 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		).singleOrNull()) {
 			"Too many update result from undelete"
 		}.entityOrThrow()
+
+	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
+		emitAll(
+			getGenericDAO().unRemove(
+				getInstanceAndGroup(),
+				getEntitiesWithExpectedRev(identifiers)
+			).mapNotNull { it.entityOrNull() }
+		)
+	}
 
 	override suspend fun deleteEntity(id: String, rev: String?): DocIdentifier =
 		checkNotNull(getGenericDAO().remove(

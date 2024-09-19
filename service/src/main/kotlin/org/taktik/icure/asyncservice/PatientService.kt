@@ -210,7 +210,7 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	 */
 	fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<PaginationElement>
 	fun listDeletedPatientsByNames(firstName: String?, lastName: String?): Flow<Patient>
-	fun undeletePatients(ids: Set<String>): Flow<DocIdentifier>
+	fun undeletePatients(ids: List<IdAndRev>): Flow<Patient>
 	fun getEntityIds(): Flow<String>
 
 	/**

@@ -37,41 +37,41 @@ interface DocumentTemplateService {
      * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
      */
     fun deleteDocumentTemplates(ids: List<IdAndRev>): Flow<DocIdentifier>
-
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteDocumentTemplate(id: String, rev: String?): DocIdentifier
-
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgeDocumentTemplate(id: String, rev: String): DocIdentifier
-
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteDocumentTemplate(id: String, rev: String): DocumentTemplate
+//
+//    /**
+//     * Marks an entity as deleted.
+//     * The data of the entity is preserved, but the entity won't appear in most queries.
+//     *
+//     * @param id the id of the entity to delete.
+//     * @param rev
+//     * @return the updated [DocIdentifier] for the entity.
+//     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+//     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+//     * @throws ConflictRequestException if the entity rev doesn't match.
+//     */
+//    suspend fun deleteDocumentTemplate(id: String, rev: String?): DocIdentifier
+//
+//    /**
+//     * Deletes an entity.
+//     * An entity deleted this way can't be restored.
+//     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+//     *
+//     * @param id the id of the entity
+//     * @param rev the latest known revision of the entity.
+//     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+//     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+//     * @throws ConflictRequestException if the entity rev doesn't match.
+//     */
+//    suspend fun purgeDocumentTemplate(id: String, rev: String): DocIdentifier
+//
+//    /**
+//     * Restores an entity marked as deleted.
+//     * The user needs to have write access to the entity
+//     * @param id the id of the entity marked to restore
+//     * @param rev the revision of the entity after it was marked as deleted
+//     * @return the restored entity
+//     */
+//    suspend fun undeleteDocumentTemplate(id: String, rev: String): DocumentTemplate
 
 	/**
 	 * Retrieves all the [DocumentTemplate]s in a group in a format for pagination.

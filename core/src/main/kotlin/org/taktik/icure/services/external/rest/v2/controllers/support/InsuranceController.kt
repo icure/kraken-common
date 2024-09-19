@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -30,15 +29,10 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
-import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
-import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
-import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InsuranceV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @RestController("insuranceControllerV2")
 @Profile("app")
@@ -47,8 +41,6 @@ import reactor.core.publisher.Mono
 class InsuranceController(
 	private val insuranceService: InsuranceService,
 	private val insuranceV2Mapper: InsuranceV2Mapper,
-	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
 
@@ -75,44 +67,10 @@ class InsuranceController(
 		insuranceV2Mapper.map(insurance)
 	}
 
-
-	@Operation(summary = "Deletes multiple Insurances")
-	@PostMapping("/delete/batch")
-	fun deleteInsurances(@RequestBody insuranceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		insuranceService.deleteInsurances(
-			insuranceIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
-
-	@Operation(summary = "Deletes a multiple Insurances if they match the provided revs")
-	@PostMapping("/delete/batch/withrev")
-	fun deleteInsurancesWithRev(@RequestBody insuranceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		insuranceService.deleteInsurances(
-			insuranceIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
-
-	@Operation(summary = "Deletes an Insurance")
+	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
-	fun deleteInsurance(
-		@PathVariable insuranceId: String,
-		@Parameter(required = false) rev: String? = null
-	): Mono<DocIdentifierDto> = mono {
-		insuranceService.deleteInsurance(insuranceId, rev).let(docIdentifierV2Mapper::map)
-	}
-
-	@PostMapping("/undelete/{insuranceId}")
-	fun undeleteInsurance(
-		@PathVariable insuranceId: String,
-		@Parameter(required=true) rev: String
-	): Mono<InsuranceDto> = mono {
-		insuranceV2Mapper.map(insuranceService.undeleteInsurance(insuranceId, rev))
-	}
-
-	@DeleteMapping("/purge/{insuranceId}")
-	fun purgeInsurance(
-		@PathVariable insuranceId: String,
-		@Parameter(required=true) rev: String
-	): Mono<DocIdentifierDto> = mono {
-		insuranceService.purgeInsurance(insuranceId, rev).let(docIdentifierV2Mapper::map)
+	fun deleteInsurance(@PathVariable insuranceId: String) = mono {
+		insuranceService.deleteInsurance(insuranceId, null)
 	}
 
 	@Operation(summary = "Gets an insurance")

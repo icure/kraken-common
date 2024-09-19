@@ -164,28 +164,28 @@ class EntityTemplateController(
 			entityTemplateIds.ids.map(idWithRevV2Mapper::map)
 		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes an EntityTemplate")
-	@DeleteMapping("/{entityTemplateId}")
-	fun deleteEntityTemplate(
-		@PathVariable entityTemplateId: String,
-		@Parameter(required = false) rev: String? = null
-	): Mono<DocIdentifierDto> = mono {
-		entityTemplateService.deleteEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
-	}
-
-	@PostMapping("/undelete/{entityTemplateId}")
-	fun undeleteEntityTemplate(
-		@PathVariable entityTemplateId: String,
-		@Parameter(required=true) rev: String
-	): Mono<EntityTemplateDto> = mono {
-		entityTemplateV2Mapper.map(entityTemplateService.undeleteEntityTemplate(entityTemplateId, rev))
-	}
-
-	@DeleteMapping("/purge/{entityTemplateId}")
-	fun purgeEntityTemplate(
-		@PathVariable entityTemplateId: String,
-		@Parameter(required=true) rev: String
-	): Mono<DocIdentifierDto> = mono {
-		entityTemplateService.purgeEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
-	}
+//	@Operation(summary = "Deletes an EntityTemplate")
+//	@DeleteMapping("/{entityTemplateId}")
+//	fun deleteEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required = false) rev: String? = null
+//	): Mono<DocIdentifierDto> = mono {
+//		entityTemplateService.deleteEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
+//	}
+//
+//	@PostMapping("/undelete/{entityTemplateId}")
+//	fun undeleteEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required=true) rev: String
+//	): Mono<EntityTemplateDto> = mono {
+//		entityTemplateV2Mapper.map(entityTemplateService.undeleteEntityTemplate(entityTemplateId, rev))
+//	}
+//
+//	@DeleteMapping("/purge/{entityTemplateId}")
+//	fun purgeEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required=true) rev: String
+//	): Mono<DocIdentifierDto> = mono {
+//		entityTemplateService.purgeEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
+//	}
 }

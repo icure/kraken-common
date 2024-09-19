@@ -379,4 +379,14 @@ open class UserLogicImpl (
 		return authenticationToken
 	}
 
+	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier {
+		// We can't purge user like the other entities or the group user to global user replicator will have issues.
+		// To purge a user we "shred" its content and leave id + revision untouched
+		// Only problem is that this still allows to get the user by id
+		val user = getEntityWithExpectedRev(id, rev)
+		return checkNotNull(
+			getGenericDAO().save(getInstanceAndGroup(), User(user.id, user.rev, deletionDate = System.currentTimeMillis()))
+		) { "Save returned null" }.let { DocIdentifier(it.id, it.rev) }
+	}
 }
+

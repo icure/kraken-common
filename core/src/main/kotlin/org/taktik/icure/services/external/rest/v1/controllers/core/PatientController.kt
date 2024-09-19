@@ -404,8 +404,8 @@ class PatientController(
 	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return patientService.undeletePatients(HashSet(ids))
-			.map(docIdentifierMapper::map)
+		return patientService.undeletePatients(ids.toSet().map { IdAndRev(it, null) })
+			.map { DocIdentifierDto(it.id, it.rev) }
 			.injectReactorContext()
 	}
 
