@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -290,5 +292,17 @@ open class DocumentLogicImpl(
 			"New document can't specify a value for the main attachment object store id."
 		}
 		return if (document.attachmentId != null) document.copy(attachmentId = null) else document
+	}
+
+	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier {
+		val entity = getEntityWithExpectedRev(id, rev)
+		return checkNotNull(getGenericDAO().purge(
+			getInstanceAndGroup(),
+			listOf(entity)
+		).singleOrNull()) {
+			"Too many update result from purge"
+		}.entityOrThrow().also {
+			attachmentModificationLogic.cleanupPurgedEntityAttachments(entity)
+		}
 	}
 }
