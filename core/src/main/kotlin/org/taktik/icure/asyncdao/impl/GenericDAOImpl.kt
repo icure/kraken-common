@@ -345,23 +345,19 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		if (log.isDebugEnabled) {
 			log.debug("Deleted $entities")
 		}
-		try {
-			val toBeDeletedEntities = entities.map { entity ->
-				beforeDelete(datastoreInformation, entity).let {
-					it.withDeletionDate(System.currentTimeMillis()) as T
-				}
+		val toBeDeletedEntities = entities.map { entity ->
+			beforeDelete(datastoreInformation, entity).let {
+				it.withDeletionDate(System.currentTimeMillis()) as T
 			}
-			val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
-				toBeDeletedEntities.firstOrNull { e -> id == e.id }?.let {
-					cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-					afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
-				}
-				DocIdentifier(id, rev)
-			}
-			emitAll(bulkUpdateResults)
-		} catch (e: Exception) {
-			if (e !is CancellationException) throw PersistenceException("failed to remove entities ", e)
 		}
+		val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
+			toBeDeletedEntities.firstOrNull { e -> id == e.id }?.let {
+				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+				afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
+			}
+			DocIdentifier(id, rev)
+		}
+		emitAll(bulkUpdateResults)
 	}
 
 	@Suppress("UNCHECKED_CAST")
