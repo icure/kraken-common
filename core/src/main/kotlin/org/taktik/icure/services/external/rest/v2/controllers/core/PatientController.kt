@@ -378,7 +378,7 @@ class PatientController(
 	@DeleteMapping("/{patientId}")
 	fun deletePatient(
 		@PathVariable patientId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		patientService.deletePatient(patientId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -386,15 +386,21 @@ class PatientController(
 	@PostMapping("/undelete/{patientId}")
 	fun undeletePatient(
 		@PathVariable patientId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<PatientDto> = mono {
 		patientV2Mapper.map(patientService.undeletePatient(patientId, rev))
 	}
 
+	@PostMapping("/undelete/batch")
+	fun undeletePatients(
+		@RequestBody ids: ListOfIdsAndRevDto
+	): Flux<PatientDto> =
+		patientService.undeletePatients(ids.ids.map(idWithRevV2Mapper::map)).map(patientV2Mapper::map).injectReactorContext()
+
 	@DeleteMapping("/purge/{patientId}")
 	fun purgePatient(
 		@PathVariable patientId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		patientService.purgePatient(patientId, rev).let(docIdentifierV2Mapper::map)
 	}

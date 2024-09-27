@@ -94,7 +94,7 @@ class ReceiptController(
 	@DeleteMapping("/{receiptId}")
 	fun deleteReceipt(
 		@PathVariable receiptId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		receiptService.deleteReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -102,7 +102,7 @@ class ReceiptController(
 	@PostMapping("/undelete/{receiptId}")
 	fun undeleteReceipt(
 		@PathVariable receiptId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<ReceiptDto> = mono {
 		receiptV2Mapper.map(receiptService.undeleteReceipt(receiptId, rev))
 	}
@@ -110,7 +110,7 @@ class ReceiptController(
 	@DeleteMapping("/purge/{receiptId}")
 	fun purgeReceipt(
 		@PathVariable receiptId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		receiptService.purgeReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
 	}

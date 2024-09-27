@@ -98,7 +98,7 @@ class AccessLogController(
 	@DeleteMapping("/{accessLogId}")
 	fun deleteAccessLog(
 		@PathVariable accessLogId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		accessLogService.deleteAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -106,7 +106,7 @@ class AccessLogController(
 	@PostMapping("/undelete/{accessLogId}")
 	fun undeleteAccessLog(
 		@PathVariable accessLogId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<AccessLogDto> = mono {
 		accessLogV2Mapper.map(accessLogService.undeleteAccessLog(accessLogId, rev))
 	}
@@ -114,7 +114,7 @@ class AccessLogController(
 	@DeleteMapping("/purge/{accessLogId}")
 	fun purgeAccessLog(
 		@PathVariable accessLogId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		accessLogService.purgeAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}

@@ -102,7 +102,7 @@ class AgendaController(
 	@DeleteMapping("/{agendaId}")
 	fun deleteAgenda(
 		@PathVariable agendaId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		agendaService.deleteAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -110,7 +110,7 @@ class AgendaController(
 	@PostMapping("/undelete/{agendaId}")
 	fun undeleteAgenda(
 		@PathVariable agendaId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<AgendaDto> = mono {
 		agendaV2Mapper.map(agendaService.undeleteAgenda(agendaId, rev))
 	}
@@ -118,7 +118,7 @@ class AgendaController(
 	@DeleteMapping("/purge/{agendaId}")
 	fun purgeAgenda(
 		@PathVariable agendaId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		agendaService.purgeAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
 	}

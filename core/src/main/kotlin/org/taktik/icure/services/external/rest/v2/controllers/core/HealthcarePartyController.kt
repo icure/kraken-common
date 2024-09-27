@@ -293,7 +293,7 @@ class HealthcarePartyController(
     @DeleteMapping("/{healthcarePartyId}")
     fun deleteHealthcareParty(
         @PathVariable healthcarePartyId: String,
-        @Parameter(required = false) rev: String? = null
+        @RequestParam(required = false) rev: String? = null
     ): Mono<DocIdentifierDto> = mono {
         healthcarePartyService.deleteHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
     }
@@ -301,7 +301,7 @@ class HealthcarePartyController(
     @PostMapping("/undelete/{healthcarePartyId}")
     fun undeleteHealthcareParty(
         @PathVariable healthcarePartyId: String,
-        @Parameter(required=true) rev: String
+        @RequestParam(required=true) rev: String
     ): Mono<HealthcarePartyDto> = mono {
         healthcarePartyV2Mapper.map(healthcarePartyService.undeleteHealthcareParty(healthcarePartyId, rev))
     }
@@ -309,7 +309,7 @@ class HealthcarePartyController(
     @DeleteMapping("/purge/{healthcarePartyId}")
     fun purgeHealthcareParty(
         @PathVariable healthcarePartyId: String,
-        @Parameter(required=true) rev: String
+        @RequestParam(required=true) rev: String
     ): Mono<DocIdentifierDto> = mono {
         healthcarePartyService.purgeHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
     }

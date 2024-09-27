@@ -120,7 +120,7 @@ class InvoiceController(
 	@DeleteMapping("/{invoiceId}")
 	fun deleteInvoice(
 		@PathVariable invoiceId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		invoiceService.deleteInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -128,7 +128,7 @@ class InvoiceController(
 	@PostMapping("/undelete/{invoiceId}")
 	fun undeleteInvoice(
 		@PathVariable invoiceId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<InvoiceDto> = mono {
 		invoiceV2Mapper.map(invoiceService.undeleteInvoice(invoiceId, rev))
 	}
@@ -136,7 +136,7 @@ class InvoiceController(
 	@DeleteMapping("/purge/{invoiceId}")
 	fun purgeInvoice(
 		@PathVariable invoiceId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		invoiceService.purgeInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
 	}

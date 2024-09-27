@@ -111,7 +111,7 @@ class MessageController(
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(
 		@PathVariable messageId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		messageService.deleteMessage(messageId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -119,7 +119,7 @@ class MessageController(
 	@PostMapping("/undelete/{messageId}")
 	fun undeleteMessage(
 		@PathVariable messageId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<MessageDto> = mono {
 		messageV2Mapper.map(messageService.undeleteMessage(messageId, rev))
 	}
@@ -127,7 +127,7 @@ class MessageController(
 	@DeleteMapping("/purge/{messageId}")
 	fun purgeMessage(
 		@PathVariable messageId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		messageService.purgeMessage(messageId, rev).let(docIdentifierV2Mapper::map)
 	}

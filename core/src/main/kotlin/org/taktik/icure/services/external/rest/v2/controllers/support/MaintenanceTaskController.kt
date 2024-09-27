@@ -97,7 +97,7 @@ class MaintenanceTaskController(
 	@DeleteMapping("/{maintenanceTaskId}")
 	fun deleteMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		maintenanceTaskService.deleteMaintenanceTask(maintenanceTaskId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -105,7 +105,7 @@ class MaintenanceTaskController(
 	@PostMapping("/undelete/{maintenanceTaskId}")
 	fun undeleteMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<MaintenanceTaskDto> = mono {
 		maintenanceTaskV2Mapper.map(maintenanceTaskService.undeleteMaintenanceTask(maintenanceTaskId, rev))
 	}
@@ -113,7 +113,7 @@ class MaintenanceTaskController(
 	@DeleteMapping("/purge/{maintenanceTaskId}")
 	fun purgeMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		maintenanceTaskService.purgeMaintenanceTask(maintenanceTaskId, rev).let(docIdentifierV2Mapper::map)
 	}

@@ -183,7 +183,7 @@ class FormController(
 	@DeleteMapping("/{formId}")
 	fun deleteForm(
 		@PathVariable formId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		formService.deleteForm(formId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -191,7 +191,7 @@ class FormController(
 	@PostMapping("/undelete/{formId}")
 	fun undeleteForm(
 		@PathVariable formId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<FormDto> = mono {
 		formV2Mapper.map(formService.undeleteForm(formId, rev))
 	}
@@ -199,7 +199,7 @@ class FormController(
 	@DeleteMapping("/purge/{formId}")
 	fun purgeForm(
 		@PathVariable formId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		formService.purgeForm(formId, rev).let(docIdentifierV2Mapper::map)
 	}
