@@ -32,14 +32,6 @@ class FrontEndMigrationLogicImpl(
 		return frontEndMigrationDAO.create(datastoreInformation, frontEndMigration)
 	}
 
-	override suspend fun deleteFrontEndMigration(frontEndMigrationId: String): DocIdentifier? {
-		return try {
-			deleteEntities(setOf(frontEndMigrationId)).firstOrNull()
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
 	override suspend fun getFrontEndMigration(frontEndMigrationId: String): FrontEndMigration? {
 		val datastoreInformation = getInstanceAndGroup()
 		return frontEndMigrationDAO.get(datastoreInformation, frontEndMigrationId)

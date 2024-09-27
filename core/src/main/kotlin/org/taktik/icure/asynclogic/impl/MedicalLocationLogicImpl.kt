@@ -22,9 +22,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class MedicalLocationLogicImpl(
+open class MedicalLocationLogicImpl(
 	private val medicalLocationDAO: MedicalLocationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
@@ -43,14 +41,6 @@ class MedicalLocationLogicImpl(
 			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
 			.toPaginatedFlow<MedicalLocation>(paginationOffset.limit)
 		)
-	}
-
-	override fun deleteMedicalLocations(ids: List<String>): Flow<DocIdentifier> = flow {
-		try {
-			emitAll(deleteEntities(ids))
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
 	}
 
 	override suspend fun getMedicalLocation(medicalLocation: String): MedicalLocation? {

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.EntityTemplateService
 import org.taktik.icure.services.external.rest.v1.dto.EntityTemplateDto
 import org.taktik.icure.services.external.rest.v1.mapper.EntityTemplateMapper
@@ -144,5 +145,5 @@ class EntityTemplateController(
 	@DeleteMapping("/{entityTemplateIds}")
 	@Operation(summary = "Delete entity templates")
 	fun deleteEntityTemplate(@PathVariable("entityTemplateIds") entityTemplateIds: String) =
-		entityTemplateService.deleteEntityTemplates(entityTemplateIds.split(",").toSet()).injectReactorContext()
+		entityTemplateService.deleteEntityTemplates(entityTemplateIds.split(",").toSet().map { IdAndRev(it, null) }).injectReactorContext()
 }

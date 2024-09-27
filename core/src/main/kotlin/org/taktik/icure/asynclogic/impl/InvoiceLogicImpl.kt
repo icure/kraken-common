@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
@@ -77,13 +78,6 @@ open class InvoiceLogicImpl (
 			if(fixedInvoice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val datastoreInformation = getInstanceAndGroup()
 			invoiceDAO.create(datastoreInformation, fixedInvoice)
-		}
-
-	override suspend fun deleteInvoice(invoiceId: String): DocIdentifier? =
-		try {
-			deleteEntities(listOf(invoiceId)).toList().firstOrNull()
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
 		}
 
 	override suspend fun getInvoice(invoiceId: String): Invoice? = getEntity(invoiceId)
@@ -244,7 +238,7 @@ open class InvoiceLogicImpl (
 	override suspend fun mergeInvoices(hcParty: String, invoices: List<Invoice>, destination: Invoice?): Invoice? {
 		if (destination == null) return null
 		for (i in invoices) {
-			deleteInvoice(i.id)
+			deleteEntity(i.id, i.rev)
 		}
 		return modifyInvoice(destination.copy(invoicingCodes = destination.invoicingCodes + invoices.flatMap { it.invoicingCodes }))
 	}
@@ -405,7 +399,7 @@ open class InvoiceLogicImpl (
 					invoiceDAO.save(datastoreInformation, mergedInvoice).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedInvoice.rev) {
-								invoiceDAO.purge(datastoreInformation, it)
+								invoiceDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

@@ -13,9 +13,8 @@ import org.taktik.icure.domain.result.AggregatedAccessLogs
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.pagination.PaginationElement
 
-interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPersister<AccessLog, String> {
+interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPersister<AccessLog> {
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
-	fun deleteAccessLogs(ids: List<String>): Flow<DocIdentifier>
 
 	/**
 	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making
@@ -78,5 +77,4 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	 */
 	fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginationElement>
 	suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int): AggregatedAccessLogs
-	fun deleteAccessLogs(ids: Flow<String>): Flow<DocIdentifier>
 }

@@ -6,7 +6,7 @@ import org.taktik.icure.entities.SecureDelegationKeyMap
 
 interface SecureDelegationKeyMapLogic :
     EntityWithSecureDelegationsLogic<SecureDelegationKeyMap>,
-    EntityPersister<SecureDelegationKeyMap, String> {
+    EntityPersister<SecureDelegationKeyMap> {
     /**
      * Creates a [SecureDelegationKeyMap].
      */

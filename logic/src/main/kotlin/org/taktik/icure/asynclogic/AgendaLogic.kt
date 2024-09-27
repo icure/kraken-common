@@ -10,7 +10,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.pagination.PaginationElement
 
-interface AgendaLogic : EntityPersister<Agenda, String> {
+interface AgendaLogic : EntityPersister<Agenda> {
 
 	/**
 	 * Retrieves all the [Agenda]s in a group in a format for pagination.
@@ -20,7 +20,6 @@ interface AgendaLogic : EntityPersister<Agenda, String> {
 	 */
 	fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	suspend fun createAgenda(agenda: Agenda): Agenda?
-	fun deleteAgendas(ids: Set<String>): Flow<DocIdentifier>
 
 	suspend fun getAgenda(agenda: String): Agenda?
 	suspend fun modifyAgenda(agenda: Agenda): Agenda?

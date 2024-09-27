@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
@@ -163,7 +164,7 @@ class HealthElementController(
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		}
 
-		emitAll(healthElementService.deleteHealthElements(ids.toSet()))
+		emitAll(healthElementService.deleteHealthElements(ids.toSet().map { IdAndRev(it, null) }))
 	}.map(docIdentifierMapper::map)
 		.injectReactorContext()
 

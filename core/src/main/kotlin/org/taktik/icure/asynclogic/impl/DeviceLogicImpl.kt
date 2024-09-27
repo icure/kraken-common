@@ -22,9 +22,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class DeviceLogicImpl(
+open class DeviceLogicImpl(
     datastoreInstanceProvider: DatastoreInstanceProvider,
     private val deviceDAO: DeviceDAO,
     filters: Filters,
@@ -86,24 +84,6 @@ class DeviceLogicImpl(
 	override suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>> {
 		val datastoreInformation = getInstanceAndGroup()
 		return deviceDAO.getAesExchangeKeysForDelegate(datastoreInformation, healthcarePartyId)
-	}
-
-	override fun deleteDevices(ids: Collection<String>): Flow<DocIdentifier> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(deviceDAO.remove(datastoreInformation, getDevices(ids).toList()))
-		}
-
-
-	override fun deleteDevices(ids: Flow<String>): Flow<DocIdentifier> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(deviceDAO.remove(datastoreInformation, getDevices(ids.toList()).toList()))
-		}
-
-
-	override suspend fun deleteDevice(id: String): DocIdentifier? {
-		return deleteEntities(setOf(id)).map { Device(id = it.id!!, rev = it.rev) }.singleOrNull()?.let { DocIdentifier(it.id, it.rev) }
 	}
 
 	override fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent> = flow {

@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,15 +22,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asyncservice.EntityTemplateService
 import org.taktik.icure.services.external.rest.v2.dto.EntityTemplateDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.EntityTemplateV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("entityTemplateControllerV2")
 @Profile("app")
@@ -39,6 +44,7 @@ class EntityTemplateController(
 	private val entityTemplateService: EntityTemplateService,
 	private val entityTemplateV2Mapper: EntityTemplateV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -144,13 +150,42 @@ class EntityTemplateController(
 			.map(entityTemplateV2Mapper::map)
 			.injectReactorContext()
 
-	@Operation(summary = "Delete entity templates")
+	@Operation(summary = "Deletes multiple EntityTemplates")
 	@PostMapping("/delete/batch")
-	fun deleteEntityTemplate(@RequestBody entityTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		entityTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			entityTemplateService.deleteEntityTemplates(ids.toSet())
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+	fun deleteEntityTemplates(@RequestBody entityTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		entityTemplateService.deleteEntityTemplates(
+			entityTemplateIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
+	@Operation(summary = "Deletes a multiple EntityTemplates if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteEntityTemplatesWithRev(@RequestBody entityTemplateIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		entityTemplateService.deleteEntityTemplates(
+			entityTemplateIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+//	@Operation(summary = "Deletes an EntityTemplate")
+//	@DeleteMapping("/{entityTemplateId}")
+//	fun deleteEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required = false) rev: String? = null
+//	): Mono<DocIdentifierDto> = mono {
+//		entityTemplateService.deleteEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
+//	}
+//
+//	@PostMapping("/undelete/{entityTemplateId}")
+//	fun undeleteEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required=true) rev: String
+//	): Mono<EntityTemplateDto> = mono {
+//		entityTemplateV2Mapper.map(entityTemplateService.undeleteEntityTemplate(entityTemplateId, rev))
+//	}
+//
+//	@DeleteMapping("/purge/{entityTemplateId}")
+//	fun purgeEntityTemplate(
+//		@PathVariable entityTemplateId: String,
+//		@Parameter(required=true) rev: String
+//	): Mono<DocIdentifierDto> = mono {
+//		entityTemplateService.purgeEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
+//	}
 }

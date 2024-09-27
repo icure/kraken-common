@@ -10,9 +10,8 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginationElement
 
-interface MedicalLocationLogic : EntityPersister<MedicalLocation, String> {
+interface MedicalLocationLogic : EntityPersister<MedicalLocation> {
 	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation?
-	fun deleteMedicalLocations(ids: List<String>): Flow<DocIdentifier>
 	suspend fun getMedicalLocation(medicalLocation: String): MedicalLocation?
 	suspend fun modifyMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation?
 	fun findMedicalLocationByPostCode(postCode: String): Flow<MedicalLocation>

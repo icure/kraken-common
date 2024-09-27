@@ -35,13 +35,6 @@ class InsuranceLogicImpl(
 			insuranceDAO.create(datastoreInformation, fixedInsurance)
 		}
 
-	override suspend fun deleteInsurance(insuranceId: String): DocIdentifier? =
-		try {
-			deleteEntities(listOf(insuranceId)).toList().firstOrNull()
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-
 	override suspend fun getInsurance(insuranceId: String): Insurance? {
 		val datastoreInformation = getInstanceAndGroup()
 		return insuranceDAO.get(datastoreInformation, insuranceId)

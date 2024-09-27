@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.AccessLogService
@@ -369,7 +370,7 @@ class PatientController(
 	fun deletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return patientService.deletePatients(ids.toSet())
+		return patientService.deletePatients(ids.toSet().map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 	}
@@ -403,8 +404,8 @@ class PatientController(
 	fun undeletePatient(@PathVariable patientIds: String): Flux<DocIdentifierDto> {
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return patientService.undeletePatients(HashSet(ids))
-			.map(docIdentifierMapper::map)
+		return patientService.undeletePatients(ids.toSet().map { IdAndRev(it, null) })
+			.map { DocIdentifierDto(it.id, it.rev) }
 			.injectReactorContext()
 	}
 

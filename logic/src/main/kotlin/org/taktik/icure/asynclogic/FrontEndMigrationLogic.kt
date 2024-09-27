@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.entities.FrontEndMigration
 
-interface FrontEndMigrationLogic : EntityPersister<FrontEndMigration, String> {
+interface FrontEndMigrationLogic : EntityPersister<FrontEndMigration> {
 	suspend fun createFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration?
-	suspend fun deleteFrontEndMigration(frontEndMigrationId: String): DocIdentifier?
 
 	suspend fun getFrontEndMigration(frontEndMigrationId: String): FrontEndMigration?
 	fun getFrontEndMigrationByUserIdName(userId: String, name: String?): Flow<FrontEndMigration>

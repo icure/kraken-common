@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -24,17 +25,20 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ClassificationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -44,6 +48,7 @@ import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("classificationControllerV2")
 @Profile("app")
@@ -57,7 +62,8 @@ class ClassificationController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val filterV2Mapper: FilterV2Mapper
+	private val filterV2Mapper: FilterV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -117,20 +123,43 @@ class ClassificationController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "Delete a batch of classifications", description = "Response is a set containing the ID's of deleted classifications.")
+	@Operation(summary = "Deletes multiple Classifications")
 	@PostMapping("/delete/batch")
 	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		classificationIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			classificationService.deleteClassifications(ids.toSet())
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		classificationService.deleteClassifications(
+			classificationIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Delete a classifications", description = "Deletes a classification and returns its id.")
+	@Operation(summary = "Deletes a multiple Classifications if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteClassificationsWithRev(@RequestBody classificationIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		classificationService.deleteClassifications(
+			classificationIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Classification")
 	@DeleteMapping("/{classificationId}")
-	fun deleteClassification(@PathVariable classificationId: String) = mono {
-		classificationService.deleteClassification(classificationId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteClassification(
+		@PathVariable classificationId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		classificationService.deleteClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{classificationId}")
+	fun undeleteClassification(
+		@PathVariable classificationId: String,
+		@Parameter(required=true) rev: String
+	): Mono<ClassificationDto> = mono {
+		classificationV2Mapper.map(classificationService.undeleteClassification(classificationId, rev))
+	}
+
+	@DeleteMapping("/purge/{classificationId}")
+	fun purgeClassification(
+		@PathVariable classificationId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		classificationService.purgeClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

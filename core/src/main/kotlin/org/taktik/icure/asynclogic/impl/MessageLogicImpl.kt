@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -251,7 +252,7 @@ open class MessageLogicImpl(
 					messageDAO.save(datastoreInformation, mergedMessage).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedMessage.rev) {
-								messageDAO.purge(datastoreInformation, it)
+								messageDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

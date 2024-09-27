@@ -43,23 +43,6 @@ class ArticleLogicImpl(
 		articleDAO.create(datastoreInformation, fixedArticle)
 	}
 
-
-	override fun deleteArticles(ids: List<String>): Flow<DocIdentifier> =flow {
-		try {
-			emitAll(deleteEntities(ids))
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
-	override fun deleteArticles(ids: Flow<String>): Flow<DocIdentifier> =flow {
-		try {
-			emitAll(deleteEntities(ids))
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
 	override suspend fun getArticle(articleId: String): Article? = getEntity(articleId)
 
 	override suspend fun modifyArticle(article: Article) =

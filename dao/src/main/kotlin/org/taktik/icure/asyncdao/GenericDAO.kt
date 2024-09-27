@@ -121,16 +121,6 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T>
 
 	/**
-	 * Soft-deletes an entity by setting its deletionDate field and saving it to the database. If a cache is present,
-	 * then the entity is removed from all the levels of the cache.
-	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to delete.
-	 * @return a [DocIdentifier] related to the deleted entity.
-	 */
-	suspend fun remove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier
-
-	/**
 	 * Soft-deletes a collection of entities by setting their deletionDate field and saving them to the database. If a
 	 * cache is present, then the entities are removed from all the levels of the cache.
 	 *
@@ -138,7 +128,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param entities a [Collection] of entities to soft-delete.
 	 * @return a [Flow] of [DocIdentifier] related to the deleted entities.
 	 */
-	fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<DocIdentifier>
+	fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>>
 
 	/**
 	 * Hard-deletes an entity. If a cache is present, then the entity is removed from all the levels of the cache.
@@ -147,7 +137,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param entity the entity to delete.
 	 * @return a [DocIdentifier] related to the deleted entity.
 	 */
-	suspend fun purge(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier
+	fun purge(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>>
 
 	/**
 	 * Reverts the soft-deleting of a collection of entities by setting their deletionDate field to null and saving
@@ -157,17 +147,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param entities a [Collection] of entities to undelete.
 	 * @return a [Flow] of [DocIdentifier] related to the undeleted entities.
 	 */
-	fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<DocIdentifier>
-
-	/**
-	 * Reverts the soft-deleting of an entity by setting its deletionDate field to null and saving it to the database.
-	 * If a cache is present, then the entity is also removed form all the level of the cache.
-	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to undelete.
-	 * @return a [DocIdentifier] related to the undeleted entity.
-	 */
-	suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier
+	fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
 
 	/**
 	 * Creates or updates the view design documents for this entity type.

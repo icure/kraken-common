@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
@@ -96,7 +97,7 @@ class DocumentController(
 	@DeleteMapping("/{documentIds}")
 	fun deleteDocument(@PathVariable documentIds: String) = flow {
 		val documentIdsList = documentIds.split(',')
-		emitAll(documentService.deleteDocuments(documentIdsList))
+		emitAll(documentService.deleteDocuments(documentIdsList.map { IdAndRev(it, null) }))
 	}.injectReactorContext()
 
 	@Operation(summary = "Load a document's main attachment", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])

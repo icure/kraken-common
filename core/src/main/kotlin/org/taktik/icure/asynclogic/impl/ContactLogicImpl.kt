@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -313,7 +314,7 @@ open class ContactLogicImpl(
 					contactDAO.save(datastoreInformation, mergedContact).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedContact.rev) {
-								contactDAO.purge(datastoreInformation, it)
+								contactDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}

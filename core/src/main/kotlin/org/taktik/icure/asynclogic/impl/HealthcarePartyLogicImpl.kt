@@ -28,9 +28,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class HealthcarePartyLogicImpl(
+open class HealthcarePartyLogicImpl(
     filters: Filters,
     private val healthcarePartyDAO: HealthcarePartyDAO,
     datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
@@ -74,18 +72,6 @@ class HealthcarePartyLogicImpl(
 				throw MissingRequirementsException("modifyHealthcareParty: one of Name or Last name, Nihii or  Ssin are required.")
 			}
 			modifyEntities(setOf(fixedHealthcareParty)).firstOrNull()
-		}
-
-	override fun deleteHealthcareParties(healthcarePartyIds: List<String>): Flow<DocIdentifier> =
-		flow {
-			try {
-				emitAll(
-					deleteEntities(healthcarePartyIds)
-				)
-			} catch (e: Exception) {
-				log.error(e.message, e)
-				throw DeletionException("The healthcare party (" + healthcarePartyIds + ") not found or " + e.message, e)
-			}
 		}
 
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) =

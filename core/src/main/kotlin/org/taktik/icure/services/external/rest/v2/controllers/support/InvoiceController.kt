@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.InvoiceService
@@ -42,7 +43,9 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoiceTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoicingCodeDto
@@ -51,8 +54,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -64,6 +69,7 @@ import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("invoiceControllerV2")
 @Profile("app")
@@ -82,7 +88,9 @@ class InvoiceController(
 	private val bulkShareResultV2Mapper: InvoiceBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
 
 	@Operation(summary = "Creates an invoice")
@@ -93,10 +101,44 @@ class InvoiceController(
 		invoiceV2Mapper.map(invoice)
 	}
 
-	@Operation(summary = "Deletes an invoice")
+
+	@Operation(summary = "Deletes multiple Invoices")
+	@PostMapping("/delete/batch")
+	fun deleteInvoices(@RequestBody invoiceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		invoiceService.deleteInvoices(
+			invoiceIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes a multiple Invoices if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteInvoicesWithRev(@RequestBody invoiceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		invoiceService.deleteInvoices(
+			invoiceIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Invoice")
 	@DeleteMapping("/{invoiceId}")
-	fun deleteInvoice(@PathVariable invoiceId: String) = mono {
-		invoiceService.deleteInvoice(invoiceId) ?: throw NotFoundRequestException("Insurance not found")
+	fun deleteInvoice(
+		@PathVariable invoiceId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		invoiceService.deleteInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{invoiceId}")
+	fun undeleteInvoice(
+		@PathVariable invoiceId: String,
+		@Parameter(required=true) rev: String
+	): Mono<InvoiceDto> = mono {
+		invoiceV2Mapper.map(invoiceService.undeleteInvoice(invoiceId, rev))
+	}
+
+	@DeleteMapping("/purge/{invoiceId}")
+	fun purgeInvoice(
+		@PathVariable invoiceId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		invoiceService.purgeInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an invoice")

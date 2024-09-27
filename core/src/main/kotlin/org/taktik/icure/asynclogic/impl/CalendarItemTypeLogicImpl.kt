@@ -45,14 +45,6 @@ class CalendarItemTypeLogicImpl(
 			calendarItemTypeDAO.create(datastoreInformation, fixedCalendarItemType)
 		}
 
-	override fun deleteCalendarItemTypes(ids: List<String>): Flow<DocIdentifier> =
-		try {
-			deleteEntities(ids)
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-
-
 	override suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?  {
 		val datastoreInformation = getInstanceAndGroup()
 		return calendarItemTypeDAO.get(datastoreInformation, calendarItemTypeId)

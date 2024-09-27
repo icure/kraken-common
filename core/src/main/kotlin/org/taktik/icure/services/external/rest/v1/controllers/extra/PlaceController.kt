@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.PlaceService
 import org.taktik.icure.services.external.rest.v1.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v1.mapper.PlaceMapper
@@ -44,7 +45,7 @@ class PlaceController(
 
 	@Operation(summary = "Deletes a place")
 	@DeleteMapping("/{placeIds}")
-	fun deletePlace(@PathVariable placeIds: String) = placeService.deletePlace(placeIds.split(',')).injectReactorContext()
+	fun deletePlace(@PathVariable placeIds: String) = placeService.deletePlaces(placeIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
 
 	@Operation(summary = "Gets a place")
 	@GetMapping("/{placeId}")

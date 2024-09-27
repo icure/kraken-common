@@ -14,7 +14,7 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
-interface DocumentLogic : EntityPersister<Document, String>, EntityWithSecureDelegationsLogic<Document> {
+interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegationsLogic<Document> {
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws

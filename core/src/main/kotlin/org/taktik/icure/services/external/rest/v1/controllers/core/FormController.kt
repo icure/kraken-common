@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
@@ -170,7 +171,7 @@ class FormController(
 		if (formIds.isEmpty()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "formIds was empty")
 		}
-		return formService.deleteForms(formIds.split(',').toSet())
+		return formService.deleteForms(formIds.split(',').toSet().map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 	}

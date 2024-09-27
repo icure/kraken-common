@@ -6,14 +6,14 @@ import org.taktik.couchdb.BulkUpdateResult
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.exceptions.ConflictRequestException
 
-sealed interface BulkSaveResult<out T: Identifiable<String>> {
+sealed interface BulkSaveResult<out T> {
     /**
      * Get the entity if the save was successful, else throw an exception.
      * The thrown exception will cause the appropriate response to the end user on the GlobalErrorHandler.
      */
     fun entityOrThrow(): T
 
-    data class Success<T : Identifiable<String>>(val entity: T): BulkSaveResult<T> {
+    data class Success<T>(val entity: T): BulkSaveResult<T> {
         override fun entityOrThrow(): T = entity
     }
 
@@ -31,7 +31,12 @@ sealed interface BulkSaveResult<out T: Identifiable<String>> {
     }
 }
 
-fun <T: Identifiable<String>> Flow<BulkSaveResult<T>>.filterSuccessfulUpdates(): Flow<T> =
+fun <T : Any> BulkSaveResult<T>.entityOrNull(): T? = when (this) {
+    is BulkSaveResult.Failure -> null
+    is BulkSaveResult.Success -> entity
+}
+
+fun <T> Flow<BulkSaveResult<T>>.filterSuccessfulUpdates(): Flow<T> =
     mapNotNull { (it as? BulkSaveResult.Success<T>)?.entity }
 
 /**

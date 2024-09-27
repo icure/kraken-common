@@ -14,7 +14,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 
-interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWithSecureDelegationsLogic<HealthElement> {
+interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureDelegationsLogic<HealthElement> {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
 
@@ -48,7 +48,6 @@ interface HealthElementLogic : EntityPersister<HealthElement, String>, EntityWit
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
-	fun deleteHealthElements(ids: Set<String>): Flow<DocIdentifier>
 
 	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement?
 

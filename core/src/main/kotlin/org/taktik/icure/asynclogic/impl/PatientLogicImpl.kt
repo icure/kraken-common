@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -447,7 +448,7 @@ open class PatientLogicImpl(
 					patientDAO.save(datastoreInformation, mergedPatient).also {
 						toBePurged.forEach {
 							if (it.rev != null && it.rev != mergedPatient.rev) {
-								patientDAO.purge(datastoreInformation, it)
+								patientDAO.purge(datastoreInformation, listOf(it)).single()
 							}
 						}
 					}
@@ -534,8 +535,6 @@ open class PatientLogicImpl(
 		}
 	}
 
-	override fun deletePatients(ids: Set<String>) = deleteEntities(ids)
-
 	override fun findDeletedPatientsByDeleteDate(start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO
@@ -547,10 +546,6 @@ open class PatientLogicImpl(
 	override fun listDeletedPatientsByNames(firstName: String?, lastName: String?) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.findDeletedPatientsByNames(datastoreInformation, firstName, lastName))
-	}
-
-	override fun undeletePatients(ids: Set<String>) = flow {
-		emitAll(undeleteByIds(ids))
 	}
 
 	override fun getGenericDAO(): PatientDAO {

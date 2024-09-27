@@ -9,7 +9,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 import org.taktik.icure.pagination.PaginationElement
 
-interface DocumentTemplateLogic : EntityPersister<DocumentTemplate, String> {
+interface DocumentTemplateLogic : EntityPersister<DocumentTemplate> {
 	suspend fun createDocumentTemplate(entity: DocumentTemplate): DocumentTemplate
 
 	suspend fun getDocumentTemplate(documentTemplateId: String): DocumentTemplate?

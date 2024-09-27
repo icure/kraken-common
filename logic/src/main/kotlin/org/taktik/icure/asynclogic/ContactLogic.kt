@@ -18,7 +18,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.pagination.PaginationElement
 
-interface ContactLogic : EntityPersister<Contact, String>, EntityWithSecureDelegationsLogic<Contact> {
+interface ContactLogic : EntityPersister<Contact>, EntityWithSecureDelegationsLogic<Contact> {
     suspend fun getContact(id: String): Contact?
     fun getContacts(selectedIds: Collection<String>): Flow<Contact>
     fun findContactsByIds(selectedIds: Collection<String>): Flow<ViewQueryResultEvent>

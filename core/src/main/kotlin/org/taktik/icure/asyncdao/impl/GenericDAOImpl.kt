@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
+import org.taktik.couchdb.BulkUpdateResult
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -32,6 +33,7 @@ import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.entity.ViewQuery
@@ -271,6 +273,17 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	/**
+	 * This operation is performed before deleting an entity to the database. There is no after purge because
+	 * if purge is successful the entity is completely destroyed.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param entity the entity that is about to be deleted.
+	 * @return the entity after the operation.
+	 */
+	protected open suspend fun beforePurge(datastoreInformation: IDatastoreInformation, entity: T): T {
+		return entity
+	}
+
+	/**
 	 * This operation is performed before undeleting an entity on the database.
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param entity the entity that is about to be undeleted.
@@ -300,96 +313,77 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return entity
 	}
 
-	@Suppress("UNCHECKED_CAST")
-	override suspend fun remove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
+	override fun purge(
+		datastoreInformation: IDatastoreInformation,
+		entities: Collection<T>
+	): Flow<BulkSaveResult<DocIdentifier>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".remove: " + entity)
-		}
-		val deleted = afterDelete(
-			datastoreInformation,
-			client.update(beforeDelete(datastoreInformation, entity).withDeletionDate(deletionDate = System.currentTimeMillis()) as T, entityClass)
-		)
-		cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
-		return DocIdentifier(deleted.id, deleted.rev)
-	}
-
-	@Suppress("UNCHECKED_CAST")
-	override suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".remove: " + entity)
-		}
-		// Before remove
-		return beforeUnDelete(datastoreInformation, entity).let { e ->
-			val undeleted = client.update(e.withDeletionDate(null) as T, entityClass).let {
-				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-				afterUnDelete(datastoreInformation, it)
-			}
-
-			DocIdentifier(undeleted.id, undeleted.rev)
-		}
-	}
-
-	override suspend fun purge(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".remove: " + entity)
+			log.debug(entityClass.simpleName + ".remove: " + entities)
 		}
 		// Delete
-		val purged = client.delete(beforeDelete(datastoreInformation, entity))
-		// After remove
-		cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
-		afterDelete(datastoreInformation, entity)
-		return purged
+		val purged = client.bulkDelete(entities.map { beforePurge(datastoreInformation, it) }).toSaveResult { id, rev ->
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(id))
+			DocIdentifier(id, rev)
+		}
+		emitAll(purged)
+	}
+
+	private fun <T> Flow<BulkUpdateResult>.toSaveResult(
+		mapSuccess: suspend (id: String, rev: String) -> T
+	): Flow<BulkSaveResult<T>> =
+		map { r ->
+			if (r.ok == true) {
+				BulkSaveResult.Success(mapSuccess(r.id, r.rev!!))
+			} else r.toBulkSaveResultFailure()
+				?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
+		}
+
+	@Suppress("UNCHECKED_CAST")
+	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		if (log.isDebugEnabled) {
+			log.debug("Deleted $entities")
+		}
+		val toBeDeletedEntities = entities.map { entity ->
+			beforeDelete(datastoreInformation, entity).let {
+				it.withDeletionDate(System.currentTimeMillis()) as T
+			}
+		}
+		val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
+			toBeDeletedEntities.firstOrNull { e -> id == e.id }?.let {
+				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+				afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
+			}
+			DocIdentifier(id, rev)
+		}
+		emitAll(bulkUpdateResults)
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
+	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
-			log.debug("remove $entities")
+			log.debug("Undeleted $entities")
 		}
 		try {
-			val toBeDeletedEntities = entities.map { entity ->
-				beforeDelete(datastoreInformation, entity).let {
-					it.withDeletionDate(System.currentTimeMillis()) as T
+			val fixedEntitiesById = entities.map { entity ->
+				beforeUnDelete(datastoreInformation, entity).let {
+					it.withDeletionDate(null) as T
 				}
-			}
-			val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).map { r ->
-				toBeDeletedEntities.firstOrNull { e -> r.id == e.id }?.let {
-					cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-					afterDelete(datastoreInformation, it.withIdRev(rev = r.rev!!) as T)
-				}
-				DocIdentifier(r.id, r.rev)
+			}.associateBy { it.id }
+			val bulkUpdateResults = client.bulkUpdate(
+				fixedEntitiesById.values,
+				entityClass
+			).toSaveResult { id, rev ->
+				val fixedEntityWithNewRev = afterUnDelete(
+					datastoreInformation,
+					fixedEntitiesById.getValue(id).withIdRev(rev = rev) as T
+				)
+				cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), fixedEntityWithNewRev)
+				fixedEntityWithNewRev
 			}
 			emitAll(bulkUpdateResults)
-		} catch (e: Exception) {
-			if (e !is CancellationException) throw PersistenceException("failed to remove entities ", e)
-		}
-	}
-
-	@Suppress("UNCHECKED_CAST")
-	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		if (log.isDebugEnabled) {
-			log.debug("remove $entities")
-		}
-		try {
-			val bulkUpdateResults = client.bulkUpdate(
-				entities.map { entity ->
-					beforeUnDelete(datastoreInformation, entity).let {
-						it.withDeletionDate(null) as T
-					}
-				},
-				entityClass
-			).onEach { r ->
-				entities.firstOrNull { e -> r.id == e.id }?.let {
-					cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-					afterUnDelete(datastoreInformation, it)
-				}
-			}
-			emitAll(bulkUpdateResults.map { DocIdentifier(it.id, it.rev) })
 		} catch (e: Exception) {
 			throw PersistenceException("failed to remove entities ", e)
 		}

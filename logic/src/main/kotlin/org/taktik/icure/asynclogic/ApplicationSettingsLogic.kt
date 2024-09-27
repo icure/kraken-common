@@ -6,7 +6,7 @@ package org.taktik.icure.asynclogic
 
 import org.taktik.icure.entities.ApplicationSettings
 
-interface ApplicationSettingsLogic : EntityPersister<ApplicationSettings, String> {
+interface ApplicationSettingsLogic : EntityPersister<ApplicationSettings> {
 	suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
 	suspend fun modifyApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
 }

@@ -137,7 +137,7 @@ class UserController (
 	@Operation(summary = "Delete a User based on his/her ID.", description = "Delete a User based on his/her ID. The return value is an array containing the ID of deleted user.")
 	@DeleteMapping("/{userId}")
 	fun deleteUser(@PathVariable userId: String) = mono {
-		userService.deleteUser(userId)
+		userService.deleteUser(userId, null)
 	}
 
 	@Operation(summary = "Modify a user.", description = "No particular return value. It's just a message.")

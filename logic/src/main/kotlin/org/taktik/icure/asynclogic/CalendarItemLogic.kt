@@ -12,10 +12,8 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.pagination.PaginationElement
 
-interface CalendarItemLogic : EntityPersister<CalendarItem, String>, EntityWithSecureDelegationsLogic<CalendarItem> {
+interface CalendarItemLogic : EntityPersister<CalendarItem>, EntityWithSecureDelegationsLogic<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
-	fun deleteCalendarItems(ids: List<String>): Flow<DocIdentifier>
-	fun deleteCalendarItems(ids: Flow<String>): Flow<DocIdentifier>
 	suspend fun getCalendarItem(calendarItemId: String): CalendarItem?
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
 

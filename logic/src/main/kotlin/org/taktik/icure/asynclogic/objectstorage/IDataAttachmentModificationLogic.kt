@@ -43,6 +43,12 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
      */
     suspend fun updateAttachments(currEntity: T, changes: Map<String, DataAttachmentChange>): T?
 
+    /**
+     * Delete the attachments of an entity that was purged.
+     * Pass the last known value of the entity before it was purged from couchdb to delete any attachments that were
+     * stored in object storage.
+     */
+    suspend fun cleanupPurgedEntityAttachments(purgedEntity: T)
 }
 
 interface DocumentDataAttachmentModificationLogic : DataAttachmentModificationLogic<Document>

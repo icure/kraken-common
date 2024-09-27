@@ -14,7 +14,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserLogic : EntityPersister<User, String> {
+interface UserLogic : EntityPersister<User> {
 
 	companion object {
 		fun formatLogin(login: String) = login.trim { it <= ' ' }
@@ -84,12 +84,4 @@ interface UserLogic : EntityPersister<User, String> {
 	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	// endregion
-
-	// region delete
-
-	suspend fun deleteUser(userId: String): DocIdentifier?
-	suspend fun undeleteUser(userId: String)
-
-	// endregion
-
 }

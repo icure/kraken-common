@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
@@ -49,6 +50,7 @@ import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -56,6 +58,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
@@ -78,6 +81,7 @@ class DocumentController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -94,20 +98,43 @@ class DocumentController(
 		documentV2Mapper.map(createdDocument)
 	}
 
-	@Operation(summary = "Deletes documents")
+	@Operation(summary = "Deletes multiple Documents")
 	@PostMapping("/delete/batch")
 	fun deleteDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		documentIds.ids.takeIf { it.isNotEmpty() }?.let {
-			documentService.deleteDocuments(it)
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		documentService.deleteDocuments(
+			documentIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a document")
+	@Operation(summary = "Deletes a multiple Documents if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteDocumentsWithRev(@RequestBody documentIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		documentService.deleteDocuments(
+			documentIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Document")
 	@DeleteMapping("/{documentId}")
-	fun deleteDocument(@PathVariable documentId: String): Mono<DocIdentifierDto> = mono {
-		documentService.deleteDocument(documentId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteDocument(
+		@PathVariable documentId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		documentService.deleteDocument(documentId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{documentId}")
+	fun undeleteDocument(
+		@PathVariable documentId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocumentDto> = mono {
+		documentV2Mapper.map(documentService.undeleteDocument(documentId, rev))
+	}
+
+	@DeleteMapping("/purge/{documentId}")
+	fun purgeDocument(
+		@PathVariable documentId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		documentService.purgeDocument(documentId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Load the main attachment of a document", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])

@@ -10,9 +10,8 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
 import org.taktik.icure.pagination.PaginationElement
 
-interface PlaceLogic : EntityPersister<Place, String> {
+interface PlaceLogic : EntityPersister<Place> {
 	suspend fun createPlace(place: Place): Place?
-	fun deletePlace(ids: List<String>): Flow<DocIdentifier>
 
 	suspend fun getPlace(place: String): Place?
 	suspend fun modifyPlace(place: Place): Place?

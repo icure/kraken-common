@@ -6,6 +6,6 @@ package org.taktik.icure.asynclogic
 
 import org.taktik.icure.entities.EntityReference
 
-interface EntityReferenceLogic : EntityPersister<EntityReference, String> {
+interface EntityReferenceLogic : EntityPersister<EntityReference> {
 	suspend fun getLatest(prefix: String): EntityReference?
 }

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.AccessLogService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -64,7 +65,7 @@ class AccessLogController(
 	@Operation(summary = "Delete access logs by batch")
 	@DeleteMapping("/{accessLogIds}")
 	fun deleteAccessLog(@PathVariable accessLogIds: String): Flux<DocIdentifierDto> {
-		return accessLogService.deleteAccessLogs(accessLogIds.split(','))
+		return accessLogService.deleteAccessLogs(accessLogIds.split(',').map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 	}

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.AccessLogService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -35,12 +36,14 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.AccessLogV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.AccessLogBulkShareResultV2Mapper
@@ -65,7 +68,8 @@ class AccessLogController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
-	private val filterV2Mapper: FilterV2Mapper
+	private val filterV2Mapper: FilterV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
 
 	@Operation(summary = "Creates an access log")
@@ -76,15 +80,43 @@ class AccessLogController(
 		accessLogV2Mapper.map(accessLog)
 	}
 
-	@Operation(summary = "Deletes a multiple access logs")
+	@Operation(summary = "Deletes multiple access logs")
 	@PostMapping("/delete/batch")
 	fun deleteAccessLogs(@RequestBody accessLogIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-			accessLogService.deleteAccessLogs(accessLogIds.ids).map(docIdentifierV2Mapper::map).injectReactorContext()
+		accessLogService.deleteAccessLogs(
+			accessLogIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes multiple access log if they match the provided rev")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteAccessLogsWithRev(@RequestBody accessLogIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		accessLogService.deleteAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes an Access Log")
 	@DeleteMapping("/{accessLogId}")
-	fun deleteAccessLog(@PathVariable accessLogId: String): Mono<DocIdentifierDto> = mono {
-		accessLogService.deleteAccessLog(accessLogId).let(docIdentifierV2Mapper::map)
+	fun deleteAccessLog(
+		@PathVariable accessLogId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		accessLogService.deleteAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{accessLogId}")
+	fun undeleteAccessLog(
+		@PathVariable accessLogId: String,
+		@Parameter(required=true) rev: String
+	): Mono<AccessLogDto> = mono {
+		accessLogV2Mapper.map(accessLogService.undeleteAccessLog(accessLogId, rev))
+	}
+
+	@DeleteMapping("/purge/{accessLogId}")
+	fun purgeAccessLog(
+		@PathVariable accessLogId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		accessLogService.purgeAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an access log")

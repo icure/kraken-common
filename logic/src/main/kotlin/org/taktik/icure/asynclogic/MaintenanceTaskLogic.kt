@@ -12,9 +12,8 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.MaintenanceTask
 
-interface MaintenanceTaskLogic : EntityPersister<MaintenanceTask, String>, EntityWithSecureDelegationsLogic<MaintenanceTask> {
+interface MaintenanceTaskLogic : EntityPersister<MaintenanceTask>, EntityWithSecureDelegationsLogic<MaintenanceTask> {
 	suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask?
-	fun deleteMaintenanceTasks(maintenanceTaskToDeletes: Collection<MaintenanceTask>): Flow<DocIdentifier>
 
 	/**
 	 * Retrieves all the [MaintenanceTask]s from the database that match the provided [FilterChain], using the provided

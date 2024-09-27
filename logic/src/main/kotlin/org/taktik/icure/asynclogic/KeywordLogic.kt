@@ -10,11 +10,10 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
 
-interface KeywordLogic : EntityPersister<Keyword, String> {
+interface KeywordLogic : EntityPersister<Keyword> {
 	suspend fun createKeyword(keyword: Keyword): Keyword?
 
 	suspend fun getKeyword(keywordId: String): Keyword?
-	fun deleteKeywords(ids: Set<String>): Flow<DocIdentifier>
 
 	suspend fun modifyKeyword(keyword: Keyword): Keyword?
 	fun getKeywordsByUser(userId: String): Flow<Keyword>

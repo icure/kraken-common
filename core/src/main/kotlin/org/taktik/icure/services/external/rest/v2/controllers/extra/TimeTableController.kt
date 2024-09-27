@@ -25,17 +25,20 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.TimeTableService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.TimeTableV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -45,6 +48,7 @@ import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.*
 
 @RestController("timeTableControllerV2")
@@ -58,6 +62,7 @@ class TimeTableController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -70,20 +75,44 @@ class TimeTableController(
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
 		}
 
-	@Operation(summary = "Deletes a batch of TimeTables")
+
+	@Operation(summary = "Deletes multiple TimeTables")
 	@PostMapping("/delete/batch")
 	fun deleteTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		timeTableIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			timeTableService.deleteTimeTables(ids)
-				.map(docIdentifierV2Mapper::map)
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		timeTableService.deleteTimeTables(
+			timeTableIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
 
-	@Operation(summary = "Deletes a TimeTable")
+	@Operation(summary = "Deletes a multiple TimeTables if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteTimeTablesWithRev(@RequestBody timeTableIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		timeTableService.deleteTimeTables(
+			timeTableIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an TimeTable")
 	@DeleteMapping("/{timeTableId}")
-	fun deleteTimeTable(@PathVariable timeTableId: String) = mono {
-		timeTableService.deleteTimeTable(timeTableId)
-			.let(docIdentifierV2Mapper::map)
+	fun deleteTimeTable(
+		@PathVariable timeTableId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		timeTableService.deleteTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/{timeTableId}")
+	fun undeleteTimeTable(
+		@PathVariable timeTableId: String,
+		@Parameter(required=true) rev: String
+	): Mono<TimeTableDto> = mono {
+		timeTableV2Mapper.map(timeTableService.undeleteTimeTable(timeTableId, rev))
+	}
+
+	@DeleteMapping("/purge/{timeTableId}")
+	fun purgeTimeTable(
+		@PathVariable timeTableId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		timeTableService.purgeTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a timeTable")

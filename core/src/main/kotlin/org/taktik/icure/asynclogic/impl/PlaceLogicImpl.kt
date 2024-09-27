@@ -37,14 +37,6 @@ class PlaceLogicImpl(
 		placeDAO.create(datastoreInformation, fixedPlace)
 	}
 
-	override fun deletePlace(ids: List<String>): Flow<DocIdentifier> = flow {
-		try {
-			emitAll(deleteEntities(ids))
-		} catch (e: Exception) {
-			throw DeletionException(e.message, e)
-		}
-	}
-
 	override suspend fun getPlace(place: String): Place? {
 		val datastoreInformation = getInstanceAndGroup()
 		return placeDAO.get(datastoreInformation, place)

@@ -253,6 +253,14 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		class DeleteCouchDb(val attachmentId: String) : AttachmentTask
 		class DeleteObjectStorage(val attachmentId: String) : AttachmentTask
 	}
+
+	override suspend fun cleanupPurgedEntityAttachments(purgedEntity: T) {
+		purgedEntity.dataAttachments.values.forEach { attachment ->
+			attachment.objectStoreAttachmentId?.also {
+				icureObjectStorage.scheduleDeleteAttachment(purgedEntity, it)
+			}
+		}
+	}
 }
 
 @Service("documentDataAttachmentModificationLogic")

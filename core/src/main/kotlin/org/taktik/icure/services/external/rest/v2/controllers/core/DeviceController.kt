@@ -21,12 +21,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -34,6 +36,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -54,6 +57,7 @@ class DeviceController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper
 ) {
 	companion object {
@@ -135,19 +139,43 @@ class DeviceController(
 		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
 
-	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
+
+	@Operation(summary = "Deletes multiple Devices")
+	@PostMapping("/delete/batch")
+	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
+		deviceService.deleteDevices(
+			deviceIds.ids.map { IdAndRev(it, null) }
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes a multiple Devices if they match the provided revs")
+	@PostMapping("/delete/batch/withrev")
+	fun deleteDevicesWithRev(@RequestBody deviceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
+		deviceService.deleteDevices(
+			deviceIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes an Device")
 	@DeleteMapping("/{deviceId}")
-	fun deleteDevice(@PathVariable deviceId: String) = mono {
-		deviceService.deleteDevice(deviceId) ?: throw NotFoundRequestException("Device not found")
+	fun deleteDevice(
+		@PathVariable deviceId: String,
+		@Parameter(required = false) rev: String? = null
+	): Mono<DocIdentifierDto> = mono {
+		deviceService.deleteDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Delete devices.", description = "Response is an array containing the id/rev of deleted devices.")
-	@PostMapping("/delete/batch")
-	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> {
-		return try {
-			deviceService.deleteDevices(deviceIds.ids.toSet()).map(docIdentifierV2Mapper::map).injectReactorContext()
-		} catch (e: Exception) {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Devices deletion failed").also { log.error(it.message) }
-		}
+	@PostMapping("/undelete/{deviceId}")
+	fun undeleteDevice(
+		@PathVariable deviceId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DeviceDto> = mono {
+		deviceV2Mapper.map(deviceService.undeleteDevice(deviceId, rev))
+	}
+
+	@DeleteMapping("/purge/{deviceId}")
+	fun purgeDevice(
+		@PathVariable deviceId: String,
+		@Parameter(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		deviceService.purgeDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}
 }

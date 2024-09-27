@@ -63,24 +63,6 @@ class ClassificationTemplateLogicImpl(
 	override suspend fun getClassificationTemplate(classificationTemplateId: String): ClassificationTemplate? =
 		getEntity(classificationTemplateId)
 
-	override fun deleteClassificationTemplates(ids: Set<String>) =
-		flow {
-			try {
-				emitAll(deleteEntities(ids))
-			} catch (e: Exception) {
-				log.error(e.message, e)
-			}
-		}
-
-	override fun deleteClassificationTemplates(ids: Flow<String>) =
-		flow {
-			try {
-				emitAll(deleteEntities(ids))
-			} catch (e: Exception) {
-				log.error(e.message, e)
-			}
-		}
-
 	override fun getClassificationTemplates(ids: Collection<String>): Flow<ClassificationTemplate> = getEntities(ids)
 
 	override fun listClassificationTemplates(paginationOffset: PaginationOffset<String>) =

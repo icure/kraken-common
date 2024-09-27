@@ -14,7 +14,7 @@ import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.pagination.PaginationElement
 
-interface MessageLogic : EntityPersister<Message, String>, EntityWithSecureDelegationsLogic<Message> {
+interface MessageLogic : EntityPersister<Message>, EntityWithSecureDelegationsLogic<Message> {
 
     /**
      * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -89,14 +90,14 @@ class MessageController(
 	@DeleteMapping("/{messageIds}")
 	fun deleteMessages(@PathVariable messageIds: String): Flux<DocIdentifierDto> =
 		messageIds.split(',').takeIf { it.isNotEmpty() }
-			?.let { messageService.deleteMessages(it).injectReactorContext() }
+			?.let { ids -> messageService.deleteMessages(ids.map { IdAndRev(it, null) }).injectReactorContext() }
 			?.map(docIdentifierMapper::map)
 			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong id format")
 
 	@Operation(summary = "Deletes multiple messages")
 	@PostMapping("/delete/byIds")
 	fun deleteMessagesBatch(@RequestBody messagesIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		messageService.deleteMessages(messagesIds.ids)
+		messageService.deleteMessages(messagesIds.ids.map { IdAndRev(it, null) })
 			.map(docIdentifierMapper::map)
 			.injectReactorContext()
 

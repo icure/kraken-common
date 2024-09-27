@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.MedicalLocationService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -63,7 +64,7 @@ class MedicalLocationController(
 	@PostMapping("/delete/batch")
 	fun deleteMedicalLocations(@RequestBody locationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		locationIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			medicalLocationService.deleteMedicalLocations(ids)
+			medicalLocationService.deleteMedicalLocations(ids.map { IdAndRev(it, null) })
 				.map(docIdentifierV2Mapper::map)
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }

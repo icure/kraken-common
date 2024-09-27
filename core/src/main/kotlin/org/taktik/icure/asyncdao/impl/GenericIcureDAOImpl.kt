@@ -40,9 +40,6 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 		return super.saveBulk(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 	}
 
-	override suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T) =
-		super.unRemove(datastoreInformation, entity.apply { setTimestamps(this) })
-
 	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) =
 		super.unRemove(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 

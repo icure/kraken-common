@@ -10,7 +10,7 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 
-interface ClassificationLogic : EntityPersister<Classification, String>, EntityWithSecureDelegationsLogic<Classification> {
+interface ClassificationLogic : EntityPersister<Classification>, EntityWithSecureDelegationsLogic<Classification> {
 
 	suspend fun createClassification(classification: Classification): Classification?
 
@@ -43,9 +43,6 @@ interface ClassificationLogic : EntityPersister<Classification, String>, EntityW
 	 * @return a [Flow] of Classification ids.
 	 */
 	fun listClassificationIdsByDataOwnerPatientCreated(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-
-	fun deleteClassifications(ids: Collection<String>): Flow<DocIdentifier>
-	fun deleteClassifications(ids: Flow<String>): Flow<DocIdentifier>
 
 	suspend fun addDelegation(classification: Classification, healthcarePartyId: String, delegation: Delegation): Classification?
 	suspend fun addDelegations(classification: Classification, delegations: List<Delegation>): Classification?

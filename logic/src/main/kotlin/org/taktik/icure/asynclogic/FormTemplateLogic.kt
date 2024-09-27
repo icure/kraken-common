@@ -7,7 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.FormTemplate
 
-interface FormTemplateLogic : EntityPersister<FormTemplate, String> {
+interface FormTemplateLogic : EntityPersister<FormTemplate> {
     fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>): Flow<FormTemplate>
 
     suspend fun createFormTemplate(entity: FormTemplate): FormTemplate

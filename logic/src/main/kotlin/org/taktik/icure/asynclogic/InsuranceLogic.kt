@@ -10,9 +10,8 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.pagination.PaginationElement
 
-interface InsuranceLogic : EntityPersister<Insurance, String> {
+interface InsuranceLogic : EntityPersister<Insurance> {
 	suspend fun createInsurance(insurance: Insurance): Insurance?
-	suspend fun deleteInsurance(insuranceId: String): DocIdentifier?
 
 	suspend fun getInsurance(insuranceId: String): Insurance?
 	fun listInsurancesByCode(code: String): Flow<Insurance>

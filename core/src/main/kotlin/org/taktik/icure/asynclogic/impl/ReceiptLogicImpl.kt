@@ -42,10 +42,6 @@ class ReceiptLogicImpl(
 		return entity.copy(securityMetadata = updatedMetadata)
 	}
 
-	override fun deleteEntities(identifiers: Collection<String>): Flow<DocIdentifier> = flow {
-		emitAll(super.deleteEntities(identifiers))
-	}
-
 	override suspend fun getEntity(id: String): Receipt? {
 		val datastoreInformation = getInstanceAndGroup()
 		return receiptDAO.get(datastoreInformation, id)
