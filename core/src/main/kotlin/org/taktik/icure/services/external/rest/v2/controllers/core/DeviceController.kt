@@ -158,7 +158,7 @@ class DeviceController(
 	@DeleteMapping("/{deviceId}")
 	fun deleteDevice(
 		@PathVariable deviceId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		deviceService.deleteDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -166,7 +166,7 @@ class DeviceController(
 	@PostMapping("/undelete/{deviceId}")
 	fun undeleteDevice(
 		@PathVariable deviceId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DeviceDto> = mono {
 		deviceV2Mapper.map(deviceService.undeleteDevice(deviceId, rev))
 	}
@@ -174,7 +174,7 @@ class DeviceController(
 	@DeleteMapping("/purge/{deviceId}")
 	fun purgeDevice(
 		@PathVariable deviceId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		deviceService.purgeDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}

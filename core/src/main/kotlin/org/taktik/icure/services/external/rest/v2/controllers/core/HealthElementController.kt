@@ -190,7 +190,7 @@ class HealthElementController(
 	@DeleteMapping("/{healthElementId}")
 	fun deleteHealthElement(
 		@PathVariable healthElementId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		healthElementService.deleteHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -198,7 +198,7 @@ class HealthElementController(
 	@PostMapping("/undelete/{healthElementId}")
 	fun undeleteHealthElement(
 		@PathVariable healthElementId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<HealthElementDto> = mono {
 		healthElementV2Mapper.map(healthElementService.undeleteHealthElement(healthElementId, rev))
 	}
@@ -206,7 +206,7 @@ class HealthElementController(
 	@DeleteMapping("/purge/{healthElementId}")
 	fun purgeHealthElement(
 		@PathVariable healthElementId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		healthElementService.purgeHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
 	}

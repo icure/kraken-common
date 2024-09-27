@@ -141,7 +141,7 @@ class ClassificationController(
 	@DeleteMapping("/{classificationId}")
 	fun deleteClassification(
 		@PathVariable classificationId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		classificationService.deleteClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -149,7 +149,7 @@ class ClassificationController(
 	@PostMapping("/undelete/{classificationId}")
 	fun undeleteClassification(
 		@PathVariable classificationId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<ClassificationDto> = mono {
 		classificationV2Mapper.map(classificationService.undeleteClassification(classificationId, rev))
 	}
@@ -157,7 +157,7 @@ class ClassificationController(
 	@DeleteMapping("/purge/{classificationId}")
 	fun purgeClassification(
 		@PathVariable classificationId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		classificationService.purgeClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
 	}

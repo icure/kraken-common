@@ -328,7 +328,7 @@ class ContactController(
 	@DeleteMapping("/{contactId}")
 	fun deleteContact(
 		@PathVariable contactId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		contactService.deleteContact(contactId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -336,7 +336,7 @@ class ContactController(
 	@PostMapping("/undelete/{contactId}")
 	fun undeleteContact(
 		@PathVariable contactId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<ContactDto> = mono {
 		contactV2Mapper.map(contactService.undeleteContact(contactId, rev))
 	}
@@ -344,7 +344,7 @@ class ContactController(
 	@DeleteMapping("/purge/{contactId}")
 	fun purgeContact(
 		@PathVariable contactId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		contactService.purgeContact(contactId, rev).let(docIdentifierV2Mapper::map)
 	}

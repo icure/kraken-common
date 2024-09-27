@@ -94,7 +94,7 @@ class TimeTableController(
 	@DeleteMapping("/{timeTableId}")
 	fun deleteTimeTable(
 		@PathVariable timeTableId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		timeTableService.deleteTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -102,7 +102,7 @@ class TimeTableController(
 	@PostMapping("/undelete/{timeTableId}")
 	fun undeleteTimeTable(
 		@PathVariable timeTableId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<TimeTableDto> = mono {
 		timeTableV2Mapper.map(timeTableService.undeleteTimeTable(timeTableId, rev))
 	}
@@ -110,7 +110,7 @@ class TimeTableController(
 	@DeleteMapping("/purge/{timeTableId}")
 	fun purgeTimeTable(
 		@PathVariable timeTableId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		timeTableService.purgeTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
 	}

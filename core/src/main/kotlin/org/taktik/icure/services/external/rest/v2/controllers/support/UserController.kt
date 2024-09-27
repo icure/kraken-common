@@ -154,7 +154,7 @@ class UserController(
 	@DeleteMapping("/{userId}")
 	fun deleteUser(
 		@PathVariable userId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		userService.deleteUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -162,7 +162,7 @@ class UserController(
 	@PostMapping("/undelete/{userId}")
 	fun undeleteUser(
 		@PathVariable userId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<UserDto> = mono {
 		userV2Mapper.mapOmittingSecrets(userService.undeleteUser(userId, rev))
 	}
@@ -170,7 +170,7 @@ class UserController(
 	@DeleteMapping("/purge/{userId}")
 	fun purgeUser(
 		@PathVariable userId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		userService.purgeUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}

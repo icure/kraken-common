@@ -168,7 +168,7 @@ class EntityTemplateController(
 //	@DeleteMapping("/{entityTemplateId}")
 //	fun deleteEntityTemplate(
 //		@PathVariable entityTemplateId: String,
-//		@Parameter(required = false) rev: String? = null
+//		@RequestParam(required = false) rev: String? = null
 //	): Mono<DocIdentifierDto> = mono {
 //		entityTemplateService.deleteEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
 //	}
@@ -176,7 +176,7 @@ class EntityTemplateController(
 //	@PostMapping("/undelete/{entityTemplateId}")
 //	fun undeleteEntityTemplate(
 //		@PathVariable entityTemplateId: String,
-//		@Parameter(required=true) rev: String
+//		@RequestParam(required=true) rev: String
 //	): Mono<EntityTemplateDto> = mono {
 //		entityTemplateV2Mapper.map(entityTemplateService.undeleteEntityTemplate(entityTemplateId, rev))
 //	}
@@ -184,7 +184,7 @@ class EntityTemplateController(
 //	@DeleteMapping("/purge/{entityTemplateId}")
 //	fun purgeEntityTemplate(
 //		@PathVariable entityTemplateId: String,
-//		@Parameter(required=true) rev: String
+//		@RequestParam(required=true) rev: String
 //	): Mono<DocIdentifierDto> = mono {
 //		entityTemplateService.purgeEntityTemplate(entityTemplateId, rev).let(docIdentifierV2Mapper::map)
 //	}

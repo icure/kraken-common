@@ -116,7 +116,7 @@ class DocumentController(
 	@DeleteMapping("/{documentId}")
 	fun deleteDocument(
 		@PathVariable documentId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		documentService.deleteDocument(documentId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -124,7 +124,7 @@ class DocumentController(
 	@PostMapping("/undelete/{documentId}")
 	fun undeleteDocument(
 		@PathVariable documentId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocumentDto> = mono {
 		documentV2Mapper.map(documentService.undeleteDocument(documentId, rev))
 	}
@@ -132,7 +132,7 @@ class DocumentController(
 	@DeleteMapping("/purge/{documentId}")
 	fun purgeDocument(
 		@PathVariable documentId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		documentService.purgeDocument(documentId, rev).let(docIdentifierV2Mapper::map)
 	}

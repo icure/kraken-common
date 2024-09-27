@@ -117,7 +117,7 @@ class CalendarItemController(
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
-		@Parameter(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
 		calendarItemService.deleteCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
@@ -125,7 +125,7 @@ class CalendarItemController(
 	@PostMapping("/undelete/{calendarItemId}")
 	fun undeleteCalendarItem(
 		@PathVariable calendarItemId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<CalendarItemDto> = mono {
 		calendarItemV2Mapper.map(calendarItemService.undeleteCalendarItem(calendarItemId, rev))
 	}
@@ -133,7 +133,7 @@ class CalendarItemController(
 	@DeleteMapping("/purge/{calendarItemId}")
 	fun purgeCalendarItem(
 		@PathVariable calendarItemId: String,
-		@Parameter(required=true) rev: String
+		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
 		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
