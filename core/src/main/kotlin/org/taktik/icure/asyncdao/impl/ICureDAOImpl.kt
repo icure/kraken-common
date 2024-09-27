@@ -29,12 +29,10 @@ import org.taktik.icure.entities.embed.DatabaseSynchronization
 import org.taktik.icure.security.CouchDbCredentialsProvider
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Repository("iCureDAO")
-@Profile("app")
-class ICureDAOImpl(
+open class ICureDAOImpl(
 	private val httpClient: WebClient,
 	private val couchDbCredentialsProvider: CouchDbCredentialsProvider,
-	@Qualifier("baseCouchDbDispatcher") private val couchDbDispatcher: CouchDbDispatcher,
+	@Qualifier("baseCouchDbDispatcher") protected val couchDbDispatcher: CouchDbDispatcher,
 ) : ICureDAO {
 
 	override suspend fun getIndexingStatus(datastoreInformation: IDatastoreInformation): Map<String, Int> {
@@ -70,5 +68,5 @@ class ICureDAOImpl(
 	}
 
 	private fun client(uri: URI) =
-		ClientImpl(httpClient, uri, couchDbCredentialsProvider)
+		ClientImpl(httpClient, uri, "", couchDbCredentialsProvider)
 }

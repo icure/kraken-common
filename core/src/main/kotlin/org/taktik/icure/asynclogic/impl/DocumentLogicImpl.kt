@@ -21,6 +21,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.DocumentLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -89,14 +90,14 @@ open class DocumentLogicImpl(
 		val datastoreInformation = getInstanceAndGroup()
 
 		emitAll(
-			documentDAO.save(
+			documentDAO.saveBulk(
 				datastoreInformation,
 				entities.filter { it.rev === null }.mapNotNull {
 					kotlin.runCatching {
 						checkNewDocument(fix(it), true)
 					}.getOrNull()
 				}
-			)
+			).filterSuccessfulUpdates()
 		)
 	}
 
@@ -170,7 +171,8 @@ open class DocumentLogicImpl(
 			super.filterValidEntityChanges(it)
 		}.toList()
 
-		emitAll(documentDAO.save(datastoreInformation, fixedDocumentsToCreate + fixedDocumentsToUpdate))
+		emitAll(documentDAO.create(datastoreInformation, fixedDocumentsToCreate))
+		emitAll(documentDAO.saveBulk(datastoreInformation, fixedDocumentsToUpdate).filterSuccessfulUpdates())
 	}
 
 	override suspend fun updateAttachments(

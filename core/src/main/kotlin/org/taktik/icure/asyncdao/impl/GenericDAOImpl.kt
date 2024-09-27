@@ -389,12 +389,39 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	override fun <K : Collection<T>> create(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> {
-		return save(datastoreInformation, true, entities)
-	}
+	@Suppress("UNCHECKED_CAST")
+	override fun <K : Collection<T>> create(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		if (log.isDebugEnabled) {
+			log.debug(entityClass.simpleName + ".create: " + entities.mapNotNull { entity -> entity.id + ":" + entity.rev })
+		}
 
-	override fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> {
-		return save(datastoreInformation, false, entities)
+		// Save entity
+		val fixedEntities = entities.map {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+			beforeSave(datastoreInformation, it)
+		}
+		val fixedEntitiesById = fixedEntities.associateBy { it.id }
+
+		val results = client.bulkUpdate(fixedEntities, entityClass).toList() //Attachment dirty has been lost
+
+		val conflicts = results.filter { it.error == "conflict" }.map { r -> UpdateConflictException(r.id, r.rev ?: "unknown") }.toList()
+		if (conflicts.isNotEmpty()) {
+			throw BulkUpdateConflictException(conflicts, fixedEntities)
+		}
+		emitAll(
+			results.asFlow().mapNotNull { r ->
+				fixedEntitiesById.getValue(r.id).let {
+					r.rev?.let { newRev ->
+						it.withIdRev(rev = newRev) as T
+					}
+				}
+			}.map {
+				afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)).also { saved ->
+					cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
+				}
+			}
+		)
 	}
 
 	@Suppress("UNCHECKED_CAST")
@@ -424,52 +451,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				}
 					?: updateResult.toBulkSaveResultFailure()
 					?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
-			}
-		)
-	}
-
-	// TODO SH later: make sure this is correct
-	/**
-	 * Creates or updates a collection of new entities on the database. If there is a cache, then the created entities
-	 * are also saved at all levels of the cache. If an entity already exists, but it has a wrong rev, than it will not
-	 * be created or updated and will be ignored in the final result.
-	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param newEntity whether the entities passed as parameter are new or not.
-	 * @param entities the [Collection] of entities to create.
-	 * @return a [Flow] containing the created entities.
-	 */
-	@Suppress("UNCHECKED_CAST")
-	protected open fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entities: K): Flow<T> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".save: " + entities.mapNotNull { entity -> entity.id + ":" + entity.rev })
-		}
-
-		// Save entity
-		val fixedEntities = entities.map {
-			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-			beforeSave(datastoreInformation, it)
-		}
-		val fixedEntitiesById = fixedEntities.associateBy { it.id }
-
-		val results = client.bulkUpdate(fixedEntities, entityClass).toList() //Attachment dirty has been lost
-
-		val conflicts = results.filter { it.error == "conflict" }.map { r -> UpdateConflictException(r.id, r.rev ?: "unknown") }.toList()
-		if (conflicts.isNotEmpty()) {
-			throw BulkUpdateConflictException(conflicts, fixedEntities)
-		}
-		emitAll(
-			results.asFlow().mapNotNull { r ->
-				fixedEntitiesById.getValue(r.id).let {
-					r.rev?.let { newRev ->
-						it.withIdRev(rev = newRev) as T
-					}
-				}
-			}.map {
-				afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)).also { saved ->
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
-				}
 			}
 		)
 	}

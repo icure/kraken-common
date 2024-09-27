@@ -45,11 +45,13 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.DeduplicationMode
+import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 import kotlin.collections.set
 
 @Repository("contactDAO")
@@ -97,6 +99,36 @@ class ContactDAOImpl(
 			false
 		)
 		emitAll(client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({it.components[0] as String}, {(it.components[1] as? Number)?.toLong()})))
+	}
+
+	override fun listContactIdsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, descending: Boolean): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val startKey =
+			if (descending)
+				ComplexKey.of(hcPartyId, endOpeningDate ?: ComplexKey.emptyObject())
+			else
+				ComplexKey.of(hcPartyId, startOpeningDate)
+		val endKey =
+			if (descending)
+				ComplexKey.of(hcPartyId, startOpeningDate)
+			else
+				ComplexKey.of(hcPartyId, endOpeningDate ?: ComplexKey.emptyObject())
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_openingdate".main(),
+			"by_data_owner_openingdate" to DATA_OWNER_PARTITION,
+		)
+			.startKey(startKey)
+			.endKey(endKey)
+			.descending(descending)
+			.doNotIncludeDocs()
+		emitAll(client
+			.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as String}, {(it.components[1] as? Number)?.toLong()}))
+			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+			.map { it.id }
+		)
 	}
 
 	@Views(
@@ -351,6 +383,42 @@ class ContactDAOImpl(
 		)
 	}
 
+	private suspend fun createByHcPartyTagDateQueries(
+		datastoreInformation: IDatastoreInformation,
+		mainView: String,
+		secondaryView: String,
+		hcPartyId: String,
+		type: String?,
+		code: String?,
+		startDate: Long? = null,
+		endDate: Long? = null,
+		descending: Boolean = false
+	): NoDocViewQueries {
+		val from = ComplexKey.of(
+			hcPartyId,
+			type,
+			code,
+			startDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: startDate
+		)
+		val to =  ComplexKey.of(
+			hcPartyId,
+			type ?: ComplexKey.emptyObject(),
+			code ?: ComplexKey.emptyObject(),
+			endDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: endDate ?: ComplexKey.emptyObject()
+		)
+
+		return createQueries(
+			datastoreInformation,
+			mainView,
+			secondaryView to DATA_OWNER_PARTITION
+		)
+			.startKey(if (descending) to else from)
+			.endKey(if (descending) from else to)
+			.descending(descending)
+			.reduce(false)
+			.doNotIncludeDocs()
+	}
+
 	@Views(
 		View(name = "service_by_hcparty_tag", map = "classpath:js/contact/Service_by_hcparty_tag.js"),
 		View(name = "service_by_data_owner_tag", map = "classpath:js/contact/Service_by_data_owner_tag.js", secondaryPartition = DATA_OWNER_PARTITION)
@@ -358,31 +426,17 @@ class ContactDAOImpl(
 	override fun listServiceIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val canonicalStartValueDate = startValueDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: startValueDate
-		val canonicalEndValueDate = endValueDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: endValueDate
-
-		val from = ComplexKey.of(
-			hcPartyId,
-			tagType,
-			tagCode,
-			canonicalStartValueDate
+		val viewQueries = createByHcPartyTagDateQueries(
+			datastoreInformation = datastoreInformation,
+			mainView = "service_by_hcparty_tag",
+			secondaryView = "service_by_data_owner_tag",
+			hcPartyId = hcPartyId,
+			type = tagType,
+			code = tagCode,
+			startDate = startValueDate,
+			endDate = endValueDate,
+			descending = descending
 		)
-		val to = ComplexKey.of(
-			hcPartyId,
-			tagType ?: ComplexKey.emptyObject(),
-			tagCode ?: ComplexKey.emptyObject(),
-			canonicalEndValueDate ?: ComplexKey.emptyObject()
-		)
-
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"service_by_hcparty_tag",
-			"service_by_data_owner_tag" to DATA_OWNER_PARTITION
-		)
-			.startKey(if (descending) to else from)
-			.endKey(if (descending) from else to)
-			.descending(descending)
-			.doNotIncludeDocs()
 
 		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
 			{ it.components[0] as? String },
@@ -390,6 +444,26 @@ class ContactDAOImpl(
 			{ it.components[2] as? String },
 			{ (it.components[3] as? Number)?.toLong() },
 		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct())
+	}
+
+	override fun listContactIdsByServiceTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQueries = createByHcPartyTagDateQueries(
+			datastoreInformation = datastoreInformation,
+			mainView = "service_by_hcparty_tag",
+			secondaryView = "service_by_data_owner_tag",
+			hcPartyId = hcPartyId,
+			type = tagType,
+			code = tagCode
+		)
+
+		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
+			{ it.components[0] as? String },
+			{ it.components[1] as? String },
+			{ it.components[2] as? String },
+			{ (it.components[3] as? Number)?.toLong() },
+		), DeduplicationMode.ID).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct())
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
@@ -448,32 +522,17 @@ class ContactDAOImpl(
 	override fun listServiceIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val canonicalStartValueDate = startValueDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: startValueDate
-		val canonicalEndValueDate = endValueDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: endValueDate
-
-		val from = ComplexKey.of(
-			hcPartyId,
-			codeType,
-			codeCode,
-			canonicalStartValueDate
+		val viewQueries = createByHcPartyTagDateQueries(
+			datastoreInformation = datastoreInformation,
+			mainView = "service_by_hcparty_code",
+			secondaryView = "service_by_data_owner_code",
+			hcPartyId = hcPartyId,
+			type = codeType,
+			code = codeCode,
+			startDate = startValueDate,
+			endDate = endValueDate,
+			descending = descending
 		)
-		val to = ComplexKey.of(
-			hcPartyId,
-			codeType ?: ComplexKey.emptyObject(),
-			codeCode ?: ComplexKey.emptyObject(),
-			canonicalEndValueDate ?: ComplexKey.emptyObject()
-		)
-
-		val viewQueries = createQueries(
-			datastoreInformation,
-			"service_by_hcparty_code",
-			"service_by_data_owner_code" to DATA_OWNER_PARTITION
-		)
-			.startKey(if (descending) to else from)
-			.endKey(if (descending) from else to)
-			.descending(descending)
-			.reduce(false)
-			.doNotIncludeDocs()
 
 		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
 			{ it.components[0] as? String },
@@ -481,6 +540,26 @@ class ContactDAOImpl(
 			{ it.components[2] as? String },
 			{ (it.components[3] as? Number)?.toLong() },
 		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct())
+	}
+
+	override fun listContactIdsByServiceCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String, codeCode: String?): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQueries = createByHcPartyTagDateQueries(
+			datastoreInformation = datastoreInformation,
+			mainView = "service_by_hcparty_code",
+			secondaryView = "service_by_data_owner_code",
+			hcPartyId = hcPartyId,
+			type = codeType,
+			code = codeCode
+		)
+
+		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
+			{ it.components[0] as? String },
+			{ it.components[1] as? String },
+			{ it.components[2] as? String },
+			{ (it.components[3] as? Number)?.toLong() },
+		), DeduplicationMode.ID).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct())
 	}
 
 	@Views(
@@ -689,6 +768,44 @@ class ContactDAOImpl(
 		}
 		emitAll(idFlows.asFlow().flattenConcat().distinct())
 	}
+
+	override fun listServiceIdsByDataOwnerPatientDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: List<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	) = flow {
+		val serviceIdToDate = mutableMapOf<String, Long>()
+
+		listContactsByHcPartyAndPatient(
+			datastoreInformation = datastoreInformation,
+			searchKeys = searchKeys,
+			secretPatientKeys = patientSecretForeignKeys
+		).collect { contact ->
+			contact.services.mapNotNull { service ->
+				val date = service.valueDate ?: service.openingDate
+				if((date == null && startDate == null && endDate == null) || date !== null && (startDate == null || date >= startDate) && (endDate == null || date <= endDate)) {
+					service.id to (date ?: 0)
+				} else null
+			}.forEach { (serviceId, date) ->
+				val currentDate = serviceIdToDate[serviceId]
+				if (currentDate == null || currentDate < date) {
+					serviceIdToDate[serviceId] = date
+				}
+			}
+		}
+
+		serviceIdToDate.entries.sortedWith(
+			if(descending) Comparator { o1, o2 ->
+				o2.value.compareTo(o1.value).let {
+					if(it == 0) o2.key.compareTo(o1.key) else it
+				}
+			} else compareBy({ it.value }, { it.key })
+		).forEach { emit(it.key) }
+	}
+
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> =

@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
-import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -39,9 +39,6 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	): Flow<BulkSaveResult<T>> {
 		return super.saveBulk(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 	}
-
-	override fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entities: K): Flow<T> =
-		super.save(datastoreInformation, newEntity, entities.map { it.apply { setTimestamps(this) } })
 
 	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) =
 		super.unRemove(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })

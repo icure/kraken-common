@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
-import org.taktik.couchdb.exception.UpdateConflictException
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -39,7 +38,6 @@ import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.pimpWithContactInformation
-import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -128,23 +126,8 @@ open class ContactLogicImpl(
 	}
 
 	override suspend fun createContact(contact: Contact) = fix(contact) { fixedContact ->
-		try { // Fetching the hcParty
-			if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-			val dataOwnerId = sessionLogic.getCurrentDataOwnerId()
-
-			createEntities(
-				setOf(
-					if (fixedContact.healthcarePartyId == null) fixedContact.copy(
-						healthcarePartyId = dataOwnerId,
-					) else fixedContact
-				)
-			).firstOrNull()
-		} catch (e: BulkUpdateConflictException) {
-			throw UpdateConflictException("Contact already exists")
-		} catch (e: Exception) {
-			logger.error("createContact: " + e.message)
-			throw IllegalArgumentException("Invalid contact", e)
-		}
+		if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		createEntities(setOf(fixedContact)).firstOrNull()
 	}
 
 	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map(::fix))

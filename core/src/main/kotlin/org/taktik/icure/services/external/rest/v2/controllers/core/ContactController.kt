@@ -434,7 +434,7 @@ class ContactController(
 	}
 
 	@Operation(summary = "Get the ids of the Services matching the provided filter.")
-	@PostMapping("/service/match")
+	@PostMapping("/service/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchServicesBy(
 		@RequestBody filter: AbstractFilterDto<ServiceDto>
 	) = contactService.matchServicesBy(

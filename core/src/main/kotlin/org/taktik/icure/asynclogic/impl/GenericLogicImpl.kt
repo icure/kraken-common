@@ -6,8 +6,6 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.singleOrNull
@@ -16,8 +14,8 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Revisionable
 import org.taktik.icure.asyncdao.GenericDAO
-import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.entityOrNull
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
@@ -41,7 +39,12 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
-		emitAll(getGenericDAO().save(getInstanceAndGroup(), entities.map { fix(it) }))
+		emitAll(getGenericDAO()
+			.saveBulk(
+				datastoreInformation = getInstanceAndGroup(),
+				entities = entities.map { fix(it) }
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	protected suspend fun getEntitiesWithExpectedRev(identifiers: Collection<IdAndRev>): List<E> {

@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
@@ -61,18 +60,6 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @return a [Flow] containing the created entities.
 	 */
 	fun <K : Collection<T>> create(datastoreInformation: IDatastoreInformation, entities: K): Flow<T>
-
-	/**
-	 * @deprecated consider using [saveBulk]
-	 * Creates or updates a collection of new entities on the database. If there is a cache, then the created entities
-	 * are also saved at all levels of the cache. If an entity already exists, but it has a wrong rev, than it will not
-	 * be created or updated and will be ignored in the final result.
-	 *
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entities the [Collection] of entities to create.
-	 * @return a [Flow] containing the created entities.
-	 */
-	fun <K : Collection<T>> save(datastoreInformation: IDatastoreInformation, entities: K): Flow<T>
 
 	/**
 	 * Saves many entities and returns detailed information on which entities could be saved successfully and which
