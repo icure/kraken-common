@@ -226,14 +226,14 @@ class CalendarItemDAOImpl(
 	}
 
 	@Views(
-		View(name = "by_hcparty_patient_start_time_desc", map = "classpath:js/calendarItem/By_hcparty_patient_start_time_map.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_hcparty_patient_start_time", map = "classpath:js/calendarItem/By_hcparty_patient_start_time_map.js"),
 		View(name = "by_data_owner_patient_start_time_desc", map = "classpath:js/calendarItem/By_data_owner_patient_start_time_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun findCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, hcPartyId: String, secretPatientKey: String, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createPagedQueries(
 			datastoreInformation,
-			listOf("by_hcparty_patient_start_time_desc" to MAURICE_PARTITION, "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
+			listOf("by_hcparty_patient_start_time".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
 			ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),
 			ComplexKey.of(hcPartyId, secretPatientKey, null),
 			pagination,
@@ -265,7 +265,7 @@ class CalendarItemDAOImpl(
 			}
 		}.flatMap {
 			listOf(
-				createQuery(datastoreInformation, "by_hcparty_patient_start_time_desc", MAURICE_PARTITION).startKey(it.first).endKey(it.second).includeDocs(false),
+				createQuery(datastoreInformation, "by_hcparty_patient_start_time").startKey(it.first).endKey(it.second).includeDocs(false),
 				createQuery(datastoreInformation, "by_data_owner_patient_start_time_desc", DATA_OWNER_PARTITION).startKey(it.first).endKey(it.second).includeDocs(false)
 			)
 		}
@@ -385,7 +385,6 @@ class CalendarItemDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION)
-			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patient_start_time_desc" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

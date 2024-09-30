@@ -74,7 +74,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<T>? = null,
 	private val designDocumentProvider: DesignDocumentProvider,
-	private val daoConfig: DaoConfig
+	protected val daoConfig: DaoConfig
 ) : GenericDAO<T> {
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
