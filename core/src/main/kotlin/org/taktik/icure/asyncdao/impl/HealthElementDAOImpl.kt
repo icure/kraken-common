@@ -36,6 +36,7 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 @Repository("healthElementDAO")
 @Profile("app")
@@ -173,6 +174,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@Views(
+		View(name = "by_hcparty_patient", map = "classpath:js/healthelement/By_hcparty_patient_map.js"),
 		View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_data_owner_patient", map = "classpath:js/healthelement/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
@@ -185,7 +187,7 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patient_date" to MAURICE_PARTITION,
+			if (daoConfig.useObsoleteViews) "by_hcparty_patient".main() else "by_hcparty_patient_date" to MAURICE_PARTITION,
 			"by_data_owner_patient" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, Long, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
@@ -224,7 +226,7 @@ internal class HealthElementDAOImpl(
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
-			Partitions.DataOwner -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_and_identifiers" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

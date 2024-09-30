@@ -348,11 +348,22 @@ class PatientDAOImpl(
 	}
 
 	@Views(
-		View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_hcparty_name_id_as_value", map = "classpath:js/patient/By_hcparty_name_id_as_value_map.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count"),
 		View(name = "by_data_owner_name", map = "classpath:js/patient/By_data_owner_name_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun findPatientsByHcPartyAndName(datastoreInformation: IDatastoreInformation, name: String?, healthcarePartyId: String, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<ViewQueryResultEvent> {
-		return findPatientsByName(datastoreInformation, name, healthcarePartyId, pagination, descending, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION))
+		return findPatientsByName(
+			datastoreInformation,
+			name,
+			healthcarePartyId,
+			pagination,
+			descending,
+			listOf(
+				if(daoConfig.useObsoleteViews) "by_hcparty_name".main() else "by_hcparty_name_id_as_value" to MAURICE_PARTITION,
+				"by_data_owner_name" to DATA_OWNER_PARTITION
+			)
+		)
 	}
 
 	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
@@ -686,7 +697,15 @@ class PatientDAOImpl(
 	}
 
 	override fun getDuplicatePatientsByName(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent> {
-		return this.getDuplicatesFromView(datastoreInformation, listOf("by_hcparty_name" to MAURICE_PARTITION, "by_data_owner_name" to DATA_OWNER_PARTITION), healthcarePartyId, paginationOffset)
+		return this.getDuplicatesFromView(
+			datastoreInformation,
+			listOf(
+				if(daoConfig.useObsoleteViews) "by_hcparty_name".main() else "by_hcparty_name_id_as_value" to MAURICE_PARTITION,
+				"by_data_owner_name" to DATA_OWNER_PARTITION
+			),
+			healthcarePartyId,
+			paginationOffset
+		)
 	}
 
 	override fun findPatients(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<ViewQueryResultEvent> = flow {
@@ -814,7 +833,7 @@ class PatientDAOImpl(
 				val client = couchDbDispatcher.getClient(datastoreInformation)
 				val viewQueries = createQueries(
 					datastoreInformation,
-					"by_hcparty_name" to MAURICE_PARTITION
+					"by_hcparty_name_id_as_value" to MAURICE_PARTITION
 				).doNotIncludeDocs()
 				client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
 			}
