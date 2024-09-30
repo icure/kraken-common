@@ -338,17 +338,17 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQueryOfIds(
 			datastoreInformation,
-			"by_hcparty_name",
+			if(daoConfig.useObsoleteViews) "by_hcparty_name" else "by_hcparty_name_id_as_value",
 			ComplexKey.of(healthcarePartyId, null),
 			ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()),
 			pagination,
-			MAURICE_PARTITION
+			MAURICE_PARTITION.takeIf { !daoConfig.useObsoleteViews }
 		)
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, String::class.java, Any::class.java))
 	}
 
 	@Views(
-		View(name = "by_hcparty_name_id_as_value", map = "classpath:js/patient/By_hcparty_name_id_as_value_map.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_hcparty_name_id_as_value", map = "classpath:js/patient/By_hcparty_name_id_as_value_map.js", reduce = "_count", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_hcparty_name", map = "classpath:js/patient/By_hcparty_name_map.js", reduce = "_count"),
 		View(name = "by_data_owner_name", map = "classpath:js/patient/By_data_owner_name_map.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
