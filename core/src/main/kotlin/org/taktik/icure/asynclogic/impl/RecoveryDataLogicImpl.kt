@@ -55,10 +55,10 @@ class RecoveryDataLogicImpl(
     }
 
     private suspend inline fun deleteMany(
-        getData: (IDatastoreInformation) -> Flow<IdAndRev>
+        getData: (IDatastoreInformation) -> Flow<RecoveryData>
     ): Int {
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
         val toPurge = getData(datastoreInfo).toList()
-        return recoveryDataDAO.purgeByIdAndRev(datastoreInfo, toPurge).count()
+        return recoveryDataDAO.purge(datastoreInfo, toPurge).count()
     }
 }
