@@ -15,7 +15,7 @@ interface RecoveryDataDAO : GenericDAO<RecoveryData> {
         datastoreInformation: IDatastoreInformation,
         recipient: String,
         type: RecoveryData.Type? = null
-    ): Flow<IdAndRev>
+    ): Flow<RecoveryData>
 
     /**
      * Get the ids of all recovery data that have expiration less than the provided value.
@@ -23,5 +23,5 @@ interface RecoveryDataDAO : GenericDAO<RecoveryData> {
     fun findRecoveryDataIdsWithExpirationLessThan(
         datastoreInformation: IDatastoreInformation,
         expiration: Long
-    ): Flow<IdAndRev>
+    ): Flow<RecoveryData>
 }

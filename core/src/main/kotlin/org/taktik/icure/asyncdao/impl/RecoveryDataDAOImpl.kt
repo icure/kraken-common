@@ -17,6 +17,7 @@ import org.taktik.icure.asyncdao.RecoveryDataDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -30,7 +31,7 @@ class RecoveryDataDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
     daoConfig: DaoConfig
-) : GenericDAOWithMinimalPurgeImpl<RecoveryData>(
+) : GenericDAOImpl<RecoveryData>(
     RecoveryData::class.java,
     couchDbDispatcher,
     idGenerator,
@@ -44,7 +45,7 @@ class RecoveryDataDAOImpl(
         datastoreInformation: IDatastoreInformation,
         recipient: String,
         type: RecoveryData.Type?
-    ): Flow<IdAndRev> = flow {
+    ): Flow<RecoveryData> = flow {
         val client = couchDbDispatcher.getClient(datastoreInformation)
         val query = createQuery(datastoreInformation, "by_recipient_and_type")
             .run {
@@ -54,24 +55,24 @@ class RecoveryDataDAOImpl(
                     key(ComplexKey.of(recipient, type))
                 }
             }
-            .includeDocs(false)
+            .includeDocs(true)
             .reduce(false)
             .descending(false)
-        emitAll(client.queryView<ComplexKey, String>(query).map { IdAndRev(it.id, it.value) })
+        emitAll(client.queryViewIncludeDocs<ComplexKey, String, RecoveryData>(query).map { it.doc })
     }
 
     @View(name = "by_expiration", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted && doc.expirationInstant !== undefined && doc.expirationInstant !== null) emit(doc.expirationInstant, doc._rev)}")
     override fun findRecoveryDataIdsWithExpirationLessThan(
         datastoreInformation: IDatastoreInformation,
         expiration: Long
-    ): Flow<IdAndRev> = flow {
+    ): Flow<RecoveryData> = flow {
         val client = couchDbDispatcher.getClient(datastoreInformation)
         val query = createQuery(datastoreInformation, "by_expiration")
             .startKey(null)
             .endKey(expiration)
-            .includeDocs(false)
+            .includeDocs(true)
             .reduce(false)
             .descending(false)
-        emitAll(client.queryView<String, String>(query).map { IdAndRev(it.id, it.value) })
+        emitAll(client.queryViewIncludeDocs<String, String, RecoveryData>(query).map { it.doc })
     }
 }
