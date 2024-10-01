@@ -6,7 +6,7 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.couchdb.entity.IdAndRev
 
-interface RecoveryDataDAO : GenericDAOWithMinimalPurge<RecoveryData> {
+interface RecoveryDataDAO : GenericDAO<RecoveryData> {
     /**
      * Get the ids all recovery data for a certain recipient and optionally a certain type.
      * If type is null, all the recovery data ids for the recipient are returned.

@@ -49,6 +49,8 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.entityOrNull
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheChainLink
@@ -63,6 +65,7 @@ import org.taktik.icure.utils.ViewQueries
 import org.taktik.icure.utils.createPagedQueries
 import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
+import org.taktik.icure.utils.error
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
@@ -273,17 +276,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	/**
-	 * This operation is performed before deleting an entity to the database. There is no after purge because
-	 * if purge is successful the entity is completely destroyed.
-	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity that is about to be deleted.
-	 * @return the entity after the operation.
-	 */
-	protected open suspend fun beforePurge(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
-
-	/**
 	 * This operation is performed before undeleting an entity on the database.
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param entity the entity that is about to be undeleted.
@@ -317,16 +309,27 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		datastoreInformation: IDatastoreInformation,
 		entities: Collection<T>
 	): Flow<BulkSaveResult<DocIdentifier>> = flow {
+		// Before purging the entity we do a "standard" delete. This helps with
+		val removed = internalRemove(datastoreInformation, entities).filterSuccessfulUpdates().toList()
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".remove: " + entities)
+			log.debug(entityClass.simpleName + ".purge: " + entities)
 		}
-		// Delete
-		val purged = client.bulkDelete(entities.map { beforePurge(datastoreInformation, it) }).toSaveResult { id, rev ->
+		val purged = client.bulkDelete(removed).toSaveResult { id, rev ->
 			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(id))
 			DocIdentifier(id, rev)
+		}.toList()
+		if (removed.size != purged.size) {
+			// The possibility of this happening should be effectively null: it should be impossible for someone to get
+			// the removed entity and update it (going from couch, to kraken, to client, back to kraken and to couch)
+			// before we finish this (going from couch to kraken back to couch).
+			log.error {
+				"iCure purging error: some entities where successfully removed but could not be purged after remove ${
+					removed.map { it.id }.toSet() - purged.mapNotNull { it.entityOrNull()?.id }.toSet()
+				}"
+			}
 		}
-		emitAll(purged)
+		purged.forEach { emit(it) }
 	}
 
 	private fun <T> Flow<BulkUpdateResult>.toSaveResult(
@@ -340,7 +343,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 
 	@Suppress("UNCHECKED_CAST")
-	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>> = flow {
+	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>> =
+		internalRemove(datastoreInformation, entities).map {
+			when (it) {
+				is BulkSaveResult.Failure -> it
+				is BulkSaveResult.Success -> BulkSaveResult.Success(DocIdentifier(it.entity.id, it.entity.rev))
+			}
+		}
+
+	private fun internalRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug("Deleted $entities")
@@ -351,11 +362,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			}
 		}
 		val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
-			toBeDeletedEntities.firstOrNull { e -> id == e.id }?.let {
+			toBeDeletedEntities.first { e -> id == e.id }.let {
 				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
 				afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
 			}
-			DocIdentifier(id, rev)
 		}
 		emitAll(bulkUpdateResults)
 	}
