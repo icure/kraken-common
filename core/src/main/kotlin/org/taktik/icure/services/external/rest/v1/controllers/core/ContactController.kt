@@ -260,7 +260,7 @@ class ContactController(
 	}
 
 	@Operation(summary = "List contact stubs by ids.")
-	@PostMapping("/delegations")
+	@PostMapping("/delegationsByIds")
 	fun findContactsDelegationsStubsByIds(
 		@RequestBody contactIds: ListOfIdsDto,
 	): Flux<IcureStubDto> = contactService

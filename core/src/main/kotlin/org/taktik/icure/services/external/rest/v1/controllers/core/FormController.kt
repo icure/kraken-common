@@ -241,7 +241,7 @@ class FormController(
 	}
 
 	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.")
-	@PostMapping("/delegations")
+	@PostMapping("/delegationsByIds")
 	fun findFormsDelegationsStubsByIds(
 		@RequestBody formIds: ListOfIdsDto,
 	): Flux<IcureStubDto> = formService

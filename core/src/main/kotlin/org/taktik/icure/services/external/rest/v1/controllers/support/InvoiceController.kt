@@ -262,7 +262,7 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "List invoice stubs found by ids.")
-	@PostMapping("/delegations")
+	@PostMapping("/delegationsByIds")
 	fun findInvoicesDelegationsStubsByIds(
 		@RequestBody invoiceIds: ListOfIdsDto,
 	): Flux<IcureStubDto> =invoiceService

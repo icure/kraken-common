@@ -147,7 +147,7 @@ class HealthElementController(
 	}
 
 	@Operation(summary = "List health element stubs found by ids.")
-	@PostMapping("/delegations")
+	@PostMapping("/delegationsByIds")
 	fun listHealthElementsDelegationsStubById(
 		@RequestBody healthElementIds: ListOfIdsDto,
 	): Flux<IcureStubDto> {
