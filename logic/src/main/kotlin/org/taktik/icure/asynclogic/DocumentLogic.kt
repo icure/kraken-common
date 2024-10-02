@@ -105,6 +105,7 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 	 * @param secretForeignKeys a [List] of secret foreign keys.
 	 * @return a [Flow] of [Document]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
 
 	/**

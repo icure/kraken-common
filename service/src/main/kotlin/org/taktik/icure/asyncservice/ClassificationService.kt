@@ -31,6 +31,7 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	 * @return a [Flow] of [Classification]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to list [Classification]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
 	fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**

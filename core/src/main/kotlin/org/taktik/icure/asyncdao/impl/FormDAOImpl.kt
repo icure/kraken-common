@@ -37,6 +37,7 @@ import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 @Repository("formDAO")
 @Profile("app")
@@ -49,6 +50,7 @@ internal class FormDAOImpl(
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<Form>(Form::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), FormDAO {
 
+	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/form/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/form/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -62,8 +64,7 @@ internal class FormDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_hcparty_patientfk".main(),
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, Form>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>().map { it.doc })

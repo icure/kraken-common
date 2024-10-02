@@ -173,6 +173,7 @@ internal class HealthElementDAOImpl(
 		return get(datastoreInformation, healthElementId)
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
 		View(name = "by_hcparty_patient", map = "classpath:js/healthelement/By_hcparty_patient_map.js"),
 		View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION),
@@ -187,11 +188,10 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			if (daoConfig.useObsoleteViews) "by_hcparty_patient".main() else "by_hcparty_patient_date" to MAURICE_PARTITION,
-			"by_data_owner_patient" to DATA_OWNER_PARTITION
+			"by_hcparty_patient".main(),
 		).keys(keys).includeDocs()
-		emitAll(client.interleave<Array<String>, Long, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, Long, HealthElement>>().map { it.doc }.distinctById())
+		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
+			.filterIsInstance<ViewRowWithDoc<Array<String>, String, HealthElement>>().map { it.doc }.distinctById())
 	}
 
 	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(

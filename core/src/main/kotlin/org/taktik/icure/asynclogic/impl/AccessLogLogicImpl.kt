@@ -62,6 +62,8 @@ class AccessLogLogicImpl(
 			)
 		}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
 	override fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(accessLogDAO.findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretForeignKeys))

@@ -11,6 +11,7 @@ import org.taktik.icure.entities.Document
 interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> {
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Document>
 
+	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
 	fun listDocumentsByHcPartyAndSecretMessageKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<Document>
 
 	/**

@@ -28,6 +28,7 @@ interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureD
 	 * @param secretPatientKeys the secret patient keys, that will be searched in [HealthElement.secretForeignKeys].
 	 * @return a [Flow] of [HealthElement]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<HealthElement>
 
 	/**

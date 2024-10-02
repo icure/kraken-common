@@ -35,7 +35,6 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -84,7 +83,7 @@ class InvoiceController(
 	@Operation(summary = "Deletes an invoice")
 	@DeleteMapping("/{invoiceId}")
 	fun deleteInvoice(@PathVariable invoiceId: String) = mono {
-		invoiceService.deleteInvoice(invoiceId, null) ?: throw NotFoundRequestException("Insurance not found")
+		invoiceService.deleteInvoice(invoiceId, null)
 	}
 
 	@Operation(summary = "Gets an invoice")
@@ -218,7 +217,9 @@ class InvoiceController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by comma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.", description = "Keys have to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
@@ -227,7 +228,9 @@ class InvoiceController(
 		return elementList.map { element -> invoiceMapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by comma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
 		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet())
@@ -235,7 +238,9 @@ class InvoiceController(
 		return elementList.map { element -> invoiceMapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findInvoicesDelegationsStubsByIds instead")
+	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -245,7 +250,9 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findInvoicesDelegationsStubsByIds instead")
+	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -253,6 +260,15 @@ class InvoiceController(
 	): Flux<IcureStubDto> {
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubMapper.mapToStub(invoice) }.injectReactorContext()
 	}
+
+	@Operation(summary = "List invoice stubs found by ids.")
+	@PostMapping("/delegationsByIds")
+	fun findInvoicesDelegationsStubsByIds(
+		@RequestBody invoiceIds: ListOfIdsDto,
+	): Flux<IcureStubDto> =invoiceService
+		.getInvoices(invoiceIds.ids)
+		.map { invoice -> stubMapper.mapToStub(invoice) }
+		.injectReactorContext()
 
 	@Operation(summary = "List invoices by groupId")
 	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")

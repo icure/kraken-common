@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -215,7 +214,9 @@ class FormController(
 	fun createForms(@RequestBody formDtos: List<FormDto>): Flux<FormDto> =
 		formService.createForms(formDtos.map { formV2Mapper.map(it) }).map { formV2Mapper.map(it) }.injectReactorContext()
 
-	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Operation(summary = "List forms found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listFormsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -229,6 +230,8 @@ class FormController(
 		return formsList.map { contact -> formV2Mapper.map(contact) }.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findFormsByHCPartyPatientForeignKeys(
@@ -264,7 +267,9 @@ class FormController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma,")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -274,7 +279,9 @@ class FormController(
 		return formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, null, null, null).map { form -> stubV2Mapper.mapToStub(form) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List form stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -282,6 +289,15 @@ class FormController(
 	): Flux<IcureStubDto> {
 		return formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, null, null, null).map { form -> stubV2Mapper.mapToStub(form) }.injectReactorContext()
 	}
+
+	@Operation(summary = "List form stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findFormsDelegationsStubsByIds(
+		@RequestBody formIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = formService
+		.getForms(formIds.ids)
+		.map { form -> stubV2Mapper.mapToStub(form) }
+		.injectReactorContext()
 
 	@Operation(summary = "Gets a form template by guid")
 	@GetMapping("/template/{formTemplateId}")

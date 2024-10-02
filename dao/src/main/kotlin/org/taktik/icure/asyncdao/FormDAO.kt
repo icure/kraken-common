@@ -11,6 +11,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
 
 interface FormDAO : GenericDAO<Form> {
+	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	fun listFormsByHcPartyPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Form>
 
 	/**

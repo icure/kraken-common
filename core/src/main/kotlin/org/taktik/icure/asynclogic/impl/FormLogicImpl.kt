@@ -54,6 +54,8 @@ open class FormLogicImpl(
 		emitAll(formDAO.listFormsByUniqueId(datastoreInformation, lid, descending))
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	override fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()

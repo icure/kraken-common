@@ -361,6 +361,8 @@ class DocumentController(
 		return documentList.map { document -> documentMapper.map(document) }.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findDocumentsByHCPartyPatientForeignKeys(

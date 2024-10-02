@@ -81,6 +81,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @throws AccessDeniedException if the current user does not have the permission to get access logs by healthcare
 	 * party id.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
 	fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog>
 	suspend fun getAccessLog(accessLogId: String): AccessLog?
 

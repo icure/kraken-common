@@ -267,13 +267,23 @@ class CalendarItemController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@Operation(summary = "List calendar items stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findCalendarItemsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
 		return calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "List calendar items stubs by ids")
+	@PostMapping("/delegations")
+	fun findCalendarItemsDelegationsStubsByIds(
+		@RequestBody calendarItemIds: ListOfIdsDto,
+	): Flux<IcureStubDto> {
+		return calendarItemService.getCalendarItems(calendarItemIds.ids)
 			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
 			.injectReactorContext()
 	}

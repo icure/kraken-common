@@ -188,6 +188,7 @@ class ContactDAOImpl(
         emitAll(client.interleave<String, String>(viewQueries, compareBy { it }).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinctUntilChanged())
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -200,8 +201,7 @@ class ContactDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_hcparty_patientfk".main(),
 		).keys(keys).includeDocs()
 		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))

@@ -33,6 +33,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 @Repository("accessLogDAO")
 @Profile("app")
@@ -139,6 +140,7 @@ class AccessLogDAOImpl(
 		emitAll(client.queryView<ComplexKey, String>(viewQuery).mapNotNull { it.id })
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Views(
 		View(name = "by_hcparty_patient", map = "classpath:js/accesslog/By_hcparty_patient_map.js"),
 		View(name = "by_data_owner_patient", map = "classpath:js/accesslog/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -152,12 +154,11 @@ class AccessLogDAOImpl(
 
 		val viewQueries = createQueries(
             datastoreInformation,
-            "by_hcparty_patient",
-            "by_data_owner_patient" to DATA_OWNER_PARTITION
+            "by_hcparty_patient".main()
         ).includeDocs()
 			.keys(keys)
 		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>,String, AccessLog>>().map { it.doc })
+			.filterIsInstance<ViewRowWithDoc<Array<String>, String, AccessLog>>().map { it.doc })
 	}.distinct()
 
 	@View(name = "by_hcparty_patient_date", map = "classpath:js/accesslog/By_hcparty_patient_date_map.js", secondaryPartition = MAURICE_PARTITION)

@@ -71,6 +71,8 @@ open class HealthElementLogicImpl (
 	override fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement> =
 		getEntities(healthElementIds)
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	override fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()

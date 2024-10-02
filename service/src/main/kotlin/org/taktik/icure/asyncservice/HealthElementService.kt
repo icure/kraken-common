@@ -39,6 +39,7 @@ interface HealthElementService : EntityWithSecureDelegationsService<HealthElemen
 	 * @return a [Flow] of [HealthElement]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to list [HealthElement]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<HealthElement>
 
 	/**

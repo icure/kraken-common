@@ -182,6 +182,8 @@ class ContactController(
 		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Get a list of contacts found by Healthcare Party and Patient foreign keys.")
 	@PostMapping("/byHcPartyPatientForeignKeys")
 	fun findContactsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody patientForeignKeys: ListOfIdsDto): Flux<ContactDto> {
@@ -193,7 +195,9 @@ class ContactController(
 		return contactList.map { contact -> contactMapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Get a list of contacts found by Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Operation(summary = "Get a list of contacts found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findByHCPartyPatientSecretFKeys(
 		@RequestParam hcPartyId: String,
@@ -212,7 +216,9 @@ class ContactController(
 		}
 	}
 
-	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Operation(summary = "List contacts found by healthcare party and secret foreign keys.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findContactsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -222,7 +228,9 @@ class ContactController(
 		return contactService.listContactsByHCPartyAndPatient(hcPartyId, secretPatientKeys).map { contact -> stubMapper.mapToStub(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Get a list of contacts found by Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Operation(summary = "Get a list of contacts found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findByHCPartyPatientSecretFKeys(
 		@RequestParam hcPartyId: String,
@@ -240,7 +248,9 @@ class ContactController(
 		}
 	}
 
-	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findContactsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -248,6 +258,16 @@ class ContactController(
 	): Flux<IcureStubDto> {
 		return contactService.listContactsByHCPartyAndPatient(hcPartyId, secretPatientKeys).map { contact -> stubMapper.mapToStub(contact) }.injectReactorContext()
 	}
+
+	@Operation(summary = "List contact stubs by ids.")
+	@PostMapping("/delegationsByIds")
+	fun findContactsDelegationsStubsByIds(
+		@RequestBody contactIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = contactService
+		.getContacts(contactIds.ids)
+		.map { contact -> stubMapper.mapToStub(contact) }
+		.injectReactorContext()
+
 
 	@Operation(summary = "Update delegations in healthElements.", description = "Keys must be delimited by coma")
 	@PostMapping("/delegations")
@@ -267,7 +287,9 @@ class ContactController(
 		emitAll(contactService.modifyContacts(contacts.toList()).map { contactMapper.map(it) })
 	}.injectReactorContext()
 
-	@Operation(summary = "Close contacts for Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Operation(summary = "Close contacts for healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PutMapping("/byHcPartySecretForeignKeys/close")
 	fun closeForHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,

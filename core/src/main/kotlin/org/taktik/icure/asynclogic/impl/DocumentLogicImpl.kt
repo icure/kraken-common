@@ -201,6 +201,8 @@ open class DocumentLogicImpl(
 		)
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
 	override fun listDocumentsByHCPartySecretMessageKeys(
 		hcPartyId: String,
 		secretForeignKeys: List<String>,

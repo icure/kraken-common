@@ -33,7 +33,6 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.PaginationOffset
@@ -179,6 +178,7 @@ class InvoiceDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}.distinctById()
 
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Views(
 	    View(name = "by_hcparty_patientfk", map = "classpath:js/invoice/By_hcparty_patientfk_map.js"),
 	    View(name = "by_data_owner_patientfk", map = "classpath:js/invoice/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),

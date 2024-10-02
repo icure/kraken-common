@@ -32,6 +32,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 @Repository("classificationDAO")
 @Profile("app")
@@ -54,6 +55,7 @@ internal class ClassificationDAOImpl(
 		return get(datastoreInformation, classificationId)
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
 	@Views(
     	View(name = "by_hcparty_patient", map = "classpath:js/classification/By_hcparty_patient_map.js"),
     	View(name = "by_data_owner_patient", map = "classpath:js/classification/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION)
@@ -66,8 +68,7 @@ internal class ClassificationDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patient",
-			"by_data_owner_patient" to DATA_OWNER_PARTITION
+			"by_hcparty_patient".main(),
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Classification>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Classification>>().map { it.doc }.distinctUntilChangedBy { it.id })

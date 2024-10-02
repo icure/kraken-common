@@ -152,6 +152,7 @@ interface MessageService : EntityWithSecureDelegationsService<Message>, EntityWi
      * @param secretPatientKeys the secret patient keys.
      * @return a [Flow] of [Message]s.
      */
+    @Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
     fun listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys: List<String>): Flow<Message>
 
     /**

@@ -39,6 +39,7 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	 * @return a [Flow] of [Contact]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Contact]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
 
 	/**

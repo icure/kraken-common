@@ -24,6 +24,7 @@ interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPe
 	 * @param secretForeignKeys a [List] of [AccessLog.secretForeignKeys].
 	 * @return a [Flow] of [AccessLog]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
 	fun listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<AccessLog>
 
 	/**

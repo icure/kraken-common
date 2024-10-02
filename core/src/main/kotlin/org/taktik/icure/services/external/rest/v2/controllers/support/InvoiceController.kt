@@ -37,7 +37,6 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -262,7 +261,9 @@ class InvoiceController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.", description = "Keys have to delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listInvoicesByHCPartyAndPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
@@ -271,7 +272,9 @@ class InvoiceController(
 		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List invoices found By Healthcare Party and secret foreign patient keys.", description = "Keys have to delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
 		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet())
@@ -279,7 +282,9 @@ class InvoiceController(
 		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoicesDelegationsStubsByIds instead")
+	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun listInvoicesDelegationsStubsByHCPartyAndPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -311,7 +316,9 @@ class InvoiceController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoicesDelegationsStubsByIds instead")
+	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -319,6 +326,15 @@ class InvoiceController(
 	): Flux<IcureStubDto> {
 		return invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet()).map { invoice -> stubV2Mapper.mapToStub(invoice) }.injectReactorContext()
 	}
+
+	@Operation(summary = "List invoice stubs found by ids.")
+	@PostMapping("/delegations")
+	fun listInvoicesDelegationsStubsByIds(
+		@RequestBody invoiceIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = invoiceService
+		.getInvoices(invoiceIds.ids)
+		.map { invoice -> stubV2Mapper.mapToStub(invoice) }
+		.injectReactorContext()
 
 	@Operation(summary = "List invoices by groupId", description = "Keys have to delimited by coma")
 	@GetMapping("/byHcPartyGroupId/{hcPartyId}/{groupId}")

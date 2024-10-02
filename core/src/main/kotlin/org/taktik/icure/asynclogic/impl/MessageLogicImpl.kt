@@ -49,6 +49,8 @@ open class MessageLogicImpl(
     fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), MessageLogic {
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
 	override fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO.listMessagesByHcPartyAndPatient(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))

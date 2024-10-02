@@ -63,6 +63,7 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	 * @param secretPatientKeys a [Set] of secret foreign keys that should be contained in [Invoice.secretForeignKeys].
 	 * @return a [Flow] of [Invoice]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	fun listInvoicesByHcPartyAndPatientSfks(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**

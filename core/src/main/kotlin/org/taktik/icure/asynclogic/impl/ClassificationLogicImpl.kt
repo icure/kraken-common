@@ -65,6 +65,8 @@ class ClassificationLogicImpl(
 
 	override suspend fun getClassification(classificationId: String) = getEntity(classificationId)
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
 	override fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))

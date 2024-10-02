@@ -67,6 +67,8 @@ open class ContactLogicImpl(
 		emitAll(contactDAO.findContactsByIds(datastoreInformation, selectedIds))
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	override fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
