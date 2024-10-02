@@ -32,6 +32,7 @@ interface ContactLogic : EntityPersister<Contact>, EntityWithSecureDelegationsLo
      * @param secretPatientKeys the secret patient keys.
      * @return a [Flow] of [Contact]s.
      */
+    @Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
     fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
 
     /**

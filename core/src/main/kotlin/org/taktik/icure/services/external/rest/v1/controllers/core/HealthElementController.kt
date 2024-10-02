@@ -94,6 +94,8 @@ class HealthElementController(
 		emitAll(healthElements.map { c -> healthElementMapper.map(c) })
 	}.injectReactorContext()
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<HealthElementDto> {
@@ -105,6 +107,8 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<HealthElementDto> {
@@ -115,7 +119,9 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
+	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
@@ -127,6 +133,8 @@ class HealthElementController(
 			.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -134,6 +142,16 @@ class HealthElementController(
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> {
 		return healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { healthElement -> stubMapper.mapToStub(healthElement) }
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "List health element stubs found by ids.")
+	@PostMapping("/delegations")
+	fun listHealthElementsDelegationsStubById(
+		@RequestBody healthElementIds: ListOfIdsDto,
+	): Flux<IcureStubDto> {
+		return healthElementService.getHealthElements(healthElementIds.ids)
 			.map { healthElement -> stubMapper.mapToStub(healthElement) }
 			.injectReactorContext()
 	}

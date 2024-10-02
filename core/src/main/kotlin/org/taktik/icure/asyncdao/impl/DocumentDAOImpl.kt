@@ -34,6 +34,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Document
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 import java.nio.ByteBuffer
 
 @Repository("documentDAO")
@@ -65,6 +66,7 @@ class DocumentDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Document>(viewQuery).map { it.doc })
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Views(
     	View(name = "by_hcparty_message", map = "classpath:js/document/By_hcparty_message_map.js"),
 		View(name = "by_data_owner_message", map = "classpath:js/document/By_data_owner_message_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -77,8 +79,7 @@ class DocumentDAOImpl(
 		}
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_message",
-			"by_data_owner_message" to DATA_OWNER_PARTITION
+			"by_hcparty_message".main()
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, Document>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Document>>().map { it.doc })

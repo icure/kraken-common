@@ -68,6 +68,7 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWi
 	 * @return a [Flow] of [Invoice]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Invoice]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	fun listInvoicesByHcPartyAndPatientSfks(hcPartyId: String, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**

@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v2.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -92,7 +91,9 @@ class ClassificationController(
 		return classificationService.getClassifications(classificationIds.ids).map(classificationV2Mapper::map).injectReactorContext()
 	}
 
-	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign keyelementIds.", description = "Keys hast to delimited by coma")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Operation(summary = "List classification found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
@@ -171,13 +172,24 @@ class ClassificationController(
 		classificationV2Mapper.map(classification)
 	}
 
-	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use findClassificationsDelegationsStubsByIds instead")
+	@Operation(summary = "List classification stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<IcureStubDto> =
 		classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+			.map { classification -> stubV2Mapper.mapToStub(classification) }
+			.injectReactorContext()
+
+	@Operation(summary = "List classification stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findClassificationsDelegationsStubsByIds(
+		@RequestBody classificationIds: ListOfIdsDto,
+	): Flux<IcureStubDto> =
+		classificationService.getClassifications(classificationIds.ids)
 			.map { classification -> stubV2Mapper.mapToStub(classification) }
 			.injectReactorContext()
 

@@ -76,6 +76,8 @@ class ClassificationController(
 		return elements.map { classificationMapper.map(it) }.injectReactorContext()
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys have to be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {

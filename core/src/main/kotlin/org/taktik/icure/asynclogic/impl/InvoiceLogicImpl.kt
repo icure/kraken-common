@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -44,7 +43,6 @@ import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.InvoicingCode
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -143,6 +141,8 @@ open class InvoiceLogicImpl (
 		emitAll(invoiceDAO.listInvoicesByHcPartyAndRecipientIds(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), recipientIds))
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	override fun listInvoicesByHcPartyAndPatientSfks(hcParty: String, secretPatientKeys: Set<String>): Flow<Invoice> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()

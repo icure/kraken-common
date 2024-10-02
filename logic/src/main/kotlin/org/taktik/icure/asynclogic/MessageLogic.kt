@@ -119,6 +119,7 @@ interface MessageLogic : EntityPersister<Message>, EntityWithSecureDelegationsLo
      * @param secretPatientKeys the secret patient keys to consider.
      * @return a [Flow] of [Message]s matching the criterion.
      */
+    @Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
     fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Message>
 
     /**

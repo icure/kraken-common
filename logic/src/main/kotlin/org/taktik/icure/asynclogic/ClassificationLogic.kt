@@ -25,6 +25,7 @@ interface ClassificationLogic : EntityPersister<Classification>, EntityWithSecur
 	 * @param secretPatientKeys the patient secret foreign keys.
 	 * @return a [Flow] of [Classification]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
 	fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**

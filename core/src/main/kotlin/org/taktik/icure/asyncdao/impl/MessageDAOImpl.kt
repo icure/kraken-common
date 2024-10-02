@@ -35,6 +35,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Message
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted) emit( null, doc._id )}")
@@ -337,6 +338,7 @@ open class MessageDAOImpl(
 		)
 	}
 
+	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/message/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/message/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -348,8 +350,7 @@ open class MessageDAOImpl(
 		}
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_hcparty_patientfk".main()
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc }.distinctUntilChangedBy { it.id })

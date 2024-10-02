@@ -130,6 +130,7 @@ interface MessageDAO : GenericDAO<Message> {
 	 * @param secretPatientKeys a [List] of [Message.secretForeignKeys].
 	 * @return a [Flow] of [Message]s.
 	 */
+	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
 	fun listMessagesByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Message>
 
 	/**
