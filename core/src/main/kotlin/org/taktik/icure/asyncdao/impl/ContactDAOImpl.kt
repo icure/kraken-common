@@ -56,7 +56,10 @@ import kotlin.collections.set
 
 @Repository("contactDAO")
 @Profile("app")
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted) emit( null, doc._id )}")
+@Views(
+	View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted) emit( null, doc._id )}"),
+	View(name = "by_service", map = "classpath:js/contact/By_service.js") // Legacy
+)
 class ContactDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
@@ -777,13 +780,25 @@ class ContactDAOImpl(
 		endDate: Long?,
 		descending: Boolean
 	) = flow {
+
+		fun listContactsByDataOwnerPatient() = flow {
+			val client = couchDbDispatcher.getClient(datastoreInformation)
+
+			val keys = patientSecretForeignKeys.flatMap { fk ->
+				searchKeys.map { key -> arrayOf(key, fk) } }
+
+			val viewQueries = createQueries(
+				datastoreInformation,
+				"by_hcparty_patientfk_openingdate" to MAURICE_PARTITION,
+				"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			).keys(keys).includeDocs()
+			emitAll(relink(client.interleave<Array<String>, Long, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
+				.filterIsInstance<ViewRowWithDoc<Array<String>, Long, Contact>>().map { it.doc }))
+		}.distinctById()
+
 		val serviceIdToDate = mutableMapOf<String, Long>()
 
-		listContactsByHcPartyAndPatient(
-			datastoreInformation = datastoreInformation,
-			searchKeys = searchKeys,
-			secretPatientKeys = patientSecretForeignKeys
-		).collect { contact ->
+		listContactsByDataOwnerPatient().collect { contact ->
 			contact.services.mapNotNull { service ->
 				val date = service.valueDate ?: service.openingDate
 				if((date == null && startDate == null && endDate == null) || date !== null && (startDate == null || date >= startDate) && (endDate == null || date <= endDate)) {
@@ -808,14 +823,25 @@ class ContactDAOImpl(
 
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> =
-		listContactsByHcPartyAndPatient(datastoreInformation, searchKeys, patientSecretForeignKeys.toList())
-			.mapNotNull { c ->
-				c.services.map { it.id }.asFlow()
-			}.flattenConcat() // no distinct ?
+	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-	@View(name = "by_service", map = "classpath:js/contact/By_service.js")
-	fun legacy() {
+		val keys = patientSecretForeignKeys.flatMap { fk ->
+			searchKeys.map { key -> arrayOf(key, fk) } }
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_patientfk",
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+		).keys(keys).includeDocs()
+		emitAll(
+			relink(client
+				.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
+				.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }
+			).mapNotNull { c ->
+				c.services.map { it.id }.asFlow()
+			}.flattenConcat()
+		)
 	}
 
 	@View(name = "by_service_emit_modified", map = "classpath:js/contact/By_service_emit_modified.js")
