@@ -51,7 +51,7 @@ class RecoveryDataController(
     fun deleteRecoveryData(
         @PathVariable id: String
     ): Mono<DocIdentifierDto> = mono {
-        recoveryDataService.deleteRecoveryData(id).let(docIdentifierMapper::map)
+        recoveryDataService.purgeRecoveryData(id).let(docIdentifierMapper::map)
     }
 
     @DeleteMapping("forRecipient/{recipientId}")

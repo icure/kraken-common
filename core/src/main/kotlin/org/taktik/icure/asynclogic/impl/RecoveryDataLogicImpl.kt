@@ -38,7 +38,7 @@ class RecoveryDataLogicImpl(
             } else data
         }
 
-    override suspend fun deleteRecoveryData(id: String): DocIdentifier =
+    override suspend fun purgeRecoveryData(id: String): DocIdentifier =
         recoveryDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)?.let { data ->
             recoveryDataDAO.purge(datastoreInstanceProvider.getInstanceAndGroup(), listOf(data)).single().entityOrThrow()
         } ?: throw NotFoundRequestException("Recovery data with $id not found")

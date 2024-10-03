@@ -33,7 +33,6 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
-import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -446,8 +445,7 @@ import kotlin.math.min
 		ComplexKey.of(language, type, sanitizedLabel, SMALLEST_CHAR),
 		ComplexKey.of(language, type, sanitizedLabel + "\ufff0", ComplexKey.emptyObject()),
 		paginationOffset.copy(limit = limit).toPaginationOffset { sk -> ComplexKey.of(*sk.mapIndexed { i, s -> if (i == 3) s?.let { sanitizeString(it) } else s }.toTypedArray()) },
-		false,
-		MAURICE_PARTITION
+		false
 	)
 
 	private fun findSpecificVersionOfCodesByLabel(
@@ -617,7 +615,7 @@ import kotlin.math.min
 		// to get all the versions of each code, returning always the one that will be the next key for the page, if any.
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(datastoreInformation, "by_type_code", MAURICE_PARTITION)
+				createQuery(datastoreInformation, "by_type_code")
 					.includeDocs(true)
 					.reduce(false)
 					.keys(validCodes.keys)
@@ -714,8 +712,8 @@ import kotlin.math.min
 	}
 
 	@Views(
-		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js", secondaryPartition = MAURICE_PARTITION),
-		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js"),
+		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js"),
 	)
 	override fun findCodesByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String, type: String, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -784,7 +782,7 @@ import kotlin.math.min
 			ComplexKey.emptyObject()
 		)
 
-		val query = createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
+		val query = createQuery(datastoreInformation, "by_language_type_label")
 			.includeDocs(false)
 			.reduce(false)
 			.startKey(from)
@@ -854,7 +852,7 @@ import kotlin.math.min
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		return languages.firstNotNullOfOrNull { lang ->
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
+				createQuery(datastoreInformation, "by_language_type_label")
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(ComplexKey.of(lang, type, sanitizedLabel, SMALLEST_CHAR))
@@ -865,18 +863,11 @@ import kotlin.math.min
 		}
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}")
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
+		val viewQuery = createQuery(datastoreInformation, "conflicts").includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, Code>(viewQuery).map { it.doc })
-	}
-
-	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
-		when(partition) {
-			Partitions.Maurice -> warmup(datastoreInformation, "by_language_type_label" to MAURICE_PARTITION)
-			else -> super.warmupPartition(datastoreInformation, partition)
-		}
 	}
 }

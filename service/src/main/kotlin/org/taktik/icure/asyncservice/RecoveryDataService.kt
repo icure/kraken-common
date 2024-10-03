@@ -1,6 +1,5 @@
 package org.taktik.icure.asyncservice
 
-import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.entities.RecoveryData
 
@@ -26,7 +25,7 @@ interface RecoveryDataService {
     /**
      * Delete some recovery data
      */
-    suspend fun deleteRecoveryData(id: String): DocIdentifier
+    suspend fun purgeRecoveryData(id: String): DocIdentifier
 
     /**
      * Deletes all recovery data of a given recipient.

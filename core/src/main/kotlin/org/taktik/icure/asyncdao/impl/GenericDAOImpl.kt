@@ -33,7 +33,6 @@ import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.entity.ViewQuery
@@ -71,7 +70,6 @@ import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
-import java.util.concurrent.CancellationException
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -332,7 +330,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		purged.forEach { emit(it) }
 	}
 
-	private fun <T> Flow<BulkUpdateResult>.toSaveResult(
+	protected fun <T> Flow<BulkUpdateResult>.toSaveResult(
 		mapSuccess: suspend (id: String, rev: String) -> T
 	): Flow<BulkSaveResult<T>> =
 		map { r ->
