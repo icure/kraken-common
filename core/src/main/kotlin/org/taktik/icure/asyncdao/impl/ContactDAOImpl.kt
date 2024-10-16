@@ -205,6 +205,7 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patientfk".main(),
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))

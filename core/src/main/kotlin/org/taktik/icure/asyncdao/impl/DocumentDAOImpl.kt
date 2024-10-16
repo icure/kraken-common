@@ -79,7 +79,8 @@ class DocumentDAOImpl(
 		}
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_message".main()
+			"by_hcparty_message".main(),
+			"by_data_owner_message" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, Document>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Document>>().map { it.doc })

@@ -350,7 +350,8 @@ open class MessageDAOImpl(
 		}
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_patientfk".main()
+			"by_hcparty_patientfk".main(),
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Message>>().map { it.doc }.distinctUntilChangedBy { it.id })
