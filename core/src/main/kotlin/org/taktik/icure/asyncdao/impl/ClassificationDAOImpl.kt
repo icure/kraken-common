@@ -69,6 +69,7 @@ internal class ClassificationDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patient".main(),
+			"by_data_owner_patient" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<ComplexKey, String, Classification>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Classification>>().map { it.doc }.distinctUntilChangedBy { it.id })
