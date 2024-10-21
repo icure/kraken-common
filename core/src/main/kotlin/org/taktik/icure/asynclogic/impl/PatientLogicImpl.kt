@@ -324,7 +324,7 @@ open class PatientLogicImpl(
 		checkRequirements(fixedPatient)
 		(
 			if (fixedPatient.preferredUserId != null && (fixedPatient.delegations.isEmpty())) {
-				userLogic.getUser(fixedPatient.preferredUserId!!)?.let { user ->
+				userLogic.getUser(fixedPatient.preferredUserId!!, false)?.let { user ->
 					fixedPatient.copy(
 						delegations = (user.autoDelegations.values.flatMap { autoDelegations ->
 							autoDelegations.map { it to setOf<Delegation>() }

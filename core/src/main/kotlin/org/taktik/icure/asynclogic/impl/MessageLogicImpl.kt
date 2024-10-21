@@ -206,7 +206,7 @@ open class MessageLogicImpl(
 	}
 
 	override fun createMessages(entities: Collection<Message>) = flow {
-		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId()) ?: throw NotFoundRequestException("Current user not found")
+		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false) ?: throw NotFoundRequestException("Current user not found")
 
 		emitAll(super.createEntities(entities
 			.map{ fix(it) }

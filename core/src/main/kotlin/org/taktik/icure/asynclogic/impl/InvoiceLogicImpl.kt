@@ -343,7 +343,7 @@ open class InvoiceLogicImpl (
 
 	override fun removeCodes(userId: String, secretPatientKeys: Set<String>, serviceId: String, inputTarificationIds: List<String>): Flow<Invoice> = flow {
 		val tarificationIds = inputTarificationIds.toMutableList()
-		val user = userLogic.getUser(userId)
+		val user = userLogic.getUser(userId, false)
 		if (user != null) {
 			val invoices = listInvoicesByHcPartyAndPatientSksUnsent(user.healthcarePartyId ?: throw IllegalArgumentException("The provided user must be linked to an hcp"), secretPatientKeys)
 				.filter { i -> i.invoicingCodes.any { ic -> serviceId == ic.serviceId && tarificationIds.contains(ic.tarificationId) } }

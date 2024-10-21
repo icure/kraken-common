@@ -29,7 +29,7 @@ abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
     private val userLogic: UserLogic
 ): SecureUserMapper<UserDto> {
     override suspend fun mapFillingOmittedSecrets(userDto: UserDto): User =
-        mapFillingOmittedSecrets(userDto) { userLogic.getUser(it) }
+        mapFillingOmittedSecrets(userDto) { userLogic.getUser(it, false) }
 
     protected suspend fun mapFillingOmittedSecrets(userDto: UserDto, getExistingUser: suspend (id: String) -> User?): User {
         val modifiedUser = unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto)
