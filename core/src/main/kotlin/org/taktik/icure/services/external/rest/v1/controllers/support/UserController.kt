@@ -68,8 +68,10 @@ class UserController (
 
 	@Operation(summary = "Get presently logged-in user.", description = "Get current user.")
 	@GetMapping(value = ["/current"])
-	fun getCurrentUser() = mono {
-		val user = userService.getUser(sessionInfo.getCurrentUserId())
+	fun getCurrentUser(
+		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+	) = mono {
+		val user = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
 		logger.warn { "Current user is ${user.id}" }
 		userMapper.mapOmittingSecrets(user)
@@ -100,8 +102,11 @@ class UserController (
 
 	@Operation(summary = "Get a user by his ID", description = "General information about the user")
 	@GetMapping("/{userId}")
-	fun getUser(@PathVariable userId: String) = mono {
-		val user = userService.getUser(userId)
+	fun getUser(
+		@PathVariable userId: String,
+		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+	) = mono {
+		val user = userService.getUser(userId, includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
 		userMapper.mapOmittingSecrets(user)
 	}
@@ -152,8 +157,11 @@ class UserController (
 
 	@Operation(summary = "Assign a healthcare party ID to current user", description = "UserDto gets returned.")
 	@PutMapping("/current/hcparty/{healthcarePartyId}")
-	fun assignHealthcareParty(@PathVariable healthcarePartyId: String) = mono {
-		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId())
+	fun assignHealthcareParty(
+		@PathVariable healthcarePartyId: String,
+		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+	) = mono {
+		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
 
