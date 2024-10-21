@@ -55,16 +55,16 @@ open class UserLogicImpl (
 
 	private val shortTokenFormatter = DecimalFormat("000000")
 
-	override suspend fun getUser(id: String): EnhancedUser? {
+	override suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
-		return userEnhancer.enhance(userDAO.getUserOnUserDb(datastoreInformation, id, false))
+		return userEnhancer.enhance(userDAO.getUserOnUserDb(datastoreInformation, id, false), includeMetadataFromGlobalUser)
 	}
 
 	override suspend fun getUserByPhone(phone: String): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
 		val findByPhone = userDAO.listUsersByPhone(datastoreInformation, phone).toList()
 
-		return findByPhone.firstOrNull()?.let { userEnhancer.enhance(it) }
+		return findByPhone.firstOrNull()?.let { userEnhancer.enhance(it, false) }
 	}
 
 	override fun findByPatientId(patientId: String): Flow<String> = flow {
@@ -76,7 +76,7 @@ open class UserLogicImpl (
 		val datastoreInformation = getInstanceAndGroup()
 		val findByEmail = userDAO.listUsersByEmail(datastoreInformation, email).toList()
 
-		return findByEmail.firstOrNull()?.let { userEnhancer.enhance(it) }
+		return findByEmail.firstOrNull()?.let { userEnhancer.enhance(it, false) }
 	}
 
 	override fun listUserIdsByHcpartyId(hcpartyId: String): Flow<String> = flow {
@@ -88,14 +88,15 @@ open class UserLogicImpl (
 		searchString: String, pagination: PaginationOffset<String>
 	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByNameEmailPhone(datastoreInformation, searchString, pagination)))
+		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByNameEmailPhone(datastoreInformation, searchString, pagination), false))
 	}
 
 	override fun getUsersByLogin(login: String): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			userEnhancer.enhanceFlow(
-				userDAO.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login))
+				userDAO.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login)),
+				false
 			)
 		)
 	}
@@ -103,7 +104,7 @@ open class UserLogicImpl (
 	override suspend fun getUserByLogin(login: String): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
 		return userDAO.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login)).firstOrNull()
-			?.let { userEnhancer.enhance(it) }
+			?.let { userEnhancer.enhance(it, false) }
 	}
 
 	override suspend fun createUser(user: User): EnhancedUser? = doCreateUser(
@@ -111,7 +112,7 @@ open class UserLogicImpl (
 		getByEmail = { getUserByEmail(it) },
 		getByLogin = { getUserByLogin(it) },
 		createUser = { createEntities(setOf(it)).firstOrNull() }
-	)?.let { userEnhancer.enhance(it) }
+	)?.let { userEnhancer.enhance(it, false) }
 
 	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
@@ -119,7 +120,7 @@ open class UserLogicImpl (
 			fix(user.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)) { fixedUser ->
 				userDAO.create(
 					datastoreInformation, fixedUser
-				)?.let { createdUser -> userEnhancer.enhance(createdUser) }
+				)?.let { createdUser -> userEnhancer.enhance(createdUser, false) }
 			}?.let { emit(it) }
 		}
 	}
@@ -128,7 +129,7 @@ open class UserLogicImpl (
 		// Save user
 		val datastoreInformation = getInstanceAndGroup()
 		val userToUpdate = fixedUser.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)
-		userDAO.save(datastoreInformation, userToUpdate)?.let { userEnhancer.enhance(it) }
+		userDAO.save(datastoreInformation, userToUpdate)?.let { userEnhancer.enhance(it, false) }
 	}
 
 	override suspend fun createOrUpdateToken(
@@ -146,14 +147,14 @@ open class UserLogicImpl (
 	}
 
 	override suspend fun disableUser(userId: String): User? {
-		return getUser(userId)?.let {
+		return getUser(userId, false)?.let {
 			val datastoreInformation = getInstanceAndGroup()
 			userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))
 		}
 	}
 
 	override suspend fun enableUser(userId: String): User? {
-		return getUser(userId)?.let {
+		return getUser(userId, false)?.let {
 			val datastoreInformation = getInstanceAndGroup()
 			userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))
 		}
@@ -165,7 +166,7 @@ open class UserLogicImpl (
 
 	override fun getEntities(): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation)))
+		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation), false))
 	}
 
 	override fun getEntityIds(): Flow<String> = flow {
@@ -184,14 +185,15 @@ open class UserLogicImpl (
 	}
 
 	override suspend fun getEntity(id: String): User? {
-		return getUser(id)
+		return getUser(id, false)
 	}
 
 	override fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			userEnhancer.enhanceViewFlow(
-				userDAO.findUsers(datastoreInformation, paginationOffset.limitIncludingKey(), skipPatients)
+				userDAO.findUsers(datastoreInformation, paginationOffset.limitIncludingKey(), skipPatients),
+				false
 			).toPaginatedFlow<User>(paginationOffset.limit)
 		)
 	}
@@ -207,11 +209,11 @@ open class UserLogicImpl (
 		} ?: ids
 
 		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more healthcare parties for the start key of the next page
-		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByIds(datastoreInformation, selectedIds)))
+		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByIds(datastoreInformation, selectedIds), false))
 	}
 
 	override suspend fun setProperties(userId: String, properties: List<PropertyStub>): User? {
-		val user = getUser(userId) ?: throw NotFoundRequestException("User with id $userId not found")
+		val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
 		val updatedProperties = properties.fold(user.properties) { props, p ->
 			val prop = user.properties.find { pp -> pp.type?.identifier == p.type?.identifier }
 			prop?.let {
@@ -225,7 +227,7 @@ open class UserLogicImpl (
 
 	override fun getUsers(ids: List<String>): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation, ids)))
+		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation, ids), false))
 	}
 
 	override fun getGenericDAO(): UserDAO {
@@ -233,7 +235,7 @@ open class UserLogicImpl (
 	}
 
 	override suspend fun getUserByGenericIdentifier(genericIdentifier: String): User? =
-		getUser(genericIdentifier)
+		getUser(genericIdentifier, false)
 			?: getUserByLogin(genericIdentifier)
 			?: getUserByEmail(genericIdentifier)
 			?: getUserByPhone(genericIdentifier)

@@ -28,7 +28,7 @@ interface UserLogic : EntityPersister<User> {
 
 	// region get
 
-	suspend fun getUser(id: String): EnhancedUser?
+	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): EnhancedUser?
 	suspend fun getUserByEmail(email: String): EnhancedUser?
 	/**
 	 * Get a user matching the given identifier in the same group as the current user.

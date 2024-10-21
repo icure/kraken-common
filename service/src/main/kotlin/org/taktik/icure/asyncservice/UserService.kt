@@ -27,7 +27,7 @@ interface UserService : EntityWithConflictResolutionService {
 
 	// region get
 
-	suspend fun getUser(id: String): User?
+	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): User?
 	suspend fun getUserByEmail(email: String): User?
 	/**
 	 * Get a user matching the given identifier in the same group as the current user.
