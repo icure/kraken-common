@@ -21,9 +21,9 @@ class SharedCouchDbConfig(protected val couchDbProperties: CouchDbProperties) {
 	@Bean
 	fun connectionProvider(): ConnectionProvider {
 		return ConnectionProvider.builder("LARGE_POOL")
-			.maxConnections(50000)
+			.let { builder -> couchDbProperties.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
 			.maxIdleTime(Duration.ofSeconds(120))
-			.pendingAcquireMaxCount(-1).build()
+			.pendingAcquireMaxCount(couchDbProperties.maxPendingAcquire ?: -1).build()
 	}
 
 	@Bean
