@@ -153,9 +153,10 @@ class AccessLogDAOImpl(
 		}.sortedWith(compareBy({it[0]},{it[1]}))
 
 		val viewQueries = createQueries(
-            datastoreInformation,
-            "by_hcparty_patient".main()
-        ).includeDocs()
+			datastoreInformation,
+			"by_hcparty_patient".main(),
+			"by_data_owner_patient" to DATA_OWNER_PARTITION
+		).includeDocs()
 			.keys(keys)
 		emitAll(client.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, AccessLog>>().map { it.doc })

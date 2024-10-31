@@ -65,6 +65,7 @@ internal class FormDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patientfk".main(),
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, Form>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>().map { it.doc })

@@ -189,6 +189,7 @@ internal class HealthElementDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patient".main(),
+			"by_data_owner_patient" to DATA_OWNER_PARTITION
 		).keys(keys).includeDocs()
 		emitAll(client.interleave<Array<String>, String, HealthElement>(viewQueries, compareBy({it[0]}, {it[1]}))
 			.filterIsInstance<ViewRowWithDoc<Array<String>, String, HealthElement>>().map { it.doc }.distinctById())
