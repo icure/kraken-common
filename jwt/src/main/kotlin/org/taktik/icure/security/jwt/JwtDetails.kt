@@ -6,6 +6,7 @@ import org.taktik.icure.entities.DataOwnerType
 const val DATA_OWNER_ID = "doId"
 const val DATA_OWNER_TYPE = "doTp"
 const val HCP_HIERARCHY = "hh"
+const val AUTHORITIES = "a"
 
 interface JwtDetails : Jwt {
     val dataOwnerId: String?
