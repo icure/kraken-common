@@ -1,5 +1,6 @@
 package org.taktik.icure.security.jwt
 
+import org.springframework.security.core.GrantedAuthority
 import org.taktik.icure.entities.DataOwnerType
 
 const val DATA_OWNER_ID = "doId"
@@ -10,4 +11,5 @@ interface JwtDetails : Jwt {
     val dataOwnerId: String?
     val dataOwnerType: DataOwnerType?
     val hcpHierarchy: List<String>
+    val authorities: Set<GrantedAuthority>
 }
