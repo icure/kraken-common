@@ -73,7 +73,6 @@ class UserController (
 	) = mono {
 		val user = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
-		logger.warn { "Current user is ${user.id}" }
 		userMapper.mapOmittingSecrets(user)
 	}
 
