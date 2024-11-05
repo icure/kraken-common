@@ -2,6 +2,7 @@
 
 package org.taktik.icure.utils
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 fun <T : Any> Flow<T>.injectReactorContext(): Flux<T> =
     Mono.deferContextual { Mono.just(it) }.flatMapMany { ctxView ->
-        this.flowOn(Context.of(ctxView).asCoroutineContext()).asFlux()
+        this.flowOn(Context.of(ctxView).asCoroutineContext() + Dispatchers.Default).asFlux()
     }
 
 suspend fun Flow<ByteBuffer>.toInputStream(): InputStream = withContext(IO) {
