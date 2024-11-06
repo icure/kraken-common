@@ -24,6 +24,10 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
@@ -31,6 +35,9 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents an Address""")
 data class AddressDto(
+	override val tags: Set<CodeStubDto> = emptySet(),
+	override val codes: Set<CodeStubDto> = emptySet(),
+	@Schema(description = "The identifiers of the Address") val identifier: List<IdentifierDto> = emptyList(),
 	@Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") val addressType: AddressTypeDto? = null,
 	@Schema(description = "Descriptive notes about the address") val descr: String? = null,
 	@Schema(description = "Street name") val street: String? = null,
@@ -44,7 +51,7 @@ data class AddressDto(
 	@Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
 	@Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null
-) : EncryptableDto, Serializable, Comparable<AddressDto> {
+) : EncryptableDto, Serializable, Comparable<AddressDto>, HasTagsDto, HasCodesDto {
 	override fun compareTo(other: AddressDto): Int {
 		return addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
 	}
