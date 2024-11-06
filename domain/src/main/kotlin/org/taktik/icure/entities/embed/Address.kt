@@ -8,10 +8,15 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
+import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.HasCodes
+import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
+import org.taktik.icure.validation.AutoFix
+import org.taktik.icure.validation.ValidCode
 import java.io.Serializable
 
 /**
@@ -20,6 +25,9 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Address(
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val identifier: List<Identifier> = emptyList(),
 	val addressType: AddressType? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val descr: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val street: String? = null,
@@ -33,7 +41,7 @@ data class Address(
 	val notes: List<Annotation> = emptyList(),
 	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null
-) : Encryptable, Serializable, Comparable<Address> {
+) : Encryptable, Serializable, Comparable<Address>, HasTags, HasCodes {
 	companion object : DynamicInitializer<Address>
 
 	fun merge(other: Address) = Address(args = this.solveConflictsWith(other))
