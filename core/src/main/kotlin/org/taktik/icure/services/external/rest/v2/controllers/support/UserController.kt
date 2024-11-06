@@ -80,7 +80,7 @@ class UserController(
 	@Operation(summary = "Get presently logged-in user.", description = "Get current user.")
 	@GetMapping(value = ["/current"])
 	fun getCurrentUser(
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val user = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
@@ -114,7 +114,7 @@ class UserController(
 	@GetMapping("/{userId}")
 	fun getUser(
 		@PathVariable userId: String,
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val user = userService.getUser(userId, includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
@@ -194,7 +194,7 @@ class UserController(
 	@PutMapping("/current/hcparty/{healthcarePartyId}")
 	fun assignHealthcareParty(
 		@PathVariable healthcarePartyId: String,
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {

@@ -42,7 +42,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.utils.warn
 
 /* Useful notes:
  * @RequestParam is required by default, but @ApiParam (which is useful to add a description)
@@ -69,7 +68,7 @@ class UserController (
 	@Operation(summary = "Get presently logged-in user.", description = "Get current user.")
 	@GetMapping(value = ["/current"])
 	fun getCurrentUser(
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val user = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
@@ -103,7 +102,7 @@ class UserController (
 	@GetMapping("/{userId}")
 	fun getUser(
 		@PathVariable userId: String,
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val user = userService.getUser(userId, includeMetadataFromGlobalUser)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
@@ -158,7 +157,7 @@ class UserController (
 	@PutMapping("/current/hcparty/{healthcarePartyId}")
 	fun assignHealthcareParty(
 		@PathVariable healthcarePartyId: String,
-		@RequestParam(required = false) includeMetadataFromGlobalUser: Boolean = false,
+		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
