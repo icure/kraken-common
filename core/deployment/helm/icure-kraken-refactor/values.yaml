@@ -1,7 +1,7 @@
 pullPolicy: "IfNotPresent"
 
-couchdbUrl: "http://couchdb-svc-couchdb.couch"
-couchdbPortNumber: 5984
+couchdbUrl: "https://api.icue.dev"
+couchdbPortNumber: 443
 couchdbVirtualHosts: ["couch.icure.dev"] # if couchdbUrl is an external URL, then this should be empty
 
 ingressClassName: "haproxy"
@@ -13,7 +13,7 @@ ingressClassName: "haproxy"
 
 images:
     backend:
-        repository: "docker.taktik.be/icure/icure-kraken"
+        repository: "icureio/cardinal"
         tag: "" # helm install
         replicaCount: 1
         javaOpts: "" # config
