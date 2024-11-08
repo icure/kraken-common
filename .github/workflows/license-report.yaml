@@ -1,7 +1,4 @@
 on:
-  push:
-    branches:
-      - "ci/add-license-report-probe"
   pull_request:
     types:
       - closed
