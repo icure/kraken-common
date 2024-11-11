@@ -1,26 +1,29 @@
 [versions]
-springBoot = "3.2.2"
-jackson = "2.15.3"
+springBoot = "3.3.5"
+springSecurity = "6.3.4"
+springFramework = "6.1.14"
+springSession = "3.3.3"
+jackson = "2.17.2"
 caffeine = "3.1.8"
-kotlinx = "1.7.3"
+kotlinx = "1.8.1"
 kotest = "4.4.3"
 hibernateValidator = "8.0.1.Final"
 kmap = "0.1.52-main.8d4a565b58"
 bouncyCastle = "1.70"
 jwt = "0.11.5"
-kotlin = "1.9.22"
-ksp = "1.9.22-1.0.16"
+kotlin = "1.9.25"
+ksp = "1.9.25-1.0.20"
 
 [libraries]
 springBootWebflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux", version.ref = "springBoot" }
 springBootSecurity = { group = "org.springframework.boot", name = "spring-boot-starter-security", version.ref = "springBoot"  }
 springBootActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version.ref = "springBoot"  }
 springBootCache = { group = "org.springframework.boot", name = "spring-boot-starter-cache", version.ref = "springBoot"  }
-springAspects = { group = "org.springframework", name = "spring-aspects", version = "6.1.3" }
-springWebsocket = { group = "org.springframework", name = "spring-websocket", version = "6.1.3" }
-springMessaging = { group = "org.springframework", name = "spring-messaging", version = "6.1.3" }
-springSecurityMessaging = { group = "org.springframework.security", name = "spring-security-messaging", version = "6.2.1" }
-springSession = { group = "org.springframework.session", name = "spring-session-core", version = "3.2.1" }
+springAspects = { group = "org.springframework", name = "spring-aspects", version = "springFramework" }
+springWebsocket = { group = "org.springframework", name = "spring-websocket", version = "springFramework" }
+springMessaging = { group = "org.springframework", name = "spring-messaging", version = "springFramework" }
+springSecurityMessaging = { group = "org.springframework.security", name = "spring-security-messaging", version = "springSecurity" }
+springSession = { group = "org.springframework.session", name = "spring-session-core", version = "springSession" }
 jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jacksonSmile = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-smile", version.ref = "jackson" }
@@ -31,7 +34,7 @@ kotlinxCoroutinesCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 kotlinxCoroutinesReactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactive", version.ref = "kotlinx" }
 kotlinxCoroutinesReactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "kotlinx" }
 kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx" }
-kotlinxCollectionsImmutableJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable-jvm", version = "0.3.5" }
+kotlinxCollectionsImmutableJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable-jvm", version = "0.3.8" }
 kotestAssertionsCore = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotestRunnerJunit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 kotestExtensionsSpring = { group = "io.kotest.extensions", name = "kotest-extensions-spring", version = "1.0.1" }
@@ -43,8 +46,8 @@ jakartaServlet = { group = "jakarta.servlet", name = "jakarta.servlet-api", vers
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 hibernateValidatorAnnotationProcessor = { group = "org.hibernate.validator", name = "hibernate-validator-annotation-processor", version.ref = "hibernateValidator" }
 hibernateValidatorCdi = { group = "org.hibernate.validator", name = "hibernate-validator-cdi", version.ref = "hibernateValidator" }
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.50-g04c49e22a0" }
-asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.14-g05fa58f2eb" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.52-g768ce21a97" }
+asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.20-gb1dbc02f34" }
 mapperProcessor = { group = "io.icure", name = "mapper-processor", version = "0.1.1-32d45af2a6" }
 guava = { group = "com.google.guava", name = "guava", version = "31.1-jre" }
 commonsBeanUtils = { group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4" }
