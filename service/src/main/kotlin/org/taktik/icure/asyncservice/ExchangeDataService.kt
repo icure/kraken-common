@@ -16,6 +16,7 @@ interface ExchangeDataService {
      * @return the exchange data with the provided id if it exists.
      */
     suspend fun getExchangeDataById(id: String): ExchangeData?
+    fun getExchangeDataByIds(ids: List<String>): Flow<ExchangeData>
 
     /**
      * Get the exchange data where the delegator and/or delegate is the provided data owner.
