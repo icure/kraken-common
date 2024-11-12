@@ -54,6 +54,10 @@ class ExchangeDataLogicImpl(
         return exchangeDataDAO.get(datastoreInstanceProvider.getInstanceAndGroup(), id)
     }
 
+    override fun getExchangeDataByIds(ids: List<String>): Flow<ExchangeData> = flow {
+        emitAll(exchangeDataDAO.getEntities(datastoreInstanceProvider.getInstanceAndGroup(), ids))
+    }
+
     override fun findExchangeDataByParticipant(dataOwnerId: String, paginationOffset: PaginationOffset<String>): Flow<PaginationElement> = flow {
         emitAll(exchangeDataDAO
             .findExchangeDataByParticipant(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerId, paginationOffset.limitIncludingKey())
