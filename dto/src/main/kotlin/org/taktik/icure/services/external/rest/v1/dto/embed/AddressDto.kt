@@ -20,8 +20,11 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents an Address""")
 data class AddressDto(
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	@Schema(description = "The identifiers of the Address") val identifier: List<IdentifierDto> = emptyList(),
 	@Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") val addressType: AddressTypeDto? = null,
 	@Schema(description = "Descriptive notes about the address") val descr: String? = null,

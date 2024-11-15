@@ -29,6 +29,7 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -63,6 +64,11 @@ class ExchangeDataController(
 				?: throw NotFoundRequestException("Could not find exchange data with id $exchangeDataId")
 		)
 	}
+
+	@Operation(summary = "Get exchange data with specific ids")
+	@PostMapping("/byIds")
+	fun getExchangeDataByIds(@RequestBody exchangeDataIds: ListOfIdsDto): Flux<ExchangeDataDto> =
+		exchangeDataLogic.getExchangeDataByIds(exchangeDataIds.ids.distinct()).map(exchangeDataMapper::map).injectReactorContext()
 
 	@Operation(summary = "Get exchange data with a specific participant")
 	@GetMapping("/byParticipant/{dataOwnerId}")

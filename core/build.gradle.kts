@@ -1,3 +1,6 @@
+import com.github.jk1.license.render.CsvReportRenderer
+import com.github.jk1.license.render.ReportRenderer
+
 plugins {
     id("com.icure.kotlin-library-conventions")
     kotlin("plugin.serialization")
@@ -12,6 +15,10 @@ plugins {
     alias(coreLibs.plugins.licenceReport) apply(true)
     alias(coreLibs.plugins.ksp) apply(true)
     `maven-publish`
+}
+
+licenseReport {
+    renderers = arrayOf<ReportRenderer>(CsvReportRenderer())
 }
 
 dependencies {
