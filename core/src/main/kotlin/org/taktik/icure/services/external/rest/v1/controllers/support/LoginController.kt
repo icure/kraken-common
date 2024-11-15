@@ -23,15 +23,27 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
 import org.taktik.icure.entities.security.jwt.JwtResponse
-import org.taktik.icure.exceptions.*
+import org.taktik.icure.exceptions.Invalid2FAException
+import org.taktik.icure.exceptions.Missing2FAException
+import org.taktik.icure.exceptions.PasswordTooShortException
+import org.taktik.icure.exceptions.TooManyRequestsException
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
-import org.taktik.icure.security.jwt.*
+import org.taktik.icure.security.jwt.JwtDetails
+import org.taktik.icure.security.jwt.JwtRefreshDetails
+import org.taktik.icure.security.jwt.JwtToResponseMapper
+import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v1.dto.AuthenticationResponse
 import org.taktik.icure.services.external.rest.v1.dto.LoginCredentials
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
@@ -161,6 +173,7 @@ class LoginController(
 		AuthenticationResponse(successful = true)
 	}
 
+	@Deprecated("OTT Websocket auth is deprecated, use the JWT instead")
 	@Operation(summary = "token", description = "Get token for subsequent operation")
 	@GetMapping("/token/{method}/{path}")
 	fun token(@PathVariable method: String, @PathVariable path: String) = mono {

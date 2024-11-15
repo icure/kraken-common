@@ -134,6 +134,8 @@ class LoginController(
 			throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message)
 		}
 	}
+
+	@Deprecated("OTT Websocket auth is deprecated, use the JWT instead")
 	@Operation(summary = "token", description = "Get token for subsequent operation")
 	@GetMapping("/token/{method}/{path}")
 	fun token(@PathVariable method: String, @PathVariable path: String) = mono {
@@ -141,6 +143,7 @@ class LoginController(
 		cache.put(token, SecurityToken(HttpMethod.valueOf(method), path, sessionLogic.getAuthentication()))
 		token
 	}
+
 	@Operation(summary = "logout", description = "Logout")
 	@GetMapping("/logout")
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
