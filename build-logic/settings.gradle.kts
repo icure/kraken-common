@@ -27,4 +27,10 @@ dependencyResolutionManagement {
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://repo.spring.io/plugins-release") }
     }
+
+    versionCatalogs {
+        create("commonLibs") {
+            from(files("../libs.versions.toml"))
+        }
+    }
 }

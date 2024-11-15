@@ -8,7 +8,7 @@ caffeine = "3.1.8"
 kotlinx = "1.8.1"
 kotest = "4.4.3"
 hibernateValidator = "8.0.1.Final"
-kmap = "0.1.52-main.8d4a565b58"
+kmap = "0.1.79-gda7c33c594"
 bouncyCastle = "1.70"
 jwt = "0.11.5"
 kotlin = "1.9.25"
@@ -81,6 +81,7 @@ googleApiClient = { group = "com.google.api-client", name = "google-api-client",
 kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
+kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [bundles]
 springBootLibs = ["springBootWebflux", "springBootSecurity", "springBootActuator", "springBootCache"]
