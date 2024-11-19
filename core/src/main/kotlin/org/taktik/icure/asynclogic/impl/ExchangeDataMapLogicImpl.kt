@@ -40,34 +40,41 @@ class ExchangeDataMapLogicImpl(
         getEntities(ids)
 
     override fun createOrUpdateExchangeDataMapBatchById(batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>): Flow<ExchangeDataMap> = flow {
-        val existingBatch = getEntities(batch.keys).toList().associateBy { it.id }
-        val updatedBatch = batch.mapNotNull { (secDelKey, encryptedExchangeDataIds) ->
-            val originalXDM = existingBatch[secDelKey]
-            when {
-                // Does not exist yet, create a new one
-                originalXDM == null -> ExchangeDataMap(id = secDelKey, encryptedExchangeDataIds = encryptedExchangeDataIds)
-                // Exists and contains values encrypted with all requested keys, nothing to do
-                originalXDM.encryptedExchangeDataIds.keys.containsAll(encryptedExchangeDataIds.keys) -> null
-                // Exists but misses values for some keys from the new request, add missing ones, leave others untouched
-                else -> originalXDM.copy(encryptedExchangeDataIds = encryptedExchangeDataIds + originalXDM.encryptedExchangeDataIds)
+        val filteredBatch = batch.filterValues { it.isNotEmpty() }
+        if (filteredBatch.isNotEmpty()) {
+            val existingBatch = getEntities(filteredBatch.keys).toList().associateBy { it.id }
+            val updatedBatch = filteredBatch.mapNotNull { (secDelKey, encryptedExchangeDataIds) ->
+                val originalXDM = existingBatch[secDelKey]
+                when {
+                    // Does not exist yet, create a new one
+                    originalXDM == null -> ExchangeDataMap(
+                        id = secDelKey,
+                        encryptedExchangeDataIds = encryptedExchangeDataIds
+                    )
+                    // Exists and contains values encrypted with all requested keys, nothing to do
+                    originalXDM.encryptedExchangeDataIds.keys.containsAll(encryptedExchangeDataIds.keys) -> null
+                    // Exists but misses values for some keys from the new request, add missing ones, leave others untouched
+                    else -> originalXDM.copy(encryptedExchangeDataIds = encryptedExchangeDataIds + originalXDM.encryptedExchangeDataIds)
+                }
             }
-        }
-        if (updatedBatch.isNotEmpty()) {
-            emitAll(
-                exchangeDataMapDAO.saveBulk(datastoreInstanceProvider.getInstanceAndGroup(), updatedBatch).mapNotNull {
-                    when(it) {
-                        is BulkSaveResult.Success<ExchangeDataMap> -> it.entity
-                        is BulkSaveResult.Failure -> {
-                            when(it.code) {
-                                500 -> throw IllegalStateException(it.message)
-                                403 -> throw AccessDeniedException(it.message)
-                                409 -> null
-                                else -> throw IllegalStateException("Unexpected exception: ${it.code} - ${it.message}")
+            if (updatedBatch.isNotEmpty()) {
+                emitAll(
+                    exchangeDataMapDAO.saveBulk(datastoreInstanceProvider.getInstanceAndGroup(), updatedBatch)
+                        .mapNotNull {
+                            when (it) {
+                                is BulkSaveResult.Success<ExchangeDataMap> -> it.entity
+                                is BulkSaveResult.Failure -> {
+                                    when (it.code) {
+                                        500 -> throw IllegalStateException(it.message)
+                                        403 -> throw AccessDeniedException(it.message)
+                                        409 -> null
+                                        else -> throw IllegalStateException("Unexpected exception: ${it.code} - ${it.message}")
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            )
+                )
+            }
         }
     }
 
