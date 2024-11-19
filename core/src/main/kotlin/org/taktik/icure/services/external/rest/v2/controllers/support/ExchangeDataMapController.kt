@@ -32,6 +32,9 @@ class ExchangeDataMapController(
     fun createOrUpdateExchangeDataMapBatch(
         @RequestBody batch: ExchangeDataMapCreationBatch
     ) = mono {
+        require (batch.batch.values.all { it.isNotEmpty() }) {
+            "Should not create exchange data map with no content"
+        }
         exchangeDataMapService.createOrUpdateExchangeDataMapBatchByAccessControlKey(
             batch.batch
         ).collect()
