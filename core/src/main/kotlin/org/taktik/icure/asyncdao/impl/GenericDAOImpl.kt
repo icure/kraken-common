@@ -33,6 +33,7 @@ import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
+import org.taktik.couchdb.entity.EntityExceptionBehaviour
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.View
 import org.taktik.couchdb.entity.ViewQuery
@@ -182,7 +183,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				emptyList()
 			} ?: (nonCachedBatch + it)
 		}.takeIf { it.isNotEmpty() }?.also { notEmitted ->
-			emitAll(client.get(notEmitted, entityClass).map {
+			emitAll(client.get(notEmitted, entityClass, onEntityException = EntityExceptionBehaviour.Recover).map {
 				cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
 				this@GenericDAOImpl.postLoad(datastoreInformation, it)
 			})
