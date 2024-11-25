@@ -6,6 +6,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
@@ -18,6 +19,7 @@ import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
+import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -40,7 +42,7 @@ data class Receipt(
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
-	val references: List<String> = emptyList(), //nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
+	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val references: List<String> = emptyList(), //nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
 
 	//The ICureDocument (Invoice, Contact, ...) this document is linked to
 	val documentId: String? = null,
