@@ -14,5 +14,6 @@ data class CalendarItemTag(
 	val code: String? = null,
 	val date: Long? = null,
 	val userId: String? = null,
-	val userName: String? = null
-) : Serializable
+	val userName: String? = null,
+	override val encryptedSelf: String? = null
+) : Serializable, Encryptable

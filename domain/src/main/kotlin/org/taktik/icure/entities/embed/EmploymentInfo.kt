@@ -15,5 +15,6 @@ data class EmploymentInfo(
 	val startDate: Long? = null,
 	val endDate: Long? = null,
 	val professionType: CodeStub? = null,
-	val employer: Employer? = null
-) : Serializable
+	val employer: Employer? = null,
+	override val encryptedSelf: String?
+) : Serializable, Encryptable
