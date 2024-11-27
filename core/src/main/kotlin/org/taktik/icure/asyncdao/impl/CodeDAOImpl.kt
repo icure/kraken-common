@@ -714,6 +714,7 @@ import kotlin.math.min
 	}
 
 	@Views(
+		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label_old.js"),
 		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js", secondaryPartition = MAURICE_PARTITION),
 	)
