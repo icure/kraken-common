@@ -35,7 +35,12 @@ interface RecoveryDataService {
 
     /**
      * Deletes all recovery data of a given type for a given recipient.
-     * * @return the amount of recovery data that has been deleted
+     * @return the amount of recovery data that has been deleted
      */
     suspend fun deleteAllRecoveryDataOfTypeForRecipient(type: RecoveryData.Type, recipientId: String): Int
+
+    /**
+     * Gets recovery data if it exists, or waits for up to [waitSeconds] for it to be created before returning.
+     */
+    suspend fun waitForRecoveryData(id: String, waitSeconds: Int): RecoveryData?
 }

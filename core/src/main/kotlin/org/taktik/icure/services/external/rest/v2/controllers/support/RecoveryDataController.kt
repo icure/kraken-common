@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.RecoveryDataService
@@ -54,14 +55,14 @@ class RecoveryDataController(
         recoveryDataService.purgeRecoveryData(id).let(docIdentifierMapper::map)
     }
 
-    @DeleteMapping("forRecipient/{recipientId}")
+    @DeleteMapping("/forRecipient/{recipientId}")
     fun deleteAllRecoveryDataForRecipient(
         @PathVariable recipientId: String
     ): Mono<ContentDto> = mono {
         ContentDto(numberValue = recoveryDataService.deleteAllRecoveryDataForRecipient(recipientId).toDouble())
     }
 
-    @DeleteMapping("forRecipient/{recipientId}/ofType/{type}")
+    @DeleteMapping("/forRecipient/{recipientId}/ofType/{type}")
     fun deleteAllRecoveryDataOfTypeForRecipient(
         @PathVariable type: RecoveryDataDto.Type,
         @PathVariable recipientId: String
@@ -72,5 +73,15 @@ class RecoveryDataController(
                 recipientId
             ).toDouble()
         )
+    }
+
+    @GetMapping("/waiting/{id}")
+    fun getRecoveryDataWaiting(
+        @PathVariable id: String,
+        @RequestParam(required = false) timeoutSeconds: Int? = null
+    ): Mono<RecoveryDataDto> = mono {
+        require(timeoutSeconds == null || timeoutSeconds <= 30) { "Max wait time is 30 seconds" }
+        recoveryDataService.waitForRecoveryData(id, timeoutSeconds ?: 30)?.let(recoveryDataV2Mapper::map)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "RecoveryData not found")
     }
 }
