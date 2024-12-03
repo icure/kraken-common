@@ -82,6 +82,7 @@ kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api",
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+websocketCommons = { group = "com.icure", name = "kraken-websocket-common", version = "0.1.1-g2e7e958d75"}
 
 [bundles]
 springBootLibs = ["springBootWebflux", "springBootSecurity", "springBootActuator", "springBootCache"]
