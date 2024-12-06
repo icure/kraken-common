@@ -25,7 +25,6 @@ import org.taktik.icure.security.jwt.JwtAuthenticationToken
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
 import org.taktik.icure.security.jwt.JwtUtils
-import org.taktik.icure.utils.info
 import reactor.core.publisher.Mono
 
 abstract class AbstractAuthenticationManager <
@@ -83,7 +82,6 @@ abstract class AbstractAuthenticationManager <
     abstract suspend fun checkAuthentication(fullGroupAndId: String, password: String)
     override fun authenticate(authentication: Authentication?): Mono<Authentication> = mono {
         try {
-            // TODO: the "if" will be removed when the SESSION will be dismissed
             if (authentication is UsernamePasswordAuthenticationToken) {
                 authenticateWithUsernameAndPassword(authentication, null, null).map {
                     JwtAuthenticationToken(
