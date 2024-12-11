@@ -23,7 +23,7 @@ dependencies {
     }
 
     if (rootProject.name == "kraken-cloud") {
-        ksp(project(":sdk-codegen:sdk-codegen"))
+        ksp("com.icure:ksp-json-processor")
     }
 
     implementation(coreLibs.bundles.xmlLibs)
