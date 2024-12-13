@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -322,19 +323,7 @@ open class PatientLogicImpl(
 	override suspend fun createPatient(patient: Patient) = fix(patient) { fixedPatient ->
 		if(fixedPatient.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		checkRequirements(fixedPatient)
-		(
-			if (fixedPatient.preferredUserId != null && (fixedPatient.delegations.isEmpty())) {
-				userLogic.getUser(fixedPatient.preferredUserId!!, false)?.let { user ->
-					fixedPatient.copy(
-						delegations = (user.autoDelegations.values.flatMap { autoDelegations ->
-							autoDelegations.map { it to setOf<Delegation>() }
-						}).toMap() + (user.healthcarePartyId?.let { mapOf(it to setOf()) } ?: mapOf())
-					)
-				} ?: fixedPatient
-			} else fixedPatient
-			).let {
-				createEntities(setOf(it)).firstOrNull()
-			}
+		createEntities(setOf(fixedPatient)).singleOrNull()
 	}
 
 	override fun createPatients(patients: List<Patient>): Flow<Patient> = flow {
