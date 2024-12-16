@@ -23,38 +23,20 @@ licenseReport {
 
 dependencies {
 
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:logic"))
-            implementation(project(":kmehr-module:kraken-common:mapper"))
-            implementation(project(":kmehr-module:kraken-common:dto"))
-            implementation(project(":kmehr-module:kraken-common:domain"))
-            implementation(project(":kmehr-module:kraken-common:dao"))
-            implementation(project(":kmehr-module:kraken-common:jwt"))
-            implementation(project(":kmehr-module:kraken-common:utils"))
-            implementation(project(":kmehr-module:kraken-common:service"))
-        }
-        "kraken-common" -> {
-            implementation(project(":logic"))
-            implementation(project(":mapper"))
-            implementation(project(":dto"))
-            implementation(project(":domain"))
-            implementation(project(":dao"))
-            implementation(project(":jwt"))
-            implementation(project(":utils"))
-            implementation(project(":service"))
-        }
-        else -> {
-            implementation(project(":kraken-common:logic"))
-            implementation(project(":kraken-common:mapper"))
-            implementation(project(":kraken-common:dto"))
-            implementation(project(":kraken-common:domain"))
-            implementation(project(":kraken-common:dao"))
-            implementation(project(":kraken-common:jwt"))
-            implementation(project(":kraken-common:utils"))
-            implementation(project(":kraken-common:service"))
-        }
+    val projectPrefix = when (rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:logic"))
+    implementation(project("$projectPrefix:mapper"))
+    implementation(project("$projectPrefix:dto"))
+    implementation(project("$projectPrefix:domain"))
+    implementation(project("$projectPrefix:dao"))
+    implementation(project("$projectPrefix:jwt"))
+    implementation(project("$projectPrefix:utils"))
+    implementation(project("$projectPrefix:service"))
 
     if (rootProject.name == "kraken-cloud") {
         ksp("com.icure:ksp-json-processor")

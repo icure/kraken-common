@@ -14,20 +14,14 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies{
 
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:logic"))
-            implementation(project(":kmehr-module:kraken-common:domain"))
-        }
-        "kraken-common" -> {
-            implementation(project(":logic"))
-            implementation(project(":domain"))
-        }
-        else -> {
-            implementation(project(":kraken-common:logic"))
-            implementation(project(":kraken-common:domain"))
-        }
+    val projectPrefix = when(rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:domain"))
+    implementation(project("$projectPrefix:logic"))
 
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
 

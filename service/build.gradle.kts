@@ -7,23 +7,15 @@ plugins {
 
 dependencies {
 
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:domain"))
-            implementation(project(":kmehr-module:kraken-common:logic"))
-            implementation(project(":kmehr-module:kraken-common:utils"))
-        }
-        "kraken-common" -> {
-            implementation(project(":domain"))
-            implementation(project(":logic"))
-            implementation(project(":utils"))
-        }
-        else -> {
-            implementation(project(":kraken-common:domain"))
-            implementation(project(":kraken-common:logic"))
-            implementation(project(":kraken-common:utils"))
-        }
+    val projectPrefix = when(rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:domain"))
+    implementation(project("$projectPrefix:logic"))
+    implementation(project("$projectPrefix:utils"))
 
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
     implementation(coreLibs.bundles.springBootLibs)
