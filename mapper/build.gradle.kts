@@ -16,23 +16,15 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 dependencies {
 	ksp(group = "io.icure", name = "kmap", version = coreLibs.versions.kmap.orNull)
 
-	when (rootProject.name) {
-		"kmehr-importer" -> {
-			implementation(project(":kmehr-module:kraken-common:domain"))
-			implementation(project(":kmehr-module:kraken-common:dto"))
-			implementation(project(":kmehr-module:kraken-common:utils"))
-		}
-		"kraken-common" -> {
-			implementation(project(":domain"))
-			implementation(project(":dto"))
-			implementation(project(":utils"))
-		}
-		else -> {
-			implementation(project(":kraken-common:domain"))
-			implementation(project(":kraken-common:dto"))
-			implementation(project(":kraken-common:utils"))
-		}
+	val projectPrefix = when(rootProject.name) {
+		"kmehr-importer" -> ":kmehr-module:kraken-common"
+		"kraken-common" -> ""
+		else -> ":kraken-common"
 	}
+
+	implementation(project("$projectPrefix:domain"))
+	implementation(project("$projectPrefix:dto"))
+	implementation(project("$projectPrefix:utils"))
 
 	implementation(coreLibs.bundles.jacksonLibs)
 	implementation(coreLibs.bundles.springBootLibs)
@@ -49,12 +41,22 @@ dependencies {
 }
 
 tasks.register("KspPreCheck") {
-	inputs.dir(project(":kraken-common:domain").file("src/main/kotlin/org/taktik/icure/domain"))
-	inputs.dir(project(":kraken-common:domain").file("src/main/kotlin/org/taktik/icure/entities"))
+	val domainProject = when (rootProject.name) {
+		"kmehr-importer" -> project(":kmehr-module:kraken-common:domain")
+		else -> project(":kraken-common:domain")
+	}
 
-	inputs.dir(project(":kraken-common:dto").file("src/main/kotlin/org/taktik/icure/dto"))
-	inputs.dir(project(":kraken-common:dto").file("src/main/kotlin/org/taktik/icure/services/external/rest/v1/dto"))
-	inputs.dir(project(":kraken-common:dto").file("src/main/kotlin/org/taktik/icure/services/external/rest/v2/dto"))
+	val dtoProject = when (rootProject.name) {
+		"kmehr-importer" -> project(":kmehr-module:kraken-common:dto")
+		else -> project(":kraken-common:dto")
+	}
+
+	inputs.dir(domainProject.file("src/main/kotlin/org/taktik/icure/domain"))
+	inputs.dir(domainProject.file("src/main/kotlin/org/taktik/icure/entities"))
+
+	inputs.dir(dtoProject.file("src/main/kotlin/org/taktik/icure/dto"))
+	inputs.dir(dtoProject.file("src/main/kotlin/org/taktik/icure/services/external/rest/v1/dto"))
+	inputs.dir(dtoProject.file("src/main/kotlin/org/taktik/icure/services/external/rest/v2/dto"))
 
 	inputs.dir("src/main/kotlin/org/taktik/icure/services/external/rest/v1/mapper")
 	inputs.dir("src/main/kotlin/org/taktik/icure/services/external/rest/v2/mapper")
