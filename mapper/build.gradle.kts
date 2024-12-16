@@ -15,15 +15,23 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
 	ksp(group = "io.icure", name = "kmap", version = coreLibs.versions.kmap.orNull)
-	if (rootProject.name != "kraken-common") {
-		implementation(project(":kraken-common:domain"))
-		implementation(project(":kraken-common:dto"))
-		implementation(project(":kraken-common:utils"))
-	}
-	else {
-		implementation(project(":domain"))
-		implementation(project(":dto"))
-		implementation(project(":utils"))
+
+	when (rootProject.name) {
+		"kmehr-importer" -> {
+			implementation(project(":kmehr-module:kraken-common:domain"))
+			implementation(project(":kmehr-module:kraken-common:dto"))
+			implementation(project(":kmehr-module:kraken-common:utils"))
+		}
+		"kraken-cloud" -> {
+			implementation(project(":kraken-common:domain"))
+			implementation(project(":kraken-common:dto"))
+			implementation(project(":kraken-common:utils"))
+		}
+		else -> {
+			implementation(project(":domain"))
+			implementation(project(":dto"))
+			implementation(project(":utils"))
+		}
 	}
 
 	implementation(coreLibs.bundles.jacksonLibs)

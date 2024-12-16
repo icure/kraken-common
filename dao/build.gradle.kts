@@ -14,13 +14,19 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies{
 
-    if (rootProject.name != "kraken-common") {
-        implementation(project(":kraken-common:logic"))
-        implementation(project(":kraken-common:domain"))
-    }
-    else {
-        implementation(project(":logic"))
-        implementation(project(":domain"))
+    when (rootProject.name) {
+        "kmehr-importer" -> {
+            implementation(project(":kmehr-module:kraken-common:logic"))
+            implementation(project(":kmehr-module:kraken-common:domain"))
+        }
+        "kraken-cloud" -> {
+            implementation(project(":kraken-common:logic"))
+            implementation(project(":kraken-common:domain"))
+        }
+        else -> {
+            implementation(project(":logic"))
+            implementation(project(":domain"))
+        }
     }
 
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
