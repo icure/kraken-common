@@ -16,10 +16,16 @@ group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
-    if (rootProject.name != "kraken-common") {
-        implementation(project(":kraken-common:utils"))
-    } else {
-        implementation(project(":utils"))
+    when (rootProject.name) {
+        "kmehr-importer" -> {
+            implementation(project(":kmehr-module:kraken-common:utils"))
+        }
+        "kraken-cloud" -> {
+            implementation(project(":kraken-common:utils"))
+        }
+        else -> {
+            implementation(project(":utils"))
+        }
     }
 
     if (rootProject.name == "kraken-cloud") {

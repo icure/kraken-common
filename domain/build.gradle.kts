@@ -20,11 +20,16 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    if (rootProject.name != "kraken-common") {
-        implementation(project(":kraken-common:utils"))
-    }
-    else {
-        implementation(project(":utils"))
+    when (rootProject.name) {
+        "kmehr-importer" -> {
+            implementation(project(":kmehr-module:kraken-common:utils"))
+        }
+        "kraken-cloud" -> {
+            implementation(project(":kraken-common:utils"))
+        }
+        else -> {
+            implementation(project(":utils"))
+        }
     }
 
     implementation(coreLibs.bundles.jacksonLibs)
