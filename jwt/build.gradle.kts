@@ -14,23 +14,15 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
 
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:domain"))
-            implementation(project(":kmehr-module:kraken-common:dto"))
-            implementation(project(":kmehr-module:kraken-common:utils"))
-        }
-        "kraken-common" -> {
-            implementation(project(":domain"))
-            implementation(project(":dto"))
-            implementation(project(":utils"))
-        }
-        else -> {
-            implementation(project(":kraken-common:domain"))
-            implementation(project(":kraken-common:dto"))
-            implementation(project(":kraken-common:utils"))
-        }
+    val projectPrefix = when(rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:domain"))
+    implementation(project("$projectPrefix:dto"))
+    implementation(project("$projectPrefix:utils"))
 
     implementation(coreLibs.bundles.jsonWebTokenLibs) {
         exclude(group = "com.fasterxml.jackson.core")

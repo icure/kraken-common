@@ -20,17 +20,14 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:utils"))
-        }
-        "kraken-common" -> {
-            implementation(project(":utils"))
-        }
-        else -> {
-            implementation(project(":kraken-common:utils"))
-        }
+
+    val projectPrefix = when(rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:utils"))
 
     implementation(coreLibs.bundles.jacksonLibs)
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)

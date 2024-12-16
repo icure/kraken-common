@@ -16,17 +16,14 @@ group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
-    when (rootProject.name) {
-        "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:utils"))
-        }
-        "kraken-common" -> {
-            implementation(project(":utils"))
-        }
-        else -> {
-            implementation(project(":kraken-common:utils"))
-        }
+
+    val projectPrefix = when(rootProject.name) {
+        "kmehr-importer" -> ":kmehr-module:kraken-common"
+        "kraken-common" -> ""
+        else -> ":kraken-common"
     }
+
+    implementation(project("$projectPrefix:utils"))
 
     if (rootProject.name == "kraken-cloud") {
         ksp("com.icure:ksp-json-processor")
