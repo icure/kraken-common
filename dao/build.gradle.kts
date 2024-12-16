@@ -19,13 +19,13 @@ dependencies{
             implementation(project(":kmehr-module:kraken-common:logic"))
             implementation(project(":kmehr-module:kraken-common:domain"))
         }
-        "kraken-cloud", "kraken-lite" -> {
-            implementation(project(":kraken-common:logic"))
-            implementation(project(":kraken-common:domain"))
-        }
-        else -> {
+        "kraken-common" -> {
             implementation(project(":logic"))
             implementation(project(":domain"))
+        }
+        else -> {
+            implementation(project(":kraken-common:logic"))
+            implementation(project(":kraken-common:domain"))
         }
     }
 

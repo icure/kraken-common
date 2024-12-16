@@ -20,15 +20,15 @@ dependencies {
             implementation(project(":kmehr-module:kraken-common:dto"))
             implementation(project(":kmehr-module:kraken-common:utils"))
         }
-        "kraken-cloud", "kraken-lite" -> {
-            implementation(project(":kraken-common:domain"))
-            implementation(project(":kraken-common:dto"))
-            implementation(project(":kraken-common:utils"))
-        }
-        else -> {
+        "kraken-common" -> {
             implementation(project(":domain"))
             implementation(project(":dto"))
             implementation(project(":utils"))
+        }
+        else -> {
+            implementation(project(":kraken-common:domain"))
+            implementation(project(":kraken-common:dto"))
+            implementation(project(":kraken-common:utils"))
         }
     }
 

@@ -34,17 +34,7 @@ dependencies {
             implementation(project(":kmehr-module:kraken-common:utils"))
             implementation(project(":kmehr-module:kraken-common:service"))
         }
-        "kraken-cloud", "kraken-lite" -> {
-            implementation(project(":kraken-common:logic"))
-            implementation(project(":kraken-common:mapper"))
-            implementation(project(":kraken-common:dto"))
-            implementation(project(":kraken-common:domain"))
-            implementation(project(":kraken-common:dao"))
-            implementation(project(":kraken-common:jwt"))
-            implementation(project(":kraken-common:utils"))
-            implementation(project(":kraken-common:service"))
-        }
-        else -> {
+        "kraken-common" -> {
             implementation(project(":logic"))
             implementation(project(":mapper"))
             implementation(project(":dto"))
@@ -53,6 +43,16 @@ dependencies {
             implementation(project(":jwt"))
             implementation(project(":utils"))
             implementation(project(":service"))
+        }
+        else -> {
+            implementation(project(":kraken-common:logic"))
+            implementation(project(":kraken-common:mapper"))
+            implementation(project(":kraken-common:dto"))
+            implementation(project(":kraken-common:domain"))
+            implementation(project(":kraken-common:dao"))
+            implementation(project(":kraken-common:jwt"))
+            implementation(project(":kraken-common:utils"))
+            implementation(project(":kraken-common:service"))
         }
     }
 
