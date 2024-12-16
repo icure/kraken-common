@@ -24,11 +24,11 @@ dependencies {
         "kmehr-importer" -> {
             implementation(project(":kmehr-module:kraken-common:utils"))
         }
-        "kraken-cloud", "kraken-lite" -> {
-            implementation(project(":kraken-common:utils"))
+        "kraken-common" -> {
+            implementation(project(":utils"))
         }
         else -> {
-            implementation(project(":utils"))
+            implementation(project(":kraken-common:utils"))
         }
     }
 
