@@ -25,31 +25,34 @@ dependencies {
 
     when (rootProject.name) {
         "kmehr-importer" -> {
-            implementation(project(":kmehr-module:kraken-common:core"))
-            implementation(project(":kmehr-module:kraken-common:dao"))
-            implementation(project(":kmehr-module:kraken-common:domain"))
             implementation(project(":kmehr-module:kraken-common:logic"))
             implementation(project(":kmehr-module:kraken-common:mapper"))
             implementation(project(":kmehr-module:kraken-common:dto"))
+            implementation(project(":kmehr-module:kraken-common:domain"))
+            implementation(project(":kmehr-module:kraken-common:dao"))
+            implementation(project(":kmehr-module:kraken-common:jwt"))
             implementation(project(":kmehr-module:kraken-common:utils"))
+            implementation(project(":kmehr-module:kraken-common:service"))
         }
         "kraken-cloud", "kraken-lite" -> {
-            implementation(project(":kraken-common:core"))
-            implementation(project(":kraken-common:dao"))
-            implementation(project(":kraken-common:domain"))
             implementation(project(":kraken-common:logic"))
             implementation(project(":kraken-common:mapper"))
             implementation(project(":kraken-common:dto"))
+            implementation(project(":kraken-common:domain"))
+            implementation(project(":kraken-common:dao"))
+            implementation(project(":kraken-common:jwt"))
             implementation(project(":kraken-common:utils"))
+            implementation(project(":kraken-common:service"))
         }
         else -> {
-            implementation(project(":core"))
-            implementation(project(":dao"))
-            implementation(project(":domain"))
             implementation(project(":logic"))
             implementation(project(":mapper"))
             implementation(project(":dto"))
+            implementation(project(":domain"))
+            implementation(project(":dao"))
+            implementation(project(":jwt"))
             implementation(project(":utils"))
+            implementation(project(":service"))
         }
     }
 
