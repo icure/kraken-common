@@ -13,7 +13,7 @@ dependencies {
             implementation(project(":kmehr-module:kraken-common:logic"))
             implementation(project(":kmehr-module:kraken-common:utils"))
         }
-        "kraken-cloud" -> {
+        "kraken-cloud", "kraken-lite" -> {
             implementation(project(":kraken-common:domain"))
             implementation(project(":kraken-common:logic"))
             implementation(project(":kraken-common:utils"))
