@@ -254,7 +254,7 @@ class MessageController(
 		@RequestParam(required = true) transportGuid: String,
 		@RequestParam(required = true) from: Long,
 		@RequestParam(required = true) to: Long,
-		@RequestParam(required = false) startKey: String?,
+		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?
