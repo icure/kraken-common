@@ -47,6 +47,35 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 }
 
 /**
+ * Converts a [Flow] of [U] to a [Flow] of [PaginationElement]. Only the first [pageSize] elements
+ * of the original flow will be converted. The [pageSize] + 1 element will be used to
+ * extrapolate the [NextPageElement], otherwise no [NextPageElement] will be included in the output flow.
+ *
+ * @receiver a [Flow] of [U].
+ * @param pageSize the number of elements that will be included in the output [Flow].
+ * @param keyGenerator a function from [U] to [K], where [K] is the type of the paginated list key.
+ * @return a [Flow] of [PaginationElement].
+ */
+fun <U, K> Flow<U>.toPaginatedFlow(pageSize: Int, idGenerator: (U) -> String, keyGenerator: (U) -> K?): Flow<PaginationElement> {
+	var emitted = 0
+	return transform {
+		when {
+			emitted < pageSize -> {
+				emitted++
+				emit(PaginationRowElement(it, keyGenerator(it)))
+			}
+
+			emitted == pageSize -> {
+				emitted++
+				emit(NextPageElement(idGenerator(it), keyGenerator(it)))
+			}
+		}
+	}.takeWhile {
+		emitted <= pageSize + 1
+	}
+}
+
+/**
  * Converts a [Flow] of [ViewQueryResultEvent] to a [Flow] of [PaginationElement] containing only the ids of the entities.
  * Only the first [pageSize] elements of the original flow of [ViewRowNoDoc] type will be converted.
  * The [pageSize] + 1 [ViewRowNoDoc] will be used to extrapolate the [NextPageElement], otherwise no
