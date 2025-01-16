@@ -83,7 +83,7 @@ open class PatientLogicImpl(
 
 	private suspend fun checkCanUseViewByHcp(healthcarePartyId: String) {
 		require(sessionLogic.getAllSearchKeysIfCurrentDataOwner(healthcarePartyId).size == 1) {
-			"This method can't be used to search data for anonymous data owners"
+			"This method can't be used to search data for anonymous data owners. Use filters instead"
 		}
 	}
 
