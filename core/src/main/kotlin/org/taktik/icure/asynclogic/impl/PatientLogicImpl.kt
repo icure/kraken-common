@@ -81,7 +81,14 @@ open class PatientLogicImpl(
 
 	private val levenshtein = LevenshteinDistance()
 
+	private suspend fun checkCanUseViewByHcp(healthcarePartyId: String) {
+		require(sessionLogic.getAllSearchKeysIfCurrentDataOwner(healthcarePartyId).size == 1) {
+			"This method can't be used to search data for anonymous data owners"
+		}
+	}
+
 	override suspend fun countByHcParty(healthcarePartyId: String): Int {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		return patientDAO.countByHcParty(datastoreInformation, healthcarePartyId)
 	}
@@ -92,6 +99,7 @@ open class PatientLogicImpl(
 	}
 
 	override fun findByHcPartyIdsOnly(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO
 			.findPatientIdsByHcParty(datastoreInformation, healthcarePartyId, offset.limitIncludingKey())
@@ -100,6 +108,7 @@ open class PatientLogicImpl(
 	}
 
 	override fun findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(healthcarePartyId: String, offset: PaginationOffset<ComplexKey>, searchString: String?, sorting: Sorting<PatientSearchField>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val descending = SortDirection.desc == sorting.direction
 		val datastoreInformation = getInstanceAndGroup()
 
@@ -201,6 +210,7 @@ open class PatientLogicImpl(
 		offset: PaginationOffset<ComplexKey>,
 		descending: Boolean
 	): Flow<ViewQueryResultEvent> = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			patientDAO.findPatientsByHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offset, descending)
@@ -213,6 +223,7 @@ open class PatientLogicImpl(
 		offset: PaginationOffset<ComplexKey>,
 		descending: Boolean
 	): Flow<ViewQueryResultEvent> = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			patientDAO.findPatientsOfHcPartyNameContainsFuzzy(datastoreInformation, searchString, healthcarePartyId, offset, descending)
@@ -225,6 +236,7 @@ open class PatientLogicImpl(
 		searchString: String?,
 		sorting: Sorting<PatientSearchField>
 	) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val descending = SortDirection.desc == sorting.direction
 		val datastoreInformation = getInstanceAndGroup()
 		val offsetIncludingNextKey = offset.limitIncludingKey()
@@ -266,11 +278,13 @@ open class PatientLogicImpl(
 	}.toPaginatedFlow<Patient>(offset.limit)
 
 	override fun findByHcPartyAndSsin(ssin: String?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.findPatientsByHcPartyAndSsin(datastoreInformation, ssin!!, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), false))
 	}
 
 	override fun findByHcPartyDateOfBirth(date: Int?, healthcarePartyId: String, paginationOffset: PaginationOffset<List<String>>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.findPatientsByHcPartyDateOfBirth(datastoreInformation, date, date, healthcarePartyId, paginationOffset.toComplexKeyPaginationOffset(), false))
 	}
@@ -283,6 +297,7 @@ open class PatientLogicImpl(
 	override suspend fun getPatient(patientId: String): Patient? = getEntity(patientId)
 
 	override fun findByHcPartyAndIdentifier(healthcarePartyId: String, system: String, id: String) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.listPatientsByHcPartyAndIdentifier(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(healthcarePartyId), system, id))
 	}
@@ -468,6 +483,7 @@ open class PatientLogicImpl(
 	}
 
 	override fun getDuplicatePatientsBySsin(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO
 			.getDuplicatePatientsBySsin(datastoreInformation, healthcarePartyId, paginationOffset.limitIncludingKey())
@@ -476,6 +492,7 @@ open class PatientLogicImpl(
 	}
 
 	override fun getDuplicatePatientsByName(healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>) = flow {
+		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO
 			.getDuplicatePatientsByName(datastoreInformation, healthcarePartyId, paginationOffset.limitIncludingKey())
@@ -486,6 +503,7 @@ open class PatientLogicImpl(
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun fuzzySearchPatients(firstName: String?, lastName: String?, dateOfBirth: Int?, healthcarePartyId: String?) = flow {
 		val currentHealthcarePartyId = healthcarePartyId ?: sessionLogic.getCurrentHealthcarePartyId()
+		checkCanUseViewByHcp(currentHealthcarePartyId)
 		if (dateOfBirth != null) { //Patients with the right date of birth
 			val combined: Flow<Flow<ViewQueryResultEvent>>
 			val patients = findByHcPartyDateOfBirth(dateOfBirth, currentHealthcarePartyId, PaginationOffset(1000))
