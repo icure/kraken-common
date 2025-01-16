@@ -236,7 +236,6 @@ open class PatientLogicImpl(
 		searchString: String?,
 		sorting: Sorting<PatientSearchField>
 	) = flow {
-		checkCanUseViewByHcp(healthcarePartyId)
 		val descending = SortDirection.desc == sorting.direction
 		val datastoreInformation = getInstanceAndGroup()
 		val offsetIncludingNextKey = offset.limitIncludingKey()
