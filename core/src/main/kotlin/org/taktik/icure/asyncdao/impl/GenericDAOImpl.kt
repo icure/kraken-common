@@ -7,6 +7,7 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
@@ -71,6 +72,7 @@ import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
+import java.util.LinkedList
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -170,24 +172,44 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".get: " + ids)
 		}
-
-		ids.fold(emptyList<String>()) { nonCachedBatch, it ->
-			cacheChain?.getEntity(datastoreInformation.getFullIdFor(it))?.let { e ->
-				if(nonCachedBatch.isNotEmpty()) {
-					emitAll(client.get(nonCachedBatch, entityClass).map {
-						cacheChain.putInCache(datastoreInformation.getFullIdFor(it.id), it)
-						this@GenericDAOImpl.postLoad(datastoreInformation, it)
-					})
-				}
-				emit(e)
-				emptyList()
-			} ?: (nonCachedBatch + it)
-		}.takeIf { it.isNotEmpty() }?.also { notEmitted ->
-			emitAll(client.get(notEmitted, entityClass, onEntityException = EntityExceptionBehaviour.Recover).map {
-				cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
-				this@GenericDAOImpl.postLoad(datastoreInformation, it)
-			})
+		val allIds = LinkedList<String>()
+		val toRetrieve = LinkedList<String>()
+		val cached = LinkedList<T>()
+		ids.collect { id ->
+			val currCached = cacheChain?.getEntity(datastoreInformation.getFullIdFor(id))
+			if (currCached != null) {
+				cached.addLast(currCached)
+			} else {
+				toRetrieve.addLast(id)
+			}
+			allIds.addLast(id)
 		}
+		// TODO do we want to limit size of the request?
+		if (toRetrieve.isNotEmpty()) {
+			client.get(
+				toRetrieve,
+				entityClass,
+				onEntityException = EntityExceptionBehaviour.Recover
+			).collect { retrieved ->
+				val postLoaded = this@GenericDAOImpl.postLoad(datastoreInformation, retrieved)
+				cacheChain?.putInCache(datastoreInformation.getFullIdFor(postLoaded.id), postLoaded)
+				while (retrieved.id != allIds.first()) {
+					// Some entities may not exist or be of the wrong type, ignore while not matching a cached entity
+					if (cached.firstOrNull()?.id == allIds.first()) {
+						emit(cached.removeFirst())
+					}
+					allIds.removeFirst()
+				}
+				emit(retrieved)
+				allIds.removeFirst()
+			}
+		}
+		while (allIds.isNotEmpty() && cached.isNotEmpty()) {
+			if (allIds.removeFirst() == cached.first().id) {
+				emit(cached.removeFirst())
+			}
+		}
+		check(cached.isEmpty()) { "Should have consumed all cached entities" }
 	}
 
 	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? {
