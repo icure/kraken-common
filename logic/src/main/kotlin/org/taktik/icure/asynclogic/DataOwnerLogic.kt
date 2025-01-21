@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic
 
+import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerType
@@ -12,6 +13,8 @@ interface DataOwnerLogic {
      * @return the type of the data owner with the provided id and its crypto-actor properties.
      */
     suspend fun getCryptoActorStub(dataOwnerId: String): CryptoActorStubWithType?
+
+    fun getCryptoActorStubs(dataOwnerIds: List<String>): Flow<CryptoActorStubWithType>
 
     /**
      * Get just the crypto-actor properties of a data owner for which the type is known.
@@ -31,6 +34,13 @@ interface DataOwnerLogic {
      * @return the data owner with the provided id and its type.
      */
     suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType?
+
+    /**
+     * Get the data owner with the provided id.
+     * @param dataOwnerId a data owner id
+     * @return the data owner with the provided id and its type.
+     */
+    fun getDataOwners(dataOwnerIds: List<String>): Flow<DataOwnerWithType>
 
     /**
      * Updates only the crypto-actor properties of a data owner.
