@@ -2,12 +2,14 @@ package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,8 +21,11 @@ import org.taktik.icure.asyncservice.DataOwnerService
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.CryptoActorStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapper
+import org.taktik.icure.utils.injectReactorContext
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController("dataOwnerControllerV2")
@@ -42,6 +47,10 @@ class DataOwnerController(
             ?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
     }
 
+    @PostMapping("/byIds")
+    fun getDataOwners(@RequestBody dataOwnerIds: ListOfIdsDto): Flux<DataOwnerWithTypeDto> =
+        dataOwnerService.getDataOwners(dataOwnerIds.ids).map { dataOwnerWithTypeMapper.map(it) }.injectReactorContext()
+
     @Operation(
         summary = "Get a data owner stub by his ID",
         description = "Key-related information about the data owner"
@@ -51,6 +60,10 @@ class DataOwnerController(
         dataOwnerService.getCryptoActorStub(dataOwnerId)?.let { cryptoActorStubMapper.map(it) }
             ?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
     }
+
+    @PostMapping("/stub/byIds")
+    fun getDataOwnerStubs(@RequestBody dataOwnerIds: ListOfIdsDto): Flux<CryptoActorStubWithTypeDto> =
+        dataOwnerService.getCryptoActorStubs(dataOwnerIds.ids).map { cryptoActorStubMapper.map(it) }.injectReactorContext()
 
     @Operation(
         summary = "Update key-related information of a data owner",

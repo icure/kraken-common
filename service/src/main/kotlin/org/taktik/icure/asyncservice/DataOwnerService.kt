@@ -1,15 +1,22 @@
 package org.taktik.icure.asyncservice
 
+import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerWithType
 
 interface DataOwnerService {
     /**
      * Get just the crypto-actor properties of a data owner. Any data owner is allowed to call this method.
+     * Ignores inaccessible missing data owners.
      * @param dataOwnerId a data owner id
      * @return the type of the data owner with the provided id and its crypto-actor properties.
      */
     suspend fun getCryptoActorStub(dataOwnerId: String): CryptoActorStubWithType?
+
+    /**
+     * Bulk version of [getCryptoActorStub]
+     */
+    fun getCryptoActorStubs(dataOwnerIds: List<String>): Flow<CryptoActorStubWithType>
 
     /**
      * Get the data owner with the provided id. Only data owners with access to the data owner with the provided id are
@@ -19,6 +26,11 @@ interface DataOwnerService {
      * @return the data owner with the provided id and its type.
      */
     suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType?
+
+    /**
+     * Bulk version of [getDataOwner]. Ignores inaccessible or missing data owners.
+     */
+    fun getDataOwners(dataOwnerIds: List<String>): Flow<DataOwnerWithType>
 
     /**
      * Updates only the crypto-actor properties of a data owner. The data owner itself is allowed to modify any of its

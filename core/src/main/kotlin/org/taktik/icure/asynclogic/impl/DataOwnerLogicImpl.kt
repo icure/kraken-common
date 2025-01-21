@@ -1,6 +1,12 @@
 package org.taktik.icure.asynclogic.impl
 
 import com.fasterxml.jackson.databind.JsonMappingException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Versionable
@@ -31,6 +37,9 @@ class DataOwnerLogicImpl(
     override suspend fun getCryptoActorStub(dataOwnerId: String): CryptoActorStubWithType? =
         getDataOwner(dataOwnerId)?.retrieveStub()
 
+    override fun getCryptoActorStubs(dataOwnerIds: List<String>): Flow<CryptoActorStubWithType> =
+        getDataOwners(dataOwnerIds).map { it.retrieveStub() }
+
     override suspend fun getCryptoActorStubWithType(
         dataOwnerId: String,
         dataOwnerType: DataOwnerType
@@ -44,6 +53,41 @@ class DataOwnerLogicImpl(
             DataOwnerWithType.HcpDataOwner(it)
         } ?: wrongTypeAsNull { deviceDao.get(datastoreInfo, dataOwnerId) }?.takeIf { it.deletionDate == null }?.let {
             DataOwnerWithType.DeviceDataOwner(it)
+        }
+    }
+
+    override fun getDataOwners(dataOwnerIds: List<String>): Flow<DataOwnerWithType> = flow {
+        val dataOwnerIdsSet = dataOwnerIds.toSet()
+        val resultEntitiesById = mutableMapOf<String, DataOwnerWithType>()
+        val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+        // This loads all data owners in memory before sending them out.
+        // Only way of keeping order of data owners.
+        (dataOwnerIdsSet/* - resultEntitiesById.keys*/).let { remainingEntities ->
+            patientDao.getEntities(datastoreInfo, remainingEntities).filter {
+                it.deletionDate == null
+            }.collect {
+                println("Got patient ${it.id}")
+                resultEntitiesById[it.id] = DataOwnerWithType.PatientDataOwner(it)
+            }
+        }
+        (dataOwnerIdsSet - resultEntitiesById.keys).let { remainingEntities ->
+            hcpDao.getEntities(datastoreInfo, remainingEntities).filter {
+                it.deletionDate == null
+            }.collect {
+                println("Got hcp ${it.id}")
+                resultEntitiesById[it.id] = DataOwnerWithType.HcpDataOwner(it)
+            }
+        }
+        (dataOwnerIdsSet - resultEntitiesById.keys).let { remainingEntities ->
+            deviceDao.getEntities(datastoreInfo, remainingEntities).filter {
+                it.deletionDate == null
+            }.collect {
+                println("Got device ${it.id}")
+                resultEntitiesById[it.id] = DataOwnerWithType.DeviceDataOwner(it)
+            }
+        }
+        dataOwnerIds.forEach { id ->
+            resultEntitiesById[id]?.also { emit(it) }
         }
     }
 
