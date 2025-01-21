@@ -71,7 +71,7 @@ data class HealthcarePartyDto(
 	@Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") val cbe: String? = null,
 	@Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
 	@Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
-	@Schema(description = "Id of parent of the user representing the healthcare party.") val parentId: String? = null,
+	override val parentId: String? = null,
 	val convention: Int? = null, //0,1,2,9
 	@Schema(description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).") val nihii: String? = null, //institution, person
 	val nihiiSpecCode: String? = null, //don't show field in the GUI

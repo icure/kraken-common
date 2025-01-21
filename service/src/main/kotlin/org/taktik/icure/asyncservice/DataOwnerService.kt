@@ -39,4 +39,7 @@ interface DataOwnerService {
      * @return the updated crypto-actor.
      */
     suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType
+
+    fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType>
+    fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
 }

@@ -58,7 +58,7 @@ data class DeviceDto(
 	val model: String? = null,
 	val serialNumber: String? = null,
 
-	val parentId: String? = null,
+	override val parentId: String? = null,
 	val picture: ByteArray? = null,
 
 	override val properties: Set<PropertyStubDto> = emptySet(),

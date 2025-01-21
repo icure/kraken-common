@@ -103,7 +103,7 @@ data class Device(
 	@param:ContentValue(ContentValues.ANY_STRING) val model: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val serialNumber: String? = null,
 
-	val parentId: String? = null,
+	override val parentId: String? = null,
 	val picture: ByteArray? = null,
 
 	override val properties: Set<PropertyStub> = emptySet(),

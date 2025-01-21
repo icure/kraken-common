@@ -116,7 +116,7 @@ data class HealthcareParty(
 	val cbe: String? = null,
 	val ehp: String? = null,
 	val userId: String? = null,
-	val parentId: String? = null,
+	override val parentId: String? = null,
 	val convention: Int? = null, //0,1,2,9
 	val nihii: String? = null, //institution, person
 	val nihiiSpecCode: String? = null, //don't show field in the GUI
