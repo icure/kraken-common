@@ -1,12 +1,14 @@
 package org.taktik.icure.asynclogic.impl
 
 import com.fasterxml.jackson.databind.JsonMappingException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Versionable
@@ -18,12 +20,16 @@ import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.DataOwnerWithType
+import org.taktik.icure.entities.Device
+import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.asCryptoActorStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.utils.PeekChannel
 import java.lang.IllegalArgumentException
 
 @Service
@@ -57,37 +63,56 @@ class DataOwnerLogicImpl(
     }
 
     override fun getDataOwners(dataOwnerIds: List<String>): Flow<DataOwnerWithType> = flow {
-        val dataOwnerIdsSet = dataOwnerIds.toSet()
-        val resultEntitiesById = mutableMapOf<String, DataOwnerWithType>()
-        val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
-        // This loads all data owners in memory before sending them out.
-        // Only way of keeping order of data owners.
-        (dataOwnerIdsSet/* - resultEntitiesById.keys*/).let { remainingEntities ->
-            patientDao.getEntities(datastoreInfo, remainingEntities).filter {
-                it.deletionDate == null
-            }.collect {
-                println("Got patient ${it.id}")
-                resultEntitiesById[it.id] = DataOwnerWithType.PatientDataOwner(it)
+        coroutineScope {
+            val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+            var currIdIndex = 0
+            val patientChannel = PeekChannel<Patient>(1)
+            val hcpChannel = PeekChannel<HealthcareParty>(1)
+            val deviceChannel = PeekChannel<Device>(1)
+            launch {
+                patientDao.getEntities(datastoreInfo, dataOwnerIds).filter {
+                    it.deletionDate == null
+                }.collect {
+                    patientChannel.send(it)
+                }
+                patientChannel.closeSend()
             }
-        }
-        (dataOwnerIdsSet - resultEntitiesById.keys).let { remainingEntities ->
-            hcpDao.getEntities(datastoreInfo, remainingEntities).filter {
-                it.deletionDate == null
-            }.collect {
-                println("Got hcp ${it.id}")
-                resultEntitiesById[it.id] = DataOwnerWithType.HcpDataOwner(it)
+            launch {
+                hcpDao.getEntities(datastoreInfo, dataOwnerIds).filter {
+                    it.deletionDate == null
+                }.collect {
+                    hcpChannel.send(it)
+                }
+                hcpChannel.closeSend()
             }
-        }
-        (dataOwnerIdsSet - resultEntitiesById.keys).let { remainingEntities ->
-            deviceDao.getEntities(datastoreInfo, remainingEntities).filter {
-                it.deletionDate == null
-            }.collect {
-                println("Got device ${it.id}")
-                resultEntitiesById[it.id] = DataOwnerWithType.DeviceDataOwner(it)
+            launch {
+                deviceDao.getEntities(datastoreInfo, dataOwnerIds).filter {
+                    it.deletionDate == null
+                }.collect {
+                    deviceChannel.send(it)
+                }
+                deviceChannel.closeSend()
             }
-        }
-        dataOwnerIds.forEach { id ->
-            resultEntitiesById[id]?.also { emit(it) }
+            while (currIdIndex < dataOwnerIds.size) {
+                val currId = dataOwnerIds[currIdIndex++]
+                when {
+                    patientChannel.peekOrNull()?.id == currId -> {
+                        emit(DataOwnerWithType.PatientDataOwner(patientChannel.peekOrNull()!!))
+                        patientChannel.consume()
+                    }
+                    hcpChannel.peekOrNull()?.id == currId -> {
+                        emit(DataOwnerWithType.HcpDataOwner(hcpChannel.peekOrNull()!!))
+                        hcpChannel.consume()
+                    }
+                    deviceChannel.peekOrNull()?.id == currId -> {
+                        emit(DataOwnerWithType.DeviceDataOwner(deviceChannel.peekOrNull()!!))
+                        deviceChannel.consume()
+                    }
+                    else -> {
+                        // ignore id: doesn't match an existing data owner
+                    }
+                }
+            }
         }
     }
 
