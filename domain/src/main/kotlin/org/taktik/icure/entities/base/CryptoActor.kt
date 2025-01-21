@@ -38,6 +38,8 @@ interface CryptoActor {
 	// aesExchangeKey field must be used for RSA-OAEP with Sha-1 and are considered legacy starting from v8 of the SDK).
 	val publicKeysForOaepWithSha256: Set<String>
 
+	val parentId: String?
+
 	fun solveConflictsWith(other: CryptoActor): Map<String, Any?> {
 		return mapOf(
 			"hcPartyKeys" to mergeMapsOfListsDistinct(this.hcPartyKeys, other.hcPartyKeys),
@@ -85,6 +87,7 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			aesExchangeKeys = this.aesExchangeKeys,
 			transferKeys = this.transferKeys,
 			publicKeysForOaepWithSha256 = this.publicKeysForOaepWithSha256,
-			tags = this.tags
+			tags = this.tags,
+			parentId = this.parentId
 		)
 	}

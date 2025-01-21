@@ -124,7 +124,8 @@ data class PatientDto(
 	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
 	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 
-	) : StoredDocumentDto, ICureDocumentDto<String>, PersonDto, HasEncryptionMetadataDto, EncryptableDto, CryptoActorDto {
+	override val parentId: Nothing? = null,
+) : StoredDocumentDto, ICureDocumentDto<String>, PersonDto, HasEncryptionMetadataDto, EncryptableDto, CryptoActorDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

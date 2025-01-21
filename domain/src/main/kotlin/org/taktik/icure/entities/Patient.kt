@@ -211,6 +211,7 @@ data class Patient(
 	override val securityMetadata: SecurityMetadata? = null,
 
 	override val medicalLocationId: String? = null,
+	override val parentId: Nothing? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,

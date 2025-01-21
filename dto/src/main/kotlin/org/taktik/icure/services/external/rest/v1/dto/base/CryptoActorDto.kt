@@ -27,4 +27,7 @@ interface CryptoActorDto: VersionableDto<String> {
 
 	@get:Schema(description = "The public keys of this actor that are generates using the OAEP Sha-256 standard")
 	val publicKeysForOaepWithSha256: Set<String>
+
+	@get:Schema(description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent")
+	val parentId: String?
 }
