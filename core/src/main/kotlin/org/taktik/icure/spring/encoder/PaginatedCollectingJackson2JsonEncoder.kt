@@ -20,7 +20,7 @@ import java.io.Serializable
  * In this simple implementation, it collects the [Flux] and handles it as a mono of [PaginatedList]
  */
 class PaginatedCollectingJackson2JsonEncoder(
-	mapper: ObjectMapper,
+	private val mapper: ObjectMapper,
 	vararg mimeTypes: MimeType
 ) : Jackson2JsonEncoder(mapper, *mimeTypes) {
 
@@ -45,7 +45,7 @@ class PaginatedCollectingJackson2JsonEncoder(
 				rows = rows,
 				nextKeyPair = nextPageElement?.let {
 					PaginatedDocumentKeyIdPair(
-						startKey = it.startKey,
+						startKey = it.startKey?.let { sk -> mapper.valueToTree(sk) },
 						startKeyDocId = it.startKeyDocId
 					)
 				}
