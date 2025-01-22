@@ -10,8 +10,8 @@ import org.springframework.util.MimeType
 import org.taktik.icure.pagination.NextPageElement
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.PaginationRowElement
-import org.taktik.icure.services.external.rest.v1.dto.PaginatedDocumentKeyIdPair
-import org.taktik.icure.services.external.rest.v1.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import reactor.core.publisher.Flux
 import java.io.Serializable
 
