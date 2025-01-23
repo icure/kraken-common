@@ -6,6 +6,7 @@ package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -211,6 +212,31 @@ internal class HealthElementDAOImpl(
 		endDate = endDate,
 		descending = descending
 	)
+
+	override fun listHealthElementIdsByDataOwnerOpeningDate(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_patient_date" to MAURICE_PARTITION,
+			"by_data_owner_patient" to DATA_OWNER_PARTITION
+		).keys(searchKeys).doNotIncludeDocs()
+
+		emitAll(
+			client
+				.interleave<Array<String>, Long>(viewQueries, compareBy({it[0]}))
+				.filterIsInstance<ViewRowNoDoc<Array<String>, Long>>()
+				.filter { row -> startDate?.let { row.value in startDate..(endDate ?: Long.MAX_VALUE) } ?: true }
+				.map { it.doc }
+				.distinctById()
+		)
+	}
 
 	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id )}")
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
