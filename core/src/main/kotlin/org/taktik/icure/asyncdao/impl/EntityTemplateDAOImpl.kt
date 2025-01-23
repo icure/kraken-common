@@ -6,6 +6,7 @@ package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -15,12 +16,10 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
-import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.EntityTemplateDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.db.sanitizeString
@@ -50,16 +49,17 @@ class EntityTemplateDAOImpl(
 						?: ""
 					) + "\ufff0"
 			)
-		).includeDocs(includeEntities ?: false)
+		).includeDocs(false)
 
+		val partialEntityTemplates = client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }.distinctById()
 		emitAll(
-			(
-				if (viewQuery.isIncludeDocs)
-					client.queryViewIncludeDocs<ComplexKey, EntityTemplate, EntityTemplate>(viewQuery).mapNotNull { it.doc }
-				else
-					client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }
-				).distinctById()
+			if (includeEntities == true) {
+				getEntities(datastoreInformation, partialEntityTemplates.map { it.id })
+			} else {
+				partialEntityTemplates
+			}
 		)
+
 	}
 
 	@View(name = "by_type_descr", map = "classpath:js/entitytemplate/By_type_descr.js")
@@ -74,15 +74,15 @@ class EntityTemplateDAOImpl(
 						?: ""
 					) + "\ufff0"
 			)
-		).includeDocs(includeEntities ?: false)
+		).includeDocs(false)
 
+		val partialEntityTemplates = client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }.distinctById()
 		emitAll(
-			(
-				if (viewQuery.isIncludeDocs)
-					client.queryViewIncludeDocs<ComplexKey, EntityTemplate, EntityTemplate>(viewQuery).mapNotNull { it.doc }
-				else
-					client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }
-				).distinctById()
+			if (includeEntities == true) {
+				getEntities(datastoreInformation, partialEntityTemplates.map { it.id })
+			} else {
+				partialEntityTemplates
+			}
 		)
 	}
 
@@ -103,15 +103,15 @@ class EntityTemplateDAOImpl(
 						?: ""
 					) + "\ufff0"
 			)
-		).includeDocs(includeEntities ?: false)
+		).includeDocs(false)
 
+		val partialEntityTemplates = client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }.distinctById()
 		emitAll(
-			(
-				if (viewQuery.isIncludeDocs)
-					client.queryViewIncludeDocs<ComplexKey, EntityTemplate, EntityTemplate>(viewQuery).mapNotNull { it.doc }
-				else
-					client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }
-				).distinctById()
+			if (includeEntities == true) {
+				getEntities(datastoreInformation, partialEntityTemplates.map { it.id })
+			} else {
+				partialEntityTemplates
+			}
 		)
 	}
 
@@ -126,15 +126,15 @@ class EntityTemplateDAOImpl(
 						?: ""
 					) + "\ufff0"
 			)
-		).includeDocs(includeEntities ?: false)
+		).includeDocs(false)
 
+		val partialEntityTemplates = client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }.distinctById()
 		emitAll(
-			(
-				if (viewQuery.isIncludeDocs)
-					client.queryViewIncludeDocs<ComplexKey, EntityTemplate, EntityTemplate>(viewQuery).mapNotNull { it.doc }
-				else
-					client.queryView<ComplexKey, EntityTemplate>(viewQuery).mapNotNull { it.value }
-				).distinctById()
+			if (includeEntities == true) {
+				getEntities(datastoreInformation, partialEntityTemplates.map { it.id })
+			} else {
+				partialEntityTemplates
+			}
 		)
 	}
 }
