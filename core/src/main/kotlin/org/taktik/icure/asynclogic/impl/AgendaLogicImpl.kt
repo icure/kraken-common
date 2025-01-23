@@ -39,7 +39,7 @@ class AgendaLogicImpl(
 		)
 	}
 
-	override suspend fun createAgenda(agenda: Agenda) = fix(agenda) { fixedAgenda ->
+	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
@@ -49,7 +49,7 @@ class AgendaLogicImpl(
 		return agendaDAO.get(datastoreInformation, agenda)
 	}
 
-	override suspend fun modifyAgenda(agenda: Agenda) = fix(agenda) { fixedAgenda ->
+	override suspend fun modifyAgenda(agenda: Agenda) = fix(agenda, isCreate = false) { fixedAgenda ->
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.save(datastoreInformation, fixedAgenda)
 	}

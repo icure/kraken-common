@@ -334,25 +334,25 @@ open class PatientLogicImpl(
 		}
 	}
 
-	override suspend fun createPatient(patient: Patient) = fix(patient) { fixedPatient ->
+	override suspend fun createPatient(patient: Patient) = fix(patient, isCreate = true) { fixedPatient ->
 		if(fixedPatient.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		checkRequirements(fixedPatient)
 		createEntities(setOf(fixedPatient)).singleOrNull()
 	}
 
 	override fun createPatients(patients: List<Patient>): Flow<Patient> = flow {
-		val fixedPatients = patients.map { fix(it) }
+		val fixedPatients = patients.map { fix(it, isCreate = true) }
 		emitAll(createEntities(fixedPatients))
 	}
 
-	override suspend fun modifyPatient(patient: Patient): Patient? = fix(patient) { fixedPatient -> // access control already done by modify entities
+	override suspend fun modifyPatient(patient: Patient): Patient? = fix(patient, isCreate = false) { fixedPatient -> // access control already done by modify entities
 		log.debug("Modifying patient with id:" + fixedPatient.id)
 		checkRequirements(fixedPatient)
 		modifyEntities(listOf(fixedPatient)).firstOrNull()
 	}
 
 	override fun modifyPatients(patients: Collection<Patient>): Flow<Patient> = flow { // access control already done by modify entities
-		val fixedPatients = patients.map { fix(it) }
+		val fixedPatients = patients.map { fix(it, isCreate = false) }
 		emitAll(modifyEntities(fixedPatients))
 	}
 

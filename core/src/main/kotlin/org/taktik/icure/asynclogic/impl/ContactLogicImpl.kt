@@ -127,12 +127,12 @@ open class ContactLogicImpl(
 		}
 	}
 
-	override suspend fun createContact(contact: Contact) = fix(contact) { fixedContact ->
+	override suspend fun createContact(contact: Contact) = fix(contact, isCreate = true) { fixedContact ->
 		if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntities(setOf(fixedContact)).firstOrNull()
 	}
 
-	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map(::fix))
+	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map { fix(it, isCreate = true) })
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun getServices(selectedServiceIds: Collection<String>): Flow<org.taktik.icure.entities.embed.Service> =

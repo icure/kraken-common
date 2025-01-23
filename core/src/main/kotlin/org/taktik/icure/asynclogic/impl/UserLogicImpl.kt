@@ -117,7 +117,7 @@ open class UserLogicImpl (
 	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		for (user in entities) {
-			fix(user.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)) { fixedUser ->
+			fix(user.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets), isCreate = true) { fixedUser ->
 				userDAO.create(
 					datastoreInformation, fixedUser
 				)?.let { createdUser -> userEnhancer.enhance(createdUser, false) }
@@ -125,7 +125,7 @@ open class UserLogicImpl (
 		}
 	}
 
-	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? = fix(modifiedUser) { fixedUser ->
+	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? = fix(modifiedUser, isCreate = false) { fixedUser ->
 		// Save user
 		val datastoreInformation = getInstanceAndGroup()
 		val userToUpdate = fixedUser.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)
@@ -323,7 +323,8 @@ open class UserLogicImpl (
 				email = user.email?.takeIf { it.isNotBlank() },
 				mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
 				applicationTokens = emptyMap(),
-			).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)
+			).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
+			isCreate = true
 		) {
 			createUser(it)
 		}

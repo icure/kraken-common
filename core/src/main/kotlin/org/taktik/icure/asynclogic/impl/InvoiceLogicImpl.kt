@@ -72,7 +72,7 @@ open class InvoiceLogicImpl (
 ) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), InvoiceLogic {
 
 	override suspend fun createInvoice(invoice: Invoice) =
-		fix(invoice) { fixedInvoice ->
+		fix(invoice, isCreate = true) { fixedInvoice ->
 			if(fixedInvoice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val datastoreInformation = getInstanceAndGroup()
 			invoiceDAO.create(datastoreInformation, fixedInvoice)

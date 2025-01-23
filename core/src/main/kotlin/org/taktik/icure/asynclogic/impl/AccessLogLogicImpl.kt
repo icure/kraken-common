@@ -50,7 +50,7 @@ class AccessLogLogicImpl(
 ) : EntityWithEncryptionMetadataLogic<AccessLog, AccessLogDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), AccessLogLogic {
 
 	override suspend fun createAccessLog(accessLog: AccessLog) =
-		fix(accessLog) { fixedAccessLog ->
+		fix(accessLog, isCreate = true) { fixedAccessLog ->
 			if(fixedAccessLog.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val datastoreInformation = getInstanceAndGroup()
 			accessLogDAO.create(

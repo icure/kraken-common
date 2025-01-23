@@ -34,7 +34,7 @@ open class DeviceLogicImpl(
 	}
 
 	override suspend fun createDevice(device: Device): Device? =
-		fix(device) { fixedDevice ->
+		fix(device, isCreate = true) { fixedDevice ->
 			if(fixedDevice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			createEntities(listOf(fixedDevice)).firstOrNull()
 		}
@@ -44,7 +44,7 @@ open class DeviceLogicImpl(
 		flow {
 			try {
 				emitAll(
-					createEntities(devices.map { device -> fix(device) })
+					createEntities(devices.map { device -> fix(device, isCreate = true) })
 				)
 			} catch (e: Exception) {
 				log.error("createDevices: " + e.message)
@@ -53,7 +53,7 @@ open class DeviceLogicImpl(
 		}
 
 
-	override suspend fun modifyDevice(device: Device): Device? = fix(device) {
+	override suspend fun modifyDevice(device: Device): Device? = fix(device, isCreate = false) {
 		modifyEntities(setOf(it)).singleOrNull()
 	}
 
@@ -62,7 +62,7 @@ open class DeviceLogicImpl(
 		flow {
 			try {
 				emitAll(
-					modifyEntities(devices.map { device -> fix(device) })
+					modifyEntities(devices.map { device -> fix(device, isCreate = false) })
 				)
 			} catch (e: Exception) {
 				log.error("modifyDevices: " + e.message)

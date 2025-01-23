@@ -31,7 +31,7 @@ class TimeTableLogicImpl(
     filters: Filters
 ) : EntityWithEncryptionMetadataLogic<TimeTable, TimeTableDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), TimeTableLogic {
 
-    override suspend fun createTimeTable(timeTable: TimeTable) = fix(timeTable) { fixedTimeTable ->
+    override suspend fun createTimeTable(timeTable: TimeTable) = fix(timeTable, isCreate = true) { fixedTimeTable ->
         if(fixedTimeTable.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
         val datastoreInformation = getInstanceAndGroup()
         timeTableDAO.create(datastoreInformation, fixedTimeTable)

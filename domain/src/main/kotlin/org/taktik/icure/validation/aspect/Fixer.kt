@@ -5,5 +5,5 @@
 package org.taktik.icure.validation.aspect
 
 interface Fixer {
-	suspend fun <E : Any> fix(doc: E): E
+	suspend fun <E : Any> fix(doc: E, isCreate: Boolean): E
 }

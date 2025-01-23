@@ -51,7 +51,7 @@ open class DocumentLogicImpl(
     filters: Filters
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), DocumentLogic {
 
-	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document) { fixedDocument ->
+	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document, isCreate = true) { fixedDocument ->
 		if(fixedDocument.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		documentDAO.save(datastoreInformation, checkNewDocument(fixedDocument, strict))
@@ -94,7 +94,7 @@ open class DocumentLogicImpl(
 				datastoreInformation,
 				entities.filter { it.rev === null }.mapNotNull {
 					kotlin.runCatching {
-						checkNewDocument(fix(it), true)
+						checkNewDocument(fix(it, isCreate = true), true)
 					}.getOrNull()
 				}
 			).filterSuccessfulUpdates()
@@ -114,7 +114,7 @@ open class DocumentLogicImpl(
 		emitAll(
 			modifiedDocumentPairedWithOriginal.mapNotNull { (newDoc, prevDoc) ->
 				runCatching {
-					fix(newDoc).copy(attachments = prevDoc.attachments).let {
+					fix(newDoc, isCreate = false).copy(attachments = prevDoc.attachments).let {
 						attachmentModificationLogic.ensureValidAttachmentChanges(
 							prevDoc, it, emptySet()
 						)
@@ -137,7 +137,7 @@ open class DocumentLogicImpl(
 			)
 		}
 
-	override suspend fun modifyDocument(updatedDocument: Document, strict: Boolean): Document? = fix(updatedDocument) { newDoc ->
+	override suspend fun modifyDocument(updatedDocument: Document, strict: Boolean): Document? = fix(updatedDocument, isCreate = false) { newDoc ->
 		val datastoreInformation = getInstanceAndGroup()
 		val baseline = requireNotNull(documentDAO.get(datastoreInformation, newDoc.id)) {
 			"Attempting to modify a non-existing document ${newDoc.id}."
@@ -155,13 +155,13 @@ open class DocumentLogicImpl(
 
 		val fixedDocumentsToCreate = documentToCreate.mapNotNull {
 			kotlin.runCatching {
-				checkNewDocument(fix(it.newDocument), strict)
+				checkNewDocument(fix(it.newDocument, isCreate = true), strict)
 			}.getOrNull()
 		}
 
 		val fixedDocumentsToUpdate = documentsToUpdate.mapNotNull { (newDoc, prevDoc) ->
 			runCatching {
-				fix(newDoc).copy(attachments = prevDoc!!.attachments).let {
+				fix(newDoc, isCreate = false).copy(attachments = prevDoc!!.attachments).let {
 					attachmentModificationLogic.ensureValidAttachmentChanges(
 						prevDoc, it, if (strict) emptySet() else setOf(newDoc.mainAttachmentKey)
 					)

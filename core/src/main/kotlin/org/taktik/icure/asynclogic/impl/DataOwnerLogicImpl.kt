@@ -1,7 +1,6 @@
 package org.taktik.icure.asynclogic.impl
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import jdk.vm.ci.meta.ValueKind.Illegal
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter

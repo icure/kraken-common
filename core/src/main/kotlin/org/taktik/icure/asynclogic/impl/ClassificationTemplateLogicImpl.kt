@@ -41,7 +41,7 @@ class ClassificationTemplateLogicImpl(
 	}
 
 	override suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate) =
-		fix(classificationTemplate) { fixedClassificationTemplate ->
+		fix(classificationTemplate, isCreate = true) { fixedClassificationTemplate ->
 			try { // Fetching the hcParty
 				val userId = sessionLogic.getCurrentUserId()
 				val healthcarePartyId = sessionLogic.getCurrentHealthcarePartyId()

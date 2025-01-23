@@ -66,14 +66,14 @@ class MaintenanceTaskLogicImpl(
 		return maintenanceTaskDAO
 	}
 
-	override suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask? = fix(maintenanceTask) {
+	override suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask? = fix(maintenanceTask, isCreate = true) {
 		if(it.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntities(listOf(it)).firstOrNull()
 	}
 
 	override fun createEntities(entities: Collection<MaintenanceTask>) = flow {
 		emitAll(
-			super.createEntities( entities.map { fix(it) } )
+			super.createEntities( entities.map { fix(it, isCreate = true) } )
 		)
 	}
 }

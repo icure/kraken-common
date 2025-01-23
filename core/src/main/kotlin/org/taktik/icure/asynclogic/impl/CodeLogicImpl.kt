@@ -100,7 +100,7 @@ open class CodeLogicImpl(
 
 
     override suspend fun create(code: Code) =
-        fix(code) { fixedCode ->
+        fix(code, isCreate = true) { fixedCode ->
             if (fixedCode.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
             fixedCode.code ?: error("Code field is null")
             fixedCode.type ?: error("Type field is null")
@@ -138,7 +138,7 @@ open class CodeLogicImpl(
 
 
     override suspend fun modify(code: Code) =
-        fix(code) { fixedCode ->
+        fix(code, isCreate = false) { fixedCode ->
             modifyEntities(setOf(fixedCode)).firstOrNull()
         }
 

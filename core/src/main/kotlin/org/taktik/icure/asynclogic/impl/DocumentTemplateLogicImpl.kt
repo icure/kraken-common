@@ -35,7 +35,7 @@ class DocumentTemplateLogicImpl(
 			emitAll(
 				super.createEntities(
 					entities.map { dt ->
-						fix(dt) { e ->
+						fix(dt, isCreate = true) { e ->
 							e.owner?.let { e } ?: e.copy(owner = sessionLogic.getCurrentUserId())
 						}
 					}
@@ -44,7 +44,7 @@ class DocumentTemplateLogicImpl(
 		}
 
 	override suspend fun createDocumentTemplate(entity: DocumentTemplate): DocumentTemplate {
-		return fix(entity) { documentTemplate ->
+		return fix(entity, isCreate = true) { documentTemplate ->
 			val datastoreInformation = getInstanceAndGroup()
 			documentTemplateDAO.createDocumentTemplate(datastoreInformation, documentTemplate.owner?.let { documentTemplate } ?: documentTemplate.copy(owner = sessionLogic.getCurrentUserId()))
 		}
@@ -95,7 +95,7 @@ class DocumentTemplateLogicImpl(
 		}
 
 	override suspend fun modifyDocumentTemplate(documentTemplate: DocumentTemplate) =
-		fix(documentTemplate) { fixedDocumentTemplate ->
+		fix(documentTemplate, isCreate = false) { fixedDocumentTemplate ->
 			val datastoreInformation = getInstanceAndGroup()
 			documentTemplateDAO.save(datastoreInformation, fixedDocumentTemplate.owner?.let { fixedDocumentTemplate } ?: fixedDocumentTemplate.copy(owner = sessionLogic.getCurrentUserId()))
 		}
