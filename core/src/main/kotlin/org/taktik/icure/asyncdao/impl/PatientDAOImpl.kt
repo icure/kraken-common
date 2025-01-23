@@ -686,10 +686,17 @@ class PatientDAOImpl(
 	override fun listPatientsByHcPartyAndIdentifier(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, system: String, value: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val queryView = createQuery(datastoreInformation, "by_hcparty_identifier")
-			.includeDocs(true)
+		val queryView = createQueries(
+			datastoreInformation,
+			"by_hcparty_identifier",
+			"by_data_owner_identifier" to DATA_OWNER_PARTITION
+		).includeDocs()
 			.keys(searchKeys.map {ComplexKey.of(it, system, value) })
-		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Patient>(queryView).map { it.doc })
+		emitAll(
+			client.interleave<ComplexKey, String, Patient>(queryView, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
+				.filterIsInstance<ViewRowWithDoc<ComplexKey, Nothing?, Patient>>()
+				.map { it.doc }
+		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
 	override fun getDuplicatePatientsBySsin(datastoreInformation: IDatastoreInformation, healthcarePartyId: String, paginationOffset: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent> {

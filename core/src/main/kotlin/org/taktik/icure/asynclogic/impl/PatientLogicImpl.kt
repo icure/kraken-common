@@ -296,7 +296,6 @@ open class PatientLogicImpl(
 	override suspend fun getPatient(patientId: String): Patient? = getEntity(patientId)
 
 	override fun findByHcPartyAndIdentifier(healthcarePartyId: String, system: String, id: String) = flow {
-		checkCanUseViewByHcp(healthcarePartyId)
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(patientDAO.listPatientsByHcPartyAndIdentifier(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(healthcarePartyId), system, id))
 	}
