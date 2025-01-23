@@ -62,7 +62,7 @@ where
         emitAll(getGenericDAO()
             .saveBulk(
                 datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup(),
-                entities = filterValidEntityChanges(entities.map { fix(it) }).toList()
+                entities = filterValidEntityChanges(entities.map { fix(it, isCreate = false) }).toList()
             ).filterSuccessfulUpdates()
         )
     }

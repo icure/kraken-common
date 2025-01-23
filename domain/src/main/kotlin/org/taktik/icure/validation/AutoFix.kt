@@ -11,8 +11,8 @@ enum class AutoFix(private val fixer: suspend (b: Any?, v: Any?, sl: DataOwnerPr
 	FUZZYNOW({ _: Any?, _: Any?, _: DataOwnerProvider? -> FuzzyValues.currentFuzzyDateTime }),
 	NOW({ _: Any?, _: Any?, _: DataOwnerProvider? -> Instant.now().toEpochMilli() }),
 	UUID({ _: Any?, _: Any?, _: DataOwnerProvider? -> java.util.UUID.randomUUID().toString() }),
-	CURRENTUSERID({ _: Any?, _: Any?, sl: DataOwnerProvider? -> sl?.run { if (requestsAutofixAnonymity()) "*" else getCurrentUserId() } }),
-	CURRENTDATAOWNERID({ _: Any?, _: Any?, sl: DataOwnerProvider? -> sl?.run { if (requestsAutofixAnonymity()) "*" else getCurrentDataOwnerId() } }),
+	CURRENTUSERID({ _: Any?, _: Any?, sl: DataOwnerProvider? -> sl?.run { if (requestsAutofixAnonymity()) null else getCurrentUserId() } }),
+	CURRENTDATAOWNERID({ _: Any?, _: Any?, sl: DataOwnerProvider? -> sl?.run { if (requestsAutofixAnonymity()) null else getCurrentDataOwnerId() } }),
 	NOFIX({ _: Any?, v: Any?, _: DataOwnerProvider? -> v }),
 	NORMALIZECODE({ _: Any?, v: Any?, _: DataOwnerProvider? -> (v as? CodeIdentification)?.normalizeIdentification() ?: v });
 

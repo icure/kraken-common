@@ -14,7 +14,7 @@ abstract class AutoFixableLogic<E : Identifiable<String>>(private val fixer: Fix
      * @param next a suspend function that takes as input the auto-fixed document [E] and returns an [R].
      * @return the output [R] of next.
      */
-    protected suspend fun <R> fix(doc: E, next: suspend (doc: E) -> R): R = next(fixer.fix(doc))
+    protected suspend fun <R> fix(doc: E, isCreate: Boolean, next: suspend (doc: E) -> R): R = next(fixer.fix(doc, isCreate))
 
     /**
      * Applies autofix on a [doc] of type [E], automatically filling the null parameters according to the auto-fixing
@@ -25,5 +25,5 @@ abstract class AutoFixableLogic<E : Identifiable<String>>(private val fixer: Fix
      * @param doc an [E] to autofix.
      * @return an auto-fixed [E].
      */
-    protected suspend fun fix(doc: E): E = fixer.fix(doc)
+    protected suspend fun fix(doc: E, isCreate: Boolean): E = fixer.fix(doc, isCreate)
 }

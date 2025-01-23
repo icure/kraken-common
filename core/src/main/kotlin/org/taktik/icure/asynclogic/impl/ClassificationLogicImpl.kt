@@ -44,7 +44,7 @@ class ClassificationLogicImpl(
 		return classificationDAO
 	}
 
-	override suspend fun createClassification(classification: Classification) = fix(classification) { fixedClassification ->
+	override suspend fun createClassification(classification: Classification) = fix(classification, isCreate = true) { fixedClassification ->
 		try { // Fetching the hcParty
 			if(fixedClassification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val userId = sessionLogic.getCurrentUserId()

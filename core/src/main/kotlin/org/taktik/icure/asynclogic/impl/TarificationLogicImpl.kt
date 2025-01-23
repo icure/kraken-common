@@ -47,7 +47,7 @@ class TarificationLogicImpl(
 		emitAll(tarificationDAO.getEntities(datastoreInformation, ids))
 	}
 
-	override suspend fun createTarification(tarification: Tarification) = fix(tarification) { fixedTarification ->
+	override suspend fun createTarification(tarification: Tarification) = fix(tarification, isCreate = true) { fixedTarification ->
 		if(fixedTarification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		fixedTarification.code ?: error("Code field is null")
 		fixedTarification.type ?: error("Type field is null")
@@ -58,7 +58,7 @@ class TarificationLogicImpl(
 		tarificationDAO.create(datastoreInformation, fixedTarification.copy(id = fixedTarification.type + "|" + fixedTarification.code + "|" + fixedTarification.version))
 	}
 
-	override suspend fun modifyTarification(tarification: Tarification) = fix(tarification) { fixedTarification ->
+	override suspend fun modifyTarification(tarification: Tarification) = fix(tarification, isCreate = false) { fixedTarification ->
 		val datastoreInformation = getInstanceAndGroup()
 		val existingTarification = fixedTarification.id.let { tarificationDAO.get(datastoreInformation, it) }
 		Preconditions.checkState(existingTarification?.code == fixedTarification.code, "Modification failed. Tarification field is immutable.")

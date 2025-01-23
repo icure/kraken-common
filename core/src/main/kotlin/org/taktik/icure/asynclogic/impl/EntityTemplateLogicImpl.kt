@@ -25,7 +25,7 @@ class EntityTemplateLogicImpl(
 	filters: Filters
 ) : GenericLogicImpl<EntityTemplate, EntityTemplateDAO>(fixer, datastoreInstanceProvider, filters), EntityTemplateLogic {
 
-	override suspend fun createEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate) { fixedEntityTemplate ->
+	override suspend fun createEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate, isCreate = true) { fixedEntityTemplate ->
 		val createdEntityTemplates = try {
 			createEntities(setOf(fixedEntityTemplate))
 		} catch (e: Exception) {
@@ -34,7 +34,7 @@ class EntityTemplateLogicImpl(
 		createdEntityTemplates.firstOrNull()
 	}
 
-	override suspend fun modifyEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate) { fixedEntityTemplate ->
+	override suspend fun modifyEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate, isCreate = false) { fixedEntityTemplate ->
 		val entityTemplates = setOf(fixedEntityTemplate)
 		try {
 			modifyEntities(entityTemplates).firstOrNull()

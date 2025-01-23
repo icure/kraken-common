@@ -67,7 +67,7 @@ open class HealthcarePartyLogicImpl(
 	}
 
 	override suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty) =
-		fix(healthcareParty) { fixedHealthcareParty ->
+		fix(healthcareParty, isCreate = false) { fixedHealthcareParty ->
 			if (fixedHealthcareParty.nihii == null && fixedHealthcareParty.ssin == null && fixedHealthcareParty.name == null && fixedHealthcareParty.lastName == null) {
 				throw MissingRequirementsException("modifyHealthcareParty: one of Name or Last name, Nihii or  Ssin are required.")
 			}
@@ -75,7 +75,7 @@ open class HealthcarePartyLogicImpl(
 		}
 
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) =
-		fix(healthcareParty) { fixedHealthcareParty ->
+		fix(healthcareParty, isCreate = true) { fixedHealthcareParty ->
 			if (fixedHealthcareParty.nihii == null && fixedHealthcareParty.ssin == null && fixedHealthcareParty.name == null && fixedHealthcareParty.lastName == null) {
 				throw MissingRequirementsException("createHealthcareParty: one of Name or Last name, Nihii, and Public key are required.")
 			}

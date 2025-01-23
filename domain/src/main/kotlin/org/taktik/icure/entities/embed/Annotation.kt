@@ -29,7 +29,7 @@ import java.util.*
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Annotation(
 	@JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
-	@field:NotNull(autoFix = AutoFix.CURRENTUSERID) val author: String? = null,
+	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) val author: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val modified: Long? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) val tags: Set<CodeStub> = emptySet(),

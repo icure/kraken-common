@@ -29,7 +29,7 @@ open class MedicalLocationLogicImpl(
 	filters: Filters
 ) : GenericLogicImpl<MedicalLocation, MedicalLocationDAO>(fixer, datastoreInstanceProvider, filters), MedicalLocationLogic {
 
-	override suspend fun createMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation) { fixedMedicalLocation ->
+	override suspend fun createMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation, isCreate = true) { fixedMedicalLocation ->
 		if(fixedMedicalLocation.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		medicalLocationDAO.create(datastoreInformation, fixedMedicalLocation)
@@ -48,7 +48,7 @@ open class MedicalLocationLogicImpl(
 		return medicalLocationDAO.get(datastoreInformation, medicalLocation)
 	}
 
-	override suspend fun modifyMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation) { fixedMedicalLocation ->
+	override suspend fun modifyMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation, isCreate = false) { fixedMedicalLocation ->
 		val datastoreInformation = getInstanceAndGroup()
 		medicalLocationDAO.save(datastoreInformation, fixedMedicalLocation)
 	}

@@ -107,13 +107,13 @@ open class FormLogicImpl(
 	}
 
 	override suspend fun createForm(form: Form) =
-		fix(form) { fixedForm ->
+		fix(form, isCreate = true) { fixedForm ->
 			if(fixedForm.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			createEntities(setOf(fixedForm)).firstOrNull()
 		}
 
 	override suspend fun modifyForm(form: Form) =
-		fix(form) { fixedForm ->
+		fix(form, isCreate = false) { fixedForm ->
 			val datastoreInformation = getInstanceAndGroup()
 			formDAO.save(datastoreInformation, if (fixedForm.created == null) fixedForm.copy(created = form.created) else fixedForm)
 		}

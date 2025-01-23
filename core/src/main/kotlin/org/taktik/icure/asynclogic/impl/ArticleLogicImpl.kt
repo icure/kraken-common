@@ -37,7 +37,7 @@ class ArticleLogicImpl(
     filters: Filters
 ) : EntityWithEncryptionMetadataLogic<Article, ArticleDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ArticleLogic {
 
-	override suspend fun createArticle(article: Article) = fix(article) { fixedArticle ->
+	override suspend fun createArticle(article: Article) = fix(article, isCreate = true) { fixedArticle ->
 		if(fixedArticle.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		articleDAO.create(datastoreInformation, fixedArticle)
@@ -46,7 +46,7 @@ class ArticleLogicImpl(
 	override suspend fun getArticle(articleId: String): Article? = getEntity(articleId)
 
 	override suspend fun modifyArticle(article: Article) =
-		fix(article) { fixedArticle ->
+		fix(article, isCreate = false) { fixedArticle ->
 			val datastoreInformation = getInstanceAndGroup()
 			articleDAO.save(datastoreInformation, fixedArticle)
 		}

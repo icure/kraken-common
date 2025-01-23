@@ -43,7 +43,7 @@ class CalendarItemLogicImpl(
 ) : EntityWithEncryptionMetadataLogic<CalendarItem, CalendarItemDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), CalendarItemLogic {
 
 	override suspend fun createCalendarItem(calendarItem: CalendarItem) =
-		fix(calendarItem) { fixedCalendarItem ->
+		fix(calendarItem, isCreate = true) { fixedCalendarItem ->
 			if(fixedCalendarItem.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val datastoreInformation = getInstanceAndGroup()
 			calendarItemDAO.create(datastoreInformation,

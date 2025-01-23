@@ -57,7 +57,7 @@ open class HealthElementLogicImpl (
 		super.createEntities(
 			entities
 				.map { healthElement ->
-					fix(healthElement).also { fixedHealElement ->
+					fix(healthElement, isCreate = true).also { fixedHealElement ->
 						if (fixedHealElement.rev != null) {
 							throw IllegalArgumentException("A new entity should not have a rev")
 						}
@@ -110,12 +110,12 @@ open class HealthElementLogicImpl (
 	}
 
 	override suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement? =
-			fix(healthElement) { fixedHealthElement ->
+			fix(healthElement, isCreate = false) { fixedHealthElement ->
 					modifyEntities(setOf(fixedHealthElement)).firstOrNull()
 			}
 
 	override fun modifyEntities(entities: Collection<HealthElement>): Flow<HealthElement> = flow {
-		emitAll(super.modifyEntities(entities.map { fix(it) }))
+		emitAll(super.modifyEntities(entities.map { fix(it, isCreate = false) }))
 	}
 
 

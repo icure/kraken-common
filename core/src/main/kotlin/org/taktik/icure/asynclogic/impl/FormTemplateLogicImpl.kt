@@ -29,7 +29,7 @@ class FormTemplateLogicImpl(
 		emitAll(super.createEntities(entities))
 	}
 
-	override suspend fun createFormTemplate(entity: FormTemplate) = fix(entity) { fixedEntity ->
+	override suspend fun createFormTemplate(entity: FormTemplate) = fix(entity, isCreate = true) { fixedEntity ->
 		val datastoreInformation = getInstanceAndGroup()
 		formTemplateDAO.createFormTemplate(datastoreInformation, fixedEntity)
 	}
@@ -59,7 +59,7 @@ class FormTemplateLogicImpl(
 		emitAll(formTemplateDAO.listFormTemplatesByUserGuid(datastoreInformation, userId, null, loadLayout))
 	}
 
-	override suspend fun modifyFormTemplate(formTemplate: FormTemplate) = fix(formTemplate) { fixedTemplate ->
+	override suspend fun modifyFormTemplate(formTemplate: FormTemplate) = fix(formTemplate, isCreate = false) { fixedTemplate ->
 		val datastoreInformation = getInstanceAndGroup()
 		formTemplateDAO.save(datastoreInformation, fixedTemplate)
 	}

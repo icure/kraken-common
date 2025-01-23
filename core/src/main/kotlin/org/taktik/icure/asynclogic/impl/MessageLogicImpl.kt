@@ -209,7 +209,7 @@ open class MessageLogicImpl(
 		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false) ?: throw NotFoundRequestException("Current user not found")
 
 		emitAll(super.createEntities(entities
-			.map{ fix(it) }
+			.map{ fix(it, isCreate = true) }
 			.map {
 			if (it.fromAddress == null || it.fromHealthcarePartyId == null) it.copy(
 				fromAddress = it.fromAddress ?: loggedUser.email, fromHealthcarePartyId = it.fromHealthcarePartyId ?: loggedUser.healthcarePartyId
@@ -219,7 +219,7 @@ open class MessageLogicImpl(
 	}
 
 	@Throws(CreationException::class, LoginException::class)
-	override suspend fun createMessage(message: Message) = fix(message) { fixedMessage ->
+	override suspend fun createMessage(message: Message) = fix(message, isCreate = true) { fixedMessage ->
 		if(fixedMessage.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createMessages(setOf(fixedMessage)).firstOrNull()
 	}

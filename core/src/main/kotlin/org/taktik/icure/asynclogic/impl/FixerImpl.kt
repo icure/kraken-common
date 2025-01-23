@@ -66,15 +66,19 @@ class FixerImpl (
         }
     }
 
-    override suspend fun <E : Any> fix(doc: E): E {
+    override suspend fun <E : Any> fix(doc: E, isCreate: Boolean): E {
         val violations = factory.validator.validate(doc)
 
         return violations.fold(listOf<Fix>()) { fixes, cv ->
             val annotation = cv.constraintDescriptor.annotation
             try {
-                val autoFixMethod = annotation.annotationClass.members.find { it.name == "autoFix" }
-                autoFixMethod?.let {
-                    autoFixMethod.call(annotation) as? AutoFix
+                val members = annotation.annotationClass.members
+                members.find {
+                    it.name == "autoFix"
+                }?.takeIf {
+                    isCreate || (members.find { it.name == "applyOnModify" }?.call(annotation) as Boolean? != false)
+                }?.let {
+                    it.call(annotation) as? AutoFix
                 }?.let { autoFix ->
                     if (autoFix != AutoFix.NOFIX) {
                         try {
