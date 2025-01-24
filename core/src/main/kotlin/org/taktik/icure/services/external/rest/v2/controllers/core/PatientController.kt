@@ -582,7 +582,7 @@ class PatientController(
 			"be automatically merged by this method.")
 		@RequestBody
 		updatedInto: PatientDto
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(2) {
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
