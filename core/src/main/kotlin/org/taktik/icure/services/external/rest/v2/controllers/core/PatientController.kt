@@ -496,7 +496,7 @@ class PatientController(
 		@Parameter(description = "The referral id. Accepts 'none' for referral removal.") @PathVariable referralId: String,
 		@Parameter(description = "Optional value for start of referral") @RequestParam(required = false) start: Long?,
 		@Parameter(description = "Optional value for end of referral") @RequestParam(required = false) end: Long?
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(1) {
 		patientService.getPatient(patientId)?.let {
 			patientService.modifyPatientReferral(
 				it,
