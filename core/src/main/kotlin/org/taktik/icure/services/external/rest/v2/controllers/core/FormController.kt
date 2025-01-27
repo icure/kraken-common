@@ -360,7 +360,7 @@ class FormController(
 	fun setTemplateAttachmentMulti(
 		@PathVariable formTemplateId: String,
 		@RequestPart("attachment") payload: Part
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(10) {
 		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
 		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.also {
@@ -375,7 +375,7 @@ class FormController(
 	fun setTemplateAttachment(
 		@PathVariable formTemplateId: String,
 		@RequestBody payload: Flow<DataBuffer>,
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(10) {
 		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
 		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true)))?.rev

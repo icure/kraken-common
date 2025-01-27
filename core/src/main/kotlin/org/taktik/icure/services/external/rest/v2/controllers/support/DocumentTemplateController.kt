@@ -32,6 +32,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.DocumentType
@@ -56,7 +57,8 @@ class DocumentTemplateController(
 	private val sessionLogic: SessionInformationProvider,
 	private val documentTemplateV2Mapper: DocumentTemplateV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -178,17 +180,19 @@ class DocumentTemplateController(
 
 	@Operation(summary = "Creates a document's attachment")
 	@PutMapping("/{documentTemplateId}/attachment", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-	fun setDocumentTemplateAttachment(@PathVariable documentTemplateId: String, @RequestBody payload: ByteArray) = mono {
-		val documentTemplate = documentTemplateService.getDocumentTemplate(documentTemplateId)
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")
-		documentTemplateService.modifyDocumentTemplate(documentTemplate.copy(attachment = payload))?.let { documentTemplateV2Mapper.map(it) }
-	}
+	fun setDocumentTemplateAttachment(@PathVariable documentTemplateId: String, @RequestBody payload: ByteArray) =
+		reactorCacheInjector.monoWithCachedContext(10) {
+			val documentTemplate = documentTemplateService.getDocumentTemplate(documentTemplateId)
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")
+			documentTemplateService.modifyDocumentTemplate(documentTemplate.copy(attachment = payload))?.let { documentTemplateV2Mapper.map(it) }
+		}
 
 	@Operation(summary = "Creates a document's attachment")
 	@PutMapping("/{documentTemplateId}/attachmentJson", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-	fun setDocumentTemplateAttachmentJson(@PathVariable documentTemplateId: String, @RequestBody payload: ByteArrayDto) = mono {
-		val documentTemplate = documentTemplateService.getDocumentTemplate(documentTemplateId)
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")
-		documentTemplateService.modifyDocumentTemplate(documentTemplate.copy(attachment = payload.data))?.let { documentTemplateV2Mapper.map(it) }
-	}
+	fun setDocumentTemplateAttachmentJson(@PathVariable documentTemplateId: String, @RequestBody payload: ByteArrayDto) =
+		reactorCacheInjector.monoWithCachedContext(10) {
+			val documentTemplate = documentTemplateService.getDocumentTemplate(documentTemplateId)
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")
+			documentTemplateService.modifyDocumentTemplate(documentTemplate.copy(attachment = payload.data))?.let { documentTemplateV2Mapper.map(it) }
+		}
 }
