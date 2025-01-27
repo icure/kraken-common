@@ -326,12 +326,7 @@ class FormController(
 	@Operation(summary = "Gets all form templates for current user")
 	@GetMapping("/template")
 	fun getFormTemplates(@RequestParam(required = false) loadLayout: Boolean?, @RequestParam(required = false) raw: Boolean?): Flux<FormTemplateDto> = flow {
-		val formTemplates = try {
-			formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
-		} catch (e: Exception) {
-			logger.warn(e.message, e)
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+		val formTemplates = formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
 		emitAll(
 			formTemplates.map { if (raw == true) rawFormTemplateV2Mapper.map(it) else formTemplateV2Mapper.map(it) }
 		)
