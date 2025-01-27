@@ -204,6 +204,18 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		datastoreInformation: IDatastoreInformation
 	): String = tasks
 		.filterNot { it is AttachmentTask.DeleteCouchDb }
+		.sortedBy {
+			when (it) {
+				is AttachmentTask.DeleteObjectStorage ->
+					2
+				is AttachmentTask.UploadCouchDb ->
+					0
+				is AttachmentTask.UploadObjectStorage ->
+					1
+				is AttachmentTask.DeleteCouchDb ->
+					throw IllegalStateException("DeleteCouchDb tasks should have been filtered out")
+			}
+		}
 		.fold(entity.rev!!) { latestRev, task ->
 			when (task) {
 				is AttachmentTask.DeleteObjectStorage ->
