@@ -137,12 +137,15 @@ open class InternalDAOImpl<T : StoredDocument>(
 		val entitiesById = entities.toList().associateBy { it.id }
 		emitAll(
 			client.bulkUpdate(entitiesById.values, entityClass).map { updateResult ->
-				updateResult.rev?.let { newRev ->
-					entitiesById.getValue(updateResult.id).withIdRev(rev = newRev) as T
-				}?.let {
-					BulkSaveResult.Success(it)
-				} ?: updateResult.toBulkSaveResultFailure()
-					?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
+				if (updateResult.ok == true) {
+					val updatedEntity = entitiesById.getValue(updateResult.id).withIdRev(
+						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
+					) as T
+					BulkSaveResult.Success(updatedEntity)
+				} else {
+					updateResult.toBulkSaveResultFailure()
+						?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
+				}
 			}
 		)
 	}
