@@ -19,6 +19,7 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
@@ -40,6 +41,8 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.update
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.InternalDAO
+import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
@@ -62,10 +65,11 @@ open class InternalDAOImpl<T : StoredDocument>(
 
 	@Suppress("UNCHECKED_CAST")
 	override fun getEntities(): Flow<T> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		emitAll(
-			couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()).queryView(
+			client.queryView(
 				ViewQuery()
-					.designDocId(designDocName(entityClass.simpleName))
+					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl, null))
 					.viewName("all").includeDocs(true),
 				String::class.java, String::class.java, entityClass
 			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull()
@@ -124,21 +128,29 @@ open class InternalDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	override fun save(entities: Flow<T>): Flow<DocIdentifier> = flow {
+	@Suppress("UNCHECKED_CAST")
+	override fun save(entities: Flow<T>): Flow<BulkSaveResult<T>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save flow of entities")
 		}
-		client.bulkUpdate(entities.toList(), entityClass).collect { emit(DocIdentifier(it.id, it.rev)) }
+		val entitiesById = entities.toList().associateBy { it.id }
+		emitAll(
+			client.bulkUpdate(entitiesById.values, entityClass).map { updateResult ->
+				if (updateResult.ok == true) {
+					val updatedEntity = entitiesById.getValue(updateResult.id).withIdRev(
+						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
+					) as T
+					BulkSaveResult.Success(updatedEntity)
+				} else {
+					updateResult.toBulkSaveResultFailure()
+						?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
+				}
+			}
+		)
 	}
 
-	override fun save(entities: List<T>): Flow<DocIdentifier> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
-		if (log.isDebugEnabled) {
-			log.debug(entityClass.simpleName + ".save flow of entities")
-		}
-		client.bulkUpdate(entities, entityClass).collect { emit(DocIdentifier(it.id, it.rev)) }
-	}
+	override fun save(entities: List<T>): Flow<BulkSaveResult<T>> = save(entities.asFlow())
 
 	override suspend fun update(entity: T): T? {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())

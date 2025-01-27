@@ -7,7 +7,6 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -474,14 +472,18 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 		emitAll(
 			client.bulkUpdate(fixedEntities, entityClass).map { updateResult ->
-				updateResult.rev?.let { newRev ->
-					fixedEntitiesById.getValue(updateResult.id).withIdRev(rev = newRev) as T
-				}?.let {
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
-					BulkSaveResult.Success(afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)))
+				if (updateResult.ok == true) {
+					val updatedEntity = fixedEntitiesById.getValue(updateResult.id).withIdRev(
+						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
+					) as T
+					updatedEntity.let {
+						cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
+						BulkSaveResult.Success(afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)))
+					}
+				} else {
+					updateResult.toBulkSaveResultFailure()
+						?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 				}
-					?: updateResult.toBulkSaveResultFailure()
-					?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 			}
 		)
 	}
