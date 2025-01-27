@@ -144,9 +144,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		emitAll(client.queryView(createQuery(datastoreInformation, "all").includeDocs(true), Nothing::class.java, String::class.java, entityClass).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull())
 	}
 
-	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T? = get(datastoreInformation, id, null, *options)
+	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option, doPostLoad: Boolean): T? = get(datastoreInformation, id, null, *options, doPostLoad = doPostLoad)
 
-	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option): T? {
+	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option, doPostLoad: Boolean): T? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".get: " + id + " [" + ArrayUtils.toString(options) + "]")
@@ -156,7 +156,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				?: rev?.let { client.get(id, it, entityClass, *options) }
 				?: client.get(id, entityClass, *options)?.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
-					postLoad(datastoreInformation, it)
+					if (doPostLoad) postLoad(datastoreInformation, it) else it
 				}
 		} catch (e: DocumentNotFoundException) {
 			log.warn("Document not found", e)
@@ -573,7 +573,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	): Map<String, Attachment>? =
 		if (entity.rev == null)
 			null
-		else (get(datastoreInformation, entity.id) ?:
+		else (get(datastoreInformation, entity.id, doPostLoad = false) ?:
 			throw ConflictRequestException("Entity with id ${entity.id} not found, but was expected to exist with revision ${entity.rev}")
 		).attachments?.let { oldAttachments ->
 			excludingAttachmentId?.let { oldAttachmentId ->
