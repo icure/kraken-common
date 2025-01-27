@@ -196,13 +196,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		entity: T,
 		tasks: List<AttachmentTask>,
 		datastoreInformation: IDatastoreInformation
-	): String = tasks
-		.filterIsInstance<AttachmentTask.DeleteCouchDb>()
-		.fold(entity.rev!!) { latestRev, task ->
-			entity.attachments?.takeIf { it.containsKey(task.attachmentId) }?.let {
-				dao.deleteAttachment(datastoreInformation, entity.id, latestRev, task.attachmentId)
-			} ?: latestRev
-		}
+	): String = entity.rev!!
 
 	private suspend fun performPostSaveAttachmentTasks(
 		entity: T,
