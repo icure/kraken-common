@@ -53,6 +53,7 @@ data class Invoice(
 	val receipts: Map<String, String> = emptyMap(),
 	val recipientType: String? = null, // org.taktik.icure.entities.HealthcareParty,
 
+	val decisionReference: String? = null,
 	// org.taktik.icure.entities.Insurance, org.taktik.icure.entities.Patient
 	val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
 	val invoiceReference: String? = null,

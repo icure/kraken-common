@@ -33,6 +33,16 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 
 	fun listInvoicesByHcPartyAndContacts(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, contactId: Set<String>): Flow<Invoice>
 
+	/**
+	 * Retrieves all the [Invoice.id]s for a given data owner and where [Invoice.decisionReference] is equal to [decisionReference].
+	 *
+	 * @param datastoreInformation an instance [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param searchKeys the data owner id + the access control keys.
+	 * @param decisionReference the decision reference to query.
+	 * @return a [Flow] of [String].
+	 */
+	fun listInvoiceIdsByDataOwnerDecisionReference(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, decisionReference: String): Flow<String>
+
 	fun listInvoicesByHcPartyAndReferences(datastoreInformation: IDatastoreInformation, hcParty: String, invoiceReferences: Set<String>?): Flow<Invoice>
 
 	fun listInvoicesByHcPartyAndReferences(datastoreInformation: IDatastoreInformation, hcParty: String, from: String?, to: String?, descending: Boolean, limit: Int): Flow<Invoice>

@@ -54,7 +54,7 @@ import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -135,6 +135,17 @@ open class InvoiceLogicImpl (
 			emitAll(invoiceDAO.listInvoicesByHcPartyAndContacts(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcParty), contactIds))
 		}
 
+	override fun listInvoiceIdsByDataOwnerDecisionReference(
+		dataOwnerId: String,
+		decisionReference: String
+	): Flow<String> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(invoiceDAO.listInvoiceIdsByDataOwnerDecisionReference(
+			datastoreInformation,
+			getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
+			decisionReference
+		))
+	}
 
 	override fun listInvoicesByHcPartyAndRecipientIds(hcParty: String, recipientIds: Set<String?>): Flow<Invoice> = flow {
 		val datastoreInformation = getInstanceAndGroup()

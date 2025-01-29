@@ -438,6 +438,13 @@ class InvoiceController(
 		return invoiceService.listInvoicesByHcPartySendingModeStatus(hcPartyId, sendingMode, status, from, to).map { invoiceV2Mapper.map(it) }.injectReactorContext()
 	}
 
+	@Operation(summary = "Get all the invoice ids for a data owner and a decision reference")
+	@GetMapping("/byDecisionReference", produces = [MediaType.APPLICATION_JSON_VALUE])
+	fun listInvoiceIdsByDecisionReference(
+		@RequestParam dataOwnerId: String,
+		@RequestParam decisionReference: String,
+	): Flux<String> = invoiceService.listInvoiceIdsByDataOwnerDecisionReference(dataOwnerId, decisionReference).injectReactorContext()
+
 	@Operation(summary = "Gets all invoices for author at date")
 	@GetMapping("/byServiceIds/{serviceIds}")
 	fun listInvoicesByServiceIds(@PathVariable serviceIds: String): Flux<InvoiceDto> {

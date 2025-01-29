@@ -62,6 +62,7 @@ data class InvoiceDto(
 	// org.taktik.icure.services.external.rest.v2.dto.InsuranceDto, org.taktik.icure.services.external.rest.v2.dto.PatientDto
     @Schema(description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys") val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
     val invoiceReference: String? = null,
+    val decisionReference: String? = null,
     val thirdPartyReference: String? = null,
     val thirdPartyPaymentJustification: String? = null,
     val thirdPartyPaymentReason: String? = null,
