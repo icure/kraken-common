@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
@@ -44,6 +43,15 @@ interface InvoiceLogic : EntityPersister<Invoice>, EntityWithSecureDelegationsLo
 	fun findInvoicesByAuthor(hcPartyId: String, fromDate: Long?, toDate: Long?, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 
 	fun listInvoicesByHcPartyContacts(hcParty: String, contactIds: Set<String>): Flow<Invoice>
+
+	/**
+	 * Retrieves all the [Invoice.id]s for a given data owner and where [Invoice.decisionReference] is equal to [decisionReference].
+	 *
+	 * @param dataOwnerId the data owner id.
+	 * @param decisionReference the decision reference to query.
+	 * @return a [Flow] of [String].
+	 */
+	fun listInvoiceIdsByDataOwnerDecisionReference(dataOwnerId: String, decisionReference: String): Flow<String>
 	fun listInvoicesByHcPartyAndRecipientIds(hcParty: String, recipientIds: Set<String?>): Flow<Invoice>
 
 	/**

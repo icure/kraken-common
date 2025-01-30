@@ -57,6 +57,7 @@ data class InvoicingCodeDto(
 	val override3rdPayerReason: String? = null,
 	val transplantationCode: Int? = null,
 	val prescriberNorm: Int? = null,
+	val productLabel: String? = null,
 	val percentNorm: Int? = null,
 	val prescriberNihii: String? = null,
 	val relatedCode: String? = null,

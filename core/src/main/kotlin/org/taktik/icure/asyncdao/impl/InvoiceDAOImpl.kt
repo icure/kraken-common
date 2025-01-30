@@ -98,6 +98,29 @@ class InvoiceDAOImpl(
 	}
 
 	@Views(
+		View(name = "by_hcparty_decision_reference", map = "classpath:js/invoice/By_hcparty_decision_reference_map.js", secondaryPartition = MAURICE_PARTITION),
+		View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+	)
+	override fun listInvoiceIdsByDataOwnerDecisionReference(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		decisionReference: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_decision_reference" to MAURICE_PARTITION,
+			"by_data_owner_decision_reference_map" to DATA_OWNER_PARTITION
+		).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).doNotIncludeDocs()
+		emitAll(
+			client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
+				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
+				.map { it.id }
+		)
+	}
+
+	@Views(
 	    View(name = "by_hcparty_reference", map = "classpath:js/invoice/By_hcparty_reference_map.js"),
 	    View(name = "by_data_owner_reference", map = "classpath:js/invoice/By_data_owner_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)

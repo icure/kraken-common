@@ -72,6 +72,17 @@ interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWi
 	fun listInvoicesByHcPartyAndPatientSfks(hcPartyId: String, secretPatientKeys: Set<String>): Flow<Invoice>
 
 	/**
+	 * Retrieves all the [Invoice.id]s for a given data owner and where [Invoice.decisionReference] is equal to [decisionReference].
+	 *
+	 * @param dataOwnerId the data owner id.
+	 * @param decisionReference the decision reference to query.
+	 * @return a [Flow] of [String].
+	 * @throws AccessDeniedException if [dataOwnerId] is not the current data owner id and is not among the access keys
+	 * and the current user does not have the permission to search Invoices for other users.
+	 */
+	fun listInvoiceIdsByDataOwnerDecisionReference(dataOwnerId: String, decisionReference: String): Flow<String>
+
+	/**
 	 * Retrieves the ids of all the [Invoice]s given the [dataOwnerId] (plus all the current access keys if that is
 	 * equal to the data owner id of the user making the request) and a set of [Invoice.secretForeignKeys].
 	 * Only the ids of the Invoices where [Invoice.invoiceDate] is not null are returned and the results are sorted by
