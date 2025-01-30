@@ -98,7 +98,7 @@ class InvoiceDAOImpl(
 	}
 
 	@Views(
-		View(name = "by_hcparty_decision_reference", map = "classpath:js/invoice/By_hcparty_decision_reference_map.js"),
+		View(name = "by_hcparty_decision_reference", map = "classpath:js/invoice/By_hcparty_decision_reference_map.js", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listInvoiceIdsByDataOwnerDecisionReference(
@@ -110,7 +110,7 @@ class InvoiceDAOImpl(
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			"by_hcparty_decision_reference",
+			"by_hcparty_decision_reference" to MAURICE_PARTITION,
 			"by_data_owner_decision_reference_map" to DATA_OWNER_PARTITION
 		).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).doNotIncludeDocs()
 		emitAll(
