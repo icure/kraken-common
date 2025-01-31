@@ -18,7 +18,7 @@ interface LookupDAO<T : Identifiable<String>> {
 	 * revisions' history, etc...
 	 * @return The entity
 	 */
-	suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T?
+	suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option, doPostLoad: Boolean = true): T?
 
 	/**
 	 * Retrieves an entity from the database by its id. If the cache is not null, it will access the cache first.
@@ -31,7 +31,7 @@ interface LookupDAO<T : Identifiable<String>> {
 	 * @param options 0 or more [Option] to pass to the database client.
 	 * @return the entity or null if not found.
 	 */
-	suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option): T?
+	suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option, doPostLoad: Boolean = true): T?
 
 	/**
 	 * Creates a new entity on the database. If there is a cache, then the created entity is also saved at all the
