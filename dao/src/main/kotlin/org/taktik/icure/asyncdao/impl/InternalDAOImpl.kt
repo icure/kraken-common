@@ -69,7 +69,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(
 			client.queryView(
 				ViewQuery()
-					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl, null))
+					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all").includeDocs(true),
 				String::class.java, String::class.java, entityClass
 			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull()
@@ -84,7 +84,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(
 			client.queryView<String, String>(
 				ViewQuery()
-					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this))
+					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all").includeDocs(false)
 			).map { it.id }.filterNotNull()
 		)
