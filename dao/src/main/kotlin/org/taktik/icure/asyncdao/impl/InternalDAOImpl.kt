@@ -28,10 +28,10 @@ import kotlinx.coroutines.flow.toList
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.ViewQuery
@@ -52,6 +52,7 @@ import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
+import org.taktik.icure.utils.queryView
 
 open class InternalDAOImpl<T : StoredDocument>(
 	val entityClass: Class<T>,
@@ -70,7 +71,8 @@ open class InternalDAOImpl<T : StoredDocument>(
 			client.queryView(
 				ViewQuery()
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
-					.viewName("all").includeDocs(true),
+					.viewName("all")
+					.includeDocs(true),
 				String::class.java, String::class.java, entityClass
 			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull()
 		)
@@ -85,9 +87,24 @@ open class InternalDAOImpl<T : StoredDocument>(
 			client.queryView<String, String>(
 				ViewQuery()
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
-					.viewName("all").includeDocs(false)
+					.viewName("all")
+					.includeDocs(false)
 			).map { it.id }.filterNotNull()
 		)
+	}
+
+	override fun getEntityIdsPaginated(paginationOffset: PaginationOffset<Nothing>): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
+		val viewQuery = designDocumentProvider.pagedViewQueryOfIds(
+				client = client,
+				metadataSource = this@InternalDAOImpl,
+				viewName = "all",
+				entityClass = entityClass,
+				startKey = null,
+				endKey = null,
+				pagination = paginationOffset
+			)
+		emitAll(client.queryView(viewQuery, Any::class.java, String::class.java, Any::class.java))
 	}
 
 	override suspend fun get(id: String, vararg options: Option): T? = get(id, null, *options)

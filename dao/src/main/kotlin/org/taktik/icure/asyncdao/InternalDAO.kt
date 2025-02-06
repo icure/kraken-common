@@ -21,9 +21,11 @@ package org.taktik.icure.asyncdao
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.BulkUpdateResult
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.db.PaginationOffset
 
 interface InternalDAO<T : Identifiable<String>> {
 
@@ -43,4 +45,5 @@ interface InternalDAO<T : Identifiable<String>> {
 	fun remove(entities: Flow<T>): Flow<BulkUpdateResult>
 
 	suspend fun forceInitStandardDesignDocument(updateIfExists: Boolean)
+	fun getEntityIdsPaginated(paginationOffset: PaginationOffset<Nothing>): Flow<ViewQueryResultEvent>
 }
