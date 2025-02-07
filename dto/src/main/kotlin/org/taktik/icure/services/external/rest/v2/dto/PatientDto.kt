@@ -46,6 +46,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.PersonalStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SchoolingInfoDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
@@ -115,7 +116,7 @@ data class PatientDto(
 	@Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
 
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
-	override val aesExchangeKeys: Map<SpkiHexStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
+	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(),
 	override val publicKey: SpkiHexStringDto? = null,

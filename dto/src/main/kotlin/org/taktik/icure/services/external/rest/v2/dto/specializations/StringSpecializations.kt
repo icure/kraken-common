@@ -22,6 +22,8 @@ typealias SecureDelegationKeyStringDto = String
 
 typealias SpkiHexStringDto = String
 
+typealias AesExchangeKeyEntryKeyStringDto = String
+
 typealias KeypairFingerprintV1StringDto = String
 
 typealias KeypairFingerprintV2StringDto = String
