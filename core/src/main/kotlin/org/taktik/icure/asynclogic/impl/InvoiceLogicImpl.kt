@@ -421,6 +421,9 @@ open class InvoiceLogicImpl (
 
 
 	override suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence> {
+		require(getAllSearchKeysIfCurrentDataOwner(hcPartyId).size <= 1) {
+			"This method is not supported for anonymous data owners"
+		}
 		val datastoreInformation = getInstanceAndGroup()
 		return invoiceDAO.listTarificationsFrequencies(datastoreInformation, hcPartyId)
 			.filter { v -> v.value != null && v.value!! >= minOccurrences  && v.key != null && v.key!!.components.size > 1 && v.key!!.components[1] != null }

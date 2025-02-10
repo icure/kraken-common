@@ -230,6 +230,9 @@ open class ContactLogicImpl(
 		codeType: String,
 		minOccurences: Long,
 	): List<LabelledOccurence> {
+		require(getAllSearchKeysIfCurrentDataOwner(hcPartyId).size <= 1) {
+			"This method is not supported for anonymous data owners"
+		}
 		val datastoreInformation = getInstanceAndGroup()
 		val mapped = contactDAO.listCodesFrequencies(datastoreInformation, hcPartyId, codeType)
 			.filter { v -> v.second?.let { it >= minOccurences } == true }
