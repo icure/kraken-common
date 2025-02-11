@@ -18,12 +18,14 @@ import org.taktik.icure.entities.utils.ExternalFilterKey
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
 const val MAURICE_PARTITION = "Maurice"
+const val FLEXI_PARTITION = "Flexi"
 
 enum class Partitions(val partitionName: String) {
 	All(""),
 	Main(""),
 	DataOwner(DATA_OWNER_PARTITION),
-	Maurice(MAURICE_PARTITION);
+	Maurice(MAURICE_PARTITION),
+	Flexi(FLEXI_PARTITION);
 
 	companion object {
 

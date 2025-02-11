@@ -38,9 +38,8 @@ class Filters : ApplicationContextAware {
 		}
 		val ids = hashSetOf<Serializable>()
 		(filterToBeResolved.resolve(filter, this@Filters, datastoreInformation)).collect {
-			if (!ids.contains(it)) {
+			if (ids.add(it)) {
 				emit(it)
-				ids.add(it)
 			}
 		}
 	}
