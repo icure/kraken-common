@@ -139,7 +139,6 @@ interface ContactDAO : GenericDAO<Contact> {
 	 */
 	fun listContactIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
 	fun listContactIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>
-	fun listContactsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>): Flow<Contact>
 
 	/**
 	 * Retrieves all the [Contact]s where [Contact.externalId] is equal to [externalId].
@@ -340,7 +339,19 @@ interface ContactDAO : GenericDAO<Contact> {
 	 * @return a [Flow] of [Service.id]s.
 	 */
 	fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String>
-	fun listIdsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>): Flow<ContactIdServiceId>
+
+	/**
+	 * List all contacts that contain the provided service ids.
+	 * If the same service appears in multiple contacts all the contacts are included in the result.
+	 */
+	fun listAllContactIdsByServices(datastoreInformation: IDatastoreInformation, serviceIds: Collection<String>): Flow<ContactIdServiceId>
+
+	/**
+	 * List only the latest contact containing the provided service ids.
+	 * If the same service appears in multiple contacts only the most recent contact according to `modified` is returned
+	 * in the result.
+	 */
+	fun listLatestContactIdsByServices(datastoreInformation: IDatastoreInformation, serviceIds: Collection<String>): Flow<ContactIdServiceId>
 
 	/**
 	 * Retrieves the [Service]s that have in [Service.qualifiedLinks], for any type of qualification, an association

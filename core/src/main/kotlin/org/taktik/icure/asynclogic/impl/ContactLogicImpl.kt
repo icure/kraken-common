@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.slf4j.LoggerFactory
@@ -32,6 +33,7 @@ import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
@@ -44,6 +46,7 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
+import kotlin.collections.ArrayDeque
 
 open class ContactLogicImpl(
     private val contactDAO: ContactDAO,
@@ -134,40 +137,52 @@ open class ContactLogicImpl(
 
 	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map { fix(it, isCreate = true) })
 
-	@OptIn(ExperimentalCoroutinesApi::class)
+	private class MutablePair<A, B>(
+		var first: A,
+		var second: B
+	)
 	override fun getServices(selectedServiceIds: Collection<String>): Flow<org.taktik.icure.entities.embed.Service> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
-			val orderedIds = selectedServiceIds.toCollection(LinkedHashSet())
-			val contactIds = contactDAO.listIdsByServices(datastoreInformation, orderedIds)
-
-			val servicesToEmit = contactIds.bufferedChunksAtTransition(
-				20, 100
-			) { p, n -> p.serviceId == null || n.serviceId == null || p.serviceId != n.serviceId }
-				.fold(mutableMapOf<String, org.taktik.icure.entities.embed.Service>()) { toEmit, chunkedCids ->
-					val sortedCids =
-						chunkedCids.sortedWith(compareBy({ it.serviceId }, { it.modified }, { it.contactId }))
-					val filteredCidSids =
-						sortedCids.filterIndexed { idx, cidsid -> idx == chunkedCids.size - 1 || cidsid.serviceId != sortedCids[idx + 1].serviceId }
-
-					val contacts = contactDAO.getContacts(
-						datastoreInformation, HashSet(filteredCidSids.map { it.contactId })
-					)
-					contacts.collect { c ->
-						c.services.forEach { s ->
-							val sId = s.id
-							val sModified = s.modified
-							if (orderedIds.contains(sId) && filteredCidSids.any { it.contactId == c.id && it.serviceId == sId }) {
-								val psModified = toEmit[sId]?.modified
-								if (psModified == null || sModified != null && sModified > psModified) {
-									toEmit[sId] = s.pimpWithContactInformation(c)
-								}
-							}
-						}
+			val contactAndServiceIds = contactDAO.listLatestContactIdsByServices(datastoreInformation, selectedServiceIds.distinct()).toCollection(ArrayDeque())
+			// Cache only contacts that need to be used more than once, the others can be thrown away immediately
+			val expectedContactUses = contactAndServiceIds.groupingBy { it.contactId }.eachCount().filterValues { it > 1 }
+			val contactsCache = mutableMapOf<String, MutablePair<Contact, Int>>()
+			getContacts(contactAndServiceIds.mapTo(mutableSetOf()) { it.contactId }).collect { currContact ->
+				// If the curr contact doesn't match the contact containing the next service to emit we must have that
+				// contact in cache
+				while (currContact.id != contactAndServiceIds.first().contactId) {
+					val toEmit = contactAndServiceIds.removeFirst()
+					val cached = checkNotNull(contactsCache[toEmit.contactId]) {
+						"Unexpected contact ordering, next to emit was not cached"
 					}
-					toEmit
+					emit(
+						checkNotNull(cached.first.services.firstOrNull {
+							it.id == toEmit.serviceId
+						}) {
+							"Contact ${toEmit.contactId} doesn't contain service ${toEmit.serviceId}"
+						}.pimpWithContactInformation(cached.first)
+					)
+					cached.second += 1
+					if (cached.second == expectedContactUses[toEmit.contactId]) {
+						contactsCache.remove(toEmit.contactId)
+					}
 				}
-			orderedIds.forEach { servicesToEmit[it]?.let { s -> emit(s) } }
+				// Emit the data from current contact
+				val toEmit = contactAndServiceIds.removeFirst()
+				emit(
+					checkNotNull(currContact.services.firstOrNull {
+						it.id == toEmit.serviceId
+					}) {
+						"Contact ${toEmit.contactId} doesn't contain service ${toEmit.serviceId}"
+					}.pimpWithContactInformation(currContact)
+				)
+				// If the current contact needs to be reused later we cache it.
+				if (expectedContactUses.containsKey(currContact.id)) {
+					contactsCache[currContact.id] = MutablePair(currContact, 1)
+				}
+			}
+
 		}
 
 	override fun getServicesLinkedTo(
