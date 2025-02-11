@@ -350,11 +350,44 @@ class ContactDAOImpl(
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
 			.includeDocs(false)
-		emitAll(
-			client.queryView<String, String>(viewQuery).map {
-				checkNotNull(it.value) { "A Service cannot have a null id" }
+		emitUpToDateServiceIdsFrom(datastoreInformation, client.queryView<String, String?>(viewQuery))
+	}
+
+	/**
+	 * Only emits service ids that are still matching in their latest version.
+	 * `serviceIdValueFlow` could contain the ids of services that at some point matched the request, but the latest
+	 * version of the services may not match the request anymore.
+	 * This method ensures that only services that matched also in their latest version are returned.
+	 */
+	private suspend fun FlowCollector<String>.emitUpToDateServiceIdsFrom(
+		datastoreInformation: IDatastoreInformation,
+		serviceIdValueFlow: Flow<ViewRowNoDoc<*, String?>>
+	) {
+		// For each service save all the contact ids where the service was matching
+		val serviceToMatchingContacts = mutableMapOf<String, MutableSet<String>>()
+		serviceIdValueFlow.collect { row ->
+			// Should never be null but unfortunately that is sometimes the case
+			row.value?.let { serviceId ->
+				serviceToMatchingContacts.compute(
+					serviceId
+				) { _, prevValue ->
+					prevValue?.also { it += row.id } ?: mutableSetOf(row.id)
+				}
 			}
-		)
+		}
+		listLatestContactIdsByServices(
+			datastoreInformation,
+			serviceToMatchingContacts.keys
+		).collect { serviceIdLatestContactId ->
+			val currServiceId = checkNotNull(serviceIdLatestContactId.serviceId) {
+				"Services with null ids should have been filtered earlier"
+			}
+			// If the contact containing the latest version of the service was included in the `serviceIdValueFlow`
+			// then the service still matches, else not.
+			if (serviceToMatchingContacts.getValue(currServiceId).contains(serviceIdLatestContactId.contactId)) {
+				emit(currServiceId)
+			}
+		}
 	}
 
 	@Views(
