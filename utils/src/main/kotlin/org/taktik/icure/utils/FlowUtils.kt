@@ -18,7 +18,6 @@ import kotlinx.coroutines.reactor.asFlux
 import reactor.util.context.Context
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import reactor.core.publisher.Flux
@@ -27,7 +26,6 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicLong
 
 
 /**
@@ -80,19 +78,17 @@ fun <T> Flow<T>.distinctIf(condition: Boolean) =
 fun <T> Flow<T>.distinct(): Flow<T> = flow {
     val previous = HashSet<T>()
     collect { value: T ->
-        if (!previous.contains(value)) {
-            previous.add(value)
+        if (previous.add(value)) {
             emit(value)
         }
     }
 }
 
 fun <T> Flow<T>.distinctBy(function: (T) -> Any?): Flow<T> = flow {
-    val previous = HashSet<Any>()
+    val previous = HashSet<Any?>()
     collect { value: T ->
         val fnVal = function(value)
-        if (!previous.contains(fnVal)) {
-            fnVal?.let { previous.add(it) }
+        if (previous.add(fnVal)) {
             emit(value)
         }
     }
