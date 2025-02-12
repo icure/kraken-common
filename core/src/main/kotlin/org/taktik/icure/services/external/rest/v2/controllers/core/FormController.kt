@@ -309,6 +309,7 @@ class FormController(
 
 	@Operation(summary = "Gets a form template")
 	@GetMapping("/template/{specialityCode}/guid/{formTemplateGuid}")
+	@Deprecated("This method has unintuitive behaviour, read FormTemplateService.getFormTemplatesByGuid doc for more info")
 	fun getFormTemplatesByGuid(@PathVariable formTemplateGuid: String, @PathVariable specialityCode: String, @RequestParam(required = false) raw: Boolean?): Flux<FormTemplateDto> = flow {
 		emitAll(
 			formTemplateService.getFormTemplatesByGuid(sessionLogic.getCurrentUserId(), specialityCode, formTemplateGuid)
