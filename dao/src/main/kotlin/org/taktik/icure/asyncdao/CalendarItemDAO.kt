@@ -19,6 +19,17 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 	fun listCalendarItemByPeriodAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>
 
 	/**
+	 * Retrieves all the [CalendarItem.id]s with a delegation for the specified [searchKey], where the max among [CalendarItem.created],
+	 * [CalendarItem.modified], and [CalendarItem.deletionDate] is greater or equal than [updatedAfter].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKey a data owner id or a search key.
+	 * @param updatedAfter the lower bound for the latest update date..
+	 * @return a [Flow] of [CalendarItem.id]s.
+	 */
+	fun listCalendarItemIdsByDataOwnerAndUpdatedAfter(datastoreInformation: IDatastoreInformation, searchKey: String, updatedAfter: Long): Flow<String>
+
+	/**
 	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.agendaId] is equal to the provided [agendaId],
 	 * [CalendarItem.startTime] is greater or equal than [startDate], and [CalendarItem.endTime] is less
 	 * or equal than [endDate].
