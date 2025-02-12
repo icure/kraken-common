@@ -35,7 +35,6 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
-import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -82,9 +81,9 @@ class CalendarItemDAOImpl(
 	}
 
 	@Views(
-        View(name = "by_hcparty_and_enddate", map = "classpath:js/calendarItem/By_hcparty_and_enddate.js"),
-        View(name = "by_data_owner_and_enddate", map = "classpath:js/calendarItem/By_data_owner_and_enddate.js", secondaryPartition = DATA_OWNER_PARTITION),
-    )
+		View(name = "by_hcparty_and_enddate", map = "classpath:js/calendarItem/By_hcparty_and_enddate.js"),
+		View(name = "by_data_owner_and_enddate", map = "classpath:js/calendarItem/By_data_owner_and_enddate.js", secondaryPartition = DATA_OWNER_PARTITION),
+	)
 	override fun listCalendarItemByEndDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -152,6 +151,27 @@ class CalendarItemDAOImpl(
 		emitAll(listCalendarItemByStartDateAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
 		emitAll(listCalendarItemByEndDateAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
 	}.distinctById()
+
+	@View(name = "by_data_owner_and_last_update", map = "classpath:js/calendarItem/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
+	override fun listCalendarItemIdsByDataOwnerAndUpdatedAfter(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		updatedAfter: Long
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val from = ComplexKey.of(searchKey, updatedAfter)
+		val to = ComplexKey.of(searchKey, ComplexKey.emptyObject())
+		val query = createQuery(
+			datastoreInformation,
+			"by_data_owner_and_last_update",
+			DATA_OWNER_PARTITION
+		).startKey(from).endKey(to).includeDocs(false)
+		emitAll(
+			client.queryView<ComplexKey, String>(query)
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+				.map { it.id }
+		)
+	}
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")
 	fun listCalendarItemByStartDateAndAgendaId(
@@ -240,7 +260,7 @@ class CalendarItemDAOImpl(
 			true
 		)
 		emitAll(client.interleave<ComplexKey, String, CalendarItem>(viewQueries,
-			compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[1] as? Number)?.toLong() })
+			compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() })
 		))
 	}
 
