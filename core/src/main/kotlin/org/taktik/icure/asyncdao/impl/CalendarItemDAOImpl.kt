@@ -35,7 +35,6 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
-import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -153,10 +152,7 @@ class CalendarItemDAOImpl(
 		emitAll(listCalendarItemByEndDateAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
 	}.distinctById()
 
-	@Views(
-		View(name = "by_hcparty_and_last_update", map = "classpath:js/calendarItem/By_hcparty_and_last_update.js", secondaryPartition = MAURICE_PARTITION),
-		View(name = "by_data_owner_and_last_update", map = "classpath:js/calendarItem/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
+	@View(name = "by_data_owner_and_last_update", map = "classpath:js/calendarItem/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listCalendarItemIdsByDataOwnerAndUpdatedAfter(
 		datastoreInformation: IDatastoreInformation,
 		searchKey: String,
@@ -165,13 +161,13 @@ class CalendarItemDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(searchKey, updatedAfter)
 		val to = ComplexKey.of(searchKey, ComplexKey.emptyObject())
-		val viewQueries = createQueries(
+		val query = createQuery(
 			datastoreInformation,
-			"by_hcparty_and_last_update" to MAURICE_PARTITION,
-			"by_data_owner_and_last_update" to DATA_OWNER_PARTITION
-		).startKey(from).endKey(to).doNotIncludeDocs()
+			"by_data_owner_and_last_update",
+			DATA_OWNER_PARTITION
+		).startKey(from).endKey(to).includeDocs(false)
 		emitAll(
-			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { (it.components[1] as? Number)?.toLong() }))
+			client.queryView<ComplexKey, String>(query)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id }
 		)

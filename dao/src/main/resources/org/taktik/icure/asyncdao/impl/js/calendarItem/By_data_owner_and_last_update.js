@@ -34,6 +34,11 @@ function(doc) {
                 }
             }
         }
+        if (doc.delegations) {
+            Object.keys(doc.delegations).forEach(function (k) {
+                emitWithDelegateAndDoc(k, doc)
+            });
+        }
     }
 
     if (doc.java_type === 'org.taktik.icure.entities.CalendarItem' && (doc.deleted != null || doc.created != null || doc.modified != null)) {
