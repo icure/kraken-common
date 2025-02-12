@@ -23,6 +23,8 @@ data class CalendarItemType(
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null,
 	val healthcarePartyId: String? = null,
+	val agendaId: String? = null,
+	val defaultCalendarItemType: Boolean = false,
 	val color: String? = null, //"#123456"
 	val duration: Int = 0, //Duration in minutes
 	val externalRef: String? = null,
