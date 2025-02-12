@@ -15,6 +15,7 @@ data class CalendarItemTypeDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
+	val healthcarePartyId: String? = null,
 	val name: String? = null,
 	val color: String? = null, //"#123456"
 	@Schema(defaultValue = "0") val duration: Int = 0,
