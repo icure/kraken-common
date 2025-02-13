@@ -10,24 +10,30 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerUpdatedAfter
+import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 
 @Service
 @Profile("app")
-class CalendarItemByDataOwnerUpdatedAfter(
+class CalendarItemByDataOwnerLifecycleBetween(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val sessionInformationProvider: SessionInformationProvider
-) : Filter<String, CalendarItem, CalendarItemByDataOwnerUpdatedAfter> {
+) : Filter<String, CalendarItem, CalendarItemByDataOwnerLifecycleBetween> {
 
 	override fun resolve(
-		filter: CalendarItemByDataOwnerUpdatedAfter,
+		filter: CalendarItemByDataOwnerLifecycleBetween,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
 	): Flow<String> = flow {
 		mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId)) { key ->
-			calendarItemDAO.listCalendarItemIdsByDataOwnerAndUpdatedAfter(datastoreInformation, key, filter.updatedAfter)
+			calendarItemDAO.listCalendarItemIdsByDataOwnerLifecycleBetween(
+				datastoreInformation = datastoreInformation,
+				searchKey = key,
+				startTimestamp = filter.startTimestamp,
+				endTimestamp = filter.endTimestamp,
+				descending = filter.descending
+			)
 		}.let { emitAll(it) }
 	}
 
