@@ -1,17 +1,17 @@
 package org.taktik.icure.domain.filter.impl.calendaritem
 
 import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerUpdatedBetween
+import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
-data class CalendarItemByDataOwnerUpdatedBetween(
+data class CalendarItemByDataOwnerLifecycleBetween(
 	override val dataOwnerId: String,
-	override val updatedAfter: Long?,
-	override val updatedBefore: Long?,
+	override val startTimestamp: Long?,
+	override val endTimestamp: Long?,
 	override val descending: Boolean,
 	override val desc: String? = null
-) : AbstractFilter<CalendarItem>, CalendarItemByDataOwnerUpdatedBetween {
+) : AbstractFilter<CalendarItem>, CalendarItemByDataOwnerLifecycleBetween {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
@@ -21,7 +21,7 @@ data class CalendarItemByDataOwnerUpdatedBetween(
 		searchKeyMatcher(dataOwnerId, item)
 			&& (item.created != null || item.modified != null || item.deletionDate != null)
 			&& listOfNotNull(item.created, item.modified, item.deletionDate).max().let {
-				(updatedAfter == null || it >= updatedAfter) && (updatedBefore == null || it <= updatedBefore)
+				(startTimestamp == null || it >= startTimestamp) && (endTimestamp == null || it <= endTimestamp)
 			}
 
 }

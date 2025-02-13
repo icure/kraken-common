@@ -78,7 +78,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUser
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AllAgendasFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerUpdatedBetween
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByRecurrenceIdFilter
@@ -203,7 +203,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: CalendarItemByPeriodAndDataOwnerIdFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByPeriodAndDataOwnerIdFilter
 	abstract fun map(filterDto: CalendarItemByDataOwnerPatientStartTimeFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByDataOwnerPatientStartTimeFilter
 	abstract fun map(filterDto: CalendarItemByRecurrenceIdFilter): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByRecurrenceIdFilter
-	abstract fun map(filterDto: CalendarItemByDataOwnerUpdatedBetween): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByDataOwnerUpdatedBetween
+	abstract fun map(filterDto: CalendarItemByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 
 	@JvmName("tryMapCalendarItemFilter")
 	fun tryMap(filterDto: AbstractFilterDto<CalendarItemDto>): AbstractFilter<CalendarItem>? = when(filterDto) {
@@ -211,7 +211,7 @@ abstract class FilterV2Mapper {
 		is CalendarItemByPeriodAndDataOwnerIdFilter -> map(filterDto)
 		is CalendarItemByDataOwnerPatientStartTimeFilter -> map(filterDto)
 		is CalendarItemByRecurrenceIdFilter -> map(filterDto)
-		is CalendarItemByDataOwnerUpdatedBetween -> map(filterDto)
+		is CalendarItemByDataOwnerLifecycleBetween -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
