@@ -153,19 +153,21 @@ class CalendarItemDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_data_owner_and_last_update", map = "classpath:js/calendarItem/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
-	override fun listCalendarItemIdsByDataOwnerAndUpdatedAfter(
+	override fun listCalendarItemIdsByDataOwnerUpdatedBetween(
 		datastoreInformation: IDatastoreInformation,
 		searchKey: String,
-		updatedAfter: Long
+		updatedAfter: Long?,
+		updatedBefore: Long?,
+		descending: Boolean
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val from = ComplexKey.of(searchKey, updatedAfter)
-		val to = ComplexKey.of(searchKey, ComplexKey.emptyObject())
+		val from = if (descending) ComplexKey.of(searchKey, updatedBefore ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, updatedAfter)
+		val to = if (descending) ComplexKey.of(searchKey, updatedAfter) else ComplexKey.of(searchKey, updatedBefore ?: ComplexKey.emptyObject())
 		val query = createQuery(
 			datastoreInformation,
 			"by_data_owner_and_last_update",
 			DATA_OWNER_PARTITION
-		).startKey(from).endKey(to).includeDocs(false)
+		).startKey(from).endKey(to).descending(descending).includeDocs(false)
 		emitAll(
 			client.queryView<ComplexKey, String>(query)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
