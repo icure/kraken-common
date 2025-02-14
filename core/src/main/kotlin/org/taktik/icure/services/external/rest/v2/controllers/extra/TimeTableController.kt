@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.TimeTableService
-import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
@@ -36,20 +35,15 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
-import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
-import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.TimeTableV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.TimeTableBulkShareResultV2Mapper
-import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.*
+import java.util.UUID
 
 @RestController("timeTableControllerV2")
 @Profile("app")
@@ -58,12 +52,9 @@ import java.util.*
 class TimeTableController(
 	private val timeTableService: TimeTableService,
 	private val timeTableV2Mapper: TimeTableV2Mapper,
-	private val bulkShareResultV2Mapper: TimeTableBulkShareResultV2Mapper,
-	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -194,14 +185,4 @@ class TimeTableController(
 	) = timeTableService.matchTimeTablesBy(
 		filter = filterV2Mapper.tryMap(filter).orThrow()
 	).injectReactorContext()
-
-	@Operation(description = "Shares one or more patients with one or more data owners")
-	@PutMapping("/bulkSharedMetadataUpdate")
-	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
-	): Flux<EntityBulkShareResultDto<TimeTableDto>> = flow {
-		emitAll(timeTableService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
-	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

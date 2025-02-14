@@ -6,12 +6,8 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
-import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.TimeTableItemDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,14 +30,7 @@ data class TimeTableDto(
 	val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val items: List<TimeTableItemDto> = emptyList(),
-
-	override val secretForeignKeys: Set<String> = emptySet(),
-	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto?
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
+	) : StoredDocumentDto, ICureDocumentDto<String> {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }
