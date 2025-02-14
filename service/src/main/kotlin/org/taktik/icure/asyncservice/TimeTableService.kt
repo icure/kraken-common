@@ -8,13 +8,12 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface TimeTableService : EntityWithSecureDelegationsService<TimeTable> {
+interface TimeTableService {
 	suspend fun createTimeTable(timeTable: TimeTable): TimeTable?
 
     /**
