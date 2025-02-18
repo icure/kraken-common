@@ -45,7 +45,7 @@ securityMetadataKey = sha256Hex(accessControlKey)
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 sign it with his own private key.
 This field will contain the signature by fingerprint of the public key to use for verification.""", required = true)
-    val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
+    val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
     @get:Schema(description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
 the exchange data, without voiding the authenticity guarantee.""", required = true)
     val sharedSignatureKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
