@@ -9,10 +9,11 @@ import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubDto
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 
 @Mapper(
     componentModel = "spring",
-    uses = [CodeStubV2Mapper::class],
+    uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class],
     injectionStrategy = InjectionStrategy.CONSTRUCTOR
 )
 interface CryptoActorStubV2Mapper {

@@ -125,6 +125,7 @@ data class Device(
 	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
+	override val cryptoActorProperties: Set<PropertyStub>? = null,
 
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

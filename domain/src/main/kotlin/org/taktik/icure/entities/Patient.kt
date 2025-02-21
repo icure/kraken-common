@@ -209,7 +209,7 @@ data class Patient(
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
-
+	override val cryptoActorProperties: Set<PropertyStub>? = null,
 	override val medicalLocationId: String? = null,
 	override val parentId: Nothing? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
