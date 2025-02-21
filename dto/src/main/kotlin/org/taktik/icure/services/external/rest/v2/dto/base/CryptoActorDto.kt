@@ -19,6 +19,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
@@ -54,5 +55,5 @@ interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
 		description = "A set of PropertyStub associated to this CryptoActor. They are not supposed to be encrypted if" +
 			"the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information."
 	)
-	val cryptoActorProperties: Set<PropertyStubDto>?
+	@AlwaysDecrypted val cryptoActorProperties: Set<PropertyStubDto>?
 }
