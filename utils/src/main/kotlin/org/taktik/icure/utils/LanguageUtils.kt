@@ -60,11 +60,6 @@ tailrec suspend fun <K> suspendRetry(trials: Int, backOffDuration: Duration, clo
 	return suspendRetry(trials - 1, backOffDuration.multipliedBy(2), closure, skipException)
 }
 
-fun String.md5(): String {
-	val md = MessageDigest.getInstance("MD5")
-	return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
-}
-
 /**
  * Converts the array into a string representation where each byte is represented by 2 hex digits.
  */
@@ -77,11 +72,4 @@ fun Byte.toHexString(): String = this.toInt().and(0xff).toString(16).padStart(2,
 
 fun UUID.xor(other: UUID): UUID {
 	return UUID(this.mostSignificantBits.xor(other.mostSignificantBits), this.leastSignificantBits.xor(other.leastSignificantBits))
-}
-
-fun String.md5long(): Long {
-	val md = MessageDigest.getInstance("MD5")
-	val bigInt = BigInteger(1, md.digest(toByteArray()))
-	val bitLength: Int = bigInt.bitLength()
-	return if (bitLength <= 63) { bigInt } else { bigInt.shiftRight(bitLength - 63) }.toLong()
 }
