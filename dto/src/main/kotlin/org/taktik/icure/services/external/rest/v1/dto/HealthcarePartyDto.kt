@@ -90,7 +90,8 @@ data class HealthcarePartyDto(
 	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitionned : "threshold⎮partition in hex"
 	override val publicKey: String? = null,
-	override val publicKeysForOaepWithSha256: Set<String> = emptySet()
+	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto, NamedDto, PersonDto, CryptoActorDto, DataOwnerDto, HasTagsDto, HasCodesDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

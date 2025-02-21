@@ -102,6 +102,7 @@ data class HealthcarePartyDto(
 	@Deprecated("Use properties instead")
 	val options: Map<String, String> = emptyMap(),
 	override val properties: Set<PropertyStubDto> = emptySet(),
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),

@@ -111,6 +111,7 @@ data class PatientDto(
 	override val securityMetadata: SecurityMetadataDto? = null,
 
 	override val medicalLocationId: String? = null,
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 
 	@get:Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
 	@get:Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),

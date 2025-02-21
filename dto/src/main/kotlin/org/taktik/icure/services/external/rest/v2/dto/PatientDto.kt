@@ -128,6 +128,7 @@ data class PatientDto(
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 
 	override val medicalLocationId: String? = null,
 
