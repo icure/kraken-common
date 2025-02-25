@@ -43,7 +43,7 @@ function(doc) {
         if (doc.delegations) {
             Object.keys(doc.delegations).forEach(function (k) {
                 if(!emittedDataOwners.has(k)) {
-                    emittedDataOwners.add(k)
+                    // No reason to do add: keys from doc.delegations can't be duplicated, and doc.delegations are the last thing we emit
                     emitWithDelegateAndDoc(k, doc)
                 }
             });
