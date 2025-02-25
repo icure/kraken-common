@@ -24,6 +24,12 @@ function(doc) {
                             emitWithDelegateAndDoc(secureDelegation.delegate, doc)
                         }
                     }
+                    if (secureDelegation.delegator) {
+                        if (!emittedDataOwners.has(secureDelegation.delegator)) {
+                            emittedDataOwners.add(secureDelegation.delegator)
+                            emitWithDelegateAndDoc(secureDelegation.delegator, doc)
+                        }
+                    }
                     if (!secureDelegation.delegate || !secureDelegation.delegator) {
                         emitWithDelegateAndDoc(delegationKey, doc)
                         const equivalences = equivalencesByCanonical[delegationKey]
@@ -36,7 +42,10 @@ function(doc) {
         }
         if (doc.delegations) {
             Object.keys(doc.delegations).forEach(function (k) {
-                emitWithDelegateAndDoc(k, doc)
+                if(!emittedDataOwners.has(k)) {
+                    emittedDataOwners.add(k)
+                    emitWithDelegateAndDoc(k, doc)
+                }
             });
         }
     }
