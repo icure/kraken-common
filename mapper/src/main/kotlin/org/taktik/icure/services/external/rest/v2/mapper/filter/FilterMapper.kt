@@ -77,8 +77,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLog
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AllAgendasFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerLifecycleBetween
+import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByRecurrenceIdFilter
@@ -137,6 +137,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByInvoiceIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByParentIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByDataOwnerModifiedAfterFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByDataOwnerTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
@@ -344,6 +345,7 @@ abstract class FilterV2Mapper {
 	}
 
 	abstract fun map(filterDto: PatientByHcPartyAndActiveFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndActiveFilter
+	abstract fun map(filterDto: PatientByDataOwnerTagFilter): org.taktik.icure.domain.filter.impl.patient.PatientByDataOwnerTagFilter
 	abstract fun map(filterDto: PatientByHcPartyAndExternalIdFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndExternalIdFilter
 	abstract fun map(filterDto: PatientByHcPartyAndAddressFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndAddressFilter
 	abstract fun map(filterDto: PatientByHcPartyAndTelecomFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndTelecomFilter
@@ -364,6 +366,7 @@ abstract class FilterV2Mapper {
 	@JvmName("tryMapPatientFilter")
 	fun tryMap(filterDto: AbstractFilterDto<PatientDto>): AbstractFilter<Patient>? = when (filterDto) {
 		is PatientByHcPartyAndActiveFilter -> map(filterDto)
+		is PatientByDataOwnerTagFilter -> map(filterDto)
 		is PatientByHcPartyAndExternalIdFilter -> map(filterDto)
 		is PatientByHcPartyAndAddressFilter -> map(filterDto)
 		is PatientByHcPartyAndTelecomFilter -> map(filterDto)
