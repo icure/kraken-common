@@ -168,11 +168,7 @@ class CalendarItemDAOImpl(
 			"by_data_owner_and_last_update",
 			DATA_OWNER_PARTITION
 		).startKey(from).endKey(to).descending(descending).includeDocs(false)
-		emitAll(
-			client.queryView<ComplexKey, String>(query)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.map { it.id }
-		)
+		emitAll(client.queryView<ComplexKey, Void>(query).map { it.id })
 	}
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")

@@ -35,6 +35,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
+import org.taktik.icure.asyncdao.SYSTEM_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -52,7 +53,6 @@ import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
-import kotlin.collections.set
 
 @Repository("contactDAO")
 @Profile("app")
@@ -296,6 +296,25 @@ class ContactDAOImpl(
 			.distinct().also {
 				emitAll(it)
 			}
+	}
+
+	@View(name = "by_data_owner_and_last_update", map = "classpath:js/contact/By_data_owner_and_last_update.js", secondaryPartition = SYSTEM_PARTITION)
+	override fun listContactIdsByDataOwnerLifecycleBetween(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		startTimestamp: Long?,
+		endTimestamp: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, startTimestamp)
+		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
+		val query = createQuery(
+			datastoreInformation,
+			"by_data_owner_and_last_update",
+			SYSTEM_PARTITION
+		).startKey(from).endKey(to).descending(descending).includeDocs(false)
+		emitAll(client.queryView<ComplexKey, Void>(query).map { it.id })
 	}
 
 	@Views(

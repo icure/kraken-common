@@ -124,6 +124,13 @@ interface ContactDAO : GenericDAO<Contact> {
 	 * @return a [Flow] of [Contact.id]s.
 	 */
 	fun listContactIdsByDataOwnerAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formIds: List<String>): Flow<String>
+	fun listContactIdsByDataOwnerLifecycleBetween(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		startTimestamp: Long? = null,
+		endTimestamp: Long? = null,
+		descending: Boolean = false,
+	): Flow<String>
 	fun listContactsByHcPartyAndServiceId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, serviceId: String): Flow<Contact>
 	fun listContactIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>
 
