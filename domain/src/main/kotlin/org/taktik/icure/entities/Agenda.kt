@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.StoredICureDocument
+import org.taktik.icure.entities.embed.AccessLevel
+import org.taktik.icure.entities.embed.EmbeddedTimeTable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.utils.MergeUtil
@@ -35,7 +37,9 @@ data class Agenda(
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 	val name: String? = null,
 	val userId: String? = null,
-	val rights: List<Right> = emptyList(),
+	@Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
+	val userRights: Map<String, AccessLevel> = emptyMap(),
+	val timeTables: List<EmbeddedTimeTable> = emptyList(),
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -44,7 +48,9 @@ data class Agenda(
 	companion object : DynamicInitializer<Agenda>
 
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Agenda) = super<StoredICureDocument>.solveConflictsWith(other) + mapOf(
+
+	@Suppress("DEPRECATION")
+	fun solveConflictsWith(other: Agenda) = super.solveConflictsWith(other) + mapOf(
 		"name" to (this.name ?: other.name),
 		"userId" to (this.userId ?: other.userId),
 		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a }

@@ -11,9 +11,10 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.services.external.rest.v1.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.EmbeddedTimeTableMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.RightMapper
 
-@Mapper(componentModel = "spring", uses = [CodeStubMapper::class, RightMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [CodeStubMapper::class, RightMapper::class, EmbeddedTimeTableMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface AgendaMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

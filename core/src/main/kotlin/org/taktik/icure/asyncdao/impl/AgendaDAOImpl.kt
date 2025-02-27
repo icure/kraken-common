@@ -6,6 +6,7 @@ package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -16,6 +17,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
+import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -24,6 +26,10 @@ import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Agenda
+import org.taktik.icure.entities.CalendarItemType
+import org.taktik.icure.utils.entities.embed.iterator
+import org.taktik.icure.utils.sortedMerge
+import java.time.Duration
 
 @Repository("AgendaDAO")
 @Profile("app")
@@ -83,5 +89,37 @@ class AgendaDAOImpl(
 			.includeDocs(false)
 
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
+	}
+
+	@View(name = "by_calendar_item_type", map = "classpath:js/agenda/By_calendar_item_type.js")
+	override fun listAgendasWithAvailabilitiesOfType(
+		datastoreInformation: IDatastoreInformation,
+		calendarItemType: CalendarItemType,
+		startDate: Long,
+		endDate: Long
+	): Flow<Agenda> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_calendar_item_type")
+			.key(calendarItemType.id)
+			.includeDocs(true)
+
+		val startDateToTheMinute = startDate % 100
+		val endDateToTheMinute = endDate % 100
+		val duration = Duration.ofMinutes(calendarItemType.duration.toLong())
+
+		emitAll(
+			client.queryViewIncludeDocs<String, Void, Agenda>(viewQuery).map {
+				it.doc
+			}.filter { agenda ->
+				val ttis = agenda.timeTables.filter {
+					(it.startTime ?: 0) <= endDateToTheMinute && (it.endTime ?: Long.MAX_VALUE) >= startDateToTheMinute
+				}.flatMap { tt ->
+					tt.items.filter { tti -> tti.calendarItemTypeId == calendarItemType.id }.map { it to tt }
+				}
+				val iterator = ttis.map { (tti, tt) -> tti.iterator(startDateToTheMinute.coerceAtLeast(tt.startTime ?: 0), endDateToTheMinute.coerceAtMost(tt.endTime ?: 0), duration) }.sortedMerge()
+				iterator.hasNext()
+			}
+		)
 	}
 }

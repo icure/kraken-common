@@ -33,6 +33,7 @@ data class TimeTableItem(
 	@param:ContentValue(ContentValues.ANY_STRING) val placeId: String? = null,
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val publicTimeTableItem: Boolean = false,
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val acceptsNewPatient: Boolean = true,
+	val reservingRights: Set<String> = emptySet(), // List of ids of user who can create a CalendarItem in this slot.
 
 	@JsonProperty("isUnavailable") val unavailable: Boolean = false
 ) : Serializable
