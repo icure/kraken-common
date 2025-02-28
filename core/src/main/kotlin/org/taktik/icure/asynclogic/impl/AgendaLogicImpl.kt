@@ -38,10 +38,6 @@ class AgendaLogicImpl(
 	}
 
 	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
-		@Suppress("DEPRECATION")
-		require(fixedAgenda.rights.isEmpty() || fixedAgenda.userRights.isEmpty()) {
-			"You cannot specify legacy rights and userRights at the same time"
-		}
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
@@ -52,10 +48,6 @@ class AgendaLogicImpl(
 	}
 
 	override suspend fun modifyAgenda(agenda: Agenda) = fix(agenda, isCreate = false) { fixedAgenda ->
-		@Suppress("DEPRECATION")
-		require(fixedAgenda.rights.isEmpty() || fixedAgenda.userRights.isEmpty()) {
-			"You cannot specify legacy rights and userRights at the same time"
-		}
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.save(datastoreInformation, fixedAgenda)
 	}

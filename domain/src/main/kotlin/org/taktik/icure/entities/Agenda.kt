@@ -10,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.StoredICureDocument
-import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.EmbeddedTimeTable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
+import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -38,7 +38,10 @@ data class Agenda(
 	val name: String? = null,
 	val userId: String? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
-	val userRights: Map<String, AccessLevel> = emptyMap(),
+	/**
+	 * Associates a user id to the permission that user has on the entity.
+	 */
+	val userRights: Map<String, UserAccessLevel> = emptyMap(),
 	val timeTables: List<EmbeddedTimeTable> = emptyList(),
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
@@ -47,13 +50,22 @@ data class Agenda(
 ) : StoredICureDocument {
 	companion object : DynamicInitializer<Agenda>
 
+	init {
+		@Suppress("DEPRECATION")
+		require(rights.isEmpty() || userRights.isEmpty()) {
+			"You cannot specify legacy rights and userRights at the same time"
+		}
+	}
+
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))
 
 	@Suppress("DEPRECATION")
 	fun solveConflictsWith(other: Agenda) = super.solveConflictsWith(other) + mapOf(
 		"name" to (this.name ?: other.name),
 		"userId" to (this.userId ?: other.userId),
-		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a }
+		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a },
+		"userRights" to (other.userRights + this.userRights),
+		"timeTables" to MergeUtil.mergeListsDistinct(this.timeTables, other.timeTables, {a, b -> a.id == b.id}) { a, _ -> a}
 	)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
