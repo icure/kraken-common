@@ -13,6 +13,7 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.SdkVersionConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.pagination.PaginationElement
@@ -24,6 +25,7 @@ import org.taktik.icure.validation.aspect.Fixer
 @Profile("app")
 class AgendaLogicImpl(
 	private val agendaDAO: AgendaDAO,
+	private val sdkVersionConfig: SdkVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters
@@ -38,6 +40,11 @@ class AgendaLogicImpl(
 	}
 
 	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
+		if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
+			require(fixedAgenda.userRights.isNotEmpty())  {
+				"You cannot create an Agenda with empty userRights"
+			}
+		}
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
