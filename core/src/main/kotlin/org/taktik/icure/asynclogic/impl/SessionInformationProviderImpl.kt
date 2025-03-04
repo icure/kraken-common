@@ -135,6 +135,7 @@ open class SessionInformationProviderImpl(
 
         /**
          * Header that can be used on the sdk to specify the version of the SDK used to make a request.
+         * Allows enabling some additional integrity checks that are NOT safety critical.
          */
         const val REQUEST_CARDINAL_VERSION_HEADER = "Icure-Request-Cardinal-Version"
 
