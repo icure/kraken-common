@@ -29,9 +29,7 @@ import org.taktik.icure.utils.mergeUniqueValuesForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class CalendarItemLogicImpl(
+open class CalendarItemLogicImpl(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val agendaLogic: AgendaLogic,
 	private val userDAO: UserDAO,
