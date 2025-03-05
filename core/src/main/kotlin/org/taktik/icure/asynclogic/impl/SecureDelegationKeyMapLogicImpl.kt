@@ -29,22 +29,17 @@ open class SecureDelegationKeyMapLogicImpl(
         entity: SecureDelegationKeyMap,
         updatedMetadata: SecurityMetadata
     ): SecureDelegationKeyMap =
-        entity.copy(securityMetadata = updatedMetadata).also { it.validate() }
+        entity.copy(securityMetadata = updatedMetadata).also { it.validateForStore() }
 
 
     override suspend fun createSecureDelegationKeyMap(map: SecureDelegationKeyMap): SecureDelegationKeyMap =
-        checkNotNull(secureDelegationKeyMapDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), map.also { it.validate() })) {
+        checkNotNull(secureDelegationKeyMapDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), map.also { it.validateForStore() })) {
             "DAO returned null on entity creation"
         }
 
     override fun findByDelegationKeys(delegationKeys: List<String>): Flow<SecureDelegationKeyMap> = flow {
         emitAll(secureDelegationKeyMapDAO.findByDelegationKeys(datastoreInstanceProvider.getInstanceAndGroup(), delegationKeys))
     }
-
-    private fun SecureDelegationKeyMap.validate() =
-        require(delegator == null && delegate == null && encryptedSelf != null) {
-            "Delegator and delegate fields should have been encrypted."
-        }
 
     override fun getGenericDAO(): SecureDelegationKeyMapDAO = secureDelegationKeyMapDAO
 }
