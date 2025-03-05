@@ -16,9 +16,7 @@ import org.taktik.icure.entities.SecureDelegationKeyMap
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class SecureDelegationKeyMapLogicImpl(
+open class SecureDelegationKeyMapLogicImpl(
     sessionLogic: SessionInformationProvider,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,

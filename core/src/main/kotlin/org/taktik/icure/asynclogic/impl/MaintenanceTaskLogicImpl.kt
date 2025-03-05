@@ -29,9 +29,7 @@ import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
-@Service
-@Profile("app")
-class MaintenanceTaskLogicImpl(
+open class MaintenanceTaskLogicImpl(
     private val maintenanceTaskDAO: MaintenanceTaskDAO,
     filters: Filters,
     sessionLogic: SessionInformationProvider,

@@ -16,6 +16,7 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.GenericLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.embed.AccessLevel
@@ -51,6 +52,17 @@ where
     E : HasEncryptionMetadata, E : Versionable<String>,
     D : GenericDAO<E>
 {
+    /**
+     * Creates a copy of the entity with updated security metadata.
+     */
+    protected abstract fun entityWithUpdatedSecurityMetadata(
+        entity: E,
+        updatedMetadata: SecurityMetadata
+    ): E
+
+    private val helper = EntityWithEncryptionMetadataLogicHelper<E, D> {
+        entityWithUpdatedSecurityMetadata(this@EntityWithEncryptionMetadataLogicHelper, it)
+    }
 
     /**
      * @see [SessionInformationProvider.getAllSearchKeysIfCurrentDataOwner]
@@ -59,10 +71,15 @@ where
         sessionLogic.getAllSearchKeysIfCurrentDataOwner(dataOwnerId)
 
     override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
-        emitAll(getGenericDAO()
-            .saveBulk(
-                datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup(),
-                entities = filterValidEntityChanges(entities.map { fix(it, isCreate = false) }).toList()
+        val dao = getGenericDAO()
+        val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+        emitAll(
+            dao.saveBulk(
+                datastoreInformation = datastoreInfo,
+                entities = helper.filterValidEntityChanges(
+                    entities.map { fix(it, isCreate = false) },
+                    dao.getEntities(datastoreInfo, entities.map { it.id })
+                ).toList()
             ).filterSuccessfulUpdates()
         )
     }
@@ -74,7 +91,60 @@ where
     override fun bulkShareOrUpdateMetadata(
         requests: BulkShareOrUpdateMetadataParams
     ): Flow<EntityBulkShareResult<E>> = flow {
-        val entities = getGenericDAO().getEntities(datastoreInstanceProvider.getInstanceAndGroup(), requests.requestsByEntityId.keys).toList().associateBy { it.id }
+        val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+        helper.doBulkShareOrUpdateMetadata(
+            requests = requests,
+            entities = getGenericDAO().getEntities(datastoreInfo, requests.requestsByEntityId.keys).toList().associateBy { it.id },
+            doSaveBulk = { getGenericDAO().saveBulk(datastoreInfo, it) },
+            doCreateExchangeDataMapById = { exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(it) }
+        )
+    }
+
+
+    /**
+     * Throws error if the updated entity has some changes from the current version of the entity which are not allowed.
+     */
+    protected suspend fun checkValidEntityChange(
+        updatedEntity: E,
+        currentEntity: E?
+    ) {
+        helper.doValidateEntityChange(
+            updatedEntity,
+            currentEntity
+                ?: getGenericDAO()
+                    .getEntities(datastoreInstanceProvider.getInstanceAndGroup(), listOf(updatedEntity.id))
+                    .toList()
+                    .firstOrNull()
+                ?: throw NotFoundRequestException("Could not find entity with id ${updatedEntity.id}"),
+            throwErrorOnInvalidRev = true
+        )
+    }
+
+    protected fun filterValidEntityChanges(
+        updatedEntities: Collection<E>
+    ): Flow<E> = flow {
+        emitAll(helper.filterValidEntityChanges(
+            updatedEntities.map { fix(it, isCreate = false) },
+            getGenericDAO().getEntities(datastoreInstanceProvider.getInstanceAndGroup(), updatedEntities.map { it.id })
+        ))
+    }
+}
+
+val EntityShareRequest.canonicalHash get() = accessControlKeys.map { hashAccessControlKey(it.hexStringToByteArray()) }.minOf { it }
+
+class EntityWithEncryptionMetadataLogicHelper<E, D> (
+    private val withUpdatedSecurityMetadata: E.(updatedMetadata: SecurityMetadata) -> E
+)
+    where
+E : HasEncryptionMetadata, E : Versionable<String>,
+D : GenericDAO<E> {
+
+    inline fun doBulkShareOrUpdateMetadata(
+        requests: BulkShareOrUpdateMetadataParams,
+        entities: Map<String, E>,
+        crossinline doSaveBulk:  (updatedEntities: Collection<E>) -> Flow<BulkSaveResult<E>>,
+        crossinline doCreateExchangeDataMapById: (batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>) -> Flow<ExchangeDataMap>
+    ): Flow<EntityBulkShareResult<E>> = flow {
         val validatedRequests = requests.requestsByEntityId.mapNotNull { (entityId, entityRequests) ->
             entities[entityId]?.let { verifyAndApplyShareOrUpdateRequest(entityRequests, it) }
         }
@@ -82,10 +152,7 @@ where
             it.entityWithAppliedRequestsIds?.first?.id?.to(it)
         }.toMap()
         emitAll(
-            getGenericDAO().saveBulk(
-                datastoreInstanceProvider.getInstanceAndGroup(),
-                approvedChangesByEntityId.map { it.value.entityWithAppliedRequestsIds!!.first }
-            ).map { bulkSaveResult ->
+            doSaveBulk(approvedChangesByEntityId.map { it.value.entityWithAppliedRequestsIds!!.first }).map { bulkSaveResult ->
                 when (bulkSaveResult) {
                     is BulkSaveResult.Failure -> {
                         val validatedRequest = approvedChangesByEntityId.getValue(bulkSaveResult.entityId)
@@ -115,7 +182,7 @@ where
             }
         )
 
-        createExchangeDataMapIfNotExisting(requests, validatedRequests)
+        doCreateExchangeDataMapById(getExchangeDataMapsToCreate(requests, validatedRequests)).collect()
 
         validatedRequests.forEach {
             if (it.entityWithAppliedRequestsIds == null) emit(EntityBulkShareResult(
@@ -129,23 +196,23 @@ where
             if (entities[entityId] === null) {
                 emit(
                     EntityBulkShareResult(
-                    null,
-                    entityId,
-                    null,
-                    entityRequests.requests.keys.associateWith {
-                        RejectedShareOrMetadataUpdateRequest(404, false, "There is no entity with id $entityId")
-                    }
-                )
+                        null,
+                        entityId,
+                        null,
+                        entityRequests.requests.keys.associateWith {
+                            RejectedShareOrMetadataUpdateRequest(404, false, "There is no entity with id $entityId")
+                        }
+                    )
                 )
             }
         }
     }
 
-    private suspend fun <T : HasEncryptionMetadata> createExchangeDataMapIfNotExisting(
+    fun <T : HasEncryptionMetadata> getExchangeDataMapsToCreate(
         requests: BulkShareOrUpdateMetadataParams,
-        validatedRequests: List<ValidatedShareRequest<T>>
-    ) {
-        val mapsToCreate = validatedRequests.mapNotNull { validatedRequest ->
+        validatedRequests: List<ValidatedShareRequest<T>>,
+    ) =
+        validatedRequests.mapNotNull { validatedRequest ->
             validatedRequest.entityWithAppliedRequestsIds?.let {
                 validatedRequest.entityId to it.second
             }
@@ -158,16 +225,14 @@ where
                 (request as EntityShareRequest).canonicalHash to request.encryptedExchangeDataId
             }?.toMap() ?: emptyMap())
         }
-        exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(mapsToCreate).collect()
-    }
 
-    private data class ValidatedShareRequest<E : HasEncryptionMetadata>(
+    data class ValidatedShareRequest<E : HasEncryptionMetadata>(
         val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequest>,
         val entityId: String,
         val entityRev: String,
         val entityWithAppliedRequestsIds: Pair<E, Set<String>>?
     )
-    private fun verifyAndApplyShareOrUpdateRequest(
+    fun verifyAndApplyShareOrUpdateRequest(
         requestInfo: ShareEntityRequestDetails,
         currentEntity: E
     ): ValidatedShareRequest<E> {
@@ -187,9 +252,11 @@ where
             currentEntity,
             currentEntity,
             requestInfo.potentialParentDelegations.filterTo(mutableSetOf()) {
-                currentEntity.securityMetadata?.getDelegation(it) != null
+                currentEntity.securityMetadata?.secureDelegations?.containsKey(it) == true
             },
-            if (requestInfo.potentialParentDelegations.any { currentEntity.securityMetadata?.getDelegation(it)?.second?.permissions == AccessLevel.WRITE }) {
+            if (requestInfo.potentialParentDelegations.any {
+                    currentEntity.securityMetadata?.secureDelegations?.get(it)?.permissions == AccessLevel.WRITE
+                }) {
                 AccessLevel.WRITE
             } else AccessLevel.READ
         ).rejectShareRequestsForExistingDelegations()
@@ -218,9 +285,7 @@ where
     )
 
     private fun PartialRequestApplication<E>.rejectShareRequestsForExistingDelegations(): PartialRequestApplication<E> {
-        val validRequests = currentEntity.securityMetadata?.let {
-            it.secureDelegations.keys + it.keysEquivalences.keys
-        }?.let { existingDelegationKeys ->
+        val validRequests = currentEntity.securityMetadata?.secureDelegations?.keys?.let { existingDelegationKeys ->
             remainingShareRequests.filter { (_, request) ->
                 request.accessControlKeys.map { hashAccessControlKey(it.hexStringToByteArray()) }.all { it !in existingDelegationKeys }
             }
@@ -304,9 +369,9 @@ where
         val updatedDelegations = mutableMapOf<String, SecureDelegation>()
         val newRejectedRequests = mutableMapOf<String, RejectedShareOrMetadataUpdateRequest>()
         remainingUpdateRequest.forEach { (requestId, request) ->
-            val canonicalHashAndDelegation = currentEntity.securityMetadata?.getDelegation(request.metadataAccessControlHash)
-            if (canonicalHashAndDelegation != null) {
-                val (canonicalHash, delegation) = canonicalHashAndDelegation
+            val canonicalHash = request.metadataAccessControlHash
+            val delegation = currentEntity.securityMetadata?.secureDelegations?.get(request.metadataAccessControlHash)
+            if (delegation != null) {
                 val updatedSecretIds = validateAndApplyUpdateRequests(
                     delegation.secretIds,
                     request.secretIds,
@@ -346,8 +411,7 @@ where
             appliedRequestsIds = appliedRequestsIds + newAppliedRequestsIds,
             updatedEntity =
                 if (updatedDelegations.isNotEmpty())
-                    entityWithUpdatedSecurityMetadata(
-                        updatedEntity,
+                    updatedEntity.withUpdatedSecurityMetadata(
                         updatedEntity.securityMetadata!!.let {
                             it.copy(secureDelegations = it.secureDelegations + updatedDelegations)
                         }
@@ -375,12 +439,9 @@ where
         accessibleDelegationsHashes: Set<Sha256HexString>
     ): Set<Sha256HexString> {
         val metadata = checkNotNull(updatedEntity.securityMetadata)
-        val accessibleCanonicalDelegations = accessibleDelegationsHashes.map {
-            metadata.keysEquivalences[it] ?: it
-        }
         val parentsGraph = metadata.secureDelegations.parentsGraph
-        return accessibleCanonicalDelegations.filterNot {
-            parentsGraph.reachSetExcludingZeroLength(it).any { parent -> parent in accessibleCanonicalDelegations }
+        return accessibleDelegationsHashes.filterNot {
+            parentsGraph.reachSetExcludingZeroLength(it).any { parent -> parent in accessibleDelegationsHashes }
         }.toSet()
     }
 
@@ -390,8 +451,6 @@ where
         permissions: AccessLevel
     ): Pair<String, E> {
         val newCanonicalHash = request.canonicalHash
-        val newEquivalences = (request.accessControlKeys.map { hashAccessControlKey(it.hexStringToByteArray()) } - newCanonicalHash)
-            .associateWith { newCanonicalHash }
         val newDelegation = SecureDelegation(
             delegator = request.explicitDelegator,
             delegate = request.explicitDelegate,
@@ -405,63 +464,33 @@ where
         val newSecurityMetadata = securityMetadata?.let {
             it.copy(
                 secureDelegations = it.secureDelegations + (newCanonicalHash to newDelegation),
-                keysEquivalences = it.keysEquivalences + newEquivalences
             )
         } ?: SecurityMetadata(
             secureDelegations = mapOf(newCanonicalHash to newDelegation),
-            keysEquivalences = newEquivalences
         )
-        return newCanonicalHash to entityWithUpdatedSecurityMetadata(this, newSecurityMetadata)
+        return newCanonicalHash to withUpdatedSecurityMetadata(newSecurityMetadata)
     }
 
     /*TODO
      * any way of avoiding load all entities in memory for the comparison without making too many requests to couchdb
      * to retrieve the current versions of the entities? Batch and deal with only up to x at a time?
      */
-    protected fun filterValidEntityChanges(
-        updatedEntities: Collection<E>
+    fun filterValidEntityChanges(
+        updatedEntities: Collection<E>,
+        originalEntities: Flow<E>
     ): Flow<E> {
         val updatedEntitiesById = updatedEntities.associateBy { it.id }
         return flow {
-            getGenericDAO()
-                .getEntities(datastoreInstanceProvider.getInstanceAndGroup(), updatedEntities.map { it.id })
-                .collect { currentEntity ->
-                    val updatedEntity = updatedEntitiesById.getValue(currentEntity.id)
-                    if (doValidateEntityChange(updatedEntity, currentEntity, throwErrorOnInvalidRev = false)) {
-                        emit(updatedEntity)
-                    }
+            originalEntities.collect { currentEntity ->
+                val updatedEntity = updatedEntitiesById.getValue(currentEntity.id)
+                if (doValidateEntityChange(updatedEntity, currentEntity, throwErrorOnInvalidRev = false)) {
+                    emit(updatedEntity)
                 }
+            }
         }
     }
 
-    /**
-     * Creates a copy of the entity with updated security metadata.
-     */
-    protected abstract fun entityWithUpdatedSecurityMetadata(
-        entity: E,
-        updatedMetadata: SecurityMetadata
-    ): E
-
-    /**
-     * Throws error if the updated entity has some changes from the current version of the entity which are not allowed.
-     */
-    protected suspend fun checkValidEntityChange(
-        updatedEntity: E,
-        currentEntity: E?
-    ) {
-        doValidateEntityChange(
-            updatedEntity,
-            currentEntity
-            ?: getGenericDAO()
-                .getEntities(datastoreInstanceProvider.getInstanceAndGroup(), listOf(updatedEntity.id))
-                .toList()
-                .firstOrNull()
-            ?: throw NotFoundRequestException("Could not find entity with id ${updatedEntity.id}"),
-            throwErrorOnInvalidRev = true
-        )
-    }
-
-    private fun doValidateEntityChange(
+    fun doValidateEntityChange(
         updatedEntity: E,
         currentEntity: E,
         throwErrorOnInvalidRev: Boolean
@@ -479,5 +508,3 @@ where
         return true
     }
 }
-
-val EntityShareRequest.canonicalHash get() = accessControlKeys.map { hashAccessControlKey(it.hexStringToByteArray()) }.minOf { it }
