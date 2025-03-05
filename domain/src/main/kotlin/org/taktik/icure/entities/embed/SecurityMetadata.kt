@@ -25,47 +25,12 @@ data class SecurityMetadata(
      * Note that it is also possible for a secure delegation in this map to have no entry for secretId, encryptionKey or owningEntityId.
      * This could happen in situations where a user should have access only to the unencrypted content of an entity.
      */
-    val secureDelegations: Map<Sha256HexString, SecureDelegation>,
-    /**
-     * Holds aliases for secure delegation keys that apply to this entity: `a -> b` means that anyone with key `a` has access to the
-     * secure delegation in `secureDelegations['b']`.
-     *
-     * This map is useful in cases when it is not possible to know for certain if the delegate of a new secure delegation will be able
-     * to produce the access control key we are planning to use. For example the access control key may be produced by a combination of
-     * access control secret and secret foreign key of the entity: what happens if the entity has multiple secret foreign keys? The
-     * delegate may have access to only one of them but not all, so if we chose an unlucky secret foreign key in the creation of the
-     * access control key the delegate will never be able to access the entity. This field allows to essentially create an access control
-     * key and corresponding secure delegation key for each secret foreign key without having to replicate the actual secure delegation.
-     */
-    val keysEquivalences: Map<Sha256HexString, Sha256HexString> = emptyMap()
+    val secureDelegations: Map<Sha256HexString, SecureDelegation>
 ): Serializable {
     init {
         require(secureDelegations.isNotEmpty()) { "Security metadata should contain at least an entry for delegations" }
         require(!secureDelegations.parentsGraph.hasLoops()) { "Secure delegations graph must not have any loops" }
     }
-
-    /**
-     * Get a secure delegation using either the canonical hash or an alias.
-     * @param hashOrAlias a canonical hash for a delegation or an alias
-     * @return the canonical hash and delegation corresponding to the provided hash or alias if it exists.
-     */
-    fun getDelegation(hashOrAlias: String): Pair<String, SecureDelegation>? =
-        this.secureDelegations[hashOrAlias]?.let { hashOrAlias to it }
-            ?: this.keysEquivalences[hashOrAlias]?.let { it to this.secureDelegations.getValue(it) }
-
-    /**
-     * Get all aliases for a specific hash in this metadata (aliases are metadata-specific).
-     * @param hash an access control hash.
-     * @throws IllegalArgumentException if [hash] is not in this metadata
-     * @return a set containing [hash] and all is aliases.
-     */
-    fun allAliasesOf(hash: String): Set<String> {
-        val aliasedTo = requireNotNull(hash.takeIf { it in secureDelegations } ?: keysEquivalences[hash]) {
-            "Provided hash is not part of this metadata"
-        }
-        return keysEquivalences.asSequence().filter { it.value == aliasedTo }.map { it.value }.toSet() + aliasedTo
-    }
-
 
     /**
      * Merges the security metadata of two versions of the same entity (same id).
@@ -99,34 +64,19 @@ data class SecurityMetadata(
         other: SecurityMetadata,
         mergeVersions: Boolean
     ): SecurityMetadata {
-        // 1. Align canonical key of secure delegations for this and other.
-        // full equivalences: include also x->x (in addition to y->x)
-        val thisFullEquivalences = this.keysEquivalences + this.secureDelegations.keys.associateWith { it }
-        val otherFullEquivalences = other.keysEquivalences + other.secureDelegations.keys.associateWith { it }
-        val mergedFullEquivalences = thisFullEquivalences + otherFullEquivalences.mapValues { (delegationKey, canonicalKey) ->
-            thisFullEquivalences[delegationKey] ?: canonicalKey
-        }
         // 2. Find duplicate delegations and merge
-        val mergedDelegations = mergedFullEquivalences.values.distinct().associateWith { canonicalKey ->
-            val thisDelegation = thisFullEquivalences[canonicalKey]?.let { this.secureDelegations.getValue(it) }
-            val otherDelegation = otherFullEquivalences[canonicalKey]?.let { other.secureDelegations.getValue(it) }
+        val mergedDelegations = (this.secureDelegations.keys + other.secureDelegations.keys).associateWith { canonicalKey ->
+            val thisDelegation = this.secureDelegations[canonicalKey]
+            val otherDelegation = other.secureDelegations[canonicalKey]
             if (thisDelegation != null && otherDelegation != null)
                 mergeSecDels(thisDelegation, otherDelegation, mergeVersions)
             else
                 checkNotNull(thisDelegation ?: otherDelegation) {
                     "At least one of the delegations should have been not null"
                 }
-        }.mapValues { (_, mergedDelegation) ->
-            // 3. Use updated canonical keys for parents
-            mergedDelegation.copy(
-                parentDelegations = mergedDelegation.parentDelegations.map { originalParent ->
-                    mergedFullEquivalences.getValue(originalParent)
-                }.toSet()
-            )
         }
         return SecurityMetadata(
             secureDelegations = mergedDelegations,
-            keysEquivalences = mergedFullEquivalences.filter { (k, v) -> k != v }
         )
     }
 
