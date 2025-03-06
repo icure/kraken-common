@@ -54,6 +54,7 @@ import org.taktik.icure.validation.ValidCode
  * @property formTemplateId Id of the form template being used to display the form
  * @property contactId Id of the contact for which the form is being used.
  * @property parent The parent of this form, used to determine the forms hierarchy
+ * @property anchorId Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.
  * @property delegations The delegations giving access to all connected healthcare information.
  * @property encryptionKeys The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors.
  * @property encryptedSelf The encrypted fields of this Form.
@@ -81,6 +82,7 @@ data class Form(
 	val logicalUuid: String? = null,
 	val descr: String? = null,
 	val formTemplateId: String? = null,
+	val anchorId: String? = null,
 	val contactId: String? = null,
 	@Deprecated("Use sub-contacts in contact") val healthElementId: String? = null,
 	@Deprecated("Use sub-contacts in contact") val planOfActionId: String? = null,
