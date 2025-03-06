@@ -22,9 +22,7 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
-@Service
-@Profile("app")
-class ReceiptLogicImpl(
+open class ReceiptLogicImpl(
     private val receiptDAO: ReceiptDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     sessionLogic: SessionInformationProvider,

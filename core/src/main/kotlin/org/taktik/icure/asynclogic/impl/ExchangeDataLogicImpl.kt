@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.EntityInfoDAO
 import org.taktik.icure.asyncdao.ExchangeDataDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -21,19 +20,18 @@ import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.exceptions.ConflictRequestException
+import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 
-@Service
-@Profile("app")
-class ExchangeDataLogicImpl(
+open class ExchangeDataLogicImpl(
     private val exchangeDataDAO: ExchangeDataDAO,
-    private val sessionLogic: SessionInformationProvider,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
-    @Qualifier("baseEntityInfoDao") private val baseEntityInfoDao: EntityInfoDAO,
-    @Qualifier("patientEntityInfoDao") private val patientEntityInfoDao: EntityInfoDAO,
+    private val baseEntityInfoDao: EntityInfoDAO,
+    private val patientEntityInfoDao: EntityInfoDAO,
     private val objectMapper: ObjectMapper
 ) : ExchangeDataLogic {
     companion object {
@@ -70,17 +68,23 @@ class ExchangeDataLogicImpl(
     }
 
     override suspend fun createExchangeData(exchangeData: ExchangeData): ExchangeData {
-        require(sessionLogic.getCurrentDataOwnerId() == exchangeData.delegator) {
-            "When creating new exchange data you are the delegator, but provided data has ${exchangeData.delegator} as delegator."
-        }
-        require(exchangeData.rev == null) { "New exchange data should not have a revision number." }
         return checkNotNull(exchangeDataDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), exchangeData)) {
             "Exchange data creation returned null."
         }
     }
 
+    protected suspend fun validateModifyExchangeData(updatedExchangeData: ExchangeData) {
+        val original = getExchangeDataById(updatedExchangeData.id) ?: throw NotFoundRequestException(
+            "Can't find exchange data ${updatedExchangeData.id}"
+        )
+        if (original.rev != updatedExchangeData.rev) throw ConflictRequestException("Outdated rev for exchange data")
+        require(updatedExchangeData.delegator == original.delegator && updatedExchangeData.delegate == original.delegate) {
+            "Can't modify delegator or delegate of exchange data"
+        }
+    }
+
     override suspend fun modifyExchangeData(exchangeData: ExchangeData): ExchangeData {
-        require(exchangeData.rev != null) { "Exchange data to modify should have a revision number" }
+        validateModifyExchangeData(exchangeData)
         return checkNotNull(exchangeDataDAO.save(datastoreInstanceProvider.getInstanceAndGroup(), exchangeData)) {
             "Exchange data modification returned null"
         }
@@ -93,7 +97,7 @@ class ExchangeDataLogicImpl(
     ): Flow<String> = flow {
         require(counterpartsType.isNotEmpty()) { "At least one counterpart type should be provided." }
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
-        val allAnalyised = mutableSetOf<String>()
+        val allAnalyzed = mutableSetOf<String>()
         var nextPage: String? = null
         do {
             val dataForParticipantPage = exchangeDataDAO.findExchangeDataByParticipant(
@@ -113,8 +117,9 @@ class ExchangeDataLogicImpl(
                     } else rows
                 }
                 .flatMap { listOf(it.delegator, it.delegate) }
-                .toSet() - dataOwnerId - allAnalyised
-            allAnalyised.addAll(counterpartsIds)
+                .filter { '/' in it } // Ignore references to data owners in other groups
+                .toSet() - dataOwnerId - allAnalyzed
+            allAnalyzed.addAll(counterpartsIds)
             emitAll(filterDataOwnersWithTypes(counterpartsIds, counterpartsType.toSet()))
         } while (nextPage != null)
     }

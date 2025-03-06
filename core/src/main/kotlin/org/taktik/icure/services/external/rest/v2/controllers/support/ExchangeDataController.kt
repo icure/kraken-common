@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -41,7 +42,8 @@ import reactor.core.publisher.Flux
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
 	private val exchangeDataMapper: ExchangeDataV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 
 	@Operation(summary = "Creates new exchange data")
@@ -52,7 +54,7 @@ class ExchangeDataController(
 
 	@Operation(summary = "Modifies existing exchange data")
 	@PutMapping
-	fun modifyExchangeData(@RequestBody exchangeData: ExchangeDataDto) = mono {
+	fun modifyExchangeData(@RequestBody exchangeData: ExchangeDataDto) = reactorCacheInjector.monoWithCachedContext(10) {
 		exchangeDataMapper.map(exchangeDataLogic.modifyExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 

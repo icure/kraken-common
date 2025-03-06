@@ -5,15 +5,20 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.DesignDocument
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Revisionable
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.utils.ExternalFilterKey
+import org.taktik.icure.exceptions.ConflictRequestException
+import org.taktik.icure.exceptions.NotFoundRequestException
 
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
@@ -253,3 +258,30 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		endKey: ExternalFilterKey?
 	): Flow<String>
 }
+
+suspend fun <T> GenericDAO<T>.getEntitiesWithExpectedRev(
+	datastoreInformation: IDatastoreInformation,
+	identifiers: Collection<IdAndRev>
+): List<T> where T : Revisionable<String> {
+	val expectedRevById = identifiers.associate { it.id to it.rev }
+	return getEntities(
+		datastoreInformation,
+		identifiers.map { it.id }
+	).toList().filter {
+		expectedRevById.getValue(it.id).let { expectedRev -> expectedRev == null || expectedRev == it.rev }
+	}
+}
+
+suspend fun <T> GenericDAO<T>.getEntityWithExpectedRev(
+	datastoreInformation: IDatastoreInformation,
+	id: String,
+	rev: String?
+): T where T : Revisionable<String> {
+	val retrieved = get(datastoreInformation, id)
+		?: throw NotFoundRequestException("Entity with id $id not found")
+	if (rev != null && retrieved.rev != rev) {
+		throw ConflictRequestException("Revision does not match for entity with id $id")
+	}
+	return retrieved
+}
+

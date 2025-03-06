@@ -16,15 +16,6 @@ anonymous data owners (see [DataOwnerAuthenticationDetails]) and in some cases a
 exchange key needed for the decryption of the content of the corresponding [SecureDelegation].
 Note that it is also possible for a secure delegation in this map to have no entry for secretId, encryptionKey or owningEntityId.
 This could happen in situations where a user should have access only to the unencrypted content of an entity.""", required = true)
-    val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
-    @get:Schema(description = """Holds aliases for secure delegation keys that apply to this entity: `a -> b` means that anyone with key `a` has access to the
-secure delegation in `secureDelegations['b']`.
-This map is useful in cases when it is not possible to know for certain if the delegate of a new secure delegation will be able
-to produce the access control key we are planning to use. For example the access control key may be produced by a combination of
-access control secret and secret foreign key of the entity: what happens if the entity has multiple secret foreign keys? The
-delegate may have access to only one of them but not all, so if we chose an unlucky secret foreign key in the creation of the
-access control key the delegate will never be able to access the entity. This field allows to essentially create an access control
-key and corresponding secure delegation key for each secret foreign key without having to replicate the actual secure delegation.""")
-    val keysEquivalences: Map<Sha256HexStringDto, Sha256HexStringDto> = emptyMap()
+    val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>
 )
 

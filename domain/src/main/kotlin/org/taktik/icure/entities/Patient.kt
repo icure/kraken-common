@@ -298,6 +298,6 @@ data class Patient(
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = super.dataOwnersWithExplicitAccess + mapOf(id to AccessLevel.WRITE)
-}
 
-fun Patient.isValid() = firstName != null || lastName != null || encryptedSelf != null || deletionDate != null
+	fun isValidForStore() = firstName != null || lastName != null || encryptedSelf != null || deletionDate != null
+}

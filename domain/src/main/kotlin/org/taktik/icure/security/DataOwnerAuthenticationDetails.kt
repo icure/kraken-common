@@ -67,19 +67,3 @@ interface DataOwnerAuthenticationDetails {
             listOf(id) + (parent()?.fullHierarchyIds() ?: emptyList())
     }
 }
-
-/**
- * Check if the data owner id or any of the data owner parents ids match [dataOwnerIdOrAccessControlHash] or if any of
- * the access control keys give access to [dataOwnerIdOrAccessControlHash]
- */
-suspend fun DataOwnerAuthenticationDetails.isDataOwnerOrChildOrHasAccessKeyTo(dataOwnerIdOrAccessControlHash: String) =
-    dataOwner?.let { doInfo -> doInfo.anyInHierarchy { it.id == dataOwnerIdOrAccessControlHash } } == true ||
-        accessControlKeysHashes.any { it == dataOwnerIdOrAccessControlHash }
-
-/**
- * Check if the data owner id matches [dataOwnerIdOrAccessControlHash] or if any of the access control keys give access
- * to [dataOwnerIdOrAccessControlHash]
- */
-fun DataOwnerAuthenticationDetails.isDataOwnerOrHasAccessKeyTo(dataOwnerIdOrAccessControlHash: String) =
-    dataOwner?.let { doInfo -> doInfo.id == dataOwnerIdOrAccessControlHash } == true ||
-            accessControlKeysHashes.any { it == dataOwnerIdOrAccessControlHash }
