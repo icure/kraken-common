@@ -47,6 +47,7 @@ interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureD
 	 * @return a [Flow] of HealthElement ids.
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
+	fun listHealthElementIdsByDataOwnerOpeningDate(dataOwnerId: String, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
 
