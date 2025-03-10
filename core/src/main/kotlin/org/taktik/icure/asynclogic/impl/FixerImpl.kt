@@ -62,7 +62,7 @@ open class FixerImpl (
 		}
 	}
 
-	protected suspend fun <E : Any> fix(doc: E, isCreate: Boolean, applyFix: suspend (autoFix: AutoFix, value: Any?) -> Any?): E {
+	protected suspend fun <E : Any> fix(doc: E, isCreate: Boolean, getFixValue: suspend (autoFix: AutoFix, value: Any?) -> Any?): E {
 		val violations = factory.validator.validate(doc)
 
 		return violations.fold(listOf<Fix>()) { fixes, cv ->
@@ -84,7 +84,7 @@ open class FixerImpl (
 									val isLeaf = pp.size == idx + 1
 									FixPointSelector(it.name, isLeaf, !isLeaf && pp[idx + 1].isInIterable, (it as NodeImpl).value)
 								},
-								applyFix(autoFix, cv.invalidValue)
+								getFixValue(autoFix, cv.invalidValue)
 							)
 						} catch (e: Exception) {
 							fixes
