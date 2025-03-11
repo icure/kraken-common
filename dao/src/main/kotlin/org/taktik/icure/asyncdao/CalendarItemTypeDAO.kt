@@ -12,6 +12,8 @@ import org.taktik.icure.entities.CalendarItemType
 
 interface CalendarItemTypeDAO : GenericDAO<CalendarItemType> {
 
+	fun listCalendarItemTypesByAgendaId(datastoreInformation: IDatastoreInformation, agendaId: String): Flow<ViewQueryResultEvent>
+
 	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination, including all the entities where
 	 * [CalendarItemType.deletionDate] is not null.
