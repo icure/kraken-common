@@ -62,6 +62,17 @@ class CalendarItemTypeController(
 			.asPaginatedFlux()
 	}
 
+	@Operation(summary = "Gets calendarItemTypes for agendaId")
+	@GetMapping("/byAgenda/{agendaId}")
+	fun listCalendarItemTypesByAgendaId(
+		@Parameter(description = "The CalendarItemType agenda ID") @PathVariable agendaId: String
+	): Flux<CalendarItemTypeDto> {
+		return calendarItemTypeService
+			.listCalendarItemTypesByAgendId(agendaId)
+			.map(calendarItemTypeV2Mapper::map)
+			.injectReactorContext()
+	}
+
 	@Operation(summary = "Gets all calendarItemTypes including deleted entities")
 	@GetMapping("/includeDeleted")
 	fun getCalendarItemTypesIncludingDeleted(

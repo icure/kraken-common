@@ -43,6 +43,14 @@ interface CalendarItemTypeService {
 	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
 
 	/**
+	 * Retrieves all the [CalendarItemType]s for a given [agendaId].
+	 *
+	 * @return a [Flow] of [CalendarItemType]s.
+	 * @throws AccessDeniedException if the current user is not an admin or a healthcare party.
+	 */
+	fun listCalendarItemTypesByAgendId(agendaId: String): Flow<CalendarItemType>
+
+	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination, including all the entities where
 	 * [CalendarItemType.deletionDate] is not null.
 	 *

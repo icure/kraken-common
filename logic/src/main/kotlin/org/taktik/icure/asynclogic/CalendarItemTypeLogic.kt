@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
@@ -24,6 +23,13 @@ interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
 	 */
 	fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
 	suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType): CalendarItemType?
+
+	/**
+	 * Retrieves all the [CalendarItemType]s for a given [agendaId].
+	 *
+	 * @return a [Flow] of [CalendarItemType]s.
+	 */
+	fun listCalendarItemTypesByAgendId(agendaId: String): Flow<CalendarItemType>
 
 	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination, including all the entities where
