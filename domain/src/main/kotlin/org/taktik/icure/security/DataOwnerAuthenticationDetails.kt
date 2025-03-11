@@ -56,7 +56,7 @@ interface DataOwnerAuthenticationDetails {
          * Returns if the predicate applies to any of the data owners in this data owner hierarchy (this data owner and
          * all of his parents)
          */
-        suspend fun anyInHierarchy(predicate: (DataOwnerDetails) -> Boolean): Boolean =
+        suspend fun anyInHierarchy(predicate: suspend (DataOwnerDetails) -> Boolean): Boolean =
             if (predicate(this)) true else parent()?.anyInHierarchy(predicate) ?: false
 
         /**
