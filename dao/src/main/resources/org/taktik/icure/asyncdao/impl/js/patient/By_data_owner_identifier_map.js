@@ -33,11 +33,27 @@ function(doc) {
                 }
             }
         }
+        if (doc.delegations) {
+            Object.keys(doc.delegations).forEach(function (k) {
+                //No need to add because delegation is a map and keys cannot come twice
+                //And this is the last possible source of data owners
+                if (!emittedDataOwners.has(k)) {
+                    emitWithDelegateAndDoc(k, doc)
+                }
+            });
+        }
     }
 
     if (doc.java_type === 'org.taktik.icure.entities.Patient' && !doc.deleted && doc.identifier) {
         emit_for_delegates(doc, function (dataOwnerId, doc) {
+            let emittedIdentifierValues
+            emittedIdentifierValues = new Set()
+
             doc.identifier.forEach(function(k) {
+                if (!emittedIdentifierValues.has(k.system)) {
+                    emit([dataOwnerId, k.system], null);
+                    emittedIdentifierValues.add(k.system)
+                }
                 emit([dataOwnerId, k.system, k.value], null);
             });
         })
