@@ -9,7 +9,9 @@ fun <T, R> Iterator<T>.map(mapper: (T) -> R): Iterator<R> = object : Iterator<R>
 	override fun next() = this@map.next().let(mapper)
 }
 
-//Iterators must iterate by producing sorted values
+/**
+ * Merges a [List] of [Iterator]s providing a single iterator that will produce sorted values.
+ */
 fun <T: Comparable<T>> List<Iterator<T>>.sortedMerge(): Iterator<T> = object:Iterator<T> {
 	val buffer: MutableList<T?> = this@sortedMerge.map { null }.toMutableList()
 	var previous: T? = null

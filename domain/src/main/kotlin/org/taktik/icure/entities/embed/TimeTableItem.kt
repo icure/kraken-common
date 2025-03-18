@@ -20,7 +20,15 @@ data class TimeTableItem(
 	val rruleStartDate: Long? = null, // YYYYMMDD
 	@param:ContentValue(ContentValues.ANY_STRING) val rrule: String? = null,
 
+	/**
+	 * If not null, the slot iterator will not provide slots before now() - [notBeforeInMinutes], where now is the
+	 * current timestamp in minutes.
+	 */
 	@param:ContentValue(ContentValues.ANY_INT) val notBeforeInMinutes: Int? = null,
+	/**
+	 * If not null, the slot iterator will not provide slots after now() - [notBeforeInMinutes], where now is the
+	 * current timestamp in minutes.
+	 */
 	@param:ContentValue(ContentValues.ANY_INT) val notAfterInMinutes: Int? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val zoneId: String? = null,
 
