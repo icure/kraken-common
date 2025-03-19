@@ -142,7 +142,7 @@ class PatientDAOImpl(
     )
     override fun listPatientIdsByDataOwnerTag(
         datastoreInformation: IDatastoreInformation,
-        searchkeys: Set<String>,
+        searchKeys: Set<String>,
         tagType: String,
         tagCode: String?
     ) = flow {
@@ -151,9 +151,9 @@ class PatientDAOImpl(
         val viewQuery = createQuery(datastoreInformation, "by_data_owner_tag", MAURICE_PARTITION)
             .keys(
                 if (tagCode != null)
-                    searchkeys.map { ComplexKey.of(it, tagType, tagCode) }
+                    searchKeys.map { ComplexKey.of(it, tagType, tagCode) }
                 else
-                    searchkeys.map { ComplexKey.of(it, tagType) }
+                    searchKeys.map { ComplexKey.of(it, tagType) }
             )
             .reduce(false)
             .includeDocs(false)
@@ -1130,20 +1130,13 @@ class PatientDAOImpl(
     ) = flow {
         val client = couchDbDispatcher.getClient(datastoreInformation)
 
-        val queryView = createQueries(
+        val queryView = createQuery(
             datastoreInformation,
-            "by_hcparty_identifier",
-            "by_data_owner_identifier" to DATA_OWNER_PARTITION
-        ).includeDocs()
+            "by_data_owner_identifier",
+            DATA_OWNER_PARTITION
+        ).includeDocs(true)
             .keys(searchKeys.map { ComplexKey.of(it, system, value) })
-        emitAll(
-            client.interleave<ComplexKey, String, Patient>(
-                queryView,
-                compareBy({ it.components[0] as? String }, { it.components[1] as? String })
-            )
-                .filterIsInstance<ViewRowWithDoc<ComplexKey, Nothing?, Patient>>()
-                .map { it.doc }
-        )
+        emitAll(client.queryViewIncludeDocs<ComplexKey, Void, Patient>(queryView).map { it.doc })
     }.distinctByIdIf(searchKeys.size > 1)
 
     override fun getDuplicatePatientsBySsin(
@@ -1191,13 +1184,10 @@ class PatientDAOImpl(
         emitAll(client.getForPagination(ids, Patient::class.java))
     }
 
-    @Views(
-        View(name = "by_hcparty_identifier", map = "classpath:js/patient/By_hcparty_identifier_map.js"),
-        View(
-            name = "by_data_owner_identifier",
-            map = "classpath:js/patient/By_data_owner_identifier_map.js",
-            secondaryPartition = DATA_OWNER_PARTITION
-        ),
+    @View(
+        name = "by_data_owner_identifier",
+        map = "classpath:js/patient/By_data_owner_identifier_map.js",
+        secondaryPartition = DATA_OWNER_PARTITION
     )
     override fun listPatientIdsByHcPartyAndIdentifiers(
         datastoreInformation: IDatastoreInformation,
@@ -1207,29 +1197,22 @@ class PatientDAOImpl(
         val client = couchDbDispatcher.getClient(datastoreInformation)
 
         val keys = identifiers.flatMap {
-            searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
+            searchKeys.map { key ->
+                if (it.value != null) {
+                    ComplexKey.of(key, it.system, it.value)
+                } else {
+                    ComplexKey.of(key, it.system)
+                }
+            }
         }
 
-        val viewQueries = createQueries(
+        val viewQuery = createQuery(
             datastoreInformation,
-            "by_hcparty_identifier",
-            "by_data_owner_identifier" to DATA_OWNER_PARTITION
-        ).keys(keys).doNotIncludeDocs()
+            "by_data_owner_identifier",
+            DATA_OWNER_PARTITION
+        ).keys(keys).includeDocs(false)
 
-        emitAll(
-            client
-                .interleave<ComplexKey, Int>(
-                    viewQueries,
-                    compareBy({ it.components[0] as? String }, { it.components[1] as? String })
-                )
-                .filterIsInstance<ViewRowNoDoc<ComplexKey, Int>>()
-                .mapNotNull {
-                    if (it.key == null || it.key!!.components.size < 3) {
-                        return@mapNotNull null
-                    }
-                    return@mapNotNull it.id
-                }
-        )
+        emitAll(client.queryView<ComplexKey, Int>(viewQuery).map { it.id })
     }.distinct()
 
     private fun getDuplicatesFromView(
