@@ -13,7 +13,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.TimeZone
 
 fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration) = object : Iterator<Long> {
 	// Start time or now() - notBeforeInMinutes if specified, as fuzzy date
