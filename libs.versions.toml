@@ -112,3 +112,4 @@ helmRepository = { id = "com.taktik.gradle.helm-repository", version = "0.2.24-g
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 licenceReport = { id = "com.github.jk1.dependency-license-report", version = "2.0"}
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0" }
+gradleTestLogger = { id = "com.adarshr.test-logger", version  = "4.0.0" }
