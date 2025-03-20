@@ -16,7 +16,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.entities.HealthElement
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 
 @Service
 @Profile("app")
@@ -26,15 +25,18 @@ class HealthElementByHcPartyTagCodeFilter(
 ) : Filter<String, HealthElement, HealthElementByHcPartyTagCodeFilter> {
 
 	override fun resolve(
-        filter: HealthElementByHcPartyTagCodeFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: HealthElementByHcPartyTagCodeFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation
+	) = flow {
 		try {
-			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
+			val hcPartyId = filter.healthcarePartyId
 			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId)
+			val searchByTag = filter.tagType != null && filter.tagCode != null
+			val searchByCode = filter.codeType != null && filter.codeCode != null
+
 			val ids = mutableSetOf<String>()
-			if (filter.tagType != null && filter.tagCode != null) {
+			if (searchByTag) {
 				ids.addAll(healthElementDAO.listHealthElementIdsByHcPartyAndTags(
 					datastoreInformation= datastoreInformation,
 					searchKeys = searchKeys,
@@ -49,7 +51,7 @@ class HealthElementByHcPartyTagCodeFilter(
 					codeType = filter.codeType!!,
 					codeNumber = filter.codeCode!!
 				).toSet()
-				if (ids.isEmpty()) {
+				if (!searchByTag) {
 					ids.addAll(byCode)
 				} else {
 					ids.retainAll(byCode)
@@ -61,7 +63,7 @@ class HealthElementByHcPartyTagCodeFilter(
 					searchKeys = searchKeys,
 					status = filter.status!!
 				).toSet()
-				if (ids.isEmpty()) {
+				if (!searchByTag && !searchByCode) {
 					ids.addAll(byStatus)
 				} else {
 					ids.retainAll(byStatus)
