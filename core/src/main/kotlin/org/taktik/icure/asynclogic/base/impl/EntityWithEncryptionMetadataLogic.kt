@@ -92,12 +92,12 @@ where
         requests: BulkShareOrUpdateMetadataParams
     ): Flow<EntityBulkShareResult<E>> = flow {
         val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
-        helper.doBulkShareOrUpdateMetadata(
+        emitAll(helper.doBulkShareOrUpdateMetadata(
             requests = requests,
             entities = getGenericDAO().getEntities(datastoreInfo, requests.requestsByEntityId.keys).toList().associateBy { it.id },
             doSaveBulk = { getGenericDAO().saveBulk(datastoreInfo, it) },
             doCreateExchangeDataMapById = { exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(it) }
-        )
+        ))
     }
 
 
@@ -139,11 +139,11 @@ class EntityWithEncryptionMetadataLogicHelper<E, D> (
 E : HasEncryptionMetadata, E : Versionable<String>,
 D : GenericDAO<E> {
 
-    inline fun doBulkShareOrUpdateMetadata(
+    fun doBulkShareOrUpdateMetadata(
         requests: BulkShareOrUpdateMetadataParams,
         entities: Map<String, E>,
-        crossinline doSaveBulk:  (updatedEntities: Collection<E>) -> Flow<BulkSaveResult<E>>,
-        crossinline doCreateExchangeDataMapById: (batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>) -> Flow<ExchangeDataMap>
+        doSaveBulk:  (updatedEntities: Collection<E>) -> Flow<BulkSaveResult<E>>,
+        doCreateExchangeDataMapById: (batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>) -> Flow<ExchangeDataMap>
     ): Flow<EntityBulkShareResult<E>> = flow {
         val validatedRequests = requests.requestsByEntityId.mapNotNull { (entityId, entityRequests) ->
             entities[entityId]?.let { verifyAndApplyShareOrUpdateRequest(entityRequests, it) }
@@ -208,7 +208,7 @@ D : GenericDAO<E> {
         }
     }
 
-    fun <T : HasEncryptionMetadata> getExchangeDataMapsToCreate(
+    private fun <T : HasEncryptionMetadata> getExchangeDataMapsToCreate(
         requests: BulkShareOrUpdateMetadataParams,
         validatedRequests: List<ValidatedShareRequest<T>>,
     ) =
@@ -226,13 +226,13 @@ D : GenericDAO<E> {
             }?.toMap() ?: emptyMap())
         }
 
-    data class ValidatedShareRequest<E : HasEncryptionMetadata>(
+    private data class ValidatedShareRequest<E : HasEncryptionMetadata>(
         val rejectedRequests: Map<String, RejectedShareOrMetadataUpdateRequest>,
         val entityId: String,
         val entityRev: String,
         val entityWithAppliedRequestsIds: Pair<E, Set<String>>?
     )
-    fun verifyAndApplyShareOrUpdateRequest(
+    private fun verifyAndApplyShareOrUpdateRequest(
         requestInfo: ShareEntityRequestDetails,
         currentEntity: E
     ): ValidatedShareRequest<E> {
