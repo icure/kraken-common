@@ -117,7 +117,7 @@ open class ExchangeDataLogicImpl(
                     } else rows
                 }
                 .flatMap { listOf(it.delegator, it.delegate) }
-                .filter { '/' in it } // Ignore references to data owners in other groups
+                .filter { '/' !in it } // Ignore references to data owners in other groups
                 .toSet() - dataOwnerId - allAnalyzed
             allAnalyzed.addAll(counterpartsIds)
             emitAll(filterDataOwnersWithTypes(counterpartsIds, counterpartsType.toSet()))
