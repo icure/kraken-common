@@ -78,6 +78,15 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
+	): PaginatedFlux<ExchangeDataDto> =
+		getExchangeDataByParticipantQuery(dataOwnerId, startDocumentId, limit)
+
+	@Operation(summary = "Get exchange data with a specific participant. Doesn't allow `/` in dataOwnerId.")
+	@GetMapping("/byParticipant")
+	fun getExchangeDataByParticipantQuery(
+		@RequestParam(required = true) dataOwnerId: String,
+		@RequestParam(required = false) startDocumentId: String?,
+		@RequestParam(required = false) limit: Int?
 	): PaginatedFlux<ExchangeDataDto> {
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataLogic
@@ -86,20 +95,41 @@ class ExchangeDataController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
+	@Operation(summary = "Get exchange data with a specific delegator-delegate pair. Doesn't allow `/` in delegator or delegate id")
 	@GetMapping("/byDelegatorDelegate/{delegatorId}/{delegateId}")
-	fun getExchangeDataByDelegatorDelegate(@PathVariable delegatorId: String, @PathVariable delegateId: String): Flux<ExchangeDataDto> = flow {
+	fun getExchangeDataByDelegatorDelegate(@PathVariable delegatorId: String, @PathVariable delegateId: String): Flux<ExchangeDataDto> =
+		getExchangeDataByDelegatorDelegateQuery(delegatorId, delegateId)
+
+	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
+	@GetMapping("/byDelegatorDelegate")
+	fun getExchangeDataByDelegatorDelegateQuery(
+		@RequestParam(required = true) delegatorId: String,
+		@RequestParam(required = true) delegateId: String
+	): Flux<ExchangeDataDto> = flow {
 		emitAll(exchangeDataLogic.findExchangeDataByDelegatorDelegatePair(delegatorId, delegateId).map { exchangeDataMapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(
 		summary = "Get the ids of all delegates in exchange data where the data owner is delegator and all delegators" +
 			" in exchange data where the data owner is delegate. Return only counterparts if that are data owners of " +
-			"the specified type."
+			"the specified type. Doesn't allow `/` in dataOwnerId"
 	)
 	@GetMapping("/byParticipant/{dataOwnerId}/counterparts")
 	fun getParticipantCounterparts(
 		@PathVariable dataOwnerId: String,
+		@RequestParam(required = true) counterpartsTypes: String,
+		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
+	) =
+		getParticipantCounterpartsQuery(dataOwnerId, counterpartsTypes, ignoreOnEntryForFingerprint)
+
+	@Operation(
+		summary = "Get the ids of all delegates in exchange data where the data owner is delegator and all delegators" +
+			" in exchange data where the data owner is delegate. Return only counterparts if that are data owners of " +
+			"the specified type."
+	)
+	@GetMapping("/byParticipant/counterparts")
+	fun getParticipantCounterpartsQuery(
+		@RequestParam(required = true) dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
 		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
 	) = mono {
