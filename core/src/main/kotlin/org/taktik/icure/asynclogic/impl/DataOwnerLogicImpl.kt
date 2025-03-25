@@ -238,12 +238,9 @@ open class DataOwnerLogicImpl(
         modified: CryptoActorStubWithType,
         save: (T) -> T?,
         updateOriginalWithCryptoActorStubContent: (T, CryptoActorStub) -> T
-    ) : CryptoActorStubWithType where T : Versionable<String>, T : CryptoActor, T : HasTags {
+    ) : CryptoActorStubWithType where T : Versionable<String>, T : CryptoActor {
         if (original.rev != modified.stub.rev) {
             throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
-        }
-        if (original.tags != modified.stub.tags) {
-            throw IllegalArgumentException("It is not possible to change the tags of a crypto actor stub: update the original entity instead")
         }
         require(modified.stub.parentId == null || modified.stub.parentId == original.parentId) {
             "You can't use this method to change the parent id of a crypto actor"
@@ -254,7 +251,7 @@ open class DataOwnerLogicImpl(
         return CryptoActorStubWithType(modified.type, saved.retrieveStub())
     }
 
-    private fun <T> T.retrieveStub(): CryptoActorStub where T : CryptoActor, T : Versionable<String>, T : HasTags =
+    private fun <T> T.retrieveStub(): CryptoActorStub where T : CryptoActor, T : Versionable<String> =
         checkNotNull(asCryptoActorStub()) { "Retrieved crypto actor should be stubbable" }
 
     private fun DataOwnerWithType.retrieveStub(): CryptoActorStubWithType =

@@ -51,9 +51,6 @@ interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
 	@get:Schema(description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent")
 	val parentId: String?
 
-	@get:Schema(
-		description = "A set of PropertyStub associated to this CryptoActor. They are not supposed to be encrypted if" +
-			"the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information."
-	)
+	@get:Schema(description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.")
 	@AlwaysDecrypted val cryptoActorProperties: Set<PropertyStubDto>?
 }
