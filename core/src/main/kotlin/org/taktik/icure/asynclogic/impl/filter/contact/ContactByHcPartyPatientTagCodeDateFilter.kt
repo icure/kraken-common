@@ -36,9 +36,11 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(
 				filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			)
+			val searchByTag = filter.tagType != null && filter.tagCode != null
+			val searchByCode = filter.codeType != null && filter.codeCode != null
 
 			val ids = mutableSetOf<String>()
-			if (filter.tagType != null && filter.tagCode != null) {
+			if (searchByTag) {
 				val contactIds = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
 					contactDAO.listContactIdsByTag(
 						datastoreInformation,
@@ -51,7 +53,7 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 				}.toSet()
 				ids.addAll(contactIds)
 			}
-			if (filter.codeType != null && filter.codeCode != null) {
+			if (searchByCode) {
 				val byCode = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
 					contactDAO.listContactIdsByCode(
 						datastoreInformation,
@@ -62,7 +64,7 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 						filter.endOfContactOpeningDate
 					)
 				}.toSet()
-				if (ids.isEmpty()) {
+				if (!searchByTag) {
 					ids.addAll(byCode)
 				} else {
 					ids.retainAll(byCode)
@@ -75,7 +77,7 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 					secretPatientKeys = filter.patientSecretForeignKeys!!
 				).toSet()
 
-				if (ids.isEmpty()) {
+				if (!searchByTag && !searchByCode) {
 					ids.addAll(byPatient)
 				} else {
 					ids.retainAll(byPatient)

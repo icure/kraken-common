@@ -34,7 +34,8 @@ import java.time.temporal.TemporalUnit
  */
 @Suppress("unused")
 object FuzzyValues {
-    val fuzzyDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    const val MAX_FUZZY_DATE = 99991231L
+    private val fuzzyDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
     fun getMaxRangeOf(text: String): Int {
         val fullyFormedDate = toYYYYMMDDString(text)
@@ -61,7 +62,7 @@ object FuzzyValues {
         var m = 0
         var s = 0
         var plusOne = false
-        if (dateTime > 99991231L) {
+        if (dateTime > MAX_FUZZY_DATE) {
             if (dateTime < 18000101000000L) {
                 return Instant.ofEpochMilli(dateTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
             }

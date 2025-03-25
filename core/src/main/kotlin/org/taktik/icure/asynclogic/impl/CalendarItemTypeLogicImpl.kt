@@ -5,17 +5,18 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -60,6 +61,13 @@ class CalendarItemTypeLogicImpl(
 		fix(calendarItemType, isCreate = false) { fixedCalendarItemType ->
 			val datastoreInformation = getInstanceAndGroup()
 			calendarItemTypeDAO.save(datastoreInformation, fixedCalendarItemType)
+		}
+
+	override fun listCalendarItemTypesByAgendId(agendaId: String): Flow<CalendarItemType> =
+		flow {
+			val datastoreInformation = getInstanceAndGroup()
+			emitAll(calendarItemTypeDAO.listCalendarItemTypesByAgendaId(datastoreInformation, agendaId)
+				.filterIsInstance<ViewRowWithDoc<String, Nothing, CalendarItemType>>().map { it.doc })
 		}
 
 	override fun getAllEntitiesIncludeDeleted(
