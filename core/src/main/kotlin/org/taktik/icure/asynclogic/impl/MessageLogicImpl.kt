@@ -40,17 +40,17 @@ import java.util.*
 import javax.security.auth.login.LoginException
 
 open class MessageLogicImpl(
-    private val messageDAO: MessageDAO,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    private val sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-    filters: Filters,
+	private val messageDAO: MessageDAO,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	private val sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	filters: Filters,
 	private val userLogic: UserLogic,
-    fixer: Fixer
+	fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), MessageLogic {
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	override fun listMessagesByHCPartySecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(messageDAO.listMessagesByHcPartyAndPatient(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))

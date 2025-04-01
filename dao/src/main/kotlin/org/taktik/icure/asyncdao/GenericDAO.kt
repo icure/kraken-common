@@ -128,7 +128,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * @param entities a [Collection] of entities to soft-delete.
 	 * @return a [Flow] of [DocIdentifier] related to the deleted entities.
 	 */
-	fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>>
+	fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
 
 	/**
 	 * Hard-deletes an entity. If a cache is present, then the entity is removed from all the levels of the cache.

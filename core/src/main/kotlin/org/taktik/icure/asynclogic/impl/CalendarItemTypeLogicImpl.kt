@@ -63,7 +63,7 @@ class CalendarItemTypeLogicImpl(
 			calendarItemTypeDAO.save(datastoreInformation, fixedCalendarItemType)
 		}
 
-	override fun listCalendarItemTypesByAgendId(agendaId: String): Flow<CalendarItemType> =
+	override fun listCalendarItemTypesByAgendaId(agendaId: String): Flow<CalendarItemType> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
 			emitAll(calendarItemTypeDAO.listCalendarItemTypesByAgendaId(datastoreInformation, agendaId)

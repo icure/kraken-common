@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Form
@@ -30,7 +29,7 @@ interface FormLogic : EntityPersister<Form>, EntityWithSecureDelegationsLogic<Fo
 	 * @return a [Flow] of [Form]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to list [Form]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form>
 
 	/**

@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.entities.FormTemplate
 
 interface FormTemplateService {
@@ -21,7 +20,7 @@ interface FormTemplateService {
 	 * Deletes [FormTemplate]s in batch.
 	 *
 	 * @param ids a [Set] containing the ids of the [FormTemplate]s to delete.
-	 * @return a [Flow] containing the [DocIdentifier]s of the successfully deleted [FormTemplate]s
+	 * @return a [Flow] containing the deleted [FormTemplate]s.
 	 */
-	fun deleteFormTemplates(ids: Set<String>): Flow<DocIdentifier>
+	fun deleteFormTemplates(ids: Set<String>): Flow<FormTemplate>
 }

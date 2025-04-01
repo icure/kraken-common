@@ -66,7 +66,7 @@ class DocumentDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Document>(viewQuery).map { it.doc })
 	}
 
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Views(
     	View(name = "by_hcparty_message", map = "classpath:js/document/By_hcparty_message_map.js"),
 		View(name = "by_data_owner_message", map = "classpath:js/document/By_data_owner_message_map.js", secondaryPartition = DATA_OWNER_PARTITION),

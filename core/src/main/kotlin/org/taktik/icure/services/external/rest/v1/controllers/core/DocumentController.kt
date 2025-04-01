@@ -362,7 +362,7 @@ class DocumentController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List documents found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findDocumentsByHCPartyPatientForeignKeys(

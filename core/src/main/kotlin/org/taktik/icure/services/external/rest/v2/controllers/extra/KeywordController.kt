@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -28,7 +29,6 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
-import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.KeywordDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -82,7 +82,7 @@ class KeywordController(
 	fun deleteKeywords(@RequestBody keywordIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		keywordIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
 			keywordService.deleteKeywords(ids.toSet())
-				.map(docIdentifierV2Mapper::map)
+				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 

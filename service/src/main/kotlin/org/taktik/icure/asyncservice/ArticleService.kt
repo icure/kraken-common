@@ -49,9 +49,9 @@ interface ArticleService : EntityWithSecureDelegationsService<Article> {
 	 * - don't match the provided revision (if provided)
 	 *
 	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-	 * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+	 * @return a [Flow] containing the deleted [Article]s.
 	 */
-	fun deleteArticles(ids: List<IdAndRev>): Flow<DocIdentifier>
+	fun deleteArticles(ids: List<IdAndRev>): Flow<Article>
 
 	/**
 	 * Marks an entity as deleted.
@@ -59,12 +59,12 @@ interface ArticleService : EntityWithSecureDelegationsService<Article> {
 	 *
 	 * @param id the id of the entity to delete.
 	 * @param rev
-	 * @return the updated [DocIdentifier] for the entity.
+	 * @return the deleted [Article].
 	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
 	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
-	suspend fun deleteArticle(id: String, rev: String?): DocIdentifier
+	suspend fun deleteArticle(id: String, rev: String?): Article
 
 	/**
 	 * Deletes an entity.

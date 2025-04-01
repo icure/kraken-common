@@ -37,7 +37,7 @@ interface DataOwnerLogic {
 
     /**
      * Get the data owner with the provided id.
-     * @param dataOwnerId a data owner id
+     * @param dataOwnerIds the ids of the data owner to retrieve.
      * @return the data owner with the provided id and its type.
      */
     fun getDataOwners(dataOwnerIds: List<String>): Flow<DataOwnerWithType>

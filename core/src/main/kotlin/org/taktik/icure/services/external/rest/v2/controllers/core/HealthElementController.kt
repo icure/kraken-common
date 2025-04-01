@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
@@ -107,7 +108,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List health elements found By Healthcare Party and secret foreign key element ids.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listHealthElementsByHCPartyAndPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<HealthElementDto> {
@@ -142,7 +143,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<HealthElementDto> {
@@ -154,7 +155,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementsDelegationsStubById instead")
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun listHealthElementsDelegationsStubsByHCPartyAndPatientForeignKeys(
@@ -168,7 +169,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementsDelegationsStubById instead")
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -195,14 +196,14 @@ class HealthElementController(
 	fun deleteHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		healthElementService.deleteHealthElements(
 			healthElementIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple HealthElements if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteHealthElementsWithRev(@RequestBody healthElementIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		healthElementService.deleteHealthElements(
 			healthElementIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an HealthElement")
 	@DeleteMapping("/{healthElementId}")
@@ -210,7 +211,9 @@ class HealthElementController(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		healthElementService.deleteHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
+		healthElementService.deleteHealthElement(healthElementId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{healthElementId}")

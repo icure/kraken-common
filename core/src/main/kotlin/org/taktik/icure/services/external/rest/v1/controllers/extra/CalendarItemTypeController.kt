@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
@@ -77,7 +78,7 @@ class CalendarItemTypeController(
     @DeleteMapping("/{calendarItemTypeIds}")
     fun deleteCalendarItemType(@PathVariable calendarItemTypeIds: String): Flux<DocIdentifierDto> =
         calendarItemTypeService.deleteCalendarItemTypes(calendarItemTypeIds.split(','))
-            .map(docIdentifierMapper::map)
+            .map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
             .injectReactorContext()
 
     @Operation(summary = "Gets a calendarItemType")

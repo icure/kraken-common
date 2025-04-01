@@ -140,7 +140,7 @@ class AccessLogDAOImpl(
 		emitAll(client.queryView<ComplexKey, String>(viewQuery).mapNotNull { it.id })
 	}
 
-	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Views(
 		View(name = "by_hcparty_patient", map = "classpath:js/accesslog/By_hcparty_patient_map.js"),
 		View(name = "by_data_owner_patient", map = "classpath:js/accesslog/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION),

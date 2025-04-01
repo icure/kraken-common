@@ -69,7 +69,6 @@ import java.util.*
 open class PatientLogicImpl(
 	private val sessionLogic: SessionInformationProvider,
 	protected val patientDAO: PatientDAO,
-	private val userLogic: UserLogic,
 	filters: Filters,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,

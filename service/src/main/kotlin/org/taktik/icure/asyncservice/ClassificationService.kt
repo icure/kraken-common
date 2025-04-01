@@ -31,7 +31,7 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	 * @return a [Flow] of [Classification]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to list [Classification]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**
@@ -62,22 +62,22 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [Classification]s.
      */
-    fun deleteClassifications(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteClassifications(ids: List<IdAndRev>): Flow<Classification>
 
     /**
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
      * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param rev the latest rev of the entity to delete.
+     * @return the deleted [Classification].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
      * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteClassification(id: String, rev: String?): DocIdentifier
+    suspend fun deleteClassification(id: String, rev: String?): Classification
 
     /**
      * Deletes an entity.

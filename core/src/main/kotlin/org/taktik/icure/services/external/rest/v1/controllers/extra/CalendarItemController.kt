@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -75,7 +76,7 @@ class CalendarItemController(
 	@PostMapping("/delete/byIds")
 	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		calendarItemService.deleteCalendarItems(calendarItemIds.ids.map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 
 	@Deprecated(message = "Use deleteItemCalendars instead")
@@ -83,7 +84,7 @@ class CalendarItemController(
 	@DeleteMapping("/{calendarItemIds}")
 	fun deleteCalendarItem(@PathVariable calendarItemIds: String): Flux<DocIdentifierDto> =
 		calendarItemService.deleteCalendarItems(calendarItemIds.split(',').map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 
 	@Operation(summary = "Gets a calendarItem")

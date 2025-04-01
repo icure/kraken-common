@@ -7,7 +7,6 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -34,14 +33,14 @@ interface InsuranceService {
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
-     * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param insuranceId the id of the entity to delete.
+     * @param rev the latest rev of the entity to delete.
+     * @return the deleted [Insurance].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+     * @throws NotFoundRequestException if the entity with the specified [insuranceId] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteInsurance(insuranceId: String, rev: String?): DocIdentifier
+    suspend fun deleteInsurance(insuranceId: String, rev: String?): Insurance
 
 //    /**
 //     * Deletes an entity.

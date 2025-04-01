@@ -29,7 +29,7 @@ interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
 	 *
 	 * @return a [Flow] of [CalendarItemType]s.
 	 */
-	fun listCalendarItemTypesByAgendId(agendaId: String): Flow<CalendarItemType>
+	fun listCalendarItemTypesByAgendaId(agendaId: String): Flow<CalendarItemType>
 
 	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination, including all the entities where

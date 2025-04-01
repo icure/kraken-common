@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -183,7 +184,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Get a list of contacts found by Healthcare Party and Patient foreign keys.")
 	@PostMapping("/byHcPartyPatientForeignKeys")
 	fun findContactsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody patientForeignKeys: ListOfIdsDto): Flux<ContactDto> {
@@ -196,7 +197,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Get a list of contacts found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findByHCPartyPatientSecretFKeys(
@@ -217,7 +218,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findContactsDelegationsStubsByIds instead")
 	@Operation(summary = "List contacts found by healthcare party and secret foreign keys.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findContactsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -229,7 +230,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Get a list of contacts found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findByHCPartyPatientSecretFKeys(
@@ -249,7 +250,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findContactsDelegationsStubsByIds instead")
 	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findContactsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -288,7 +289,7 @@ class ContactController(
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Close contacts for healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PutMapping("/byHcPartySecretForeignKeys/close")
 	fun closeForHCPartyPatientForeignKeys(
@@ -317,7 +318,7 @@ class ContactController(
 		}
 		// TODO versioning?
 		return contactService.deleteContacts(contactIds.split(',').toSet().map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 

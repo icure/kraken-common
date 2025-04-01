@@ -338,7 +338,7 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/message/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/message/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),

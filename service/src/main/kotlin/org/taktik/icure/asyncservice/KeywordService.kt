@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
@@ -30,7 +29,7 @@ interface KeywordService {
 	 */
 	fun getAllKeywords(): Flow<Keyword>
 	suspend fun getKeyword(keywordId: String): Keyword?
-	fun deleteKeywords(ids: Set<String>): Flow<DocIdentifier>
+	fun deleteKeywords(ids: Set<String>): Flow<Keyword>
 
 	suspend fun modifyKeyword(keyword: Keyword): Keyword?
 	fun getKeywordsByUser(userId: String): Flow<Keyword>

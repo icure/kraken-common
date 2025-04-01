@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asyncservice.TimeTableService
@@ -59,7 +60,7 @@ class TimeTableController(
 	@DeleteMapping("/{timeTableIds}")
 	fun deleteTimeTable(@PathVariable timeTableIds: String): Flux<DocIdentifierDto> {
 		return timeTableService.deleteTimeTables(timeTableIds.split(',').map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 

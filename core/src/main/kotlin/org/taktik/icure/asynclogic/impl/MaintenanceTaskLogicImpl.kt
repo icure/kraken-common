@@ -32,12 +32,12 @@ import java.util.*
 @Service
 @Profile("app")
 class MaintenanceTaskLogicImpl(
-    private val maintenanceTaskDAO: MaintenanceTaskDAO,
-    filters: Filters,
-    sessionLogic: SessionInformationProvider,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
+	private val maintenanceTaskDAO: MaintenanceTaskDAO,
+	filters: Filters,
+	sessionLogic: SessionInformationProvider,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<MaintenanceTask, MaintenanceTaskDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), MaintenanceTaskLogic {
 
 	override fun filter(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<MaintenanceTask>): Flow<ViewQueryResultEvent> =
