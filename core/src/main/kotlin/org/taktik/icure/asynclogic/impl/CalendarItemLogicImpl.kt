@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.AgendaLogic
@@ -21,7 +20,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow

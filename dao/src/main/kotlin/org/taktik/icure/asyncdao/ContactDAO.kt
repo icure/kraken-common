@@ -62,7 +62,7 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Collection<String>): Flow<ViewQueryResultEvent>
 	fun listContactIdsByHealthcareParty(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
 
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	fun listContactsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Contact>
 
 	/**

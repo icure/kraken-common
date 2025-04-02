@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
@@ -145,14 +145,14 @@ class DeviceController(
 	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		deviceService.deleteDevices(
 			deviceIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Devices if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteDevicesWithRev(@RequestBody deviceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		deviceService.deleteDevices(
 			deviceIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Device")
 	@DeleteMapping("/{deviceId}")
@@ -160,7 +160,9 @@ class DeviceController(
 		@PathVariable deviceId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		deviceService.deleteDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
+		deviceService.deleteDevice(deviceId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{deviceId}")

@@ -50,7 +50,7 @@ internal class FormDAOImpl(
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<Form>(Form::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), FormDAO {
 
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
     	View(name = "by_hcparty_patientfk", map = "classpath:js/form/By_hcparty_patientfk_map.js"),
     	View(name = "by_data_owner_patientfk", map = "classpath:js/form/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),

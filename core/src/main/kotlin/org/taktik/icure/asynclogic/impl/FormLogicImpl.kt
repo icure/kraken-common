@@ -55,7 +55,7 @@ open class FormLogicImpl(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	override fun listFormsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>, healthElementId: String?, planOfActionId: String?, formTemplateId: String?): Flow<Form> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()

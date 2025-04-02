@@ -55,7 +55,7 @@ internal class ClassificationDAOImpl(
 		return get(datastoreInformation, classificationId)
 	}
 
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	@Views(
     	View(name = "by_hcparty_patient", map = "classpath:js/classification/By_hcparty_patient_map.js"),
     	View(name = "by_data_owner_patient", map = "classpath:js/classification/By_data_owner_patient_map.js", secondaryPartition = DATA_OWNER_PARTITION)

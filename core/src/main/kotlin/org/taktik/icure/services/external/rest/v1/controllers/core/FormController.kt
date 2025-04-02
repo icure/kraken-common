@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -172,7 +173,7 @@ class FormController(
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "formIds was empty")
 		}
 		return formService.deleteForms(formIds.split(',').toSet().map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 
@@ -187,7 +188,7 @@ class FormController(
 		formService.createForms(formDtos.map { formMapper.map(it) }).map { formMapper.map(it) }.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findFormsByHCPartyPatientForeignKeys(
@@ -203,7 +204,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findFormsByHCPartyPatientForeignKeys(
@@ -218,7 +219,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findFormsDelegationsStubsByIds instead")
 	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -230,7 +231,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findFormsDelegationsStubsByIds instead")
 	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyPatientForeignKeys(

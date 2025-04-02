@@ -5,12 +5,8 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import org.springframework.security.access.AccessDeniedException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.entities.EntityTemplate
-import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface EntityTemplateService {
 	suspend fun createEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate?
@@ -50,9 +46,9 @@ interface EntityTemplateService {
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [EntityTemplate]s.
      */
-    fun deleteEntityTemplates(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteEntityTemplates(ids: List<IdAndRev>): Flow<EntityTemplate>
 //
 //    /**
 //     * Marks an entity as deleted.

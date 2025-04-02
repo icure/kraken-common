@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
@@ -84,14 +85,14 @@ class MaintenanceTaskController(
 	fun deleteMaintenanceTasks(@RequestBody maintenanceTaskIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		maintenanceTaskService.deleteMaintenanceTasks(
 			maintenanceTaskIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple MaintenanceTasks if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteMaintenanceTasksWithRev(@RequestBody maintenanceTaskIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		maintenanceTaskService.deleteMaintenanceTasks(
 			maintenanceTaskIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an MaintenanceTask")
 	@DeleteMapping("/{maintenanceTaskId}")
@@ -99,7 +100,9 @@ class MaintenanceTaskController(
 		@PathVariable maintenanceTaskId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		maintenanceTaskService.deleteMaintenanceTask(maintenanceTaskId, rev).let(docIdentifierV2Mapper::map)
+		maintenanceTaskService.deleteMaintenanceTask(maintenanceTaskId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{maintenanceTaskId}")

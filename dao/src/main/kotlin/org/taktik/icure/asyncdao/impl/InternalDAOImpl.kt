@@ -52,7 +52,6 @@ import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
-import org.taktik.icure.utils.queryView
 
 open class InternalDAOImpl<T : StoredDocument>(
 	val entityClass: Class<T>,
@@ -193,14 +192,13 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(client.bulkDelete(entities.toList()))
 	}
 
-	@Suppress("UNCHECKED_CAST")
-	override suspend fun remove(entity: T): DocIdentifier {
+	override suspend fun remove(entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".remove: " + entity)
 		}
-		val deleted = client.update(entity.withDeletionDate(deletionDate = System.currentTimeMillis()) as T, entityClass)
-		return DocIdentifier(deleted.id, deleted.rev)
+		@Suppress("UNCHECKED_CAST")
+		return client.update(entity.withDeletionDate(deletionDate = System.currentTimeMillis()) as T, entityClass)
 	}
 
 	@Suppress("UNCHECKED_CAST")
@@ -209,7 +207,9 @@ open class InternalDAOImpl<T : StoredDocument>(
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".remove flow of entities ")
 		}
-		emitAll(client.bulkUpdate(entities.map { it.withDeletionDate(System.currentTimeMillis()) as T }.toList(), entityClass))
+		emitAll(client
+			.bulkUpdate(entities.map { it.withDeletionDate(System.currentTimeMillis()) as T }.toList(), entityClass)
+		)
 	}
 
 	//

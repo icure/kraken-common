@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -202,7 +203,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List contacts found By healthcare party and Patient foreign keys.")
 	@PostMapping("/byHcPartyPatientForeignKeys")
 	fun listContactsByHCPartyAndPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody patientForeignKeys: ListOfIdsDto): Flux<ContactDto> {
@@ -237,7 +238,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List contacts found By healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listContactsByHCPartyAndPatientSecretFKeys(
@@ -258,7 +259,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List contacts found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun listContactsByHCPartyAndPatientSecretFKeys(
@@ -278,7 +279,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findContactsDelegationsStubsByIds instead")
 	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun listContactsDelegationsStubsByHCPartyAndPatientForeignKeys(
@@ -290,7 +291,7 @@ class ContactController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findContactsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findContactsDelegationsStubsByIds instead")
 	@Operation(summary = "List contacts found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findContactsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -311,7 +312,7 @@ class ContactController(
 
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "Close contacts for healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@PutMapping("/byHcPartySecretForeignKeys/close")
 	fun closeForHCPartyPatientForeignKeys(
@@ -337,14 +338,14 @@ class ContactController(
 	fun deleteContacts(@RequestBody contactIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		contactService.deleteContacts(
 			contactIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Contacts if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteContactsWithRev(@RequestBody contactIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		contactService.deleteContacts(
 			contactIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Contact")
 	@DeleteMapping("/{contactId}")
@@ -352,7 +353,9 @@ class ContactController(
 		@PathVariable contactId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		contactService.deleteContact(contactId, rev).let(docIdentifierV2Mapper::map)
+		contactService.deleteContact(contactId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{contactId}")

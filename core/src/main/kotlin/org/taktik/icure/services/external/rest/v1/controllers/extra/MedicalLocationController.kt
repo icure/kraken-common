@@ -44,7 +44,10 @@ class MedicalLocationController(
 	@Operation(summary = "Deletes a medical location")
 	@DeleteMapping("/{locationIds}")
 	fun deleteMedicalLocation(@PathVariable locationIds: String) =
-		medicalLocationService.deleteMedicalLocations(locationIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
+		medicalLocationService
+			.deleteMedicalLocations(locationIds.split(',').map { IdAndRev(it, null) })
+			.map(medicalLocationMapper::map)
+			.injectReactorContext()
 
 	@Operation(summary = "Gets a medical location")
 	@GetMapping("/{locationId}")

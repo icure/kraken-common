@@ -31,7 +31,6 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
-import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -41,7 +40,6 @@ import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
-import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.invoke
@@ -309,6 +307,7 @@ open class CodeLogicImpl(
         findCodesBy(e.name, null, null).filter { c -> c.version == version }.onEach { c -> codes[c.id] = c }.collect()
 
         try {
+            @Suppress("UNCHECKED_CAST")
             for (t in e.getMethod("values").invoke(null) as Array<T>) {
                 val newCode = Code.from(e.name, t.name, version)
                     .copy(regions = regions, label = ImmutableMap.of("en", t.name.replace("_".toRegex(), " ")))
@@ -349,8 +348,8 @@ open class CodeLogicImpl(
 
             val stack = LinkedList<Code>()
 
-            val batchSave: suspend (Code?, Boolean?) -> Unit = { c, flush ->
-                c?.let { stack.add(it) }
+            val batchSave: suspend (Code?, Boolean?) -> Unit = { code, flush ->
+                code?.let { stack.add(it) }
                 if (stack.size == 100 || flush == true) {
                     val existings =
                         getCodes(stack.map { it.id }).fold(HashMap<String, Code>()) { map, c -> map[c.id] = c; map }

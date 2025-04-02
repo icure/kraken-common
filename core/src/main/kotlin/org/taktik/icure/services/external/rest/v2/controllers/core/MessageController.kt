@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -98,14 +99,14 @@ class MessageController(
 	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		messageService.deleteMessages(
 			messageIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Messages if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteMessagesWithRev(@RequestBody messageIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		messageService.deleteMessages(
 			messageIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Message")
 	@DeleteMapping("/{messageId}")
@@ -113,7 +114,9 @@ class MessageController(
 		@PathVariable messageId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		messageService.deleteMessage(messageId, rev).let(docIdentifierV2Mapper::map)
+		messageService.deleteMessage(messageId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{messageId}")
@@ -153,7 +156,7 @@ class MessageController(
 		messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Operation(summary = "List messages found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findMessagesByHCPartyPatientForeignKeys(@RequestParam secretFKeys: String): Flux<MessageDto> {
@@ -186,7 +189,7 @@ class MessageController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listMessageIdsByDataOwnerPatientSentDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Operation(summary = "List messages found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findMessagesByHCPartyPatientForeignKeys(@RequestBody secretPatientKeys: List<String>): Flux<MessageDto> {
@@ -319,10 +322,10 @@ class MessageController(
 	@Operation(summary = "Set read status for given list of messages")
 	@PutMapping("/readstatus")
 	fun setMessagesReadStatus(@RequestBody data: MessagesReadStatusUpdate) = flow {
-		data.ids?.takeIf { it.isNotEmpty() }?.let {
+		data.ids?.takeIf { it.isNotEmpty() }?.let { ids ->
 			emitAll(
 				messageService.setReadStatus(
-					it,
+					ids,
 					data.userId,
 					data.status ?: false,
 					data.time

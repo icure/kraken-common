@@ -6,16 +6,13 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.FrontEndMigrationDAO
 import org.taktik.icure.asynclogic.FrontEndMigrationLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.FrontEndMigration
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.validation.aspect.Fixer
 
 @Service

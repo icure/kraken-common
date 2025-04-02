@@ -32,31 +32,31 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 */
 	fun createReceipts(receipts: Collection<Receipt>): Flow<Receipt>
 
-    /**
-     * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
-     * Ignores entities that:
-     * - don't exist
-     * - the user can't delete due to limited lack of write access
-     * - don't match the provided revision (if provided)
-     *
-     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
-     */
-    fun deleteReceipts(ids: List<IdAndRev>): Flow<DocIdentifier>
+	/**
+	 * Marks a batch of entities as deleted.
+	 * The data of the entities is preserved, but they won't appear in most queries.
+	 * Ignores entities that:
+	 * - don't exist
+	 * - the user can't delete due to limited lack of write access
+	 * - don't match the provided revision (if provided)
+	 *
+	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+	 * @return a [Flow] containing the deleted [Receipt]s.
+	 */
+	fun deleteReceipts(ids: List<IdAndRev>): Flow<Receipt>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteReceipt(id: String, rev: String?): DocIdentifier
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param id the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [Receipt].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deleteReceipt(id: String, rev: String?): Receipt
 
     /**
      * Deletes an entity.

@@ -25,7 +25,7 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 
 	suspend fun getHealthElement(datastoreInformation: IDatastoreInformation, healthElementId: String): HealthElement?
 
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	fun listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<HealthElement>
 
 	/**

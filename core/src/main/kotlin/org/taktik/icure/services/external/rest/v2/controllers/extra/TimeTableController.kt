@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.TimeTableService
 import org.taktik.icure.entities.TimeTable
@@ -56,7 +56,6 @@ class TimeTableController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Creates a timeTable")
 	@PostMapping
@@ -72,14 +71,14 @@ class TimeTableController(
 	fun deleteTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		timeTableService.deleteTimeTables(
 			timeTableIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple TimeTables if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteTimeTablesWithRev(@RequestBody timeTableIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		timeTableService.deleteTimeTables(
 			timeTableIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an TimeTable")
 	@DeleteMapping("/{timeTableId}")
@@ -87,7 +86,9 @@ class TimeTableController(
 		@PathVariable timeTableId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		timeTableService.deleteTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
+		timeTableService.deleteTimeTable(timeTableId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{timeTableId}")

@@ -9,14 +9,12 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.PlaceDAO
 import org.taktik.icure.asynclogic.PlaceLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -25,10 +23,10 @@ import org.taktik.icure.validation.aspect.Fixer
 @Service
 @Profile("app")
 class PlaceLogicImpl(
-    private val placeDAO: PlaceDAO,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
+	private val placeDAO: PlaceDAO,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-    filters: Filters
+	filters: Filters
 ) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters), PlaceLogic {
 
 	override suspend fun createPlace(place: Place): Place? = fix(place, isCreate = true) { fixedPlace ->

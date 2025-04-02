@@ -41,14 +41,14 @@ import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
 open class DocumentLogicImpl(
-    private val documentDAO: DocumentDAO,
-    sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
-    @Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
-    fixer: Fixer,
-    filters: Filters
+	private val documentDAO: DocumentDAO,
+	sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
+	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	fixer: Fixer,
+	filters: Filters
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), DocumentLogic {
 
 	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document, isCreate = true) { fixedDocument ->
@@ -202,7 +202,7 @@ open class DocumentLogicImpl(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	override fun listDocumentsByHCPartySecretMessageKeys(
 		hcPartyId: String,
 		secretForeignKeys: List<String>,
