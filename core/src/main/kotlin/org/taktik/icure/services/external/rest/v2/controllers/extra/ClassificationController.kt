@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.ClassificationService
@@ -64,7 +65,6 @@ class ClassificationController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
 	@PostMapping
@@ -92,7 +92,7 @@ class ClassificationController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List classification found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
@@ -129,14 +129,14 @@ class ClassificationController(
 	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		classificationService.deleteClassifications(
 			classificationIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Classifications if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteClassificationsWithRev(@RequestBody classificationIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		classificationService.deleteClassifications(
 			classificationIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Classification")
 	@DeleteMapping("/{classificationId}")
@@ -144,7 +144,9 @@ class ClassificationController(
 		@PathVariable classificationId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		classificationService.deleteClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
+		classificationService.deleteClassification(classificationId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{classificationId}")
@@ -173,7 +175,7 @@ class ClassificationController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findClassificationsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findClassificationsDelegationsStubsByIds instead")
 	@Operation(summary = "List classification stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(

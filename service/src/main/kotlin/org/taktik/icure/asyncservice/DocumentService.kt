@@ -106,7 +106,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * @return a [Flow] of [Document]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition requirement to query [Document]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
 
 	/**
@@ -142,22 +142,22 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [Document].
      */
-    fun deleteDocuments(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteDocuments(ids: List<IdAndRev>): Flow<Document>
 
     /**
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
      * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param rev the latest rev of the entity to delete.
+     * @return the deleted [Document].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
      * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteDocument(id: String, rev: String?): DocIdentifier
+    suspend fun deleteDocument(id: String, rev: String?): Document
 
     /**
      * Deletes an entity.

@@ -5,12 +5,9 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ClassificationTemplate
-import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.pagination.PaginationElement
 
 interface ClassificationTemplateLogic : EntityPersister<ClassificationTemplate> {

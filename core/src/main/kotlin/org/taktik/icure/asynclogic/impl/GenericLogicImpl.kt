@@ -56,7 +56,7 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		)
 	}
 
-	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
 		emitAll(
 			getGenericDAO()
 				.remove(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
@@ -85,7 +85,7 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		)
 	}
 
-	override suspend fun deleteEntity(id: String, rev: String?): DocIdentifier =
+	override suspend fun deleteEntity(id: String, rev: String?): E =
 		checkNotNull(getGenericDAO().remove(
 			getInstanceAndGroup(),
 			listOf(getEntityWithExpectedRev(id, rev))

@@ -38,22 +38,22 @@ interface HealthcarePartyService {
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted HealthcareParties.
      */
-    fun deleteHealthcareParties(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteHealthcareParties(ids: List<IdAndRev>): Flow<HealthcareParty>
 
     /**
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
      * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param rev the latest rev of the entity to delete.
+     * @return the deleted [HealthcareParty].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
      * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteHealthcareParty(id: String, rev: String?): DocIdentifier
+    suspend fun deleteHealthcareParty(id: String, rev: String?): HealthcareParty
 
     /**
      * Deletes an entity.

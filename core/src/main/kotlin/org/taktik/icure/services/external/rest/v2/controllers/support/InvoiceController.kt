@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.id.UUIDGenerator
@@ -106,14 +107,14 @@ class InvoiceController(
 	fun deleteInvoices(@RequestBody invoiceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		invoiceService.deleteInvoices(
 			invoiceIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Invoices if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteInvoicesWithRev(@RequestBody invoiceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		invoiceService.deleteInvoices(
 			invoiceIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Invoice")
 	@DeleteMapping("/{invoiceId}")
@@ -121,7 +122,9 @@ class InvoiceController(
 		@PathVariable invoiceId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		invoiceService.deleteInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
+		invoiceService.deleteInvoice(invoiceId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{invoiceId}")
@@ -262,7 +265,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.", description = "Keys have to delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listInvoicesByHCPartyAndPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
@@ -273,7 +276,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
@@ -283,7 +286,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoicesDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoicesDelegationsStubsByIds instead")
 	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun listInvoicesDelegationsStubsByHCPartyAndPatientForeignKeys(
@@ -317,7 +320,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoicesDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoicesDelegationsStubsByIds instead")
 	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
@@ -99,7 +100,7 @@ class CalendarItemTypeController(
 	fun deleteCalendarItemTypes(@RequestBody calendarItemTypeIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		calendarItemTypeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
 			calendarItemTypeService.deleteCalendarItemTypes(ids)
-				.map(docIdentifierV2Mapper::map)
+				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 

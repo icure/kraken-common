@@ -22,7 +22,7 @@ interface ClassificationDAO : GenericDAO<Classification> {
 	 * @param secretPatientKeys the patient secret foreign keys.
 	 * @return a [Flow] of [Classification]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	fun listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Classification>
 
 	/**

@@ -28,7 +28,7 @@ interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureD
 	 * @param secretPatientKeys the secret patient keys, that will be searched in [HealthElement.secretForeignKeys].
 	 * @return a [Flow] of [HealthElement]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<HealthElement>
 
 	/**
@@ -48,6 +48,7 @@ interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureD
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
 
 	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement?

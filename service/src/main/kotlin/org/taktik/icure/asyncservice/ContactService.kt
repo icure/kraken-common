@@ -39,7 +39,7 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
 	 * @return a [Flow] of [Contact]s.
 	 * @throws AccessDeniedException if the current user does not meet the precondition to retrieve [Contact]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact>
 
 	/**
@@ -74,22 +74,22 @@ interface ContactService: EntityWithSecureDelegationsService<Contact>, EntityWit
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [Contact].
      */
-    fun deleteContacts(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteContacts(ids: List<IdAndRev>): Flow<Contact>
 
     /**
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
      * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param rev the latest rev of the contact to delete.
+     * @return the deleted [Contact].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
      * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteContact(id: String, rev: String?): DocIdentifier
+    suspend fun deleteContact(id: String, rev: String?): Contact
 
     /**
      * Deletes an entity.

@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
@@ -20,9 +19,9 @@ interface CalendarItemTypeService {
 	 * the batch, then those elements will not be deleted and no error will be thrown.
 	 *
 	 * @param ids a [List] containing the ids of the [CalendarItemType]s to delete.
-	 * @return a [Flow] containing the [DocIdentifier]s of the [CalendarItemType]s that were successfully deleted.
+	 * @return a [Flow] containing the deleted [CalendarItemType]s.
 	 */
-	fun deleteCalendarItemTypes(ids: List<String>): Flow<DocIdentifier>
+	fun deleteCalendarItemTypes(ids: List<String>): Flow<CalendarItemType>
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?
 	fun getCalendarItemTypes(calendarItemTypeIds: Collection<String>): Flow<CalendarItemType>
 

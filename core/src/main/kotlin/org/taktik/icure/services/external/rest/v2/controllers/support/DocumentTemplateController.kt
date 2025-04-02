@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
@@ -73,7 +74,7 @@ class DocumentTemplateController(
 	fun deleteDocumentTemplates(@RequestBody documentTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		documentTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
 			documentTemplateService.deleteDocumentTemplates(ids.toSet().map { IdAndRev(it, null) })
-				.map(docIdentifierV2Mapper::map)
+				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 

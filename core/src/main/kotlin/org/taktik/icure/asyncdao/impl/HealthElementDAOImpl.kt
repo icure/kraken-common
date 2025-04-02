@@ -173,7 +173,7 @@ internal class HealthElementDAOImpl(
 		return get(datastoreInformation, healthElementId)
 	}
 
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
 		View(name = "by_hcparty_patient", map = "classpath:js/healthelement/By_hcparty_patient_map.js"),
 		View(name = "by_hcparty_patient_date", map = "classpath:js/healthelement/By_hcparty_patient_date.js", secondaryPartition = MAURICE_PARTITION),

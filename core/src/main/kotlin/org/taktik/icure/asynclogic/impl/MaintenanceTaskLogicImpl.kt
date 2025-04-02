@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.MaintenanceTaskDAO
@@ -30,12 +28,12 @@ import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
 open class MaintenanceTaskLogicImpl(
-    private val maintenanceTaskDAO: MaintenanceTaskDAO,
-    filters: Filters,
-    sessionLogic: SessionInformationProvider,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer
+	private val maintenanceTaskDAO: MaintenanceTaskDAO,
+	filters: Filters,
+	sessionLogic: SessionInformationProvider,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<MaintenanceTask, MaintenanceTaskDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), MaintenanceTaskLogic {
 
 	override fun filter(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<MaintenanceTask>): Flow<ViewQueryResultEvent> =

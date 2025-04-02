@@ -27,22 +27,22 @@ interface AgendaService {
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [Agenda]s.
      */
-    fun deleteAgendas(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteAgendas(ids: List<IdAndRev>): Flow<Agenda>
 
     /**
      * Marks an entity as deleted.
      * The data of the entity is preserved, but the entity won't appear in most queries.
      *
      * @param id the id of the entity to delete.
-     * @param rev
-     * @return the updated [DocIdentifier] for the entity.
+     * @param rev the rev of the agenda to delete.
+     * @return the deleted [Agenda].
      * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
      * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
      * @throws ConflictRequestException if the entity rev doesn't match.
      */
-    suspend fun deleteAgenda(id: String, rev: String?): DocIdentifier
+    suspend fun deleteAgenda(id: String, rev: String?): Agenda
 
     /**
      * Deletes an entity.

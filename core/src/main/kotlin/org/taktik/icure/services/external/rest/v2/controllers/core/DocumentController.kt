@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
@@ -84,7 +85,6 @@ class DocumentController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Create a document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
@@ -103,14 +103,14 @@ class DocumentController(
 	fun deleteDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		documentService.deleteDocuments(
 			documentIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Documents if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteDocumentsWithRev(@RequestBody documentIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		documentService.deleteDocuments(
 			documentIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Document")
 	@DeleteMapping("/{documentId}")
@@ -118,7 +118,9 @@ class DocumentController(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		documentService.deleteDocument(documentId, rev).let(docIdentifierV2Mapper::map)
+		documentService.deleteDocument(documentId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{documentId}")
@@ -250,7 +252,7 @@ class DocumentController(
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List documents found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun listDocumentsByHcPartyMessageForeignKeys(

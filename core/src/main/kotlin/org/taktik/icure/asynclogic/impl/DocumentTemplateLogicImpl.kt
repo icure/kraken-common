@@ -23,11 +23,11 @@ import org.taktik.icure.validation.aspect.Fixer
 @Service
 @Profile("app")
 class DocumentTemplateLogicImpl(
-    private val documentTemplateDAO: DocumentTemplateDAO,
-    private val sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer,
-    filters: Filters
+	private val documentTemplateDAO: DocumentTemplateDAO,
+	private val sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer,
+	filters: Filters
 ) : GenericLogicImpl<DocumentTemplate, DocumentTemplateDAO>(fixer, datastoreInstanceProvider, filters), DocumentTemplateLogic {
 
 	override fun createEntities(entities: Collection<DocumentTemplate>): Flow<DocumentTemplate> =

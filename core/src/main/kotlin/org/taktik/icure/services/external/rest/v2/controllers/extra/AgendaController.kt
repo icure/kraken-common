@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.AgendaService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -57,7 +58,6 @@ class AgendaController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Gets all agendas")
 	@GetMapping
@@ -86,14 +86,14 @@ class AgendaController(
 	fun deleteAgendas(@RequestBody agendaIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		agendaService.deleteAgendas(
 			agendaIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Agendas if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteAgendasWithRev(@RequestBody agendaIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		agendaService.deleteAgendas(
 			agendaIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Agenda")
 	@DeleteMapping("/{agendaId}")
@@ -101,7 +101,9 @@ class AgendaController(
 		@PathVariable agendaId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		agendaService.deleteAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
+		agendaService.deleteAgenda(agendaId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{agendaId}")

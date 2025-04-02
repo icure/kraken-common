@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -245,7 +246,7 @@ class HealthcarePartyController(
 			log.warn(e) { e.message }
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
 		}
-	}.map(docIdentifierMapper::map)
+	}.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectReactorContext()
 
 	@Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")

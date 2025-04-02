@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -78,7 +79,7 @@ class ClassificationTemplateController(
 	fun deleteClassificationTemplates(@RequestBody classificationTemplateIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		classificationTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
 			classificationTemplateService.deleteClassificationTemplates(LinkedHashSet(ids))
-				.map(docIdentifierV2Mapper::map)
+				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
@@ -86,7 +87,9 @@ class ClassificationTemplateController(
 	@DeleteMapping("/{classificationTemplateId}")
 	fun deleteClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
 		classificationTemplateService.deleteClassificationTemplate(classificationTemplateId)
-			.let(docIdentifierV2Mapper::map)
+			.let {
+				docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+			}
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")

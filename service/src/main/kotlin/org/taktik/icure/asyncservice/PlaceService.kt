@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
@@ -30,8 +29,8 @@ interface PlaceService {
 	 */
 	fun getAllPlaces(): Flow<Place>
 	suspend fun createPlace(place: Place): Place?
-	suspend fun deletePlace(id: String, rev: String?): DocIdentifier
+	suspend fun deletePlace(id: String, rev: String?): Place
 	suspend fun getPlace(place: String): Place?
 	suspend fun modifyPlace(place: Place): Place?
-	fun deletePlaces(identifiers: List<IdAndRev>): Flow<DocIdentifier>
+	fun deletePlaces(identifiers: List<IdAndRev>): Flow<Place>
 }

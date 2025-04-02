@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -21,7 +18,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
@@ -29,15 +25,11 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
 open class HealthcarePartyLogicImpl(
-    filters: Filters,
-    private val healthcarePartyDAO: HealthcarePartyDAO,
-    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
-    fixer: Fixer
+	filters: Filters,
+	private val healthcarePartyDAO: HealthcarePartyDAO,
+	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	fixer: Fixer
 ) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider, filters), HealthcarePartyLogic {
-
-	companion object {
-		private val log = LoggerFactory.getLogger(HealthcarePartyLogicImpl::class.java)
-	}
 
 	override fun getGenericDAO(): HealthcarePartyDAO {
 		return healthcarePartyDAO

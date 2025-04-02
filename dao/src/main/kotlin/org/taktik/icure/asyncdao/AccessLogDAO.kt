@@ -80,7 +80,7 @@ interface AccessLogDAO : GenericDAO<AccessLog> {
 	 * @param secretPatientKeys a [List] of [AccessLog.secretForeignKeys].
 	 * @return a [Flow] of [AccessLog]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	fun findAccessLogsByHCPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<AccessLog>
 
 	/**
