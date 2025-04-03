@@ -70,7 +70,7 @@ class InsuranceController(
 	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
 	fun deleteInsurance(@PathVariable insuranceId: String) = mono {
-		insuranceService.deleteInsurance(insuranceId, null)
+		insuranceService.deleteInsurance(insuranceId, null).let(insuranceV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an insurance")
