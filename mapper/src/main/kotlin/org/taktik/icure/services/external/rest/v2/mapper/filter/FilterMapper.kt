@@ -104,6 +104,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactBySe
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.AllDevicesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.document.AllDocumentsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerPatientDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByTypeDataOwnerPatientFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerParentIdFilter
@@ -272,6 +273,7 @@ abstract class FilterV2Mapper {
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
+	abstract fun map(filterDto: AllDocumentsFilter): org.taktik.icure.domain.filter.impl.document.AllDocumentsFilter
 	abstract fun map(filterDto: DocumentByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.document.DocumentByDataOwnerPatientDateFilter
 	abstract fun map(filterDto: DocumentByTypeDataOwnerPatientFilter): org.taktik.icure.domain.filter.impl.document.DocumentByTypeDataOwnerPatientFilter
 
@@ -279,6 +281,7 @@ abstract class FilterV2Mapper {
 	fun tryMap(filterDto: AbstractFilterDto<DocumentDto>): AbstractFilter<Document>? = when (filterDto) {
 		is DocumentByDataOwnerPatientDateFilter -> map(filterDto)
 		is DocumentByTypeDataOwnerPatientFilter -> map(filterDto)
+		is AllDocumentsFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
