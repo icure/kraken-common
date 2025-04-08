@@ -41,9 +41,12 @@ enum class Partitions(val partitionName: String) {
 
 interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	/**
-	 * If true the DAO is for group-level entities, if false the DAO is for global entities.
+	 * If true the DAO is a generic DAO for group-level entities.
+	 * The views for these DAOs will always be automatically initialized when creating a new group and when updating the
+	 * design document for existing groups.
+	 * If false the views must be explicitly initialized on the groups that need it.
 	 */
-	val isGroupDao get() = true
+	val isGenericGroupDao get() = true
 	val entityClass: Class<T>
 
 	/**

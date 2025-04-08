@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.EmbeddedTimeTable
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -43,6 +44,10 @@ data class Agenda(
 	 */
 	val userRights: Map<String, UserAccessLevel> = emptyMap(),
 	val timeTables: List<EmbeddedTimeTable> = emptyList(),
+	/**
+	 * Custom properties of the agenda
+	 */
+	val properties: Set<PropertyStub> = emptySet(),
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,

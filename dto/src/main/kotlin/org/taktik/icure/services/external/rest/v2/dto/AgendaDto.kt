@@ -47,6 +47,7 @@ data class AgendaDto(
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 	@Schema(description = "Associates a user id to the permission that user has on the entity.")
 	val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	val properties: Set<PropertyStubDto> = emptySet(),
 	val timeTables: List<EmbeddedTimeTableDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
