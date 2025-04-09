@@ -367,7 +367,7 @@ class InvoiceDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Invoice>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).mapNotNull { it.doc })
 	}
 
-	@View(name = "tarification_by_hcparty_code", map = "classpath:js/invoice/Tarification_by_hcparty_code.js", reduce = "_count")
+	@View(name = "tarification_by_data_owner", map = "classpath:js/invoice/Tarification_by_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listInvoiceIdsByTarificationsAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -390,7 +390,7 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_hcparty_code"
+			"tarification_by_data_owner"
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.value })
 	}
 
@@ -417,7 +417,7 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_hcparty_code"
+			"tarification_by_data_owner"
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.id })
 	}
 
@@ -432,7 +432,7 @@ class InvoiceDAOImpl(
 			ComplexKey.emptyObject()
 		)
 
-		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_hcparty_code").startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
+		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_data_owner").startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
