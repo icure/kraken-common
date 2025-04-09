@@ -350,7 +350,7 @@ class FormController(
 	@Operation(summary = "Delete a form template")
 	@DeleteMapping("/template/{formTemplateId}")
 	fun deleteFormTemplate(@PathVariable formTemplateId: String) = mono {
-		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()
+		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()?.let(rawFormTemplateV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form deletion failed")
 	}
 
