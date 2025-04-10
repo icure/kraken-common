@@ -9,7 +9,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EmbeddedTimeTableDto(
 	val id: String,
-	val codes: Set<CodeStubDto>,
+	val codes: Set<CodeStubDto> = emptySet(),
 	val medicalLocationId: String? = null,
 	val endOfLife: Long? = null,
 	val name: String? = null,
