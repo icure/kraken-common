@@ -60,7 +60,7 @@ class FrontEndMigrationController(
 	@Operation(summary = "Deletes a front end migration")
 	@DeleteMapping("/{frontEndMigrationId}")
 	fun deleteFrontEndMigration(@PathVariable frontEndMigrationId: String) = mono {
-		frontEndMigrationService.deleteFrontEndMigration(frontEndMigrationId)
+		frontEndMigrationService.deleteFrontEndMigration(frontEndMigrationId)?.let(frontEndMigrationV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Frontend migration deletion failed")
 	}
 
