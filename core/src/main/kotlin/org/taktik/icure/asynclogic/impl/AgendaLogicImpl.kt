@@ -64,9 +64,9 @@ class AgendaLogicImpl(
 		emitAll(agendaDAO.getAgendasByUser(datastoreInformation, userId))
 	}
 
-	override fun getReadableAgendaForUser(userId: String) = flow {
+	override fun getReadableAgendaForUserLegacy(userId: String) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(agendaDAO.getReadableAgendaByUser(datastoreInformation, userId))
+		emitAll(agendaDAO.getReadableAgendaByUserLegacy(datastoreInformation, userId))
 	}
 
 	override fun getGenericDAO(): AgendaDAO {

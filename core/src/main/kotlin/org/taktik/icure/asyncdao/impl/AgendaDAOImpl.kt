@@ -19,6 +19,7 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -60,7 +61,7 @@ class AgendaDAOImpl(
 	}
 
 	@View(name = "readable_by_user", map = "classpath:js/agenda/Readable_by_user.js")
-	override fun getReadableAgendaByUser(datastoreInformation: IDatastoreInformation, userId: String) = flow {
+	override fun getReadableAgendaByUserLegacy(datastoreInformation: IDatastoreInformation, userId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(datastoreInformation, "readable_by_user")
@@ -71,13 +72,14 @@ class AgendaDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
 	}
 
-	override fun listReadableAgendaIdsByUser(
+	@View(name = "readable_by_user_rights", map = "classpath:js/agenda/Readable_by_user_rights.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listReadableAgendaIdsByUserRights(
 		datastoreInformation: IDatastoreInformation,
 		userId: String
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "readable_by_user")
+		val viewQuery = createQuery(datastoreInformation, "readable_by_user_rights", MAURICE_PARTITION)
 			.startKey(userId)
 			.endKey(userId)
 			.includeDocs(false)

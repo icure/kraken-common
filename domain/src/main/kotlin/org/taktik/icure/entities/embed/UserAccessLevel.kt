@@ -7,8 +7,8 @@ package org.taktik.icure.entities.embed
  * - Write: the user has read and write permissions on the entity, but they cannot modify the access of users to the entity.
  * - Admin: the user has full control over the entity.
  */
-enum class UserAccessLevel {
-	Admin,
-	Read,
-	Write
+enum class UserAccessLevel(val level: Int) {
+	Admin(3),
+	Write(2),
+	Read(1)
 }
