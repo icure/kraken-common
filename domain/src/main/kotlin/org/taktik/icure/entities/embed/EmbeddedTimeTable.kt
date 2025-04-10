@@ -2,6 +2,7 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import java.io.Serializable
@@ -10,6 +11,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EmbeddedTimeTable(
 	val id: String,
+	val codes: Set<CodeStub> = emptySet(),
 	val medicalLocationId: String? = null,
 	val endOfLife: Long? = null,
 	val name: String? = null,
