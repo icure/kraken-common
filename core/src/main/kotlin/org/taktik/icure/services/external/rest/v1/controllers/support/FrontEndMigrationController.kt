@@ -27,6 +27,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.FrontEndMigrationMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 
 @RestController
 @Profile("app")
@@ -60,7 +61,7 @@ class FrontEndMigrationController(
 	@Operation(summary = "Deletes a front end migration")
 	@DeleteMapping("/{frontEndMigrationId}")
 	fun deleteFrontEndMigration(@PathVariable frontEndMigrationId: String) = mono {
-		frontEndMigrationService.deleteFrontEndMigration(frontEndMigrationId)?.let(frontEndMigrationMapper::map)
+		frontEndMigrationService.deleteFrontEndMigration(frontEndMigrationId)?.let { DocIdentifierDto(it.id, it.rev) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Frontend migration deletion failed")
 	}
 

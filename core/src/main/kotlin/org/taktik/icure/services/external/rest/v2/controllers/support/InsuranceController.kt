@@ -30,6 +30,7 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.InsuranceV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -70,7 +71,9 @@ class InsuranceController(
 	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
 	fun deleteInsurance(@PathVariable insuranceId: String) = mono {
-		insuranceService.deleteInsurance(insuranceId, null).let(insuranceV2Mapper::map)
+		insuranceService.deleteInsurance(insuranceId, null).let {
+			DocIdentifierDto(it.id, it.rev)
+		}
 	}
 
 	@Operation(summary = "Gets an insurance")
