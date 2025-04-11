@@ -97,10 +97,7 @@ class InvoiceDAOImpl(
 		emitAll(getEntities(datastoreInformation, invoiceIds.distinct()))
 	}
 
-	@Views(
-		View(name = "by_hcparty_decision_reference", map = "classpath:js/invoice/By_hcparty_decision_reference_map.js", secondaryPartition = MAURICE_PARTITION),
-		View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
+	@View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listInvoiceIdsByDataOwnerDecisionReference(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -108,16 +105,10 @@ class InvoiceDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueries(
+		emitAll(client.queryView<ComplexKey, String>(createQuery(
 			datastoreInformation,
-			"by_hcparty_decision_reference" to MAURICE_PARTITION,
-			"by_data_owner_decision_reference_map" to DATA_OWNER_PARTITION
-		).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).doNotIncludeDocs()
-		emitAll(
-			client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
-				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.map { it.id }
-		)
+			"by_data_owner_decision_reference_map"
+		).includeDocs(false).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).reduce(false)).map { it.id })
 	}
 
 	@Views(
