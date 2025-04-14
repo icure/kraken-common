@@ -381,7 +381,8 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_data_owner"
+			"tarification_by_data_owner",
+			DATA_OWNER_PARTITION
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.value })
 	}
 
@@ -408,7 +409,8 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_data_owner"
+			"tarification_by_data_owner",
+			DATA_OWNER_PARTITION
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.id })
 	}
 
@@ -423,7 +425,7 @@ class InvoiceDAOImpl(
 			ComplexKey.emptyObject()
 		)
 
-		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_data_owner").startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
+		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_data_owner", DATA_OWNER_PARTITION).startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
