@@ -1,6 +1,7 @@
 package org.taktik.icure.utils.entities.embed
 
 import org.dmfs.rfc5545.recur.RecurrenceRule
+import org.taktik.icure.entities.embed.ITimeTableItem
 import org.taktik.icure.entities.embed.TimeTableHour
 import org.taktik.icure.entities.embed.TimeTableItem
 import org.taktik.icure.utils.FuzzyValues
@@ -15,13 +16,14 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.TimeZone
 
-fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration) = object : Iterator<Long> {
+fun ITimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration, timeTableZoneId: String?) = object : Iterator<Long> {
+	val thisLegacy = this@iterator as? TimeTableItem
 	// Start time or now() - notBeforeInMinutes if specified, as fuzzy date
 	val constrainedStartDateTime = startDateTime.coerceAtLeast(notBeforeInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
-		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: 0)
+		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(thisLegacy?.zoneId ?: timeTableZoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: 0)
 	// End time or now() - notAfterInMinutes if specified, as fuzzy date
 	val constrainedEndDateTime = endDateTime.coerceAtMost(notAfterInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
-		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: endDateTime)
+		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(thisLegacy?.zoneId ?: timeTableZoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: endDateTime)
 
 	// Start and end fuzzy dates with second component set to 0
 	val startLdt = FuzzyValues.getDateTime(constrainedStartDateTime - (constrainedStartDateTime % 100))!!
@@ -51,10 +53,10 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 		private fun getNextValidLegacyDay() = generateSequence(day) {  // WHY?
 			(it + Duration.ofDays(1)).takeIf { d -> d <= endLdt }
 		}.firstOrNull { d ->
-			(days.any { dd ->
+			(thisLegacy?.days.orEmpty().any { dd ->
 				dd.toInt() == d.dayOfWeek.value
 			} && //The day of week of the timestamp is listed in the days property
-				recurrenceTypes.any { r -> //The day of the week of the slot matches a weekly recurrence condition
+				thisLegacy?.recurrenceTypes.orEmpty().any { r -> //The day of the week of the slot matches a weekly recurrence condition
 					r == "EVERY_WEEK" || listOf("ONE" to 1, "TWO" to 2, "THREE" to 3, "FOUR" to 4, "FIVE" to 5).any { (rt, i) ->
 						(r == rt && isXDayweekOfMonthInRange(d.dayOfWeek, i.toLong(), startLdt, endLdt))
 					}

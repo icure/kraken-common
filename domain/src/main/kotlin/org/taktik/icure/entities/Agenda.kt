@@ -60,6 +60,9 @@ data class Agenda(
 		require(rights.isEmpty() || userRights.isEmpty()) {
 			"You cannot specify legacy rights and userRights at the same time"
 		}
+		require(timeTables.mapTo(mutableSetOf()) { it.id }.size == timeTables.size) {
+			"Duplicate embedded time tables ids in agenda"
+		}
 	}
 
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))

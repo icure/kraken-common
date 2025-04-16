@@ -59,6 +59,7 @@ data class CalendarItem(
 	val details: String? = null,
 	val wasMigrated: Boolean? = null,
 	val agendaId: String? = null,
+	val timeTableId: String? = null,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),
