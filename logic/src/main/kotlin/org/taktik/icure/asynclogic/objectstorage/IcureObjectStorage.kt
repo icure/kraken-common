@@ -13,6 +13,8 @@ import org.taktik.icure.entities.base.HasDataAttachments
 interface IcureObjectStorage<T : HasDataAttachments<T>> {
 	/**
 	 * Performs the pre-storage task for an attachment.
+	 * Implementations guarantee that if [preStore] is successful then invoking [scheduleStoreAttachment] will
+	 * eventually store the attachment in the object storage, without needing to provide the attachment content again.
 	 * @param entity entity which owns the attachment.
 	 * @param attachmentId id of the attachment.
 	 * @param content content of the attachment.
