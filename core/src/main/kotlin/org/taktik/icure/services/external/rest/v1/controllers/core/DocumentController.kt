@@ -147,7 +147,8 @@ class DocumentController(
 		checkRevision(rev, document)
 		if (document.mainAttachment != null) {
 			documentService.updateAttachments(
-				document,
+				document.id,
+				document.rev,
 				mainAttachmentChange = DataAttachmentChange.Delete
 			).let { documentMapper.map(checkNotNull(it) { "Failed to update attachment" }) }
 		} else documentMapper.map(document)
@@ -302,7 +303,11 @@ class DocumentController(
 				documentService.createDocument(newDocument.copy(rev = null), false)
 			} else if (prevDoc.attachmentId != newDocument.attachmentId) {
 				documentService.modifyDocument(newDocument,  prevDoc, false).let {
-					documentService.updateAttachments(it, mainAttachmentChange = DataAttachmentChange.Delete)
+					documentService.updateAttachments(
+						it.id,
+						it.rev,
+						mainAttachmentChange = DataAttachmentChange.Delete
+					)
 				}
 			} else {
 				documentService.modifyDocument(newDocument, prevDoc, false)
@@ -342,7 +347,7 @@ class DocumentController(
 			val curr = newDocumentsById.getValue(it.id)
 			if (prev != null && prev.attachmentId != curr.attachmentId) {
 				// No support for batch attachment update of different documents
-				documentService.updateAttachments(it, mainAttachmentChange = DataAttachmentChange.Delete) ?: it
+				documentService.updateAttachments(it.id, it.rev, mainAttachmentChange = DataAttachmentChange.Delete) ?: it
 			} else it
 		}.map {
 			documentMapper.map(it)
@@ -500,13 +505,15 @@ class DocumentController(
 		@RequestParam(required = true)
 		rev: String,
 	): Mono<DocumentDto> = mono {
+		val existingDoc = documentService.getDocument(documentId)?.also {
+			checkRevision(rev, it)
+			require(key != it.mainAttachmentKey) {
+				"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
+			}
+		} ?: throw NotFoundRequestException("Document not found")
 		documentService.updateAttachments(
-			documentService.getDocument(documentId)?.also {
-				checkRevision(rev, it)
-				require(key != it.mainAttachmentKey) {
-					"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
-				}
-			} ?: throw NotFoundRequestException("Document not found"),
+			existingDoc.id,
+			existingDoc.rev,
 			secondaryAttachmentsChanges = mapOf(key to DataAttachmentChange.Delete)
 		).let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
@@ -582,7 +589,7 @@ class DocumentController(
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
 	): Document? =
 		try {
-			updateAttachments(currentDocument, mainAttachmentChange, secondaryAttachmentsChanges)
+			updateAttachments(currentDocument.id, currentDocument.rev, mainAttachmentChange, secondaryAttachmentsChanges)
 		} catch (e: ObjectStorageException) {
 			throw ResponseStatusException(
 				HttpStatus.SERVICE_UNAVAILABLE,

@@ -78,8 +78,9 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 
 	/**
 	 * Updates the attachments for a document. For additional details check [DataAttachmentChange].
-	 *
-	 * @param currentDocument the document to update
+	 * @param documentId id of the document to update
+	 * @param documentRev if not null updates the document attachments only if the current document rev matches the
+	 * provided rev
 	 * @param mainAttachmentChange specifies how to change the main attachment. If null the main attachment will be unchanged.
 	 * @param secondaryAttachmentsChanges specifies how to change the secondary attachments. Only secondary attachments specified
 	 * in this map will be changed, other attachments in the document will be ignored.
@@ -88,7 +89,8 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 * storage service but this is not possible at the moment.
 	 */
 	suspend fun updateAttachments(
-		currentDocument: Document,
+		documentId: String,
+		documentRev: String?,
 		mainAttachmentChange: DataAttachmentChange? = null,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
 	): Document?
