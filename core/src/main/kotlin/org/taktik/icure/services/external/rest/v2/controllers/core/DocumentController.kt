@@ -165,12 +165,10 @@ class DocumentController(
 		@Parameter(description = "Revision of the latest known version of the document. If it doesn't match the current revision the method will fail with CONFLICT.")
 		@RequestParam(required = true)
 		rev: String
-	): Mono<DocumentDto> = mono {
-		val document = documentService.getDocument(documentId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
-		checkRevision(rev, document)
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.updateAttachments(
-			document,
+			documentId,
+			rev,
 			mainAttachmentChange = DataAttachmentChange.Delete
 		).let { documentV2Mapper.map(checkNotNull(it) { "Failed to update attachment" }) }
 	}
@@ -193,14 +191,13 @@ class DocumentController(
 		lengthHeader: Long?,
 		@RequestParam(required = false)
 		encrypted: Boolean?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val payloadSize = requireNotNull(lengthHeader?.takeIf { it > 0 }) {
 			"The `Content-Length` header must contain the payload size"
 		}
-		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-		checkRevision(rev, document)
 		documentService.updateAttachmentsWrappingExceptions(
-			document,
+			documentId,
+			rev,
 			mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(payload, payloadSize, utis, encrypted ?: false)
 		)?.let { documentV2Mapper.map(it) }
 	}
@@ -319,18 +316,14 @@ class DocumentController(
 		lengthHeader: Long?,
 		@RequestParam(required = false)
 		encrypted: Boolean?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val attachmentSize = lengthHeader ?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
 			"Attachment size must be specified in the content-length header"
 		)
 		documentService.updateAttachmentsWrappingExceptions(
-			documentService.getDocument(documentId)?.also {
-				checkRevision(rev, it)
-				require(key != it.mainAttachmentKey) {
-					"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
-				}
-			} ?: throw NotFoundRequestException("No document with id $documentId"),
+			documentId,
+			rev,
 			secondaryAttachmentsChanges = mapOf(
 				key to DataAttachmentChange.CreateOrUpdate(
 					payload,
@@ -383,14 +376,10 @@ class DocumentController(
 		@Parameter(description = "Revision of the latest known version of the document. If the revision does not match the current version of the document the method will fail with CONFLICT status")
 		@RequestParam(required = true)
 		rev: String,
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.updateAttachments(
-			documentService.getDocument(documentId)?.also {
-				checkRevision(rev, it)
-				require(key != it.mainAttachmentKey) {
-					"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
-				}
-			} ?: throw NotFoundRequestException("No document with id $documentId"),
+			documentId,
+			rev,
 			secondaryAttachmentsChanges = mapOf(key to DataAttachmentChange.Delete)
 		).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
@@ -413,7 +402,7 @@ class DocumentController(
         @Parameter(description = "New attachments (to create or update). The file name will be used as the attachment key. To update the main attachment use the document id")
 		@RequestPart("attachments", required = false)
 		attachments: Flux<FilePart>?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val attachmentsByKey: Map<String, FilePart> = attachments?.asFlow()?.toList()?.let { partsList ->
 			partsList.associateBy { it.filename() }.also { partsMap ->
 				require(partsList.size == partsMap.size) {
@@ -428,16 +417,15 @@ class DocumentController(
 			"Missing attachments for metadata: ${options.updateAttachmentsMetadata.keys - attachmentsByKey.keys}"
 		}
 		require(attachmentsByKey.isNotEmpty() || options.deleteAttachments.isNotEmpty()) { "Nothing to do" }
-		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-		checkRevision(rev, document)
-		val mainAttachmentChange = attachmentsByKey[document.mainAttachmentKey]?.let {
-			makeMultipartAttachmentUpdate("main attachment", it, options.updateAttachmentsMetadata[document.mainAttachmentKey])
-		} ?: DataAttachmentChange.Delete.takeIf { document.mainAttachmentKey in options.deleteAttachments }
-		val secondaryAttachmentsChanges = (options.deleteAttachments - document.mainAttachmentKey).associateWith { DataAttachmentChange.Delete } +
-			(attachmentsByKey - document.mainAttachmentKey).mapValues { (key, value) ->
+		val mainAttachmentKey = Document.mainAttachmentKeyFromId(documentId)
+		val mainAttachmentChange = attachmentsByKey[mainAttachmentKey]?.let {
+			makeMultipartAttachmentUpdate("main attachment", it, options.updateAttachmentsMetadata[mainAttachmentKey])
+		} ?: DataAttachmentChange.Delete.takeIf { mainAttachmentKey in options.deleteAttachments }
+		val secondaryAttachmentsChanges = (options.deleteAttachments - mainAttachmentKey).associateWith { DataAttachmentChange.Delete } +
+			(attachmentsByKey - mainAttachmentKey).mapValues { (key, value) ->
 				makeMultipartAttachmentUpdate("secondary attachment $key", value, options.updateAttachmentsMetadata[key])
 			}
-		documentService.updateAttachmentsWrappingExceptions(document, mainAttachmentChange, secondaryAttachmentsChanges)
+		documentService.updateAttachmentsWrappingExceptions(documentId, rev, mainAttachmentChange, secondaryAttachmentsChanges)
 			.let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
 
@@ -460,12 +448,13 @@ class DocumentController(
 	}
 
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
-		currentDocument: Document,
+		documentId: String,
+		documentRev: String,
 		mainAttachmentChange: DataAttachmentChange? = null,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? =
 		try {
-			updateAttachments(currentDocument, mainAttachmentChange, secondaryAttachmentsChanges)
+			updateAttachments(documentId, documentRev, mainAttachmentChange, secondaryAttachmentsChanges)
 		} catch (e: ObjectStorageException) {
 			throw ResponseStatusException(
 				HttpStatus.SERVICE_UNAVAILABLE,
