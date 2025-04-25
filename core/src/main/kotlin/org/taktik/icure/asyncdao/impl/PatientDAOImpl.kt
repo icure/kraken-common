@@ -174,7 +174,7 @@ class PatientDAOImpl(
         val legacyViewQuery = createQuery(datastoreInformation, "by_hcparty_ssin").reduce(true)
             .startKey(ComplexKey.of(healthcarePartyId, null))
             .endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())).includeDocs(false)
-        val viewQuery = createQuery(datastoreInformation, "by_data_owner_ssin").reduce(true)
+        val viewQuery = createQuery(datastoreInformation, "by_data_owner_ssin", DATA_OWNER_PARTITION).reduce(true)
             .startKey(ComplexKey.of(healthcarePartyId, null))
             .endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())).includeDocs(false)
         return try {
