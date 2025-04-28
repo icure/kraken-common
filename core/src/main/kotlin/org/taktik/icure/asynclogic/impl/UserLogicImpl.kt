@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -29,7 +28,6 @@ import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.constants.Users
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.User
@@ -489,7 +487,7 @@ open class UserLogicImpl (
 	}
 
 	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier {
-		return super.purgeEntity(id, rev).also { globalUserUpdater.tryPurge(id) }
+		return super.purgeEntity(id, rev).also { globalUserUpdater.tryPurge(localId = id, localRev = rev) }
 	}
 }
 

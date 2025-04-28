@@ -16,5 +16,5 @@ interface GlobalUserUpdater {
 	/**
 	 * Purges the global user corresponding to a purged local user
 	 */
-	suspend fun tryPurge(localId: String)
+	suspend fun tryPurge(localId: String, localRev: String)
 }
