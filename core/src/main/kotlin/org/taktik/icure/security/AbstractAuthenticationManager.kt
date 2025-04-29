@@ -177,19 +177,20 @@ abstract class AbstractAuthenticationManager <
                  */
                 val strippedPw = strip2fa(password)
                 if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
-                    val (expectedLength, secret) = u.secret?.split(":", limit = 2)?.let { (lenAsStr, s) ->
+                    val (expectedLength, secret) = u.secret?.split(":")?.takeIf { it.size == 2 }?.let { (lenAsStr, s) ->
                         lenAsStr.toIntOrNull()?.let { it to s }
                     } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
                     val verificationCode = password.split("|").last()
                     if (Totp(secret, shaVersion = ShaVersion.Sha256).verify(verificationCode, expectedLength = expectedLength)) {
-                        return PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+                        PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+                    } else {
+                        PasswordValidationStatus.Failed2fa
                     }
-                    return PasswordValidationStatus.Failed2fa
+                } else if (passwordEncoder.matches(password, u.passwordHash)) {
+                    PasswordValidationStatus.Missing2fa
+                } else {
+                    PasswordValidationStatus.Failure
                 }
-                if (passwordEncoder.matches(password, u.passwordHash)) {
-                    return PasswordValidationStatus.Missing2fa
-                }
-                return PasswordValidationStatus.Failure
             }
             else -> {
                 passwordEncoder
