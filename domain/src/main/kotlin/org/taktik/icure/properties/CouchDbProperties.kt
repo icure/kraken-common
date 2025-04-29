@@ -8,6 +8,7 @@ interface CouchDbProperties {
     var username: String?
     var password: String?
     var maxConnections: Int?
+    var maxIdleTimeMs: Long?
     var maxPendingAcquire: Int?
 
     fun knownServerUrls() = if (altUrls.isBlank()) listOf(url) else altUrls.split(";").let { if (it.contains(url)) it else listOf(url) + it }

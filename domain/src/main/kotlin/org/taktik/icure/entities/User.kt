@@ -168,7 +168,11 @@ data class User(
          * Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom
          * for the user (false).
          */
-        val inheritsRoles: Boolean
+        val inheritsRoles: Boolean,
+        /**
+         * Identifiers of the user available for login
+         */
+        val loginIdentifiers: List<Identifier>
     ) : Serializable
 
     /**

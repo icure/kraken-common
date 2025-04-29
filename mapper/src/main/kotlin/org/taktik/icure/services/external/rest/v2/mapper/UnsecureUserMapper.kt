@@ -23,6 +23,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.User
+import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
@@ -45,7 +46,7 @@ interface UnsecureUserV2Mapper {
 	)
 	fun map(user: User): UserDto
 
-	@Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+	@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 	interface SystemMetadataV2Mapper {
 		fun map(metaDto: UserDto.SystemMetadata): User.SystemMetadata
 
