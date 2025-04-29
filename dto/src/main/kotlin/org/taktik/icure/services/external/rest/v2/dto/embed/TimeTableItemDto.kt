@@ -46,5 +46,5 @@ data class TimeTableItemDto(
 	@Schema(defaultValue = "true") val acceptsNewPatient: Boolean = true,
 	val unavailable: Boolean = false,
 	@Schema(description = "A list of the ids of the users who are allowed to create a CalendarItem in this slot.")
-	val reservingRights: Set<String> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val reservingRights: Set<String> = emptySet(),
 ) : Serializable

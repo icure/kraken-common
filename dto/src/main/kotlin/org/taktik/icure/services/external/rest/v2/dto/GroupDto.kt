@@ -46,7 +46,7 @@ data class GroupDto(
 	@Schema(description = "Single-used token to perform specific operations") val operationTokens: Map<String, OperationTokenDto> = emptyMap(),
 	@Schema(description = "List of entities that have to be collected from a shared database. Only Code and tarification can be set at this point.") val sharedEntities: Map<String, String> = emptyMap(),
 	@Schema(description = "Minimum version of Kraken required to access API") val minimumKrakenVersion: String? = null,
-	@Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 
 	val superGroup: String? = null,
