@@ -7,6 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
@@ -62,4 +63,5 @@ interface TarificationLogic: EntityPersister<Tarification> {
 	fun findTarificationsOfTypesByLabel(region: String?, language: String?, label: String?, types: Set<String>?, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun findTarificationsByLabel(region: String?, language: String?, type: String?, label: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent>
 	suspend fun getOrCreateTarification(type: String, tarification: String): Tarification?
+	fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 }
