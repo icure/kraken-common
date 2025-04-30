@@ -17,6 +17,7 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -70,6 +71,20 @@ class AgendaDAOImpl(
 			.includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
+	}
+
+	override fun listReadableAgendaByUserLegacy(
+		datastoreInformation: IDatastoreInformation,
+		userId: String
+	) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "readable_by_user")
+			.startKey(userId)
+			.endKey(userId)
+			.includeDocs(false)
+
+		emitAll(client.queryViewNoValue<String>(viewQuery).map { it.id })
 	}
 
 	@View(name = "readable_by_user_rights", map = "classpath:js/agenda/Readable_by_user_rights.js", secondaryPartition = MAURICE_PARTITION)

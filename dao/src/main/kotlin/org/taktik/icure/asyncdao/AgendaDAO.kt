@@ -37,6 +37,15 @@ interface AgendaDAO : GenericDAO<Agenda> {
 	fun getReadableAgendaByUserLegacy(datastoreInformation: IDatastoreInformation, userId: String): Flow<Agenda>
 
 	/**
+	 * Retrieves all the [Agenda]s where one of the [Agenda.rights] contains [userId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param userId the id of that can read the [Agenda].
+	 * @return a [Flow] of [Agenda]s
+	 */
+	fun listReadableAgendaByUserLegacy(datastoreInformation: IDatastoreInformation, userId: String): Flow<String>
+
+	/**
 	 * Retrieves all the [Agenda.id]s for the agendas where one of the [Agenda.userRights] contains [userId].
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.

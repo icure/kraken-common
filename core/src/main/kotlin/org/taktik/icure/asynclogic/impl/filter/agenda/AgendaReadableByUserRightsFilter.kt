@@ -7,18 +7,18 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.agenda.AgendaReadableByUserIdFilter
+import org.taktik.icure.domain.filter.agenda.AgendaReadableByUserRightsFilter
 import org.taktik.icure.entities.Agenda
 
 @Service
 @Profile("app")
-class AgendaReadableByUserIdFilter(
+class AgendaReadableByUserRightsFilter(
 	private val agendaDAO: AgendaDAO
-) : Filter<String, Agenda, AgendaReadableByUserIdFilter> {
+) : Filter<String, Agenda, AgendaReadableByUserRightsFilter> {
 
 	override fun resolve(
-		filter: AgendaReadableByUserIdFilter,
+		filter: AgendaReadableByUserRightsFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
-	): Flow<String> = agendaDAO.listReadableAgendaByUserLegacy(datastoreInformation, filter.userId)
+	): Flow<String> = agendaDAO.listReadableAgendaIdsByUserRights(datastoreInformation, filter.userId)
 }
