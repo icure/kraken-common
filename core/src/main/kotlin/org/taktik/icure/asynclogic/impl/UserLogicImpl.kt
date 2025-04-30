@@ -395,8 +395,8 @@ open class UserLogicImpl (
 		existingUser: User?
 	) {
 		require(
-			!user.login.isNullOrBlank() &&
-			!user.email.isNullOrBlank() &&
+			!user.login.isNullOrBlank() ||
+			!user.email.isNullOrBlank() ||
 			!user.mobilePhone.isNullOrBlank()
 		) {
 			"Invalid user ${user.id} - one of `login`, `email` or `mobilePhone` must be not blank"
