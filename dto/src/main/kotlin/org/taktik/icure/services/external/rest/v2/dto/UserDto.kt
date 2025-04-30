@@ -90,6 +90,6 @@ data class UserDto(
 		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).", required = true)
 		val inheritsRoles: Boolean,
 		@Schema(description = "Identifiers of the user available for login")
-		val loginIdentifiers: List<IdentifierDto>
+		@JsonInclude(JsonInclude.Include.NON_EMPTY) val loginIdentifiers: List<IdentifierDto> = emptyList()
 	): Serializable
 }
