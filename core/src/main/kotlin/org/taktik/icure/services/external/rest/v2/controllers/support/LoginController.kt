@@ -40,7 +40,6 @@ import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
-import org.taktik.icure.security.jwt.JwtToResponseMapper
 import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v2.dto.LoginCredentials
 import org.taktik.icure.services.external.rest.v2.mapper.JwtResponseV2Mapper
@@ -58,7 +57,6 @@ class LoginController(
 	private val sessionLogic: AsyncSessionLogic,
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
-	private val jwtToResponseMapper: JwtToResponseMapper,
 	private val jwtResponseV2Mapper: JwtResponseV2Mapper,
 	asyncCacheManager: AsyncCacheManager
 ) {
@@ -82,14 +80,14 @@ class LoginController(
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 				withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
-					jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).also {
+					authentication.toJwtResponse(duration?.seconds?.inWholeMilliseconds).also {
 						if (session != null) {
 							session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 						}
 					}.let(jwtResponseV2Mapper::map)
 				}
 			} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
-				jwtToResponseMapper.toJwtResponse(authentication, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
+				authentication.toJwtResponse(duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
 			} else throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 		} catch (e: Exception) {
 			val status = when(e){
@@ -111,13 +109,10 @@ class LoginController(
 		@RequestParam(required = false) totp: String?
 	) = mono {
 		val token = refreshToken.replace("Bearer ", "")
-		val newJwtDetails = authenticationManager.regenerateJwtDetails(token, totpToken = totp)
+		val newJwtDetails = authenticationManager.regenerateAuthJwt(token, totpToken = totp)
 		JwtResponse(
 			successful = true,
-			token = jwtUtils.createJWT(
-				newJwtDetails,
-				jwtUtils.getJwtDurationFromRefreshToken(token)
-			)
+			token = jwtUtils.createAuthJWT(newJwtDetails.first, newJwtDetails.second)
 		)
 	}
 

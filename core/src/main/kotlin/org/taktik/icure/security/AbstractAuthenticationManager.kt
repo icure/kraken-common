@@ -11,7 +11,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -21,7 +20,7 @@ import org.taktik.icure.entities.embed.AuthenticationClass
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.InvalidJwtException
 import org.taktik.icure.exceptions.MissingRequirementsException
-import org.taktik.icure.security.jwt.JwtAuthenticationToken
+import org.taktik.icure.security.jwt.JwtAuthentication
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
 import org.taktik.icure.security.jwt.JwtUtils
@@ -59,7 +58,7 @@ abstract class AbstractAuthenticationManager <
         )
     }
 
-    protected abstract fun encodedJwtToAuthentication(encodedJwt: String): JwtAuthenticationToken<JWT>
+    protected abstract suspend fun encodedJwtToAuthentication(encodedJwt: String): JwtAuthentication
 
     /**
      * Refresh the JWT for user. Requires. Should throw an exception if the user is not active anymore or if the
@@ -70,9 +69,9 @@ abstract class AbstractAuthenticationManager <
      * @param bypassRefreshValidityCheck whether to bypass the validity check for the refresh token.
      * @param totpToken if the refresh details have authentication class `password` or `2fa` the
      * totp token can be used to make the newly generated token valid for elevated security operations.
-     * @return some JwtDetails.
+     * @return the JwtDetails and duration.
      */
-    abstract suspend fun regenerateJwtDetails(encodedRefreshToken: String, bypassRefreshValidityCheck: Boolean = false, totpToken: String? = null): JWT
+    abstract suspend fun regenerateAuthJwt(encodedRefreshToken: String, bypassRefreshValidityCheck: Boolean = false, totpToken: String? = null): Pair<JWT, Long?>
 
     /**
      * Throws an exception if the username and password provided are unable to provide a valid token if passed to authentication methods.
@@ -80,30 +79,19 @@ abstract class AbstractAuthenticationManager <
      * The purpose of the method is to validate if a user can still login after the addition of the 2FA to their user account.
      */
     abstract suspend fun checkAuthentication(fullGroupAndId: String, password: String)
+
     override fun authenticate(authentication: Authentication?): Mono<Authentication> = mono {
         try {
-            if (authentication is UsernamePasswordAuthenticationToken) {
-                authenticateWithUsernameAndPassword(authentication, null, null).map {
-                    JwtAuthenticationToken(
-                        claims = it.principal as JwtDetails,
-                        authorities = (it.authorities as Collection<Any?>)
-                            .fold(setOf<GrantedAuthority>()) { acc, x -> acc + (x as GrantedAuthority) }.toMutableSet(),
-                        encodedJwt = jwtUtils.createJWT(it.principal as JwtDetails),
-                        authenticated = true
-                    )
-                }.awaitFirstOrNull()
-                    .also {
-                        loadSecurityContext()?.map { ctx ->
-                            ctx.authentication = it
-                        }?.awaitFirstOrNull()
-                    }
-            } else {
-                encodedJwtToAuthentication(authentication?.credentials as String)
-                    .also {
-                        loadSecurityContext()?.map { ctx ->
-                            ctx.authentication = it
-                        }?.awaitFirstOrNull()
-                    }
+            (
+                if (authentication is UsernamePasswordAuthenticationToken) {
+                    authenticateWithUsernameAndPassword(authentication, null, null)
+                } else {
+                    encodedJwtToAuthentication(authentication?.credentials as String)
+                }
+            ).also {
+                loadSecurityContext()?.map { ctx ->
+                    ctx.authentication = it
+                }?.awaitFirstOrNull()
             }
         } catch (e: Exception) {
             val message = e.message ?: "An error occurred while decoding Jwt"
