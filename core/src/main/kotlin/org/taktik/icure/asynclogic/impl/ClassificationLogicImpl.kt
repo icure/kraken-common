@@ -22,9 +22,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class ClassificationLogicImpl(
+open class ClassificationLogicImpl(
     private val classificationDAO: ClassificationDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,

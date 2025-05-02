@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -41,7 +42,8 @@ import reactor.core.publisher.Flux
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
 	private val exchangeDataMapper: ExchangeDataV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 
 	@Operation(summary = "Creates new exchange data")
@@ -52,7 +54,7 @@ class ExchangeDataController(
 
 	@Operation(summary = "Modifies existing exchange data")
 	@PutMapping
-	fun modifyExchangeData(@RequestBody exchangeData: ExchangeDataDto) = mono {
+	fun modifyExchangeData(@RequestBody exchangeData: ExchangeDataDto) = reactorCacheInjector.monoWithCachedContext(10) {
 		exchangeDataMapper.map(exchangeDataLogic.modifyExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 
@@ -76,6 +78,15 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?
+	): PaginatedFlux<ExchangeDataDto> =
+		getExchangeDataByParticipantQuery(dataOwnerId, startDocumentId, limit)
+
+	@Operation(summary = "Get exchange data with a specific participant. Doesn't allow `/` in dataOwnerId.")
+	@GetMapping("/byParticipant")
+	fun getExchangeDataByParticipantQuery(
+		@RequestParam(required = true) dataOwnerId: String,
+		@RequestParam(required = false) startDocumentId: String?,
+		@RequestParam(required = false) limit: Int?
 	): PaginatedFlux<ExchangeDataDto> {
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataLogic
@@ -84,20 +95,41 @@ class ExchangeDataController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
+	@Operation(summary = "Get exchange data with a specific delegator-delegate pair. Doesn't allow `/` in delegator or delegate id")
 	@GetMapping("/byDelegatorDelegate/{delegatorId}/{delegateId}")
-	fun getExchangeDataByDelegatorDelegate(@PathVariable delegatorId: String, @PathVariable delegateId: String): Flux<ExchangeDataDto> = flow {
+	fun getExchangeDataByDelegatorDelegate(@PathVariable delegatorId: String, @PathVariable delegateId: String): Flux<ExchangeDataDto> =
+		getExchangeDataByDelegatorDelegateQuery(delegatorId, delegateId)
+
+	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
+	@GetMapping("/byDelegatorDelegate")
+	fun getExchangeDataByDelegatorDelegateQuery(
+		@RequestParam(required = true) delegatorId: String,
+		@RequestParam(required = true) delegateId: String
+	): Flux<ExchangeDataDto> = flow {
 		emitAll(exchangeDataLogic.findExchangeDataByDelegatorDelegatePair(delegatorId, delegateId).map { exchangeDataMapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(
 		summary = "Get the ids of all delegates in exchange data where the data owner is delegator and all delegators" +
 			" in exchange data where the data owner is delegate. Return only counterparts if that are data owners of " +
-			"the specified type."
+			"the specified type. Doesn't allow `/` in dataOwnerId"
 	)
 	@GetMapping("/byParticipant/{dataOwnerId}/counterparts")
 	fun getParticipantCounterparts(
 		@PathVariable dataOwnerId: String,
+		@RequestParam(required = true) counterpartsTypes: String,
+		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
+	) =
+		getParticipantCounterpartsQuery(dataOwnerId, counterpartsTypes, ignoreOnEntryForFingerprint)
+
+	@Operation(
+		summary = "Get the ids of all delegates in exchange data where the data owner is delegator and all delegators" +
+			" in exchange data where the data owner is delegate. Return only counterparts if that are data owners of " +
+			"the specified type."
+	)
+	@GetMapping("/byParticipant/counterparts")
+	fun getParticipantCounterpartsQuery(
+		@RequestParam(required = true) dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
 		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null
 	) = mono {

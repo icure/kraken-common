@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 import org.taktik.icure.validation.DataOwnerProvider
 import java.io.Serializable
@@ -28,6 +29,12 @@ interface SessionInformationProvider: DataOwnerProvider {
 	 * @return a [Set] of [String]
 	 */
 	suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String>
+
+	/**
+	 * @return the version of the Cardinal SDK that made the request, if it was specified in the appropriate header and
+	 * null otherwise
+	 */
+	suspend fun getCallerCardinalVersion(): SemanticVersion?
 
 	// TODO probably this should be cached in the coroutine context to avoid calculating the hash every time
 	suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails

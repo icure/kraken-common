@@ -23,10 +23,9 @@ data class CryptoActorStub(
     override val publicKey: String? = null,
     override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
     override val revHistory: Map<String, String>? = null,
-    override val tags: Set<CodeStub> = emptySet(),
     override val parentId: String? = null,
     override val cryptoActorProperties: Set<PropertyStub>? = null,
-) : Versionable<String>, CryptoActor, HasTags {
+) : Versionable<String>, CryptoActor {
     override fun withIdRev(id: String?, rev: String): CryptoActorStub =
         copy(id = id ?: this.id, rev = rev)
 }

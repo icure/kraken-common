@@ -57,31 +57,11 @@ interface CryptoActor {
 }
 
 /**
- * Checks if the [CryptoActor] content of two entities is the same (regardless of any additional content from the
- * concrete entity). Only considers data necessary for cryptographic operations, including:
- * - [CryptoActor.hcPartyKeys]
- * - [CryptoActor.privateKeyShamirPartitions]
- * - [CryptoActor.publicKey]
- * - [CryptoActor.aesExchangeKeys]
- * - [CryptoActor.transferKeys]
- * - [CryptoActor.publicKeysForOaepWithSha256]
- * Excludes any other content.
- * @return if the [CryptoActor] content of this and [other] are the same.
- */
-fun CryptoActor.cryptoActorCryptographicDataEquals(other: CryptoActor) =
-	this.hcPartyKeys == other.hcPartyKeys &&
-	this.privateKeyShamirPartitions == other.privateKeyShamirPartitions &&
-	this.publicKey == other.publicKey &&
-	this.aesExchangeKeys == other.aesExchangeKeys &&
-	this.transferKeys == other.transferKeys &&
-	this.publicKeysForOaepWithSha256 == other.publicKeysForOaepWithSha256
-
-/**
  * Converts this [CryptoActor] to a [CryptoActorStub]. If the rev is null, this will return null, since stubs can't be
  * used for non-stored entities.
  * @return a [CryptoActorStub] with the same crypto-actor content as this [CryptoActor].
  */
-fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String>, T : HasTags =
+fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String> =
 	if (this is CryptoActorStub) this else this.rev?.let { rev ->
 		CryptoActorStub(
 			id = this.id,
@@ -92,7 +72,6 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			aesExchangeKeys = this.aesExchangeKeys,
 			transferKeys = this.transferKeys,
 			publicKeysForOaepWithSha256 = this.publicKeysForOaepWithSha256,
-			tags = this.tags,
 			parentId = this.parentId,
 			cryptoActorProperties = this.cryptoActorProperties,
 		)

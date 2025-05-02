@@ -6,8 +6,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.AgendaLogic
@@ -27,12 +25,10 @@ import org.taktik.icure.utils.mergeUniqueValuesForSearchKeys
 import org.taktik.icure.utils.toComplexKeyPaginationOffset
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class CalendarItemLogicImpl(
+open class CalendarItemLogicImpl(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val agendaLogic: AgendaLogic,
-	private val userDAO: UserDAO,
+	protected val userDAO: UserDAO,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	sessionLogic: SessionInformationProvider,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -45,7 +41,7 @@ class CalendarItemLogicImpl(
 			if(fixedCalendarItem.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 			val datastoreInformation = getInstanceAndGroup()
 			calendarItemDAO.create(datastoreInformation,
-				fixedCalendarItem.takeIf { it.hcpId != null } ?: calendarItem.copy(hcpId = calendarItem.agendaId?.let {
+				fixedCalendarItem.takeIf { it.hcpId != null } ?: fixedCalendarItem.copy(hcpId = calendarItem.agendaId?.let {
 					agendaLogic.getAgenda(it)?.userId?.let { uId ->
 						userDAO.getUserOnUserDb(datastoreInformation, uId, false).healthcarePartyId
 					}})

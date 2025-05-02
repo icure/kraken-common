@@ -13,8 +13,20 @@ import org.taktik.icure.entities.User
 interface UserDAO : GenericDAO<User> {
 	fun listUserIdsByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String): Flow<String>
 	fun listUsersByUsername(datastoreInformation: IDatastoreInformation, username: String): Flow<User>
+	/**
+	 * @return all items from [usernames] that appear in at least a [User.login].
+	 */
+	fun findUsedUsernames(datastoreInformation: IDatastoreInformation, usernames: Collection<String>): Flow<String>
 	fun listUsersByEmail(datastoreInformation: IDatastoreInformation, searchString: String): Flow<User>
+	/**
+	 * @return all items from [emails] that appear in at least a [User.email]
+	 */
+	fun findUsedEmails(datastoreInformation: IDatastoreInformation, emails: Collection<String>): Flow<String>
 	fun listUsersByPhone(datastoreInformation: IDatastoreInformation, phone: String): Flow<User>
+	/**
+	 * @return all items from [phones] that appear normalized in at least a [User.mobilePhone]
+	 */
+	fun findUsedPhones(datastoreInformation: IDatastoreInformation, phones: Collection<String>): Flow<String>
 
 	/**
 	 * Retrieves all the [User]s in a group in a format for pagination.

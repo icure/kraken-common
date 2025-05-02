@@ -113,21 +113,22 @@ fun <T> Flow<T>.bufferedChunks(min: Int, max: Int): Flow<List<T>> = channelFlow 
     require(min >= 1 && max >= 1 && max >= min) {
         "Min and max chunk sizes should be greater than 0, and max >= min"
     }
-    val buffer = ArrayList<T>(max)
+    var buffer = ArrayList<T>(max)
     collect {
         buffer.add(it)
         if (buffer.size >= max) {
             send(buffer.toList())
             buffer.clear()
         } else if (min <= buffer.size) {
-            val offered = this.trySend(buffer.toList()).isSuccess
+            // Avoid creating unused copies of the list if consumer not ready
+            val offered = this.trySend(buffer).isSuccess
             if (offered) {
-                buffer.clear()
+                buffer = ArrayList(max)
             }
         }
     }
     if (buffer.size > 0) send(buffer.toList())
-}.buffer(1)
+}.buffer(0)
 
 suspend fun Flow<ByteBuffer>.writeTo(os: OutputStream) {
     this.collect { it.writeTo(os) }

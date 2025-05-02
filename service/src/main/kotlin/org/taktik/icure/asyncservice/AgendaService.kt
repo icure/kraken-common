@@ -68,7 +68,12 @@ interface AgendaService {
 	suspend fun getAgenda(agendaId: String): Agenda?
 	fun getAgendas(agendaIds: List<String>): Flow<Agenda>
 	suspend fun modifyAgenda(agenda: Agenda): Agenda?
+
+	/**
+	 * Gets agenda where [Agenda.userId] matches the provided [userId]
+	 */
 	fun getAgendasByUser(userId: String): Flow<Agenda>
+	@Deprecated("Based on legacy Agenda.rights ; use filter for agendas using userRights")
 	fun getReadableAgendaForUser(userId: String): Flow<Agenda>
 
 	/**

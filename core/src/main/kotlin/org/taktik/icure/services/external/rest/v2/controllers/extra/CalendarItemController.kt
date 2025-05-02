@@ -114,7 +114,7 @@ class CalendarItemController(
 			calendarItemIds.ids.map(idWithRevV2Mapper::map)
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 	
-	@Operation(summary = "Deletes an CalendarItem")
+	@Operation(summary = "Deletes a CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
@@ -141,7 +141,7 @@ class CalendarItemController(
 		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Gets an calendarItem")
+	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
 	fun getCalendarItem(@PathVariable calendarItemId: String) = mono {
 		val calendarItem = calendarItemService.getCalendarItem(calendarItemId)
@@ -150,7 +150,7 @@ class CalendarItemController(
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies an calendarItem")
+	@Operation(summary = "Modifies a calendarItem")
 	@PutMapping
 	fun modifyCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
 		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))

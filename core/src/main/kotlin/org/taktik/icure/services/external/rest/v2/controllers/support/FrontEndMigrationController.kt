@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FrontEndMigrationService
 import org.taktik.icure.services.external.rest.v2.dto.FrontEndMigrationDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.FrontEndMigrationV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
-import org.taktik.icure.asynclogic.SessionInformationProvider
 
 @RestController("frontEndMigrationControllerV2")
 @Profile("app")

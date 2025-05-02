@@ -13,6 +13,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
+import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.entities.utils.Sha256HexString
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 import org.taktik.icure.security.SessionAccessControlKeysProvider
@@ -68,6 +69,15 @@ open class SessionInformationProviderImpl(
         )
     }
 
+    override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
+        ?.context
+        ?.getOrEmpty<ServerWebExchange>(ServerWebExchange::class.java)
+        ?.orElse(null)
+        ?.request
+        ?.headers
+        ?.get(REQUEST_CARDINAL_VERSION_HEADER)
+        ?.firstOrNull()?.let { SemanticVersion(it) }
+
     override suspend fun requestsAutofixAnonymity(): Boolean {
         val default = when (getCurrentSessionContext().getDataOwnerType()) {
             DataOwnerType.HCP -> false
@@ -122,6 +132,12 @@ open class SessionInformationProviderImpl(
          * owner.
          */
         const val REQUEST_AUTOFIX_ANONYMITY_HEADER = "Icure-Request-Autofix-Anonymity"
+
+        /**
+         * Header that can be used on the sdk to specify the version of the SDK used to make a request.
+         * Allows enabling some additional integrity checks that are NOT safety critical.
+         */
+        const val REQUEST_CARDINAL_VERSION_HEADER = "Icure-Request-Cardinal-Version"
 
         private suspend fun getCurrentAuthentication() =
             loadSecurityContext()?.map { it.authentication }?.awaitFirstOrNull()

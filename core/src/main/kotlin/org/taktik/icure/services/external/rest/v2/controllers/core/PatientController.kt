@@ -44,6 +44,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
+import org.taktik.icure.entities.Patient
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -473,16 +474,53 @@ class PatientController(
 
 	@Operation(summary = "Create patients in bulk", description = "Returns the id and _rev of created patients")
 	@PostMapping("/batch")
-	fun createPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
-		val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
+	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
+	fun createPatients(@RequestBody patientDtos: List<PatientDto>) =
+		createPatientsMinimal(patientDtos)
+
+	@Operation(summary = "Create patients in bulk", description = "Returns the id and _rev of created patients")
+	@PostMapping("/batch/minimal")
+	fun createPatientsMinimal(@RequestBody patientDtos: List<PatientDto>): Flux<IdWithRevDto> =
+		doCreatePatients(patientDtos) { IdWithRevDto(id = it.id, rev = it.rev) }
+
+	@Operation(summary = "Create patients in bulk", description = "Returns the created patients")
+	@PostMapping("/batch/full")
+	fun createPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
+		doCreatePatients(patientDtos, patientV2Mapper::map)
+
+	private inline fun <T : Any> doCreatePatients(
+		patientDtos: List<PatientDto>,
+		crossinline mapResult: (Patient) -> T
+	): Flux<T> =
+		flow {
+			val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
+			emitAll(patients.map(mapResult))
+		}.injectReactorContext()
+
+	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
+	@PutMapping("/batch")
+	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
+	fun modifyPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
+		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
 		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
-	@PutMapping("/batch")
-	fun modifyPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
+	@PutMapping("/batch/minimal")
+	fun modifyPatientsMinimal(@RequestBody patientDtos: List<PatientDto>): Flux<IdWithRevDto> =
+		doModifyPatients(patientDtos) { p -> IdWithRevDto(id = p.id, rev = p.rev) }
+
+	@Operation(summary = "Modify patients in bulk", description = "Returns the modified patients")
+	@PutMapping("/batch/full")
+	fun modifyPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
+		doModifyPatients(patientDtos, patientV2Mapper::map)
+
+	private inline fun <T : Any> doModifyPatients(
+		patientDtos: List<PatientDto>,
+		crossinline mapResult: (Patient) -> T
+	) = flow {
 		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
-		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
+		emitAll(patients.map(mapResult))
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify a patient", description = "No particular return value. It's just a message.")

@@ -21,6 +21,7 @@ import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.UserDAO
@@ -48,6 +49,15 @@ open class UserDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_username").includeDocs(true).key(username)).mapNotNull { it.doc })
 	}
 
+	override fun findUsedUsernames(
+		datastoreInformation: IDatastoreInformation,
+		usernames: Collection<String>
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(client.queryViewNoValue<String>(createQuery(datastoreInformation, "by_username").includeDocs(false).keys(usernames)).mapNotNull { it.key })
+	}
+
 	@View(name = "by_email", map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.email, null)}}")
 	override fun listUsersByEmail(datastoreInformation: IDatastoreInformation, searchString: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -55,11 +65,24 @@ open class UserDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_email").includeDocs(true).key(searchString)).mapNotNull { it.doc })
 	}
 
+	override fun findUsedEmails(datastoreInformation: IDatastoreInformation, emails: Collection<String>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(client.queryViewNoValue<String>(createQuery(datastoreInformation, "by_email").includeDocs(false).keys(emails)).mapNotNull { it.key })
+	}
+
+	private fun normalizePhone(phone: String): String =
+		phone.trim().let { if (it.startsWith("+")) "+${it.substring(1).replace(Regex("[^0-9]"), "")}" else it.replace(Regex("[^0-9]"), "") }
+
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
 	override fun listUsersByPhone(datastoreInformation: IDatastoreInformation, phone: String): Flow<User> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val fullNormalized = phone.trim().let { if (it.startsWith("+")) "+${it.substring(1).replace(Regex("[^0-9]"), "")}" else it.replace(Regex("[^0-9]"), "") }
-		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_phone").includeDocs(true).key(fullNormalized)).mapNotNull { it.doc })
+		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "by_phone").includeDocs(true).key(normalizePhone(phone))).mapNotNull { it.doc })
+	}
+
+	override fun findUsedPhones(datastoreInformation: IDatastoreInformation, phones: Collection<String>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryViewNoValue<String>(createQuery(datastoreInformation, "by_phone").includeDocs(false).key(phones.map { normalizePhone(it) })).mapNotNull { it.key })
 	}
 
 	/**
