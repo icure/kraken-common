@@ -132,13 +132,8 @@ class FormController(
 	@Operation(summary = "Create a form with the current user", description = "Returns an instance of created form.")
 	@PostMapping
 	fun createForm(@RequestBody ft: FormDto) = mono {
-		val form = try {
-			formService.createForm(formMapper.map(ft))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form creation failed")
-		} catch (e: MissingRequirementsException) {
-			log.warn(e) { e.message }
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+		val form = formService.createForm(formMapper.map(ft))
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form creation failed")
 		formMapper.map(form)
 	}
 

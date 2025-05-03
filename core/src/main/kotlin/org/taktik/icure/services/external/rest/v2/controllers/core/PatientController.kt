@@ -499,7 +499,7 @@ class PatientController(
 		@Parameter(description = "The referral id. Accepts 'none' for referral removal.") @PathVariable referralId: String,
 		@Parameter(description = "Optional value for start of referral") @RequestParam(required = false) start: Long?,
 		@Parameter(description = "Optional value for end of referral") @RequestParam(required = false) end: Long?
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(1) {
 		patientService.getPatient(patientId)?.let {
 			patientService.modifyPatientReferral(
 				it,
@@ -585,7 +585,7 @@ class PatientController(
 			"be automatically merged by this method.")
 		@RequestBody
 		updatedInto: PatientDto
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(2) {
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}

@@ -36,7 +36,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 		strict: Boolean = false
 	): Document?
 
-	suspend fun getMainAttachment(documentId: String): Flow<DataBuffer>
+	suspend fun getMainAttachment(document: Document): Flow<DataBuffer>
 
 	suspend fun getDocument(documentId: String): Document?
 

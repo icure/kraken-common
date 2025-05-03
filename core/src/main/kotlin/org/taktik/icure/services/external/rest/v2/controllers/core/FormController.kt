@@ -329,12 +329,7 @@ class FormController(
 	@Operation(summary = "Gets all form templates for current user")
 	@GetMapping("/template")
 	fun getFormTemplates(@RequestParam(required = false) loadLayout: Boolean?, @RequestParam(required = false) raw: Boolean?): Flux<FormTemplateDto> = flow {
-		val formTemplates = try {
-			formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
-		} catch (e: Exception) {
-			logger.warn(e.message, e)
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+		val formTemplates = formTemplateService.getFormTemplatesByUser(sessionLogic.getCurrentUserId(), loadLayout ?: true)
 		emitAll(
 			formTemplates.map { if (raw == true) rawFormTemplateV2Mapper.map(it) else formTemplateV2Mapper.map(it) }
 		)
@@ -368,7 +363,7 @@ class FormController(
 	fun setTemplateAttachmentMulti(
 		@PathVariable formTemplateId: String,
 		@RequestPart("attachment") payload: Part
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(10) {
 		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
 		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.also {
@@ -383,7 +378,7 @@ class FormController(
 	fun setTemplateAttachment(
 		@PathVariable formTemplateId: String,
 		@RequestBody payload: Flow<DataBuffer>,
-	) = mono {
+	) = reactorCacheInjector.monoWithCachedContext(10) {
 		val formTemplate = formTemplateService.getFormTemplate(formTemplateId)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
 		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true)))?.rev

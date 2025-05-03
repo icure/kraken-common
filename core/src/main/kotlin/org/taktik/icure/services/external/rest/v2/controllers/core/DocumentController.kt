@@ -148,7 +148,7 @@ class DocumentController(
 	) = response.writeWith(
 		flow {
 			val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-			val attachment = documentService.getMainAttachment(documentId)
+			val attachment = documentService.getMainAttachment(document)
 
 			response.headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
 			response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
