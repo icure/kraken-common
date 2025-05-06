@@ -95,7 +95,7 @@ class EntityTemplateDAOImpl(
 		includeEntities: Boolean?
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "by_user_type_descr").startKey(ComplexKey.of(userId, type, keyword)).endKey(
+		val viewQuery = createQuery(datastoreInformation, "by_user_type_keyword").startKey(ComplexKey.of(userId, type, keyword)).endKey(
 			ComplexKey.of(
 				userId, type,
 				(
