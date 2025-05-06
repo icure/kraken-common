@@ -2,9 +2,6 @@ package org.taktik.icure.security
 
 import com.icure.kotp.ShaVersion
 import com.icure.kotp.Totp
-import io.jsonwebtoken.ExpiredJwtException
-import io.jsonwebtoken.MalformedJwtException
-import io.jsonwebtoken.security.SecurityException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -96,9 +93,7 @@ abstract class AbstractAuthenticationManager <
         } catch (e: Exception) {
             val message = e.message ?: "An error occurred while decoding Jwt"
             when(e) {
-                is ExpiredJwtException -> throw InvalidJwtException(message)
                 is SecurityException -> throw InvalidJwtException(message)
-                is MalformedJwtException -> throw InvalidJwtException(message)
                 else -> throw e
             }
         }

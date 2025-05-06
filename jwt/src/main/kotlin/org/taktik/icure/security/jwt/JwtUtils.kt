@@ -5,17 +5,17 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.stereotype.Component
 import org.taktik.icure.exceptions.InvalidJwtException
+import org.taktik.icure.properties.JwtAuthProperties
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
 @Component
 class JwtUtils(
-	@Value("\${icure.auth.jwt.expirationMillis}") val defaultAuthJwtDurationMillis: Long,
-	@Value("\${icure.auth.jwt.refreshExpirationMillis}") private val refreshDurationMillis: Long,
+	val properties: JwtAuthProperties
 ) {
 
-	private val authKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
-	private val refreshKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
+	val authKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
+	val refreshKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
 	private val authJwtEncoder: JwtEncoder<Jwt>
@@ -57,7 +57,7 @@ class JwtUtils(
 	fun <T : Jwt> createAuthJWT(details: T, duration: Long? = null): String =
 		authJwtEncoder.createJWT(
 			details,
-			System.currentTimeMillis() + (duration ?: defaultAuthJwtDurationMillis)
+			System.currentTimeMillis() + (duration ?: properties.expirationMillis)
 		)
 
 	/**
@@ -81,7 +81,7 @@ class JwtUtils(
 	fun createRefreshJWT(details: JwtRefreshDetails, expiration: Long? = null): String =
 		refreshJwtEncoder.createJWT(
 			details,
-			expiration ?: (System.currentTimeMillis() + refreshDurationMillis)
+			expiration ?: (System.currentTimeMillis() + properties.refreshExpirationMillis)
 		)
 
 	/**

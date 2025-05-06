@@ -3,4 +3,4 @@
  */
 package org.taktik.icure.exceptions
 
-class UnauthorizedRequestException(msg: String) : Exception(msg)
+open class UnauthorizedRequestException(msg: String, cause: Throwable? = null) : Exception(msg, cause)
