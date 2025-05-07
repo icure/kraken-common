@@ -78,7 +78,7 @@ class LoginController(
 		val securityContext = coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 		withContext(coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
 			ResponseEntity.ok().body(
-				authentication.toAuthenticationResponse(username, jwtDuration).also {
+				authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration).also {
 					if (session != null) {
 						session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 					}
@@ -87,7 +87,7 @@ class LoginController(
 		}
 	} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
 		ResponseEntity.ok().body(
-			authentication.toAuthenticationResponse(username, jwtDuration)
+			authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration)
 		)
 	} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthenticationResponse(successful = false))
 
