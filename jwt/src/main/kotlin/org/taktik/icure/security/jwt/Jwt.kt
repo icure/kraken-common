@@ -6,7 +6,7 @@ interface Jwt {
 
     val userId: String
     /**
-     * Expiration date of jwt in epoch timestamp: note this value is ignored when creating a new jwt, and it should be
+     * Expiration date of jwt in epoch seconds: note this value is ignored when creating a new jwt, and it should be
      * not null only when the JwtDetails were deserialized.
      */
     val expiration: Long?

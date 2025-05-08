@@ -1,17 +1,16 @@
 package org.taktik.icure.security.jwt
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.stereotype.Component
 import org.taktik.icure.exceptions.InvalidJwtException
-import org.taktik.icure.properties.JwtAuthProperties
+import org.taktik.icure.properties.AuthProperties
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
 @Component
 class JwtUtils(
-	val properties: JwtAuthProperties
+	val properties: AuthProperties
 ) {
 
 	val authKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
@@ -51,14 +50,21 @@ class JwtUtils(
 	 * Creates a new JWT setting as claims the [JwtDetails] passed as parameter.
 	 * The validity duration of the JWT and the key used to sign are the one specified in the configuration.
 	 * @param details an instance of [JwtDetails] that contains the details to put in the token claims.
-	 * @param duration the token duration of the token, in milliseconds.
+	 * @param durationSeconds the token duration of the token, in seconds.
 	 * @return the base64-encoded JWT
 	 */
-	fun <T : Jwt> createAuthJWT(details: T, duration: Long? = null): String =
-		authJwtEncoder.createJWT(
+	fun <T : Jwt> createAuthJWT(details: T, durationSeconds: Long? = null): String {
+		require(durationSeconds == null || durationSeconds <= properties.jwt.expirationSeconds) {
+			"The duration of a auth jwt can't be greater than ${properties.jwt.expirationSeconds} seconds (requested: $durationSeconds seconds)"
+		}
+		require(durationSeconds == null || durationSeconds > 0) {
+			"The duration of auth jwt must be strictly positive"
+		}
+		return authJwtEncoder.createJWT(
 			details,
-			System.currentTimeMillis() + (duration ?: properties.expirationMillis)
+			System.currentTimeMillis() + (durationSeconds ?: properties.jwt.expirationSeconds) * 1000,
 		)
+	}
 
 	/**
 	 * Decodes an authentication JWT and gets the claims. Throws an exception if the token is not valid or expired, unless the
@@ -69,19 +75,20 @@ class JwtUtils(
 	 */
 	suspend fun <T : Jwt> validateAndDecodeAuthDetails(converter: JwtConverter<T>, jwt: String): T =
 		converter.fromClaims(
-			JwtDecoder.validateAndGetClaims(jwt, authKeyPair.first, "com.icure.AuthJwt")
+			JwtDecoder.validateAndGetClaims(jwt, authKeyPair.first, properties.validationSkewSeconds, "com.icure.AuthJwt")
 		)
 
 	/**
 	 * Creates a refresh JWT using the userId, groupID, and tokenId from the [JwtDetails] passed as parameters.
 	 * @param details an instance of [JwtDetails] that contains the details to put in the token claims.
-	 * @param expiration the token expiration timestamp.
+	 * @param expirationSeconds the token expiration timestamp in seconds.
 	 * @return the base64-encoded refresh JWT.
 	 */
-	fun createRefreshJWT(details: JwtRefreshDetails, expiration: Long? = null): String =
+	fun createRefreshJWT(details: JwtRefreshDetails, expirationSeconds: Long? = null): String =
 		refreshJwtEncoder.createJWT(
 			details,
-			expiration ?: (System.currentTimeMillis() + properties.refreshExpirationMillis)
+			expirationSeconds?.let { it * 1000 }
+				?: (System.currentTimeMillis() + (properties.jwt.refreshExpirationSeconds * 1000)),
 		)
 
 	/**
@@ -93,7 +100,7 @@ class JwtUtils(
 	 */
 	suspend fun <T : JwtRefreshDetails> validateAndDecodeRefreshToken(converter: JwtConverter<T>, refreshJwt: String): T =
 		converter.fromClaims(
-			JwtDecoder.validateAndGetClaims(refreshJwt, refreshKeyPair.first, "com.icure.RefreshJwt")
+			JwtDecoder.validateAndGetClaims(refreshJwt, refreshKeyPair.first, properties.validationSkewSeconds, "com.icure.RefreshJwt")
 		)
 
 	/**

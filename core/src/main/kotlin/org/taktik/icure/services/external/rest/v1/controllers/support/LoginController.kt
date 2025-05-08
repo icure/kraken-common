@@ -104,7 +104,7 @@ class LoginController(
 			val username = loginCredentials.username!!
 
 			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, null)
-			produceAuthenticationResponse(authentication, username, duration?.seconds?.inWholeMilliseconds, session)
+			produceAuthenticationResponse(authentication, username, duration, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")
 			ResponseEntity.status(

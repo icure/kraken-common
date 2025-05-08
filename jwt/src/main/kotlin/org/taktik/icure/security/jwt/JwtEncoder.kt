@@ -8,7 +8,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
-import java.util.*
+import java.util.Date
 
 
 class JwtEncoder<T : Jwt>(
@@ -20,7 +20,7 @@ class JwtEncoder<T : Jwt>(
 			.build()
 	)
 
-	fun createJWT(details: T, expirationTimestamp: Long): String {
+	fun createJWT(details: T, expirationTimestampMillis: Long): String {
 		// Create signed JWT
 		val signedJWT = SignedJWT(
 			JWSHeader.Builder(JWSAlgorithm.RS256).build(),
@@ -28,7 +28,7 @@ class JwtEncoder<T : Jwt>(
 				details.toClaimsOmittingExpiration().forEach { (k, v) ->
 					if (v != null) claim(k, v)
 				}
-				expirationTime(Date(expirationTimestamp))
+				expirationTime(Date(expirationTimestampMillis))
 			}.build()
 		)
 		signedJWT.sign(signer)

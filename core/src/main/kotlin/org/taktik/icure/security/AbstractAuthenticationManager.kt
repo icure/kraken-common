@@ -66,7 +66,7 @@ abstract class AbstractAuthenticationManager <
      * @param bypassRefreshValidityCheck whether to bypass the validity check for the refresh token.
      * @param totpToken if the refresh details have authentication class `password` or `2fa` the
      * totp token can be used to make the newly generated token valid for elevated security operations.
-     * @return the JwtDetails and duration.
+     * @return the JwtDetails and duration in seconds.
      */
     abstract suspend fun regenerateAuthJwt(encodedRefreshToken: String, bypassRefreshValidityCheck: Boolean = false, totpToken: String? = null): Pair<JWT, Long?>
 
@@ -85,10 +85,10 @@ abstract class AbstractAuthenticationManager <
                 } else {
                     encodedJwtToAuthentication(authentication?.credentials as String)
                 }
-            ).also {
-                loadSecurityContext()?.map { ctx ->
-                    ctx.authentication = it
-                }?.awaitFirstOrNull()
+            ).also { auth ->
+                loadSecurityContext()
+                    ?.awaitFirstOrNull()
+                    ?.also { ctx -> ctx.authentication = auth }
             }
         } catch (e: Exception) {
             val message = e.message ?: "An error occurred while decoding Jwt"

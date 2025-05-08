@@ -76,18 +76,18 @@ class LoginController(
 	) = mono {
 		try {
 			val authentication = sessionLogic.login(loginCredentials.username!!, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, applicationId)
-			if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
+			if (authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext = kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 				withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
-					authentication.toJwtResponse(jwtUtils, duration?.seconds?.inWholeMilliseconds).also {
+					authentication.toJwtResponse(jwtUtils, duration).also {
 						if (session != null) {
 							session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 						}
 					}.let(jwtResponseV2Mapper::map)
 				}
-			} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
-				authentication.toJwtResponse(jwtUtils, duration?.seconds?.inWholeMilliseconds).let(jwtResponseV2Mapper::map)
+			} else if (authentication.isAuthenticated && !sessionEnabled) {
+				authentication.toJwtResponse(jwtUtils, duration).let(jwtResponseV2Mapper::map)
 			} else throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 		} catch (e: Exception) {
 			val status = when(e){
