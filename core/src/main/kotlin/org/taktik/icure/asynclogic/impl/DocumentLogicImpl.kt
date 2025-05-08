@@ -176,16 +176,27 @@ open class DocumentLogicImpl(
 	}
 
 	override suspend fun updateAttachments(
-		currentDocument: Document, mainAttachmentChange: DataAttachmentChange?, secondaryAttachmentsChanges: Map<String, DataAttachmentChange>
+		documentId: String,
+		documentRev: String?,
+		mainAttachmentChange: DataAttachmentChange?,
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>
 	): Document? {
-		return attachmentModificationLogic.updateAttachments(currentDocument, mainAttachmentChange?.let {
-			if (it is DataAttachmentChange.CreateOrUpdate && it.utis == null && currentDocument.mainAttachment == null) {
-				// Capture cases where the document has no attachment id set (main attachment is null) but specifies some utis
-				it.copy(utis = listOfNotNull(currentDocument.mainUti) + currentDocument.otherUtis)
-			} else it
-		}?.let {
-			secondaryAttachmentsChanges + (currentDocument.mainAttachmentKey to it)
-		} ?: secondaryAttachmentsChanges)
+		return attachmentModificationLogic.updateAttachments(
+			documentId,
+			documentRev,
+			mainAttachmentChange?.let {
+				if (it is DataAttachmentChange.CreateOrUpdate && it.utis == null) {
+					val currentDocument = documentDAO.get(getInstanceAndGroup(), documentId)
+					if (currentDocument?.mainAttachment == null)
+						// Capture cases where the document has no attachment id set (main attachment is null) but specifies some utis
+						it.copy(utis = listOfNotNull(currentDocument?.mainUti) + currentDocument?.otherUtis.orEmpty())
+					else
+						it
+				} else it
+			}?.let {
+				secondaryAttachmentsChanges + (Document.mainAttachmentKeyFromId(documentId) to it)
+			} ?: secondaryAttachmentsChanges
+		)
 	}
 
 	override fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(

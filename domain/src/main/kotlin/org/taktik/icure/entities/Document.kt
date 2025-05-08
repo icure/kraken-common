@@ -113,7 +113,9 @@ data class Document(
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
 
 ) : StoredICureDocument, HasEncryptionMetadata, HasDataAttachments<Document>, Encryptable {
-	companion object : DynamicInitializer<Document>
+	companion object : DynamicInitializer<Document> {
+		fun mainAttachmentKeyFromId(id: String) = id
+	}
 
 	@get:JsonIgnore
 	val mainAttachmentKey: String get() = id
