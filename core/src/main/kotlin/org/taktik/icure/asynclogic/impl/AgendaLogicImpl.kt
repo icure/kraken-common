@@ -7,8 +7,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
@@ -21,9 +19,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class AgendaLogicImpl(
+open class AgendaLogicImpl(
 	private val agendaDAO: AgendaDAO,
 	private val sdkVersionConfig: SdkVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
