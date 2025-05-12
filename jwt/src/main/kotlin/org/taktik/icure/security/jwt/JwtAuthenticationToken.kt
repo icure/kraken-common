@@ -7,7 +7,7 @@ import org.taktik.icure.services.external.rest.v1.dto.AuthenticationResponse
 
 
 interface JwtAuthentication : Authentication {
-    fun toAuthenticationResponse(jwtUtils: JwtUtils, username: String, jwtDuration: Long? = null): AuthenticationResponse
+    fun toAuthenticationResponse(jwtUtils: JwtUtils, username: String?, jwtDuration: Long? = null): AuthenticationResponse
     fun toJwtResponse(jwtUtils: JwtUtils, jwtDuration: Long? = null): JwtResponse
 }
 
