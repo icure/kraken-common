@@ -95,7 +95,7 @@ class LoginController(
 	@PostMapping("/login")
 	fun login(
 		request: ServerHttpRequest,
-		@Parameter(description = "The duration of the generated token. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
+		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
 		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
