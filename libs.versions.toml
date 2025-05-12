@@ -1,5 +1,5 @@
 [versions]
-springBoot = "3.3.5"
+springBoot = "3.3.11"
 springSecurity = "6.3.4"
 springFramework = "6.1.14"
 springSession = "3.3.3"
@@ -19,6 +19,7 @@ springBootWebflux = { group = "org.springframework.boot", name = "spring-boot-st
 springBootSecurity = { group = "org.springframework.boot", name = "spring-boot-starter-security", version.ref = "springBoot"  }
 springBootActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version.ref = "springBoot"  }
 springBootCache = { group = "org.springframework.boot", name = "spring-boot-starter-cache", version.ref = "springBoot"  }
+springBootOauth2 = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-client", version.ref = "springBoot" }
 springAspects = { group = "org.springframework", name = "spring-aspects", version.ref = "springFramework" }
 springWebsocket = { group = "org.springframework", name = "spring-websocket", version.ref = "springFramework" }
 springMessaging = { group = "org.springframework", name = "spring-messaging", version.ref = "springFramework" }
@@ -77,7 +78,7 @@ betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", 
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 icureTestSetup = { group = "io.icure", name = "icure-e2e-test-setup", version = "0.0.24-gc854bb2431" }
 kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
-googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.0" }
+googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.4" }
 kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
