@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -97,6 +98,21 @@ class AgendaDAOImpl(
 		val viewQuery = createQuery(datastoreInformation, "readable_by_user_rights", MAURICE_PARTITION)
 			.startKey(userId)
 			.endKey(userId)
+			.includeDocs(false)
+
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
+	}
+
+	@View(name = "by_string_property", map = "classpath:js/agenda/By_string_property.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listAgendasByStringProperty(
+		datastoreInformation: IDatastoreInformation,
+		propertyId: String,
+		propertyValue: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_string_property", MAURICE_PARTITION)
+			.key(ComplexKey.of(propertyId, propertyId))
 			.includeDocs(false)
 
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })

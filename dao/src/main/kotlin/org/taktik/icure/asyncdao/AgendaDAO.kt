@@ -53,4 +53,15 @@ interface AgendaDAO : GenericDAO<Agenda> {
 	 * @return a [Flow] of [Agenda.id]s
 	 */
 	fun listReadableAgendaIdsByUserRights(datastoreInformation: IDatastoreInformation, userId: String): Flow<String>
+
+	/**
+	 * Retrieves all the [Agenda.id]s for the agendas that have at least one [Agenda.properties] where the id is
+	 * [propertyId] and the stringValue of the typedValue is equal to [propertyValue].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param propertyId the id of the property to search.
+	 * @param propertyValue the stringValue of the property to search.
+	 * @return a [Flow] of [Agenda.id]s
+	 */
+	fun listAgendasByStringProperty(datastoreInformation: IDatastoreInformation, propertyId: String, propertyValue: String): Flow<String>
 }
