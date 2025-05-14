@@ -173,10 +173,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilte
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByNameEmailPhoneFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatientIdFilter
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.GenderV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.utils.ExternalFilterKeyV2Mapper
 
-@Mapper(componentModel = "default", uses = [IdentifierV2Mapper::class, GenderV2Mapper::class, ExternalFilterKeyV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "default", uses = [IdentifierV2Mapper::class, GenderV2Mapper::class, ExternalFilterKeyV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class FilterV2Mapper {
 
 	abstract fun <O : Identifiable<String>> map(filterDto: ExternalViewFilter): org.taktik.icure.domain.filter.impl.ExternalViewFilter<O>
@@ -196,7 +197,6 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: AllAgendasFilter): org.taktik.icure.domain.filter.impl.agenda.AllAgendasFilter
 	abstract fun map(filterDto: AgendaByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByUserIdFilter
 	abstract fun map(filterDto: AgendaReadableByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserIdFilter
-	abstract fun map(filterDto: AgendaReadableByUserRightsFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserRightsFilter
 	abstract fun map(filterDto: AgendaReadableByUserRightsFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserRightsFilter
 	abstract fun map(filterDto: AgendaByTypedPropertyFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByTypedPropertyFilter
 	abstract fun map(filterDto: AgendaWithPropertyFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaWithPropertyFilter
