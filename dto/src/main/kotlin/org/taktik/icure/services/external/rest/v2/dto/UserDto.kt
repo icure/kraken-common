@@ -88,7 +88,8 @@ data class UserDto(
 		@Schema(description = "Specifies if the user is an admin in the cloud environment. An admin user is considered to have the permissions to do anything on his group and on children groups.", required = true)
 		val isAdmin: Boolean,
 		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).", required = true)
-		val inheritsRoles: Boolean
+		val inheritsRoles: Boolean,
+		@Schema(description = "Identifiers of the user available for login")
+		@JsonInclude(JsonInclude.Include.NON_EMPTY) val loginIdentifiers: List<IdentifierDto> = emptyList()
 	): Serializable
-
 }

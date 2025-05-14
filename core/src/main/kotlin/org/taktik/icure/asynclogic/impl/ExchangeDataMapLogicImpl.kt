@@ -13,6 +13,7 @@ import org.taktik.icure.asyncdao.ExchangeDataMapDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.utils.Base64String
@@ -23,26 +24,34 @@ import org.taktik.icure.utils.hexStringToByteArray
 import org.taktik.icure.validation.aspect.Fixer
 import java.lang.IllegalStateException
 
-@Service
-@Profile("app")
-class ExchangeDataMapLogicImpl(
+open class ExchangeDataMapLogicImpl(
     private val exchangeDataMapDAO: ExchangeDataMapDAO,
-    private val datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer,
-    filters: Filters
-) : GenericLogicImpl<ExchangeDataMap, ExchangeDataMapDAO>(fixer, datastoreInstanceProvider, filters), ExchangeDataMapLogic {
-    override fun getGenericDAO(): ExchangeDataMapDAO = exchangeDataMapDAO
+    private val datastoreInstanceProvider: DatastoreInstanceProvider
+) : ExchangeDataMapLogic {
 
     override suspend fun modifyExchangeDataMap(exchangeDataMap: ExchangeDataMap): ExchangeDataMap? =
-        modifyEntities(listOf(exchangeDataMap)).single()
+        exchangeDataMapDAO.save(datastoreInstanceProvider.getInstanceAndGroup(), exchangeDataMap)
 
-    override fun getExchangeDataMapBatch(ids: Collection<String>): Flow<ExchangeDataMap> =
-        getEntities(ids)
+    override fun getExchangeDataMapBatch(ids: Collection<String>): Flow<ExchangeDataMap> = flow {
+        emitAll(exchangeDataMapDAO.getEntities(datastoreInstanceProvider.getInstanceAndGroup(), ids))
+    }
 
-    override fun createOrUpdateExchangeDataMapBatchById(batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>): Flow<ExchangeDataMap> = flow {
+    override fun createOrUpdateExchangeDataMapBatchById(
+        batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>
+    ): Flow<ExchangeDataMap> = flow {
+        emitAll(doCreateOrUpdateExchangeDataMapBatchById(batch, datastoreInstanceProvider.getInstanceAndGroup()))
+    }
+
+    override fun createOrUpdateExchangeDataMapBatchByAccessControlKey(batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>): Flow<ExchangeDataMap> =
+        createOrUpdateExchangeDataMapBatchById(batch.mapKeys { (k, _) -> hashAccessControlKey(k.hexStringToByteArray()) })
+
+    protected fun doCreateOrUpdateExchangeDataMapBatchById(
+        batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>,
+        datastoreInstance: IDatastoreInformation
+    ): Flow<ExchangeDataMap> = flow {
         val filteredBatch = batch.filterValues { it.isNotEmpty() }
         if (filteredBatch.isNotEmpty()) {
-            val existingBatch = getEntities(filteredBatch.keys).toList().associateBy { it.id }
+            val existingBatch = exchangeDataMapDAO.getEntities(datastoreInstance).toList().associateBy { it.id }
             val updatedBatch = filteredBatch.mapNotNull { (secDelKey, encryptedExchangeDataIds) ->
                 val originalXDM = existingBatch[secDelKey]
                 when {
@@ -59,7 +68,7 @@ class ExchangeDataMapLogicImpl(
             }
             if (updatedBatch.isNotEmpty()) {
                 emitAll(
-                    exchangeDataMapDAO.saveBulk(datastoreInstanceProvider.getInstanceAndGroup(), updatedBatch)
+                    exchangeDataMapDAO.saveBulk(datastoreInstance, updatedBatch)
                         .mapNotNull {
                             when (it) {
                                 is BulkSaveResult.Success<ExchangeDataMap> -> it.entity
@@ -77,7 +86,4 @@ class ExchangeDataMapLogicImpl(
             }
         }
     }
-
-    override fun createOrUpdateExchangeDataMapBatchByAccessControlKey(batch: Map<HexString, Map<KeypairFingerprintV2String, Base64String>>): Flow<ExchangeDataMap> =
-        createOrUpdateExchangeDataMapBatchById(batch.mapKeys { (k, _) -> hashAccessControlKey(k.hexStringToByteArray()) })
 }

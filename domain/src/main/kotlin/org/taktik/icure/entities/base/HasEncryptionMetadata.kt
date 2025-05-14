@@ -80,7 +80,6 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 fun HasEncryptionMetadata.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean =
 	delegations.containsKey(dataOwnerIdOrDelegationKey) || securityMetadata?.let { metadata ->
 		metadata.secureDelegations.containsKey(dataOwnerIdOrDelegationKey) ||
-				metadata.keysEquivalences.containsKey(dataOwnerIdOrDelegationKey) ||
 				metadata.secureDelegations.any { (_, delegation) ->
 					delegation.delegator == dataOwnerIdOrDelegationKey || delegation.delegate == dataOwnerIdOrDelegationKey
 				}

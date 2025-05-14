@@ -13,14 +13,16 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.UserDAO
+import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
@@ -32,12 +34,12 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.DuplicateDocumentException
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.security.credentials.SecretValidator
+import org.taktik.icure.security.user.GlobalUserUpdater
 import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
@@ -50,7 +52,8 @@ open class UserLogicImpl (
 	protected val userDAO: UserDAO,
 	protected val secretValidator: SecretValidator,
 	private val userEnhancer: UserEnhancer,
-	fixer: Fixer
+	fixer: Fixer,
+	private val globalUserUpdater: GlobalUserUpdater
 ) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters), UserLogic {
 
 	private val shortTokenFormatter = DecimalFormat("000000")
@@ -107,29 +110,48 @@ open class UserLogicImpl (
 			?.let { userEnhancer.enhance(it, false) }
 	}
 
-	override suspend fun createUser(user: User): EnhancedUser? = doCreateUser(
-		user,
-		getByEmail = { getUserByEmail(it) },
-		getByLogin = { getUserByLogin(it) },
-		createUser = { createEntities(setOf(it)).firstOrNull() }
-	)?.let { userEnhancer.enhance(it, false) }
-
-	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		for (user in entities) {
-			fix(user.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets), isCreate = true) { fixedUser ->
-				userDAO.create(
-					datastoreInformation, fixedUser
-				)?.let { createdUser -> userEnhancer.enhance(createdUser, false) }
-			}?.let { emit(it) }
-		}
+	override suspend fun createUser(user: User): EnhancedUser? {
+		require(user.rev == null) { "New user should have null revision" }
+		return createOrModifyUser(user)
 	}
 
-	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? = fix(modifiedUser, isCreate = false) { fixedUser ->
-		// Save user
-		val datastoreInformation = getInstanceAndGroup()
-		val userToUpdate = fixedUser.hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets)
-		userDAO.save(datastoreInformation, userToUpdate)?.let { userEnhancer.enhance(it, false) }
+	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? {
+		require(modifiedUser.rev != null) { "Modified user should have non-null revision" }
+		return createOrModifyUser(modifiedUser)
+	}
+
+	private suspend fun createOrModifyUser(user: User): EnhancedUser? {
+		val created: User = doCreateOrModifyUsers(
+			getInstanceAndGroup(),
+			listOf(user),
+			true
+		).single().entityOrThrow()
+		return userEnhancer.enhance(globalUserUpdater.tryUpdate(created), false)
+	}
+
+	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> {
+		entities.forEach { require(it.rev == null) { "New user should have null revision" } }
+		return createOrModifyEntities(entities)
+	}
+
+	override fun modifyEntities(entities: Collection<User>): Flow<User> {
+		entities.forEach { require(it.rev != null) { "Updated user should have non-null revision" } }
+		return createOrModifyEntities(entities)
+	}
+
+	private fun createOrModifyEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
+		emitAll(
+			userEnhancer.enhanceFlow(
+				globalUserUpdater.tryingUpdates(
+					doCreateOrModifyUsers(
+						getInstanceAndGroup(),
+						entities,
+						false
+					).filterSuccessfulUpdates()
+				),
+				false
+			)
+		)
 	}
 
 	override suspend fun createOrUpdateToken(
@@ -143,25 +165,28 @@ open class UserLogicImpl (
 		return doCreateToken(key, tokenValidity, token, useShortToken, datastoreInformation) {
 			getUserByGenericIdentifier(userIdentifier)
 				?: throw DocumentNotFoundException("User $userIdentifier not found")
+		}.let {
+			globalUserUpdater.tryUpdate(it.first)
+			it.second
 		}
 	}
 
 	override suspend fun disableUser(userId: String): User? {
 		return getUser(userId, false)?.let {
 			val datastoreInformation = getInstanceAndGroup()
-			userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))
+			userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))?.also {
+				globalUserUpdater.tryUpdate(it)
+			}
 		}
 	}
 
 	override suspend fun enableUser(userId: String): User? {
 		return getUser(userId, false)?.let {
 			val datastoreInformation = getInstanceAndGroup()
-			userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))
+			userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))?.also { it ->
+				globalUserUpdater.tryUpdate(it)
+			}
 		}
-	}
-
-	override fun modifyEntities(entities: Collection<User>): Flow<User> = flow {
-		emitAll(entities.asFlow().mapNotNull { modifyUser(it) })
 	}
 
 	override fun getEntities(): Flow<EnhancedUser> = flow {
@@ -252,6 +277,7 @@ open class UserLogicImpl (
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
 	) =  flow {
+		// TODO need to notify separately global user updater or do we let the UserReplicator take care of it?
 		val flow = ids?.asFlow()?.mapNotNull { userDAO.get(datastoreInformation, it, Option.CONFLICTS) }
 			?: userDAO.listConflicts(datastoreInformation)
 				.mapNotNull { userDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
@@ -284,49 +310,110 @@ open class UserLogicImpl (
 	 * - To remove all the system fields that do not belong to the user (roles, permissions, application tokens).
 	 * - To hash the password, if set.
 	 * - To create the user.
-	 *
-	 * @receiver an [AutoFixableLogic] of [User]
-	 * @param user the [User] to be created.
-	 * @param getByEmail a function that receives an email and returns the [User] with that email, or null if it does not
-	 * exist.
-	 * @param getByLogin a function that receives a user login and returns the [User] with that login, or null if it does
-	 * not exist.
-	 * @param createUser a function that receives a [User] and creates it, returning the created [User] if the operation
-	 * was completed successfully and null otherwise.
-	 * @return the created [User] or null.
 	 */
-	protected suspend fun doCreateUser(
+	protected fun doCreateOrModifyUsers(
+		datastoreInformation: IDatastoreInformation,
+		users: Collection<User>,
+		throwOnDuplicate: Boolean
+	): Flow<BulkSaveResult<User>> = flow {
+		val existingUsers = users.filter { it.rev != null }.takeIf { it.isNotEmpty() }?.let { updates ->
+			userDAO.getEntities(datastoreInformation, updates.map { it.id }).toList().associateBy { it.id }
+		}.orEmpty()
+		users.forEach { validateUser(it, existingUsers[it.id]) }
+		val nonDuplicateUsers = users.toMutableList()
+		checkOrFilterDuplicates(
+			nonDuplicateUsers,
+			existingUsers,
+			throwOnDuplicate,
+			"logins",
+			{ it.login },
+			{ userDAO.findUsedUsernames(datastoreInformation, it) }
+		)
+		checkOrFilterDuplicates(
+			nonDuplicateUsers,
+			existingUsers,
+			throwOnDuplicate,
+			"emails",
+			{ it.email },
+			{ userDAO.findUsedEmails(datastoreInformation, it) }
+		)
+		checkOrFilterDuplicates(
+			nonDuplicateUsers,
+			existingUsers,
+			throwOnDuplicate,
+			"phones",
+			{ it.login },
+			{ userDAO.findUsedPhones(datastoreInformation, it) }
+		)
+		nonDuplicateUsers.map { user ->
+			fix(
+				user.copy(
+					createdDate = Instant.now(),
+					status = user.status ?: Users.Status.ACTIVE,
+					login = user.login ?: user.email ?: user.mobilePhone,
+					email = user.email?.takeIf { it.isNotBlank() },
+					mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
+					applicationTokens = emptyMap(),
+				).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
+				isCreate = user.rev == null
+			)
+		}.takeIf { it.isNotEmpty() }?.also {
+			emitAll(userDAO.saveBulk(datastoreInformation, it))
+		}
+	}
+
+	private suspend inline fun checkOrFilterDuplicates(
+		users: MutableList<User>,
+		existingUsers: Map<String, User>,
+		throwOnDuplicate: Boolean,
+		fieldsName: String,
+		crossinline checkField: (User) -> String?,
+		getExisting: (Collection<String>) -> Flow<String>
+	) {
+		users.mapNotNull { u ->
+			val updatedField = checkField(u)
+			if (updatedField == existingUsers[u.id]?.let(checkField))
+				// If entity existed and the field has been unchanged we trust it is still unique
+				null
+			else
+				updatedField
+		}.takeIf {
+			it.isNotEmpty()
+		}?.also { fields ->
+			val existingFields = getExisting(fields).toSet()
+			if (throwOnDuplicate && existingFields.isNotEmpty())
+				throw DuplicateDocumentException("Users with $fieldsName $existingFields already exist")
+			else
+				users.removeAll { checkField(it) != null && checkField(it) in existingFields }
+		}
+	}
+
+	private val EMAIL_REGEX = Regex(".+@.+")
+	private val PHONE_REGEX = Regex("\\+?[0-9]{6,20}")
+	fun validateUser(
 		user: User,
-		getByEmail: suspend (email: String) -> User?,
-		getByLogin: suspend (login: String) -> User?,
-		createUser: suspend (updatedUser: User) -> User?,
-	): User? {
-		val login = user.login?.takeIf { it.isNotBlank() }
-			?: user.email?.takeIf { it.isNotBlank() } // TODO we could check with a regex if it is a valid email
-			?: user.mobilePhone?.takeIf { it.isNotBlank() } // TODO we could check with a regex if it is a valid phone number
-			?: throw MissingRequirementsException("createUser: Requirements are not met. One of Email, Login or Mobile Phone has to be not null and not blank.")
-		if (
-			user.email?.takeIf { it.isNotBlank() }?.let { getByEmail(it) } != null
+		existingUser: User?
+	) {
+		require(
+			!user.login.isNullOrBlank() ||
+			!user.email.isNullOrBlank() ||
+			!user.mobilePhone.isNullOrBlank()
 		) {
-			throw DuplicateDocumentException("User with email ${user.email} already exists")
+			"Invalid user ${user.id} - one of `login`, `email` or `mobilePhone` must be not blank"
 		}
-		if (
-			getByLogin(login) != null
+		require(
+			user.mobilePhone?.let {
+				it == existingUser?.mobilePhone || PHONE_REGEX.matchEntire(it) != null
+			} ?: true
 		) {
-			throw DuplicateDocumentException("User with login $login already exists")
+			"Invalid mobilePhone \"${user.mobilePhone}\" for user ${user.id}"
 		}
-		return fix(
-			user.copy(
-				createdDate = Instant.now(),
-				status = user.status ?: Users.Status.ACTIVE,
-				login = login,
-				email = user.email?.takeIf { it.isNotBlank() },
-				mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
-				applicationTokens = emptyMap(),
-			).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
-			isCreate = true
+		require(
+			user.email?.let {
+				it == existingUser?.email || EMAIL_REGEX.matchEntire(it) != null
+			} ?: true
 		) {
-			createUser(it)
+			"Invalid email \"${user.email}\" for user ${user.id}"
 		}
 	}
 
@@ -351,7 +438,7 @@ open class UserLogicImpl (
 		useShortToken: Boolean,
 		datastoreInformation: IDatastoreInformation,
 		getUser: suspend () -> User
-	): String {
+	): Pair<User, String> {
 		val user = getUser()
 
 		// Short tokens generated by this code are not perfectly uniformly distributed but good enough
@@ -365,21 +452,42 @@ open class UserLogicImpl (
 				if (useShortToken || authenticationToken.length < 10) 600 else Long.MAX_VALUE
 			)
 
-		userDAO.save(
-			datastoreInformation,
-			user.copy(
-				authenticationTokens = user.authenticationTokens + (key to AuthenticationToken(
-					secretValidator.encodeAndValidateSecrets(
-						authenticationToken,
-						if(tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY)
-							SecretType.SHORT_TOKEN
-						else SecretType.LONG_TOKEN
-					),
-					validity = tokenValidity))
-			)
-		) ?: throw IllegalStateException("Cannot create token for user")
+		return Pair(
+			userDAO.save(
+				datastoreInformation,
+				user.copy(
+					authenticationTokens = user.authenticationTokens + (key to AuthenticationToken(
+						secretValidator.encodeAndValidateSecrets(
+							authenticationToken,
+							if(tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY)
+								SecretType.SHORT_TOKEN
+							else SecretType.LONG_TOKEN
+						),
+						validity = tokenValidity))
+				)
+			) ?: throw IllegalStateException("Cannot create token for user"),
+			authenticationToken
+		)
+	}
 
-		return authenticationToken
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<User> {
+		return globalUserUpdater.tryingUpdates(super.deleteEntities(identifiers))
+	}
+
+	override suspend fun undeleteEntity(id: String, rev: String?): User {
+		return globalUserUpdater.tryUpdate(super.undeleteEntity(id, rev))
+	}
+
+	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<User> {
+		return globalUserUpdater.tryingUpdates(super.undeleteEntities(identifiers))
+	}
+
+	override suspend fun deleteEntity(id: String, rev: String?): User {
+		return globalUserUpdater.tryUpdate(super.deleteEntity(id, rev))
+	}
+
+	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier {
+		return super.purgeEntity(id, rev).also { globalUserUpdater.tryPurge(localId = id, localRev = rev) }
 	}
 }
 

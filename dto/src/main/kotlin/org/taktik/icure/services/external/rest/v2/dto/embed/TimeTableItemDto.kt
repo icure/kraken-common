@@ -44,5 +44,7 @@ data class TimeTableItemDto(
 	val placeId: String? = null,
 	val publicTimeTableItem: Boolean = false,
 	@Schema(defaultValue = "true") val acceptsNewPatient: Boolean = true,
-	val unavailable: Boolean = false
+	val unavailable: Boolean = false,
+	@Schema(description = "A list of the ids of the users who are allowed to create a CalendarItem in this slot.")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val reservingRights: Set<String> = emptySet(),
 ) : Serializable

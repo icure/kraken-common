@@ -30,7 +30,7 @@ interface UnsecureUserMapper {
 	)
 	fun map(user: User): UserDto
 
-	@Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+	@Mapper(componentModel = "spring", uses = [IdentifierMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 	interface SystemMetadataMapper {
 		fun map(metaDto: UserDto.SystemMetadata): User.SystemMetadata
 

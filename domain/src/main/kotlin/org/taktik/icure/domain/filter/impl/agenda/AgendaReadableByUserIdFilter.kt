@@ -16,5 +16,4 @@ data class AgendaReadableByUserIdFilter(
 
 	override fun matches(item: Agenda, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
 		item.rights.any { it.userId == userId }
-
 }

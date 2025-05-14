@@ -107,7 +107,8 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<ComplexKey, String>(createQuery(
 			datastoreInformation,
-			"by_data_owner_decision_reference_map"
+			"by_data_owner_decision_reference_map",
+			secondaryPartition = DATA_OWNER_PARTITION
 		).includeDocs(false).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).reduce(false)).map { it.id })
 	}
 

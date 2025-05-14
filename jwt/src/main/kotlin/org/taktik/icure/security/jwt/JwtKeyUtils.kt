@@ -1,12 +1,13 @@
 package org.taktik.icure.security.jwt
 
 import java.security.KeyFactory
-import java.security.KeyPair
-import java.security.PrivateKey
-import java.security.PublicKey
+import java.security.KeyPairGenerator
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.*
+import java.util.Base64
+
 
 object JwtKeyUtils {
 
@@ -15,14 +16,14 @@ object JwtKeyUtils {
 	private const val PUBLIC_KEY_HEADER = "-----BEGIN PUBLIC KEY-----"
 	private const val PUBLIC_KEY_FOOTER = "-----END PUBLIC KEY-----"
 
-	fun createKeyPairFromString(publicKey: String, privateKey: String): KeyPair {
-		return KeyPair(
+	fun decodeKeyPairFromString(publicKey: String, privateKey: String): Pair<RSAPublicKey, RSAPrivateKey> {
+		return Pair(
 			decodePublicKeyFromString(publicKey),
 			decodePrivateKeyFromString(privateKey)
 		)
 	}
 
-	fun decodePublicKeyFromString(publicKey: String): PublicKey {
+	fun decodePublicKeyFromString(publicKey: String): RSAPublicKey {
 		val publicBytes = Base64.getDecoder().decode(
 			publicKey
 				.replace("\n", "")
@@ -30,10 +31,10 @@ object JwtKeyUtils {
 				.replace(PUBLIC_KEY_FOOTER, "")
 		)
 		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePublic(X509EncodedKeySpec(publicBytes))
+		return keyFactory.generatePublic(X509EncodedKeySpec(publicBytes)) as RSAPublicKey
 	}
 
-	private fun decodePrivateKeyFromString(privateKey: String): PrivateKey {
+	private fun decodePrivateKeyFromString(privateKey: String): RSAPrivateKey {
 		val privateBytes = Base64.getDecoder().decode(
 			privateKey
 				.replace("\n", "")
@@ -41,7 +42,16 @@ object JwtKeyUtils {
 				.replace(PRIVATE_KEY_FOOTER, "")
 		)
 		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePrivate(PKCS8EncodedKeySpec(privateBytes))
+		return keyFactory.generatePrivate(PKCS8EncodedKeySpec(privateBytes)) as RSAPrivateKey
 	}
 
+	fun generateKeyPair(): Pair<RSAPublicKey, RSAPrivateKey> {
+		val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+		keyPairGenerator.initialize(2048) // Key size
+		val keyPair = keyPairGenerator.generateKeyPair()
+		return Pair(
+			keyPair.public as RSAPublicKey,
+			keyPair.private as RSAPrivateKey
+		)
+	}
 }

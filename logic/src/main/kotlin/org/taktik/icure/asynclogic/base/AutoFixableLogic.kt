@@ -11,6 +11,7 @@ abstract class AutoFixableLogic<E : Identifiable<String>>(private val fixer: Fix
      * default value based on the strategy defined in the [fixer].
      *
      * @param doc an [E] to autofix.
+     * @param isCreate true if the fix is for a create operation or not.
      * @param next a suspend function that takes as input the auto-fixed document [E] and returns an [R].
      * @return the output [R] of next.
      */
@@ -23,6 +24,7 @@ abstract class AutoFixableLogic<E : Identifiable<String>>(private val fixer: Fix
      * default value based on the strategy defined in the [fixer].
      *
      * @param doc an [E] to autofix.
+     * @param isCreate true if the fix is for a create operation or not.
      * @return an auto-fixed [E].
      */
     protected suspend fun fix(doc: E, isCreate: Boolean): E = fixer.fix(doc, isCreate)
