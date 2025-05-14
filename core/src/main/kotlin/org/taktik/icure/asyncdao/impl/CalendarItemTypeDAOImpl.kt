@@ -36,7 +36,7 @@ class CalendarItemTypeDAOImpl(
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<CalendarItemType>(CalendarItemType::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CalendarItemTypeDAO {
-	@View(name = "by_agenda_id", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && doc.agendaId) emit( doc.agendaId , null )}", secondaryPartition = MAURICE_PARTITION)
+	@View(name = "by_agenda_id", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && doc.agendaId && !doc.deleted) emit( doc.agendaId , null )}", secondaryPartition = MAURICE_PARTITION)
 	override fun listCalendarItemTypesByAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		agendaId: String
