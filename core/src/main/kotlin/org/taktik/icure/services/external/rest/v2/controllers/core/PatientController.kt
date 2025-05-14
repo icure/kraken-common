@@ -488,9 +488,9 @@ class PatientController(
 	fun createPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
 		doCreatePatients(patientDtos, patientV2Mapper::map)
 
-	private inline fun <T : Any> doCreatePatients(
+	private fun <T : Any> doCreatePatients(
 		patientDtos: List<PatientDto>,
-		crossinline mapResult: (Patient) -> T
+		mapResult: (Patient) -> T
 	): Flux<T> =
 		flow {
 			val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
