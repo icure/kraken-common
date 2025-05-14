@@ -13,12 +13,14 @@ data class AgendaByTypedPropertyFilter(
 
 	init {
 		requireNotNull(property.id) { "Property in AgendaByTypedPropertyFilter has null id" }
-		requireNotNull(
-			property.typedValue?.stringValue
-				?: property.typedValue?.booleanValue
-				?: property.typedValue?.stringValue
-				?: property.typedValue?.doubleValue
-		) { "Property in AgendaByTypedPropertyFilter has null value" }
+		require(
+			listOfNotNull(
+			property.typedValue?.stringValue,
+				property.typedValue?.booleanValue,
+				property.typedValue?.stringValue,
+				property.typedValue?.doubleValue
+			).size == 1
+		) { "Property in AgendaByTypedPropertyFilter must have only one non-null value" }
 	}
 
 	override val canBeUsedInWebsocket = true

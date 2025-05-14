@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -29,6 +28,7 @@ import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.entities.base.PropertyStub
+import org.taktik.icure.utils.distinct
 
 @Repository("AgendaDAO")
 @Profile("app")
@@ -116,13 +116,14 @@ class AgendaDAOImpl(
 			"Cannot use a property with null id as key"
 		}
 
-		val key = when {
-			property.typedValue?.stringValue != null -> ComplexKey.of(propertyId, "s", property.typedValue!!.stringValue)
-			property.typedValue?.booleanValue != null -> ComplexKey.of(propertyId, "b", property.typedValue!!.booleanValue)
-			property.typedValue?.integerValue != null -> ComplexKey.of(propertyId, "i", property.typedValue!!.integerValue)
-			property.typedValue?.doubleValue != null -> ComplexKey.of(propertyId, "d", property.typedValue!!.doubleValue)
-			else -> throw IllegalStateException("Property has no typed value")
-		}
+		val key = listOfNotNull(
+		property.typedValue?.stringValue?.let { ComplexKey.of(propertyId, "s", it) },
+			property.typedValue?.booleanValue?.let { ComplexKey.of(propertyId, "b", it) },
+			property.typedValue?.integerValue?.let { ComplexKey.of(propertyId, "i", it) },
+			property.typedValue?.doubleValue?.let { ComplexKey.of(propertyId, "d", it) },
+		).also {
+			require(it.size == 1) { "Key property must have only one non-null value" }
+		}.first()
 
 		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
 			.key(key)
@@ -141,6 +142,6 @@ class AgendaDAOImpl(
 			.endKey(ComplexKey.of(propertyId, ComplexKey.emptyObject(), ComplexKey.emptyObject()))
 			.includeDocs(false)
 
-		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinctUntilChanged())
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinct())
 	}
 }
