@@ -117,7 +117,7 @@ class AgendaDAOImpl(
 		}
 
 		val key = listOfNotNull(
-		property.typedValue?.stringValue?.let { ComplexKey.of(propertyId, "s", it) },
+			property.typedValue?.stringValue?.let { ComplexKey.of(propertyId, "s", it) },
 			property.typedValue?.booleanValue?.let { ComplexKey.of(propertyId, "b", it) },
 			property.typedValue?.integerValue?.let { ComplexKey.of(propertyId, "i", it) },
 			property.typedValue?.doubleValue?.let { ComplexKey.of(propertyId, "d", it) },
