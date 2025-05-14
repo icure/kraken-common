@@ -35,13 +35,19 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
     /**
      * Updates an entity attachments, also performing any side-tasks necessary for the appropriate
      * storage of the attachments content.
-     * @param currEntity the current value of the entity which needs to be updated.
+     * @param entityId id of the entity to update
+     * @param expectedRev expected revision for the entity to update. If not null and doesn't match the stored entity
+     * the method will fail with a revision conflict.
      * @param changes the changes to apply to the entity attachments.
      * @return the updated entity
      * @throws ObjectStorageException if one or more attachments must be stored using the object
      * storage service but this is not possible at the moment.
      */
-    suspend fun updateAttachments(currEntity: T, changes: Map<String, DataAttachmentChange>): T?
+    suspend fun updateAttachments(
+        entityId: String,
+        expectedRev: String?,
+        changes: Map<String, DataAttachmentChange>
+    ): T?
 
     /**
      * Delete the attachments of an entity that was purged.

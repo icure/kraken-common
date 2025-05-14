@@ -26,13 +26,15 @@ import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.validation.DataOwnerProvider
 
 open class ExchangeDataLogicImpl(
     private val exchangeDataDAO: ExchangeDataDAO,
     private val datastoreInstanceProvider: DatastoreInstanceProvider,
     private val baseEntityInfoDao: EntityInfoDAO,
     private val patientEntityInfoDao: EntityInfoDAO,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val dataOwnerProvider: DataOwnerProvider
 ) : ExchangeDataLogic {
     companion object {
         const val PAGE_SIZE = 100
@@ -68,6 +70,9 @@ open class ExchangeDataLogicImpl(
     }
 
     override suspend fun createExchangeData(exchangeData: ExchangeData): ExchangeData {
+        require(dataOwnerProvider.getCurrentDataOwnerId() == exchangeData.delegator) {
+            "When creating new exchange data you are the delegator, but provided data has ${exchangeData.delegator} as delegator."
+        }
         return checkNotNull(exchangeDataDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), exchangeData)) {
             "Exchange data creation returned null."
         }
