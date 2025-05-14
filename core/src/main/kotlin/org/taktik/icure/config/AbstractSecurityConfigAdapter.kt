@@ -18,8 +18,10 @@ abstract class AbstractSecurityConfigAdapter {
 	protected abstract val sessionEnabled: Boolean
 
 	protected val sessionLessSecurityContextRepository = object : WebSessionServerSecurityContextRepository() {
-		override fun save(exchange: ServerWebExchange, context: SecurityContext) = exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.save(exchange, context)
-		override fun load(exchange: ServerWebExchange) = exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.load(exchange)
+		override fun save(exchange: ServerWebExchange, context: SecurityContext) =
+			exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.save(exchange, context)
+		override fun load(exchange: ServerWebExchange) =
+			exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.load(exchange)
 	}
 
 	protected val multiTokenAuthConverter: (ServerWebExchange) -> Mono<Authentication> = { exchange ->

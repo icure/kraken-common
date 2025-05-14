@@ -51,7 +51,6 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.PatientHealthCareParty
 import org.taktik.icure.entities.embed.ReferralPeriod
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.isValid
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
@@ -365,7 +364,7 @@ open class PatientLogicImpl(
 	}
 
 	private fun checkRequirements(patient: Patient) {
-		if (!patient.isValid()) {
+		if (!patient.isValidForStore()) {
 			throw MissingRequirementsException("modifyPatient: Name, Last name  are required.")
 		}
 	}

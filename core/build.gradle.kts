@@ -51,10 +51,6 @@ dependencies {
     implementation(coreLibs.bundles.commonsLibs)
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
     implementation(coreLibs.bundles.swaggerLibs)
-
-    implementation(coreLibs.bundles.jsonWebTokenLibs) {
-        exclude(group = "com.fasterxml.jackson.core")
-    }
     implementation(coreLibs.bundles.bouncyCastleLibs)
     implementation(coreLibs.jakartaServlet)
 

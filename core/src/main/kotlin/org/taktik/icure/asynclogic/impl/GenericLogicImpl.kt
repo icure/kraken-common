@@ -14,6 +14,8 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Revisionable
 import org.taktik.icure.asyncdao.GenericDAO
+import org.taktik.icure.asyncdao.getEntitiesWithExpectedRev
+import org.taktik.icure.asyncdao.getEntityWithExpectedRev
 import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
@@ -48,14 +50,10 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 	protected suspend fun getEntitiesWithExpectedRev(identifiers: Collection<IdAndRev>): List<E> {
-		val datastoreInfo = getInstanceAndGroup()
-		val expectedRevById = identifiers.associate { it.id to it.rev }
-		return getGenericDAO().getEntities(
-			datastoreInfo,
-			identifiers.map { it.id }
-		).toList().filter {
-			expectedRevById.getValue(it.id).let { expectedRev -> expectedRev == null || expectedRev == it.rev }
-		}
+		return getGenericDAO().getEntitiesWithExpectedRev(
+			getInstanceAndGroup(),
+			identifiers
+		)
 	}
 
 	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
@@ -67,12 +65,7 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 	protected suspend fun getEntityWithExpectedRev(id: String, rev: String?): E {
-		val retrieved = getGenericDAO().get(getInstanceAndGroup(), id)
-			?: throw NotFoundRequestException("Entity with id $id not found")
-		if (rev != null && retrieved.rev != rev) {
-			throw ConflictRequestException("Revision does not match for entity with id $id")
-		}
-		return retrieved
+		return getGenericDAO().getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
 	}
 
 	override suspend fun undeleteEntity(id: String, rev: String?): E =

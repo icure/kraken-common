@@ -7,12 +7,11 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.SdkVersionConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.pagination.PaginationElement
@@ -20,10 +19,9 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class AgendaLogicImpl(
-    private val agendaDAO: AgendaDAO,
+open class AgendaLogicImpl(
+	private val agendaDAO: AgendaDAO,
+	private val sdkVersionConfig: SdkVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters
@@ -38,6 +36,11 @@ class AgendaLogicImpl(
 	}
 
 	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
+		if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
+			require(fixedAgenda.userRights.isNotEmpty())  {
+				"You cannot create an Agenda with empty userRights"
+			}
+		}
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
@@ -57,9 +60,9 @@ class AgendaLogicImpl(
 		emitAll(agendaDAO.getAgendasByUser(datastoreInformation, userId))
 	}
 
-	override fun getReadableAgendaForUser(userId: String) = flow {
+	override fun getReadableAgendaForUserLegacy(userId: String) = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(agendaDAO.getReadableAgendaByUser(datastoreInformation, userId))
+		emitAll(agendaDAO.getReadableAgendaByUserLegacy(datastoreInformation, userId))
 	}
 
 	override fun getGenericDAO(): AgendaDAO {

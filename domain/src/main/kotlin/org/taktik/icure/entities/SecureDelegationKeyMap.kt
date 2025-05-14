@@ -74,4 +74,11 @@ data class SecureDelegationKeyMap(
 
     override fun withIdRev(id: String?, rev: String): SecureDelegationKeyMap =
         if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
+    fun validateForStore() {
+        require(delegator == null && delegate == null && encryptedSelf != null) {
+            "Delegator and delegate fields should have been encrypted."
+        }
+    }
+
 }
