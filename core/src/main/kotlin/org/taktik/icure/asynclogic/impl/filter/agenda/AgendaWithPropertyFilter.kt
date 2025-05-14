@@ -7,23 +7,22 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.domain.filter.agenda.AgendaByStringPropertyFilter
+import org.taktik.icure.domain.filter.agenda.AgendaWithPropertyFilter
 import org.taktik.icure.entities.Agenda
 
 @Service
 @Profile("app")
-data class AgendaByStringPropertyFilter(
+data class AgendaWithPropertyFilter(
 	private val agendaDAO: AgendaDAO
-) : Filter<String, Agenda, AgendaByStringPropertyFilter> {
+) : Filter<String, Agenda, AgendaWithPropertyFilter> {
 
 	override fun resolve(
-		filter: AgendaByStringPropertyFilter,
+		filter: AgendaWithPropertyFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
-	): Flow<String> = agendaDAO.listAgendasByStringProperty(
+	): Flow<String> = agendaDAO.listAgendasWithProperty(
 		datastoreInformation = datastoreInformation,
-		propertyId = filter.propertyId,
-		propertyValue = filter.propertyValue
+		propertyId = filter.propertyId
 	)
 
 }

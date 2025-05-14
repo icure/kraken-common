@@ -5,6 +5,7 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -27,6 +28,7 @@ import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Agenda
+import org.taktik.icure.entities.base.PropertyStub
 
 @Repository("AgendaDAO")
 @Profile("app")
@@ -103,18 +105,42 @@ class AgendaDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
-	@View(name = "by_string_property", map = "classpath:js/agenda/By_string_property.js", secondaryPartition = MAURICE_PARTITION)
-	override fun listAgendasByStringProperty(
+	@View(name = "by_typed_property", map = "classpath:js/agenda/By_typed_property.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listAgendasByTypedProperty(
 		datastoreInformation: IDatastoreInformation,
-		propertyId: String,
-		propertyValue: String
+		property: PropertyStub
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "by_string_property", MAURICE_PARTITION)
-			.key(ComplexKey.of(propertyId, propertyId))
+		val propertyId = requireNotNull(property.id) {
+			"Cannot use a property with null id as key"
+		}
+
+		val key = when {
+			property.typedValue?.stringValue != null -> ComplexKey.of(propertyId, "s", property.typedValue!!.stringValue)
+			property.typedValue?.booleanValue != null -> ComplexKey.of(propertyId, "b", property.typedValue!!.booleanValue)
+			property.typedValue?.integerValue != null -> ComplexKey.of(propertyId, "i", property.typedValue!!.integerValue)
+			property.typedValue?.doubleValue != null -> ComplexKey.of(propertyId, "d", property.typedValue!!.doubleValue)
+			else -> throw IllegalStateException("Property has no typed value")
+		}
+
+		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+			.key(key)
 			.includeDocs(false)
 
-		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+	}
+
+	override fun listAgendasWithProperty(
+		datastoreInformation: IDatastoreInformation,
+		propertyId: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(propertyId, null, null))
+			.endKey(ComplexKey.of(propertyId, ComplexKey.emptyObject(), ComplexKey.emptyObject()))
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinctUntilChanged())
 	}
 }
