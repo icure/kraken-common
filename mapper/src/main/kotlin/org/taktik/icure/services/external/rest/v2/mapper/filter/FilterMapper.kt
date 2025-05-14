@@ -74,9 +74,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByTypedPropertyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserRightsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaWithPropertyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AllAgendasFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter
@@ -195,6 +197,9 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: AgendaByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByUserIdFilter
 	abstract fun map(filterDto: AgendaReadableByUserIdFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserIdFilter
 	abstract fun map(filterDto: AgendaReadableByUserRightsFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserRightsFilter
+	abstract fun map(filterDto: AgendaReadableByUserRightsFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaReadableByUserRightsFilter
+	abstract fun map(filterDto: AgendaByTypedPropertyFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaByTypedPropertyFilter
+	abstract fun map(filterDto: AgendaWithPropertyFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaWithPropertyFilter
 
 	@JvmName("tryMapAgendaFilter")
 	fun tryMap(filterDto: AbstractFilterDto<AgendaDto>): AbstractFilter<Agenda>? = when(filterDto) {
@@ -202,6 +207,8 @@ abstract class FilterV2Mapper {
 		is AgendaByUserIdFilter -> map(filterDto)
 		is AgendaReadableByUserIdFilter -> map(filterDto)
 		is AgendaReadableByUserRightsFilter -> map(filterDto)
+		is AgendaByTypedPropertyFilter -> map(filterDto)
+		is AgendaWithPropertyFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

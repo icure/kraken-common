@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -26,6 +27,8 @@ import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Agenda
+import org.taktik.icure.entities.base.PropertyStub
+import org.taktik.icure.utils.distinct
 
 @Repository("AgendaDAO")
 @Profile("app")
@@ -100,5 +103,45 @@ class AgendaDAOImpl(
 			.includeDocs(false)
 
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
+	}
+
+	@View(name = "by_typed_property", map = "classpath:js/agenda/By_typed_property.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listAgendasByTypedProperty(
+		datastoreInformation: IDatastoreInformation,
+		property: PropertyStub
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val propertyId = requireNotNull(property.id) {
+			"Cannot use a property with null id as key"
+		}
+
+		val key = listOfNotNull(
+			property.typedValue?.stringValue?.let { ComplexKey.of(propertyId, "s", it) },
+			property.typedValue?.booleanValue?.let { ComplexKey.of(propertyId, "b", it) },
+			property.typedValue?.integerValue?.let { ComplexKey.of(propertyId, "i", it) },
+			property.typedValue?.doubleValue?.let { ComplexKey.of(propertyId, "d", it) },
+		).also {
+			require(it.size == 1) { "Key property must have only one non-null value" }
+		}.first()
+
+		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+			.key(key)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+	}
+
+	override fun listAgendasWithProperty(
+		datastoreInformation: IDatastoreInformation,
+		propertyId: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+			.startKey(ComplexKey.of(propertyId, null, null))
+			.endKey(ComplexKey.of(propertyId, ComplexKey.emptyObject(), ComplexKey.emptyObject()))
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinct())
 	}
 }
