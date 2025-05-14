@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.taktik.icure.exceptions.InvalidJwtException
 import java.security.interfaces.RSAPublicKey
 import java.time.Duration
+import java.time.Instant
+import java.util.Date
 
 object JwtDecoder {
 	private val oidcJwtDecoderCache = com.github.benmanes.caffeine.cache.Caffeine.newBuilder()
@@ -87,6 +89,11 @@ object JwtDecoder {
 
 	fun decodeWithoutValidation(jwt: String): Map<String, Any?> =
 		JWTParser.parse(jwt).jwtClaimsSet.claims
+
+	fun decodeExpirationSeconds(jwt: String): Long =
+		requireNotNull(JWTParser.parse(jwt).jwtClaimsSet.expirationTime) {
+			"Provided jwt does not include expiration time"
+		}.toInstant().epochSecond
 
 	fun <T : Jwt> jwtDetailsFromClaims(
 		converter: JwtConverter<T>,
