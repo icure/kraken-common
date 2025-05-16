@@ -40,7 +40,11 @@ data class SecurityMetadata(
      * @param other the security metadata of the other version of the entity.
      * @return the merged security metadata.
      */
-    fun mergeForDifferentVersionsOfEntity(other: SecurityMetadata): SecurityMetadata = merge(other, true)
+    fun mergeForDifferentVersionsOfEntity(other: SecurityMetadata): SecurityMetadata = merge(
+		other = other,
+		mergeVersions = true,
+		omitEncryptionKeysOfOther = false
+	)
 
     /**
      * Merges the security metadata of duplicated entities (e.g. different patient entities representing the same
@@ -49,7 +53,7 @@ data class SecurityMetadata(
      * revision history): use [mergeForDifferentVersionsOfEntity] instead.
      * The main differences with [mergeForDifferentVersionsOfEntity] are:
      * - This method is not commutative
-     * - The encrypted encryption keys from delegations of [other] will not be merged into this.
+     * - The encrypted encryption keys from delegations of [other] can be omitted.
      * - The parents of equivalent delegations are merged as follows:
      *   - If a delegation is root in this and/or other it will be a root delegation in the merged metadata as
      *     well (potentially removing links which exist in one of the delegations).
@@ -58,20 +62,33 @@ data class SecurityMetadata(
      * @param other the security metadata of the duplicated entity.
      * @return a new security metadata being the result of the merging.
      */
-    fun mergeForDuplicatedEntityIntoThisFrom(other: SecurityMetadata): SecurityMetadata = merge(other, false)
+    fun mergeForDuplicatedEntityIntoThisFrom(
+        other: SecurityMetadata,
+        omitEncryptionKeysOfOther: Boolean
+    ): SecurityMetadata = merge(
+		other = other,
+		mergeVersions = false,
+		omitEncryptionKeysOfOther = omitEncryptionKeysOfOther
+	)
 
     private fun merge(
         other: SecurityMetadata,
-        mergeVersions: Boolean
+        mergeVersions: Boolean,
+        omitEncryptionKeysOfOther: Boolean
     ): SecurityMetadata {
-        // 2. Find duplicate delegations and merge
+        // Find duplicate delegations and merge
         val mergedDelegations = (this.secureDelegations.keys + other.secureDelegations.keys).associateWith { canonicalKey ->
             val thisDelegation = this.secureDelegations[canonicalKey]
             val otherDelegation = other.secureDelegations[canonicalKey]
             if (thisDelegation != null && otherDelegation != null)
-                mergeSecDels(thisDelegation, otherDelegation, mergeVersions)
+                mergeSecDels(
+					thisDelegation = thisDelegation,
+					otherDelegation = otherDelegation,
+					mergeVersions = mergeVersions,
+					omitEncryptionKeysOfOther = omitEncryptionKeysOfOther
+				)
             else
-                checkNotNull(thisDelegation ?: otherDelegation) {
+                checkNotNull(thisDelegation ?: otherDelegation?.copy(encryptionKeys = emptySet())) {
                     "At least one of the delegations should have been not null"
                 }
         }
@@ -83,7 +100,8 @@ data class SecurityMetadata(
     private fun mergeSecDels(
         thisDelegation: SecureDelegation,
         otherDelegation: SecureDelegation,
-        mergeVersions: Boolean
+        mergeVersions: Boolean,
+        omitEncryptionKeysOfOther: Boolean
     ): SecureDelegation {
         if (
             thisDelegation.delegator != otherDelegation.delegator
@@ -96,10 +114,10 @@ data class SecurityMetadata(
             delegator = thisDelegation.delegator,
             delegate = thisDelegation.delegate,
             secretIds = thisDelegation.secretIds + otherDelegation.secretIds,
-            encryptionKeys = if (mergeVersions) {
-                thisDelegation.encryptionKeys + otherDelegation.encryptionKeys
-            } else {
+            encryptionKeys = if (omitEncryptionKeysOfOther) {
                 thisDelegation.encryptionKeys
+            } else {
+                thisDelegation.encryptionKeys + otherDelegation.encryptionKeys
             },
             owningEntityIds = thisDelegation.owningEntityIds + otherDelegation.owningEntityIds,
             parentDelegations = if (mergeVersions) {

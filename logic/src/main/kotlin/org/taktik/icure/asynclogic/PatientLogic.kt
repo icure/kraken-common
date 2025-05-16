@@ -211,6 +211,10 @@ interface PatientLogic: EntityPersister<Patient>, EntityWithSecureDelegationsLog
 	 * @throws ConflictRequestException if the [expectedFromRev] or [updatedInto] revision does not match the actual
 	 * revisions of the respective patients.
 	 */
-	suspend fun mergePatients(fromId: String, expectedFromRev: String, updatedInto: Patient): Patient
-
+	suspend fun mergePatients(
+		fromId: String,
+		expectedFromRev: String,
+		updatedInto: Patient,
+		omitEncryptionKeysOfFrom: Boolean,
+	): Patient
 }

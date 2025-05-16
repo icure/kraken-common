@@ -36,7 +36,6 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -558,7 +557,12 @@ open class PatientLogicImpl(
 	override fun entityWithUpdatedSecurityMetadata(entity: Patient, updatedMetadata: SecurityMetadata): Patient =
 		entity.copy(securityMetadata = updatedMetadata)
 
-	override suspend fun mergePatients(fromId: String, expectedFromRev: String, updatedInto: Patient): Patient {
+	override suspend fun mergePatients(
+		fromId: String,
+		expectedFromRev: String,
+		updatedInto: Patient,
+		omitEncryptionKeysOfFrom: Boolean,
+	): Patient {
 		require (fromId != updatedInto.id) { "Impossible to merge an entity with itself" }
 		val dbInfo = getInstanceAndGroup()
 		val originalPatients = patientDAO.getPatients(dbInfo, listOf(fromId, updatedInto.id)).toList()
@@ -573,7 +577,7 @@ open class PatientLogicImpl(
 			deletionDate = Instant.now().toEpochMilli(),
 			mergeToPatientId = ogInto.id
 		)
-		val mergedInto = mergePatientsMetadata(ogFrom, ogInto, updatedInto)
+		val mergedInto = mergePatientsMetadata(ogFrom, ogInto, updatedInto, omitEncryptionKeysOfFrom)
 		/*
 		 * In this time ogFrom or ogInto may have changed (unlikely but possible), meaning that if we do a simple bulk
 		 * modify we may modify only one of the two patients, which goes against the contract of this method.
@@ -606,7 +610,8 @@ open class PatientLogicImpl(
 	private fun mergePatientsMetadata(
 		originalFrom: Patient,
 		originalInto: Patient,
-		updatedInto: Patient
+		updatedInto: Patient,
+		omitEncryptionKeysOfFrom: Boolean
 	): Patient {
 		require(
 			originalInto.encryptableMetadataEquals(updatedInto) && originalInto.mergedIds == updatedInto.mergedIds
@@ -616,7 +621,7 @@ open class PatientLogicImpl(
 		return updatedInto.copy(
 			securityMetadata = originalInto.securityMetadata?.let { intoMetadata ->
 				originalFrom.securityMetadata?.let { fromMetadata ->
-					intoMetadata.mergeForDuplicatedEntityIntoThisFrom(fromMetadata)
+					intoMetadata.mergeForDuplicatedEntityIntoThisFrom(fromMetadata, omitEncryptionKeysOfFrom)
 				} ?: intoMetadata
 			} ?: originalFrom.securityMetadata,
 			delegations = MergeUtil.mergeMapsOfSets(originalFrom.delegations, originalInto.delegations),

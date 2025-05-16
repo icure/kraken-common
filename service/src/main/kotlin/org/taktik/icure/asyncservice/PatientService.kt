@@ -247,7 +247,12 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	 * revisions of the respective patients.
 	 * @throws AccessDeniedException if the current user does not have write rights to the `into` and/or `from` patient.
 	 */
-	suspend fun mergePatients(fromId: String, expectedFromRev: String, updatedInto: Patient): Patient
+	suspend fun mergePatients(
+		fromId: String,
+		expectedFromRev: String,
+		updatedInto: Patient,
+		omitEncryptionKeysOfFrom: Boolean,
+	): Patient
 
 	/**
 	 * Retrieves the ids of the [Patient]s matching the provided [filter].
