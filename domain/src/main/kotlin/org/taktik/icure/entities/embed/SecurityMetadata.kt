@@ -64,14 +64,14 @@ data class SecurityMetadata(
         other: SecurityMetadata,
         mergeVersions: Boolean
     ): SecurityMetadata {
-        // 2. Find duplicate delegations and merge
+        // Find duplicate delegations and merge
         val mergedDelegations = (this.secureDelegations.keys + other.secureDelegations.keys).associateWith { canonicalKey ->
             val thisDelegation = this.secureDelegations[canonicalKey]
             val otherDelegation = other.secureDelegations[canonicalKey]
             if (thisDelegation != null && otherDelegation != null)
                 mergeSecDels(thisDelegation, otherDelegation, mergeVersions)
             else
-                checkNotNull(thisDelegation ?: otherDelegation) {
+                checkNotNull(thisDelegation ?: otherDelegation?.copy(encryptionKeys = emptySet())) {
                     "At least one of the delegations should have been not null"
                 }
         }
