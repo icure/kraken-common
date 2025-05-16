@@ -17,7 +17,7 @@ data class AgendaByTypedPropertyFilter(
 			listOfNotNull(
 			property.typedValue?.stringValue,
 				property.typedValue?.booleanValue,
-				property.typedValue?.stringValue,
+				property.typedValue?.integerValue,
 				property.typedValue?.doubleValue
 			).size == 1
 		) { "Property in AgendaByTypedPropertyFilter must have only one non-null value" }
