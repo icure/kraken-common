@@ -32,10 +32,10 @@ open class CommonFixedValueProvider(
 	}
 
 	protected suspend fun fix(autoFix: AutoFix, value: Any?, fixer: suspend (autoFix: AutoFix, value: Any?) -> Any?): Any? = when (value) {
-		is MutableSet<*> -> value.map { fixer(autoFix, value) }.toMutableSet()
-		is MutableList<*> -> value.map { fixer(autoFix, value) }.toMutableList()
-		is Set<*> -> value.map { fixer(autoFix, value) }.toSet()
-		is Collection<*> -> value.map { fixer(autoFix, value) }
+		is MutableSet<*> -> value.map { fixer(autoFix, it) }.toMutableSet()
+		is MutableList<*> -> value.map { fixer(autoFix, it) }.toMutableList()
+		is Set<*> -> value.map { fixer(autoFix, it) }.toSet()
+		is Collection<*> -> value.map { fixer(autoFix, it) }
 		else -> fixer(autoFix, value)
 	}
 
