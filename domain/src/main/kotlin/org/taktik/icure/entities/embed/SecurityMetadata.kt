@@ -89,9 +89,9 @@ data class SecurityMetadata(
 				)
             else
                 checkNotNull(
-                    thisDelegation ?: otherDelegation?.copy(
-                        encryptionKeys = if (omitEncryptionKeysOfOther) emptySet() else otherDelegation.encryptionKeys
-                    )
+                    thisDelegation ?:
+                        if (omitEncryptionKeysOfOther) otherDelegation?.copy(encryptionKeys = emptySet())
+                        else otherDelegation
                 ) {
                     "At least one of the delegations should have been not null"
                 }
