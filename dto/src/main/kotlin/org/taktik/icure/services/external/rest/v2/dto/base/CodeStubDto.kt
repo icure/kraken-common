@@ -20,10 +20,12 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.RequireHashable
 import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@RequireHashable
 data class CodeStubDto(
 	override val id: String? = null, // id = type|code|version  => this must be unique
 	override val context: String? = null, //ex: When embedded the context where this code is used
@@ -31,6 +33,7 @@ data class CodeStubDto(
 	override val code: String? = null, //ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
 	override val version: String? = null, //ex: 10. Must be lexicographically searchable
 	val contextLabel: String? = null,
+	@Deprecated("label shouldn't be included in code stub but only in full codes")
 	override val label: Map<String, String>? = null //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
 	companion object : DynamicInitializer<CodeStubDto>
