@@ -442,4 +442,27 @@ open class MessageDAOImpl(
 		}
 	}
 
+	@View(name = "by_data_owner_and_last_update", map = "classpath:js/message/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
+	override fun listMessageIdsByDataOwnerLifecycleBetween(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		startTimestamp: Long?,
+		endTimestamp: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, startTimestamp)
+		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
+		val query = createQuery(
+			datastoreInformation,
+			"by_data_owner_and_last_update",
+			DATA_OWNER_PARTITION
+		).startKey(from).endKey(to).descending(descending).includeDocs(false)
+		emitAll(
+			client.queryView<ComplexKey, String>(query)
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+				.map { it.id }
+		)
+	}
+
 }
