@@ -136,6 +136,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.Mai
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.AllMedicalLocationsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.MedicalLocationByPostCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerFromAddressFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerLifecycleBetween
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerToAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTransportGuidSentDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHcPartyTransportGuidReceivedFilter
@@ -494,6 +495,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: MessageByDataOwnerTransportGuidSentDateFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerTransportGuidSentDateFilter
 	abstract fun map(filterDto: MessageByParentIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByParentIdsFilter
 	abstract fun map(filterDto: MessageByInvoiceIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByInvoiceIdsFilter
+	abstract fun map(filterDto: MessageByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerLifecycleBetween
 
 	@JvmName("tryMapMessageFilter")
 	fun tryMap(filterDto: AbstractFilterDto<MessageDto>): AbstractFilter<Message>? = when(filterDto) {
@@ -503,6 +505,7 @@ abstract class FilterV2Mapper {
 		is MessageByDataOwnerTransportGuidSentDateFilter -> map(filterDto)
 		is MessageByParentIdsFilter -> map(filterDto)
 		is MessageByInvoiceIdsFilter -> map(filterDto)
+		is MessageByDataOwnerLifecycleBetween -> map(filterDto)
 		else -> tryMapMessage(filterDto)
 	}
 
