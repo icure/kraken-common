@@ -5,8 +5,12 @@ import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.stereotype.Component
 import org.taktik.icure.exceptions.InvalidJwtException
 import org.taktik.icure.properties.AuthProperties
+import java.security.KeyFactory
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
+
 
 @Component
 class JwtUtils(
@@ -14,6 +18,7 @@ class JwtUtils(
 ) {
 
 	val authKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
+	val authPublicKeySpki: String
 	val refreshKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
@@ -30,8 +35,7 @@ class JwtUtils(
 			authKeyPair = JwtKeyUtils.generateKeyPair()
 			refreshKeyPair = JwtKeyUtils.generateKeyPair()
 			log.warn("Keys for signing the JWT were auto-generated. This will not work in a clustered environment.")
-		}
-		else {
+		} else {
 			authKeyPair = JwtKeyUtils.decodeKeyPairFromString(
 				System.getenv("JWT_AUTH_PUB_KEY"),
 				System.getenv("JWT_AUTH_PRIV_KEY")
@@ -44,6 +48,7 @@ class JwtUtils(
 
 		authJwtEncoder = JwtEncoder(authKeyPair)
 		refreshJwtEncoder = JwtEncoder(refreshKeyPair)
+		authPublicKeySpki = JwtKeyUtils.exportSpkiBase64(authKeyPair.first)
 	}
 
 	/**

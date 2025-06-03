@@ -54,4 +54,11 @@ object JwtKeyUtils {
 			keyPair.private as RSAPrivateKey
 		)
 	}
+
+	fun exportSpkiBase64(publicKey: RSAPublicKey): String {
+		val keyFactory = KeyFactory.getInstance("RSA")
+		val x509Spec: X509EncodedKeySpec = keyFactory.getKeySpec(publicKey, X509EncodedKeySpec::class.java)
+		val spkiBytes = x509Spec.encoded
+		return Base64.getEncoder().encodeToString(spkiBytes)
+	}
 }
