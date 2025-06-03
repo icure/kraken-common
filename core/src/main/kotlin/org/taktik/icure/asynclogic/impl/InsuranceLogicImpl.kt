@@ -16,8 +16,8 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-class InsuranceLogicImpl(
-	private val insuranceDAO: InsuranceDAO,
+open class InsuranceLogicImpl(
+	protected val insuranceDAO: InsuranceDAO,
 	private val datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters
