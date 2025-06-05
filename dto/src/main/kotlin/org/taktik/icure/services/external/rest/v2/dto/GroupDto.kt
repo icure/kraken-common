@@ -36,6 +36,7 @@ data class GroupDto(
 	@Schema(description = "The revision of the group in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val deletionDate: Long? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
+	val publicTags: Set<CodeStubDto> = emptySet(),
 
 	@Schema(description = "Username for the group") val name: String? = null,
 	@Schema(description = "Password for the group access") val password: String? = null,
