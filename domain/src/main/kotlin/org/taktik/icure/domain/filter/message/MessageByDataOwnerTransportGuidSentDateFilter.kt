@@ -13,7 +13,7 @@ import java.time.Instant
 interface MessageByDataOwnerTransportGuidSentDateFilter : Filter<String, Message> {
 	val dataOwnerId: String
 	val transportGuid: String
-	val fromDate: Instant
-	val toDate: Instant
+	val fromDate: Instant?
+	val toDate: Instant?
 	val descending: Boolean?
 }

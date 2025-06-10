@@ -284,13 +284,13 @@ open class MessageDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		transportGuid: String,
-		fromDate: Long,
-		toDate: Long,
+		fromDate: Long?,
+		toDate: Long?,
 		descending: Boolean
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val startKey = ComplexKey.of(dataOwnerId, transportGuid, fromDate)
-		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate)
+		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
 			datastoreInformation,

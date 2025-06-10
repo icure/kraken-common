@@ -207,8 +207,8 @@ interface MessageDAO : GenericDAO<Message> {
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		transportGuid: String,
-		fromDate: Long,
-		toDate: Long,
+		fromDate: Long?,
+		toDate: Long?,
 		descending: Boolean
 	): Flow<String>
 
