@@ -47,6 +47,10 @@ open class MessageDAOImpl(
 	daoConfig: DaoConfig
 ) : GenericIcureDAOImpl<Message>(Message::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), MessageDAO {
 
+	companion object {
+		private const val SMALLEST_CHAR = "\u0000"
+	}
+
 	@Views(
 		View(name = "by_hcparty_from_address", map = "classpath:js/message/By_hcparty_from_address_map.js"),
 		View(
@@ -289,7 +293,7 @@ open class MessageDAOImpl(
 		descending: Boolean
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val startKey = ComplexKey.of(dataOwnerId, transportGuid, fromDate)
+		val startKey = ComplexKey.of(dataOwnerId, transportGuid + SMALLEST_CHAR, fromDate)
 		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
