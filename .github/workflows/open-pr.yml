@@ -47,7 +47,7 @@ jobs:
                       echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
                     else
                       echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
-
+                    fi
 
             -   name: Configure git user in cloned repo
                 run: |
