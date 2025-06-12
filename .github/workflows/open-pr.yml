@@ -14,20 +14,6 @@ jobs:
             matrix:
                 repo: ["kraken-cloud", "kmehr-module"]
         steps:
-            -   name: Generate branch name
-                id: generate_branch_name
-                env:
-                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                run: |
-                    pr_json=$(gh pr list --state merged --search "$(git rev-parse HEAD)" --json headRefName,number --limit 1)
-                    echo $pr_json
-                    pr_branch=$(echo $pr_json | jq -r '.[0].headRefName')
-                    if [ -n $pr_branch ]; then
-                        echo "BRANCH_NAME=$pr_branch" >> $GITHUB_ENV
-                    else
-                        echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
-                    fi
-
             -   name: Checkout repo
                 uses: actions/checkout@v4
                 with:
@@ -36,6 +22,21 @@ jobs:
                     token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
                     path: ${{ matrix.repo }}
                     fetch-depth: 1
+
+            -   name: Generate branch name
+                id: generate_branch_name
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                run: |
+                    cd kraken-common
+                    pr_json=$(gh pr list --state merged --search "$(git rev-parse HEAD)" --json headRefName,number --limit 1)
+                    echo $pr_json
+                    pr_branch=$(echo $pr_json | jq -r '.[0].headRefName')
+                    if [ -n $pr_branch ]; then
+                        echo "BRANCH_NAME=$pr_branch" >> $GITHUB_ENV
+                    else
+                        echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
+                    fi
 
             -   name: Check if branch exists on remote
                 id: check_branch
