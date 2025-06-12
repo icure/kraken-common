@@ -154,4 +154,8 @@ class LoginController(
 		sessionLogic.logout()
 		JwtResponse(successful = true)
 	}
+
+	@GetMapping("/publicKey/authJwt")
+	fun getAuthJwtPublicKey() =
+		jwtUtils.authPublicKeySpki
 }

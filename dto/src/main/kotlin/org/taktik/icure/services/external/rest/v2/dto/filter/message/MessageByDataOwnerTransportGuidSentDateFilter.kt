@@ -16,8 +16,8 @@ import java.time.Instant
 data class MessageByDataOwnerTransportGuidSentDateFilter(
 	val dataOwnerId: String,
 	val transportGuid: String,
-	val fromDate: Instant,
-	val toDate: Instant,
+	val fromDate: Instant?,
+	val toDate: Instant?,
 	val descending: Boolean? = null,
 	override val desc: String? = null
 ) : AbstractFilterDto<MessageDto>

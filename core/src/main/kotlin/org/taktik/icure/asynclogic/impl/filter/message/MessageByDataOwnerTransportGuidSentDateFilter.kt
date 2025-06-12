@@ -24,8 +24,8 @@ class MessageByDataOwnerTransportGuidSentDateFilter(
 		datastoreInformation = datastoreInformation,
 		dataOwnerId = filter.dataOwnerId,
 		transportGuid = filter.transportGuid,
-		fromDate = filter.fromDate.toEpochMilli(),
-		toDate = filter.toDate.toEpochMilli(),
+		fromDate = filter.fromDate?.toEpochMilli(),
+		toDate = filter.toDate?.toEpochMilli(),
 		descending = filter.descending ?: false
 	)
 
