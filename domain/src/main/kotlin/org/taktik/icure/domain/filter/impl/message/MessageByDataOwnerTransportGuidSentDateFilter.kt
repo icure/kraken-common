@@ -9,8 +9,8 @@ import java.time.Instant
 data class MessageByDataOwnerTransportGuidSentDateFilter(
 	override val dataOwnerId: String,
 	override val transportGuid: String,
-	override val fromDate: Instant,
-	override val toDate: Instant,
+	override val fromDate: Instant?,
+	override val toDate: Instant?,
 	override val descending: Boolean? = null,
 	override val desc: String? = null
 ) : AbstractFilter<Message>, MessageByDataOwnerTransportGuidSentDateFilter {
@@ -21,6 +21,8 @@ data class MessageByDataOwnerTransportGuidSentDateFilter(
 
 	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
 		searchKeyMatcher(dataOwnerId, item)
-			&& item.transportGuid == transportGuid
-			&& item.sent != null && item.sent >= fromDate.toEpochMilli() && item.sent <= toDate.toEpochMilli()
+			&& (item.transportGuid != null && item.transportGuid.startsWith(transportGuid))
+			&& item.sent != null
+			&& (fromDate == null || item.sent >= fromDate.toEpochMilli())
+			&& (toDate == null || item.sent <= toDate.toEpochMilli())
 }

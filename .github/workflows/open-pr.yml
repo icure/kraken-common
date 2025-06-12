@@ -16,8 +16,17 @@ jobs:
         steps:
             -   name: Generate branch name
                 id: generate_branch_name
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: |
-                    echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
+                    pr_json=$(gh pr list --state merged --search "$(git rev-parse HEAD)" --json headRefName,number --limit 1)
+                    echo $pr_json
+                    pr_branch=$(echo $pr_json | jq -r '.[0].headRefName')
+                    if [ -n $pr_branch ]; then
+                        echo "BRANCH_NAME=$pr_branch" >> $GITHUB_ENV
+                    else
+                        echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
+                    fi
 
             -   name: Checkout repo
                 uses: actions/checkout@v4
@@ -28,24 +37,43 @@ jobs:
                     path: ${{ matrix.repo }}
                     fetch-depth: 1
 
+            -   name: Check if branch exists on remote
+                id: check_branch
+                run: |
+                    cd ${{ matrix.repo }}
+                    if git ls-remote --heads origin "${{ env.BRANCH_NAME }}" | grep -q "${{ env.BRANCH_NAME }}"; then
+                      echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
+                    else
+                      echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
+
+
             -   name: Configure git user in cloned repo
                 run: |
                     cd ${{ matrix.repo }}
                     git config user.name "dev"
                     git config user.email "dev@icure.com"
 
-            -   name: Updated kraken-common in the repo
+            -   name: Updated and push on existing branch
+                if: env.BRANCH_EXISTS == 'true'
                 run: |
                     cd ${{ matrix.repo }}
+                    git checkout -B "${{ env.BRANCH_NAME }}"
                     cd kraken-common
                     git checkout main
                     git pull
+                    cd ..
+                    git remote set-url origin https://x-access-token:${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}@github.com/icure/${{ matrix.repo }}.git
+                    git add .
+                    git commit -m "Updated kraken-common ${{ env.BRANCH_NAME }}" || echo "No changes to commit"
+                    git push origin "${{ env.BRANCH_NAME }}"
 
             -   name: Bot Details
+                if: env.BRANCH_EXISTS == 'false'
                 id: bot-details
                 uses: raven-actions/bot-details@v1
 
             -   name: Create a Pull Request
+                if: env.BRANCH_EXISTS == 'false'
                 uses: peter-evans/create-pull-request@v6
                 with:
                     token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
