@@ -5,8 +5,11 @@ package org.taktik.icure.utils
 
 import org.apache.commons.lang3.math.NumberUtils
 import java.math.BigInteger
+import java.time.DateTimeException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.Period
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -34,8 +37,64 @@ import java.time.temporal.TemporalUnit
  */
 @Suppress("unused")
 object FuzzyValues {
-    const val MAX_FUZZY_DATE = 99991231L
+    const val MAX_FUZZY_DATE = 99991231
+    const val MAX_FUZZY_TIME = 23_59_59
+    const val MAX_FUZZY_DATETIME = 9999_12_31_23_59_59
     private val fuzzyDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+
+    fun strictIsFuzzyTime(fuzzyTime: Int): Boolean {
+        if (fuzzyTime < 0) return false
+        if (fuzzyTime > MAX_FUZZY_TIME) return false
+        // Correctness of hour already validated by previous checks
+        // Second > 0 already validated by previous checks
+        val seconds = fuzzyTime % 100
+        if (seconds > 59) return false
+        // Minutes > 0 already validated by previous checks
+        val minutes = (fuzzyTime / 100) % 100
+        return minutes <= 59
+    }
+
+    fun strictTryParseFuzzyTime(fuzzyTime: Int): LocalTime? {
+        if (fuzzyTime < 0) return null
+        if (fuzzyTime > MAX_FUZZY_TIME) return null
+        val hour = fuzzyTime / 1_00_00
+        val minute = fuzzyTime / 1_00 % 1_00
+        val second = fuzzyTime % 1_00
+        return try {
+            LocalTime.of(hour, minute, second)
+        } catch (_: DateTimeException) {
+            null
+        }
+    }
+
+    fun strictTryParseFuzzyDate(fuzzyDate: Int): LocalDate? {
+        if (fuzzyDate < 0) return null
+        if (fuzzyDate > MAX_FUZZY_DATE) return null
+        val year = fuzzyDate / 10000
+        val month = fuzzyDate / 100 % 100
+        val day = fuzzyDate % 100
+        return try {
+            LocalDate.of(year, month, day)
+        } catch (_: DateTimeException) {
+            null
+        }
+    }
+
+    fun strictTryParseFuzzyDateTime(fuzzyDateTime: Long): LocalDateTime? {
+        if (fuzzyDateTime < 0) return null
+        if (fuzzyDateTime > MAX_FUZZY_DATETIME) return null
+        val year = fuzzyDateTime / 1_00_00_00_00_00
+        val month = fuzzyDateTime / 1_00_00_00_00 % 1_00
+        val day = fuzzyDateTime/ 1_00_00_00 % 1_00
+        val hour = fuzzyDateTime / 1_00_00 % 1_00
+        val minute = fuzzyDateTime / 1_00 % 1_00
+        val second = fuzzyDateTime % 1_00
+        return try {
+            LocalDateTime.of(year.toInt(), month.toInt(), day.toInt(), hour.toInt(), minute.toInt(), second.toInt())
+        } catch (_: DateTimeException) {
+            null
+        }
+    }
 
     fun getMaxRangeOf(text: String): Int {
         val fullyFormedDate = toYYYYMMDDString(text)
@@ -258,5 +317,43 @@ object FuzzyValues {
     fun compare(left: Long, right: Long): Int {
         return java.lang.Long.valueOf(if (left < 29991231) left * 1000000 else left)
             .compareTo(if (right < 29991231) right * 1000000 else right)
+    }
+}
+
+class MultiDateTime private constructor (
+    val local: LocalDateTime,
+    val fuzzy: Long,
+    val epoch: Long
+) {
+    enum class Rounding {
+        CEIL, FLOOR // TODO more if needed
+    }
+
+    companion object {
+        private fun fromLocalDateTime(local: LocalDateTime, fuzzyPrecision: ChronoUnit): MultiDateTime = MultiDateTime(
+            local,
+            FuzzyValues.getFuzzyDateTime(local, fuzzyPrecision),
+            local.toInstant(ZoneOffset.UTC).toEpochMilli()
+        )
+
+        fun fromLocalDateTimeMinutePrecision(local: LocalDateTime, rounding: Rounding): MultiDateTime {
+            val noSecond = local.withSecond(0).withNano(0)
+            val rounded = when (rounding) {
+                Rounding.CEIL -> {
+                    if (local.second > 0 || local.nano > 0) noSecond.plusMinutes(1) else noSecond
+                }
+                Rounding.FLOOR -> noSecond
+            }
+            return fromLocalDateTime(rounded, ChronoUnit.MINUTES)
+        }
+
+        fun fromFuzzy(fuzzy: Long): MultiDateTime {
+            val localDateTime = requireNotNull(FuzzyValues.strictTryParseFuzzyDateTime(fuzzy)) { "Invalid fuzzy date time $fuzzy" }
+            return MultiDateTime(
+                localDateTime,
+                fuzzy,
+                localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli()
+            )
+        }
     }
 }

@@ -42,5 +42,7 @@ dependencies {
     implementation(coreLibs.taktikBoot)
     implementation(coreLibs.caffeine)
 
+    implementation(coreLibs.libRecur)
+
     testImplementation(coreLibs.bundles.kotestLibs)
 }

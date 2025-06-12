@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2020. Taktik SA, All rights reserved.
+ */
+package org.taktik.icure.services.external.rest.v2.dto.embed
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
+
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EmbeddedTimeTableItemDto(
+	val rrule: String,
+	val notBeforeInMinutes: Int? = null,
+	val notAfterInMinutes: Int? = null,
+	val hours: List<EmbeddedTimeTableHourDto>,
+	val calendarItemTypesIds: Set<String>,
+	val availabilities: Int = 1,
+) : Serializable

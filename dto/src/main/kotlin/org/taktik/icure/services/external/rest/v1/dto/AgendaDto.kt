@@ -27,6 +27,8 @@ data class AgendaDto(
 	override val deletionDate: Long? = null,
 	val name: String? = null,
 	val userId: String? = null,
+	val zoneId: String? = null,
+	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	val properties: Set<PropertyStubDto> = emptySet(),
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {

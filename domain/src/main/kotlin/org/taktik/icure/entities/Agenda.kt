@@ -12,6 +12,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.EmbeddedTimeTable
+import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
@@ -21,6 +22,8 @@ import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
+import java.time.DateTimeException
+import java.time.ZoneId
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,6 +51,19 @@ data class Agenda(
 	 * Custom properties of the agenda
 	 */
 	val properties: Set<PropertyStub> = emptySet(),
+	/**
+	 * If not null prevents unprivileged users from canceling or moving the calendar items linked to this agenda
+	 * item less than [lockCalendarItemsBeforeInMinutes] minutes before its scheduled time.
+	 */
+	val lockCalendarItemsBeforeInMinutes: Int? = null,
+	/**
+	 * An identifier for the zone of the agenda. Must be an id accepted by java's ZoneId.
+	 * Mandatory if the agenda specifies any time-based constraint:
+	 * - [lockCalendarItemsBeforeInMinutes]
+	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notAfterInMinutes]
+	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notBeforeInMinutes]
+	 */
+	val zoneId: String? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -60,8 +76,16 @@ data class Agenda(
 		require(rights.isEmpty() || userRights.isEmpty()) {
 			"You cannot specify legacy rights and userRights at the same time"
 		}
-		require(timeTables.mapTo(mutableSetOf()) { it.id }.size == timeTables.size) {
-			"Duplicate embedded time tables ids in agenda"
+		if (zoneId == null) {
+			if (
+				timeTables.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
+			) throw IllegalArgumentException("ZoneId must be provided when in agendas with time-based constraints")
+		} else {
+			try {
+				ZoneId.of(zoneId)
+			} catch (e: DateTimeException) {
+				throw IllegalArgumentException("Unsupported / invalid zone id $zoneId", e)
+			}
 		}
 	}
 
@@ -73,7 +97,10 @@ data class Agenda(
 		"userId" to (this.userId ?: other.userId),
 		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a },
 		"userRights" to (other.userRights + this.userRights),
-		"timeTables" to MergeUtil.mergeListsDistinct(this.timeTables, other.timeTables, {a, b -> a.id == b.id}) { a, _ -> a}
+		"timeTables" to this.timeTables.ifEmpty { other.timeTables },
+		"properties" to (other.properties + this.properties),
+		"zoneId" to (this.zoneId ?: other.zoneId),
+		"lockCalendarItemsBeforeInMinutes" to (this.lockCalendarItemsBeforeInMinutes ?: other.lockCalendarItemsBeforeInMinutes),
 	)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
