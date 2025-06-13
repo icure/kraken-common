@@ -76,10 +76,8 @@ kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.1" } # 2FA
 kotlinDateTime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.6.0-RC.2" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
-icureTestSetup = { group = "io.icure", name = "icure-e2e-test-setup", version = "0.0.24-gc854bb2431" }
 kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.4" }
-kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
