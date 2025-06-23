@@ -20,6 +20,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.MediumTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PaymentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PaymentTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
+import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,6 +28,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 data class InvoiceDto(
 	@Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	val identifier: List<IdentifierDto> = emptyList(),
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
