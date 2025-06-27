@@ -330,7 +330,7 @@ class MultiDateTime private constructor (
     }
 
     companion object {
-        private fun fromLocalDateTime(local: LocalDateTime, fuzzyPrecision: ChronoUnit): MultiDateTime = MultiDateTime(
+        fun fromLocalDateTime(local: LocalDateTime, fuzzyPrecision: ChronoUnit): MultiDateTime = MultiDateTime(
             local,
             FuzzyValues.getFuzzyDateTime(local, fuzzyPrecision),
             local.toInstant(ZoneOffset.UTC).toEpochMilli()
