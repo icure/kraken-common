@@ -42,6 +42,7 @@ data class AgendaDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
+	val daySplitHour: Int? = null,
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,

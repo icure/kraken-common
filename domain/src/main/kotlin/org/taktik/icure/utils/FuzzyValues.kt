@@ -174,6 +174,7 @@ object FuzzyValues {
     val currentFuzzyDateTime: Long
         get() = getCurrentFuzzyDateTime(ChronoUnit.SECONDS)
 
+    // NOTE: has issues with some chrono units
     fun getFuzzyDateTime(dateTime: LocalDateTime, precision: TemporalUnit): Long {
         var returnDateTime = dateTime
         val seconds = returnDateTime.second
@@ -326,7 +327,7 @@ class MultiDateTime private constructor (
     val epoch: Long
 ) {
     enum class Rounding {
-        CEIL, FLOOR // TODO more if needed
+        CEIL, FLOOR, UNNECESSARY // TODO more if needed
     }
 
     companion object {
@@ -337,14 +338,21 @@ class MultiDateTime private constructor (
         )
 
         fun fromLocalDateTimeMinutePrecision(local: LocalDateTime, rounding: Rounding): MultiDateTime {
-            val noSecond = local.withSecond(0).withNano(0)
-            val rounded = when (rounding) {
-                Rounding.CEIL -> {
-                    if (local.second > 0 || local.nano > 0) noSecond.plusMinutes(1) else noSecond
+            if (rounding == Rounding.UNNECESSARY) {
+                require (local.nano == 0 && local.second == 0) { "Time $local requires rounding for minute precision" }
+                return fromLocalDateTime(local, ChronoUnit.MINUTES)
+            } else {
+                val noSecond = local.withSecond(0).withNano(0)
+                val rounded = when (rounding) {
+                    Rounding.CEIL ->
+                        if (local.second > 0 || local.nano > 0) noSecond.plusMinutes(1) else noSecond
+                    Rounding.FLOOR ->
+                        noSecond
+                    else ->
+                        throw IllegalStateException("Unexpected rounding $rounding")
                 }
-                Rounding.FLOOR -> noSecond
+                return fromLocalDateTime(rounded, ChronoUnit.MINUTES)
             }
-            return fromLocalDateTime(rounded, ChronoUnit.MINUTES)
         }
 
         fun fromFuzzy(fuzzy: Long): MultiDateTime {
