@@ -2,18 +2,18 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
-import org.taktik.icure.entities.embed.EmbeddedTimeTable
+import org.taktik.icure.entities.embed.ResourcesAllocationSchedule
 import org.taktik.icure.entities.embed.EmbeddedTimeTableHour
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
-import org.taktik.icure.services.external.rest.v2.dto.embed.EmbeddedTimeTableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EmbeddedTimeTableHourDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EmbeddedTimeTableItemDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 
 @Mapper(componentModel = "spring", uses = [EmbeddedTimeTableItemV2Mapper::class, CodeStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface EmbeddedTimeTableV2Mapper {
-	fun map(embeddedTimeTableDto: EmbeddedTimeTableDto): EmbeddedTimeTable
-	fun map(embeddedTimeTable: EmbeddedTimeTable): EmbeddedTimeTableDto
+	fun map(resourceGroupAllocationScheduleDto: ResourceGroupAllocationScheduleDto): ResourcesAllocationSchedule
+	fun map(embeddedTimeTable: ResourcesAllocationSchedule): ResourceGroupAllocationScheduleDto
 }
 
 @Mapper(componentModel = "spring", uses = [EmbeddedTimeTableHourV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)

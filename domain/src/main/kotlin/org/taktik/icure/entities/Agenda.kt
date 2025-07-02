@@ -11,8 +11,8 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
-import org.taktik.icure.entities.embed.EmbeddedTimeTable
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
+import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
@@ -25,27 +25,111 @@ import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 import java.time.DateTimeException
 import java.time.ZoneId
+import kotlin.collections.isNotEmpty
 
 /**
- * Represents the working hours of a resource or group of resources that can handle calendar items (appointments).
- * Multiple embedded time tables can be used to represent different periods (for example winter and summer working
- * hours), or different groups of resources (usually hcps).
+ * An agenda allows keeping track of appointments (calendar items) for a resource (usually a doctor or other hcp) or
+ * group of resources.
  *
- * # Multiple time tables vs multiple agendas for groups of resources
+ * # Schedule
  *
- * When choosing how to implement your agendas you should consider that normally the calendar items are linked directly
- * to an agenda, and not directly to a timetable or timetable item.
+ * Normally, an agenda specifies a schedule for the resources, which is done through the
+ * [ResourceGroupAllocationSchedule] in [schedules].
+ * This allows users with limited privileges to take appointment in the schedule of the agenda using the availabilities
+ * and safe booking features.
+ * Users with special privileges are allowed to take appointments outside the agenda schedule.
  *
- * The most common use case for agenda is to create one for each doctor. This allows the patients to pick their desired
- * doctor.
+ * An agenda can have multiple entries in [schedules] to represent the following scenarios:
+ * - The schedule of the agenda will change on a certain date
+ * - There are multiple subgroups of resources that have partially overlapping responsibilities
  *
- * However, in some cases you may want to be able to let the patient only pick the type of appointment, while the hcp
- * that will perform the appointment is chosen automatically by the system in a second moment.
- * This can be done by having an agenda with multiple timetables, where each timetable can represent one or more hcps
- * that have the same capabilities (i.e. types of appointments that they can serve) and working hours.
- * This, howeverm us useful only if the different groups of resources have some non-empty intersection between their
- * capabilities. Resources that have fully disjointed sets of capabilities should be grouped in different agendas, as
- * there is no advantage to having them in the same agenda.
+ * ## Representing changes to schedule
+ *
+ * If the agenda changes schedule at some point in time, for example, due to seasonal changes or internal
+ * reorganization, you can create a new schedule for the same [ResourceGroupAllocationSchedule.resourceGroup]
+ * and set the [ResourceGroupAllocationSchedule.startDateTime] of the new schedule and
+ * [ResourceGroupAllocationSchedule.endDateTime] of the existing schedule to the date of the change.
+ *
+ * Note: different schedules in the same agenda for the same [ResourceGroupAllocationSchedule.resourceGroup] can't overlap.
+ *
+ * Note: to present differences in daily hours of operation you should use multiple [ResourceGroupAllocationSchedule.items]
+ * with appropriate [EmbeddedTimeTableItem.rrule].
+ *
+ * ## Multiple groups of resources
+ *
+ * Sometimes you can have multiple groups of resources that have overlaps between their responsibilities and/or
+ * capabilities.
+ *
+ * For example, you could have a group of senior and junior workers: the junior workers are capable of handling only the
+ * easy tasks (calendar items), while the senior workers are capable of handling both easy and hard tasks.
+ *
+ * If you create separate agendas for the two types of workers, you will have one of two cases:
+ * - You never allow users to take simple appointments with the senior workers, even if they are available but no junior
+ * worker is available.
+ * - You always allow users to take simple appointment with senior workers, even if the juniors are available. This will
+ * limit the amount of hard appointments that can be taken.
+ *
+ * If instead, you use a single agenda with both groups of junior and senior workers the users will be able to take
+ * appointments with more flexibility:
+ * - as long as the existing appointments can be organized in a way that leaves a senior worker free, then users will be
+ * able to book both simple and hard appointments;
+ * - as long as the existing appointments can be organized in a way that leaves a junior worker free, then users will be
+ * able to book simple appointments
+ *
+ * For example, consider that at time `t` there are 1 simple and 1 hard appointment booked, and there are 2 junior and
+ * 2 senior workers on shift:
+ * - A user will be able to book either a simple or a hard appointment.
+ * - If an additional hard appointment is booked then the only availability left is for a simple appointment
+ * - If an additional simple appointment is booked then the availability left can be for either a simple or hard
+ *   appointment. If a last simple appointment is booked, then one of the 2 senior workers will do it.
+ *
+ * Note: the groups will need to have different [ResourceGroupAllocationSchedule.resourceGroup] (you can't have
+ * schedules active in parallel for the same [ResourceGroupAllocationSchedule.resourceGroup])
+ *
+ * ### Multiple groups vs multiple items in single group
+ *
+ * You may think the following agendas are equivalent:
+ * - Agenda 1
+ *   - Group 1
+ *     - TimeTableItem - 09:00->14:00 - Calendar item types: t1, t2
+ *     - TimeTableItem - 13:00->18:00 - Calendar item types: t1, t3
+ *
+ * - Agenda 2
+ *   - Group 1
+ *     - TimeTableItem - 09:00->14:00 - Calendar item types: t1, t2
+ *   - Group 2
+ *     - TimeTableItem - 13:00->18:00 - Calendar item types: t1, t3
+ *
+ * That is, however, not the case.
+ *
+ * Agenda 1 defines a single group of resources that all have the same capabilities (in case of workers these could be
+ * competences). Even though the resources could allow for an appointment of type t3 at 09:00, for some reason we don't
+ * want people to take this kind of appointment at that time.
+ *
+ * In agenda 2, instead, the groups of resources have distinct capabilities. There is no resource available at 09:00 that
+ * could handle an appointment of type t3.
+ *
+ * As long as all calendar items adhere to what is defined in the schedule there is actually going to be no real
+ * difference, but in the real world sometimes there will be an appointment that doesn't really fit the schedule:
+ * users with appropriate permission can forcefully create calendar items outside of this schedule.
+ *
+ * In these cases the availabilities algorithm will attempt to still find a decent solution, but if your representation
+ * of the agenda doesn't properly match the resources the solution found could allow for users to take appointments
+ * that can't be actually satisfied.
+ *
+ * As a general rule use separate [ResourceGroupAllocationSchedule] for groups of resources that don't share exactly
+ * the same capabilities.
+ *
+ * TODO example once actually implemented
+ *
+ * TODO explain how to assign directly to group of resources to help.
+ *
+ * ## When to use multiple agendas
+ *
+ * You should use different agendas in all cases not covered by the previous situations. This includes:
+ * - You have groups of workers that have no overlapping responsibilities
+ * - You have groups of workers that have no overlapping working hours
+ * - You want to let the end-user pick the resource that will handle the appointment (e.g. doctor, or clinic location)
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -68,7 +152,7 @@ data class Agenda(
 	 * Associates a user id to the permission that user has on the entity.
 	 */
 	val userRights: Map<String, UserAccessLevel> = emptyMap(),
-	val timeTables: List<EmbeddedTimeTable> = emptyList(),
+	val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
 	/**
 	 * Custom properties of the agenda
 	 */
@@ -147,7 +231,7 @@ data class Agenda(
 		}
 		if (zoneId == null) {
 			if (
-				timeTables.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
+				schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
 			) throw IllegalArgumentException("ZoneId must be provided when in agendas with time-based constraints")
 		} else {
 			try {
@@ -156,8 +240,19 @@ data class Agenda(
 				throw IllegalArgumentException("Unsupported / invalid zone id $zoneId", e)
 			}
 		}
-		require(timeTables.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on embedded time tables" }
+		require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
 		if (daySplitHour != null) requireNotNull(FuzzyValues.strictTryParseFuzzyTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
+		schedules.groupBy { it.resourceGroup }.forEach {  (resourceGroup, schedule) ->
+			require (
+				schedule.size <= 1 || schedule.asSequence().sortedBy {
+					it.startDateTime ?: Long.MIN_VALUE
+				}.zipWithNext().none { (first, second) ->
+					first.endDateTime == null || second.startDateTime == null || first.endDateTime > second.startDateTime
+				}
+			) {
+				"Resource group `${resourceGroup?.id}` has overlapping schedules"
+			}
+		}
 	}
 
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))
@@ -168,7 +263,7 @@ data class Agenda(
 		"userId" to (this.userId ?: other.userId),
 		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a },
 		"userRights" to (other.userRights + this.userRights),
-		"timeTables" to this.timeTables.ifEmpty { other.timeTables },
+		"timeTables" to this.schedules.ifEmpty { other.schedules },
 		"properties" to (other.properties + this.properties),
 		"zoneId" to (this.zoneId ?: other.zoneId),
 		"lockCalendarItemsBeforeInMinutes" to (this.lockCalendarItemsBeforeInMinutes ?: other.lockCalendarItemsBeforeInMinutes),

@@ -7,7 +7,8 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class EmbeddedTimeTableDto(
+data class ResourceGroupAllocationScheduleDto(
+	val resourceGroup: CodeStubDto? = null,
 	val tags: Set<CodeStubDto> = emptySet(),
 	val codes: Set<CodeStubDto> = emptySet(),
 	val medicalLocationId: String? = null,

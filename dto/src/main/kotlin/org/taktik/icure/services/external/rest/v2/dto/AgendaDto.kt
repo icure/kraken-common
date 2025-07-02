@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.EmbeddedTimeTableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
 
@@ -51,7 +51,7 @@ data class AgendaDto(
 	@Schema(description = "Associates a user id to the permission that user has on the entity.")
 	val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	val properties: Set<PropertyStubDto> = emptySet(),
-	val timeTables: List<EmbeddedTimeTableDto> = emptyList(),
+	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
