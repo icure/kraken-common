@@ -38,6 +38,7 @@ data class GroupDto(
 
 	val publicTags: Set<CodeStubDto> = emptySet(),
 	override val tags: Set<CodeStubDto> = emptySet(),
+	val publicTags: Set<CodeStubDto> = emptySet(),
 
 	@Schema(description = "Username for the group") val name: String? = null,
 	@Schema(description = "Password for the group access") val password: String? = null,

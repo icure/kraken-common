@@ -26,6 +26,7 @@ data class InvoicingCodeDto(
 	val totalAmount: Double? = null, //=reimbursement+doctorSupplement+intervention,
 	val reimbursement: Double? = null,
 	val patientIntervention: Double? = null,
+	val amiIntervention: Double? = null,
 	val doctorSupplement: Double? = null,
 	val conventionAmount: Double? = null, //Should be reimbursement+intervention,
 	val vat: Double? = null,
@@ -65,6 +66,7 @@ data class InvoicingCodeDto(
 	val insuranceJustification: Int? = null,
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
+	val codeLabel: String? = null,
 	override val encryptedSelf: String? = null
 ) : EncryptableDto, Comparable<InvoicingCodeDto?> {
 	companion object : DynamicInitializer<InvoicingCodeDto> {
@@ -94,6 +96,7 @@ data class InvoicingCodeDto(
 		"totalAmount" to (this.totalAmount ?: other.totalAmount),
 		"reimbursement" to (this.reimbursement ?: other.reimbursement),
 		"patientIntervention" to (this.patientIntervention ?: other.patientIntervention),
+		"amiIntervention" to (this.amiIntervention ?: other.amiIntervention),
 		"doctorSupplement" to (this.doctorSupplement ?: other.doctorSupplement),
 		"conventionAmount" to (this.conventionAmount ?: other.conventionAmount),
 		"vat" to (this.vat ?: other.vat),
@@ -133,7 +136,8 @@ data class InvoicingCodeDto(
 			this.cancelPatientInterventionReason
 				?: other.cancelPatientInterventionReason
 			),
-		"status" to (this.status ?: other.status)
+		"status" to (this.status ?: other.status),
+		"codeLabel" to (this.codeLabel ?: other.codeLabel)
 	)
 
 	override fun compareTo(other: InvoicingCodeDto?): Int {
