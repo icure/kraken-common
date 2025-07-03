@@ -21,7 +21,6 @@ data class GroupDto(
 	@Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@Schema(description = "The revision of the group in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val deletionDate: Long? = null,
-	val publicTags: Set<CodeStubDto> = emptySet(),
 	override val tags: Set<CodeStubDto> = emptySet(),
 	val publicTags: Set<CodeStubDto> = emptySet(),
 
