@@ -5,8 +5,9 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.utils.FuzzyValues
+import org.taktik.icure.utils.FuzzyDates
 import java.io.Serializable
+import java.time.LocalTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,12 +26,12 @@ data class  EmbeddedTimeTableHour(
 		const val END_OF_DAY = 23_59_60
 	}
 
+	val startHourLocalTime get() = FuzzyDates.getFullLocalTime(startHour)!!
+	val endHourLocalTime get() = if (endHour == END_OF_DAY) LocalTime.MIDNIGHT else FuzzyDates.getFullLocalTime(endHour)!!
+
 	init {
-		require(FuzzyValues.strictIsFuzzyTime(startHour) ) { "$startHour is not HHMMSSFuzzyTime" }
-		require(endHour == END_OF_DAY || FuzzyValues.strictIsFuzzyTime(endHour)) { "$endHour is not HHMMSSFuzzyTime" }
+		require(FuzzyDates.getFullLocalTime(startHour) != null) { "$startHour is not a valid full fuzzy time" }
+		require(endHour == END_OF_DAY || FuzzyDates.getFullLocalTime(endHour) != null) { "$endHour is not a valid full fuzzy time nor the END_OF_DAY marker" }
 		require(endHour > startHour) { "Unsatisfied requirement: endHour > startHour" }
-		// The following requirements are implied by the previous requirements
-//		require(startHour >= 0 && startHour < 23_59_60) { "Unsatisfied requirement: startHour >= 0 && startHour < 23_59_60" }
-//		require(endHour > 0 && endHour <= 23_59_60) { "Unsatisfied requirement: endHour > 0 && endHour <= 23_59_60" }
 	}
 }

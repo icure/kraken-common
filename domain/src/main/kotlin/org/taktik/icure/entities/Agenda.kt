@@ -18,6 +18,7 @@ import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.utils.DynamicInitializer
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -241,7 +242,7 @@ data class Agenda(
 			}
 		}
 		require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
-		if (daySplitHour != null) requireNotNull(FuzzyValues.strictTryParseFuzzyTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
+		if (daySplitHour != null) requireNotNull(FuzzyDates.getFullLocalTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
 		schedules.groupBy { it.resourceGroup }.forEach {  (resourceGroup, schedule) ->
 			require (
 				schedule.size <= 1 || schedule.asSequence().sortedBy {

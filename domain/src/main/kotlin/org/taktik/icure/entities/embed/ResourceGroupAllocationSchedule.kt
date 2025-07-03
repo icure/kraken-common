@@ -3,6 +3,7 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -46,8 +47,8 @@ data class ResourceGroupAllocationSchedule(
 // TODO later val slottingAlgorithm: TimeTableSlottingAlgorithm
 ) : Serializable {
 	init {
-		require(startDateTime == null || FuzzyValues.strictTryParseFuzzyDateTime(startDateTime) != null ) { "startDateTime must be null or a valid fuzzyDateTime ($startDateTime)" }
-		require(endDateTime == null || FuzzyValues.strictTryParseFuzzyDateTime(endDateTime) != null ) { "endDateTime must be null or a valid fuzzyDateTime ($endDateTime)" }
+		require(startDateTime == null || FuzzyDates.getFullLocalDateTime(startDateTime, false) != null ) { "startDateTime must be null or a valid fuzzyDateTime ($startDateTime)" }
+		require(endDateTime == null || FuzzyDates.getFullLocalDateTime(endDateTime, false) != null ) { "endDateTime must be null or a valid fuzzyDateTime ($endDateTime)" }
 		require(startDateTime == null || endDateTime == null || startDateTime < endDateTime) { "If both startTime and endTime are specified startTime must be <= endTime ($startDateTime > $endDateTime)" }
 		require(items.isNotEmpty()) { "At least one item is required" }
 		resourceGroup?.apply {
