@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
+import org.taktik.icure.entities.embed.AgendaSlottingAlgorithm
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
 import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -218,6 +219,7 @@ data class Agenda(
 	 * TODO exception for manually assigned calendar items?
 	 */
 	val daySplitHour: Int? = null, // TODO in future maybe we can replace this by supporting division of time table hours for example [8-10,10-12] would be equivalent to split at 10 for that time table item only
+	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -253,6 +255,11 @@ data class Agenda(
 			) {
 				"Resource group `${resourceGroup?.id}` has overlapping schedules"
 			}
+		}
+		if (schedules.isNotEmpty()) {
+			require(slottingAlgorithm != null) { "`slottingAlgorithm` is required for agendas with schedule" }
+		} else {
+			require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without schedules" }
 		}
 	}
 

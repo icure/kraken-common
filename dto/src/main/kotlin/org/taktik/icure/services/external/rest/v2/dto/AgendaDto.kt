@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
@@ -50,6 +51,7 @@ data class AgendaDto(
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 	@Schema(description = "Associates a user id to the permission that user has on the entity.")
 	val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
 	val properties: Set<PropertyStubDto> = emptySet(),
 	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {

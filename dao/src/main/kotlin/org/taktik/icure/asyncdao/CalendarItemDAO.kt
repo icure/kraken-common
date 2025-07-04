@@ -12,6 +12,21 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 
 interface CalendarItemDAO : GenericDAO<CalendarItem> {
+	/**
+	 * List calendar items with start date between the [searchStart] and [searchEnd] (exclusive), and for the provided
+	 * agenda id.
+	 * If [lastKnownDocumentId] is not null return all entries after that
+	 * TODO since needed only for availabilities return type will be replaced by calendar item stub
+	 */
+	fun listCalendarItemByStartDateAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		searchStart: Long,
+		searchEnd: Long,
+		agendaId: String,
+		limit: Int,
+		lastKnownDocumentId: String?
+	): Flow<CalendarItem>
+
 	fun listCalendarItemByStartDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>
 
 	fun listCalendarItemByEndDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>

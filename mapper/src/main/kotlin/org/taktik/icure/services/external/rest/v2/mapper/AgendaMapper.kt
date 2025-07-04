@@ -26,10 +26,11 @@ import org.taktik.icure.entities.Agenda
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.embed.AgendaSlottingAlgorithmV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ResourceGroupAllocationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.RightV2Mapper
 
-@Mapper(componentModel = "spring", uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface AgendaV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

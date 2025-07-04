@@ -18,28 +18,29 @@ import java.time.temporal.ChronoUnit
  */
 object FuzzyDates {
 	const val MAX_FUZZY_DATE = 99991231
+	const val MIN_FUZZY_DATE = 10000000
 
 	/**
 	 * Does not allow precision markers
 	 */
 	fun getFullLocalTime(
 		fuzzyTime: Int,
-	) : LocalTime? = doGetLocalTime(fuzzyTime, false)?.first
+	) : LocalTime? = doGetLocalTime(fuzzyTime, false, false)?.first
 
 	fun getLocalTimeWithPrecision(
 		fuzzyTime: Int,
-	) : Pair<LocalTime, ChronoUnit>? = doGetLocalTime(fuzzyTime, true)?.takeIf {
+	) : Pair<LocalTime, ChronoUnit>? = doGetLocalTime(fuzzyTime, true, false)?.takeIf {
 		// Days precision doesn't make sense for time
 		it.second != ChronoUnit.DAYS
 	}?.let { Pair(it.first, it.second) }
 
 	fun getFullLocalDate(
 		fuzzyDate: Int,
-	): LocalDate? = doGetLocalDate(fuzzyDate, false)?.first
+	): LocalDate? = doGetLocalDate(fuzzyDate, false, false)?.first
 
 	fun getLocalDateWithPrecision(
 		fuzzyDate: Int,
-	): Pair<LocalDate, ChronoUnit>? = doGetLocalDate(fuzzyDate, true)?.let {
+	): Pair<LocalDate, ChronoUnit>? = doGetLocalDate(fuzzyDate, true, false)?.let {
 		Pair(it.first, it.second)
 	}
 
@@ -57,14 +58,23 @@ object FuzzyDates {
 
 	private fun doGetLocalDate(
 		fuzzyDate: Int,
-		allowEncodedPrecisionMarkers: Boolean
+		allowEncodedPrecisionMarkers: Boolean,
+		lenient: Boolean,
 	): Pair<LocalDate, ChronoUnit>? {
+		if (fuzzyDate !in MIN_FUZZY_DATE..MAX_FUZZY_DATE) return null
 		val y = (fuzzyDate / 10000L).toInt()
 		var mm = (fuzzyDate / 100L % 100L).toInt()
 		var d = (fuzzyDate % 100L).toInt()
 		var precision: ChronoUnit? = null
 		if (mm == 0) {
-			if (!allowEncodedPrecisionMarkers || d != 0) return null
+			if (!allowEncodedPrecisionMarkers) return null
+			if (d != 0) {
+				if (lenient) {
+					d = 0
+				} else {
+					return null
+				}
+			}
 			mm = 1
 			precision = ChronoUnit.YEARS
 		}
@@ -82,8 +92,10 @@ object FuzzyDates {
 
 	private fun doGetLocalTime(
 		fuzzyTime: Int,
-		allowEncodedPrecisionMarkers: Boolean
+		allowEncodedPrecisionMarkers: Boolean,
+		lenient: Boolean
 	): Triple<LocalTime, ChronoUnit, Boolean>? {
+		if (fuzzyTime < 0) return null
 		var h = (fuzzyTime / 10000L).toInt()
 		var m = (fuzzyTime / 100L % 100L).toInt()
 		var s = (fuzzyTime % 100L).toInt()
@@ -106,13 +118,28 @@ object FuzzyDates {
 			detectedPrecision = ChronoUnit.MINUTES
 		}
 		if (m == 60) {
-			if (!allowEncodedPrecisionMarkers || s != 0 || h == 24) return null
+			if (!allowEncodedPrecisionMarkers || h == 24) return null
+			if (s != 0) {
+				if (lenient) {
+					s = 0
+				} else {
+					return null
+				}
+			}
 			m = 0
 			h++
 			if (detectedPrecision == null) detectedPrecision = ChronoUnit.HOURS
 		}
 		if (h == 24) {
-			if (!allowEncodedPrecisionMarkers || m != 0) return null
+			if (!allowEncodedPrecisionMarkers) return null
+			if (m != 0 || s != 0) {
+				if (lenient) {
+					m = 0
+					s = 0
+				} else {
+					return null
+				}
+			}
 			h = 0
 			plusOne = true
 			if (detectedPrecision == null) detectedPrecision = ChronoUnit.DAYS
@@ -139,7 +166,7 @@ object FuzzyDates {
 				return Pair(Instant.ofEpochMilli(dateTime).atZone(ZoneOffset.UTC).toLocalDateTime(), ChronoUnit.SECONDS)
 			}
 			//Full date time format
-			val parsedDateInfo = doGetLocalDate((dateTime / 1000000L).toInt(), allowEncodedPrecisionMarkers || lenient)
+			val parsedDateInfo = doGetLocalDate((dateTime / 1000000L).toInt(), allowEncodedPrecisionMarkers || lenient, lenient)
 			if (parsedDateInfo == null) return null
 			val time = (dateTime % 1000000L).toInt()
 			return if (parsedDateInfo.second != ChronoUnit.DAYS) {
@@ -149,7 +176,7 @@ object FuzzyDates {
 					null // month or year precision with set time and non-lenient is invalid
 				}
 			} else {
-				val parsedTimeInfo = doGetLocalTime(time, allowEncodedPrecisionMarkers || lenient)
+				val parsedTimeInfo = doGetLocalTime(time, allowEncodedPrecisionMarkers || lenient, lenient)
 				if (parsedTimeInfo == null) return null
 				Pair(
 					LocalDateTime.of(
@@ -160,7 +187,7 @@ object FuzzyDates {
 				)
 			}
 		} else if (lenient) {
-			return doGetLocalDate(dateTime.toInt(), true /* allowEncodedPrecisionMarkers || lenient */)?.let {
+			return doGetLocalDate(dateTime.toInt(), true, true)?.let {
 				Pair(LocalDateTime.of(it.first, LocalTime.MIDNIGHT), it.second)
 			}
 		} else {
