@@ -22,7 +22,8 @@ abstract class AgendaMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "userRights", ignore = true),
-		Mapping(target = "timeTables", ignore = true)
+		Mapping(target = "schedules", ignore = true),
+		Mapping(target = "slottingAlgorithm", ignore = true)
 	)
 	abstract fun map(agendaDto: AgendaDto): Agenda
 
@@ -30,10 +31,13 @@ abstract class AgendaMapper {
 
 	fun map(agenda: Agenda): AgendaDto {
 		require(agenda.userRights.isEmpty()) {
-			"userRights is not supported on v1 endpoints."
+			"agendas with userRights are not supported on v1 endpoints."
 		}
-		require(agenda.timeTables.isEmpty()) {
-			"embedded timetables are not supported on v1 endpoints."
+		require(agenda.schedules.isEmpty()) {
+			"agendas with embedded schedules are not supported on v1 endpoints."
+		}
+		require(agenda.slottingAlgorithm == null) {
+			"agendas with slottingAlgorithm are not supported on v1 endpoints."
 		}
 		return mapEntity(agenda)
 	}

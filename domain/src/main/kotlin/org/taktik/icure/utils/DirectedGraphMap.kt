@@ -1,5 +1,8 @@
 package org.taktik.icure.utils
 
+import java.util.ArrayDeque
+import java.util.LinkedList
+
 /**
  * Represent a directed graph as a map.
  * Each key is a vertex, and each value is the vertices that can be reached from the key.
@@ -32,6 +35,27 @@ fun <T> DirectedGraphMap<T>.hasLoops(): Boolean =
  */
 fun <T> DirectedGraphMap<T>.findLoopVertices(): Set<T> =
     this.keys.filter { hasLoopTo(it) }.toSet()
+
+fun <T> DirectedGraphMap<T>.distancesFrom(vertex: T): Map<T, Int> {
+    val res = mutableMapOf<T, Int>()
+    val visited = mutableSetOf<T>()
+    val toVisit = ArrayDeque<Pair<T, Int>>()
+
+    toVisit.add(vertex to 0)
+    while (toVisit.isNotEmpty()) {
+        val (curr, dist) = toVisit.removeFirst()
+        if (curr !in visited) {
+            visited += curr
+            res[curr] = dist
+            this[curr]?.forEach { neighbor ->
+                if (neighbor !in visited) {
+                    toVisit.addLast(neighbor to dist + 1)
+                }
+            }
+        }
+    }
+    return res
+}
 
 /**
  * Get the set of vertices that can be reached with a path that starts from the provided vertex.

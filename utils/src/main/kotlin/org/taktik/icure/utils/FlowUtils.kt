@@ -4,6 +4,7 @@ package org.taktik.icure.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
@@ -11,23 +12,23 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.asFlux
-import reactor.util.context.Context
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.context.Context
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicLong
+import java.util.LinkedList
 
 
 /**
@@ -202,3 +203,28 @@ suspend fun Flow<DataBuffer>.bufferFirstSize(size: Int): Flow<DataBuffer> = flow
     }
     if (!didEmitBuffers && buffers.isNotEmpty()) emitAccumulatedBuffers()
 }
+
+fun <T> interleaveFlows(flows: Iterable<Flow<T>>): Flow<T> = channelFlow {
+    val channels = flows.mapTo(LinkedList()) { flow ->
+        Channel<T>(Channel.RENDEZVOUS).also { channel ->
+            launch {
+                flow.collect {
+                    channel.send(it)
+                }
+                channel.close()
+            }
+        }
+    }
+
+    while (channels.isNotEmpty()) {
+        val channelsIterator = channels.iterator()
+        while (channelsIterator.hasNext()) {
+            val value = channelsIterator.next().receiveCatching()
+            if (value.isClosed) {
+                channelsIterator.remove()
+            } else {
+                send(value.getOrThrow())
+            }
+        }
+    }
+}.buffer(1)
