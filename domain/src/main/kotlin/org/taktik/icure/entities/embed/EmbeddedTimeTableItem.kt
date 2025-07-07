@@ -22,7 +22,7 @@ data class EmbeddedTimeTableItem(
 	 */
 	val rrule: String,
 	/**
-	 * If not null prevents unprivileged users from booking slots slots of this time table item in advance of more than
+	 * If not null prevents unprivileged users from booking slots of this time table item in advance of more than
 	 * [notBeforeInMinutes] minutes.
 	 * Use-cases:
 	 * - Prevent users with public access to the agenda from booking appointments that are too far in the future
@@ -67,6 +67,16 @@ data class EmbeddedTimeTableItem(
 	 * The default is 1
 	 */
 	val availabilities: Int = 1,
+	/**
+	 * The ids of the users who are allowed to create a CalendarItem in this slot.
+	 * Note that this value will be ignored if [public] is true.
+	 */
+	val reservingRights: Set<String> = emptySet(),
+	/**
+	 * If true all users, even anonymous, can see availabilities for this item, and all registered user can take
+	 * appointments for it.
+	 */
+	val public: Boolean = false,
 ) : Serializable {
 	init {
 		try {
@@ -75,7 +85,7 @@ data class EmbeddedTimeTableItem(
 			throw IllegalArgumentException("Invalid recurrence rule: $rrule", e)
 		}
 		require(notBeforeInMinutes == null || notBeforeInMinutes > 0) { "notBeforeInMinutes must be positive if provided" }
-		require(notAfterInMinutes == null || notAfterInMinutes > 0) { "notAfterInMinutes must be positive if provided" }
+		require(notAfterInMinutes == null || notAfterInMinutes >= 0) { "notAfterInMinutes must be positive if provided" }
 		require(hours.isNotEmpty()) { "Timetable item hours can't be empty" }
 		require(calendarItemTypesIds.isNotEmpty()) { "Timetable item must specify at least a calendar item type" }
 		// Check no overlap

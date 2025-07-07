@@ -255,18 +255,11 @@ object FuzzyDates {
 			0
 		}
 		return getFuzzyDate(
-			returnDateTime,
+			returnDateTime.toLocalDate(),
 			if (precision.ordinal < ChronoUnit.DAYS.ordinal) ChronoUnit.DAYS else precision,
 			encodePrecision
 		) * 1000000L + hours * 10000L + minutes * 100L + seconds
 	}
-
-	fun getFuzzyDate(
-		dateTime: LocalDateTime,
-		precision: ChronoUnit,
-		encodePrecision: Boolean
-	): Long =
-		getFuzzyDate(dateTime.toLocalDate(), precision, encodePrecision)
 
 	fun getFuzzyDate(
 		dateTime: LocalDate,
@@ -297,4 +290,8 @@ object FuzzyDates {
 			}
 		)
 	}
+
+	// No precision encoding
+	fun getFuzzyTime(time: LocalTime) =
+		time.hour * 1_00_00 + time.minute * 1_00 + time.second
 }
