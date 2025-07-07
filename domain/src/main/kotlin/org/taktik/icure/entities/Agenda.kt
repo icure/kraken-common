@@ -156,7 +156,7 @@ data class Agenda(
 	val userRights: Map<String, UserAccessLevel> = emptyMap(),
 	val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
 	/**
-	 * Custom properties of the agenda
+	 * Custom properties of the agenda. Public on public agenda.
 	 */
 	val properties: Set<PropertyStub> = emptySet(),
 	/**
