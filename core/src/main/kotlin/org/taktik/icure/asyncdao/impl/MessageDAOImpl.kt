@@ -47,6 +47,10 @@ open class MessageDAOImpl(
 	daoConfig: DaoConfig
 ) : GenericIcureDAOImpl<Message>(Message::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), MessageDAO {
 
+	companion object {
+		private const val SMALLEST_CHAR = "\u0000"
+	}
+
 	@Views(
 		View(name = "by_hcparty_from_address", map = "classpath:js/message/By_hcparty_from_address_map.js"),
 		View(
@@ -284,13 +288,13 @@ open class MessageDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		transportGuid: String,
-		fromDate: Long,
-		toDate: Long,
+		fromDate: Long?,
+		toDate: Long?,
 		descending: Boolean
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val startKey = ComplexKey.of(dataOwnerId, transportGuid, fromDate)
-		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate)
+		val startKey = ComplexKey.of(dataOwnerId, transportGuid + SMALLEST_CHAR, fromDate)
+		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
 			datastoreInformation,
@@ -440,6 +444,29 @@ open class MessageDAOImpl(
 			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_patientfk_sent" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
+	}
+
+	@View(name = "by_data_owner_and_last_update", map = "classpath:js/message/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
+	override fun listMessageIdsByDataOwnerLifecycleBetween(
+		datastoreInformation: IDatastoreInformation,
+		searchKey: String,
+		startTimestamp: Long?,
+		endTimestamp: Long?,
+		descending: Boolean
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, startTimestamp)
+		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
+		val query = createQuery(
+			datastoreInformation,
+			"by_data_owner_and_last_update",
+			DATA_OWNER_PARTITION
+		).startKey(from).endKey(to).descending(descending).includeDocs(false)
+		emitAll(
+			client.queryView<ComplexKey, String>(query)
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+				.map { it.id }
+		)
 	}
 
 }

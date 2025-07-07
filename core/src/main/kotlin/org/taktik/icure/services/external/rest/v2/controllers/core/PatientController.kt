@@ -488,9 +488,9 @@ class PatientController(
 	fun createPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
 		doCreatePatients(patientDtos, patientV2Mapper::map)
 
-	private inline fun <T : Any> doCreatePatients(
+	private fun <T : Any> doCreatePatients(
 		patientDtos: List<PatientDto>,
-		crossinline mapResult: (Patient) -> T
+		mapResult: (Patient) -> T
 	): Flux<T> =
 		flow {
 			val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
@@ -622,12 +622,14 @@ class PatientController(
 			"result of the merge of the `from` and `into` patients according to the patient logic. The metadata will" +
 			"be automatically merged by this method.")
 		@RequestBody
-		updatedInto: PatientDto
+		updatedInto: PatientDto,
+		@RequestParam(required = false)
+		omitEncryptionKeysOfFrom: Boolean? = null,
 	): Mono<PatientDto> = mono {
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
-		patientV2Mapper.map(patientService.mergePatients(fromId, expectedFromRev, patientV2Mapper.map(updatedInto)))
+		patientV2Mapper.map(patientService.mergePatients(fromId, expectedFromRev, patientV2Mapper.map(updatedInto), omitEncryptionKeysOfFrom ?: true))
 	}
 
 	companion object {

@@ -15,6 +15,7 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.IdentityDocumentReader
 import org.taktik.icure.entities.embed.InvoiceInterventionType
 import org.taktik.icure.entities.embed.InvoiceType
@@ -45,6 +46,8 @@ data class Invoice(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
+
+	val identifier: List<Identifier> = listOf(),
 
 	@param:ContentValue(ContentValues.FUZZY_DATE) val invoiceDate: Long? = null, // yyyyMMdd
 	val sentDate: Long? = null,
@@ -125,6 +128,10 @@ data class Invoice(
 
 	fun merge(other: Invoice) = Invoice(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Invoice) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
+		"identifier" to mergeListsDistinct(
+			this.identifier, other.identifier,
+			{ a, b -> a.system == b.system && a.value == b.value },
+		),
 		"invoiceDate" to (this.invoiceDate ?: other.invoiceDate),
 		"sentDate" to (this.sentDate ?: other.sentDate),
 		"printedDate" to (this.printedDate ?: other.printedDate),

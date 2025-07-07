@@ -271,10 +271,12 @@ data class Agenda(
 		"userId" to (this.userId ?: other.userId),
 		"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a },
 		"userRights" to (other.userRights + this.userRights),
-		"timeTables" to this.schedules.ifEmpty { other.schedules },
+		"schedules" to this.schedules.ifEmpty { other.schedules },
 		"properties" to (other.properties + this.properties),
-		"zoneId" to (this.zoneId ?: other.zoneId),
 		"lockCalendarItemsBeforeInMinutes" to (this.lockCalendarItemsBeforeInMinutes ?: other.lockCalendarItemsBeforeInMinutes),
+		"zoneId" to (this.zoneId ?: other.zoneId),
+		"daySplitHour" to (this.daySplitHour ?: other.daySplitHour),
+		"slottingAlgorithm" to (this.slottingAlgorithm ?: other.slottingAlgorithm)
 	)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

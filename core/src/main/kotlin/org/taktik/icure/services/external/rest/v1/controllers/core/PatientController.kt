@@ -548,7 +548,7 @@ class PatientController(
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
-		patientMapper.map(patientService.mergePatients(fromId, expectedFromRev, patientMapper.map(updatedInto)))
+		patientMapper.map(patientService.mergePatients(fromId, expectedFromRev, patientMapper.map(updatedInto), true))
 	}
 
 	companion object {

@@ -24,9 +24,8 @@ dependencies {
     implementation(project("$projectPrefix:dto"))
     implementation(project("$projectPrefix:utils"))
 
-    implementation(coreLibs.bundles.jsonWebTokenLibs) {
-        exclude(group = "com.fasterxml.jackson.core")
-    }
-
     implementation(coreLibs.springBootSecurity)
+    implementation(coreLibs.springBootOauth2)
+    implementation(coreLibs.caffeine)
+    implementation(coreLibs.kotlinxCoroutinesReactor)
 }

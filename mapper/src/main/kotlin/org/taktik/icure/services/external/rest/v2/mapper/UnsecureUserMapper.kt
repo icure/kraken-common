@@ -23,11 +23,13 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.User
+import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
+import org.taktik.icure.services.external.rest.v2.dto.security.LoginIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.security.UnsecureAuthenticationTokenV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.security.PermissionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.security.UnsecureAuthenticationTokenV2Mapper
 
 @Mapper(componentModel = "spring", uses = [PermissionV2Mapper::class, PropertyStubV2Mapper::class, IdentifierV2Mapper::class, UnsecureAuthenticationTokenV2Mapper::class, UnsecureUserV2Mapper.SystemMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface UnsecureUserV2Mapper {
@@ -50,5 +52,13 @@ interface UnsecureUserV2Mapper {
 		fun map(metaDto: UserDto.SystemMetadata): User.SystemMetadata
 
 		fun map(meta: User.SystemMetadata): UserDto.SystemMetadata
+
+		fun map(loginIdentifierDto: LoginIdentifierDto): Identifier =
+			Identifier(assigner = loginIdentifierDto.assigner, value = loginIdentifierDto.value)
+		fun map(identifier: Identifier): LoginIdentifierDto =
+			LoginIdentifierDto(
+				assigner = checkNotNull(identifier.assigner) { "LoginIdentifier assigner cannot be null" },
+				value = checkNotNull(identifier.value) { "LoginIdentifier value cannot be null" }
+			)
 	}
 }

@@ -5,5 +5,6 @@ package org.taktik.icure
  * field should always be encrypted in the generated entity (as opposed to always decrypted).
  * This behaviour will not apply to the generated interfaces
  */
+@Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.PROPERTY)
 annotation class AlwaysEncrypted

@@ -168,11 +168,6 @@ open class DataOwnerLogicImpl(
     override suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType {
         val dataOwnerInfo = getDataOwnerWithType(modifiedCryptoActor.stub.id, modifiedCryptoActor.type, null)
             ?: throw NotFoundRequestException("Data owner with id ${modifiedCryptoActor.stub.id} does not exist or is not of type ${modifiedCryptoActor.type}")
-        if (modifiedCryptoActor.stub.cryptoActorProperties != null
-            && modifiedCryptoActor.stub.cryptoActorProperties != dataOwnerInfo.dataOwner.cryptoActorProperties
-        ) {
-            throw IllegalArgumentException("You cannot update the cryptoActorProperties on the CryptoActor stub")
-        }
         return when (dataOwnerInfo) {
             is DataOwnerWithType.DeviceDataOwner -> checkRevAndTagsThenUpdate(
                 dataOwnerInfo.dataOwner,
@@ -186,6 +181,7 @@ open class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )
@@ -201,6 +197,7 @@ open class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )
@@ -216,6 +213,7 @@ open class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )

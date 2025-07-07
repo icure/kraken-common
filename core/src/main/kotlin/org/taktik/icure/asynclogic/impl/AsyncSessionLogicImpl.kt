@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.WebSession
 import org.taktik.icure.asynclogic.AsyncSessionLogic
 import org.taktik.icure.security.AbstractAuthenticationManager
+import org.taktik.icure.security.jwt.JwtAuthentication
 import org.taktik.icure.security.loadSecurityContext
 
 @Service
@@ -26,9 +27,9 @@ class AsyncSessionLogicImpl(
 
 	val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?, applicationId: String?): Authentication? {
+	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?, applicationId: String?): JwtAuthentication {
 		val token = UsernamePasswordAuthenticationToken(username, password)
-		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId, applicationId).awaitFirstOrNull()
+		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId, applicationId)
 		if (session != null) session.attributes[SESSION_LOCALE_ATTRIBUTE] = "fr" // TODO MB : add locale support
 		return authentication
 	}

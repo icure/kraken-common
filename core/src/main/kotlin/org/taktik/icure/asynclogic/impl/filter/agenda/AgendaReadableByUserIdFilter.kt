@@ -20,6 +20,5 @@ class AgendaReadableByUserIdFilter(
 		filter: AgendaReadableByUserIdFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
-	): Flow<String> = agendaDAO.listReadableAgendaIdsByUserRights(datastoreInformation, filter.userId)
-
+	): Flow<String> = agendaDAO.listReadableAgendaByUserLegacy(datastoreInformation, filter.userId)
 }

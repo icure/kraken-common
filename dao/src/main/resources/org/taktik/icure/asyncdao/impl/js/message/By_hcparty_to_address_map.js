@@ -1,6 +1,6 @@
 function(doc) {
   if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc.delegations && Object.keys(doc.delegations).length) {
-    var addresses = (doc.toAddresses && doc.toAddresses.length) || (doc.invoiceIds && doc.invoiceIds.length) ? {} : {'INBOX': 1};
+    var addresses = (doc.toAddresses && doc.toAddresses.length) || (doc.invoiceIds && doc.invoiceIds.length) ? {} : (doc.transportGuid && doc.transportGuid.startsWith('INBOX') ? {'INBOX': 1} : {});
     if (doc.toAddresses) {
       doc.toAddresses.forEach(function (a) {
         addresses[a] = 1;

@@ -207,8 +207,8 @@ interface MessageDAO : GenericDAO<Message> {
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		transportGuid: String,
-		fromDate: Long,
-		toDate: Long,
+		fromDate: Long?,
+		toDate: Long?,
 		descending: Boolean
 	): Flow<String>
 
@@ -229,4 +229,18 @@ interface MessageDAO : GenericDAO<Message> {
 	 * @return a [Flow] of [Message.id]s.
 	 */
 	fun listMessageIdsByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>): Flow<String>
+
+	/**
+	 * Retrieves all the [Message.id]s with a delegation for the specified [searchKey], where the max among [Message.created],
+	 * [Message.modified], and [Message.deletionDate] is greater or equal than [startTimestamp] (if provided) and less or equal
+	 * than [endTimestamp] (if provided).
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param searchKey a data owner id or a search key.
+	 * @param startTimestamp the lower bound for the latest update date.
+	 * @param endTimestamp the upper bound for the latest update date.
+	 * @param descending whether to sort the results by last update in ascending or descending order.
+	 * @return a [Flow] of [Message.id]s.
+	 */
+	fun listMessageIdsByDataOwnerLifecycleBetween(datastoreInformation: IDatastoreInformation, searchKey: String, startTimestamp: Long?, endTimestamp: Long?, descending: Boolean): Flow<String>
 }
