@@ -21,7 +21,7 @@ data class ResourceGroupAllocationSchedule(
 	val resourceGroup: CodeStub? = null,
 	val tags: Set<CodeStub> = emptySet(),
 	val codes: Set<CodeStub> = emptySet(),
-	val medicalLocationId: String? = null,
+	// TODO place or medical location?
 	/**
 	 * Can be used for human-readable name to help identify the schedule.
 	 * Note that if the agenda is public this name will also be public.

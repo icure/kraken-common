@@ -256,9 +256,7 @@ data class Agenda(
 				"Resource group `${resourceGroup?.id}` has overlapping schedules"
 			}
 		}
-		if (schedules.isNotEmpty()) {
-			require(slottingAlgorithm != null) { "`slottingAlgorithm` is required for agendas with schedule" }
-		} else {
+		if (schedules.isEmpty()) {
 			require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without schedules" }
 		}
 	}
