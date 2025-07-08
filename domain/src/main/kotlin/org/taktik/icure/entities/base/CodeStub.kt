@@ -57,6 +57,17 @@ data class CodeStub(
 		) else this
 	}
 
+	fun requireNormalized() {
+		val parts = this.id.split("|")
+		require(
+			parts.size == 3
+			&& !type.isNullOrBlank() && parts[0] == type
+			&& !code.isNullOrBlank() && parts[1] == code
+			&& !version.isNullOrBlank() && parts[2] == version
+			&& label == null // TODO Deprecate label
+		) { "Invalid code stub: $this" }
+	}
+
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (other !is CodeStub) return false

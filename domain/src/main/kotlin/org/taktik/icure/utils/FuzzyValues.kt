@@ -5,8 +5,11 @@ package org.taktik.icure.utils
 
 import org.apache.commons.lang3.math.NumberUtils
 import java.math.BigInteger
+import java.time.DateTimeException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.Period
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -33,8 +36,11 @@ import java.time.temporal.TemporalUnit
  *
  */
 @Suppress("unused")
+@Deprecated("Use FuzzyDates instead; if the method you need is not there consider adding fixing it if needed and adding it, or if it is not about dates create a new FuzzyX class")
 object FuzzyValues {
-    const val MAX_FUZZY_DATE = 99991231L
+    const val MAX_FUZZY_DATE = 99991231
+    const val MAX_FUZZY_TIME = 23_59_59
+    const val MAX_FUZZY_DATETIME = 9999_12_31_23_59_59
     private val fuzzyDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
     fun getMaxRangeOf(text: String): Int {
@@ -115,6 +121,7 @@ object FuzzyValues {
     val currentFuzzyDateTime: Long
         get() = getCurrentFuzzyDateTime(ChronoUnit.SECONDS)
 
+    // NOTE: has issues with some chrono units
     fun getFuzzyDateTime(dateTime: LocalDateTime, precision: TemporalUnit): Long {
         var returnDateTime = dateTime
         val seconds = returnDateTime.second

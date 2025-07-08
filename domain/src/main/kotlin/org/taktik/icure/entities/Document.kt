@@ -118,7 +118,7 @@ data class Document(
 	}
 
 	@get:JsonIgnore
-	val mainAttachmentKey: String get() = id
+	val mainAttachmentKey: String get() = mainAttachmentKeyFromId(id)
 
 	@get:JsonIgnore
 	val mainAttachment: DataAttachment? by lazy {

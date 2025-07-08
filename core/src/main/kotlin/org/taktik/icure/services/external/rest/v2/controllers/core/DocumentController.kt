@@ -317,6 +317,9 @@ class DocumentController(
 		@RequestParam(required = false)
 		encrypted: Boolean?
 	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		require(Document.mainAttachmentKeyFromId(documentId) != key) {
+			"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
+		}
 		val attachmentSize = lengthHeader ?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
 			"Attachment size must be specified in the content-length header"
@@ -377,6 +380,9 @@ class DocumentController(
 		@RequestParam(required = true)
 		rev: String,
 	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		require(Document.mainAttachmentKeyFromId(documentId) != key) {
+			"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
+		}
 		documentService.updateAttachments(
 			documentId,
 			rev,

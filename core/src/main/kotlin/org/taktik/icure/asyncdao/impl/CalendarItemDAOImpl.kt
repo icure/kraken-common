@@ -61,6 +61,37 @@ class CalendarItemDAOImpl(
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CalendarItemDAO {
 
+	override fun listCalendarItemByStartDateAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		searchStart: Long,
+		searchEnd: Long,
+		agendaId: String,
+		limit: Int,
+		lastKnownDocumentId: String?
+	): Flow<CalendarItem> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = ComplexKey.of(
+			agendaId,
+			searchStart
+		)
+		val to = ComplexKey.of(
+			agendaId,
+			searchEnd
+		)
+
+		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_startdate")
+			.startKey(from)
+			.endKey(to)
+			.includeDocs(true)
+			.inclusiveEnd(false)
+			.startDocId(lastKnownDocumentId)
+			.skip(if (lastKnownDocumentId == null) 0 else 1)
+			.limit(limit)
+
+		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, CalendarItem>(viewQuery).map { it.doc })
+	}
+
 	@Views(
         View(name = "by_hcparty_and_startdate", map = "classpath:js/calendarItem/By_hcparty_and_startdate.js"),
         View(name = "by_data_owner_and_startdate", map = "classpath:js/calendarItem/By_data_owner_and_startdate.js", secondaryPartition = DATA_OWNER_PARTITION),
