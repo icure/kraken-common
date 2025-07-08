@@ -3,6 +3,7 @@
  */
 package org.taktik.icure.entities.embed
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.utils.FuzzyDates
@@ -26,8 +27,10 @@ data class  EmbeddedTimeTableHour(
 		const val END_OF_DAY = 23_59_60
 	}
 
-	val startHourLocalTime get() = FuzzyDates.getFullLocalTime(startHour)!!
-	val endHourLocalTime get() = if (endHour == END_OF_DAY) LocalTime.MIDNIGHT else FuzzyDates.getFullLocalTime(endHour)!!
+	@get:JsonIgnore
+	val startHourLocalTime: LocalTime get() = FuzzyDates.getFullLocalTime(startHour)!!
+	@get:JsonIgnore
+	val endHourLocalTime: LocalTime get() = if (endHour == END_OF_DAY) LocalTime.MIDNIGHT else FuzzyDates.getFullLocalTime(endHour)!!
 
 	init {
 		require(FuzzyDates.getFullLocalTime(startHour) != null) { "$startHour is not a valid full fuzzy time" }
