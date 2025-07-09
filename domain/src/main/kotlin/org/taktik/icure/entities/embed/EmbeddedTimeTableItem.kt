@@ -5,12 +5,8 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.dmfs.rfc5545.recur.InvalidRecurrenceRuleException
 import org.dmfs.rfc5545.recur.RecurrenceRule
-import org.taktik.couchdb.mango.query
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -87,7 +83,6 @@ data class EmbeddedTimeTableItem(
 		require(notBeforeInMinutes == null || notBeforeInMinutes > 0) { "notBeforeInMinutes must be positive if provided" }
 		require(notAfterInMinutes == null || notAfterInMinutes >= 0) { "notAfterInMinutes must be positive if provided" }
 		require(hours.isNotEmpty()) { "Timetable item hours can't be empty" }
-		require(calendarItemTypesIds.isNotEmpty()) { "Timetable item must specify at least a calendar item type" }
 		// Check no overlap
 		val sortedHours = hours.sortedBy { it.startHour }
 		for (i in 1 until sortedHours.size) {
