@@ -14,6 +14,7 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.utils.distinct
 
 @Service
 @Profile("app")
@@ -26,6 +27,8 @@ class ContactByServiceIdsFilter(
         context: Filters,
         datastoreInformation: IDatastoreInformation
     ): Flow<String> = filter.ids?.let {
-		contactDAO.listIdsByServices(datastoreInformation, it)
-	}?.map { it.contactId } ?: flowOf()
+		contactDAO.listAllContactIdsByServices(datastoreInformation, it)
+	}?.map {
+		it.contactId
+	}?.distinct() ?: flowOf()
 }

@@ -4,8 +4,11 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
@@ -33,6 +36,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.FLEXI_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
@@ -44,6 +48,7 @@ import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.utils.DeduplicationMode
 import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.distinct
@@ -345,11 +350,44 @@ class ContactDAOImpl(
 		val viewQuery = createQuery(datastoreInformation, "service_by_association_id")
 			.key(associationId)
 			.includeDocs(false)
-		emitAll(
-			client.queryView<String, String>(viewQuery).map {
-				checkNotNull(it.value) { "A Service cannot have a null id" }
+		emitUpToDateServiceIdsFrom(datastoreInformation, client.queryView<String, String?>(viewQuery))
+	}
+
+	/**
+	 * Only emits service ids that are still matching in their latest version.
+	 * `serviceIdValueFlow` could contain the ids of services that at some point matched the request, but the latest
+	 * version of the services may not match the request anymore.
+	 * This method ensures that only services that matched also in their latest version are returned.
+	 */
+	private suspend fun FlowCollector<String>.emitUpToDateServiceIdsFrom(
+		datastoreInformation: IDatastoreInformation,
+		serviceIdValueFlow: Flow<ViewRowNoDoc<*, String?>>
+	) {
+		// For each service save all the contact ids where the service was matching
+		val serviceToMatchingContacts = mutableMapOf<String, MutableSet<String>>()
+		serviceIdValueFlow.collect { row ->
+			// Should never be null but unfortunately that is sometimes the case
+			row.value?.let { serviceId ->
+				serviceToMatchingContacts.compute(
+					serviceId
+				) { _, prevValue ->
+					prevValue?.also { it += row.id } ?: mutableSetOf(row.id)
+				}
 			}
-		)
+		}
+		listLatestContactIdsByServices(
+			datastoreInformation,
+			serviceToMatchingContacts.keys
+		).collect { serviceIdLatestContactId ->
+			val currServiceId = checkNotNull(serviceIdLatestContactId.serviceId) {
+				"Services with null ids should have been filtered earlier"
+			}
+			// If the contact containing the latest version of the service was included in the `serviceIdValueFlow`
+			// then the service still matches, else not.
+			if (serviceToMatchingContacts.getValue(currServiceId).contains(serviceIdLatestContactId.contactId)) {
+				emit(currServiceId)
+			}
+		}
 	}
 
 	@Views(
@@ -845,16 +883,60 @@ class ContactDAOImpl(
 		)
 	}
 
-	@View(name = "by_service_emit_modified", map = "classpath:js/contact/By_service_emit_modified.js")
-	override fun listIdsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>) = flow {
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	private data class ContactIdModified(
+		@JsonProperty("c") val contactId: String,
+		@JsonProperty("m") val modified: Long? = null
+	)
+
+	@Views(
+		// Leaving this to prevent re-indexing but now unused
+		View(name = "by_service_emit_modified", map = "classpath:js/contact/By_service_emit_modified.js"),
+		View(
+			name = "by_service_with_reduce",
+			// Could technically reuse map above but we can save some storage; contact id necessary in value for reduce.
+			map = "classpath:js/contact/By_service_map.js",
+			reduce = "classpath:js/contact/By_service_reduce.js",
+			secondaryPartition = FLEXI_PARTITION
+		)
+	)
+	override fun listAllContactIdsByServices(
+		datastoreInformation: IDatastoreInformation,
+		serviceIds: Collection<String>
+	): Flow<ContactIdServiceId> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "by_service_emit_modified").keys(services).includeDocs(false)
-		emitAll(client.queryView<String, ContactIdServiceId>(viewQuery).mapNotNull { it.value })
+		val viewQuery = createQuery(datastoreInformation, "by_service_with_reduce", FLEXI_PARTITION).keys(serviceIds).includeDocs(false).reduce(false)
+		emitAll(client.queryView<String, ContactIdModified>(viewQuery).mapNotNull { row ->
+			row.value?.let {
+				ContactIdServiceId(
+					contactId = it.contactId,
+					modified = it.modified,
+					serviceId = row.key
+				)
+			}
+		})
 	}
 
-	override fun listContactsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>): Flow<Contact> {
-		return getContacts(datastoreInformation, this.listIdsByServices(datastoreInformation, services).map { it.contactId })
+	override fun listLatestContactIdsByServices(
+		datastoreInformation: IDatastoreInformation,
+		serviceIds: Collection<String>
+	): Flow<ContactIdServiceId> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_service_with_reduce", FLEXI_PARTITION)
+			.keys(serviceIds)
+			.includeDocs(false)
+			.group(true)
+		emitAll(client.queryView<String, ContactIdModified>(viewQuery).mapNotNull { row ->
+			row.value?.let {
+				ContactIdServiceId(
+					contactId = it.contactId,
+					modified = it.modified,
+					serviceId = row.key
+				)
+			}
+		})
 	}
 
 	override fun relink(cs: Flow<Contact>): Flow<Contact> {
@@ -908,6 +990,7 @@ class ContactDAOImpl(
 		when(partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)
 			Partitions.Maurice -> warmup(datastoreInformation, "service_by_linked_id" to MAURICE_PARTITION)
+			Partitions.Flexi -> warmup(datastoreInformation, "by_service_with_reduce" to FLEXI_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
