@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
@@ -104,22 +105,24 @@ class CalendarItemController(
 	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		calendarItemService.deleteCalendarItems(
 			calendarItemIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 	
 	@Operation(summary = "Deletes a multiple CalendarItems if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteCalendarItemsWithRev(@RequestBody calendarItemIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		calendarItemService.deleteCalendarItems(
 			calendarItemIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 	
-	@Operation(summary = "Deletes an CalendarItem")
+	@Operation(summary = "Deletes a CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		calendarItemService.deleteCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
+		calendarItemService.deleteCalendarItem(calendarItemId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 	
 	@PostMapping("/undelete/{calendarItemId}")
@@ -138,7 +141,7 @@ class CalendarItemController(
 		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Gets an calendarItem")
+	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
 	fun getCalendarItem(@PathVariable calendarItemId: String) = mono {
 		val calendarItem = calendarItemService.getCalendarItem(calendarItemId)
@@ -147,7 +150,7 @@ class CalendarItemController(
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies an calendarItem")
+	@Operation(summary = "Modifies a calendarItem")
 	@PutMapping
 	fun modifyCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
 		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))

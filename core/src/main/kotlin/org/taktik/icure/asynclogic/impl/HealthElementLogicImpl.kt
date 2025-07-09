@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
@@ -72,7 +71,7 @@ open class HealthElementLogicImpl (
 		getEntities(healthElementIds)
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	override fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()
@@ -99,6 +98,8 @@ open class HealthElementLogicImpl (
 		)
 	}
 
+	@Suppress("DEPRECATION")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	override suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement> {
 		val datastoreInformation = getInstanceAndGroup()
 		return healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys).toList()

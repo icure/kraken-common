@@ -1,5 +1,5 @@
 [versions]
-springBoot = "3.3.5"
+springBoot = "3.3.11"
 springSecurity = "6.3.4"
 springFramework = "6.1.14"
 springSession = "3.3.3"
@@ -19,6 +19,7 @@ springBootWebflux = { group = "org.springframework.boot", name = "spring-boot-st
 springBootSecurity = { group = "org.springframework.boot", name = "spring-boot-starter-security", version.ref = "springBoot"  }
 springBootActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version.ref = "springBoot"  }
 springBootCache = { group = "org.springframework.boot", name = "spring-boot-starter-cache", version.ref = "springBoot"  }
+springBootOauth2 = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-client", version.ref = "springBoot" }
 springAspects = { group = "org.springframework", name = "spring-aspects", version.ref = "springFramework" }
 springWebsocket = { group = "org.springframework", name = "spring-websocket", version.ref = "springFramework" }
 springMessaging = { group = "org.springframework", name = "spring-messaging", version.ref = "springFramework" }
@@ -46,7 +47,7 @@ jakartaServlet = { group = "jakarta.servlet", name = "jakarta.servlet-api", vers
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 hibernateValidatorAnnotationProcessor = { group = "org.hibernate.validator", name = "hibernate-validator-annotation-processor", version.ref = "hibernateValidator" }
 hibernateValidatorCdi = { group = "org.hibernate.validator", name = "hibernate-validator-cdi", version.ref = "hibernateValidator" }
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.58-g10de1c25fa" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.63-ga535880142" }
 asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.20-gb1dbc02f34" }
 mapperProcessor = { group = "io.icure", name = "mapper-processor", version = "0.1.1-32d45af2a6" }
 guava = { group = "com.google.guava", name = "guava", version = "31.1-jre" }
@@ -75,10 +76,8 @@ kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.1" } # 2FA
 kotlinDateTime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.6.0-RC.2" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
-icureTestSetup = { group = "io.icure", name = "icure-e2e-test-setup", version = "0.0.24-gc854bb2431" }
 kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
-googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.0" }
-kotlinKsp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "1.33.4" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -112,3 +111,4 @@ helmRepository = { id = "com.taktik.gradle.helm-repository", version = "0.2.24-g
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 licenceReport = { id = "com.github.jk1.dependency-license-report", version = "2.0"}
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0" }
+gradleTestLogger = { id = "com.adarshr.test-logger", version  = "4.0.0" }

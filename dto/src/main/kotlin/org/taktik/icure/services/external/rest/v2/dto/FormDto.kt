@@ -59,6 +59,7 @@ data class FormDto(
     @Schema(description = "The healthcare element to which this form is attached.") val healthElementId: String? = null,
     @Schema(description = "The healthcare approach to which this form is attached.") val planOfActionId: String? = null,
     @Schema(description = "The parent of this form, used to determine the forms hierarchy") val parent: String? = null,
+    @Schema(description = "Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.") val anchorId: String? = null,
 
     override val secretForeignKeys: Set<String> = emptySet(),
     override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

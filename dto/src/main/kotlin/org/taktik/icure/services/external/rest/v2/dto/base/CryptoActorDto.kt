@@ -19,12 +19,14 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.AlwaysDecrypted
+import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
-interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
+interface CryptoActorDto: VersionableDto<String> {
 	@get:Schema(
 		description = "For each couple of HcParties (delegator and delegate), this map contains the exchange AES key. The delegator is always this hcp, the key of the map is the id of the delegate. " +
 			"The AES exchange key is encrypted using RSA twice : once using this hcp public key (index 0 in the Array) and once using the other hcp public key (index 1 in the Array). For a pair of HcParties. Each HcParty always has one AES exchange key for himself."
@@ -48,4 +50,7 @@ interface CryptoActorDto: VersionableDto<String>, HasTagsDto {
 
 	@get:Schema(description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent")
 	val parentId: String?
+
+	@get:Schema(description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.")
+	@AlwaysDecrypted val cryptoActorProperties: Set<PropertyStubDto>?
 }

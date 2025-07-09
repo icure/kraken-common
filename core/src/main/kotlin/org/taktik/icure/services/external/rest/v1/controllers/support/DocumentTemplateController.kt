@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -64,7 +65,7 @@ class DocumentTemplateController(
 	fun deleteDocumentTemplate(@PathVariable documentTemplateIds: String): Flux<DocIdentifierDto> {
 		val documentTemplateIdsList = documentTemplateIds.split(',').toSet()
 		return documentTemplateService.deleteDocumentTemplates(documentTemplateIdsList.map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 

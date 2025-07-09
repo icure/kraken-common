@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -77,7 +78,7 @@ class ClassificationController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List classification Templates found By Healthcare Party and secret foreign key elementIds.", description = "Keys have to be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
@@ -96,7 +97,7 @@ class ClassificationController(
 		}
 
 		return classificationService.deleteClassifications(ids.toSet().map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 

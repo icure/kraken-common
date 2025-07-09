@@ -37,6 +37,18 @@ interface PatientDAO : GenericDAO<Patient> {
 	 * @return a [Flow] of [Patient.id]s.
 	 */
 	fun listPatientIdsByActive(datastoreInformation: IDatastoreInformation, active: Boolean, searchKeys: Set<String>): Flow<String>
+	/**
+	 * Retrieves all the [Patient.id]s delegated to a data owner (by checking their [searchKeys]) and where [Patient.tags] contains
+	 * at least one tag with type [tagType] and code [tagCode]. If [tagCode] is null, the presence of any tag with the specified [tagType]
+	 * will suffices.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
+	 * @param dataOwnerId the data owner id.
+	 * @param tagType the tag type to search for in [Patient.tags]
+	 * @param tagCode the tag code to search for in [Patient.tags] with the type [tagType].
+	 * @return a [Flow] of [Patient.id]s.
+	 */
+	fun listPatientIdsByDataOwnerTag(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String? = null): Flow<String>
 	fun listOfMergesAfter(datastoreInformation: IDatastoreInformation, date: Long?): Flow<Patient>
 	suspend fun countByHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int
 	suspend fun countOfHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int

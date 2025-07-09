@@ -97,10 +97,7 @@ class InvoiceDAOImpl(
 		emitAll(getEntities(datastoreInformation, invoiceIds.distinct()))
 	}
 
-	@Views(
-		View(name = "by_hcparty_decision_reference", map = "classpath:js/invoice/By_hcparty_decision_reference_map.js", secondaryPartition = MAURICE_PARTITION),
-		View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
+	@View(name = "by_data_owner_decision_reference_map", map = "classpath:js/invoice/By_data_owner_decision_reference_map.js", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listInvoiceIdsByDataOwnerDecisionReference(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -108,16 +105,11 @@ class InvoiceDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueries(
+		emitAll(client.queryView<ComplexKey, String>(createQuery(
 			datastoreInformation,
-			"by_hcparty_decision_reference" to MAURICE_PARTITION,
-			"by_data_owner_decision_reference_map" to DATA_OWNER_PARTITION
-		).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).doNotIncludeDocs()
-		emitAll(
-			client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as String}, {it.components[1] as String}))
-				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.map { it.id }
-		)
+			"by_data_owner_decision_reference_map",
+			secondaryPartition = DATA_OWNER_PARTITION
+		).includeDocs(false).keys(searchKeys.map { key -> ComplexKey.of(key, decisionReference) }).reduce(false)).map { it.id })
 	}
 
 	@Views(
@@ -201,7 +193,7 @@ class InvoiceDAOImpl(
 			.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>().map { it.doc })
 	}.distinctById()
 
-	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Views(
 	    View(name = "by_hcparty_patientfk", map = "classpath:js/invoice/By_hcparty_patientfk_map.js"),
 	    View(name = "by_data_owner_patientfk", map = "classpath:js/invoice/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -367,7 +359,7 @@ class InvoiceDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Invoice>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).mapNotNull { it.doc })
 	}
 
-	@View(name = "tarification_by_hcparty_code", map = "classpath:js/invoice/Tarification_by_hcparty_code.js", reduce = "_count")
+	@View(name = "tarification_by_data_owner", map = "classpath:js/invoice/Tarification_by_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listInvoiceIdsByTarificationsAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -390,7 +382,8 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_hcparty_code"
+			"tarification_by_data_owner",
+			DATA_OWNER_PARTITION
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.value })
 	}
 
@@ -417,7 +410,8 @@ class InvoiceDAOImpl(
 
 		emitAll(client.queryView<Array<String>, String>(createQuery(
 			datastoreInformation,
-			"tarification_by_hcparty_code"
+			"tarification_by_data_owner",
+			DATA_OWNER_PARTITION
 		).includeDocs(false).startKey(from).endKey(to).reduce(false)).mapNotNull { it.id })
 	}
 
@@ -432,7 +426,7 @@ class InvoiceDAOImpl(
 			ComplexKey.emptyObject()
 		)
 
-		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_hcparty_code").startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
+		emitAll(client.queryView<ComplexKey, Long>(createQuery(datastoreInformation, "tarification_by_data_owner", DATA_OWNER_PARTITION).startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(2)))
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {

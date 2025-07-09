@@ -24,12 +24,12 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v1.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v1.mapper.InsuranceMapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -70,7 +70,7 @@ class InsuranceController(
 	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
 	fun deleteInsurance(@PathVariable insuranceId: String) = mono {
-		insuranceService.deleteInsurance(insuranceId, null)
+		insuranceService.deleteInsurance(insuranceId, null).let { DocIdentifierDto(it.id, it.rev) }
 	}
 
 	@Operation(summary = "Gets an insurance")

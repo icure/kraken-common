@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,15 +39,15 @@ import org.taktik.icure.exceptions.PasswordTooShortException
 import org.taktik.icure.exceptions.TooManyRequestsException
 import org.taktik.icure.security.AbstractAuthenticationManager
 import org.taktik.icure.security.SecurityToken
+import org.taktik.icure.security.jwt.JwtAuthentication
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
-import org.taktik.icure.security.jwt.JwtToResponseMapper
 import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v1.dto.AuthenticationResponse
 import org.taktik.icure.services.external.rest.v1.dto.LoginCredentials
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
 import reactor.core.publisher.Mono
-import java.util.*
+import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
@@ -61,7 +60,6 @@ class LoginController(
 	private val sessionLogic: AsyncSessionLogic,
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
-	private val jwtToResponseMapper: JwtToResponseMapper,
 	asyncCacheManager: AsyncCacheManager
 ) {
 	val cache = asyncCacheManager.getCache<String, SecurityToken>("spring.security.tokens")
@@ -71,7 +69,7 @@ class LoginController(
 
 	@Suppress("DEPRECATION")
 	private suspend fun produceAuthenticationResponse(
-		authentication: Authentication?,
+		authentication: JwtAuthentication?,
 		username: String,
 		jwtDuration: Long? = null,
 		session: WebSession? = null
@@ -80,7 +78,7 @@ class LoginController(
 		val securityContext = coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
 		withContext(coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
 			ResponseEntity.ok().body(
-				jwtToResponseMapper.toAuthenticationResponse(authentication, username, jwtDuration).also {
+				authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration).also {
 					if (session != null) {
 						session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 					}
@@ -89,7 +87,7 @@ class LoginController(
 		}
 	} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
 		ResponseEntity.ok().body(
-			jwtToResponseMapper.toAuthenticationResponse(authentication, username, jwtDuration)
+			authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration)
 		)
 	} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthenticationResponse(successful = false))
 
@@ -97,7 +95,7 @@ class LoginController(
 	@PostMapping("/login")
 	fun login(
 		request: ServerHttpRequest,
-		@Parameter(description = "The duration of the generated token. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
+		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
 		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
@@ -106,7 +104,7 @@ class LoginController(
 			val username = loginCredentials.username!!
 
 			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, null)
-			produceAuthenticationResponse(authentication, username, duration?.seconds?.inWholeMilliseconds, session)
+			produceAuthenticationResponse(authentication, username, duration, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")
 			ResponseEntity.status(
@@ -130,13 +128,10 @@ class LoginController(
 		@RequestParam(required = false) totp: String?
 	) = mono {
 		val refreshToken = jwtUtils.extractRawRefreshTokenFromRequest(request)
-		val newJwtDetails = authenticationManager.regenerateJwtDetails(refreshToken, totpToken = totp)
+		val newJwtDetails = authenticationManager.regenerateAuthJwt(refreshToken, totpToken = totp)
 		JwtResponse(
 			successful = true,
-			token = jwtUtils.createJWT(
-				newJwtDetails,
-				jwtUtils.getJwtDurationFromRefreshToken(refreshToken)
-			)
+			token = jwtUtils.createAuthJWT(newJwtDetails.first, newJwtDetails.second)
 		)
 	}
 

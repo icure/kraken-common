@@ -23,6 +23,12 @@ function(doc) {
                             emitWithDelegateAndDoc(secureDelegation.delegate, doc)
                         }
                     }
+                    if (secureDelegation.delegator) {
+                        if (!emittedDataOwners.has(secureDelegation.delegator)) {
+                            emittedDataOwners.add(secureDelegation.delegator)
+                            emitWithDelegateAndDoc(secureDelegation.delegator, doc)
+                        }
+                    }
                     if (!secureDelegation.delegate || !secureDelegation.delegator) {
                         emitWithDelegateAndDoc(delegationKey, doc)
                         const equivalences = equivalencesByCanonical[delegationKey]
@@ -32,6 +38,14 @@ function(doc) {
                     }
                 }
             }
+        }
+        if (doc.delegations) {
+            Object.keys(doc.delegations).forEach(function (k) {
+                if(!emittedDataOwners.has(k)) {
+                    // No reason to do add: keys from doc.delegations can't be duplicated, and doc.delegations are the last thing we emit
+                    emitWithDelegateAndDoc(k, doc)
+                }
+            });
         }
     }
 

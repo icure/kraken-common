@@ -6,12 +6,9 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
-import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface DocumentTemplateService {
@@ -34,9 +31,9 @@ interface DocumentTemplateService {
      * - don't match the provided revision (if provided)
      *
      * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the [DocIdentifier]s of the entities successfully deleted.
+     * @return a [Flow] containing the deleted [DocumentTemplate]s.
      */
-    fun deleteDocumentTemplates(ids: List<IdAndRev>): Flow<DocIdentifier>
+    fun deleteDocumentTemplates(ids: List<IdAndRev>): Flow<DocumentTemplate>
 //
 //    /**
 //     * Marks an entity as deleted.

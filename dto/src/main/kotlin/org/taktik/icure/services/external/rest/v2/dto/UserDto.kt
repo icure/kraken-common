@@ -17,8 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import java.io.Serializable
-import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -31,9 +29,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationTagDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto
+import org.taktik.icure.services.external.rest.v2.dto.security.LoginIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.security.PermissionDto
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
+import java.io.Serializable
+import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -88,7 +89,8 @@ data class UserDto(
 		@Schema(description = "Specifies if the user is an admin in the cloud environment. An admin user is considered to have the permissions to do anything on his group and on children groups.", required = true)
 		val isAdmin: Boolean,
 		@Schema(description = "Specifies if the roles of the user are inherited from the group configuration (true), or if they are custom for the user (false).", required = true)
-		val inheritsRoles: Boolean
+		val inheritsRoles: Boolean,
+		@Schema(description = "Identifiers of the user available for login")
+		@JsonInclude(JsonInclude.Include.NON_EMPTY) val loginIdentifiers: List<LoginIdentifierDto> = emptyList()
 	): Serializable
-
 }

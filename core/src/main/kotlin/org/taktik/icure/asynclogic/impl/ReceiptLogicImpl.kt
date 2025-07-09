@@ -6,9 +6,6 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.*
 import org.apache.commons.codec.digest.DigestUtils
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -22,15 +19,13 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
-@Service
-@Profile("app")
-class ReceiptLogicImpl(
-    private val receiptDAO: ReceiptDAO,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    fixer: Fixer,
-    filters: Filters
+open class ReceiptLogicImpl(
+	private val receiptDAO: ReceiptDAO,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	fixer: Fixer,
+	filters: Filters
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ReceiptLogic {
 
 	override suspend fun createReceipt(receipt: Receipt): Receipt? {

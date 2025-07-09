@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
@@ -169,14 +170,14 @@ class FormController(
 	fun deleteForms(@RequestBody formIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		formService.deleteForms(
 			formIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Forms if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteFormsWithRev(@RequestBody formIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		formService.deleteForms(
 			formIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Form")
 	@DeleteMapping("/{formId}")
@@ -184,7 +185,9 @@ class FormController(
 		@PathVariable formId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		formService.deleteForm(formId, rev).let(docIdentifierV2Mapper::map)
+		formService.deleteForm(formId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{formId}")
@@ -215,7 +218,7 @@ class FormController(
 		formService.createForms(formDtos.map { formV2Mapper.map(it) }).map { formV2Mapper.map(it) }.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List forms found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listFormsByHCPartyAndPatientForeignKeys(
@@ -231,7 +234,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listFormIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List forms found By Healthcare Party and secret foreign keys.", description = "Keys must be delimited by coma")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findFormsByHCPartyPatientForeignKeys(
@@ -268,7 +271,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findFormsDelegationsStubsByIds instead")
 	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma,")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
@@ -280,7 +283,7 @@ class FormController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findFormsDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findFormsDelegationsStubsByIds instead")
 	@Operation(summary = "List form stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findFormsDelegationsStubsByHCPartyAndPatientForeignKeys(
@@ -347,7 +350,7 @@ class FormController(
 	@Operation(summary = "Delete a form template")
 	@DeleteMapping("/template/{formTemplateId}")
 	fun deleteFormTemplate(@PathVariable formTemplateId: String) = mono {
-		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()
+		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()?.let { DocIdentifierDto(it.id, it.rev) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form deletion failed")
 	}
 

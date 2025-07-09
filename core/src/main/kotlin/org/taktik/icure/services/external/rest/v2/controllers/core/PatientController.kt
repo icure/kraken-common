@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
@@ -43,6 +44,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
+import org.taktik.icure.entities.Patient
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -365,14 +367,14 @@ class PatientController(
 	fun deletePatients(@RequestBody patientIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		patientService.deletePatients(
 			patientIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Patients if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deletePatientsWithRev(@RequestBody patientIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		patientService.deletePatients(
 			patientIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Patient")
 	@DeleteMapping("/{patientId}")
@@ -380,7 +382,9 @@ class PatientController(
 		@PathVariable patientId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		patientService.deletePatient(patientId, rev).let(docIdentifierV2Mapper::map)
+		patientService.deletePatient(patientId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{patientId}")
@@ -470,16 +474,53 @@ class PatientController(
 
 	@Operation(summary = "Create patients in bulk", description = "Returns the id and _rev of created patients")
 	@PostMapping("/batch")
-	fun createPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
-		val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
+	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
+	fun createPatients(@RequestBody patientDtos: List<PatientDto>) =
+		createPatientsMinimal(patientDtos)
+
+	@Operation(summary = "Create patients in bulk", description = "Returns the id and _rev of created patients")
+	@PostMapping("/batch/minimal")
+	fun createPatientsMinimal(@RequestBody patientDtos: List<PatientDto>): Flux<IdWithRevDto> =
+		doCreatePatients(patientDtos) { IdWithRevDto(id = it.id, rev = it.rev) }
+
+	@Operation(summary = "Create patients in bulk", description = "Returns the created patients")
+	@PostMapping("/batch/full")
+	fun createPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
+		doCreatePatients(patientDtos, patientV2Mapper::map)
+
+	private fun <T : Any> doCreatePatients(
+		patientDtos: List<PatientDto>,
+		mapResult: (Patient) -> T
+	): Flux<T> =
+		flow {
+			val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
+			emitAll(patients.map(mapResult))
+		}.injectReactorContext()
+
+	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
+	@PutMapping("/batch")
+	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
+	fun modifyPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
+		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
 		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
-	@PutMapping("/batch")
-	fun modifyPatients(@RequestBody patientDtos: List<PatientDto>) = flow {
+	@PutMapping("/batch/minimal")
+	fun modifyPatientsMinimal(@RequestBody patientDtos: List<PatientDto>): Flux<IdWithRevDto> =
+		doModifyPatients(patientDtos) { p -> IdWithRevDto(id = p.id, rev = p.rev) }
+
+	@Operation(summary = "Modify patients in bulk", description = "Returns the modified patients")
+	@PutMapping("/batch/full")
+	fun modifyPatientsFull(@RequestBody patientDtos: List<PatientDto>): Flux<PatientDto> =
+		doModifyPatients(patientDtos, patientV2Mapper::map)
+
+	private inline fun <T : Any> doModifyPatients(
+		patientDtos: List<PatientDto>,
+		crossinline mapResult: (Patient) -> T
+	) = flow {
 		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
-		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
+		emitAll(patients.map(mapResult))
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify a patient", description = "No particular return value. It's just a message.")
@@ -581,12 +622,14 @@ class PatientController(
 			"result of the merge of the `from` and `into` patients according to the patient logic. The metadata will" +
 			"be automatically merged by this method.")
 		@RequestBody
-		updatedInto: PatientDto
+		updatedInto: PatientDto,
+		@RequestParam(required = false)
+		omitEncryptionKeysOfFrom: Boolean? = null,
 	): Mono<PatientDto> = mono {
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
-		patientV2Mapper.map(patientService.mergePatients(fromId, expectedFromRev, patientV2Mapper.map(updatedInto)))
+		patientV2Mapper.map(patientService.mergePatients(fromId, expectedFromRev, patientV2Mapper.map(updatedInto), omitEncryptionKeysOfFrom ?: true))
 	}
 
 	companion object {

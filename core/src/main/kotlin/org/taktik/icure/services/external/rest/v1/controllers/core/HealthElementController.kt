@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.asyncservice.createEntities
@@ -95,7 +96,7 @@ class HealthElementController(
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<HealthElementDto> {
@@ -108,7 +109,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<HealthElementDto> {
@@ -120,7 +121,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementsDelegationsStubById instead")
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -134,7 +135,7 @@ class HealthElementController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listHealthElementsDelegationsStubById instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementsDelegationsStubById instead")
 	@Operation(summary = "List helement stubs found By Healthcare Party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
@@ -183,7 +184,7 @@ class HealthElementController(
 		}
 
 		emitAll(healthElementService.deleteHealthElements(ids.toSet().map { IdAndRev(it, null) }))
-	}.map(docIdentifierMapper::map)
+	}.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectReactorContext()
 
 	@Operation(summary = "Modify a healthcare element", description = "Returns the modified healthcare element.")

@@ -54,10 +54,6 @@ open class ContactLogicImpl(
     fixer: Fixer
 ) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ContactLogic {
 
-	companion object {
-		private val logger = LoggerFactory.getLogger(ContactLogicImpl::class.java)
-	}
-
 	override suspend fun getContact(id: String) = getEntity(id)
 
 	override fun getContacts(selectedIds: Collection<String>) = getEntities(selectedIds)
@@ -68,7 +64,7 @@ open class ContactLogicImpl(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listContactIdsByDataOwnerPatientOpeningDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	override fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact> =
 		flow {
 			val datastoreInformation = getInstanceAndGroup()

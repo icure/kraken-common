@@ -218,7 +218,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.", description = "Keys have to delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<InvoiceDto> {
@@ -229,7 +229,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listInvoiceIdsByDataOwnerPatientInvoiceDate instead")
 	@Operation(summary = "List invoices found by healthcare party and secret foreign patient keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findInvoicesByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<InvoiceDto> {
@@ -239,7 +239,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findInvoicesDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findInvoicesDelegationsStubsByIds instead")
 	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(
@@ -251,7 +251,7 @@ class InvoiceController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use findInvoicesDelegationsStubsByIds instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use findInvoicesDelegationsStubsByIds instead")
 	@Operation(summary = "List invoice stubs found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findInvoicesDelegationsStubsByHCPartyPatientForeignKeys(

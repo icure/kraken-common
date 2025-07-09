@@ -147,6 +147,9 @@ data class EntityShareRequest(
         require(accessControlKeys.isNotEmpty()) {
             "`accessControlKeys` can't be empty"
         }
+        require(accessControlKeys.size == 1) {
+            "`accessControlKeys` should have exactly one value (access control key aliases are not supported anymore)"
+        }
         when (listOfNotNull(explicitDelegator, explicitDelegate).size) {
             1 -> require(encryptedExchangeDataId.isNotEmpty() && exchangeDataId == null) {
                 "If the share request explicitly specifies only the delegator or delegate then the exchange data id should be encrypted and included.\n$this"

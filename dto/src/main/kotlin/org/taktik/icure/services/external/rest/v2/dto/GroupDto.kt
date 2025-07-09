@@ -25,7 +25,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AuthenticationClassDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserTypeDto
-import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtSelectorDto
+import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -35,7 +35,9 @@ data class GroupDto(
 	@Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@Schema(description = "The revision of the group in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val deletionDate: Long? = null,
+
 	override val tags: Set<CodeStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) val publicTags: Set<CodeStubDto> = emptySet(),
 
 	@Schema(description = "Username for the group") val name: String? = null,
 	@Schema(description = "Password for the group access") val password: String? = null,
@@ -46,7 +48,7 @@ data class GroupDto(
 	@Schema(description = "Single-used token to perform specific operations") val operationTokens: Map<String, OperationTokenDto> = emptyMap(),
 	@Schema(description = "List of entities that have to be collected from a shared database. Only Code and tarification can be set at this point.") val sharedEntities: Map<String, String> = emptyMap(),
 	@Schema(description = "Minimum version of Kraken required to access API") val minimumKrakenVersion: String? = null,
-	@Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtPublicKeys: Map<String, ExternalJwtSelectorDto> = emptyMap(),
+	@JsonInclude(JsonInclude.Include.NON_EMPTY) @Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 
 	val superGroup: String? = null,

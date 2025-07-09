@@ -5,6 +5,7 @@
 package org.taktik.icure.services.external.rest.v1.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v1.dto.PropertyStubDto
 
 interface CryptoActorDto: VersionableDto<String> {
 	@get:Schema(
@@ -30,4 +31,10 @@ interface CryptoActorDto: VersionableDto<String> {
 
 	@get:Schema(description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent")
 	val parentId: String?
+
+	@get:Schema(
+		description = "A set of PropertyStub associated to this CryptoActor. They are not supposed to be encrypted if" +
+			"the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information."
+	)
+	val cryptoActorProperties: Set<PropertyStubDto>?
 }

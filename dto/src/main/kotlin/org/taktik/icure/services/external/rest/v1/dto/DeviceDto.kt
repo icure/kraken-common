@@ -64,7 +64,8 @@ data class DeviceDto(
 	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: String? = null,
-	override val publicKeysForOaepWithSha256: Set<String> = emptySet()
+	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto, ICureDocumentDto<String>, NamedDto, CryptoActorDto, DataOwnerDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

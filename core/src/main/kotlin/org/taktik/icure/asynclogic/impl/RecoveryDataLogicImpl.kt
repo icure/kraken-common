@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncdao.RecoveryDataDAO
 import org.taktik.icure.asynclogic.RecoveryDataLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider

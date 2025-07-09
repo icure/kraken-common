@@ -65,6 +65,7 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.Mai
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
+import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByDataOwnerTagFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
@@ -164,6 +165,7 @@ abstract class FilterMapper {
     }
 
     abstract fun map(filterDto: PatientByHcPartyAndActiveFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndActiveFilter
+    abstract fun map(filterDto: PatientByDataOwnerTagFilter): org.taktik.icure.domain.filter.impl.patient.PatientByDataOwnerTagFilter
     abstract fun map(filterDto: PatientByHcPartyAndExternalIdFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndExternalIdFilter
     abstract fun map(filterDto: PatientByHcPartyAndAddressFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndAddressFilter
     abstract fun map(filterDto: PatientByHcPartyAndTelecomFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyAndTelecomFilter
@@ -181,6 +183,7 @@ abstract class FilterMapper {
     @JvmName("tryMapPatientFilter")
     fun tryMap(filterDto: AbstractFilterDto<PatientDto>): AbstractFilter<Patient>? = when(filterDto) {
         is PatientByHcPartyAndActiveFilter -> map(filterDto)
+        is PatientByDataOwnerTagFilter -> map(filterDto)
         is PatientByHcPartyAndExternalIdFilter -> map(filterDto)
         is PatientByHcPartyAndAddressFilter -> map(filterDto)
         is PatientByHcPartyAndTelecomFilter -> map(filterDto)

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Service
+import org.taktik.couchdb.exception.CouchDbException
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentLoader
@@ -21,6 +22,8 @@ import org.taktik.icure.asynclogic.objectstorage.contentBytesOfNullable
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.objectstorage.DataAttachment
+import org.taktik.icure.exceptions.IllegalEntityException
+import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.properties.ObjectStorageProperties
 import org.taktik.icure.security.CryptoUtils
 import org.taktik.icure.security.CryptoUtils.isValidAesKey
@@ -71,8 +74,14 @@ class DataAttachmentLoaderImpl<T : HasDataAttachments<T>>(
 		}
 
 	private fun loadCouchDbAttachment(target: T, attachmentId: String) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		emitAll(dao.getAttachment(datastoreInformation, target.id, attachmentId))
+		try {
+			val datastoreInformation = getInstanceAndGroup()
+			emitAll(dao.getAttachment(datastoreInformation, target.id, attachmentId))
+		} catch (e: CouchDbException) {
+			if (e.statusCode == 404) {
+				throw IllegalEntityException("Attachment $attachmentId declared on ${target::class.simpleName} ${target.id} doesn't actually exist")
+			} else throw e
+		}
 	}.map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
 
 	private fun shouldMigrate(target: T, attachmentId: String) =

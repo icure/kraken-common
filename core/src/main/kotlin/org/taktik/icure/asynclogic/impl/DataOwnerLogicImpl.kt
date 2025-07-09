@@ -14,6 +14,7 @@ import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.DataOwnerLogic
+import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.CryptoActorStubWithType
@@ -30,15 +31,12 @@ import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.utils.PeekChannel
-import java.lang.IllegalArgumentException
 
-@Service
-@Profile("app")
-class DataOwnerLogicImpl(
-    val patientDao: PatientDAO,
-    val hcpDao: HealthcarePartyDAO,
-    val deviceDao: DeviceDAO,
-    private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+open class DataOwnerLogicImpl(
+    protected val patientDao: PatientDAO,
+    protected val hcpDao: HealthcarePartyDAO,
+    protected val deviceDao: DeviceDAO,
+    private val datastoreInstanceProvider: DatastoreInstanceProvider
 ) : DataOwnerLogic {
     companion object {
         private const val MAX_HIERARCHY_DEPTH = 5
@@ -56,10 +54,14 @@ class DataOwnerLogicImpl(
     ): CryptoActorStub? = getDataOwnerWithType(dataOwnerId, dataOwnerType, null)?.retrieveStub()?.stub
 
     override suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType? =
-        getDataOwner(dataOwnerId, likelyType = null)
+        doGetDataOwner(dataOwnerId, likelyType = null)
 
-    private suspend fun getDataOwner(dataOwnerId: String, likelyType: DataOwnerType?): DataOwnerWithType? {
-        val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+    protected suspend fun doGetDataOwner(
+        dataOwnerId: String,
+        likelyType: DataOwnerType?,
+        preloadedDatastoreInfo: IDatastoreInformation? = null
+    ): DataOwnerWithType? {
+        val datastoreInfo = preloadedDatastoreInfo ?: datastoreInstanceProvider.getInstanceAndGroup()
         val orderToTry = when (likelyType) {
             null, DataOwnerType.PATIENT -> listOf(DataOwnerType.PATIENT, DataOwnerType.HCP, DataOwnerType.DEVICE)
             DataOwnerType.HCP -> listOf(DataOwnerType.HCP, DataOwnerType.PATIENT, DataOwnerType.DEVICE)
@@ -131,7 +133,7 @@ class DataOwnerLogicImpl(
         while (nextId != null) {
             if (nextId in visited) throw IllegalEntityException("Circular reference in ancestors of $dataOwnerId")
             if (visited.size > MAX_HIERARCHY_DEPTH) throw IllegalEntityException("Hierarchy of $dataOwnerId exceeds maximum allowed depth of $MAX_HIERARCHY_DEPTH")
-            val current = getDataOwner(nextId, likelyType = nextLikelyType) ?: throw IllegalEntityException(
+            val current = doGetDataOwner(nextId, likelyType = nextLikelyType) ?: throw IllegalEntityException(
                 "Can't find ancestor $nextId for $dataOwnerId"
             )
             visited.add(current.id)
@@ -179,6 +181,7 @@ class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )
@@ -194,6 +197,7 @@ class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )
@@ -209,6 +213,7 @@ class DataOwnerLogicImpl(
                         transferKeys = modified.transferKeys,
                         privateKeyShamirPartitions = modified.privateKeyShamirPartitions,
                         publicKeysForOaepWithSha256 = modified.publicKeysForOaepWithSha256,
+                        cryptoActorProperties = modified.cryptoActorProperties,
                     )
                 }
             )
@@ -231,7 +236,7 @@ class DataOwnerLogicImpl(
         modified: CryptoActorStubWithType,
         save: (T) -> T?,
         updateOriginalWithCryptoActorStubContent: (T, CryptoActorStub) -> T
-    ) : CryptoActorStubWithType where T : Versionable<String>, T : CryptoActor, T : HasTags {
+    ) : CryptoActorStubWithType where T : Versionable<String>, T : CryptoActor {
         if (original.rev != modified.stub.rev) {
             throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
         }
@@ -247,7 +252,7 @@ class DataOwnerLogicImpl(
         return CryptoActorStubWithType(modified.type, saved.retrieveStub())
     }
 
-    private fun <T> T.retrieveStub(): CryptoActorStub where T : CryptoActor, T : Versionable<String>, T : HasTags =
+    private fun <T> T.retrieveStub(): CryptoActorStub where T : CryptoActor, T : Versionable<String> =
         checkNotNull(asCryptoActorStub()) { "Retrieved crypto actor should be stubbable" }
 
     private fun DataOwnerWithType.retrieveStub(): CryptoActorStubWithType =

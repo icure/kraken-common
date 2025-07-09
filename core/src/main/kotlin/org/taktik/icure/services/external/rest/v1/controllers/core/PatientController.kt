@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
@@ -371,7 +372,7 @@ class PatientController(
 		val ids = patientIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
 		return patientService.deletePatients(ids.toSet().map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 
@@ -547,7 +548,7 @@ class PatientController(
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
-		patientMapper.map(patientService.mergePatients(fromId, expectedFromRev, patientMapper.map(updatedInto)))
+		patientMapper.map(patientService.mergePatients(fromId, expectedFromRev, patientMapper.map(updatedInto), true))
 	}
 
 	companion object {

@@ -80,7 +80,9 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 
 	/**
 	 * Updates the attachments for a document. For additional details check [DataAttachmentChange].
-	 * @param currentDocument the document to update
+	 * @param documentId id of the document to update
+	 * @param documentRev if not null updates the document attachments only if the current document rev matches the
+	 * provided rev
 	 * @param mainAttachmentChange specifies how to change the main attachment. If null the main attachment will be unchanged.
 	 * @param secondaryAttachmentsChanges specifies how to change the secondary attachments. Only secondary attachments specified
 	 * in this map will be changed, other attachments in the document will be ignored.
@@ -89,7 +91,8 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 	 * storage service but this is not possible at the moment.
 	 */
 	suspend fun updateAttachments(
-		currentDocument: Document,
+		documentId: String,
+		documentRev: String?,
 		mainAttachmentChange: DataAttachmentChange? = null,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
 	): Document?
@@ -105,7 +108,7 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 	 * @param secretForeignKeys a [List] of secret foreign keys.
 	 * @return a [Flow] of [Document]s.
 	 */
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	fun listDocumentsByHCPartySecretMessageKeys(hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
 
 	/**

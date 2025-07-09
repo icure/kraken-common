@@ -3,8 +3,8 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import org.taktik.icure.entities.base.EnumVersion
+import java.io.Serializable
 
 /**
  * Created by aduchate on 21/01/13, 14:56
@@ -19,7 +19,7 @@ enum class Gender(val code: String) : Serializable {
 
 	companion object {
 		fun fromCode(code: String?): Gender? {
-			return code?.let { c -> values().find { c == it.code } }
+			return code?.let { c -> entries.find { c == it.code } }
 		}
 	}
 }

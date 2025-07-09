@@ -6,6 +6,7 @@ import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.HasTags
+import org.taktik.icure.entities.base.PropertyStub
 
 /**
  * Holds only data specific for crypto actors without any additional information (from patient, hcparty, device).
@@ -22,9 +23,9 @@ data class CryptoActorStub(
     override val publicKey: String? = null,
     override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
     override val revHistory: Map<String, String>? = null,
-    override val tags: Set<CodeStub> = emptySet(),
     override val parentId: String? = null,
-) : Versionable<String>, CryptoActor, HasTags {
+    override val cryptoActorProperties: Set<PropertyStub>? = null,
+) : Versionable<String>, CryptoActor {
     override fun withIdRev(id: String?, rev: String): CryptoActorStub =
         copy(id = id ?: this.id, rev = rev)
 }

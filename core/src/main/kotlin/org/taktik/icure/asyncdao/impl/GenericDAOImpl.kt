@@ -70,7 +70,7 @@ import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
-import java.util.LinkedList
+import java.util.*
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -361,14 +361,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 		}
 
-	@Suppress("UNCHECKED_CAST")
-	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>> =
-		internalRemove(datastoreInformation, entities).map {
-			when (it) {
-				is BulkSaveResult.Failure -> it
-				is BulkSaveResult.Success -> BulkSaveResult.Success(DocIdentifier(it.entity.id, it.entity.rev))
-			}
-		}
+	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> =
+		internalRemove(datastoreInformation, entities)
 
 	private fun internalRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -377,12 +371,14 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		val toBeDeletedEntities = entities.map { entity ->
 			beforeDelete(datastoreInformation, entity).let {
+				@Suppress("UNCHECKED_CAST")
 				it.withDeletionDate(System.currentTimeMillis()) as T
 			}
 		}
 		val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
 			toBeDeletedEntities.first { e -> id == e.id }.let {
 				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+				@Suppress("UNCHECKED_CAST")
 				afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
 			}
 		}

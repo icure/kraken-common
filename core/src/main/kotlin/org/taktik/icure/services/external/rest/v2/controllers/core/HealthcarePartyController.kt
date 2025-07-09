@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -280,14 +281,14 @@ class HealthcarePartyController(
     fun deleteHealthcareParties(@RequestBody healthcarePartyIds: ListOfIdsDto): Flux<DocIdentifierDto> =
         healthcarePartyService.deleteHealthcareParties(
             healthcarePartyIds.ids.map { IdAndRev(it, null) }
-        ).map(docIdentifierV2Mapper::map).injectReactorContext()
+        ).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
     @Operation(summary = "Deletes a multiple HealthcarePartys if they match the provided revs")
     @PostMapping("/delete/batch/withrev")
     fun deleteHealthcarePartiesWithRev(@RequestBody healthcarePartyIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
         healthcarePartyService.deleteHealthcareParties(
             healthcarePartyIds.ids.map(idWithRevV2Mapper::map)
-        ).map(docIdentifierV2Mapper::map).injectReactorContext()
+        ).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
     @Operation(summary = "Deletes an HealthcareParty")
     @DeleteMapping("/{healthcarePartyId}")
@@ -295,7 +296,9 @@ class HealthcarePartyController(
         @PathVariable healthcarePartyId: String,
         @RequestParam(required = false) rev: String? = null
     ): Mono<DocIdentifierDto> = mono {
-        healthcarePartyService.deleteHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
+        healthcarePartyService.deleteHealthcareParty(healthcarePartyId, rev).let {
+            docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+        }
     }
 
     @PostMapping("/undelete/{healthcarePartyId}")

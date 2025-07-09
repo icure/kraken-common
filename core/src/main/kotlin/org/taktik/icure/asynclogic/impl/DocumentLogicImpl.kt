@@ -41,14 +41,14 @@ import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
 open class DocumentLogicImpl(
-    private val documentDAO: DocumentDAO,
-    sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
-    @Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
-    fixer: Fixer,
-    filters: Filters
+	private val documentDAO: DocumentDAO,
+	sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
+	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	fixer: Fixer,
+	filters: Filters
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), DocumentLogic {
 
 	override suspend fun createDocument(document: Document, strict: Boolean) = fix(document, isCreate = true) { fixedDocument ->
@@ -176,16 +176,30 @@ open class DocumentLogicImpl(
 	}
 
 	override suspend fun updateAttachments(
-		currentDocument: Document, mainAttachmentChange: DataAttachmentChange?, secondaryAttachmentsChanges: Map<String, DataAttachmentChange>
+		documentId: String,
+		documentRev: String?,
+		mainAttachmentChange: DataAttachmentChange?,
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>
 	): Document? {
-		return attachmentModificationLogic.updateAttachments(currentDocument, mainAttachmentChange?.let {
-			if (it is DataAttachmentChange.CreateOrUpdate && it.utis == null && currentDocument.mainAttachment == null) {
-				// Capture cases where the document has no attachment id set (main attachment is null) but specifies some utis
-				it.copy(utis = listOfNotNull(currentDocument.mainUti) + currentDocument.otherUtis)
-			} else it
-		}?.let {
-			secondaryAttachmentsChanges + (currentDocument.mainAttachmentKey to it)
-		} ?: secondaryAttachmentsChanges)
+		require(!secondaryAttachmentsChanges.containsKey(Document.mainAttachmentKeyFromId(documentId))) {
+			"Secondary attachments cannot use the main attachment key"
+		}
+		return attachmentModificationLogic.updateAttachments(
+			documentId,
+			documentRev,
+			mainAttachmentChange?.let {
+				if (it is DataAttachmentChange.CreateOrUpdate && it.utis == null) {
+					val currentDocument = documentDAO.get(getInstanceAndGroup(), documentId)
+					if (currentDocument?.mainAttachment == null)
+						// Capture cases where the document has no attachment id set (main attachment is null) but specifies some utis
+						it.copy(utis = listOfNotNull(currentDocument?.mainUti) + currentDocument?.otherUtis.orEmpty())
+					else
+						it
+				} else it
+			}?.let {
+				secondaryAttachmentsChanges + (Document.mainAttachmentKeyFromId(documentId) to it)
+			} ?: secondaryAttachmentsChanges
+		)
 	}
 
 	override fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(
@@ -202,7 +216,7 @@ open class DocumentLogicImpl(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	override fun listDocumentsByHCPartySecretMessageKeys(
 		hcPartyId: String,
 		secretForeignKeys: List<String>,

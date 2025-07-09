@@ -51,10 +51,6 @@ dependencies {
     implementation(coreLibs.bundles.commonsLibs)
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
     implementation(coreLibs.bundles.swaggerLibs)
-
-    implementation(coreLibs.bundles.jsonWebTokenLibs) {
-        exclude(group = "com.fasterxml.jackson.core")
-    }
     implementation(coreLibs.bundles.bouncyCastleLibs)
     implementation(coreLibs.jakartaServlet)
 
@@ -77,7 +73,6 @@ dependencies {
     testImplementation(coreLibs.springBootTest)
     testImplementation(coreLibs.springmockk)
     testImplementation(coreLibs.betterParse)
-    testImplementation(coreLibs.icureTestSetup)
     testImplementation(coreLibs.reflections)
     testImplementation(coreLibs.kotlinxSerialization)
     testImplementation(coreLibs.kotlinxCoroutinesTest)

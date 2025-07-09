@@ -16,11 +16,14 @@ import java.time.temporal.ChronoUnit
 import java.util.TimeZone
 
 fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Duration) = object : Iterator<Long> {
+	// Start time or now() - notBeforeInMinutes if specified, as fuzzy date
 	val constrainedStartDateTime = startDateTime.coerceAtLeast(notBeforeInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
 		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: 0)
+	// End time or now() - notAfterInMinutes if specified, as fuzzy date
 	val constrainedEndDateTime = endDateTime.coerceAtMost(notAfterInMinutes?.let { FuzzyValues.getFuzzyDateTime(LocalDateTime.ofInstant(
 		Instant.now() - Duration.ofMinutes(it.toLong()), ZoneId.of(zoneId ?: "UTC")), ChronoUnit.SECONDS) } ?: endDateTime)
 
+	// Start and end fuzzy dates with second component set to 0
 	val startLdt = FuzzyValues.getDateTime(constrainedStartDateTime - (constrainedStartDateTime % 100))!!
 	val endLdt = FuzzyValues.getDateTime(constrainedEndDateTime - (constrainedEndDateTime % 100))!!
 
@@ -28,17 +31,26 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 		var day = startLdt.withHour(0).withMinute(0).withSecond(0).withNano(0)
 		val rrit = rrule?.let {
 			RecurrenceRule(it).iterator(
-				FuzzyValues.getDateTime(rruleStartDate ?: constrainedStartDateTime)!!.atOffset(ZoneOffset.UTC).toInstant()
-					.toEpochMilli(), TimeZone.getTimeZone("UTC")
-			).also {
-				it.fastForward(
+				FuzzyValues
+					.getDateTime(rruleStartDate ?: constrainedStartDateTime)!!
+					.atOffset(ZoneOffset.UTC)
+					.toInstant()
+					.toEpochMilli(),
+				TimeZone.getTimeZone("UTC")
+			).also { iterator ->
+				// After instantiating the iterator, skips all the slots up to constrainedStartDateTime minus 1 day.
+				// (Why not setting the start there?)
+				iterator.fastForward(
 					FuzzyValues.getDateTime(constrainedStartDateTime)!!.atOffset(ZoneOffset.UTC).toInstant()
 						.toEpochMilli() - 24 * 3600 * 1000
 				)
 			}
 		}
 
-		private fun getNextValidLegacyDay() = generateSequence(day) { (it + Duration.ofDays(1)).takeIf { d -> d <= endLdt } }.firstOrNull { d ->
+		@Suppress("DEPRECATION")
+		private fun getNextValidLegacyDay() = generateSequence(day) {  // WHY?
+			(it + Duration.ofDays(1)).takeIf { d -> d <= endLdt }
+		}.firstOrNull { d ->
 			(days.any { dd ->
 				dd.toInt() == d.dayOfWeek.value
 			} && //The day of week of the timestamp is listed in the days property
@@ -55,15 +67,18 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 					it.peekMillis().let { n ->
 						LocalDateTime.ofInstant(Instant.ofEpochMilli(n), ZoneOffset.UTC) <= endLdt
 					}
-				} catch(e:ArrayIndexOutOfBoundsException) { false } } ?: (getNextValidLegacyDay() != null)
+				} catch(e:ArrayIndexOutOfBoundsException) {
+					false
+				}
+			} ?: (getNextValidLegacyDay() != null)
 		}
 		override fun next(): LocalDateTime {
-			return rrit?.nextMillis()?.let {
-				LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC).also { day = it }
+			return rrit?.nextMillis()?.let { nextMillis ->
+				LocalDateTime.ofInstant(Instant.ofEpochMilli(nextMillis), ZoneOffset.UTC).also { day = it }
 			} ?: run {
 				getNextValidLegacyDay()?.also { day = it + Duration.ofDays(1) } ?: throw NoSuchElementException()
-							}
 			}
+		}
 
 	}
 
@@ -71,6 +86,7 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 
 	//Used for look ahead when we want to be sure that hasNext respects all constraints
 	var currentDay = if (daysIterator.hasNext()) daysIterator.next() else null
+	// More of a "currentSlot" as the iterator may return periods of duration != 1 hour
 	var currentHour = if (hoursIterator.hasNext()) hoursIterator.next() else null
 
 	init {
@@ -82,12 +98,16 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 
 	override fun hasNext(): Boolean {
 		val cd = currentDay
-		val ch = currentHour
+		val ch = currentHour // More of a "current slot"
 
 		return cd != null && when {
+			// There is a slot available, but it's on the last day, and it is after the last hour available for the day -> no availability
 			ch != null && cd.withHour((ch.toInt()) / 10000).withMinute(((ch.toInt()) / 100) % 100).withSecond(0) > endLdt -> false
+			// There is a slot available, and the day is greater than the constrained start -> availability
 			ch != null && cd > startLdt -> true
+			// There is a slot and the current day is exactly the start day
 			ch != null -> {
+				// If it's after the start time (hhmmss) -> availability
 				if (ch >= constrainedStartDateTime % 1000000) {
 					true
 				} else {
@@ -123,6 +143,11 @@ fun TimeTableItem.iterator(startDateTime: Long, endDateTime: Long, duration: Dur
 }
 
 fun List<TimeTableHour>.iterator(duration: Duration): Iterator<Long> = this.map { it.iterator(duration) }.sortedMerge()
+
+/**
+ * Iterates all the slots of the specified [duration] in a [TimeTableHour] from [TimeTableHour.startHour] to
+ * [TimeTableHour.endHour]
+ */
 fun TimeTableHour.iterator(duration: Duration) = object : Iterator<Long> {
 	val normalisedEndLocalTime = (endHour?.takeIf { it != 240000L } ?: 235959L).toLocalTime()
 	fun getAcceptableLocalTime(t: Long?) = (t ?: 0L).toLocalTime().takeIf {

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.flow
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.ClassificationDAO
 import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -23,9 +22,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class ClassificationLogicImpl(
+open class ClassificationLogicImpl(
     private val classificationDAO: ClassificationDAO,
     exchangeDataMapLogic: ExchangeDataMapLogic,
     private val sessionLogic: SessionInformationProvider,
@@ -66,7 +63,7 @@ class ClassificationLogicImpl(
 	override suspend fun getClassification(classificationId: String) = getEntity(classificationId)
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listClassificationIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
 	override fun listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<Classification> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(classificationDAO.listClassificationsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))

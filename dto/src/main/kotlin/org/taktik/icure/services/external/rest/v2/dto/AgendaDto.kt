@@ -20,10 +20,14 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,9 +43,17 @@ data class AgendaDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
+	val daySplitHour: Int? = null,
 	val name: String? = null,
 	val userId: String? = null,
-	val rights: List<RightDto> = emptyList()
+	val zoneId: String? = null,
+	val lockCalendarItemsBeforeInMinutes: Int? = null,
+	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
+	@Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@JsonInclude(JsonInclude.Include.NON_NULL) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
+	@JsonInclude(JsonInclude.Include.NON_NULL) val properties: Set<PropertyStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_NULL) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

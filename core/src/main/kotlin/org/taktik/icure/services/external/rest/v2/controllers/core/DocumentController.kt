@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
@@ -84,7 +85,6 @@ class DocumentController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector
 ) {
-	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Create a document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
@@ -103,14 +103,14 @@ class DocumentController(
 	fun deleteDocuments(@RequestBody documentIds: ListOfIdsDto): Flux<DocIdentifierDto> =
 		documentService.deleteDocuments(
 			documentIds.ids.map { IdAndRev(it, null) }
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Documents if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteDocumentsWithRev(@RequestBody documentIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
 		documentService.deleteDocuments(
 			documentIds.ids.map(idWithRevV2Mapper::map)
-		).map(docIdentifierV2Mapper::map).injectReactorContext()
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
 
 	@Operation(summary = "Deletes an Document")
 	@DeleteMapping("/{documentId}")
@@ -118,7 +118,9 @@ class DocumentController(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) rev: String? = null
 	): Mono<DocIdentifierDto> = mono {
-		documentService.deleteDocument(documentId, rev).let(docIdentifierV2Mapper::map)
+		documentService.deleteDocument(documentId, rev).let {
+			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
+		}
 	}
 
 	@PostMapping("/undelete/{documentId}")
@@ -163,12 +165,10 @@ class DocumentController(
 		@Parameter(description = "Revision of the latest known version of the document. If it doesn't match the current revision the method will fail with CONFLICT.")
 		@RequestParam(required = true)
 		rev: String
-	): Mono<DocumentDto> = mono {
-		val document = documentService.getDocument(documentId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
-		checkRevision(rev, document)
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.updateAttachments(
-			document,
+			documentId,
+			rev,
 			mainAttachmentChange = DataAttachmentChange.Delete
 		).let { documentV2Mapper.map(checkNotNull(it) { "Failed to update attachment" }) }
 	}
@@ -191,14 +191,13 @@ class DocumentController(
 		lengthHeader: Long?,
 		@RequestParam(required = false)
 		encrypted: Boolean?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val payloadSize = requireNotNull(lengthHeader?.takeIf { it > 0 }) {
 			"The `Content-Length` header must contain the payload size"
 		}
-		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-		checkRevision(rev, document)
 		documentService.updateAttachmentsWrappingExceptions(
-			document,
+			documentId,
+			rev,
 			mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(payload, payloadSize, utis, encrypted ?: false)
 		)?.let { documentV2Mapper.map(it) }
 	}
@@ -250,7 +249,7 @@ class DocumentController(
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listDocumentIdsByDataOwnerPatientCreated instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Operation(summary = "List documents found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun listDocumentsByHcPartyMessageForeignKeys(
@@ -317,18 +316,17 @@ class DocumentController(
 		lengthHeader: Long?,
 		@RequestParam(required = false)
 		encrypted: Boolean?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		require(Document.mainAttachmentKeyFromId(documentId) != key) {
+			"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
+		}
 		val attachmentSize = lengthHeader ?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
 			"Attachment size must be specified in the content-length header"
 		)
 		documentService.updateAttachmentsWrappingExceptions(
-			documentService.getDocument(documentId)?.also {
-				checkRevision(rev, it)
-				require(key != it.mainAttachmentKey) {
-					"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
-				}
-			} ?: throw NotFoundRequestException("No document with id $documentId"),
+			documentId,
+			rev,
 			secondaryAttachmentsChanges = mapOf(
 				key to DataAttachmentChange.CreateOrUpdate(
 					payload,
@@ -363,7 +361,7 @@ class DocumentController(
 				"No secondary attachment with key $key for document $documentId"
 			)
 
-			response.headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
+			response.headers["Content-Type"] = document.secondaryAttachments.getValue(key).mimeType ?: document.mainAttachment?.mimeType ?: "application/octet-stream"
 			response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
 
 			emitAll(attachment)
@@ -381,14 +379,13 @@ class DocumentController(
 		@Parameter(description = "Revision of the latest known version of the document. If the revision does not match the current version of the document the method will fail with CONFLICT status")
 		@RequestParam(required = true)
 		rev: String,
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		require(Document.mainAttachmentKeyFromId(documentId) != key) {
+			"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
+		}
 		documentService.updateAttachments(
-			documentService.getDocument(documentId)?.also {
-				checkRevision(rev, it)
-				require(key != it.mainAttachmentKey) {
-					"Secondary attachments can't use $key as key: this key is reserved for the main attachment."
-				}
-			} ?: throw NotFoundRequestException("No document with id $documentId"),
+			documentId,
+			rev,
 			secondaryAttachmentsChanges = mapOf(key to DataAttachmentChange.Delete)
 		).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
@@ -411,7 +408,7 @@ class DocumentController(
         @Parameter(description = "New attachments (to create or update). The file name will be used as the attachment key. To update the main attachment use the document id")
 		@RequestPart("attachments", required = false)
 		attachments: Flux<FilePart>?
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val attachmentsByKey: Map<String, FilePart> = attachments?.asFlow()?.toList()?.let { partsList ->
 			partsList.associateBy { it.filename() }.also { partsMap ->
 				require(partsList.size == partsMap.size) {
@@ -426,16 +423,15 @@ class DocumentController(
 			"Missing attachments for metadata: ${options.updateAttachmentsMetadata.keys - attachmentsByKey.keys}"
 		}
 		require(attachmentsByKey.isNotEmpty() || options.deleteAttachments.isNotEmpty()) { "Nothing to do" }
-		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-		checkRevision(rev, document)
-		val mainAttachmentChange = attachmentsByKey[document.mainAttachmentKey]?.let {
-			makeMultipartAttachmentUpdate("main attachment", it, options.updateAttachmentsMetadata[document.mainAttachmentKey])
-		} ?: DataAttachmentChange.Delete.takeIf { document.mainAttachmentKey in options.deleteAttachments }
-		val secondaryAttachmentsChanges = (options.deleteAttachments - document.mainAttachmentKey).associateWith { DataAttachmentChange.Delete } +
-			(attachmentsByKey - document.mainAttachmentKey).mapValues { (key, value) ->
+		val mainAttachmentKey = Document.mainAttachmentKeyFromId(documentId)
+		val mainAttachmentChange = attachmentsByKey[mainAttachmentKey]?.let {
+			makeMultipartAttachmentUpdate("main attachment", it, options.updateAttachmentsMetadata[mainAttachmentKey])
+		} ?: DataAttachmentChange.Delete.takeIf { mainAttachmentKey in options.deleteAttachments }
+		val secondaryAttachmentsChanges = (options.deleteAttachments - mainAttachmentKey).associateWith { DataAttachmentChange.Delete } +
+			(attachmentsByKey - mainAttachmentKey).mapValues { (key, value) ->
 				makeMultipartAttachmentUpdate("secondary attachment $key", value, options.updateAttachmentsMetadata[key])
 			}
-		documentService.updateAttachmentsWrappingExceptions(document, mainAttachmentChange, secondaryAttachmentsChanges)
+		documentService.updateAttachmentsWrappingExceptions(documentId, rev, mainAttachmentChange, secondaryAttachmentsChanges)
 			.let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
 	}
 
@@ -458,12 +454,13 @@ class DocumentController(
 	}
 
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
-		currentDocument: Document,
+		documentId: String,
+		documentRev: String,
 		mainAttachmentChange: DataAttachmentChange? = null,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? =
 		try {
-			updateAttachments(currentDocument, mainAttachmentChange, secondaryAttachmentsChanges)
+			updateAttachments(documentId, documentRev, mainAttachmentChange, secondaryAttachmentsChanges)
 		} catch (e: ObjectStorageException) {
 			throw ResponseStatusException(
 				HttpStatus.SERVICE_UNAVAILABLE,

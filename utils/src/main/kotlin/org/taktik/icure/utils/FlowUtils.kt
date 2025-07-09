@@ -4,6 +4,7 @@ package org.taktik.icure.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
@@ -11,23 +12,23 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.asFlux
-import reactor.util.context.Context
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.context.Context
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicLong
+import java.util.LinkedList
 
 
 /**
@@ -113,21 +114,22 @@ fun <T> Flow<T>.bufferedChunks(min: Int, max: Int): Flow<List<T>> = channelFlow 
     require(min >= 1 && max >= 1 && max >= min) {
         "Min and max chunk sizes should be greater than 0, and max >= min"
     }
-    val buffer = ArrayList<T>(max)
+    var buffer = ArrayList<T>(max)
     collect {
         buffer.add(it)
         if (buffer.size >= max) {
             send(buffer.toList())
             buffer.clear()
         } else if (min <= buffer.size) {
-            val offered = this.trySend(buffer.toList()).isSuccess
+            // Avoid creating unused copies of the list if consumer not ready
+            val offered = this.trySend(buffer).isSuccess
             if (offered) {
-                buffer.clear()
+                buffer = ArrayList(max)
             }
         }
     }
     if (buffer.size > 0) send(buffer.toList())
-}.buffer(1)
+}.buffer(0)
 
 suspend fun Flow<ByteBuffer>.writeTo(os: OutputStream) {
     this.collect { it.writeTo(os) }
@@ -201,3 +203,28 @@ suspend fun Flow<DataBuffer>.bufferFirstSize(size: Int): Flow<DataBuffer> = flow
     }
     if (!didEmitBuffers && buffers.isNotEmpty()) emitAccumulatedBuffers()
 }
+
+fun <T> interleaveFlows(flows: Iterable<Flow<T>>): Flow<T> = channelFlow {
+    val channels = flows.mapTo(LinkedList()) { flow ->
+        Channel<T>(Channel.RENDEZVOUS).also { channel ->
+            launch {
+                flow.collect {
+                    channel.send(it)
+                }
+                channel.close()
+            }
+        }
+    }
+
+    while (channels.isNotEmpty()) {
+        val channelsIterator = channels.iterator()
+        while (channelsIterator.hasNext()) {
+            val value = channelsIterator.next().receiveCatching()
+            if (value.isClosed) {
+                channelsIterator.remove()
+            } else {
+                send(value.getOrThrow())
+            }
+        }
+    }
+}.buffer(1)

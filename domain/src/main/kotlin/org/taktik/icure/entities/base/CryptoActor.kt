@@ -13,6 +13,8 @@ import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct
  * @property privateKeyShamirPartitions The privateKeyShamirPartitions are used to share this hcp's private RSA key with a series of other hcParties using Shamir's algorithm. The key of the map is the hcp Id with whom this partition has been shared. The value is \"threshold|partition in hex\" encrypted using the the partition's holder's public RSA key
  * @property publicKey The public key of this actor
  * @property publicKeysForOaepWithSha256 The public keys of this actor which should be used for RSA-OAEP with sha256 encryption
+ * @property cryptoActorProperties a set of [PropertyStub] associated to this [CryptoActor]. They are not supposed to be encrypted if
+ * the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information.
  */
 interface CryptoActor {
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
@@ -40,6 +42,8 @@ interface CryptoActor {
 
 	val parentId: String?
 
+	val cryptoActorProperties: Set<PropertyStub>?
+
 	fun solveConflictsWith(other: CryptoActor): Map<String, Any?> {
 		return mapOf(
 			"hcPartyKeys" to mergeMapsOfListsDistinct(this.hcPartyKeys, other.hcPartyKeys),
@@ -47,36 +51,17 @@ interface CryptoActor {
 			"publicKey" to (this.publicKey ?: other.publicKey),
 			"aesExchangeKeys" to (other.aesExchangeKeys + this.aesExchangeKeys),
 			"transferKeys" to (other.transferKeys + this.transferKeys),
+			"cryptoActorProperties" to (this.cryptoActorProperties ?: other.cryptoActorProperties)
 		)
 	}
 }
-
-/**
- * Checks if the [CryptoActor] content of two entities is the same (regardless of any additional content from the
- * concrete entity). Only considers data necessary for cryptographic operations, including:
- * - [CryptoActor.hcPartyKeys]
- * - [CryptoActor.privateKeyShamirPartitions]
- * - [CryptoActor.publicKey]
- * - [CryptoActor.aesExchangeKeys]
- * - [CryptoActor.transferKeys]
- * - [CryptoActor.publicKeysForOaepWithSha256]
- * Excludes any other content.
- * @return if the [CryptoActor] content of this and [other] are the same.
- */
-fun CryptoActor.cryptoActorCryptographicDataEquals(other: CryptoActor) =
-	this.hcPartyKeys == other.hcPartyKeys &&
-	this.privateKeyShamirPartitions == other.privateKeyShamirPartitions &&
-	this.publicKey == other.publicKey &&
-	this.aesExchangeKeys == other.aesExchangeKeys &&
-	this.transferKeys == other.transferKeys &&
-	this.publicKeysForOaepWithSha256 == other.publicKeysForOaepWithSha256
 
 /**
  * Converts this [CryptoActor] to a [CryptoActorStub]. If the rev is null, this will return null, since stubs can't be
  * used for non-stored entities.
  * @return a [CryptoActorStub] with the same crypto-actor content as this [CryptoActor].
  */
-fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String>, T : HasTags =
+fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String> =
 	if (this is CryptoActorStub) this else this.rev?.let { rev ->
 		CryptoActorStub(
 			id = this.id,
@@ -87,7 +72,7 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			aesExchangeKeys = this.aesExchangeKeys,
 			transferKeys = this.transferKeys,
 			publicKeysForOaepWithSha256 = this.publicKeysForOaepWithSha256,
-			tags = this.tags,
-			parentId = this.parentId
+			parentId = this.parentId,
+			cryptoActorProperties = this.cryptoActorProperties,
 		)
 	}

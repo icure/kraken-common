@@ -96,11 +96,10 @@ data class ExchangeData(
         require(
             exchangeKey.isNotEmpty()
                 && accessControlSecret.isNotEmpty()
-                && delegatorSignature.isNotEmpty()
                 && sharedSignatureKey.isNotEmpty()
                 && sharedSignature.isNotEmpty()
         ) {
-            "Access control data should specify values for exchangeKey, accessControlKey and signature."
+            "Access control data should specify values for exchangeKey, accessControlKey and shared signature."
         }
     }
 
@@ -127,7 +126,9 @@ data class ExchangeData(
             "exchangeKey" to this.exchangeKey + other.exchangeKey,
             "accessControlSecret" to this.accessControlSecret + other.accessControlSecret,
             // As a result of merging the signature may become invalid -> exchange data is not trusted anymore
-            "signature" to this.delegatorSignature + other.delegatorSignature
+            "sharedSignature" to this.sharedSignature,
+            "sharedSignatureKey" to this.sharedSignatureKey + other.sharedSignatureKey,
+            "delegatorSignature" to this.delegatorSignature + other.delegatorSignature,
         )
     }
 }

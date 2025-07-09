@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.taktik.couchdb.DocIdentifier
 
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
@@ -66,7 +67,7 @@ class AccessLogController(
 	@DeleteMapping("/{accessLogIds}")
 	fun deleteAccessLog(@PathVariable accessLogIds: String): Flux<DocIdentifierDto> {
 		return accessLogService.deleteAccessLogs(accessLogIds.split(',').map { IdAndRev(it, null) })
-			.map(docIdentifierMapper::map)
+			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 
@@ -126,7 +127,7 @@ class AccessLogController(
 	}
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Operation(summary = "List access logs found by Healthcare Party id and secret foreign key element ids.")
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(
@@ -138,7 +139,7 @@ class AccessLogController(
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Deprecated("This method cannot include results with secure delegations, use listAccessLogIdsByDataOwnerPatientDate instead")
+	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(
