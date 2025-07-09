@@ -64,7 +64,7 @@ data class CodeStub(
 			&& !type.isNullOrBlank() && parts[0] == type
 			&& !code.isNullOrBlank() && parts[1] == code
 			&& !version.isNullOrBlank() && parts[2] == version
-			&& label == null // TODO Deprecate label
+			&& label.isNullOrEmpty() // TODO Deprecate label
 		) { "Invalid code stub: $this" }
 	}
 
