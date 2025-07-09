@@ -18,13 +18,10 @@ data class RoleDto(
 	override val deletionDate: Long? = null,
 	override val name: String? = null,
 	val permissions: Set<String> = emptySet(),
-	val hierarchyIndex: RoleHierarchyLevelDto = RoleHierarchyLevelDto.Child,
 ) : StoredDocumentDto, PrincipalDto, Cloneable, Serializable {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
 	@get:JsonIgnore
 	override val properties: Set<PropertyStubDto> get() = emptySet()
-
-	enum class RoleHierarchyLevelDto { Root, Parent, Child }
 }
