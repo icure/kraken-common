@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -24,7 +22,6 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
-import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.asCryptoActorStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
@@ -239,9 +236,6 @@ open class DataOwnerLogicImpl(
     ) : CryptoActorStubWithType where T : Versionable<String>, T : CryptoActor {
         if (original.rev != modified.stub.rev) {
             throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
-        }
-        if (original.tags != modified.stub.tags) {
-            throw IllegalArgumentException("It is not possible to change the tags of a crypto actor stub: update the original entity instead")
         }
         require(modified.stub.parentId == original.parentId) {
             "You can't use this method to change the parent id of a crypto actor"
