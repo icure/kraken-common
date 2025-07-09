@@ -240,7 +240,10 @@ open class DataOwnerLogicImpl(
         if (original.rev != modified.stub.rev) {
             throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
         }
-        require(modified.stub.parentId == null || modified.stub.parentId == original.parentId) {
+        if (original.tags != modified.stub.tags) {
+            throw IllegalArgumentException("It is not possible to change the tags of a crypto actor stub: update the original entity instead")
+        }
+        require(modified.stub.parentId == original.parentId) {
             "You can't use this method to change the parent id of a crypto actor"
         }
         val saved = checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {
