@@ -16,7 +16,7 @@ data class EmbeddedTimeTableItemDto(
 	val notBeforeInMinutes: Int? = null,
 	val notAfterInMinutes: Int? = null,
 	val hours: List<EmbeddedTimeTableHourDto>,
-	val calendarItemTypesIds: Set<String>,
+	@JsonInclude(JsonInclude.Include.ALWAYS) val calendarItemTypesIds: Set<String>,
 	@Schema(defaultValue = "1")
 	val availabilities: Int = 1,
 	val reservingRights: Set<String> = emptySet(),
