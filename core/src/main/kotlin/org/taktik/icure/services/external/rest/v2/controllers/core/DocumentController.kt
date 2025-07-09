@@ -361,7 +361,7 @@ class DocumentController(
 				"No secondary attachment with key $key for document $documentId"
 			)
 
-			response.headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
+			response.headers["Content-Type"] = document.secondaryAttachments.getValue(key).mimeType ?: document.mainAttachment?.mimeType ?: "application/octet-stream"
 			response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
 
 			emitAll(attachment)
