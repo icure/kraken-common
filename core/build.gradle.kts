@@ -73,7 +73,6 @@ dependencies {
     testImplementation(coreLibs.springBootTest)
     testImplementation(coreLibs.springmockk)
     testImplementation(coreLibs.betterParse)
-    testImplementation(coreLibs.icureTestSetup)
     testImplementation(coreLibs.reflections)
     testImplementation(coreLibs.kotlinxSerialization)
     testImplementation(coreLibs.kotlinxCoroutinesTest)

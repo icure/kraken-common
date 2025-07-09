@@ -14,5 +14,5 @@ data class RegistrationInformationDto(
 	val userOptions: String? = null,
 	val userRoles:Set<String> = emptySet(),
 	val minimumKrakenVersion: String? = null,
-	val cluster: String? = null,
+	val cluster: String? = null
 )

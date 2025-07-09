@@ -181,6 +181,9 @@ open class DocumentLogicImpl(
 		mainAttachmentChange: DataAttachmentChange?,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>
 	): Document? {
+		require(!secondaryAttachmentsChanges.containsKey(Document.mainAttachmentKeyFromId(documentId))) {
+			"Secondary attachments cannot use the main attachment key"
+		}
 		return attachmentModificationLogic.updateAttachments(
 			documentId,
 			documentRev,

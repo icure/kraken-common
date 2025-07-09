@@ -11,7 +11,7 @@ data class RegistrationInformationDto(
 	val companyName: String? = null,
 	val emailAddress: String,
 	val userOptions: String? = null,
-	val userRoles:Set<String> = emptySet(),
+	val userRoles: Set<String> = emptySet(),
 	val minimumKrakenVersion: String? = null,
 	val cluster: String? = null,
 )
