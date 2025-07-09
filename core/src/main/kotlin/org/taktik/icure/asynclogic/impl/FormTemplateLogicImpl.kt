@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEmpty
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.FormTemplateDAO
@@ -39,14 +40,12 @@ class FormTemplateLogicImpl(
 		return formTemplateDAO.get(datastoreInformation, formTemplateId)
 	}
 
+	@Deprecated("This method has unintuitive behaviour, read FormTemplateService.getFormTemplatesByGuid doc for more info")
 	override fun getFormTemplatesByGuid(userId: String, specialityCode: String, formTemplateGuid: String): Flow<FormTemplate> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		val byUserGuid = formTemplateDAO.listFormTemplatesByUserGuid(datastoreInformation, userId, formTemplateGuid, true)
-		if (byUserGuid.firstOrNull() != null) {
-			emitAll(byUserGuid)
-		} else {
+		formTemplateDAO.listFormTemplatesByUserGuid(datastoreInformation, userId, formTemplateGuid, true).onEmpty {
 			emitAll(formTemplateDAO.listFormsBySpecialtyAndGuid(datastoreInformation, specialityCode, formTemplateGuid, true))
-		}
+		}.collect(this)
 	}
 
 	override fun getFormTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<FormTemplate> = flow {
