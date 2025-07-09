@@ -7,11 +7,12 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
 
-interface TarificationService {
+interface TarificationService : EntityWithConflictResolutionService {
 	suspend fun getTarification(id: String): Tarification?
 	suspend fun getTarification(type: String, tarification: String, version: String): Tarification?
 	fun getTarifications(ids: List<String>): Flow<Tarification>

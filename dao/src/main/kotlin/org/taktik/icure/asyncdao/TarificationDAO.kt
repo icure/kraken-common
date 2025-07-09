@@ -56,4 +56,5 @@ interface TarificationDAO : GenericDAO<Tarification> {
 	 */
 	fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, label: String?, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 	fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, type: String?, label: String?, pagination: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent>
+    fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Tarification>
 }

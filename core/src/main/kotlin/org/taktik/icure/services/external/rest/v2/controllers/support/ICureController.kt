@@ -27,6 +27,7 @@ import org.taktik.icure.asyncservice.ICureSharedService
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.asyncservice.PatientService
+import org.taktik.icure.asyncservice.TarificationService
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IndexingInfoV2Mapper
@@ -42,6 +43,7 @@ class ICureController(
 	private val iCureService: ICureSharedService,
 	private val patientService: PatientService,
 	private val codeService: CodeService,
+	private val tarificationService: TarificationService,
 	private val contactService: ContactService,
 	private val messageService: MessageService,
 	private val invoiceService: InvoiceService,
@@ -132,4 +134,10 @@ class ICureController(
 	@Operation(summary = "resolve codes conflicts")
 	@PostMapping("/conflicts/code")
 	fun resolveCodesConflicts(@RequestParam(required = false) ids: String?, @RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = codeService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+
+	@AccessControl("CanAccessAsHcp")
+	@Operation(summary = "resolve codes conflicts")
+	@PostMapping("/conflicts/tarification")
+	fun resolveTarificationsConflicts(@RequestParam(required = false) ids: String?, @RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = tarificationService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+
 }

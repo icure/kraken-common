@@ -5,18 +5,25 @@ package org.taktik.icure.asynclogic.impl
 
 import com.google.common.base.Preconditions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
 import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
@@ -25,8 +32,8 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-class TarificationLogicImpl(
-	private val tarificationDAO: TarificationDAO,
+open class TarificationLogicImpl(
+	protected val tarificationDAO: TarificationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters
@@ -47,15 +54,38 @@ class TarificationLogicImpl(
 		emitAll(tarificationDAO.getEntities(datastoreInformation, ids))
 	}
 
-	override suspend fun createTarification(tarification: Tarification) = fix(tarification, isCreate = true) { fixedTarification ->
-		if(fixedTarification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		fixedTarification.code ?: error("Code field is null")
-		fixedTarification.type ?: error("Type field is null")
-		fixedTarification.version ?: error("Version field is null")
+	protected fun validateForCreation(batch: List<Tarification>) =
+		batch.fold(setOf<Tarification>()) { acc, tarification ->    // First, I check that all the codes are valid
+			if(tarification.rev != null) error("A new entity should not have a rev")
+			tarification.code ?: error("Tarification field is null")
+			tarification.type ?: error("Type field is null")
+			tarification.version ?: error("Version field is null")
 
+			if (acc.contains(tarification)) error("Batch contains duplicate elements. id: ${tarification.type}|${tarification.code}|${tarification.version}")
+
+			acc + tarification.copy(id = tarification.type + "|" + tarification.code + "|" + tarification.version)
+		}
+
+	protected fun validateForModification(batch: List<Tarification>) =
+		batch.fold(mapOf<String, Tarification>()) { acc, tarification -> // First, I check that all the codes are valid
+			tarification.code ?: error("Tarification field is null")
+			tarification.type ?: error("Type field is null")
+			tarification.version ?: error("Version field is null")
+			tarification.rev ?: error("rev field is null")
+
+			if (tarification.id != "${tarification.type}|${tarification.code}|${tarification.version}") error("Tarification id does not match the tarification, type or version value")
+			if (acc.contains(tarification.id)) error("The batch contains a duplicate")
+
+			acc + (tarification.id to tarification)
+		}.map {
+				it.value
+			}
+
+
+	override suspend fun createTarification(tarification: Tarification) = fix(tarification, isCreate = true) { fixedTarification ->
 		val datastoreInformation = getInstanceAndGroup()
 		// assigning Tarification id type|tarification|version
-		tarificationDAO.create(datastoreInformation, fixedTarification.copy(id = fixedTarification.type + "|" + fixedTarification.code + "|" + fixedTarification.version))
+		tarificationDAO.create(datastoreInformation, validateForCreation(listOf(fixedTarification)).first().copy(id = fixedTarification.type + "|" + fixedTarification.code + "|" + fixedTarification.version))
 	}
 
 	override suspend fun modifyTarification(tarification: Tarification) = fix(tarification, isCreate = false) { fixedTarification ->
@@ -165,6 +195,41 @@ class TarificationLogicImpl(
 		}
 		}?.first()
 			?: createTarification(Tarification.from(type, tarification, "1.0"))
+	}
+
+	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
+		ids,
+		limit,
+		getInstanceAndGroup()
+	)) }
+
+	protected fun doSolveConflicts(
+		ids: List<String>?,
+		limit: Int?,
+		datastoreInformation: IDatastoreInformation,
+	) =  flow {
+		val flow = ids?.asFlow()?.mapNotNull { tarificationDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+			?: tarificationDAO.listConflicts(datastoreInformation)
+				.mapNotNull { tarificationDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		(limit?.let { flow.take(it) } ?: flow)
+			.mapNotNull { tarification ->
+				tarification.conflicts?.mapNotNull { conflictingRevision ->
+					tarificationDAO.get(
+						datastoreInformation, tarification.id, conflictingRevision,
+					)
+				}?.fold(tarification to emptyList<Tarification>()) { (kept, toBePurged), conflict ->
+					kept.merge(conflict) to toBePurged + conflict
+				}?.let { (mergedCode, toBePurged) ->
+					tarificationDAO.save(datastoreInformation, mergedCode).also {
+						toBePurged.forEach {
+							if (it.rev != null && it.rev != mergedCode.rev) {
+								tarificationDAO.purge(datastoreInformation, listOf(it)).single()
+							}
+						}
+					}
+				}
+			}
+			.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun getGenericDAO(): TarificationDAO {
