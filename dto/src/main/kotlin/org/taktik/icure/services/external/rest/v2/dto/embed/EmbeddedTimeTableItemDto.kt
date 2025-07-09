@@ -12,6 +12,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EmbeddedTimeTableItemDto(
 	val rrule: String,
+	val rruleStartDate: Int? = null,
 	val notBeforeInMinutes: Int? = null,
 	val notAfterInMinutes: Int? = null,
 	val hours: List<EmbeddedTimeTableHourDto>,
