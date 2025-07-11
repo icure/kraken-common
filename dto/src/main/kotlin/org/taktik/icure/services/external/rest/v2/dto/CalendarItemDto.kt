@@ -57,14 +57,21 @@ data class CalendarItemDto(
     val addressText: String? = null,
     val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
     val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
     val confirmationTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
     val cancellationTimestamp: Long? = null,
+    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
     val confirmationId: String? = null,
+    @Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
     val duration: Long? = null,
+    @Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
     val allDay: Boolean? = null,
     val details: String? = null,
     val wasMigrated: Boolean? = null,
     val agendaId: String? = null,
+    val resourceGroup: CodeStubDto? = null,
+    val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy = AvailabilitiesAssignmentStrategy.Auto,
     val hcpId: String? = null,
     val recurrenceId: String? = null,
     val meetingTags: Set<CalendarItemTagDto> = emptySet(),
@@ -78,4 +85,10 @@ data class CalendarItemDto(
 ) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+
+    enum class AvailabilitiesAssignmentStrategy {
+        Auto,
+        Strict,
+        Loose,
+    }
 }

@@ -58,7 +58,29 @@ data class CalendarItem(
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val allDay: Boolean? = null,
 	val details: String? = null,
 	val wasMigrated: Boolean? = null,
+	/**
+	 * Id of the agenda linked to this CalendarItem.
+	 * This calendar item will block the availabilities of that agenda.
+	 */
 	val agendaId: String? = null,
+	/**
+	 * The resource group of the agenda specified by [agendaId] that will handle the calendar item.
+	 * Refer to the [Agenda] documentation for more information.
+	 *
+	 * Note that if the resource group doesn't exist in the agenda this calendar item will be ignored when calculating
+	 * availabilities.
+	 *
+	 * Can only be specified when creating the calendar item through the unrestricted endpoints (accessible only to
+	 * privileged users).
+	 */
+	val resourceGroup: CodeStub? = null,
+	/**
+	 * Specify this calendar item should be considered by the algorithm calculating availabilities.
+	 * Refer to the [Agenda] and [AvailabilitiesAssignmentStrategy] documentation for more information.
+	 *
+	 * For agendas created through the restricted endpoints this will be set to [AvailabilitiesAssignmentStrategy.Auto].
+	 */
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy = AvailabilitiesAssignmentStrategy.Auto,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),
@@ -73,9 +95,35 @@ data class CalendarItem(
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
-
 ) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<CalendarItem>
+
+	/**
+	 * Specify how this calendar item should affect availabilities.
+	 */
+	enum class AvailabilitiesAssignmentStrategy {
+		/**
+		 * If the calendar item is an off-schedule appointment (as defined in [Agenda]) use the [Loose] strategy,
+		 * otherwise use the [Strict] strategy.
+		 */
+		Auto,
+		/**
+		 * Force the availability algorithm to use the strict strategy: this means that the calendar item will impact
+		 * the availabilities during its time, and must be placeable exactly within the schedule together with all other
+		 * calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] or it will block availabilities.
+		 *
+		 * Off-schedule calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] will block all
+		 * availabilities for their entire duration.
+		 */
+		Strict,
+		/**
+		 * Force the availability algorithm to use the loose strategy: this means that during its time the calendar item
+		 * will limit the availabilities for other calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy]
+		 * and in the result, however, it won't black all availabilities if it can't be placed exactly within the
+		 * schedule.
+		 */
+		Loose,
+	}
 
 	fun merge(other: CalendarItem) = CalendarItem(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: CalendarItem) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
