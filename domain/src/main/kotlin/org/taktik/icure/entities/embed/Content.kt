@@ -3,38 +3,36 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
-import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
+import java.io.Serializable
+import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Content(
-	@param:ContentValue(ContentValues.ANY_STRING) @JsonProperty("s") val stringValue: String? = null,
-	@param:ContentValue(ContentValues.ANY_DOUBLE) @JsonProperty("n") val numberValue: Double? = null,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) @JsonProperty("b") val booleanValue: Boolean? = null,
+	@JsonProperty("s") val stringValue: String? = null,
+	@JsonProperty("n") val numberValue: Double? = null,
+	@JsonProperty("b") val booleanValue: Boolean? = null,
 	@JsonProperty("i")
 	@JsonSerialize(using = InstantSerializer::class)
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
-	@param:ContentValue(ContentValues.FUZZY_DATE) @JsonProperty("dt") val fuzzyDateValue: Long? = null,
+	@JsonProperty("dt") val fuzzyDateValue: Long? = null,
 	@JsonProperty("x") val binaryValue: ByteArray? = null,
 	@JsonProperty("d") val documentId: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITY) @JsonProperty("m") val measureValue: Measure? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITY) @JsonProperty("p") val medicationValue: Medication? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @JsonProperty("c") val compoundValue: Set<Service>? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITY) @JsonProperty("ts") val timeSeries: TimeSeries? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val ratio: List<Measure>? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val range: List<Measure>? = null
+	@JsonProperty("m") val measureValue: Measure? = null,
+	@JsonProperty("p") val medicationValue: Medication? = null,
+	@JsonProperty("c") val compoundValue: Set<Service>? = null,
+	@JsonProperty("ts") val timeSeries: TimeSeries? = null,
+	val ratio: List<Measure>? = null,
+	val range: List<Measure>? = null
 ) : Serializable {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true

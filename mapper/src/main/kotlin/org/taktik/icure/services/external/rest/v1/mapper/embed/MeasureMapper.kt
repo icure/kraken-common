@@ -16,13 +16,15 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 interface MeasureMapper {
 
 	@Mappings(
-		Mapping(target = "referenceRanges", ignore = true)
+		Mapping(target = "referenceRanges", ignore = true),
+		Mapping(target = "scaledValue", ignore = true)
 	)
 	fun map(measureDto: MeasureDto): Measure
 
 	@Mappings(
 		Mapping(target = "max", expression = """kotlin(measure.max ?: measure.referenceRanges.firstOrNull()?.high)"""),
-		Mapping(target = "min", expression = """kotlin(measure.min ?: measure.referenceRanges.firstOrNull()?.low)""")
+		Mapping(target = "min", expression = """kotlin(measure.min ?: measure.referenceRanges.firstOrNull()?.low)"""),
+		Mapping(target = "scaledValue", ignore = true)
 	)
 	fun map(measure: Measure): MeasureDto
 }
