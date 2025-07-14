@@ -20,7 +20,7 @@ data class Measure(
      * value of the measure
      */
     val value: Double? = null,
-    val scaledValue: ScaledValue? = null,
+    val valueWithPrecision: ValueWithPrecision? = null,
     /**
      * lower bound of the reference range
      * @deprecated use referenceRanges instead

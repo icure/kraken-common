@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ScaledValueDto(
-	val scaledValue: Int,
-	val scale: Int,
+data class ValueWithPrecisionDto(
+	val value: Int,
+	val precision: Int,
 )
