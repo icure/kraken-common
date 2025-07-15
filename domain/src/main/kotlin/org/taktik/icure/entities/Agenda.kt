@@ -321,10 +321,14 @@ data class Agenda(
 	 *
 	 * You could also have issues in cases where the [daySplitHour] is changed without taking appropriate migration
 	 * steps.
-	 *
-	 * TODO exception for manually assigned calendar items?
 	 */
 	val daySplitHour: Int? = null, // TODO in future maybe we can replace this by supporting division of time table hours for example [8-10,10-12] would be equivalent to split at 10 for that time table item only
+	/**
+	 * If true the agenda won't be available for availabilities and safe booking requests, if false (default) the agenda
+	 * can be used with those features normally.
+	 * An unpublished agenda has less strict integrity checks.
+	 */
+	val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
@@ -338,38 +342,44 @@ data class Agenda(
 		require(rights.isEmpty() || userRights.isEmpty()) {
 			"You cannot specify legacy rights and userRights at the same time"
 		}
-		if (zoneId == null) {
-			if (
-				schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
-			) throw IllegalArgumentException("ZoneId must be provided when in agendas with time-based constraints")
-		} else {
+		if (!unpublished) {
+			if (zoneId == null) {
+				if (
+					schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
+				) throw IllegalArgumentException("ZoneId must be provided for published agendas with time-based constraints")
+			}
+			require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
+			schedules.groupBy { it.resourceGroup?.id }.also { groupedSchedules ->
+				groupedSchedules.forEach { (resourceGroup, schedule) ->
+					require(
+						schedule.size <= 1 || schedule.asSequence().sortedBy {
+							it.startDateTime ?: Long.MIN_VALUE
+						}.zipWithNext().none { (first, second) ->
+							first.endDateTime == null || second.startDateTime == null || first.endDateTime > second.startDateTime
+						}
+					) {
+						"Resource group `${resourceGroup}` has overlapping schedules. Not allowed in published agendas"
+					}
+				}
+				require(groupedSchedules.size == 1 || !groupedSchedules.containsKey(null)) {
+					"A published agenda can't specify a mix of schedules with null and non-null resource groups"
+				}
+			}
+			if (schedules.isEmpty()) {
+				require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without embedded schedules" }
+			} else {
+				require(slottingAlgorithm != null) { "`slottingAlgorithm` is required for published agendas with embedded schedule" }
+			}
+			schedules.forEach { it.checkPublishedRequirements() }
+		}
+		zoneId?.also {
 			try {
 				ZoneId.of(zoneId)
 			} catch (e: DateTimeException) {
 				throw IllegalArgumentException("Unsupported / invalid zone id $zoneId", e)
 			}
 		}
-		require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
 		if (daySplitHour != null) requireNotNull(FuzzyDates.getFullLocalTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
-		schedules.groupBy { it.resourceGroup?.id }.also { groupedSchedules ->
-			groupedSchedules.forEach {  (resourceGroup, schedule) ->
-				require (
-					schedule.size <= 1 || schedule.asSequence().sortedBy {
-						it.startDateTime ?: Long.MIN_VALUE
-					}.zipWithNext().none { (first, second) ->
-						first.endDateTime == null || second.startDateTime == null || first.endDateTime > second.startDateTime
-					}
-				) {
-					"Resource group `${resourceGroup}` has overlapping schedules"
-				}
-			}
-			require(groupedSchedules.size == 1 || !groupedSchedules.containsKey(null)) {
-				"An agenda can't specify a mix of schedules with null and non-null resource groups"
-			}
-		}
-		if (schedules.isEmpty()) {
-			require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without schedules" }
-		}
 	}
 
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))

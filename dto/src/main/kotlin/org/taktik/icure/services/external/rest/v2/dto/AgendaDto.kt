@@ -44,6 +44,7 @@ data class AgendaDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val daySplitHour: Int? = null,
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,

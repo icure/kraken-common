@@ -100,7 +100,10 @@ data class EmbeddedTimeTableItem(
 		require(rruleStartDate == null || FuzzyDates.getFullLocalDate(rruleStartDate) != null) { "rruleStartDate must be a valid fuzzy date if provided" }
 		require(notBeforeInMinutes == null || notBeforeInMinutes > 0) { "notBeforeInMinutes must be positive if provided" }
 		require(notAfterInMinutes == null || notAfterInMinutes >= 0) { "notAfterInMinutes must be positive if provided" }
-		require(hours.isNotEmpty()) { "Timetable item hours can't be empty" }
+	}
+
+	fun checkPublishedRequirements() {
+		require(hours.isNotEmpty()) { "Timetable item hours in published agenda can't be empty" }
 		// Check no overlap
 		val sortedHours = hours.sortedBy { it.startHour }
 		for (i in 1 until sortedHours.size) {
@@ -108,7 +111,7 @@ data class EmbeddedTimeTableItem(
 			val previous = sortedHours[i - 1]
 
 			require (current.startHour > previous.endHour) {
-				"Time table item can't have overlapping hours"
+				"Time table item in published agenda can't have overlapping hours"
 			}
 		}
 	}
