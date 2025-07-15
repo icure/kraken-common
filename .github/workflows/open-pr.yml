@@ -33,7 +33,7 @@ jobs:
                     pr_json=$(gh pr list --state merged --search "$(git rev-parse HEAD)" --json headRefName,number --limit 1)
                     echo $pr_json
                     pr_branch=$(echo $pr_json | jq -r '.[0].headRefName')
-                    if [ -n $pr_branch ]; then
+                    if [ -n "$pr_branch" ] && [ "$pr_branch" != "null" ]; then
                         echo "BRANCH_NAME=$pr_branch" >> $GITHUB_ENV
                     else
                         echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
