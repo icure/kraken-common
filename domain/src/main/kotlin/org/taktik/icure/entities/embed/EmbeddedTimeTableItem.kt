@@ -19,7 +19,12 @@ data class EmbeddedTimeTableItem(
 	 */
 	val rruleStartDate: Int? = null,
 	/**
-	 * A RFC-5545 recurrence rule specifying the days and recurrence type of the timetable item. ("RRULE:FREQ=WEEKLY;UNTIL=20220930;COUNT=30;INTERVAL=2;WKST=MO;BYDAY=TH" = every 2 weeks on Thursday until 30 September 2022.)
+	 * A RFC-5545 recurrence rule specifying the days and recurrence type of the timetable item.
+	 * Example: "FREQ=WEEKLY;UNTIL=20220930;INTERVAL=2;WKST=MO;BYDAY=TH" means every 2 weeks on Thursday until 30
+	 * September 2022.
+	 *
+	 * This must be only the RRULE property value, without the property name ("RRULE:FREQ=WEEKLY;BYDAY=TH" won't be
+	 * accepted, it should be "FREQ=WEEKLY;BYDAY=TH" instead)
 	 *
 	 * If UNTIL is provided, it must be a local date, without time or zone information. This is because:
 	 * - the hours and durations of the schedule are specified in the property [hours].
@@ -87,7 +92,7 @@ data class EmbeddedTimeTableItem(
 		val rrule = try {
 			RecurrenceRule(rrule, RecurrenceRule.RfcMode.RFC5545_STRICT)
 		} catch (e: InvalidRecurrenceRuleException) {
-			throw IllegalArgumentException("Invalid recurrence rule: $rrule", e)
+			throw IllegalArgumentException("Invalid recurrence rule: $rrule - ${e.message}", e)
 		}
 		rrule.until?.also {
 			require(it.isFloating && it.isAllDay) { "Unsupported UNTIL: must be a local date, without time or zone information" }

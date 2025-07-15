@@ -168,6 +168,21 @@ import kotlin.collections.isNotEmpty
  *   that time.
  * - If Auto same as Loose, since the calendar item is off-schedule.
  *
+ * ### Loose calendar items with multiple resource groups
+ *
+ * If your agenda has multiple resource groups you should always specify the [CalendarItem.resourceGroup] for calendar
+ * items with loose assignment, or you might get unexpected availabilities.
+ *
+ * For example, if we have an agenda with the following 2 groups
+ * - Group 1 at 09:00-12:00 1 availability for calendar item type 0 or 1
+ * - Group 2 at 09:00-12:00 1 availability for calendar item type 0 or 2
+ *
+ * If you have two calendar items at 10:30-11:00 of type 0 with loose assignment but no resource group specified, they
+ * could both be assigned to the same group, since loose calendar items can never conflict with other loose calendar
+ * items.
+ * This means there will still be availabilities for type 0, 1, or 2, at 10:30-11:00. Linking one of the calendar items
+ * to group 1 and the other to group 2 instead would remove the availability as you would expect.
+ *
  * ## Multiple groups of resources vs multiple items in single group
  *
  * You may think the following agendas are equivalent:

@@ -98,6 +98,10 @@ data class CalendarItem(
 ) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 	companion object : DynamicInitializer<CalendarItem>
 
+	init {
+		resourceGroup?.also { it.requireNormalized() }
+	}
+
 	/**
 	 * Specify how this calendar item should affect availabilities.
 	 */
