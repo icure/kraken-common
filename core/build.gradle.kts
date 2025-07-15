@@ -56,7 +56,6 @@ dependencies {
 
     implementation(coreLibs.kotlinxCollectionsImmutableJvm)
     implementation(coreLibs.springSession)
-    implementation(coreLibs.mapperProcessor)
     implementation(coreLibs.gcpAuthProvider)
     implementation(coreLibs.taktikBoot)
     implementation(coreLibs.caffeine)
