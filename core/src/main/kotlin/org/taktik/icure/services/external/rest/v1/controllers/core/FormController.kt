@@ -52,7 +52,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.couchdb.DocIdentifierMa
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
-import org.taktik.icure.utils.warn
+import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 
 @RestController
