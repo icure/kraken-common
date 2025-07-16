@@ -10,22 +10,46 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
+import java.io.Serializable
 
 interface CalendarItemDAO : GenericDAO<CalendarItem> {
+	data class CalendarItemStub(
+		/**
+		 * The id of the calendar item
+		 */
+		val id: String,
+		/**
+		 * If [appointmentDetails] is not null this is the start time of the calendar item.
+		 * Otherwise, this is a value between the corresponding calendar item start time and end time, to be used only
+		 * for pagination.
+		 */
+		val periodMarker: Long,
+		val appointmentDetails: AppointmentDetails?
+	) {
+		data class AppointmentDetails(
+			val endTime: Long? = null,
+			val duration: Long? = null,
+			val calendarItemTypeId: String? = null,
+			val resourceGroupId: String? = null,
+			val assignmentStrategy: CalendarItem.AvailabilitiesAssignmentStrategy = CalendarItem.AvailabilitiesAssignmentStrategy.Auto,
+		) : Serializable
+	}
+
 	/**
-	 * List calendar items with start date between the [searchStart] and [searchEnd] (exclusive), and for the provided
-	 * agenda id.
-	 * If [lastKnownDocumentId] is not null return all entries after that
-	 * TODO since needed only for availabilities return type will be replaced by calendar item stub
+	 * List calendar items that are active within the period [searchStart] and [searchEnd] (exclusive).
+	 * Calendar items that are longer than 1 year or with invalid start/end time will be included only if their
+	 * start date is within the provided period.
+	 * If [lastKnownDocumentId] is not null return only the entries after that.
+	 * Calendar items that exist
 	 */
-	fun listCalendarItemByStartDateAndAgendaId(
+	fun listCalendarItemStubsByAgendaIdAndPeriod(
 		datastoreInformation: IDatastoreInformation,
 		searchStart: Long,
 		searchEnd: Long,
 		agendaId: String,
 		limit: Int,
 		lastKnownDocumentId: String?
-	): Flow<CalendarItem>
+	): Flow<CalendarItemStub>
 
 	fun listCalendarItemByStartDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>
 

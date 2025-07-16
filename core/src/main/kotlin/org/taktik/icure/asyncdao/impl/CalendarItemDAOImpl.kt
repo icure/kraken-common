@@ -35,6 +35,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -60,15 +61,15 @@ class CalendarItemDAOImpl(
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<CalendarItem>(CalendarItem::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CalendarItemDAO {
-
-	override fun listCalendarItemByStartDateAndAgendaId(
+	@View(name = "by_agenda_period", map = "classpath:js/calendarItem/By_agenda_period.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listCalendarItemStubsByAgendaIdAndPeriod(
 		datastoreInformation: IDatastoreInformation,
 		searchStart: Long,
 		searchEnd: Long,
 		agendaId: String,
 		limit: Int,
 		lastKnownDocumentId: String?
-	): Flow<CalendarItem> = flow {
+	): Flow<CalendarItemDAO.CalendarItemStub> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val from = ComplexKey.of(
@@ -80,16 +81,24 @@ class CalendarItemDAOImpl(
 			searchEnd
 		)
 
-		val viewQuery = createQuery(datastoreInformation, "by_agenda_and_startdate")
+		val viewQuery = createQuery(datastoreInformation, "by_agenda_period", MAURICE_PARTITION)
 			.startKey(from)
 			.endKey(to)
-			.includeDocs(true)
+			.includeDocs(false)
 			.inclusiveEnd(false)
 			.startDocId(lastKnownDocumentId)
 			.skip(if (lastKnownDocumentId == null) 0 else 1)
 			.limit(limit)
 
-		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, CalendarItem>(viewQuery).map { it.doc })
+		emitAll(client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.AppointmentDetails?>(
+			viewQuery
+		).map {
+			CalendarItemDAO.CalendarItemStub(
+				it.id,
+				it.key!!.components[1] as Long,
+				it.value
+			)
+		})
 	}
 
 	@Views(

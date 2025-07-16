@@ -348,7 +348,6 @@ data class Agenda(
 					schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
 				) throw IllegalArgumentException("ZoneId must be provided for published agendas with time-based constraints")
 			}
-			require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
 			schedules.groupBy { it.resourceGroup?.id }.also { groupedSchedules ->
 				groupedSchedules.forEach { (resourceGroup, schedule) ->
 					require(
@@ -365,9 +364,7 @@ data class Agenda(
 					"A published agenda can't specify a mix of schedules with null and non-null resource groups"
 				}
 			}
-			if (schedules.isEmpty()) {
-				require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without embedded schedules" }
-			} else {
+			if (schedules.isNotEmpty()) {
 				require(slottingAlgorithm != null) { "`slottingAlgorithm` is required for published agendas with embedded schedule" }
 			}
 			schedules.forEach { it.checkPublishedRequirements() }

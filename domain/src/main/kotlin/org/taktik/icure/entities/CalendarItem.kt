@@ -75,7 +75,7 @@ data class CalendarItem(
 	 */
 	val resourceGroup: CodeStub? = null,
 	/**
-	 * Specify this calendar item should be considered by the algorithm calculating availabilities.
+	 * Specify how this calendar item should be considered by the algorithm calculating availabilities.
 	 * Refer to the [Agenda] and [AvailabilitiesAssignmentStrategy] documentation for more information.
 	 *
 	 * For agendas created through the restricted endpoints this will be set to [AvailabilitiesAssignmentStrategy.Auto].
