@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -18,9 +17,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
 //    injectionStrategy = InjectionStrategy.CONSTRUCTOR
 //)
 interface ReceiptBulkShareResultV2Mapper {
-    companion object {
-        private val receiptV2Mapper = Mappers.getMapper(ReceiptV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["receiptToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<ReceiptDto>): EntityBulkShareResult<Receipt>
@@ -28,10 +24,10 @@ interface ReceiptBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<Receipt>): EntityBulkShareResultDto<ReceiptDto>
 
     @Named("receiptToDto")
-    fun receiptToDto(receipt: Receipt?): ReceiptDto? = receipt?.let { receiptV2Mapper.map(it) }
+    fun receiptToDto(receipt: Receipt?): ReceiptDto?
 
     @Named("dtoToReceipt")
-    fun dtoToReceipt(receiptDto: ReceiptDto?): Receipt? = receiptDto?.let { receiptV2Mapper.map(it) }
+    fun dtoToReceipt(receiptDto: ReceiptDto?): Receipt?
 }
 
 @Service
@@ -59,5 +55,8 @@ class ReceiptBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun receiptToDto(receipt: Receipt?): ReceiptDto? = receipt?.let { receiptMapper.map(it) }
+    override fun dtoToReceipt(receiptDto: ReceiptDto?): Receipt? = receiptDto?.let { receiptMapper.map(it) }
 }
 

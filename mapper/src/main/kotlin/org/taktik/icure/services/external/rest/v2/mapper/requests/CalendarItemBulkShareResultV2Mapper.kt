@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -12,15 +11,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 
 //TODO tmp no support yet for generics
 
-//@Mapper(
-//    componentModel = "spring",
-//    uses = [RejectedShareRequestV2Mapper::class],
-//    injectionStrategy = InjectionStrategy.CONSTRUCTOR
-//)
 interface CalendarItemBulkShareResultV2Mapper {
-    companion object {
-        private val calendarItemV2Mapper = Mappers.getMapper(CalendarItemV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["calendarItemToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<CalendarItemDto>): EntityBulkShareResult<CalendarItem>
@@ -28,10 +19,10 @@ interface CalendarItemBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<CalendarItem>): EntityBulkShareResultDto<CalendarItemDto>
 
     @Named("calendarItemToDto")
-    fun calendarItemToDto(calendarItem: CalendarItem?): CalendarItemDto? = calendarItem?.let { calendarItemV2Mapper.map(it) }
+    fun calendarItemToDto(calendarItem: CalendarItem?): CalendarItemDto?
 
     @Named("dtoToCalendarItem")
-    fun dtoToCalendarItem(calendarItemDto: CalendarItemDto?): CalendarItem? = calendarItemDto?.let { calendarItemV2Mapper.map(it) }
+    fun dtoToCalendarItem(calendarItemDto: CalendarItemDto?): CalendarItem?
 }
 
 @Service
@@ -59,5 +50,9 @@ class CalendarItemBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+    override fun calendarItemToDto(calendarItem: CalendarItem?): CalendarItemDto? = calendarItem?.let { calendarItemMapper.map(it) }
+
+    override fun dtoToCalendarItem(calendarItemDto: CalendarItemDto?): CalendarItem? = calendarItemDto?.let { calendarItemMapper.map(it) }
+
 }
 

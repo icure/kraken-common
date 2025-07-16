@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -18,9 +17,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 //    injectionStrategy = InjectionStrategy.CONSTRUCTOR
 //)
 interface DocumentBulkShareResultV2Mapper {
-    companion object {
-        private val documentV2Mapper = Mappers.getMapper(DocumentV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["documentToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<DocumentDto>): EntityBulkShareResult<Document>
@@ -28,10 +24,10 @@ interface DocumentBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<Document>): EntityBulkShareResultDto<DocumentDto>
 
     @Named("documentToDto")
-    fun documentToDto(document: Document?): DocumentDto? = document?.let { documentV2Mapper.map(it) }
+    fun documentToDto(document: Document?): DocumentDto?
 
     @Named("dtoToDocument")
-    fun dtoToDocument(documentDto: DocumentDto?): Document? = documentDto?.let { documentV2Mapper.map(it) }
+    fun dtoToDocument(documentDto: DocumentDto?): Document?
 }
 
 @Service
@@ -59,5 +55,8 @@ class DocumentBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun documentToDto(document: Document?): DocumentDto? = document?.let { documentMapper.map(it) }
+    override fun dtoToDocument(documentDto: DocumentDto?): Document? = documentDto?.let { documentMapper.map(it) }
 }
 

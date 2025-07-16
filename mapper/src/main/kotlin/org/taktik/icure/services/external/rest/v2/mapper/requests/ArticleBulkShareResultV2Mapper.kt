@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Article
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -12,15 +11,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.ArticleV2Mapper
 
 //TODO tmp no support yet for generics
 
-//@Mapper(
-//    componentModel = "spring",
-//    uses = [RejectedShareRequestV2Mapper::class],
-//    injectionStrategy = InjectionStrategy.CONSTRUCTOR
-//)
 interface ArticleBulkShareResultV2Mapper {
-    companion object {
-        private val articleV2Mapper = Mappers.getMapper(ArticleV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["articleToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<ArticleDto>): EntityBulkShareResult<Article>
@@ -28,10 +19,10 @@ interface ArticleBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<Article>): EntityBulkShareResultDto<ArticleDto>
 
     @Named("articleToDto")
-    fun articleToDto(article: Article?): ArticleDto? = article?.let { articleV2Mapper.map(it) }
+    fun articleToDto(article: Article?): ArticleDto?
 
     @Named("dtoToArticle")
-    fun dtoToArticle(articleDto: ArticleDto?): Article? = articleDto?.let { articleV2Mapper.map(it) }
+    fun dtoToArticle(articleDto: ArticleDto?): Article?
 }
 
 @Service
@@ -59,5 +50,10 @@ class ArticleBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun articleToDto(article: Article?): ArticleDto? = article?.let { articleMapper.map(it) }
+
+    override fun dtoToArticle(articleDto: ArticleDto?): Article? = articleDto?.let { articleMapper.map(it) }
+
 }
 

@@ -61,7 +61,6 @@ dependencies {
     implementation(coreLibs.caffeine)
     implementation(coreLibs.kotp)
     implementation(coreLibs.kotlinDateTime)
-    implementation(coreLibs.mapstruct)
     implementation(coreLibs.libRecur)
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64")
     implementation(coreLibs.googleApiClient)
@@ -73,7 +72,7 @@ dependencies {
     testImplementation(coreLibs.springmockk)
     testImplementation(coreLibs.betterParse)
     testImplementation(coreLibs.reflections)
-    testImplementation(coreLibs.kotlinxSerialization)
+    testImplementation(coreLibs.kotlinxSerializationJson)
     testImplementation(coreLibs.kotlinxCoroutinesTest)
 
     testImplementation(coreLibs.bundles.kotestLibs)

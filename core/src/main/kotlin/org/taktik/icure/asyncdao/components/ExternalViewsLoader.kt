@@ -18,7 +18,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Duration
-import java.util.*
+import java.util.Base64
 
 @Component
 @ConditionalOnProperty(prefix = "icure.couchdb.external.loading", name = ["publicSigningKey"], matchIfMissing = false)
