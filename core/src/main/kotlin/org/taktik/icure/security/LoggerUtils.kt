@@ -1,14 +1,15 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
-package org.taktik.icure.utils
+package org.taktik.icure.security
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.slf4j.Logger
+import org.slf4j.Marker
 import org.springframework.beans.factory.annotation.Autowired
 
 
 interface LogMarker {
-	suspend fun getMarker(): org.slf4j.Marker?
+	suspend fun getMarker(): Marker?
 }
 
 @Autowired
