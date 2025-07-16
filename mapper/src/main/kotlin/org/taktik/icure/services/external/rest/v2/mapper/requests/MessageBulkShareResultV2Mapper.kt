@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -12,15 +11,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
 
 //TODO tmp no support yet for generics
 
-//@Mapper(
-//    componentModel = "spring",
-//    uses = [RejectedShareRequestV2Mapper::class],
-//    injectionStrategy = InjectionStrategy.CONSTRUCTOR
-//)
 interface MessageBulkShareResultV2Mapper {
-    companion object {
-        private val messageV2Mapper = Mappers.getMapper(MessageV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["messageToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<MessageDto>): EntityBulkShareResult<Message>
@@ -28,10 +19,10 @@ interface MessageBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<Message>): EntityBulkShareResultDto<MessageDto>
 
     @Named("messageToDto")
-    fun messageToDto(message: Message?): MessageDto? = message?.let { messageV2Mapper.map(it) }
+    fun messageToDto(message: Message?): MessageDto?
 
     @Named("dtoToMessage")
-    fun dtoToMessage(messageDto: MessageDto?): Message? = messageDto?.let { messageV2Mapper.map(it) }
+    fun dtoToMessage(messageDto: MessageDto?): Message?
 }
 
 @Service
@@ -59,5 +50,8 @@ class MessageBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun messageToDto(message: Message?): MessageDto? = message?.let { messageMapper.map(it) }
+    override fun dtoToMessage(messageDto: MessageDto?): Message? = messageDto?.let { messageMapper.map(it) }
 }
 

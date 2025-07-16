@@ -8,11 +8,11 @@ caffeine = "3.2.1"
 kotlinx = "1.8.1"
 kotest = "5.9.1"
 hibernateValidator = "8.0.1.Final"
-kmap = "0.1.79-gda7c33c594"
+kmap = "0.1.84-g107c985e93"
 bouncyCastle = "1.81"
 jwt = "0.11.5"
-kotlin = "1.9.25"
-ksp = "1.9.25-1.0.20"
+kotlin = "2.2.0"
+ksp = "2.2.0-2.0.2"
 reactorNettyVersion = "1.2.7"
 nettyVersion = "4.1.122.Final"
 jupiter = "5.12.2"
@@ -79,7 +79,7 @@ junitPlatformSuiteApi = { group = "org.junit.platform", name = "junit-platform-s
 jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "jupiter" }
 kmapKsp = { group = "io.icure", name = "kmap", version.ref = "kmap" }
 kotestAssertionsCore = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
-kotestExtensionsSpring = { group = "io.kotest.extensions", name = "kotest-extensions-spring", version = "1.0.1" }
+kotestExtensionsSpring = { group = "io.kotest.extensions", name = "kotest-extensions-spring", version = "1.3.0" }
 kotestRunnerJunit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 kotlinDateTime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version = "0.6.0-RC.2" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -98,13 +98,15 @@ kotlinxCoroutinesReactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-c
 kotlinxCoroutinesReactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "kotlinx" }
 kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx" }
 kotlinxIoCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version = "0.7.0" }
-kotlinxSerialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
 kotlinxSerializationBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-bom", version.ref = "kotlinx" }
+kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx" }
+kotlinxSerializationCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core-jvm", version.ref = "kotlinx" }
+kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
+kotlinxSerializationJsonJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-jvm", version.ref = "kotlinx" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.2" } # 2FA
 krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.64-g515cfc19e1" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
-mapstruct = { group = "org.mapstruct", name = "mapstruct", version = "1.4.2.Final" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }
 mockkJvm = { group = "io.mockk", name = "mockk-jvm", version = "1.13.8" }
 nettyBuffer = { group = "io.netty", name = "netty-buffer", version.ref = "nettyVersion" }
