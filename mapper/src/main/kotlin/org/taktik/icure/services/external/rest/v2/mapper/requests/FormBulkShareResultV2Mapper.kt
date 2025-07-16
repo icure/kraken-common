@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -18,20 +17,16 @@ import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
 //    injectionStrategy = InjectionStrategy.CONSTRUCTOR
 //)
 interface FormBulkShareResultV2Mapper {
-    companion object {
-        private val formV2Mapper = Mappers.getMapper(FormV2Mapper::class.java)
-    }
-
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["formToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<FormDto>): EntityBulkShareResult<Form>
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["dtoToForm"])
     fun map(bulkShareResult: EntityBulkShareResult<Form>): EntityBulkShareResultDto<FormDto>
 
     @Named("formToDto")
-    fun formToDto(form: Form?): FormDto? = form?.let { formV2Mapper.map(it) }
+    fun formToDto(form: Form?): FormDto?
 
     @Named("dtoToForm")
-    fun dtoToForm(formDto: FormDto?): Form? = formDto?.let { formV2Mapper.map(it) }
+    fun dtoToForm(formDto: FormDto?): Form?
 }
 
 @Service
@@ -59,5 +54,8 @@ class FormBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun formToDto(form: Form?): FormDto? = form?.let { formMapper.map(it) }
+    override fun dtoToForm(formDto: FormDto?): Form? = formDto?.let { formMapper.map(it) }
 }
 

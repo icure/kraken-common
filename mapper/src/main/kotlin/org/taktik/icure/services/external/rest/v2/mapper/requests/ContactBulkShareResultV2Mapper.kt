@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -18,20 +17,16 @@ import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 //    injectionStrategy = InjectionStrategy.CONSTRUCTOR
 //)
 interface ContactBulkShareResultV2Mapper {
-    companion object {
-        private val contactV2Mapper = Mappers.getMapper(ContactV2Mapper::class.java)
-    }
-
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["contactToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<ContactDto>): EntityBulkShareResult<Contact>
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["dtoToContact"])
     fun map(bulkShareResult: EntityBulkShareResult<Contact>): EntityBulkShareResultDto<ContactDto>
 
     @Named("contactToDto")
-    fun contactToDto(contact: Contact?): ContactDto? = contact?.let { contactV2Mapper.map(it) }
+    fun contactToDto(contact: Contact?): ContactDto?
 
     @Named("dtoToContact")
-    fun dtoToContact(contactDto: ContactDto?): Contact? = contactDto?.let { contactV2Mapper.map(it) }
+    fun dtoToContact(contactDto: ContactDto?): Contact?
 }
 
 @Service
@@ -59,5 +54,8 @@ class ContactBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun contactToDto(contact: Contact?): ContactDto? = contact?.let { contactMapper.map(it) }
+    override fun dtoToContact(contactDto: ContactDto?): Contact? = contactDto?.let { contactMapper.map(it) }
 }
 
