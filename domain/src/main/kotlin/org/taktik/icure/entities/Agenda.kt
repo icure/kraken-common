@@ -166,7 +166,7 @@ import kotlin.collections.isNotEmpty
  *   always be conflicting.
  * - If Loose only blocks the availabilities 10:20-10:30, since we already have the maximum of two appointments during
  *   that time.
- * - If Auto same as Loose, since the calendar item is off-schedule.
+ * - If null same as Loose, since the calendar item is off-schedule.
  *
  * ### Loose calendar items with multiple resource groups
  *

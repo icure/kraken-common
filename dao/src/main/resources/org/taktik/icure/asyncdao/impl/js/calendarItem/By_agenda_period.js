@@ -4,16 +4,19 @@ function(doc) {
         const end = doc.endTime
         const value = {}
         if (doc.endTime != null) {
-            value.endTime = doc.endTime
+            value.e = doc.endTime
         }
         if (doc.calendarItemTypeId != null) {
-            value.calendarItemTypeId = doc.calendarItemTypeId
+            value.t = doc.calendarItemTypeId
         }
-        if (doc.resourceGroup != null && doc.resourceGroup.id != null) {
-            value.resourceGroupId = doc.resourceGroup.id
+        if (doc.resourceGroup != null && doc.resourceGroup._id != null) {
+            value.g = doc.resourceGroup._id
         }
         if (doc.availabilitiesAssignmentStrategy != null) {
-            value.assignmentStrategy = doc.availabilitiesAssignmentStrategy
+            value.a = doc.availabilitiesAssignmentStrategy
+        }
+        if (doc.duration != null) {
+            value.d = doc.duration
         }
         // TODO consider status of appointments (pre-book, canceled, ...) ; maybe should include status between agenda and time
         emit([doc.agendaId, doc.startTime], value);

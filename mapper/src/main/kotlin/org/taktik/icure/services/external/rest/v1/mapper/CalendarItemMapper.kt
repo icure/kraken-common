@@ -33,7 +33,7 @@ abstract class CalendarItemMapper {
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
 		require (calendarItem.resourceGroup == null) { "Can't use calendar item with `resourceGroup` on v1 apis"}
-		require (calendarItem.availabilitiesAssignmentStrategy == CalendarItem.AvailabilitiesAssignmentStrategy.Auto) { "Can't use calendar item with `resourceGroup` on v1 apis"}
+		require (calendarItem.availabilitiesAssignmentStrategy == null) { "Can't use calendar item with `availabilitiesAssignmentStrategy` on v1 apis"}
 		return doMap(calendarItem)
 	}
 

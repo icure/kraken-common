@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
@@ -27,11 +28,11 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		val appointmentDetails: AppointmentDetails?
 	) {
 		data class AppointmentDetails(
-			val endTime: Long? = null,
-			val duration: Long? = null,
-			val calendarItemTypeId: String? = null,
-			val resourceGroupId: String? = null,
-			val assignmentStrategy: CalendarItem.AvailabilitiesAssignmentStrategy = CalendarItem.AvailabilitiesAssignmentStrategy.Auto,
+			@JsonProperty("e") val endTime: Long? = null,
+			@JsonProperty("d") val duration: Long? = null,
+			@JsonProperty("t") val calendarItemTypeId: String? = null,
+			@JsonProperty("g") val resourceGroupId: String? = null,
+			@JsonProperty("a") val assignmentStrategy: CalendarItem.AvailabilitiesAssignmentStrategy? = null,
 		) : Serializable
 	}
 

@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
@@ -71,7 +72,7 @@ data class CalendarItemDto(
     val wasMigrated: Boolean? = null,
     val agendaId: String? = null,
     val resourceGroup: CodeStubDto? = null,
-    val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy = AvailabilitiesAssignmentStrategy.Auto,
+    val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
     val hcpId: String? = null,
     val recurrenceId: String? = null,
     val meetingTags: Set<CalendarItemTagDto> = emptySet(),
@@ -87,8 +88,7 @@ data class CalendarItemDto(
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
     enum class AvailabilitiesAssignmentStrategy {
-        Auto,
-        Strict,
-        Loose,
+        @JsonProperty("S") Strict,
+        @JsonProperty("L") Loose,
     }
 }

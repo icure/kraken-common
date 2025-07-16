@@ -6,6 +6,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonValue
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
@@ -78,9 +79,9 @@ data class CalendarItem(
 	 * Specify how this calendar item should be considered by the algorithm calculating availabilities.
 	 * Refer to the [Agenda] and [AvailabilitiesAssignmentStrategy] documentation for more information.
 	 *
-	 * For agendas created through the restricted endpoints this will be set to [AvailabilitiesAssignmentStrategy.Auto].
+	 * For agendas created through the restricted endpoints this will be set to null.
 	 */
-	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy = AvailabilitiesAssignmentStrategy.Auto,
+	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),
@@ -104,13 +105,11 @@ data class CalendarItem(
 
 	/**
 	 * Specify how this calendar item should affect availabilities.
+	 *
+	 * If null and the calendar item is an off-schedule appointment (as defined in [Agenda]) use the [Loose] strategy,
+	 * otherwise use the [Strict] strategy.
 	 */
 	enum class AvailabilitiesAssignmentStrategy {
-		/**
-		 * If the calendar item is an off-schedule appointment (as defined in [Agenda]) use the [Loose] strategy,
-		 * otherwise use the [Strict] strategy.
-		 */
-		Auto,
 		/**
 		 * Force the availability algorithm to use the strict strategy: this means that the calendar item will impact
 		 * the availabilities during its time, and must be placeable exactly within the schedule together with all other
@@ -119,14 +118,14 @@ data class CalendarItem(
 		 * Off-schedule calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] will block all
 		 * availabilities for their entire duration.
 		 */
-		Strict,
+		@JsonProperty("S") Strict,
 		/**
 		 * Force the availability algorithm to use the loose strategy: this means that during its time the calendar item
 		 * will limit the availabilities for other calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy]
 		 * and in the result, however, it won't black all availabilities if it can't be placed exactly within the
 		 * schedule.
 		 */
-		Loose,
+		@JsonProperty("L") Loose,
 	}
 
 	fun merge(other: CalendarItem) = CalendarItem(args = this.solveConflictsWith(other))
