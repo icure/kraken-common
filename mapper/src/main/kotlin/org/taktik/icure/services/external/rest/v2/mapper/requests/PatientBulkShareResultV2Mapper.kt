@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -12,15 +11,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 
 //TODO tmp no support yet for generics
 
-//@Mapper(
-//    componentModel = "spring",
-//    uses = [RejectedShareRequestV2Mapper::class],
-//    injectionStrategy = InjectionStrategy.CONSTRUCTOR
-//)
 interface PatientBulkShareResultV2Mapper {
-    companion object {
-        private val patientV2Mapper = Mappers.getMapper(PatientV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["dtoToPatient"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<PatientDto>): EntityBulkShareResult<Patient>
@@ -28,10 +19,10 @@ interface PatientBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<Patient>): EntityBulkShareResultDto<PatientDto>
 
     @Named("patientToDto")
-    fun patientToDto(patient: Patient?): PatientDto? = patient?.let { patientV2Mapper.map(it) }
+    fun patientToDto(patient: Patient?): PatientDto?
 
     @Named("dtoToPatient")
-    fun dtoToPatient(patientDto: PatientDto?): Patient? = patientDto?.let { patientV2Mapper.map(it) }
+    fun dtoToPatient(patientDto: PatientDto?): Patient?
 }
 
 @Service
@@ -59,5 +50,9 @@ class PatientBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun patientToDto(patient: Patient?): PatientDto? = patient?.let { patientMapper.map(it) }
+    override fun dtoToPatient(patientDto: PatientDto?): Patient? = patientDto?.let { patientMapper.map(it) }
+
 }
 

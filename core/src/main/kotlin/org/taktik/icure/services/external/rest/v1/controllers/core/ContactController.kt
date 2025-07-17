@@ -63,7 +63,7 @@ import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.utils.warn
+import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit

@@ -17,10 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,5 +35,6 @@ data class MeasureDto(
 	val comment: String? = null,
 	val comparator: String? = null,
 	val sign: String? = null,
-	val referenceRanges: List<ReferenceRangeDto> = emptyList()
+	val referenceRanges: List<ReferenceRangeDto> = emptyList(),
+	val valueWithPrecision: ValueWithPrecisionDto? = null,
 ) : Serializable

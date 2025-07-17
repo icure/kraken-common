@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -12,15 +11,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.MaintenanceTaskV2Mapper
 
 //TODO tmp no support yet for generics
 
-//@Mapper(
-//    componentModel = "spring",
-//    uses = [RejectedShareRequestV2Mapper::class],
-//    injectionStrategy = InjectionStrategy.CONSTRUCTOR
-//)
 interface MaintenanceTaskBulkShareResultV2Mapper {
-    companion object {
-        private val maintenanceTaskV2Mapper = Mappers.getMapper(MaintenanceTaskV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["maintenanceTaskToDto"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<MaintenanceTaskDto>): EntityBulkShareResult<MaintenanceTask>
@@ -28,10 +19,10 @@ interface MaintenanceTaskBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<MaintenanceTask>): EntityBulkShareResultDto<MaintenanceTaskDto>
 
     @Named("maintenanceTaskToDto")
-    fun maintenanceTaskToDto(maintenanceTask: MaintenanceTask?): MaintenanceTaskDto? = maintenanceTask?.let { maintenanceTaskV2Mapper.map(it) }
+    fun maintenanceTaskToDto(maintenanceTask: MaintenanceTask?): MaintenanceTaskDto?
 
     @Named("dtoToMaintenanceTask")
-    fun dtoToMaintenanceTask(maintenanceTaskDto: MaintenanceTaskDto?): MaintenanceTask? = maintenanceTaskDto?.let { maintenanceTaskV2Mapper.map(it) }
+    fun dtoToMaintenanceTask(maintenanceTaskDto: MaintenanceTaskDto?): MaintenanceTask?
 }
 
 @Service
@@ -59,5 +50,8 @@ class MaintenanceTaskBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun maintenanceTaskToDto(maintenanceTask: MaintenanceTask?): MaintenanceTaskDto? = maintenanceTask?.let { maintenanceTaskMapper.map(it) }
+    override fun dtoToMaintenanceTask(maintenanceTaskDto: MaintenanceTaskDto?): MaintenanceTask? = maintenanceTaskDto?.let { maintenanceTaskMapper.map(it) }
 }
 

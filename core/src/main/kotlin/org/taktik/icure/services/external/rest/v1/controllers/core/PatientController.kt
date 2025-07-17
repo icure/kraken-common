@@ -69,7 +69,7 @@ import org.taktik.icure.utils.FluxString
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.utils.warn
+import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant

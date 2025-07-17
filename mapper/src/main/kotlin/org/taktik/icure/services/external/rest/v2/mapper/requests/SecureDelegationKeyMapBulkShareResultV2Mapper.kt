@@ -2,15 +2,11 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import org.mapstruct.factory.Mappers
 import org.springframework.stereotype.Service
-import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.SecureDelegationKeyMap
 import org.taktik.icure.entities.requests.EntityBulkShareResult
-import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.SecureDelegationKeyMapDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
-import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.SecureDelegationKeyMapV2Mapper
 
 //TODO tmp no support yet for generics
@@ -21,9 +17,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.SecureDelegationKeyMapV
 //    injectionStrategy = InjectionStrategy.CONSTRUCTOR
 //)
 interface SecureDelegationKeyMapBulkShareResultV2Mapper {
-    companion object {
-        private val keyMapV2Mapper = Mappers.getMapper(SecureDelegationKeyMapV2Mapper::class.java)
-    }
 
     @Mapping(source = "updatedEntity", target = "updatedEntity", qualifiedByName = ["dtoToMap"])
     fun map(bulkShareResultDto: EntityBulkShareResultDto<SecureDelegationKeyMapDto>): EntityBulkShareResult<SecureDelegationKeyMap>
@@ -31,10 +24,10 @@ interface SecureDelegationKeyMapBulkShareResultV2Mapper {
     fun map(bulkShareResult: EntityBulkShareResult<SecureDelegationKeyMap>): EntityBulkShareResultDto<SecureDelegationKeyMapDto>
 
     @Named("mapToDto")
-    fun patientToDto(map: SecureDelegationKeyMap?): SecureDelegationKeyMapDto? = map?.let { keyMapV2Mapper.map(it) }
+    fun patientToDto(map: SecureDelegationKeyMap?): SecureDelegationKeyMapDto?
 
     @Named("dtoToMap")
-    fun dtoToPatient(mapDto: SecureDelegationKeyMapDto?): SecureDelegationKeyMap? = mapDto?.let { keyMapV2Mapper.map(it) }
+    fun dtoToPatient(mapDto: SecureDelegationKeyMapDto?): SecureDelegationKeyMap?
 }
 
 @Service
@@ -62,5 +55,8 @@ class SecureDelegationKeyMapBulkShareResultV2MapperImpl(
             k to this.rejectedShareRequestV2Mapper.map(v)
         }.toMap(),
     )
+
+    override fun patientToDto(map: SecureDelegationKeyMap?): SecureDelegationKeyMapDto? = map?.let { keyMapV2Mapper.map(it) }
+    override fun dtoToPatient(mapDto: SecureDelegationKeyMapDto?): SecureDelegationKeyMap? = mapDto?.let { keyMapV2Mapper.map(it) }
 }
 

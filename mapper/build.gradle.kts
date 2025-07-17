@@ -32,7 +32,6 @@ dependencies {
 	implementation(coreLibs.bundles.krouchLibs)
 
 	implementation(coreLibs.krouch)
-	implementation(coreLibs.mapstruct)
 	implementation(coreLibs.kmapKsp) {
 		exclude(group = "ch.qos.logback")
 	}

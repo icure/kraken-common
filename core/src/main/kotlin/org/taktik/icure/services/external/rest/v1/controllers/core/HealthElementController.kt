@@ -48,7 +48,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.utils.warn
+import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 
 @RestController
