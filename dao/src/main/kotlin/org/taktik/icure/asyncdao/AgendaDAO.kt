@@ -64,7 +64,9 @@ interface AgendaDAO : GenericDAO<Agenda> {
 	 * @return a [Flow] of [Agenda.id]s
 	 * @throws IllegalArgumentException if [property] has a null id or no typedValue that is not null.
 	 */
-	fun listAgendasByTypedProperty(datastoreInformation: IDatastoreInformation, property: PropertyStub): Flow<String>
+	fun listAgendasIdsByTypedProperty(datastoreInformation: IDatastoreInformation, property: PropertyStub): Flow<String>
+
+	fun listAgendasByTypedProperty(datastoreInformation: IDatastoreInformation, property: PropertyStub): Flow<Agenda>
 
 	/**
 	 * Retrieves all the [Agenda.id]s of the agendas that have at least one [Agenda.properties] where the id matches

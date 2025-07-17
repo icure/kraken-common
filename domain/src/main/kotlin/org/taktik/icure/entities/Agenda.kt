@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
+import org.taktik.icure.entities.CalendarItem.AvailabilitiesAssignmentStrategy
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -20,7 +21,6 @@ import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
-import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -37,9 +37,9 @@ import kotlin.collections.isNotEmpty
  *
  * Normally, an agenda specifies a schedule for the resources, which is done through the
  * [ResourceGroupAllocationSchedule] in [schedules].
- * This allows users with limited privileges to take appointment in the schedule of the agenda using the availabilities
- * and safe booking features.
- * Users with special privileges are allowed to take appointments outside the agenda schedule.
+ * The existence of a schedule allows you to specify groups of users which will be able to take appointments,
+ * represented by [CalendarItem]s, for the agenda within certain limits.
+ * You can also allow some users to take appointments for the agenda even outside the defined schedule.
  *
  * An agenda can have multiple entries in [schedules] to represent the following scenarios:
  * - The schedule of the agenda will change on a certain date
@@ -88,43 +88,149 @@ import kotlin.collections.isNotEmpty
  * Note: the groups will need to have different [ResourceGroupAllocationSchedule.resourceGroup] (you can't have
  * schedules active in parallel for the same [ResourceGroupAllocationSchedule.resourceGroup])
  *
- * ### Multiple groups vs multiple items in single group
+ * ## Availabilities
+ *
+ * You can configure an agenda to allow users to create calendar items for the agenda as long as it sits within the
+ * limits specified by the agenda's schedule.
+ *
+ * These users will have to first interrogate the availabilities of the agenda, to get information about when a certain
+ * type of appointment can be taken for that agenda.
+ * An agenda has an availability for a calendar item at a specific time if:
+ * 1. The schedule allows for that type of calendar item at that time
+ * 2. Creating a calendar item at that time wouldn't cause conflicts with existing calendar items.
+ *
+ * ### Example
+ *
+ * Consider the agenda
+ * - Group1
+ *   - TimeTableItem1 09:00-11:30, can serve t1 or t2, each lasting 20 minutes
+ * - Group2
+ *   - TimeTableItem2 09:30-12:00, can serve t1 or t3, each lasting 20 minutes
+ *
+ * - There is no availability of type t2 at 11:20 due to rule 1
+ * - There could be an availability of type t3 at 11:10 due to rule 1, however if there are already other calendar items
+ *   we have to verify with rule 2. For example, the following situations would void the availability:
+ *   - There are 2 calendar items of type t1 intersecting the time 11:10-11:30
+ *   - There is 1 calendar item of type t3 intersecting the time 11:10-11:30
+ *   - There is 1 calendar item of type t2 and one of type t1 intersecting the time 11:10-11:30
+ *   - There is 1 calendar item of type t1 at time 11:20: this calendar item can't be served by group 1 as it sits
+ *     partially outside its schedule, therefore it must be served by group 2 and won't allow to have an appointment of
+ *     time t3 intersecting the time 11:20-11:40
+ *
+ * ## Irregularities and loose assignments
+ *
+ * You will encounter cases where you have "irregular" appointments, that is calendar items that can't be satisfied
+ * exactly by the schedule. There are 2 types of irregularities:
+ * - off-schedule appointments are calendar items that couldn't be satisfied even if they were the only
+ *   booked appointments: this can be because their time is partially outside the schedule, or because their calendar
+ *   item type is not allowed by the schedule at their specific time.
+ * - overbookings happen when the appointments, even if not individually off-schedule, can't fit all together within the
+ *   schedule
+ *
+ * Although unprivileged users won't be able to create off-schedule appointments or cause overbookings, there are still
+ * situations where you may want or need to create these kinds of appointments.
+ *
+ * A common situation when this can happen is when an employee is on leave: you want to create a single calendar item
+ * matching the time of the leave, to take away the availabilities from the resource group of that employee.
+ * Usually this calendar item will not match exactly the schedule, so it will be an off-schedule appointment.
+ * For pre-planned leave this will not have any additional implications, but if the leave is unplanned it is possible
+ * that there are already some appointments scheduled and adding the leave will result in a overbooking.
+ *
+ * When there are overbookings or off-schedule appointments the availabilities algorithm may struggle to find
+ * availabilites, since the irregular appointments are always going to be in conflict.
+ *
+ * To prevent this from happening, you can set [CalendarItem.availabilitiesAssignmentStrategy] to
+ * [AvailabilitiesAssignmentStrategy.Loose] when creating irregular appointments
+ *
+ * Note: if you're creating the appointment in an agenda with multiple resource group you should also set the
+ * [CalendarItem.resourceGroup] explicitly.
+ *
+ * When a calendar item requires the loose assignment strategy, the availabilities won't consider it when checking
+ * conflicts; instead, the calendar item will only apply a flat reduction of the availabilities during the time of the
+ * calendar item to all the timetable items of the affected resource group.
+ *
+ * Note: to limit the impact of overbookings and off-schedule appointments when using strict assignment the conflicts
+ * are checked only with calendar items that are intersecting the availability directly, or indirectly through other
+ * intersecting calendar items.
+ *
+ * ### Example
+ *
+ * Consider an Agenda with a single resource group and time table items 09:00-12:00 for calendar item type t1,
+ * 13:00-16:00 for t2, each with 2 availabilities.
+ *
+ * If we have a calendar item of type t1 between 10:20-10:50 and an off-schedule calendar item of type t2 between
+ * 10:00-10:30.
+ * Depending on the assignment strategy configured for the second calendar item we will have different availabilities:
+ * - If Strict blocks availabilities from 10:00-10:50: any calendar item intersecting that time would be blocked since
+ *   it would intersect (directly or indirectly through the first calendar item) the off-schedule appointment that will
+ *   always be conflicting.
+ * - If Loose only blocks the availabilities 10:20-10:30, since we already have the maximum of two appointments during
+ *   that time.
+ * - If null same as Loose, since the calendar item is off-schedule.
+ *
+ * ### Loose calendar items with multiple resource groups
+ *
+ * If your agenda has multiple resource groups you should always specify the [CalendarItem.resourceGroup] for calendar
+ * items with loose assignment, or you might get unexpected availabilities.
+ *
+ * For example, if we have an agenda with the following 2 groups
+ * - Group 1 at 09:00-12:00 1 availability for calendar item type 0 or 1
+ * - Group 2 at 09:00-12:00 1 availability for calendar item type 0 or 2
+ *
+ * If you have two calendar items at 10:30-11:00 of type 0 with loose assignment but no resource group specified, they
+ * could both be assigned to the same group, since loose calendar items can never conflict with other loose calendar
+ * items.
+ * This means there will still be availabilities for type 0, 1, or 2, at 10:30-11:00. Linking one of the calendar items
+ * to group 1 and the other to group 2 instead would remove the availability as you would expect.
+ *
+ * ## Multiple groups of resources vs multiple items in single group
  *
  * You may think the following agendas are equivalent:
+ *
  * - Agenda 1
  *   - Group 1
- *     - TimeTableItem - 09:00->14:00 - Calendar item types: t1, t2
- *     - TimeTableItem - 13:00->18:00 - Calendar item types: t1, t3
+ *     - TimeTableItem 1
+ *       - Monday 09:00->12:00 - Calendar item types: t1, t2
+ *     - TimeTableItem 2
+ *       - Monday 12:15->16:00 - Calendar item types: t3, t4
+ *     - TimeTableItem 3
+ *       - Tuesday 09:00->12:00 - Calendar item types: t1, t2, availabilities: 2
  *
  * - Agenda 2
  *   - Group 1
- *     - TimeTableItem - 09:00->14:00 - Calendar item types: t1, t2
+ *     - TimeTableItem 1
+ *       - Monday 09:00->12:00 - Calendar item types: t1, t2
+ *     - TimeTableItem 2
+ *       - Tuesday 09:00->12:00 - Calendar item types: t1, t2
  *   - Group 2
- *     - TimeTableItem - 13:00->18:00 - Calendar item types: t1, t3
+ *     - TimeTableItem 1
+ *       - Monday 12:15->16:00 - Calendar item types: t3, t4
+ *     - TimeTableItem 2
+ *       - Tuesday 09:00->12:00 - Calendar item types: t1, t2
  *
- * That is, however, not the case.
+ * As long as there are no overbookings and no off-schedule appointments there is going to be no real difference.
+ *
+ * However, in the presence of overbookings or off-schedule appointments, the availabilities algorithm will behave
+ * differently depending on the representation you chose.
+ * If your chosen representation of the agenda doesn't properly match the resources the solution found could omit
+ * some availabilities, or worse, provide availabilities that can't be satisfied.
  *
  * Agenda 1 defines a single group of resources that all have the same capabilities (in case of workers these could be
- * competences). Even though the resources could allow for an appointment of type t3 at 09:00, for some reason we don't
- * want people to take this kind of appointment at that time.
+ * competences). Even though the resources could allow for an appointment of type t3 at 09:00 on either monday or
+ * tuesday, for some reason we don't want people to take this kind of appointment at that time.
  *
- * In agenda 2, instead, the groups of resources have distinct capabilities. There is no resource available at 09:00 that
- * could handle an appointment of type t3.
+ * In agenda 2, instead, the groups of resources have distinct capabilities: there is no resource available at 09:00 on
+ * Monday that could handle an appointment of type t3.
  *
- * As long as all calendar items adhere to what is defined in the schedule there is actually going to be no real
- * difference, but in the real world sometimes there will be an appointment that doesn't really fit the schedule:
- * users with appropriate permission can forcefully create calendar items outside of this schedule.
- *
- * In these cases the availabilities algorithm will attempt to still find a decent solution, but if your representation
- * of the agenda doesn't properly match the resources the solution found could allow for users to take appointments
- * that can't be actually satisfied.
+ * For example, the two representations have significant differences if we have an off-schedule appointment 11:45-12:30
+ * of type t3.
+ * In the case of Agenda 1 this appointment would impact the availabilities of both TimeTableItem 1 and 2.
+ * In the case of Agenda 2 instead the [CalendarItem.resourceGroup] should be set to group 2, and this will ensure that
+ * only the availabilities of Group 2 - TimeTableItem 1 will be impacted.
  *
  * As a general rule use separate [ResourceGroupAllocationSchedule] for groups of resources that don't share exactly
- * the same capabilities.
- *
- * TODO example once actually implemented
- *
- * TODO explain how to assign directly to group of resources to help.
+ * the same capabilities and schedule. Another hint that you need to divide your timetable items across different
+ * groups is having items with overlapping schedules.
  *
  * ## When to use multiple agendas
  *
@@ -148,7 +254,7 @@ data class Agenda(
 	override val endOfLife: Long? = null,
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 	val name: String? = null,
-	val userId: String? = null,
+	@Deprecated("Use TODO instead") val userId: String? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
 	/**
 	 * Associates a user id to the permission that user has on the entity.
@@ -215,10 +321,14 @@ data class Agenda(
 	 *
 	 * You could also have issues in cases where the [daySplitHour] is changed without taking appropriate migration
 	 * steps.
-	 *
-	 * TODO exception for manually assigned calendar items?
 	 */
 	val daySplitHour: Int? = null, // TODO in future maybe we can replace this by supporting division of time table hours for example [8-10,10-12] would be equivalent to split at 10 for that time table item only
+	/**
+	 * If true the agenda won't be available for availabilities and safe booking requests, if false (default) the agenda
+	 * can be used with those features normally.
+	 * An unpublished agenda has less strict integrity checks.
+	 */
+	val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
@@ -232,33 +342,41 @@ data class Agenda(
 		require(rights.isEmpty() || userRights.isEmpty()) {
 			"You cannot specify legacy rights and userRights at the same time"
 		}
-		if (zoneId == null) {
-			if (
-				schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
-			) throw IllegalArgumentException("ZoneId must be provided when in agendas with time-based constraints")
-		} else {
+		if (!unpublished) {
+			if (zoneId == null) {
+				if (
+					schedules.any { tt -> tt.items.any { it.notAfterInMinutes != null || it.notBeforeInMinutes != null } }
+				) throw IllegalArgumentException("ZoneId must be provided for published agendas with time-based constraints")
+			}
+			schedules.groupBy { it.resourceGroup?.id }.also { groupedSchedules ->
+				groupedSchedules.forEach { (resourceGroup, schedule) ->
+					require(
+						schedule.size <= 1 || schedule.asSequence().sortedBy {
+							it.startDateTime ?: Long.MIN_VALUE
+						}.zipWithNext().none { (first, second) ->
+							first.endDateTime == null || second.startDateTime == null || first.endDateTime > second.startDateTime
+						}
+					) {
+						"Resource group `${resourceGroup}` has overlapping schedules. Not allowed in published agendas"
+					}
+				}
+				require(groupedSchedules.size == 1 || !groupedSchedules.containsKey(null)) {
+					"A published agenda can't specify a mix of schedules with null and non-null resource groups"
+				}
+			}
+			if (schedules.isNotEmpty()) {
+				require(slottingAlgorithm != null) { "`slottingAlgorithm` is required for published agendas with embedded schedule" }
+			}
+			schedules.forEach { it.checkPublishedRequirements() }
+		}
+		zoneId?.also {
 			try {
 				ZoneId.of(zoneId)
 			} catch (e: DateTimeException) {
 				throw IllegalArgumentException("Unsupported / invalid zone id $zoneId", e)
 			}
 		}
-		require(schedules.isNotEmpty() || daySplitHour == null) { "`daySplitHour` has effect only on agendas with embedded schedule" }
 		if (daySplitHour != null) requireNotNull(FuzzyDates.getFullLocalTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
-		schedules.groupBy { it.resourceGroup }.forEach {  (resourceGroup, schedule) ->
-			require (
-				schedule.size <= 1 || schedule.asSequence().sortedBy {
-					it.startDateTime ?: Long.MIN_VALUE
-				}.zipWithNext().none { (first, second) ->
-					first.endDateTime == null || second.startDateTime == null || first.endDateTime > second.startDateTime
-				}
-			) {
-				"Resource group `${resourceGroup?.id}` has overlapping schedules"
-			}
-		}
-		if (schedules.isEmpty()) {
-			require(slottingAlgorithm == null) { "`slottingAlgorithm` has not effect on agendas without schedules" }
-		}
 	}
 
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))

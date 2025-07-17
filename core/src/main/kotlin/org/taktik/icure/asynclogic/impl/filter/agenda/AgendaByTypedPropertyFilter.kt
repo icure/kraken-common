@@ -20,7 +20,7 @@ data class AgendaByTypedPropertyFilter(
 		filter: AgendaByTypedPropertyFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation
-	): Flow<String> = agendaDAO.listAgendasByTypedProperty(
+	): Flow<String> = agendaDAO.listAgendasIdsByTypedProperty(
 		datastoreInformation = datastoreInformation,
 		property = filter.property
 	)

@@ -17,6 +17,7 @@ data class ResourceGroupAllocationSchedule(
 	 * distinguish them.
 	 * Different ResourceGroupAllocationSchedule in a single agenda for the same resourceGroup can't be active at
 	 * overlapping times.
+	 * Note that if any of the items are public this will also be public.
 	 */
 	val resourceGroup: CodeStub? = null,
 	val tags: Set<CodeStub> = emptySet(),
@@ -24,7 +25,7 @@ data class ResourceGroupAllocationSchedule(
 	// TODO place or medical location?
 	/**
 	 * Can be used for human-readable name to help identify the schedule.
-	 * Note that if the agenda is public this name will also be public.
+	 * Note that if any of the items are public this will also be public.
 	 */
 	val name: String? = null,
 	/**
@@ -50,11 +51,14 @@ data class ResourceGroupAllocationSchedule(
 		require(startDateTime == null || FuzzyDates.getFullLocalDateTime(startDateTime, false) != null ) { "startDateTime must be null or a valid fuzzyDateTime ($startDateTime)" }
 		require(endDateTime == null || FuzzyDates.getFullLocalDateTime(endDateTime, false) != null ) { "endDateTime must be null or a valid fuzzyDateTime ($endDateTime)" }
 		require(startDateTime == null || endDateTime == null || startDateTime < endDateTime) { "If both startTime and endTime are specified startTime must be <= endTime ($startDateTime > $endDateTime)" }
-		require(items.isNotEmpty()) { "At least one item is required" }
 		resourceGroup?.apply {
 			requireNormalized()
 			require(context == null && contextLabel == null) { "Context is not allowed for resourceGroup code stub $resourceGroup" }
 		}
+	}
 
+	fun checkPublishedRequirements() {
+		require(items.isNotEmpty()) { "At least one item per schedule is required in published agenda" }
+		items.forEach { it.checkPublishedRequirements() }
 	}
 }

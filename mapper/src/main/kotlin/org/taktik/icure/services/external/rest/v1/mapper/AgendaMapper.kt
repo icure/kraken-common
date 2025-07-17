@@ -23,7 +23,8 @@ abstract class AgendaMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "userRights", ignore = true),
 		Mapping(target = "schedules", ignore = true),
-		Mapping(target = "slottingAlgorithm", ignore = true)
+		Mapping(target = "slottingAlgorithm", ignore = true),
+		Mapping(target = "unpublished", ignore = true)
 	)
 	abstract fun map(agendaDto: AgendaDto): Agenda
 
@@ -38,6 +39,9 @@ abstract class AgendaMapper {
 		}
 		require(agenda.slottingAlgorithm == null) {
 			"agendas with slottingAlgorithm are not supported on v1 endpoints."
+		}
+		require(!agenda.unpublished) {
+			"agendas with unpublished=true are not supported on v1 endpoints."
 		}
 		return mapEntity(agenda)
 	}

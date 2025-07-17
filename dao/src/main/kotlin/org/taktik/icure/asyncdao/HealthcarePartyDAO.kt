@@ -13,6 +13,8 @@ import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
 
 interface HealthcarePartyDAO : GenericDAO<HealthcareParty> {
+	fun listHealthcarePartiesByPublic(datastoreInformation: IDatastoreInformation, public: Boolean): Flow<HealthcareParty>
+
 	fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?): Flow<HealthcareParty>
 
 	fun listHealthcarePartiesBySsin(datastoreInformation: IDatastoreInformation, ssin: String): Flow<HealthcareParty>

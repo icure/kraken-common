@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -105,13 +106,28 @@ class AgendaDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
-	@View(name = "by_typed_property", map = "classpath:js/agenda/By_typed_property.js", secondaryPartition = MAURICE_PARTITION)
 	override fun listAgendasByTypedProperty(
+		datastoreInformation: IDatastoreInformation,
+		property: PropertyStub
+	): Flow<Agenda> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, Agenda>(viewQueryByTypedProperty(datastoreInformation, property, true)).map { it.doc })
+	}
+
+	@View(name = "by_typed_property", map = "classpath:js/agenda/By_typed_property.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listAgendasIdsByTypedProperty(
 		datastoreInformation: IDatastoreInformation,
 		property: PropertyStub
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryViewNoValue<ComplexKey>(viewQueryByTypedProperty(datastoreInformation, property, false)).map { it.id })
+	}
 
+	private suspend fun viewQueryByTypedProperty(
+		datastoreInformation: IDatastoreInformation,
+		property: PropertyStub,
+		includeDocs: Boolean
+	): ViewQuery {
 		val propertyId = requireNotNull(property.id) {
 			"Cannot use a property with null id as key"
 		}
@@ -125,11 +141,9 @@ class AgendaDAOImpl(
 			require(it.size == 1) { "Key property must have only one non-null value" }
 		}.first()
 
-		val viewQuery = createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+		return createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
 			.key(key)
-			.includeDocs(false)
-
-		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+			.includeDocs(includeDocs)
 	}
 
 	override fun listAgendasWithProperty(
