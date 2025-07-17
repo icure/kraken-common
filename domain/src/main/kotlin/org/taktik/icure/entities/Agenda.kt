@@ -254,7 +254,7 @@ data class Agenda(
 	override val endOfLife: Long? = null,
 	@JsonProperty("deleted") override val deletionDate: Long? = null,
 	val name: String? = null,
-	val userId: String? = null,
+	@Deprecated("Use TODO instead") val userId: String? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
 	/**
 	 * Associates a user id to the permission that user has on the entity.

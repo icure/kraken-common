@@ -145,7 +145,11 @@ data class HealthcareParty(
 	@Deprecated("Use properties instead")
 	val options: Map<String, String> = emptyMap(),
 	override val properties: Set<PropertyStub> = emptySet(),
-
+	/**
+	 * If set to true the healthcare party is considered public, and a stripped down version of the healthcare party
+	 * will be accessible through the anonymous endpoints.
+	 */
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
 	// For a pair of HcParties, this key is called the AES exchange key
 	// Each HcParty always has one AES exchange key for himself

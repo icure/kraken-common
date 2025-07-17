@@ -17,6 +17,7 @@ data class ResourceGroupAllocationSchedule(
 	 * distinguish them.
 	 * Different ResourceGroupAllocationSchedule in a single agenda for the same resourceGroup can't be active at
 	 * overlapping times.
+	 * Note that if any of the items are public this will also be public.
 	 */
 	val resourceGroup: CodeStub? = null,
 	val tags: Set<CodeStub> = emptySet(),
@@ -24,7 +25,7 @@ data class ResourceGroupAllocationSchedule(
 	// TODO place or medical location?
 	/**
 	 * Can be used for human-readable name to help identify the schedule.
-	 * Note that if the agenda is public this name will also be public.
+	 * Note that if any of the items are public this will also be public.
 	 */
 	val name: String? = null,
 	/**

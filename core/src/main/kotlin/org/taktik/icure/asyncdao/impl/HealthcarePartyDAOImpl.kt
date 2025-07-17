@@ -25,6 +25,7 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -45,6 +46,18 @@ internal class HealthcarePartyDAOImpl(
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig
 ) : GenericDAOImpl<HealthcareParty>(HealthcareParty::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), HealthcarePartyDAO {
+	@View(name = "by_public", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.public ? true : false, null)}", secondaryPartition = MAURICE_PARTITION)
+	override fun listHealthcarePartiesByPublic(
+		datastoreInformation: IDatastoreInformation,
+		public: Boolean
+	): Flow<HealthcareParty> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
+			datastoreInformation,
+			"by_public",
+			MAURICE_PARTITION
+		).key(public).includeDocs(true)).map { it.doc })
+	}
 
 	@View(name = "by_nihii", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.nihii.substr(0,8), doc._id )}")
 	override fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?) = flow {

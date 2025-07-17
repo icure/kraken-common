@@ -84,6 +84,7 @@ data class HealthcarePartyDto(
 	@Deprecated("Use properties instead")
 	val options: Map<String, String> = emptyMap(),
 	override val properties: Set<PropertyStubDto> = emptySet(),
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
 
 	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
 	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
