@@ -21,7 +21,6 @@ dependencies{
     }
 
     implementation(project("$projectPrefix:domain"))
-    implementation(project("$projectPrefix:logic"))
 
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
 
@@ -30,7 +29,7 @@ dependencies{
     implementation(coreLibs.caffeine)
     implementation(coreLibs.bundles.krouchLibs)
     implementation(coreLibs.taktikBoot)
-    
+
     implementation(coreLibs.apacheCommonsLang3)
 
     testImplementation(coreLibs.bundles.kotestLibs)

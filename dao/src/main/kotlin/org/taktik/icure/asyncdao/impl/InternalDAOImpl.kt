@@ -43,7 +43,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.InternalDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.utils.ViewQueries
@@ -236,7 +236,6 @@ open class InternalDAOImpl<T : StoredDocument>(
 
 	protected suspend fun createQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
 		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, true)
-
 
 	protected suspend fun <P> pagedViewQuery(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import java.io.Serializable
 
 class Filters : ApplicationContextAware {

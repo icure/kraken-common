@@ -14,7 +14,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Revisionable
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException

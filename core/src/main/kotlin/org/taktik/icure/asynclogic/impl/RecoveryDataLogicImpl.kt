@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncdao.RecoveryDataDAO
 import org.taktik.icure.asynclogic.RecoveryDataLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.RecoveryData
 import org.taktik.icure.exceptions.NotFoundRequestException
 

@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.impl.GenericDAOImpl
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.ExternalViewFilter
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Service as ICureService

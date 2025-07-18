@@ -19,7 +19,7 @@ import org.taktik.icure.validation.aspect.Fixer
 @Profile("app")
 class FrontEndMigrationLogicImpl(
 	private val frontEndMigrationDAO: FrontEndMigrationDAO,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters
 ) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider, filters), FrontEndMigrationLogic {

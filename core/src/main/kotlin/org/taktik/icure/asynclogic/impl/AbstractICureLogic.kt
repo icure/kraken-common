@@ -8,8 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.taktik.icure.asyncdao.ICureDAO
 import org.taktik.icure.asynclogic.ICureLogic
 import org.taktik.icure.asynclogic.VersionLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.IndexingInfo
 import org.taktik.icure.entities.ReplicationInfo
 import org.taktik.icure.entities.embed.DatabaseSynchronization
