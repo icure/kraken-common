@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
 import org.taktik.icure.config.SharedPaginationConfig
@@ -37,6 +37,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemTypeV2Mappe
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("calendarItemTypeControllerV2")
 @Profile("app")
@@ -103,6 +104,14 @@ class CalendarItemTypeController(
 				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 				.injectReactorContext()
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+
+	@DeleteMapping("/purge/{calendarItemTypeId}")
+	fun purgeCalendarItemType(
+		@PathVariable calendarItemTypeId: String,
+		@RequestParam(required=true) rev: String
+	): Mono<DocIdentifierDto> = mono {
+		calendarItemTypeService.purgeCalendarItemType(calendarItemTypeId, rev).let(docIdentifierV2Mapper::map)
+	}
 
 	@Operation(summary = "Gets a calendarItemType")
 	@GetMapping("/{calendarItemTypeId}")
