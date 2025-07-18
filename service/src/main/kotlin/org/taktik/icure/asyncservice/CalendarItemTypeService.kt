@@ -5,9 +5,12 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.exceptions.ConflictRequestException
+import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface CalendarItemTypeService {
 	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
@@ -24,6 +27,17 @@ interface CalendarItemTypeService {
 	fun deleteCalendarItemTypes(ids: List<String>): Flow<CalendarItemType>
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?
 	fun getCalendarItemTypes(calendarItemTypeIds: Collection<String>): Flow<CalendarItemType>
+
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgeCalendarItemType(id: String, rev: String): DocIdentifier
 
 	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination.
