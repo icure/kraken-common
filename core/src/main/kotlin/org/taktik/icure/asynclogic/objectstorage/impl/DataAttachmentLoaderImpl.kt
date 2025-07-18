@@ -37,7 +37,7 @@ class DataAttachmentLoaderImpl<T : HasDataAttachments<T>>(
 	private val icureObjectStorage: IcureObjectStorage<T>,
 	private val icureObjectStorageMigration: IcureObjectStorageMigration<T>,
 	private val objectStorageProperties: ObjectStorageProperties,
-	private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+	private val datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider
 ): DataAttachmentLoader<T> {
 	private val migrationSizeLimit get() =
 		objectStorageProperties.migrationSizeLimit.coerceAtLeast(objectStorageProperties.sizeLimit)
@@ -96,7 +96,7 @@ class DocumentDataAttachmentLoaderImpl(
 	objectStorage: DocumentObjectStorage,
 	objectStorageMigration: DocumentObjectStorageMigration,
 	objectStorageProperties: ObjectStorageProperties,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider
 ) : DocumentDataAttachmentLoader, DataAttachmentLoader<Document> by DataAttachmentLoaderImpl(
 	dao,
 	objectStorage,

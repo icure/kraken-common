@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asynclogic.DeviceLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device

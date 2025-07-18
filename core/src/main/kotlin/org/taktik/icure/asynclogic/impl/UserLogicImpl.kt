@@ -23,8 +23,8 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.constants.Users
 import org.taktik.icure.db.PaginationOffset

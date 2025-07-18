@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.EntityTemplateDAO
 import org.taktik.icure.asynclogic.EntityTemplateLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.EntityTemplate
 import org.taktik.icure.validation.aspect.Fixer

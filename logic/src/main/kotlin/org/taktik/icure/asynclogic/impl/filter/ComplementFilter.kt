@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.toSet
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import java.io.Serializable
 
 @Service

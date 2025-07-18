@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.ExchangeDataMapDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.utils.Base64String

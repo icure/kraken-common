@@ -6,7 +6,7 @@ package org.taktik.icure.asyncdao
 
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 
 interface LookupDAO<T : Identifiable<String>> {
 	/**

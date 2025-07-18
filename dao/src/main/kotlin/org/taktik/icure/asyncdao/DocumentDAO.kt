@@ -5,7 +5,7 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Document
 
 interface DocumentDAO : GenericDAO<Document>, AttachmentManagementDAO<Document> {

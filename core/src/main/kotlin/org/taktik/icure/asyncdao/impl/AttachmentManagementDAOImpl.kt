@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.StoredDocument
 
 abstract class AttachmentManagementDAOImpl<T : StoredDocument>(protected val entityClass: Class<T>, protected val couchDbDispatcher: CouchDbDispatcher) : AttachmentManagementDAO<T> {

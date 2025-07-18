@@ -13,7 +13,7 @@ import org.taktik.couchdb.entity.DatabaseInfoWrapper
 import org.taktik.couchdb.entity.ReplicateCommand
 import org.taktik.couchdb.entity.ReplicatorDocument
 import org.taktik.couchdb.entity.Scheduler
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.embed.DatabaseSynchronization
 
 interface ICureDAO {

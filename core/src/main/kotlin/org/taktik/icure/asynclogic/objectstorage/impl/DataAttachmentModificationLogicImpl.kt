@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.DocumentDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
@@ -30,7 +30,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	private val dao: AttachmentManagementDAO<T>,
 	private val icureObjectStorage: IcureObjectStorage<T>,
 	private val objectStorageProperties: ObjectStorageProperties,
-	private val datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+	private val datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider
 ) : DataAttachmentModificationLogic<T> {
 	suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 
@@ -319,7 +319,7 @@ class DocumentDataAttachmentModificationLogicImpl(
 	dao: DocumentDAO,
 	icureObjectStorage: DocumentObjectStorage,
 	objectStorageProperties: ObjectStorageProperties,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider
 ): DocumentDataAttachmentModificationLogic, DataAttachmentModificationLogic<Document> by object : DataAttachmentModificationLogicImpl<Document>(
 	dao,
 	icureObjectStorage,

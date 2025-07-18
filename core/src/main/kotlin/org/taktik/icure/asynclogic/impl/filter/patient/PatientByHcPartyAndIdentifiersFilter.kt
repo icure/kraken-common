@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndIdentifiersFilter

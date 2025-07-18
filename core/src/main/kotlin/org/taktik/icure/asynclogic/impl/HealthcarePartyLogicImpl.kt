@@ -27,7 +27,7 @@ import org.taktik.icure.validation.aspect.Fixer
 open class HealthcarePartyLogicImpl(
 	filters: Filters,
 	private val healthcarePartyDAO: HealthcarePartyDAO,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
 	fixer: Fixer
 ) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider, filters), HealthcarePartyLogic {
 

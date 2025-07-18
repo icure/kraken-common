@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.asynclogic.FormTemplateLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.validation.aspect.Fixer

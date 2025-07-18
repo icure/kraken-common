@@ -7,7 +7,7 @@ package org.taktik.icure.asyncdao
 import java.nio.ByteBuffer
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 
 interface AttachmentManagementDAO<T : Identifiable<String>> : LookupDAO<T> {
 	fun getAttachment(datastoreInformation: IDatastoreInformation, documentId: String, attachmentId: String, rev: String? = null): Flow<ByteBuffer>

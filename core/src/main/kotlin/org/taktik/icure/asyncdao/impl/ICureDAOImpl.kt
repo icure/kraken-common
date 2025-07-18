@@ -23,7 +23,7 @@ import org.taktik.couchdb.get
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ICureDAO
 import org.taktik.icure.asyncdao.components.ActiveTasksProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.embed.DatabaseSynchronization
 import org.taktik.icure.security.CouchDbCredentialsProvider
 

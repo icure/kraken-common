@@ -20,8 +20,8 @@ import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.exceptions.ConflictRequestException

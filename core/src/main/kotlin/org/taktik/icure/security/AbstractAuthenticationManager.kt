@@ -10,7 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.embed.AuthenticationClass

@@ -32,7 +32,7 @@ import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asynclogic.CodeLogic
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -55,7 +55,7 @@ import kotlin.coroutines.coroutineContext
 open class CodeLogicImpl(
     protected val codeDAO: CodeDAO,
     filters: Filters,
-    datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+    datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
     fixer: Fixer
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters), CodeLogic {
 

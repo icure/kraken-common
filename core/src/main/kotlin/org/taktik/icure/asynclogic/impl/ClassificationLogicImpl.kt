@@ -15,7 +15,7 @@ import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation

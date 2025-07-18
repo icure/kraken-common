@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType

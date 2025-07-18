@@ -5,7 +5,7 @@ package org.taktik.icure.asynclogic.impl.filter
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.Filter
 import java.io.Serializable
 

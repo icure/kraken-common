@@ -12,8 +12,8 @@ import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.DataOwnerLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerType
