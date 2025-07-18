@@ -15,7 +15,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Insurability(
-	//Key from InsuranceParameter
+	// Key from InsuranceParameter
 	val parameters: Map<String, String> = emptyMap(),
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val hospitalisation: Boolean? = null,
 	@param:ContentValue(ContentValues.ANY_BOOLEAN) val ambulatory: Boolean? = null,
@@ -24,6 +24,7 @@ data class Insurability(
 	@param:ContentValue(ContentValues.ANY_STRING) val insuranceId: String? = null, // UUID to identify Partena, etc. (link to Insurance object's document ID)
 	@param:ContentValue(ContentValues.FUZZY_DATE) val startDate: Long? = null,
 	@param:ContentValue(ContentValues.FUZZY_DATE) val endDate: Long? = null,
-	val titularyId: String? = null, //UUID of the contact person who is the titulary of the insurance
-	override val encryptedSelf: String? = null
-) : Encryptable, Serializable
+	val titularyId: String? = null, // UUID of the contact person who is the titulary of the insurance
+	override val encryptedSelf: String? = null,
+) : Encryptable,
+	Serializable

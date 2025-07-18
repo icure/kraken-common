@@ -4,9 +4,9 @@
 
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,5 +14,5 @@ data class Suspension(
 	val beginMoment: Long? = null,
 	val endMoment: Long? = null,
 	val suspensionReason: String? = null,
-	val lifecycle: String? = null
+	val lifecycle: String? = null,
 ) : Serializable

@@ -36,27 +36,32 @@ import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
 	private val exchangeDataMapper: ExchangeDataV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
-
 	@Operation(summary = "Creates new exchange data")
 	@PostMapping
-	fun createExchangeData(@RequestBody exchangeData: ExchangeDataDto) = mono {
+	fun createExchangeData(
+		@RequestBody exchangeData: ExchangeDataDto,
+	) = mono {
 		exchangeDataMapper.map(exchangeDataLogic.createExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 
 	@Operation(summary = "Modifies existing exchange data")
 	@PutMapping
-	fun modifyExchangeData(@RequestBody exchangeData: ExchangeDataDto) = mono {
+	fun modifyExchangeData(
+		@RequestBody exchangeData: ExchangeDataDto,
+	) = mono {
 		exchangeDataMapper.map(exchangeDataLogic.modifyExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 
 	@Operation(summary = "Get exchange data with a specific id")
 	@GetMapping("/{exchangeDataId}")
-	fun getExchangeDataById(@PathVariable exchangeDataId: String) = mono {
+	fun getExchangeDataById(
+		@PathVariable exchangeDataId: String,
+	) = mono {
 		exchangeDataMapper.map(
 			exchangeDataLogic.getExchangeDataById(exchangeDataId)
-				?: throw NotFoundRequestException("Could not find exchange data with id $exchangeDataId")
+				?: throw NotFoundRequestException("Could not find exchange data with id $exchangeDataId"),
 		)
 	}
 
@@ -65,7 +70,7 @@ class ExchangeDataController(
 	fun getExchangeDataByParticipant(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) limit: Int?
+		@RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<ExchangeData> {
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataLogic
@@ -76,6 +81,8 @@ class ExchangeDataController(
 
 	@Operation(summary = "Get exchange data with a specific delegator-delegate pair")
 	@GetMapping("/byDelegatorDelegate/{delegatorId}/{delegateId}")
-	fun getExchangeDataByDelegatorDelegate(@PathVariable delegatorId: String, @PathVariable delegateId: String): Flow<ExchangeDataDto> =
-		exchangeDataLogic.findExchangeDataByDelegatorDelegatePair(delegatorId, delegateId).transform { exchangeDataMapper.map(it) }
+	fun getExchangeDataByDelegatorDelegate(
+		@PathVariable delegatorId: String,
+		@PathVariable delegateId: String,
+	): Flow<ExchangeDataDto> = exchangeDataLogic.findExchangeDataByDelegatorDelegatePair(delegatorId, delegateId).transform { exchangeDataMapper.map(it) }
 }

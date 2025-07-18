@@ -37,84 +37,115 @@ class SwaggerConfig {
 	}
 
 	@Bean
-	fun iCureV1Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi.builder().group("v1").pathsToMatch("/rest/v1/**").packagesToScan("org.taktik.icure.services.external.rest.v1").addOpenApiCustomiser { openApi ->
-		openApi.info(
-			Info().title("iCure Data Stack API Documentation")
-				.description("The iCure Data Stack Application API is the native interface to iCure. This version is obsolete, please use v2.")
-				.version("v1")
-		)
-	}.addOperationCustomizer(springOperationCustomizer).build()
+	fun iCureV1Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi
+		.builder()
+		.group(
+			"v1",
+		).pathsToMatch("/rest/v1/**")
+		.packagesToScan("org.taktik.icure.services.external.rest.v1")
+		.addOpenApiCustomiser { openApi ->
+			openApi.info(
+				Info()
+					.title("iCure Data Stack API Documentation")
+					.description("The iCure Data Stack Application API is the native interface to iCure. This version is obsolete, please use v2.")
+					.version("v1"),
+			)
+		}.addOperationCustomizer(springOperationCustomizer)
+		.build()
 
 	@Bean
-	fun iCureV2Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi.builder().group("v2").pathsToMatch("/rest/v2/**").packagesToScan("org.taktik.icure.services.external.rest.v2").addOpenApiCustomiser { openApi ->
-		openApi.info(
-			Info().title("iCure Data Stack API Documentation")
-				.description("The iCure Data Stack Application API is the native interface to iCure.")
-				.version("v2")
-		)
-	}.addOperationCustomizer(springOperationCustomizer).build()
+	fun iCureV2Api(springOperationCustomizer: OperationCustomizer): GroupedOpenApi = GroupedOpenApi
+		.builder()
+		.group(
+			"v2",
+		).pathsToMatch("/rest/v2/**")
+		.packagesToScan("org.taktik.icure.services.external.rest.v2")
+		.addOpenApiCustomiser { openApi ->
+			openApi.info(
+				Info()
+					.title("iCure Data Stack API Documentation")
+					.description("The iCure Data Stack Application API is the native interface to iCure.")
+					.version("v2"),
+			)
+		}.addOperationCustomizer(springOperationCustomizer)
+		.build()
+
 	@Bean
 	fun springOperationCustomizer() = OperationCustomizer { operation, handlerMethod ->
 		operation.also {
 			try {
 				if (it.parameters != null) {
-					it.parameters = it.parameters.sortedWith(
-						compareBy { p ->
-							handlerMethod.methodParameters.indexOfFirst { mp -> (mp.parameterAnnotations.find { it is RequestParam }?.let { it as? RequestParam }?.name?.takeIf { it.isNotEmpty() } ?: mp.parameter.name) == p.name }
-						}
-					)
-				}
-				it.description = buildString {
-					append(
-						handlerMethod.method.annotations
-							.firstOrNull{ ann -> ann is AccessControl }
-							?.let { "<strong>Access Control Policies</strong>: ${(it as AccessControl).rule}<br>"} ?: ""
-					)
-					append(it.description?.let { desc -> "$desc<br>" } ?: "")
-					append(
-						handlerMethod.method.annotations
-							.firstOrNull{ ann -> ann.annotationClass.qualifiedName?.startsWith("org.taktik.icure.annotations.controllers") ?: false }
-							?.let { ann ->
-								when(ann) {
-									is CreatesOne ->
-										"<em>This method follows the Creates One behaviour: it receives the entity in the payload and return the saved entity.</em>"
-									is DeletesMany ->
-										"<em>This method follows the Deletes Many behaviour: of the entity ids passed as parameters, it deletes the ones that exists and that the current user can access.</em>"
-									is DeletesOne ->
-										"<em>This method follows the Deletes One behaviour: it deletes the entity passed as parameter if it exists and the user can access it.</em>"
-									is RetrievesAll ->
-										"<em>This method follows the Retrieves All behaviour: it retrieves all the entities that the user can access.</em>"
-									is RetrievesMany ->
-										"<em>This method follows the Retrieves Many behaviour: it retrieves all the entities which ids are passed as parameter and the user can access.</em>"
-									is RetrievesOne ->
-										"<em>This method follows the Retrieves One behaviour: it retrieves the entity with the specified id if it exists and the user can access it.</em>"
-									is UpdatesOne ->
-										"<em>This method follows the Updates One behaviour: it updates the entity if it exists, the user can access it and the update is correct.</em>"
-									else -> ""
+					it.parameters =
+						it.parameters.sortedWith(
+							compareBy { p ->
+								handlerMethod.methodParameters.indexOfFirst { mp ->
+									(
+										mp.parameterAnnotations
+											.find { it is RequestParam }
+											?.let { it as? RequestParam }
+											?.name
+											?.takeIf { it.isNotEmpty() }
+											?: mp.parameter.name
+										) ==
+										p.name
 								}
-							} ?: ""
-					)
-
+							},
+						)
 				}
-			} catch (e: IllegalStateException) {}
+				it.description =
+					buildString {
+						append(
+							handlerMethod.method.annotations
+								.firstOrNull { ann -> ann is AccessControl }
+								?.let { "<strong>Access Control Policies</strong>: ${(it as AccessControl).rule}<br>" } ?: "",
+						)
+						append(it.description?.let { desc -> "$desc<br>" } ?: "")
+						append(
+							handlerMethod.method.annotations
+								.firstOrNull { ann -> ann.annotationClass.qualifiedName?.startsWith("org.taktik.icure.annotations.controllers") ?: false }
+								?.let { ann ->
+									when (ann) {
+										is CreatesOne ->
+											"<em>This method follows the Creates One behaviour: it receives the entity in the payload and return the saved entity.</em>"
+										is DeletesMany ->
+											"<em>This method follows the Deletes Many behaviour: of the entity ids passed as parameters, it deletes the ones that exists and that the current user can access.</em>"
+										is DeletesOne ->
+											"<em>This method follows the Deletes One behaviour: it deletes the entity passed as parameter if it exists and the user can access it.</em>"
+										is RetrievesAll ->
+											"<em>This method follows the Retrieves All behaviour: it retrieves all the entities that the user can access.</em>"
+										is RetrievesMany ->
+											"<em>This method follows the Retrieves Many behaviour: it retrieves all the entities which ids are passed as parameter and the user can access.</em>"
+										is RetrievesOne ->
+											"<em>This method follows the Retrieves One behaviour: it retrieves the entity with the specified id if it exists and the user can access it.</em>"
+										is UpdatesOne ->
+											"<em>This method follows the Updates One behaviour: it updates the entity if it exists, the user can access it and the update is correct.</em>"
+										else -> ""
+									}
+								} ?: "",
+						)
+					}
+			} catch (e: IllegalStateException) {
+			}
 		}
 	}
 
 	@Bean
 	fun parameterCustomizer() = ParameterCustomizer { parameter, methodParameter ->
 		parameter?.also { _ ->
-			parameter.example = methodParameter
-				.parameterAnnotations
-				.find { it is ContentValue }
-				?.let { annotation -> (annotation as? ContentValue)?.contentValue?.value }
+			parameter.example =
+				methodParameter
+					.parameterAnnotations
+					.find { it is ContentValue }
+					?.let { annotation -> (annotation as? ContentValue)?.contentValue?.value }
 		}
-
 	}
 
 	@Bean
 	fun customOpenAPI(): OpenAPI = OpenAPI()
 		.info(
-			Info().title("iCure Data Stack API Documentation").version("v0")
-				.description("The iCure Data Stack Application API is the native interface to iCure.")
+			Info()
+				.title("iCure Data Stack API Documentation")
+				.version("v0")
+				.description("The iCure Data Stack Application API is the native interface to iCure."),
 		)
 }

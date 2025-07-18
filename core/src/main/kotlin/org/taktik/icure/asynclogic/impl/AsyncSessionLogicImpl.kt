@@ -23,25 +23,29 @@ import org.taktik.icure.security.loadSecurityContext
 class AsyncSessionLogicImpl(
 	private val authenticationManager: AbstractAuthenticationManager<*, *>,
 ) : AsyncSessionLogic {
-	/* Generic */
+	// Generic
 
 	val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-	override suspend fun login(username: String, password: String, session: WebSession?, groupId: String?, applicationId: String?): JwtAuthentication {
+	override suspend fun login(
+		username: String,
+		password: String,
+		session: WebSession?,
+		groupId: String?,
+		applicationId: String?,
+	): JwtAuthentication {
 		val token = UsernamePasswordAuthenticationToken(username, password)
 		val authentication = authenticationManager.authenticateWithUsernameAndPassword(token, groupId, applicationId)
 		if (session != null) session.attributes[SESSION_LOCALE_ATTRIBUTE] = "fr" // TODO MB : add locale support
 		return authentication
 	}
 
-
 	override suspend fun logout() {
 		invalidateCurrentAuthentication()
 	}
 
-	override suspend fun getAuthentication(): Authentication =
-		loadSecurityContext()?.map { it.authentication }?.awaitFirstOrNull()
-			?: throw AuthenticationServiceException("Authentication is not available in the current context")
+	override suspend fun getAuthentication(): Authentication = loadSecurityContext()?.map { it.authentication }?.awaitFirstOrNull()
+		?: throw AuthenticationServiceException("Authentication is not available in the current context")
 
 	companion object {
 		const val SESSION_LOCALE_ATTRIBUTE = "locale"

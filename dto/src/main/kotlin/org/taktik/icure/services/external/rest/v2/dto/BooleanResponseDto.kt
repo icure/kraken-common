@@ -3,5 +3,5 @@ package org.taktik.icure.services.external.rest.v2.dto
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class BooleanResponseDto(
-    @Schema(required = true) val response: Boolean
+	@Schema(required = true) val response: Boolean,
 )

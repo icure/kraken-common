@@ -8,5 +8,11 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class ReceiptBlobType {
-	xades, kmehrRequest, kmehrResponse, soapRequest, soapResponse, soapConversation, tack
+	xades,
+	kmehrRequest,
+	kmehrResponse,
+	soapRequest,
+	soapResponse,
+	soapConversation,
+	tack,
 }

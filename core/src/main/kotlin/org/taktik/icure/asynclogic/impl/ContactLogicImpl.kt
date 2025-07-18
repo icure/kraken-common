@@ -28,9 +28,9 @@ import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Contact
@@ -46,14 +46,14 @@ import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
 open class ContactLogicImpl(
-    private val contactDAO: ContactDAO,
-    exchangeDataMapLogic: ExchangeDataMapLogic,
-    private val sessionLogic: SessionInformationProvider,
-    datastoreInstanceProvider: DatastoreInstanceProvider,
-    filters: Filters,
-    fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), ContactLogic {
-
+	private val contactDAO: ContactDAO,
+	exchangeDataMapLogic: ExchangeDataMapLogic,
+	private val sessionLogic: SessionInformationProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
+	filters: Filters,
+	fixer: Fixer,
+) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ContactLogic {
 	override suspend fun getContact(id: String) = getEntity(id)
 
 	override fun getContacts(selectedIds: Collection<String>) = getEntities(selectedIds)
@@ -65,60 +65,78 @@ open class ContactLogicImpl(
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
-	override fun listContactsByHCPartyAndPatient(hcPartyId: String, secretPatientKeys: List<String>): Flow<Contact> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(
-				contactDAO.listContactsByHcPartyAndPatient(
-					datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys
-				)
-			)
-		}
+	override fun listContactsByHCPartyAndPatient(
+		hcPartyId: String,
+		secretPatientKeys: List<String>,
+	): Flow<Contact> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			contactDAO.listContactsByHcPartyAndPatient(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
+				secretPatientKeys,
+			),
+		)
+	}
 
 	override fun listContactIdsByDataOwnerPatientOpeningDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(contactDAO.listContactIdsByDataOwnerPatientOpeningDate(
+		emitAll(
+			contactDAO.listContactIdsByDataOwnerPatientOpeningDate(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(dataOwnerId),
 				secretForeignKeys,
 				startDate,
 				endDate,
-				descending
-			)
+				descending,
+			),
 		)
 	}
 
-	override suspend fun addDelegation(contactId: String, delegation: Delegation): Contact? {
+	override suspend fun addDelegation(
+		contactId: String,
+		delegation: Delegation,
+	): Contact? {
 		val datastoreInformation = getInstanceAndGroup()
 		return getContact(contactId)?.let { c ->
 			delegation.delegatedTo?.let { healthcarePartyId ->
 				contactDAO.save(
-					datastoreInformation, c.copy(
-						delegations = c.delegations + mapOf(
-							healthcarePartyId to setOf(delegation)
-						)
-					)
+					datastoreInformation,
+					c.copy(
+						delegations =
+						c.delegations +
+							mapOf(
+								healthcarePartyId to setOf(delegation),
+							),
+					),
 				)
 			} ?: c
 		}
 	}
 
-	override suspend fun addDelegations(contactId: String, delegations: List<Delegation>): Contact? {
+	override suspend fun addDelegations(
+		contactId: String,
+		delegations: List<Delegation>,
+	): Contact? {
 		val datastoreInformation = getInstanceAndGroup()
 		return getContact(contactId)?.let { c ->
 			contactDAO.save(
 				datastoreInformation,
-				c.copy(delegations = c.delegations + delegations.mapNotNull { d ->
-					d.delegatedTo?.let { delegateTo ->
-						delegateTo to setOf(d)
-					}
-				})
+				c.copy(
+					delegations =
+					c.delegations +
+						delegations.mapNotNull { d ->
+							d.delegatedTo?.let { delegateTo ->
+								delegateTo to setOf(d)
+							}
+						},
+				),
 			)
 		}
 	}
@@ -131,24 +149,28 @@ open class ContactLogicImpl(
 	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map { fix(it, isCreate = true) })
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override fun getServices(selectedServiceIds: Collection<String>): Flow<org.taktik.icure.entities.embed.Service> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			val orderedIds = selectedServiceIds.toCollection(LinkedHashSet())
-			val contactIds = contactDAO.listIdsByServices(datastoreInformation, orderedIds)
+	override fun getServices(selectedServiceIds: Collection<String>): Flow<org.taktik.icure.entities.embed.Service> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val orderedIds = selectedServiceIds.toCollection(LinkedHashSet())
+		val contactIds = contactDAO.listIdsByServices(datastoreInformation, orderedIds)
 
-			val servicesToEmit = contactIds.bufferedChunksAtTransition(
-				20, 100
-			) { p, n -> p.serviceId == null || n.serviceId == null || p.serviceId != n.serviceId }
+		val servicesToEmit =
+			contactIds
+				.bufferedChunksAtTransition(
+					20,
+					100,
+				) { p, n -> p.serviceId == null || n.serviceId == null || p.serviceId != n.serviceId }
 				.fold(mutableMapOf<String, org.taktik.icure.entities.embed.Service>()) { toEmit, chunkedCids ->
 					val sortedCids =
 						chunkedCids.sortedWith(compareBy({ it.serviceId }, { it.modified }, { it.contactId }))
 					val filteredCidSids =
 						sortedCids.filterIndexed { idx, cidsid -> idx == chunkedCids.size - 1 || cidsid.serviceId != sortedCids[idx + 1].serviceId }
 
-					val contacts = contactDAO.getContacts(
-						datastoreInformation, HashSet(filteredCidSids.map { it.contactId })
-					)
+					val contacts =
+						contactDAO.getContacts(
+							datastoreInformation,
+							HashSet(filteredCidSids.map { it.contactId }),
+						)
 					contacts.collect { c ->
 						c.services.forEach { s ->
 							val sId = s.id
@@ -163,8 +185,8 @@ open class ContactLogicImpl(
 					}
 					toEmit
 				}
-			orderedIds.forEach { servicesToEmit[it]?.let { s -> emit(s) } }
-		}
+		orderedIds.forEach { servicesToEmit[it]?.let { s -> emit(s) } }
+	}
 
 	override fun getServicesLinkedTo(
 		ids: List<String>,
@@ -173,46 +195,55 @@ open class ContactLogicImpl(
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			getServices(
-				contactDAO.findServiceIdsByIdQualifiedLink(datastoreInformation, ids, linkType).toList()
-			)
+				contactDAO.findServiceIdsByIdQualifiedLink(datastoreInformation, ids, linkType).toList(),
+			),
 		)
 	}
 
-	override fun listServicesByAssociationId(associationId: String): Flow<org.taktik.icure.entities.embed.Service> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(contactDAO.listServicesByAssociationId(datastoreInformation, associationId))
-		}
-
-	override fun listServicesByHcPartyAndHealthElementIds(hcPartyId: String, healthElementIds: List<String>) = flow {
+	override fun listServicesByAssociationId(associationId: String): Flow<org.taktik.icure.entities.embed.Service> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		val serviceIds = contactDAO.listServiceIdsByHcPartyHealthElementIds(
+		emitAll(contactDAO.listServicesByAssociationId(datastoreInformation, associationId))
+	}
+
+	override fun listServicesByHcPartyAndHealthElementIds(
+		hcPartyId: String,
+		healthElementIds: List<String>,
+	) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val serviceIds =
+			contactDAO.listServiceIdsByHcPartyHealthElementIds(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				healthElementIds
+				healthElementIds,
 			)
 		emitAll(getServices(serviceIds.toList()))
 	}
 
-	override fun listContactsByHcPartyAndFormId(hcPartyId: String, formId: String): Flow<Contact> = flow {
+	override fun listContactsByHcPartyAndFormId(
+		hcPartyId: String,
+		formId: String,
+	): Flow<Contact> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByHcPartyAndFormId(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				formId
-			)
+				formId,
+			),
 		)
 	}
 
-	override fun listContactsByHcPartyServiceId(hcPartyId: String, serviceId: String): Flow<Contact> = flow {
+	override fun listContactsByHcPartyServiceId(
+		hcPartyId: String,
+		serviceId: String,
+	): Flow<Contact> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByHcPartyAndServiceId(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				serviceId
-			)
+				serviceId,
+			),
 		)
 	}
 
@@ -230,31 +261,40 @@ open class ContactLogicImpl(
 			"This method is not supported for anonymous data owners"
 		}
 		val datastoreInformation = getInstanceAndGroup()
-		val mapped = contactDAO.listCodesFrequencies(datastoreInformation, hcPartyId, codeType)
-			.filter { v -> v.second?.let { it >= minOccurences } == true }
-			.map { v -> LabelledOccurence(v.first.components[2] as String, v.second!!) }.toList()
+		val mapped =
+			contactDAO
+				.listCodesFrequencies(datastoreInformation, hcPartyId, codeType)
+				.filter { v -> v.second?.let { it >= minOccurences } == true }
+				.map { v -> LabelledOccurence(v.first.components[2] as String, v.second!!) }
+				.toList()
 		return mapped.sortedByDescending { obj: LabelledOccurence -> obj.occurence }
 	}
 
-	override fun listContactsByHcPartyAndFormIds(hcPartyId: String, ids: List<String>): Flow<Contact> = flow {
+	override fun listContactsByHcPartyAndFormIds(
+		hcPartyId: String,
+		ids: List<String>,
+	): Flow<Contact> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			contactDAO.listContactsByHcPartyAndFormIds(
 				datastoreInformation,
 				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
-				ids
-			)
+				ids,
+			),
 		)
 	}
 
-	override fun entityWithUpdatedSecurityMetadata(entity: Contact, updatedMetadata: SecurityMetadata): Contact =
-		entity.copy(securityMetadata = updatedMetadata)
+	override fun entityWithUpdatedSecurityMetadata(
+		entity: Contact,
+		updatedMetadata: SecurityMetadata,
+	): Contact = entity.copy(securityMetadata = updatedMetadata)
 
-	override fun getGenericDAO(): ContactDAO {
-		return contactDAO
-	}
+	override fun getGenericDAO(): ContactDAO = contactDAO
 
-	override fun filterContacts(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Contact>) = flow {
+	override fun filterContacts(
+		paginationOffset: PaginationOffset<Nothing>,
+		filter: FilterChain<Contact>,
+	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 
@@ -282,46 +322,57 @@ open class ContactLogicImpl(
 			supplier = { serviceIds: Collection<String> ->
 				filter.applyTo(
 					getServices(serviceIds.toList()),
-					sessionLogic.getSearchKeyMatcher()
+					sessionLogic.getSearchKeyMatcher(),
 				)
 			},
-			startDocumentId = paginationOffset.startDocumentId
+			startDocumentId = paginationOffset.startDocumentId,
 		).forEach { emit(it) }
 	}
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
-		ids,
-		limit,
-		getInstanceAndGroup()
-	)) }
+	override fun solveConflicts(
+		limit: Int?,
+		ids: List<String>?,
+	) = flow {
+		emitAll(
+			doSolveConflicts(
+				ids,
+				limit,
+				getInstanceAndGroup(),
+			),
+		)
+	}
 
 	protected fun doSolveConflicts(
 		ids: List<String>?,
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
-	) =  flow {
-		val flow = ids?.asFlow()?.mapNotNull { contactDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-			?: contactDAO.listConflicts(datastoreInformation)
-				.mapNotNull { contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+	) = flow {
+		val flow =
+			ids?.asFlow()?.mapNotNull { contactDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+				?: contactDAO
+					.listConflicts(datastoreInformation)
+					.mapNotNull { contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
 		(limit?.let { flow.take(it) } ?: flow)
 			.mapNotNull { contact ->
-				contact.conflicts?.mapNotNull { conflictingRevision ->
-					contactDAO.get(
-						datastoreInformation, contact.id, conflictingRevision
-					)
-				}?.fold(contact to emptyList<Contact>()) { (kept, toBePurged), conflict ->
-					kept.merge(conflict) to toBePurged + conflict
-				}?.let { (mergedContact, toBePurged) ->
-					contactDAO.save(datastoreInformation, mergedContact).also {
-						toBePurged.forEach {
-							if (it.rev != null && it.rev != mergedContact.rev) {
-								contactDAO.purge(datastoreInformation, listOf(it)).single()
+				contact.conflicts
+					?.mapNotNull { conflictingRevision ->
+						contactDAO.get(
+							datastoreInformation,
+							contact.id,
+							conflictingRevision,
+						)
+					}?.fold(contact to emptyList<Contact>()) { (kept, toBePurged), conflict ->
+						kept.merge(conflict) to toBePurged + conflict
+					}?.let { (mergedContact, toBePurged) ->
+						contactDAO.save(datastoreInformation, mergedContact).also {
+							toBePurged.forEach {
+								if (it.rev != null && it.rev != mergedContact.rev) {
+									contactDAO.purge(datastoreInformation, listOf(it)).single()
+								}
 							}
 						}
 					}
-				}
-			}
-			.collect { emit(IdAndRev(it.id, it.rev)) }
+			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun listContactsByOpeningDate(
@@ -332,9 +383,14 @@ open class ContactLogicImpl(
 	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			contactDAO.listContactsByOpeningDate(
-				datastoreInformation, hcPartyId, startOpeningDate, endOpeningDate, offset.limitIncludingKey()
-			).toPaginatedFlow<Contact>(offset.limit)
+			contactDAO
+				.listContactsByOpeningDate(
+					datastoreInformation,
+					hcPartyId,
+					startOpeningDate,
+					endOpeningDate,
+					offset.limitIncludingKey(),
+				).toPaginatedFlow<Contact>(offset.limit),
 		)
 	}
 }
@@ -363,14 +419,14 @@ private fun <T> Flow<T>.bufferedChunksAtTransition(
 					buffer.clear()
 					buffer += kept
 				} else {
-					//Slow branch
+					// Slow branch
 					send(buffer.subList(0, idx + 1).toList())
 					val kept = buffer.subList(idx + 1, buffer.size).toList()
 					buffer.clear()
 					buffer += kept
 				}
 			} else {
-				//Should we throw an exception ?
+				// Should we throw an exception ?
 				send(buffer.toList())
 				buffer.clear()
 			}

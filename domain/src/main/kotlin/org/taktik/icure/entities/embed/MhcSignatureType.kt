@@ -5,5 +5,8 @@
 package org.taktik.icure.entities.embed
 
 enum class MhcSignatureType {
-	holderEid, holderPaper, legalrepresentativeEid, legalrepresentativePaper
+	holderEid,
+	holderPaper,
+	legalrepresentativeEid,
+	legalrepresentativePaper,
 }

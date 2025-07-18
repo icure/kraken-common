@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LoginIdentifierDto(
 	val assigner: String,
-	val value: String
+	val value: String,
 )

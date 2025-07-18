@@ -22,16 +22,36 @@ data class ExternalJwtConfigDto(
 ) {
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface ValidationMethodDto {
-		data class PublicKey(val key: String): ValidationMethodDto
-		data class Oidc(val issureLocation: String): ValidationMethodDto
+		data class PublicKey(
+			val key: String,
+		) : ValidationMethodDto
+
+		data class Oidc(
+			val issureLocation: String,
+		) : ValidationMethodDto
 	}
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface FieldSelectorDto {
-		data class LocalId(val fieldName: String) : FieldSelectorDto
-		data class Email(val fieldName: String) : FieldSelectorDto
-		data class MobilePhone(val fieldName: String) : FieldSelectorDto
-		data class Username(val fieldName: String) : FieldSelectorDto
-		data class Identifier(val identifierAssigner: String, val fieldName: String) : FieldSelectorDto
+		data class LocalId(
+			val fieldName: String,
+		) : FieldSelectorDto
+
+		data class Email(
+			val fieldName: String,
+		) : FieldSelectorDto
+
+		data class MobilePhone(
+			val fieldName: String,
+		) : FieldSelectorDto
+
+		data class Username(
+			val fieldName: String,
+		) : FieldSelectorDto
+
+		data class Identifier(
+			val identifierAssigner: String,
+			val fieldName: String,
+		) : FieldSelectorDto
 	}
 }

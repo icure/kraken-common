@@ -6,12 +6,8 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
-import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,10 +23,14 @@ data class ClassificationTemplateDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
 	val parentId: String?,
 	val label: String = "",
-) : StoredDocumentDto, ICureDocumentDto<String> {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	ICureDocumentDto<String> {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

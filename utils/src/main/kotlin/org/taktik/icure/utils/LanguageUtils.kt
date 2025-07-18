@@ -4,13 +4,12 @@
 
 package org.taktik.icure.utils
 
+import kotlinx.coroutines.delay
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.time.Duration
 import java.util.UUID
-import kotlinx.coroutines.delay
-fun <K> retry(trials: Int, closure: () -> K): K =
-	retry(trials, closure) { true }
+fun <K> retry(trials: Int, closure: () -> K): K = retry(trials, closure) { true }
 
 tailrec fun <K> retry(trials: Int, closure: () -> K, skipException: (e: Exception) -> Boolean): K {
 	try {
@@ -37,13 +36,11 @@ inline fun <K> retryIf(trials: Int, condition: (Exception) -> Boolean, closure: 
 		}
 	}
 }
-suspend inline fun <K, reified E> suspendRetryForSomeException(trials: Int, noinline closure: suspend () -> K): K =
-	suspendRetry(trials, Duration.ZERO, closure) { it is E }
+suspend inline fun <K, reified E> suspendRetryForSomeException(trials: Int, noinline closure: suspend () -> K): K = suspendRetry(trials, Duration.ZERO, closure) { it is E }
 
 suspend fun <K> suspendRetry(trials: Int, closure: suspend () -> K): K = suspendRetry(trials, Duration.ZERO, closure)
 
-suspend fun <K> suspendRetry(trials: Int, backOffDuration: Duration, closure: suspend () -> K) =
-	suspendRetry(trials, backOffDuration, closure) { true }
+suspend fun <K> suspendRetry(trials: Int, backOffDuration: Duration, closure: suspend () -> K) = suspendRetry(trials, backOffDuration, closure) { true }
 
 tailrec suspend fun <K> suspendRetry(trials: Int, backOffDuration: Duration, closure: suspend () -> K, skipException: (e: Exception) -> Boolean): K {
 	try {
@@ -53,7 +50,7 @@ tailrec suspend fun <K> suspendRetry(trials: Int, backOffDuration: Duration, clo
 			throw e
 		}
 		val timeMillis = backOffDuration.toMillis()
-		if (timeMillis>0) {
+		if (timeMillis > 0) {
 			delay(timeMillis)
 		}
 	}
@@ -70,6 +67,4 @@ fun ByteArray.toHexString(): String = this.joinToString("") { it.toHexString() }
  */
 fun Byte.toHexString(): String = this.toInt().and(0xff).toString(16).padStart(2, '0')
 
-fun UUID.xor(other: UUID): UUID {
-	return UUID(this.mostSignificantBits.xor(other.mostSignificantBits), this.leastSignificantBits.xor(other.leastSignificantBits))
-}
+fun UUID.xor(other: UUID): UUID = UUID(this.mostSignificantBits.xor(other.mostSignificantBits), this.leastSignificantBits.xor(other.leastSignificantBits))

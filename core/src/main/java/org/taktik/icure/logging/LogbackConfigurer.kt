@@ -11,24 +11,24 @@ import org.slf4j.LoggerFactory
 import java.net.URL
 
 object LogbackConfigurer {
-    fun initLogging(configUrl: URL?) {
-        val context = LoggerFactory.getILoggerFactory() as LoggerContext
-        try {
-            val configurator = JoranConfigurator()
-            configurator.context = context
-            // Call context.reset() to clear any previous configuration, e.g. default
-            // configuration. For multi-step configuration, omit calling context.reset().
-            context.reset()
-            configurator.doConfigure(configUrl)
-        } catch (je: JoranException) {
-            // StatusPrinter will handle this
-        }
-        StatusPrinter.printIfErrorsOccured(context)
-    }
+	fun initLogging(configUrl: URL?) {
+		val context = LoggerFactory.getILoggerFactory() as LoggerContext
+		try {
+			val configurator = JoranConfigurator()
+			configurator.context = context
+			// Call context.reset() to clear any previous configuration, e.g. default
+			// configuration. For multi-step configuration, omit calling context.reset().
+			context.reset()
+			configurator.doConfigure(configUrl)
+		} catch (je: JoranException) {
+			// StatusPrinter will handle this
+		}
+		StatusPrinter.printIfErrorsOccured(context)
+	}
 
-    fun stopLogging() {
-        // Stop the logback context
-        val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
-        loggerContext.stop()
-    }
+	fun stopLogging() {
+		// Stop the logback context
+		val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
+		loggerContext.stop()
+	}
 }

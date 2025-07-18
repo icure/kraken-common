@@ -21,64 +21,66 @@ import org.taktik.icure.entities.utils.Base64String
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecureDelegationKeyMap(
-    @param:ContentValue(ContentValues.UUID) @JsonProperty("_id")  override val id: String,
-    @JsonProperty("_rev") override val rev: String? = null,
-    /**
-     * The secure delegation key this map refers to.
-     */
-    val delegationKey: String,
-    /**
-     * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
-     * and if not encrypted.
-     * On the server side this value should always be encrypted.
-     */
-    val delegator: String?,
-    /**
-     * The delegate of the secure delegation key this map refers to, if the delegate is anonymous in the delegation,
-     * and if not encrypted.
-     * On the server side this value should always be encrypted.
-     */
-    val delegate: String?,
-    override val encryptedSelf: Base64String?,
-    override val securityMetadata: SecurityMetadata?,
+	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@JsonProperty("_rev") override val rev: String? = null,
+	/**
+	 * The secure delegation key this map refers to.
+	 */
+	val delegationKey: String,
+	/**
+	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
+	 * and if not encrypted.
+	 * On the server side this value should always be encrypted.
+	 */
+	val delegator: String?,
+	/**
+	 * The delegate of the secure delegation key this map refers to, if the delegate is anonymous in the delegation,
+	 * and if not encrypted.
+	 * On the server side this value should always be encrypted.
+	 */
+	val delegate: String?,
+	override val encryptedSelf: Base64String?,
+	override val securityMetadata: SecurityMetadata?,
 
-    override val secretForeignKeys: Set<String> = emptySet(),
-    override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
-    override val delegations: Map<String, Set<Delegation>> = emptyMap(),
-    override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
-    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-    @JsonProperty("deleted") override val deletionDate: Long? = null,
-    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-    @JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null
-): StoredDocument, HasEncryptionMetadata, Encryptable {
-    init {
-        require(secretForeignKeys.isEmpty() && delegations.isEmpty() && encryptionKeys.isEmpty() && cryptedForeignKeys.isEmpty()) {
-            "Secure delegation key maps should not contain legacy delegations."
-        }
-    }
+	override val secretForeignKeys: Set<String> = emptySet(),
+	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
+	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
+	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+) : StoredDocument,
+	HasEncryptionMetadata,
+	Encryptable {
+	init {
+		require(secretForeignKeys.isEmpty() && delegations.isEmpty() && encryptionKeys.isEmpty() && cryptedForeignKeys.isEmpty()) {
+			"Secure delegation key maps should not contain legacy delegations."
+		}
+	}
 
-    override fun withDeletionDate(deletionDate: Long?): SecureDelegationKeyMap =
-        this.copy(deletionDate = deletionDate)
+	override fun withDeletionDate(deletionDate: Long?): SecureDelegationKeyMap = this.copy(deletionDate = deletionDate)
 
-    fun solveConflictsWith(other: SecureDelegationKeyMap): Map<String, Any?> {
-        require(this.delegationKey == other.delegationKey) {
-            "Can't merge automatically secure delegation key maps with different delegation keys."
-        }
-        return super<StoredDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
-            "delegator" to (this.delegator ?: other.delegator),
-            "delegate" to (this.delegate ?: other.delegate),
-            "delegationKey" to this.delegationKey
-        )
-    }
+	fun solveConflictsWith(other: SecureDelegationKeyMap): Map<String, Any?> {
+		require(this.delegationKey == other.delegationKey) {
+			"Can't merge automatically secure delegation key maps with different delegation keys."
+		}
+		return super<StoredDocument>.solveConflictsWith(other) +
+			super<HasEncryptionMetadata>.solveConflictsWith(other) +
+			super<Encryptable>.solveConflictsWith(other) +
+			mapOf(
+				"delegator" to (this.delegator ?: other.delegator),
+				"delegate" to (this.delegate ?: other.delegate),
+				"delegationKey" to this.delegationKey,
+			)
+	}
 
-    override fun withIdRev(id: String?, rev: String): SecureDelegationKeyMap =
-        if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override fun withIdRev(id: String?, rev: String): SecureDelegationKeyMap = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
-    fun validateForStore() {
-        require(delegator == null && delegate == null && encryptedSelf != null) {
-            "Delegator and delegate fields should have been encrypted."
-        }
-    }
-
+	fun validateForStore() {
+		require(delegator == null && delegate == null && encryptedSelf != null) {
+			"Delegator and delegate fields should have been encrypted."
+		}
+	}
 }

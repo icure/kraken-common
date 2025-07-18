@@ -7,5 +7,7 @@ import org.taktik.icure.services.external.rest.v1.dto.base.EnumVersionDto
 
 @EnumVersionDto(1L)
 enum class PartnershipStatusDto {
-	active, complicated, past
+	active,
+	complicated,
+	past,
 }

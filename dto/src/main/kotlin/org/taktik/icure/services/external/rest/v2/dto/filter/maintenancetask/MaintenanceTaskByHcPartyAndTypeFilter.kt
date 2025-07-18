@@ -20,5 +20,5 @@ data class MaintenanceTaskByHcPartyAndTypeFilter(
 	override val desc: String? = null,
 	@Schema(required = true)
 	val type: String,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<MaintenanceTaskDto>

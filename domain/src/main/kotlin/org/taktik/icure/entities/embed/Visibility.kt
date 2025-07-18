@@ -7,5 +7,9 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class Visibility {
-	maskedfromsummary, maskedfromexportedfile, proeminent, highlighted, visible
+	maskedfromsummary,
+	maskedfromexportedfile,
+	proeminent,
+	highlighted,
+	visible,
 }

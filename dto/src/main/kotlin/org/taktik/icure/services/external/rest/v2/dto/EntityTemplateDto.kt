@@ -28,15 +28,18 @@ data class EntityTemplateDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-
 	var userId: String? = null,
 	val descr: String? = null,
 	val keywords: Set<String>? = null,
 	var entityType: String? = null,
 	var subType: String? = null,
 	var defaultTemplate: Boolean? = null,
-	var entity: List<JsonNode> = emptyList()
+	var entity: List<JsonNode> = emptyList(),
 ) : StoredDocumentDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

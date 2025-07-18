@@ -4,9 +4,9 @@
 
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,5 +15,6 @@ data class FlatRateTarification(
 	val flatRateType: FlatRateType? = null,
 	val label: Map<String, String>? = null,
 	val valorisations: List<Valorisation> = emptyList(),
-	override val encryptedSelf: String? = null
-) : Encryptable, Serializable
+	override val encryptedSelf: String? = null,
+) : Encryptable,
+	Serializable

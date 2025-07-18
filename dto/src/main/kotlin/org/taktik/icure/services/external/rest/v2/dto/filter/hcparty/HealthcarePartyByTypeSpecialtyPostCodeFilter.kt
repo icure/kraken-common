@@ -17,5 +17,5 @@ data class HealthcarePartyByTypeSpecialtyPostCodeFilter(
 	val specCode: String,
 	val startPostCode: String,
 	val endPostCode: String,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

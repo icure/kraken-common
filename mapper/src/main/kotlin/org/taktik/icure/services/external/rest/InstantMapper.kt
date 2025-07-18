@@ -9,15 +9,9 @@ import java.time.Instant
 
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class InstantMapper {
-    fun map(instant: Instant): Long {
-        return instant.toEpochMilli()
-    }
+	fun map(instant: Instant): Long = instant.toEpochMilli()
 
-    fun map(aLong: Long?): Instant {
-        return Instant.ofEpochMilli(aLong!!)
-    }
+	fun map(aLong: Long?): Instant = Instant.ofEpochMilli(aLong!!)
 
-    fun map(aLong: Long): Instant {
-        return Instant.ofEpochMilli(aLong)
-    }
+	fun map(aLong: Long): Instant = Instant.ofEpochMilli(aLong)
 }

@@ -7,12 +7,11 @@ package org.taktik.icure.entities.embed
  * be the default one defined by iCure ([ConfigurationSource.DEFAULT]).
  */
 data class RoleConfiguration(
-    val source: ConfigurationSource,
-    val roles: Set<String> = emptySet()
+	val source: ConfigurationSource,
+	val roles: Set<String> = emptySet(),
 ) {
 
-    companion object {
-        enum class ConfigurationSource { CONFIGURATION, INHERITED, DEFAULT }
-    }
-
+	companion object {
+		enum class ConfigurationSource { CONFIGURATION, INHERITED, DEFAULT }
+	}
 }

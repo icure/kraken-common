@@ -9,4 +9,6 @@ import kotlin.reflect.KClass
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-annotation class JsonPolymorphismRoot(val value: KClass<*>)
+annotation class JsonPolymorphismRoot(
+	val value: KClass<*>,
+)

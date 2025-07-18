@@ -14,6 +14,8 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.Editor
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class StringEditor : Editor(), ValueDateEditor {
+class StringEditor :
+	Editor(),
+	ValueDateEditor {
 	override var displayValueDate = false
 }

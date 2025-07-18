@@ -17,5 +17,5 @@ data class CodeByRegionTypeCodeVersionFilters(
 	val type: String?,
 	val code: String?,
 	val version: String?,
-	override val desc: String?
-): AbstractFilterDto<CodeDto>
+	override val desc: String?,
+) : AbstractFilterDto<CodeDto>

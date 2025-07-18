@@ -60,7 +60,7 @@ class LoginController(
 	private val sessionLogic: AsyncSessionLogic,
 	private val authenticationManager: AbstractAuthenticationManager<JwtDetails, JwtRefreshDetails>,
 	private val jwtUtils: JwtUtils,
-	asyncCacheManager: AsyncCacheManager
+	asyncCacheManager: AsyncCacheManager,
 ) {
 	val cache = asyncCacheManager.getCache<String, SecurityToken>("spring.security.tokens")
 
@@ -72,7 +72,7 @@ class LoginController(
 		authentication: JwtAuthentication?,
 		username: String,
 		jwtDuration: Long? = null,
-		session: WebSession? = null
+		session: WebSession? = null,
 	): ResponseEntity<AuthenticationResponse> = if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
 		val secContext = SecurityContextImpl(authentication)
 		val securityContext = coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
@@ -82,23 +82,30 @@ class LoginController(
 					if (session != null) {
 						session.attributes["SPRING_SECURITY_CONTEXT"] = secContext
 					}
-				}
+				},
 			)
 		}
 	} else if (authentication != null && authentication.isAuthenticated && !sessionEnabled) {
 		ResponseEntity.ok().body(
-			authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration)
+			authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration),
 		)
-	} else ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthenticationResponse(successful = false))
+	} else {
+		ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthenticationResponse(successful = false))
+	}
 
 	@Operation(summary = "login", description = "Login using username and password")
 	@PostMapping("/login")
 	fun login(
 		request: ServerHttpRequest,
-		@Parameter(description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings", required = false) @RequestParam duration: Long? = null,
+		@Parameter(
+			description = "The duration of the generated token in seconds. It cannot exceed the one defined in the system settings",
+			required = false,
+		) @RequestParam duration: Long? = null,
 		@RequestBody loginCredentials: LoginCredentials,
 		@Parameter(hidden = true) session: WebSession?,
-		@Parameter(description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after") @RequestParam(required = false) groupId: String? = null
+		@Parameter(
+			description = "If the credentials are valid for the provided group id the token created will be already in that group context, without requiring a switch group call after",
+		) @RequestParam(required = false) groupId: String? = null,
 	) = mono {
 		try {
 			val username = loginCredentials.username!!
@@ -107,16 +114,17 @@ class LoginController(
 			produceAuthenticationResponse(authentication, username, duration, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")
-			ResponseEntity.status(
-				when(e){
-					is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
-					is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
-					is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
-					is BadCredentialsException -> HttpStatus.UNAUTHORIZED
-					is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
-					else -> HttpStatus.UNAUTHORIZED
-				}
-			).body(AuthenticationResponse(successful = false))
+			ResponseEntity
+				.status(
+					when (e) {
+						is PasswordTooShortException -> HttpStatus.PRECONDITION_FAILED
+						is Missing2FAException -> HttpStatus.EXPECTATION_FAILED
+						is Invalid2FAException -> HttpStatus.NOT_ACCEPTABLE
+						is BadCredentialsException -> HttpStatus.UNAUTHORIZED
+						is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
+						else -> HttpStatus.UNAUTHORIZED
+					},
+				).body(AuthenticationResponse(successful = false))
 		}
 	}
 
@@ -125,23 +133,25 @@ class LoginController(
 	fun refresh(
 		request: ServerHttpRequest,
 		response: ServerHttpResponse,
-		@RequestParam(required = false) totp: String?
+		@RequestParam(required = false) totp: String?,
 	) = mono {
 		val refreshToken = jwtUtils.extractRawRefreshTokenFromRequest(request)
 		val newJwtDetails = authenticationManager.regenerateAuthJwt(refreshToken, totpToken = totp)
 		JwtResponse(
 			successful = true,
-			token = jwtUtils.createAuthJWT(newJwtDetails.first, newJwtDetails.second)
+			token = jwtUtils.createAuthJWT(newJwtDetails.first, newJwtDetails.second),
 		)
 	}
 
 	@Operation(summary = "check", description = "Check login using groupId/userId and password")
 	@PostMapping("/check")
-	fun check(@RequestBody loginCredentials: LoginCredentials) = mono {
+	fun check(
+		@RequestBody loginCredentials: LoginCredentials,
+	) = mono {
 		try {
 			authenticationManager.checkAuthentication(
 				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
-				loginCredentials.password ?: throw IllegalArgumentException("Password is required")
+				loginCredentials.password ?: throw IllegalArgumentException("Password is required"),
 			)
 			@Suppress("DEPRECATION")
 			AuthenticationResponse(successful = true)
@@ -171,7 +181,10 @@ class LoginController(
 	@Deprecated("OTT Websocket auth is deprecated, use the JWT instead")
 	@Operation(summary = "token", description = "Get token for subsequent operation")
 	@GetMapping("/token/{method}/{path}")
-	fun token(@PathVariable method: String, @PathVariable path: String) = mono {
+	fun token(
+		@PathVariable method: String,
+		@PathVariable path: String,
+	) = mono {
 		val token = UUID.randomUUID().toString()
 		cache.put(token, SecurityToken(HttpMethod.valueOf(method), path, sessionLogic.getAuthentication()))
 		token

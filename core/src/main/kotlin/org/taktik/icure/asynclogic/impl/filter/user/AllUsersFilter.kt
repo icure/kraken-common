@@ -21,19 +21,19 @@ package org.taktik.icure.asynclogic.impl.filter.user
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.UserDAO
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.User
 
 @Service
 @Profile("app")
 class AllUsersFilter(
-	private val userDAO: UserDAO
+	private val userDAO: UserDAO,
 ) : Filter<String, User, org.taktik.icure.domain.filter.Filters.AllFilter<String, User>> {
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, User>,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	) = userDAO.getEntityIds(datastoreInformation)
 }

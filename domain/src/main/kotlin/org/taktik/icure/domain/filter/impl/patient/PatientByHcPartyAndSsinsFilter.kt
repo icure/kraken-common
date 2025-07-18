@@ -10,15 +10,15 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 data class PatientByHcPartyAndSsinsFilter(
 	override val desc: String? = null,
 	override val ssins: List<String>? = null,
-	override val healthcarePartyId: String? = null
-) : AbstractFilter<Patient>, org.taktik.icure.domain.filter.patient.PatientByHcPartyAndSsinsFilter {
+	override val healthcarePartyId: String? = null,
+) : AbstractFilter<Patient>,
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyAndSsinsFilter {
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) && (ssins == null || ssins.contains(item.ssin))
-	}
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) && (ssins == null || ssins.contains(item.ssin))
 }

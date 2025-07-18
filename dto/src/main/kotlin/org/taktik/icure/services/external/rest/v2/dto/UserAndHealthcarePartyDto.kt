@@ -9,5 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Schema(description = """This entity embeds a User and its linked Healthcare Party.""")
 data class UserAndHealthcarePartyDto(
 	@Schema(required = true) val user: UserDto,
-	@Schema(required = true) val healthcareParty: HealthcarePartyDto
+	@Schema(required = true) val healthcareParty: HealthcarePartyDto,
 )

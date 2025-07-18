@@ -6,7 +6,13 @@ package org.taktik.icure.services.external.rest.v1.dto.gui.layout
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.embed.ContentDto
-import org.taktik.icure.services.external.rest.v1.dto.gui.*
+import org.taktik.icure.services.external.rest.v1.dto.gui.Editor
+import org.taktik.icure.services.external.rest.v1.dto.gui.FormDataOption
+import org.taktik.icure.services.external.rest.v1.dto.gui.FormPlanning
+import org.taktik.icure.services.external.rest.v1.dto.gui.Formula
+import org.taktik.icure.services.external.rest.v1.dto.gui.GuiCode
+import org.taktik.icure.services.external.rest.v1.dto.gui.GuiCodeType
+import org.taktik.icure.services.external.rest.v1.dto.gui.Suggest
 import java.io.Serializable
 
 /**

@@ -13,12 +13,10 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IdentifierDto(
-
 	/**
 	 * Unique id for inter-element referencing
 	 */
 	val id: String? = null,
-
 	/**
 	 * Organization that issued id (may be just text)
 	 */
@@ -46,5 +44,5 @@ data class IdentifierDto(
 	/**
 	 * The value that is unique
 	 */
-	val value: String? = null
-): Serializable
+	val value: String? = null,
+) : Serializable

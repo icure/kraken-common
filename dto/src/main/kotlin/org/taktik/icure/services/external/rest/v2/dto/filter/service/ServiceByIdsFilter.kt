@@ -34,5 +34,6 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 data class ServiceByIdsFilter(
 	@Schema(required = true)
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilterDto<ServiceDto>, FilterDto.IdsFilter<String, ServiceDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<ServiceDto>,
+	FilterDto.IdsFilter<String, ServiceDto>

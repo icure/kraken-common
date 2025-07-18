@@ -14,5 +14,5 @@ data class HealthcarePartyHistoryStatusDto(
 	@Schema(required = true)
 	val startDate: Long,
 	@Schema(required = true)
-	val active: Boolean
+	val active: Boolean,
 )

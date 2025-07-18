@@ -29,5 +29,5 @@ data class GenericContent(
 	override val entityId: String? = null,
 	override val entityClass: String? = null,
 	override val id: String? = null,
-	override val label: String? = null
+	override val label: String? = null,
 ) : DisplayableContent

@@ -51,24 +51,28 @@ data class Classification(
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+) : StoredICureDocument,
+	HasEncryptionMetadata,
+	Encryptable {
 	companion object : DynamicInitializer<Classification>
 
 	fun merge(other: Classification) = Classification(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Classification) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
-		"parentId" to (this.parentId ?: other.parentId),
-		"label" to if (this.label.isBlank()) other.label else this.label
-	)
+	fun solveConflictsWith(other: Classification) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		super<Encryptable>.solveConflictsWith(other) +
+		mapOf(
+			"parentId" to (this.parentId ?: other.parentId),
+			"label" to if (this.label.isBlank()) other.label else this.label,
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

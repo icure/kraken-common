@@ -17,14 +17,14 @@ interface MeasureMapper {
 
 	@Mappings(
 		Mapping(target = "referenceRanges", ignore = true),
-		Mapping(target = "valueWithPrecision", ignore = true)
+		Mapping(target = "valueWithPrecision", ignore = true),
 	)
 	fun map(measureDto: MeasureDto): Measure
 
 	@Mappings(
 		Mapping(target = "max", expression = """kotlin(measure.max ?: measure.referenceRanges.firstOrNull()?.high)"""),
 		Mapping(target = "min", expression = """kotlin(measure.min ?: measure.referenceRanges.firstOrNull()?.low)"""),
-		Mapping(target = "valueWithPrecision", ignore = true)
+		Mapping(target = "valueWithPrecision", ignore = true),
 	)
 	fun map(measure: Measure): MeasureDto
 }

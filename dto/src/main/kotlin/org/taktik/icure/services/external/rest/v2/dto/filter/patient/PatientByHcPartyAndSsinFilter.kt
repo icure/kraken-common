@@ -34,5 +34,5 @@ data class PatientByHcPartyAndSsinFilter(
 	override val desc: String? = null,
 	@Schema(required = true)
 	val ssin: String,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

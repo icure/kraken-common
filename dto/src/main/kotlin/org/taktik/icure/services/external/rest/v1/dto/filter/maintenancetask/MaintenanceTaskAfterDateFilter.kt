@@ -18,5 +18,5 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 data class MaintenanceTaskAfterDateFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
-	val date: Long
+	val date: Long,
 ) : AbstractFilterDto<MaintenanceTaskDto>

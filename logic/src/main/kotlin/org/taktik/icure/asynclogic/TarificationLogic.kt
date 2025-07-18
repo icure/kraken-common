@@ -11,7 +11,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
 
-interface TarificationLogic: EntityPersister<Tarification> {
+interface TarificationLogic : EntityPersister<Tarification> {
 	suspend fun getTarification(id: String): Tarification?
 	suspend fun getTarification(type: String, tarification: String, version: String): Tarification?
 	fun getTarifications(ids: List<String>): Flow<Tarification>
@@ -55,7 +55,7 @@ interface TarificationLogic: EntityPersister<Tarification> {
 	 * @param label a query that will be normalized and then searched against [Tarification.label] or [Tarification.searchTerms]
 	 * for the specified language. This query will act as a prefix, meaning that the view will check if the normalized
 	 * query is a prefix of the view value.
-	 * @param  types a [Set] of [Tarification.type] of the entities to retrieve. If null, the [Tarification]s of all types will be returned.
+	 * @param types a [Set] of [Tarification.type] of the entities to retrieve. If null, the [Tarification]s of all types will be returned.
 	 * @param paginationOffset a [PaginationOffset] of [ComplexKey] for pagination.
 	 * @return a [Flow] of [PaginationElement] containing the [Tarification]s.
 	 */

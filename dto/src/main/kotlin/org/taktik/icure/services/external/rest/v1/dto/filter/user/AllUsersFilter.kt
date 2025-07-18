@@ -33,4 +33,5 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AllUsersFilter(
 	override val desc: String? = null,
-) : AbstractFilterDto<UserDto>, FilterDto.AllFilter<UserDto>
+) : AbstractFilterDto<UserDto>,
+	FilterDto.AllFilter<UserDto>

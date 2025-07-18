@@ -25,7 +25,7 @@ interface HealthElementMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(healthElementDto: HealthElementDto): HealthElement
 	fun map(healthElement: HealthElement): HealthElementDto

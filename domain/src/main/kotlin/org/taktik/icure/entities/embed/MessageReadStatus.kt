@@ -9,4 +9,4 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class MessageReadStatus(val time: Long? = null, val read: Boolean = false): Serializable
+data class MessageReadStatus(val time: Long? = null, val read: Boolean = false) : Serializable

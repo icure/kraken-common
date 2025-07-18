@@ -29,28 +29,34 @@ import reactor.core.publisher.Flux
 @Tag(name = "applicationsettings")
 class ApplicationSettingsController(
 	private val applicationSettingsService: ApplicationSettingsService,
-	private val applicationSettingsV2Mapper: ApplicationSettingsV2Mapper
+	private val applicationSettingsV2Mapper: ApplicationSettingsV2Mapper,
 ) {
-
 	@Operation(summary = "Gets all application settings")
 	@GetMapping
-	fun getApplicationSettings(): Flux<ApplicationSettingsDto> =
-		applicationSettingsService
-			.getAllApplicationSettings()
-			.map(applicationSettingsV2Mapper::map)
-			.injectReactorContext()
+	fun getApplicationSettings(): Flux<ApplicationSettingsDto> = applicationSettingsService
+		.getAllApplicationSettings()
+		.map(applicationSettingsV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Create new application settings")
 	@PostMapping
-	fun createApplicationSettings(@RequestBody applicationSettingsDto: ApplicationSettingsDto) = mono {
-		val applicationSettings = applicationSettingsService.createApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto)) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
+	fun createApplicationSettings(
+		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
+	) = mono {
+		val applicationSettings =
+			applicationSettingsService.createApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
 		applicationSettingsV2Mapper.map(applicationSettings)
 	}
 
 	@Operation(summary = "Update application settings")
 	@PutMapping
-	fun updateApplicationSettings(@RequestBody applicationSettingsDto: ApplicationSettingsDto) = mono {
-		val applicationSettings = applicationSettingsService.modifyApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto)) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings modification failed")
+	fun updateApplicationSettings(
+		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
+	) = mono {
+		val applicationSettings =
+			applicationSettingsService.modifyApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings modification failed")
 		applicationSettingsV2Mapper.map(applicationSettings)
 	}
 }

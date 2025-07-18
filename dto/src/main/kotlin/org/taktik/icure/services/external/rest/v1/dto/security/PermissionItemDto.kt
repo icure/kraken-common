@@ -10,7 +10,9 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = JacksonPermissionItemDeserializer::class)
-interface PermissionItemDto : Cloneable, Serializable {
+interface PermissionItemDto :
+	Cloneable,
+	Serializable {
 	val itemType: String
 		get() = this::class.simpleName!!
 	val type: PermissionTypeDto

@@ -9,5 +9,5 @@ data class DesignDocumentDto(
 	val lists: Map<String, String> = mapOf(),
 	val shows: Map<String, String> = mapOf(),
 	val updateHandlers: Map<String, String>? = null,
-	val filters: Map<String, String> = mapOf()
+	val filters: Map<String, String> = mapOf(),
 )

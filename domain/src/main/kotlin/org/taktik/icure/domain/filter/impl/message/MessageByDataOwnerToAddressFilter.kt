@@ -9,12 +9,12 @@ data class MessageByDataOwnerToAddressFilter(
 	override val dataOwnerId: String,
 	override val toAddress: String,
 	override val desc: String? = null,
-) : AbstractFilter<Message>, MessageByDataOwnerToAddressFilter {
+) : AbstractFilter<Message>,
+	MessageByDataOwnerToAddressFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item) && item.toAddresses.contains(toAddress)
+	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) && item.toAddresses.contains(toAddress)
 }

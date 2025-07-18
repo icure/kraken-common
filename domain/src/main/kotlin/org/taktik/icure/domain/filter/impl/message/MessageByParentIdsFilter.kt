@@ -7,13 +7,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class MessageByParentIdsFilter(
 	override val parentIds: List<String>,
-	override val desc: String? = null
-) : AbstractFilter<Message>, MessageByParentIdsFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Message>,
+	MessageByParentIdsFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		parentIds.contains(item.parentId)
+	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = parentIds.contains(item.parentId)
 }

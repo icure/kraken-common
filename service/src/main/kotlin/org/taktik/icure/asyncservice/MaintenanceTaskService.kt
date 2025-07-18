@@ -18,53 +18,53 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface MaintenanceTaskService : EntityWithSecureDelegationsService<MaintenanceTask> {
-    /**
-     * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
-     * Ignores entities that:
-     * - don't exist
-     * - the user can't delete due to limited lack of write access
-     * - don't match the provided revision (if provided)
-     *
-     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the deleted [MaintenanceTask]s.
-     */
-    fun deleteMaintenanceTasks(ids: List<IdAndRev>): Flow<MaintenanceTask>
+	/**
+	 * Marks a batch of entities as deleted.
+	 * The data of the entities is preserved, but they won't appear in most queries.
+	 * Ignores entities that:
+	 * - don't exist
+	 * - the user can't delete due to limited lack of write access
+	 * - don't match the provided revision (if provided)
+	 *
+	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+	 * @return a [Flow] containing the deleted [MaintenanceTask]s.
+	 */
+	fun deleteMaintenanceTasks(ids: List<IdAndRev>): Flow<MaintenanceTask>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev the latest rev of the entity to delete.
-     * @return the deleted [MaintenanceTask].
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteMaintenanceTask(id: String, rev: String?): MaintenanceTask
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param id the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [MaintenanceTask].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deleteMaintenanceTask(id: String, rev: String?): MaintenanceTask
 
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgeMaintenanceTask(id: String, rev: String): DocIdentifier
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgeMaintenanceTask(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteMaintenanceTask(id: String, rev: String): MaintenanceTask
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeleteMaintenanceTask(id: String, rev: String): MaintenanceTask
 	suspend fun modifyMaintenanceTask(entity: MaintenanceTask): MaintenanceTask?
 	suspend fun createMaintenanceTask(entity: MaintenanceTask): MaintenanceTask?
 	fun modifyMaintenanceTasks(entities: Collection<MaintenanceTask>): Flow<MaintenanceTask>

@@ -28,4 +28,8 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.Editor
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class CheckBoxEditor(override val displayValueDate: Boolean = false, val groupRadio: String? = null) : Editor(), ValueDateEditor
+class CheckBoxEditor(
+	override val displayValueDate: Boolean = false,
+	val groupRadio: String? = null,
+) : Editor(),
+	ValueDateEditor

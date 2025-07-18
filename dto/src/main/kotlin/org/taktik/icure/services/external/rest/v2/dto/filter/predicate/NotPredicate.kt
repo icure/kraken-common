@@ -28,4 +28,6 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class NotPredicate(@Schema(required = true) val predicate: Predicate) : Predicate
+data class NotPredicate(
+	@Schema(required = true) val predicate: Predicate,
+) : Predicate

@@ -23,4 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class EmailTemplateDto(val subject: String? = null, val body: String? = null)
+data class EmailTemplateDto(
+	val subject: String? = null,
+	val body: String? = null,
+)

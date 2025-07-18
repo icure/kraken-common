@@ -18,5 +18,6 @@ data class PropertyStub(
 	val type: PropertyTypeStub? = null,
 	val typedValue: TypedValue? = null,
 	@Deprecated("Remove from list instead") @JsonProperty("deleted") val deletionDate: Long? = null,
-	override val encryptedSelf: String? = null
-) : Serializable, Encryptable
+	override val encryptedSelf: String? = null,
+) : Serializable,
+	Encryptable

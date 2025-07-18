@@ -25,15 +25,15 @@ import org.taktik.icure.entities.embed.withEncryptionMetadata
 
 data class ServiceByHcPartyFilter(
 	override val hcpId: String,
-	override val desc: String? = null
-) : AbstractFilter<Service>, Filters.ByHcpartyFilter<String, Service> {
+	override val desc: String? = null,
+) : AbstractFilter<Service>,
+	Filters.ByHcpartyFilter<String, Service> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 
-	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) =
-		item.withEncryptionMetadata()?.let {
-			searchKeyMatcher(hcpId, it)
-		} ?: false
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = item.withEncryptionMetadata()?.let {
+		searchKeyMatcher(hcpId, it)
+	} ?: false
 }

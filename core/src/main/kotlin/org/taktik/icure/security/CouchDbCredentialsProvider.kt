@@ -12,21 +12,18 @@ interface CouchDbCredentialsProvider : () -> Pair<String, String> {
 	 */
 	fun getCredentials(): UsernamePassword
 
-	override fun invoke(): Pair<String, String> =
-		getCredentials().let { it.username to it.password }
+	override fun invoke(): Pair<String, String> = getCredentials().let { it.username to it.password }
 }
-
 
 /**
  * Represents username-password credentials.
  */
 data class UsernamePassword(
 	val username: String,
-	val password: String
+	val password: String,
 ) : Serializable {
 	/**
 	 * String representation of this where the `password` value has been replaced by its hash.
 	 */
-	fun toHashedString(): String =
-		"UsernamePassword($username, ${DigestUtils.sha256Hex(password.toByteArray())}"
+	fun toHashedString(): String = "UsernamePassword($username, ${DigestUtils.sha256Hex(password.toByteArray())}"
 }

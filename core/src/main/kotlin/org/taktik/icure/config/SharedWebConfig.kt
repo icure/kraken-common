@@ -36,11 +36,14 @@ class SharedWebConfig {
 	}
 
 	@Bean
-	fun handlerAdapter(webSocketService: WebSocketService) =
-		WebSocketHandlerAdapter(webSocketService)
+	fun handlerAdapter(webSocketService: WebSocketService) = WebSocketHandlerAdapter(webSocketService)
 
 	@Bean
-	fun webSocketService() = HandshakeWebSocketService(ReactorNettyRequestUpgradeStrategy(WebsocketServerSpec.builder().maxFramePayloadLength(64 * 1024 * 1024)))
+	fun webSocketService() = HandshakeWebSocketService(
+		ReactorNettyRequestUpgradeStrategy(
+			WebsocketServerSpec.builder().maxFramePayloadLength(64 * 1024 * 1024),
+		),
+	)
 
 	// endregion
 }
@@ -50,12 +53,14 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		arrayOf("classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/")
 
 	override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-		registry.addResourceHandler("/**")
+		registry
+			.addResourceHandler("/**")
 			.addResourceLocations(*CLASSPATH_RESOURCE_LOCATIONS)
 	}
 
 	override fun addCorsMappings(registry: CorsRegistry) {
-		registry.addMapping("/**")
+		registry
+			.addMapping("/**")
 			.allowCredentials(true)
 			.allowedOriginPatterns("*")
 			.allowedMethods("*")
@@ -74,24 +79,27 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		configurer.defaultCodecs().jackson2JsonDecoder(
 			Jackson2JsonDecoder(
 				ObjectMapper().registerModule(
-					KotlinModule.Builder()
+					KotlinModule
+						.Builder()
 						.configure(KotlinFeature.NullIsSameAsDefault, true)
 						// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
 						.configure(KotlinFeature.StrictNullChecks, true)
-						.build()
-				)
-			).apply { maxInMemorySize = 128 * 1024 * 1024 }
+						.build(),
+				),
+			).apply { maxInMemorySize = 128 * 1024 * 1024 },
 		)
 	}
 
-	fun objectMapper(): ObjectMapper = ObjectMapper().registerModule(
-		KotlinModule.Builder()
-			.withReflectionCacheSize(512)
-			.configure(KotlinFeature.NullIsSameAsDefault, true)
-			.configure(KotlinFeature.NullToEmptyCollection, true)
-			.configure(KotlinFeature.NullToEmptyMap, true)
-			.build()
-	).apply {
-		setSerializationInclusion(JsonInclude.Include.NON_NULL)
-	}
+	fun objectMapper(): ObjectMapper = ObjectMapper()
+		.registerModule(
+			KotlinModule
+				.Builder()
+				.withReflectionCacheSize(512)
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.configure(KotlinFeature.NullToEmptyCollection, true)
+				.configure(KotlinFeature.NullToEmptyMap, true)
+				.build(),
+		).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_NULL)
+		}
 }

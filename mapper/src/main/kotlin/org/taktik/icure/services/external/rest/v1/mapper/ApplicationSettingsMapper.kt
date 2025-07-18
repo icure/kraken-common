@@ -18,7 +18,7 @@ interface ApplicationSettingsMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(applicationSettingsDto: ApplicationSettingsDto): ApplicationSettings
 	fun map(applicationSettings: ApplicationSettings): ApplicationSettingsDto

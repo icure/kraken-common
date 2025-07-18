@@ -3,4 +3,7 @@
  */
 package org.taktik.icure.dto.data
 
-class LabelledOccurence(var label: String, var occurence: Long)
+class LabelledOccurence(
+	var label: String,
+	var occurence: Long,
+)

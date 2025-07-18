@@ -7,4 +7,3 @@ package org.taktik.icure
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.PROPERTY)
 annotation class AlwaysDecrypted
-

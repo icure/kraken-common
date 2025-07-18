@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.services.external.rest.v1.dto.KeywordDto
 import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
@@ -38,25 +37,32 @@ class KeywordController(
 	private val keywordMapper: KeywordMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
 ) {
-
 	@Operation(summary = "Create a keyword with the current user", description = "Returns an instance of created keyword.")
 	@PostMapping
-	fun createKeyword(@RequestBody c: KeywordDto) = mono {
+	fun createKeyword(
+		@RequestBody c: KeywordDto,
+	) = mono {
 		keywordService.createKeyword(keywordMapper.map(c))?.let { keywordMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Keyword creation failed.")
 	}
 
 	@Operation(summary = "Get a keyword")
 	@GetMapping("/{keywordId}")
-	fun getKeyword(@PathVariable keywordId: String) = mono {
+	fun getKeyword(
+		@PathVariable keywordId: String,
+	) = mono {
 		keywordService.getKeyword(keywordId)?.let { keywordMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting keyword failed. Possible reasons: no such keyword exists, or server error. Please try again or read the server log.")
+			?: throw ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Getting keyword failed. Possible reasons: no such keyword exists, or server error. Please try again or read the server log.",
+			)
 	}
 
 	@Operation(summary = "Get keywords by user")
 	@GetMapping("/byUser/{userId}")
-	fun getKeywordsByUser(@PathVariable userId: String) =
-		keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordMapper.map(c) } }.injectReactorContext()
+	fun getKeywordsByUser(
+		@PathVariable userId: String,
+	) = keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordMapper.map(c) } }.injectReactorContext()
 
 	@Operation(summary = "Gets all keywords with pagination")
 	@GetMapping
@@ -67,17 +73,22 @@ class KeywordController(
 
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@DeleteMapping("/{keywordIds}")
-	fun deleteKeywords(@PathVariable keywordIds: String): Flux<DocIdentifierDto> {
+	fun deleteKeywords(
+		@PathVariable keywordIds: String,
+	): Flux<DocIdentifierDto> {
 		val ids = keywordIds.split(',')
 		if (ids.isEmpty()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return keywordService.deleteKeywords(ids.toSet())
+		return keywordService
+			.deleteKeywords(ids.toSet())
 			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a keyword", description = "Returns the modified keyword.")
 	@PutMapping
-	fun modifyKeyword(@RequestBody keywordDto: KeywordDto) = mono {
+	fun modifyKeyword(
+		@RequestBody keywordDto: KeywordDto,
+	) = mono {
 		keywordService.modifyKeyword(keywordMapper.map(keywordDto))?.let {
 			keywordMapper.map(it)
 		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Keyword modification failed.")

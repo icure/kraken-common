@@ -9,5 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class RemoteDto(
 	@Schema(required = true)
 	val url: String,
-	val auth: RemoteAuthenticationDto? = null
+	val auth: RemoteAuthenticationDto? = null,
 )

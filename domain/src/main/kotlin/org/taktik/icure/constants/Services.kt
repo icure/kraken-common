@@ -19,9 +19,14 @@ package org.taktik.icure.constants
 
 interface Services {
 	enum class Service(val path: String) {
-		ACTIVATION("activation"), REGISTER("register"), LOST_PASSWORD("lost_password"), LOGIN("login"), LOGIN_TOKEN("login/token"), LOGOUT(
-			"logout"
-		);
+		ACTIVATION("activation"),
+		REGISTER("register"),
+		LOST_PASSWORD("lost_password"),
+		LOGIN("login"),
+		LOGIN_TOKEN("login/token"),
+		LOGOUT(
+			"logout",
+		),
 	}
 
 	companion object {

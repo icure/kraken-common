@@ -22,29 +22,27 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * @property rrule a RFC-5545 recurrence rule specifying the days and recurrence type of the timetable item. ("RRULE:FREQ=WEEKLY;UNTIL=20220930T150400Z;COUNT=30;INTERVAL=2;WKST=MO;BYDAY=TH" = every 2 weeks on Thursday until 30 September 2022.)
  * Note: The RFC-5545 rrule is used only to manage the days of the occurrences. The hours and durations of the appointments are specified in the property .hours.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class TimeTableItemDto(
 	val rruleStartDate: Long? = null, // YYYYMMDD
 	val rrule: String? = null,
 	val notBeforeInMinutes: Int? = null,
 	val notAfterInMinutes: Int? = null,
 	val zoneId: String? = null,
-
 	@Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
 	@Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
 	val hours: List<TimeTableHourDto> = emptyList(),
 	val calendarItemTypeId: String? = null,
-
 	val homeVisit: Boolean = false,
 	val placeId: String? = null,
 	val publicTimeTableItem: Boolean = false,
-	@Schema(defaultValue = "true") val acceptsNewPatient: Boolean = true,
+	@param:Schema(defaultValue = "true") val acceptsNewPatient: Boolean = true,
 	val unavailable: Boolean = false,
-	@Schema(description = "A list of the ids of the users who are allowed to create a CalendarItem in this slot.")
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val reservingRights: Set<String> = emptySet(),
+	@param:Schema(description = "A list of the ids of the users who are allowed to create a CalendarItem in this slot.")
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val reservingRights: Set<String> = emptySet(),
 ) : Serializable

@@ -8,11 +8,12 @@ import java.lang.IllegalArgumentException
  * @return a [ByteArray]
  */
 fun String.hexStringToByteArray(): ByteArray {
-    if ( length%2 != 0 )
-        throw IllegalArgumentException("Invalid hexadecimal string")
-    val ret = ByteArray(length/2)
-    chunked(2).forEachIndexed { index, s ->
-        ret[index] = s.toInt(16).toByte()
-    }
-    return ret
+	if (length % 2 != 0) {
+		throw IllegalArgumentException("Invalid hexadecimal string")
+	}
+	val ret = ByteArray(length / 2)
+	chunked(2).forEachIndexed { index, s ->
+		ret[index] = s.toInt(16).toByte()
+	}
+	return ret
 }

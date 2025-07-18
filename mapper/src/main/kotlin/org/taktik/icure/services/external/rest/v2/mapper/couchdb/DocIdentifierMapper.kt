@@ -12,7 +12,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 @Mapper(
 	componentModel = "spring",
 	uses = [],
-	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface DocIdentifierV2Mapper {
 	fun map(docIdentifierDto: DocIdentifierDto): DocIdentifier

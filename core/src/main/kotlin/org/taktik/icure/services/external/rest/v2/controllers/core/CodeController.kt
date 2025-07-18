@@ -59,11 +59,14 @@ class CodeController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input. If several types are provided, pagination is not supported")
+	@Operation(
+		summary = "Finding codes by code, type and version with pagination.",
+		description = "Returns a list of codes matched with given input. If several types are provided, pagination is not supported",
+	)
 	@GetMapping("/byLabel")
 	fun findCodesByLabel(
 		@RequestParam(required = true) region: String?,
@@ -71,11 +74,15 @@ class CodeController(
 		@RequestParam(required = true) language: String,
 		@RequestParam(required = true) label: String,
 		@RequestParam(required = false) version: String?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(
+			description =
+			"The start key for pagination: a JSON representation of an array containing all the necessary " +
+				"components to form the Complex Key's startKey",
+		) @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CodeDto> {
-		if((sanitizeString(label)?.length ?: 0) < 3) throw IllegalArgumentException("Label must contain at least 3 characters")
+		if ((sanitizeString(label)?.length ?: 0) < 3) throw IllegalArgumentException("Label must contain at least 3 characters")
 
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -87,7 +94,10 @@ class CodeController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input.")
+	@Operation(
+		summary = "Finding codes by code, type and version with pagination.",
+		description = "Returns a list of codes matched with given input.",
+	)
 	@GetMapping
 	fun findCodesByType(
 		@RequestParam(required = true) region: String,
@@ -96,15 +106,16 @@ class CodeController(
 		@RequestParam(required = false) version: String?,
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CodeDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<String?>>(it) }
-		val paginationOffset = PaginationOffset(
-			startKeyElements,
-			startDocumentId,
-			null,
-			limit ?: paginationConfig.defaultLimit
-		)
+		val paginationOffset =
+			PaginationOffset(
+				startKeyElements,
+				startDocumentId,
+				null,
+				limit ?: paginationConfig.defaultLimit,
+			)
 
 		return codeService
 			.findCodesBy(region, type, code, version, paginationOffset)
@@ -112,16 +123,23 @@ class CodeController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Finding codes by code, type and version with pagination.", description = "Returns a list of codes matched with given input.")
+	@Operation(
+		summary = "Finding codes by code, type and version with pagination.",
+		description = "Returns a list of codes matched with given input.",
+	)
 	@GetMapping("/byLink/{linkType}")
 	fun findCodesByLink(
 		@PathVariable linkType: String,
 		@RequestParam(required = false) linkedId: String?,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey")
+		@Parameter(
+			description =
+			"The start key for pagination: a JSON representation of an array containing all the necessary " +
+				"components to form the Complex Key's startKey",
+		)
 		@RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A code document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
-	) : PaginatedFlux<CodeDto> {
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+	): PaginatedFlux<CodeDto> {
 		val startKeyElements: List<String>? = startKey?.let { objectMapper.readValue<List<String>>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return codeService
@@ -136,40 +154,49 @@ class CodeController(
 		@Parameter(description = "Code region") @RequestParam(required = true) region: String,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 		@Parameter(description = "Code code") @RequestParam(required = false) code: String?,
-		@Parameter(description = "Code version") @RequestParam(required = false) version: String?
-	) = codeService.findCodesBy(region, type, code, version)
-			.map { c -> codeV2Mapper.map(c) }
-			.injectReactorContext()
+		@Parameter(description = "Code version") @RequestParam(required = false) version: String?,
+	) = codeService
+		.findCodesBy(region, type, code, version)
+		.map { c -> codeV2Mapper.map(c) }
+		.injectReactorContext()
 
 	@Operation(summary = "Finding code types.", description = "Returns a list of code types matched with given input.")
 	@GetMapping("/codetype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun listCodeTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
-		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
+		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Finding tag types.", description = "Returns a list of tag types matched with given input.")
 	@GetMapping("/tagtype/byRegionType", produces = [APPLICATION_JSON_VALUE])
 	fun listTagTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
-		@Parameter(description = "Code type") @RequestParam(required = false) type: String?
+		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 	): Flux<String> {
 		val tagTypeCandidates = codeService.getTagTypeCandidates()
-		return codeService.listCodeTypesBy(region, type)
+		return codeService
+			.listCodeTypesBy(region, type)
 			.filter { tagTypeCandidates.contains(it) }
 			.injectReactorContext()
 	}
 
 	@Operation(summary = "Create a Code", description = "Type, Code and Version are required.")
 	@PostMapping
-	fun createCode(@RequestBody c: CodeDto) = mono {
+	fun createCode(
+		@RequestBody c: CodeDto,
+	) = mono {
 		val code = codeService.create(codeV2Mapper.map(c))
 		code?.let { codeV2Mapper.map(it) }
 	}
 
-	@Operation(summary = "Create a batch of codes", description = "Create a batch of code entities. Fields Type, Code and Version are required for each code.")
+	@Operation(
+		summary = "Create a batch of codes",
+		description = "Create a batch of code entities. Fields Type, Code and Version are required for each code.",
+	)
 	@PostMapping("/batch")
-	fun createCodes(@RequestBody codeBatch: List<CodeDto>) = mono {
+	fun createCodes(
+		@RequestBody codeBatch: List<CodeDto>,
+	) = mono {
 		val codes = codeBatch.map { codeV2Mapper.map(it) }
 		try {
 			codeService.create(codes)?.map { codeV2Mapper.map(it) }
@@ -183,10 +210,10 @@ class CodeController(
 	fun isCodeValid(
 		@RequestParam type: String,
 		@RequestParam code: String,
-		@RequestParam version: String?
+		@RequestParam version: String?,
 	) = mono {
 		BooleanResponseDto(
-			response = codeService.isValid(type, code, version)
+			response = codeService.isValid(type, code, version),
 		)
 	}
 
@@ -195,62 +222,95 @@ class CodeController(
 		@RequestParam region: String,
 		@RequestParam label: String,
 		@RequestParam type: String,
-		@RequestParam languages: String?
+		@RequestParam languages: String?,
 	): Mono<CodeDto?> = mono {
-		val code = languages?.let {
-			codeService.getCodeByLabel(region, label, type, it.split(","))
-		} ?: codeService.getCodeByLabel(region, label, type)
+		val code =
+			languages?.let {
+				codeService.getCodeByLabel(region, label, type, it.split(","))
+			} ?: codeService.getCodeByLabel(region, label, type)
 		code?.let { codeV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Get a list of codes by ids")
 	@PostMapping("/byIds")
-	fun getCodes(@RequestBody codeIds: ListOfIdsDto) = codeIds.ids.takeIf { it.isNotEmpty() }
+	fun getCodes(
+		@RequestBody codeIds: ListOfIdsDto,
+	) = codeIds.ids
+		.takeIf { it.isNotEmpty() }
 		?.let { ids -> codeService.getCodes(ids).map { f -> codeV2Mapper.map(f) }.injectReactorContext() }
-		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
 
-	@Operation(summary = "Get a code", description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.")
+	@Operation(
+		summary = "Get a code",
+		description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.",
+	)
 	@GetMapping("/{codeId}")
-	fun getCode(@Parameter(description = "Code id") @PathVariable codeId: String) = mono {
-		val c = codeService.get(codeId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code. Read the app logs.")
+	fun getCode(
+		@Parameter(description = "Code id") @PathVariable codeId: String,
+	) = mono {
+		val c =
+			codeService.get(codeId)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code. Read the app logs.")
 		codeV2Mapper.map(c)
 	}
 
-	@Operation(summary = "Get a code", description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.")
+	@Operation(
+		summary = "Get a code",
+		description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.",
+	)
 	@GetMapping("/{type}/{code}/{version}")
 	fun getCodeWithParts(
 		@Parameter(description = "Code type") @PathVariable type: String,
 		@Parameter(description = "Code code") @PathVariable code: String,
-		@Parameter(description = "Code version") @PathVariable version: String
+		@Parameter(description = "Code version") @PathVariable version: String,
 	) = mono {
-		val c = codeService.get(type, code, version)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code with parts. Read the app logs.")
+		val c =
+			codeService.get(type, code, version)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code with parts. Read the app logs.")
 		codeV2Mapper.map(c)
 	}
 
 	@Operation(summary = "Modify a code", description = "Modification of (type, code, version) is not allowed.")
 	@PutMapping
-	fun modifyCode(@RequestBody codeDto: CodeDto) = mono {
-		val modifiedCode = try {
-			codeService.modify(codeV2Mapper.map(codeDto))
-		} catch (e: Exception) {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "A problem regarding modification of the code. Read the app logs: " + e.message)
-		}
+	fun modifyCode(
+		@RequestBody codeDto: CodeDto,
+	) = mono {
+		val modifiedCode =
+			try {
+				codeService.modify(codeV2Mapper.map(codeDto))
+			} catch (e: Exception) {
+				throw ResponseStatusException(
+					HttpStatus.INTERNAL_SERVER_ERROR,
+					"A problem regarding modification of the code. Read the app logs: " + e.message,
+				)
+			}
 		modifiedCode?.let { codeV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Modify a batch of codes", description = "Modification of (type, code, version) is not allowed.")
 	@PutMapping("/batch")
-	fun modifyCodes(@RequestBody codeBatch: List<CodeDto>) =
-		codeService.modify(codeBatch.map { codeV2Mapper.map(it) })
-			.catch { e ->
-				if (e is IllegalStateException) throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-				else throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "A problem regarding modification of the code. Read the app logs: " + e.message)
+	fun modifyCodes(
+		@RequestBody codeBatch: List<CodeDto>,
+	) = codeService
+		.modify(codeBatch.map { codeV2Mapper.map(it) })
+		.catch { e ->
+			if (e is IllegalStateException) {
+				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
+			} else {
+				throw ResponseStatusException(
+					HttpStatus.INTERNAL_SERVER_ERROR,
+					"A problem regarding modification of the code. Read the app logs: " + e.message,
+				)
 			}
-			.map { codeV2Mapper.map(it) }.injectReactorContext()
+		}.map { codeV2Mapper.map(it) }
+		.injectReactorContext()
 
-	@Operation(summary = "Filter codes ", description = "Returns a list of codes along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter codes ",
+		description = "Returns a list of codes along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterCodesBy(
 		@Parameter(description = "The start key for pagination, depends on the filters used") @RequestParam(required = false) startKey: String?,
@@ -259,28 +319,31 @@ class CodeController(
 		@Parameter(description = "Skip rows") @RequestParam(required = false) skip: Int?,
 		@Parameter(description = "Sort key") @RequestParam(required = false) sort: String?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
-		@RequestBody(required = false) filterChain: FilterChain<CodeDto>
+		@RequestBody(required = false) filterChain: FilterChain<CodeDto>,
 	) = mono {
-
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val startKeyList = startKey?.split(',')?.filter { it.isNotBlank() }?.map { it.trim() } ?: listOf()
 
 		val paginationOffset = PaginationOffset(startKeyList, startDocumentId, skip, realLimit + 1)
-		codeService.listCodes(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
+		codeService
+			.listCodes(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
 			.paginatedList(codeV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get the ids of the Codes matching a filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(
-		@RequestBody filter: AbstractFilterDto<CodeDto>
-	) = codeService.matchCodesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<CodeDto>,
+	) = codeService
+		.matchCodesBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(summary = "Import codes", description = "Import codes from the resources XML file depending on the passed pathVariable")
 	@PostMapping("/{codeType}")
-	fun importCodes(@PathVariable codeType: String) = mono {
+	fun importCodes(
+		@PathVariable codeType: String,
+	) = mono {
 		val resolver = PathMatchingResourcePatternResolver(javaClass.classLoader)
 		resolver.getResources("classpath*:/org/taktik/icure/db/codes/$codeType.*.xml").forEach {
 			it.filename?.let { filename ->

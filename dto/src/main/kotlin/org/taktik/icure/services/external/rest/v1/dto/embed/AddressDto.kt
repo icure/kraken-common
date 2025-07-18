@@ -36,8 +36,10 @@ data class AddressDto(
 	@Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
 	@Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
 	override val encryptedSelf: String? = null,
-) : EncryptableDto, Serializable, Comparable<AddressDto>, HasTagsDto, HasCodesDto {
-	override fun compareTo(other: AddressDto): Int {
-		return addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
-	}
+) : EncryptableDto,
+	Serializable,
+	Comparable<AddressDto>,
+	HasTagsDto,
+	HasCodesDto {
+	override fun compareTo(other: AddressDto): Int = addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
 }

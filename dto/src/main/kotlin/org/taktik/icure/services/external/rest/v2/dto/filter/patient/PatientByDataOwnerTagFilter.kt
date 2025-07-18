@@ -19,5 +19,5 @@ data class PatientByDataOwnerTagFilter(
 	override val desc: String? = null,
 	val dataOwnerId: String,
 	val tagType: String,
-	val tagCode: String? = null
+	val tagCode: String? = null,
 ) : AbstractFilterDto<PatientDto>

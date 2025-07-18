@@ -12,5 +12,5 @@ import java.io.Serializable
 data class GroupDatabasesInfoDto(
 	val groupId: String,
 	val databasesInfo: List<DatabaseInfoDto>,
-	val gcpStorageSize: Long
+	val gcpStorageSize: Long,
 ) : Serializable

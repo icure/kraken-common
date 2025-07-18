@@ -1,8 +1,5 @@
 package org.taktik.icure.handlers
 
-import java.io.IOException
-import java.math.BigDecimal
-import java.math.BigInteger
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -10,6 +7,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.NullNode
+import java.io.IOException
+import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * Helper base class for [JsonDeserializer] implementations that deserialize
@@ -22,17 +22,15 @@ import com.fasterxml.jackson.databind.node.NullNode
 </T> */
 abstract class JsonObjectDeserializer<T> : JsonDeserializer<T>() {
 	@Throws(IOException::class)
-	override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): T {
-		return try {
-			val codec = jp.codec
-			val tree = codec.readTree<JsonNode>(jp)
-			deserializeObject(jp, ctxt, codec, tree)
-		} catch (ex: Exception) {
-			if (ex is IOException) {
-				throw ex
-			}
-			throw JsonMappingException(jp, "Object deserialize error", ex)
+	override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): T = try {
+		val codec = jp.codec
+		val tree = codec.readTree<JsonNode>(jp)
+		deserializeObject(jp, ctxt, codec, tree)
+	} catch (ex: Exception) {
+		if (ex is IOException) {
+			throw ex
 		}
+		throw JsonMappingException(jp, "Object deserialize error", ex)
 	}
 
 	/**
@@ -49,8 +47,10 @@ abstract class JsonObjectDeserializer<T> : JsonDeserializer<T>() {
 	 */
 	@Throws(IOException::class)
 	protected abstract fun deserializeObject(
-		jsonParser: JsonParser?, context: DeserializationContext?, codec: ObjectCodec,
-		tree: JsonNode
+		jsonParser: JsonParser?,
+		context: DeserializationContext?,
+		codec: ObjectCodec,
+		tree: JsonNode,
 	): T
 
 	/**
@@ -62,21 +62,19 @@ abstract class JsonObjectDeserializer<T> : JsonDeserializer<T>() {
 	 * or [BigInteger].
 	 * @param <D> the data type requested
 	 * @return the node value or `null`
-	</D> */
-	protected fun <D> nullSafeValue(jsonNode: JsonNode?, type: Class<D>): D? {
-		return when {
-			jsonNode == null -> null
-			type == String::class.java -> jsonNode.textValue() as D
-			type == Boolean::class.java -> java.lang.Boolean.valueOf(jsonNode.booleanValue()) as D
-			type == Long::class.java -> java.lang.Long.valueOf(jsonNode.longValue()) as D
-			type == Int::class.java -> Integer.valueOf(jsonNode.intValue()) as D
-			type == Short::class.java -> jsonNode.shortValue() as D
-			type == Double::class.java -> java.lang.Double.valueOf(jsonNode.doubleValue()) as D
-			type == Float::class.java -> java.lang.Float.valueOf(jsonNode.floatValue()) as D
-			type == BigDecimal::class.java -> jsonNode.decimalValue() as D
-			type == BigInteger::class.java -> jsonNode.bigIntegerValue() as D
-			else -> throw IllegalArgumentException("Unsupported value type " + type.name)
-		}
+	 </D> */
+	protected fun <D> nullSafeValue(jsonNode: JsonNode?, type: Class<D>): D? = when {
+		jsonNode == null -> null
+		type == String::class.java -> jsonNode.textValue() as D
+		type == Boolean::class.java -> java.lang.Boolean.valueOf(jsonNode.booleanValue()) as D
+		type == Long::class.java -> java.lang.Long.valueOf(jsonNode.longValue()) as D
+		type == Int::class.java -> Integer.valueOf(jsonNode.intValue()) as D
+		type == Short::class.java -> jsonNode.shortValue() as D
+		type == Double::class.java -> java.lang.Double.valueOf(jsonNode.doubleValue()) as D
+		type == Float::class.java -> java.lang.Float.valueOf(jsonNode.floatValue()) as D
+		type == BigDecimal::class.java -> jsonNode.decimalValue() as D
+		type == BigInteger::class.java -> jsonNode.bigIntegerValue() as D
+		else -> throw IllegalArgumentException("Unsupported value type " + type.name)
 	}
 
 	/**

@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
@@ -22,20 +22,19 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class PatientByHcPartyFilter(
 	private val patientDAO: PatientDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyFilter> {
-
 	override fun resolve(
 		filter: PatientByHcPartyFilter,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	) = flow {
 		try {
 			val hcpId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			emitAll(
 				mergeUniqueIdsForSearchKeys(sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcpId)) { key ->
 					patientDAO.listPatientIdsByHcParty(datastoreInformation, key)
-				}
+				},
 			)
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)

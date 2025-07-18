@@ -12,5 +12,5 @@ import java.io.Serializable
 data class AddFormRequest(
 	val patientId: String? = null,
 	val formId: String? = null,
-	val formTemplateGuid: String? = null
+	val formTemplateGuid: String? = null,
 ) : Serializable

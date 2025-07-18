@@ -5,12 +5,16 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class State (
+class State(
 	val name: String = "",
 	val stateToUpdate: StateToUpdate = StateToUpdate.VISIBLE,
 	val canLaunchLauncher: Boolean = false,
 )
 
 enum class StateToUpdate {
-	VALUE, VISIBLE, READONLY, CLAZZ, REQUIRED
+	VALUE,
+	VISIBLE,
+	READONLY,
+	CLAZZ,
+	REQUIRED,
 }

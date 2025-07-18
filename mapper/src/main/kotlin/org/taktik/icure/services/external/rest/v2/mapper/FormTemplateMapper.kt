@@ -41,7 +41,7 @@ abstract class FormTemplateV2Mapper {
 			.configure(KotlinFeature.NullIsSameAsDefault, true)
 			.configure(KotlinFeature.NullToEmptyCollection, true)
 			.configure(KotlinFeature.NullToEmptyMap, true)
-			.build()
+			.build(),
 	).apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
 
 	val yaml: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(
@@ -49,7 +49,7 @@ abstract class FormTemplateV2Mapper {
 			.configure(KotlinFeature.NullIsSameAsDefault, true)
 			.configure(KotlinFeature.NullToEmptyCollection, true)
 			.configure(KotlinFeature.NullToEmptyMap, true)
-			.build()
+			.build(),
 	).apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
 
 	@Mappings(
@@ -59,7 +59,7 @@ abstract class FormTemplateV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	abstract fun map(formTemplateDto: FormTemplateDto): FormTemplate
 
@@ -70,16 +70,17 @@ abstract class FormTemplateV2Mapper {
 
 	fun mapTemplateLayout(formTemplateLayout: ByteArray?): FormTemplateLayout? = formTemplateLayout?.let {
 		try {
-			if (it[0] == 123.toByte()) json.readValue(it, FormTemplateLayout::class.java) else
+			if (it[0] == 123.toByte()) {
+				json.readValue(it, FormTemplateLayout::class.java)
+			} else {
 				yaml.readValue(it, FormTemplateLayout::class.java)
+			}
 		} catch (e: Exception) {
 			throw IllegalArgumentException("Could not parse form template layout. Try again requesting the raw template.")
 		}
 	}
 
-	fun mapLayout(formTemplateDto: FormTemplateDto): ByteArray? {
-		return formTemplateDto.templateLayout?.let {
-			json.writeValueAsBytes(it)
-		}
+	fun mapLayout(formTemplateDto: FormTemplateDto): ByteArray? = formTemplateDto.templateLayout?.let {
+		json.writeValueAsBytes(it)
 	}
 }

@@ -33,23 +33,28 @@ import org.taktik.icure.utils.injectReactorContext
 @Tag(name = "place")
 class PlaceController(
 	private val placeService: PlaceService,
-	private val placeMapper: PlaceMapper
+	private val placeMapper: PlaceMapper,
 ) {
-
 	@Operation(summary = "Creates a place")
 	@PostMapping
-	fun createPlace(@RequestBody placeDto: PlaceDto) = mono {
+	fun createPlace(
+		@RequestBody placeDto: PlaceDto,
+	) = mono {
 		placeService.createPlace(placeMapper.map(placeDto))?.let { placeMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
 	}
 
 	@Operation(summary = "Deletes a place")
 	@DeleteMapping("/{placeIds}")
-	fun deletePlace(@PathVariable placeIds: String) = placeService.deletePlaces(placeIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
+	fun deletePlace(
+		@PathVariable placeIds: String,
+	) = placeService.deletePlaces(placeIds.split(',').map { IdAndRev(it, null) }).injectReactorContext()
 
 	@Operation(summary = "Gets a place")
 	@GetMapping("/{placeId}")
-	fun getPlace(@PathVariable placeId: String) = mono {
+	fun getPlace(
+		@PathVariable placeId: String,
+	) = mono {
 		placeService.getPlace(placeId)?.let { placeMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
@@ -60,7 +65,9 @@ class PlaceController(
 
 	@Operation(summary = "Modifies a place")
 	@PutMapping
-	fun modifyPlace(@RequestBody placeDto: PlaceDto) = mono {
+	fun modifyPlace(
+		@RequestBody placeDto: PlaceDto,
+	) = mono {
 		placeService.modifyPlace(placeMapper.map(placeDto))?.let { placeMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
 	}

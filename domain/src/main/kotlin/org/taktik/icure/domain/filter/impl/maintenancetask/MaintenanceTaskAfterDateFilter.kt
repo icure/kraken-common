@@ -12,14 +12,14 @@ data class MaintenanceTaskAfterDateFilter(
 	override val desc: String? = null,
 	override val healthcarePartyId: String? = null,
 	override val date: Long,
-) : AbstractFilter<MaintenanceTask>, MaintenanceTaskAfterDateFilter {
+) : AbstractFilter<MaintenanceTask>,
+	MaintenanceTaskAfterDateFilter {
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) && (item.created ?: 0) > date
-	}
+	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) && (item.created ?: 0) > date
 }

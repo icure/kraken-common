@@ -12,17 +12,16 @@ data class DocumentByDataOwnerPatientDateFilter(
 	override val startDate: Instant? = null,
 	override val endDate: Instant? = null,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<Document>, DocumentByDataOwnerPatientDateFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Document>,
+	DocumentByDataOwnerPatientDateFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Document, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item)
-			&& item.secretForeignKeys.intersect(secretPatientKeys).isNotEmpty()
-			&& (startDate == null || (item.created != null && item.created >= startDate.toEpochMilli()))
-			&& (endDate == null || (item.created != null && item.created <= endDate.toEpochMilli()))
-
+	override fun matches(item: Document, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) &&
+		item.secretForeignKeys.intersect(secretPatientKeys).isNotEmpty() &&
+		(startDate == null || (item.created != null && item.created >= startDate.toEpochMilli())) &&
+		(endDate == null || (item.created != null && item.created <= endDate.toEpochMilli()))
 }

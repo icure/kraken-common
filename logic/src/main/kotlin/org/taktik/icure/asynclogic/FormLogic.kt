@@ -10,7 +10,9 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 
-interface FormLogic : EntityPersister<Form>, EntityWithSecureDelegationsLogic<Form> {
+interface FormLogic :
+	EntityPersister<Form>,
+	EntityWithSecureDelegationsLogic<Form> {
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 

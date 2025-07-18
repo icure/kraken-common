@@ -10,5 +10,11 @@ import org.taktik.icure.entities.base.EnumVersion
  */
 @EnumVersion(1L)
 enum class InsuranceParameter {
-	status, tc1, tc2, preferentialstatus, chronicaldisease, paymentapproval, mdaInputReference
+	status,
+	tc1,
+	tc2,
+	preferentialstatus,
+	chronicaldisease,
+	paymentapproval,
+	mdaInputReference,
 }

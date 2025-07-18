@@ -12,7 +12,10 @@ import kotlin.reflect.KClass
  * @param notMapped the [KClass] of all the exceptions that are not to be masked.
  * @return the [Exception] to throw.
  */
-fun maskToBadRequestExceptFor(e: Exception, vararg notMapped: KClass<*>): Exception =
-    notMapped.firstOrNull {
-        e::class == it
-    }?.let { e } ?: ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
+fun maskToBadRequestExceptFor(
+	e: Exception,
+	vararg notMapped: KClass<*>,
+): Exception = notMapped
+	.firstOrNull {
+		e::class == it
+	}?.let { e } ?: ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)

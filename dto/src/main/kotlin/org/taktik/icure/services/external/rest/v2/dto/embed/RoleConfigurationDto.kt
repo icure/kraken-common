@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class RoleConfigurationDto(
 	@Schema(required = true)
 	val source: SourceDto,
-	val roles: Set<String> = emptySet()
+	val roles: Set<String> = emptySet(),
 ) {
 	enum class SourceDto { CONFIGURATION, INHERITED, DEFAULT }
 }

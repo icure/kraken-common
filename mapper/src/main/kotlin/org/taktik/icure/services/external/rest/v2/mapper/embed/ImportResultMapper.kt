@@ -37,7 +37,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 interface ImportResultV2Mapper {
 	@Mappings(
 		Mapping(target = "warning", ignore = true),
-		Mapping(target = "error", ignore = true)
+		Mapping(target = "error", ignore = true),
 	)
 	fun map(importResultDto: ImportResultDto): ImportResult
 	fun map(importResult: ImportResult): ImportResultDto

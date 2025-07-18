@@ -16,5 +16,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class UsersByPatientIdFilter(
 	@Schema(required = true)
 	val patientId: String,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

@@ -46,7 +46,8 @@ enum class DocumentType {
 	template,
 	template_admin,
 	treatmentsuspension,
-	vaccination;
+	vaccination,
+	;
 
 	companion object {
 		fun fromName(name: String): DocumentType? = values().find { it.name == name }

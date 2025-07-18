@@ -9,23 +9,23 @@ import org.taktik.icure.asynclogic.VersionLogic
 @Service
 @Profile("app")
 class VersionLogicImpl(
-    private val jarUtils: JarUtils,
-    @Value("\${icure.version}") val versionFromProperties: String,
-): VersionLogic {
-    override fun getVersion(): String {
-        val manifest = jarUtils.manifest
-        return if (manifest != null) {
-            val version = manifest.mainAttributes.getValue("Build-revision")
-            version?.trim { it <= ' ' } ?: ""
-        } else {
-            versionFromProperties.trim { it <= ' ' }
-        }
-    }
+	private val jarUtils: JarUtils,
+	@Value("\${icure.version}") val versionFromProperties: String,
+) : VersionLogic {
+	override fun getVersion(): String {
+		val manifest = jarUtils.manifest
+		return if (manifest != null) {
+			val version = manifest.mainAttributes.getValue("Build-revision")
+			version?.trim { it <= ' ' } ?: ""
+		} else {
+			versionFromProperties.trim { it <= ' ' }
+		}
+	}
 
-    override fun getSemanticVersion(): String {
-        val semVerRegex = "(\\d+\\.\\d+\\.\\d+)".toRegex()
-        return getVersion().let { version ->
-            semVerRegex.find(version)?.groupValues?.get(1) ?: throw IllegalStateException("Invalid semantic version format")
-        }
-    }
+	override fun getSemanticVersion(): String {
+		val semVerRegex = "(\\d+\\.\\d+\\.\\d+)".toRegex()
+		return getVersion().let { version ->
+			semVerRegex.find(version)?.groupValues?.get(1) ?: throw IllegalStateException("Invalid semantic version format")
+		}
+	}
 }

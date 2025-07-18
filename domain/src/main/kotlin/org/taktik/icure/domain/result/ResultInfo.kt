@@ -17,11 +17,11 @@
  */
 package org.taktik.icure.domain.result
 
-import java.io.Serializable
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.embed.Service
+import java.io.Serializable
 
-data class ResultInfo (
+data class ResultInfo(
 	var ssin: String? = null,
 	var lastName: String? = null,
 	var firstName: String? = null,

@@ -33,5 +33,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class ServiceByHcPartyFilter(
 	@Schema(required = true)
 	val hcpId: String,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

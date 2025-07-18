@@ -10,7 +10,9 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
 
-interface DocumentTemplateDAO : GenericDAO<DocumentTemplate>, AttachmentManagementDAO<DocumentTemplate> {
+interface DocumentTemplateDAO :
+	GenericDAO<DocumentTemplate>,
+	AttachmentManagementDAO<DocumentTemplate> {
 	fun listDocumentTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String? = null, loadAttachment: Boolean = true): Flow<DocumentTemplate>
 
 	fun listDocumentTemplatesBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, healthcarePartyId: String? = null, guid: String? = null, loadAttachment: Boolean = true): Flow<DocumentTemplate>

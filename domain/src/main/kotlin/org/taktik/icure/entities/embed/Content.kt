@@ -32,7 +32,7 @@ data class Content(
 	@JsonProperty("c") val compoundValue: Set<Service>? = null,
 	@JsonProperty("ts") val timeSeries: TimeSeries? = null,
 	val ratio: List<Measure>? = null,
-	val range: List<Measure>? = null
+	val range: List<Measure>? = null,
 ) : Serializable {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
@@ -46,7 +46,9 @@ data class Content(
 		if (binaryValue != null) {
 			if (other.binaryValue == null) return false
 			if (!binaryValue.contentEquals(other.binaryValue)) return false
-		} else if (other.binaryValue != null) return false
+		} else if (other.binaryValue != null) {
+			return false
+		}
 		if (documentId != other.documentId) return false
 		if (measureValue != other.measureValue) return false
 		if (medicationValue != other.medicationValue) return false

@@ -5,5 +5,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class ViewDto(
 	@Schema(required = true)
 	val map: String,
-	val reduce: String? = null
+	val reduce: String? = null,
 )

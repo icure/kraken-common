@@ -10,11 +10,10 @@ import java.nio.ByteBuffer
 /**
  * Creates a new byte array from the data buffer, then releases the data buffer if requested.
  */
-fun DataBuffer.toByteArray(thenRelease: Boolean): ByteArray =
-	ByteArray(readableByteCount()).also {
-		read(it)
-		if (thenRelease) DataBufferUtils.release(this)
-	}
+fun DataBuffer.toByteArray(thenRelease: Boolean): ByteArray = ByteArray(readableByteCount()).also {
+	read(it)
+	if (thenRelease) DataBufferUtils.release(this)
+}
 
 fun ByteBuffer.toDataBuffer(): DataBuffer = DefaultDataBufferFactory.sharedInstance.wrap(array())
 

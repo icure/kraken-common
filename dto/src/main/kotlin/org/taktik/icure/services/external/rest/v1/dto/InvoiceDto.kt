@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
+import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
@@ -20,11 +21,12 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.MediumTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PaymentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PaymentTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
-import org.taktik.icure.services.external.rest.v1.dto.base.IdentifierDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity is a root level object. It represents an Invoice. It is serialized in JSON and saved in the underlying iCure CouchDB database.""")
+@Schema(
+	description = """This entity is a root level object. It represents an Invoice. It is serialized in JSON and saved in the underlying iCure CouchDB database.""",
+)
 data class InvoiceDto(
 	@Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
@@ -38,23 +40,31 @@ data class InvoiceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
-	@Schema(description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.") val invoiceDate: Long? = null, // yyyyMMdd
-	@Schema(description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.") val sentDate: Long? = null,
-	@Schema(description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.") val printedDate: Long? = null,
+	@Schema(
+		description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.",
+	) val invoiceDate: Long? = null, // yyyyMMdd
+	@Schema(
+		description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.",
+	) val sentDate: Long? = null,
+	@Schema(
+		description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.",
+	) val printedDate: Long? = null,
 	val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
 	@Schema(description = "") val receipts: Map<String, String> = emptyMap(),
 	@Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v1.dto.HealthcarePartyDto,
-
 	// org.taktik.icure.services.external.rest.v1.dto.InsuranceDto, org.taktik.icure.services.external.rest.v1.dto.PatientDto
-	@Schema(description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys") val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
+	@Schema(
+		description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys",
+	) val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
 	val invoiceReference: String? = null,
 	val decisionReference: String? = null,
 	val thirdPartyReference: String? = null,
 	val thirdPartyPaymentJustification: String? = null,
 	val thirdPartyPaymentReason: String? = null,
 	val reason: String? = null,
-	@Schema(description = "The format the invoice should follow based on the recipient which could be a patient, mutual fund or paying agency such as the CPAS") val invoiceType: InvoiceTypeDto? = null,
+	@Schema(
+		description = "The format the invoice should follow based on the recipient which could be a patient, mutual fund or paying agency such as the CPAS",
+	) val invoiceType: InvoiceTypeDto? = null,
 	@Schema(description = "Medium of the invoice: CD ROM, Email, paper, etc.") val sentMediumType: MediumTypeDto? = null,
 	val interventionType: InvoiceInterventionTypeDto? = null,
 	val groupId: String? = null,
@@ -90,24 +100,28 @@ data class InvoiceDto(
 	val creditNote: Boolean? = null,
 	val creditNoteRelatedInvoiceId: String? = null,
 	val idDocument: IdentityDocumentReaderDto? = null,
-
-	//efact hospitalization
+	// efact hospitalization
 	val admissionDate: Long? = null,
 	val locationNihii: String? = null,
 	val locationService: Int? = null,
-
-	//eattest cancel
+	// eattest cancel
 	val cancelReason: String? = null,
 	val cancelDate: Long? = null,
 	val options: Map<String, String> = emptyMap(),
-
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

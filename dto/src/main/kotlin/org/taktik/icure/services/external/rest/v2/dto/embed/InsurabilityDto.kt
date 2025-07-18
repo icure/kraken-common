@@ -21,11 +21,11 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
  * Created by aduchate on 21/01/13, 15:37
  */
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,6 +39,9 @@ data class InsurabilityDto(
 	@Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
 	@Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
 	@Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
-	@Schema(description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).") val titularyId: String? = null,
-	override val encryptedSelf: Base64StringDto? = null
-) : EncryptableDto, Serializable
+	@Schema(
+		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
+	) val titularyId: String? = null,
+	override val encryptedSelf: Base64StringDto? = null,
+) : EncryptableDto,
+	Serializable

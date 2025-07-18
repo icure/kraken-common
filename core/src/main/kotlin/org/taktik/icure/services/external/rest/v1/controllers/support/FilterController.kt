@@ -26,8 +26,8 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.healthelement.Healt
 import org.taktik.icure.services.external.rest.v1.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskAfterDateFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
-import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter
+import org.taktik.icure.services.external.rest.v1.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.patient.PatientByHcPartyAndIdentifiersFilter
@@ -48,8 +48,8 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.service.ServiceById
 import org.taktik.icure.services.external.rest.v1.dto.filter.service.ServiceBySecretForeignKeys
 import org.taktik.icure.services.external.rest.v1.dto.filter.user.AllUsersFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.user.UserByIdsFilter
-import org.taktik.icure.services.external.rest.v1.dto.filter.user.UsersByPatientIdFilter
 import org.taktik.icure.services.external.rest.v1.dto.filter.user.UserByNameEmailPhoneFilter
+import org.taktik.icure.services.external.rest.v1.dto.filter.user.UsersByPatientIdFilter
 
 @RestController
 @Profile("app")
@@ -101,7 +101,7 @@ class FilterController {
 		val allUsersFilter: AllUsersFilter? = null,
 		val userByIdsFilter: UserByIdsFilter? = null,
 		val usersByPatientIdFilter: UsersByPatientIdFilter? = null,
-		val userByNameEmailPhoneFilter: UserByNameEmailPhoneFilter? = null
+		val userByNameEmailPhoneFilter: UserByNameEmailPhoneFilter? = null,
 	)
 
 	@GetMapping("/definitions")

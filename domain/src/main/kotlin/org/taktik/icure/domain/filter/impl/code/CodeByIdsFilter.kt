@@ -24,8 +24,9 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class CodeByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilter<Code>, Filters.IdsFilter<String, Code> {
+	override val desc: String? = null,
+) : AbstractFilter<Code>,
+	Filters.IdsFilter<String, Code> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

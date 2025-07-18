@@ -20,7 +20,7 @@ interface TarificationMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(tarificationDto: TarificationDto): Tarification
 	fun map(tarification: Tarification): TarificationDto

@@ -27,6 +27,6 @@ import org.taktik.icure.entities.HealthElement
  * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
  */
 interface HealthElementByHcPartyStatusFilter : Filter<String, HealthElement> {
-    val hcPartyId: String
-    val status: Int
+	val hcPartyId: String
+	val status: Int
 }

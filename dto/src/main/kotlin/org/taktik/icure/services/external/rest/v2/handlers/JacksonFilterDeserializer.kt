@@ -25,11 +25,15 @@ class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>()
 	private val scanner = Reflections(AbstractFilterDto::class.java, TypeAnnotationsScanner(), SubTypesScanner())
 
 	init {
-        Preconditions.checkArgument(
-            Modifier.isAbstract(AbstractFilterDto::class.java.modifiers),
-            "Superclass must be abstract"
-        )
-		val classes = scanner.getTypesAnnotatedWith(JsonPolymorphismRoot::class.java).filter { AbstractFilterDto::class.java.isAssignableFrom(it) }
+		Preconditions.checkArgument(
+			Modifier.isAbstract(AbstractFilterDto::class.java.modifiers),
+			"Superclass must be abstract",
+		)
+		val classes =
+			scanner
+				.getTypesAnnotatedWith(
+					JsonPolymorphismRoot::class.java,
+				).filter { AbstractFilterDto::class.java.isAssignableFrom(it) }
 		for (subClass in classes) {
 			val discriminated = subClass.getAnnotation(JsonDiscriminated::class.java)
 			val discriminatedString = discriminated?.value ?: subClass.simpleName
@@ -52,18 +56,28 @@ class JacksonFilterDeserializer : JsonObjectDeserializer<AbstractFilterDto<*>>()
 	 * the tree setting the value of `type` to the value of `filterType`, and then deserializing the object.
 	 * All the other cases are considered erroneous.
 	 */
-	override fun deserializeObject(jsonParser: JsonParser?, context: DeserializationContext?, codec: ObjectCodec, tree: JsonNode): AbstractFilterDto<*> =
-		tree[discriminator]?.textValue()?.let {
+	override fun deserializeObject(
+		jsonParser: JsonParser?,
+		context: DeserializationContext?,
+		codec: ObjectCodec,
+		tree: JsonNode,
+	): AbstractFilterDto<*> = tree[discriminator]?.textValue()?.let {
+		deserializeObjectUsingDiscriminator(it, codec, tree)
+	} ?: tree[secondaryDiscriminator]?.textValue()?.let {
+		val typeValue = tree[secondaryTypeField]
+		if (typeValue != null && tree is ObjectNode) {
+			tree.set<JsonNode>(secondaryDiscriminator, typeValue)
 			deserializeObjectUsingDiscriminator(it, codec, tree)
-		} ?: tree[secondaryDiscriminator]?.textValue()?.let {
-			val typeValue = tree[secondaryTypeField]
-			if(typeValue != null && tree is ObjectNode) {
-				tree.set<JsonNode>(secondaryDiscriminator, typeValue)
-				deserializeObjectUsingDiscriminator(it, codec, tree)
-			} else throw IllegalArgumentException("Invalid alternative format for Filter JSON")
-		} ?: throw IllegalArgumentException("Invalid JSON filter format")
+		} else {
+			throw IllegalArgumentException("Invalid alternative format for Filter JSON")
+		}
+	} ?: throw IllegalArgumentException("Invalid JSON filter format")
 
-	private fun deserializeObjectUsingDiscriminator(discriminator: String, codec: ObjectCodec, tree: JsonNode): AbstractFilterDto<*> {
+	private fun deserializeObjectUsingDiscriminator(
+		discriminator: String,
+		codec: ObjectCodec,
+		tree: JsonNode,
+	): AbstractFilterDto<*> {
 		val selectedSubClass = requireNotNull(subclasses[discriminator]) { "Invalid subclass $discriminator in object" }
 		return codec.treeToValue(tree, selectedSubClass)
 	}

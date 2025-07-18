@@ -8,16 +8,16 @@ import java.security.spec.RSAPublicKeySpec
 import java.util.Base64
 
 data class JwtPublicKey(
-    val n: String,
-    val e: String
+	val n: String,
+	val e: String,
 ) {
-    val publicKey: RSAPublicKey
-        get() {
-            return KeyFactory.getInstance("RSA").generatePublic(
-                RSAPublicKeySpec(
-                    BigInteger(1, Base64.getUrlDecoder().decode(n)),
-                    BigInteger(1, Base64.getUrlDecoder().decode(e))
-                )
-            ) as RSAPublicKey
-        }
+	val publicKey: RSAPublicKey
+		get() {
+			return KeyFactory.getInstance("RSA").generatePublic(
+				RSAPublicKeySpec(
+					BigInteger(1, Base64.getUrlDecoder().decode(n)),
+					BigInteger(1, Base64.getUrlDecoder().decode(e)),
+				),
+			) as RSAPublicKey
+		}
 }

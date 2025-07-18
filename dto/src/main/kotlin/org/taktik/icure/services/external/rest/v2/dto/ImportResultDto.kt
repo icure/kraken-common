@@ -33,5 +33,5 @@ data class ImportResultDto(
 	val forms: List<FormDto> = listOf(),
 	val hcps: List<HealthcarePartyDto> = listOf(),
 	val documents: List<DocumentDto> = listOf(),
-	val attachments: Map<String, MimeAttachmentDto> = mapOf()
+	val attachments: Map<String, MimeAttachmentDto> = mapOf(),
 )

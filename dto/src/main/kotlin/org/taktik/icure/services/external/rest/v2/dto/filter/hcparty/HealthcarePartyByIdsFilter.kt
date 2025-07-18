@@ -34,5 +34,6 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 data class HealthcarePartyByIdsFilter(
 	@Schema(required = true)
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilterDto<HealthcarePartyDto>, FilterDto.IdsFilter<String, HealthcarePartyDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<HealthcarePartyDto>,
+	FilterDto.IdsFilter<String, HealthcarePartyDto>

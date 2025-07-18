@@ -34,5 +34,6 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 data class TopicByHcPartyFilter(
 	@Schema(required = true)
 	override val hcpId: String,
-	override val desc: String? = null
-) : AbstractFilterDto<TopicDto>, FilterDto.ByHcpartyFilter<TopicDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<TopicDto>,
+	FilterDto.ByHcpartyFilter<TopicDto>

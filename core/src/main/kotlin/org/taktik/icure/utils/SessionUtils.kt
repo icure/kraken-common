@@ -7,9 +7,7 @@ package org.taktik.icure.utils
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import javax.security.auth.login.LoginException
 
-suspend fun getLoggedHealthCarePartyId(sessionLogic: SessionInformationProvider): String {
-	return sessionLogic.getCurrentSessionContext().getHealthcarePartyId() ?: throw LoginException("You must be a HCP to perform this action. ")
-}
+suspend fun getLoggedHealthCarePartyId(sessionLogic: SessionInformationProvider): String = sessionLogic.getCurrentSessionContext().getHealthcarePartyId() ?: throw LoginException("You must be a HCP to perform this action. ")
 
 suspend fun getLoggedDataOwnerId(sessionLogic: SessionInformationProvider): String {
 	val ctx = sessionLogic.getCurrentSessionContext()

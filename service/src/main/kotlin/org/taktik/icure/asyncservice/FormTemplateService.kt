@@ -11,6 +11,7 @@ interface FormTemplateService {
 	fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>): Flow<FormTemplate>
 	suspend fun createFormTemplate(entity: FormTemplate): FormTemplate
 	suspend fun getFormTemplate(formTemplateId: String): FormTemplate?
+
 	/**
 	 * If there is any form template with author=[userId] and guid=[formTemplateGuid] returns them, regardless of
 	 * [specialityCode].

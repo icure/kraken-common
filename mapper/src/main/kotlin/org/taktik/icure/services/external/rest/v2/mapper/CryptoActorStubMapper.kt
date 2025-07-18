@@ -12,16 +12,17 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 
 @Mapper(
-    componentModel = "spring",
-    uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class],
-    injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	componentModel = "spring",
+	uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface CryptoActorStubV2Mapper {
-    fun map(cryptoActorStub: CryptoActorStub): CryptoActorStubDto
-    @Mappings(
-        Mapping(target = "revHistory", ignore = true),
-    )
-    fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub
-    fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto
-    fun map(cryptoActorStubWithTypeDto: CryptoActorStubWithTypeDto): CryptoActorStubWithType
+	fun map(cryptoActorStub: CryptoActorStub): CryptoActorStubDto
+
+	@Mappings(
+		Mapping(target = "revHistory", ignore = true),
+	)
+	fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub
+	fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto
+	fun map(cryptoActorStubWithTypeDto: CryptoActorStubWithTypeDto): CryptoActorStubWithType
 }

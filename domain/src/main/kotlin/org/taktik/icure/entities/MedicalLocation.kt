@@ -40,26 +40,28 @@ data class MedicalLocation(
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument, Named {
+) : StoredDocument,
+	Named {
 	companion object : DynamicInitializer<MedicalLocation>
 
 	fun merge(other: MedicalLocation) = MedicalLocation(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: MedicalLocation) = super.solveConflictsWith(other) + mapOf(
-		"name" to (this.name ?: other.name),
-		"description" to (this.description ?: other.description),
-		"responsible" to (this.responsible ?: other.responsible),
-		"guardPost" to (this.guardPost ?: other.guardPost),
-		"cbe" to (this.cbe ?: other.cbe),
-		"bic" to (this.bic ?: other.bic),
-		"bankAccount" to (this.bankAccount ?: other.bankAccount),
-		"nihii" to (this.nihii ?: other.nihii),
-		"ssin" to (this.ssin ?: other.ssin),
-		"address" to (this.address ?: other.address),
-		"agendaIds" to (other.agendaIds + this.agendaIds),
-		"optons" to (other.options + this.options)
-	)
+	fun solveConflictsWith(other: MedicalLocation) = super.solveConflictsWith(other) +
+		mapOf(
+			"name" to (this.name ?: other.name),
+			"description" to (this.description ?: other.description),
+			"responsible" to (this.responsible ?: other.responsible),
+			"guardPost" to (this.guardPost ?: other.guardPost),
+			"cbe" to (this.cbe ?: other.cbe),
+			"bic" to (this.bic ?: other.bic),
+			"bankAccount" to (this.bankAccount ?: other.bankAccount),
+			"nihii" to (this.nihii ?: other.nihii),
+			"ssin" to (this.ssin ?: other.ssin),
+			"address" to (this.address ?: other.address),
+			"agendaIds" to (other.agendaIds + this.agendaIds),
+			"optons" to (other.options + this.options),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

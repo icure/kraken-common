@@ -16,5 +16,5 @@ data class ContactByDataOwnerServiceCodeFilter(
 	val dataOwnerId: String,
 	val codeType: String,
 	val codeCode: String?,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<ContactDto>

@@ -34,5 +34,5 @@ data class ServiceBySecretForeignKeys(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
 	@Schema(required = true)
-	val patientSecretForeignKeys: Set<String>
+	val patientSecretForeignKeys: Set<String>,
 ) : AbstractFilterDto<ServiceDto>

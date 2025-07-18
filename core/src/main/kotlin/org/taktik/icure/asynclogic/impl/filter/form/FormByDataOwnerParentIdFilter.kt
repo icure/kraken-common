@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.FormDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.form.FormByDataOwnerParentIdFilter
 import org.taktik.icure.entities.Form
 
@@ -17,18 +17,18 @@ import org.taktik.icure.entities.Form
 @Profile("app")
 class FormByDataOwnerParentIdFilter(
 	private val formDAO: FormDAO,
-	private val sessionInformationProvider: SessionInformationProvider
+	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Form, FormByDataOwnerParentIdFilter> {
-
 	override fun resolve(
 		filter: FormByDataOwnerParentIdFilter,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
-		formDAO.listFormIdsByDataOwnerAndParentId(
-			datastoreInformation = datastoreInformation,
-			searchKeys = sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId),
-			formId = filter.parentId
-		).also { emitAll(it) }
+		formDAO
+			.listFormIdsByDataOwnerAndParentId(
+				datastoreInformation = datastoreInformation,
+				searchKeys = sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId),
+				formId = filter.parentId,
+			).also { emitAll(it) }
 	}
 }

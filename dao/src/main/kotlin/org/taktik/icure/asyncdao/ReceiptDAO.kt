@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Receipt
 
-interface ReceiptDAO : GenericDAO<Receipt>, AttachmentManagementDAO<Receipt> {
+interface ReceiptDAO :
+	GenericDAO<Receipt>,
+	AttachmentManagementDAO<Receipt> {
 	fun listByReference(datastoreInformation: IDatastoreInformation, ref: String): Flow<Receipt>
 
 	fun listReceiptsAfterDate(datastoreInformation: IDatastoreInformation, date: Long): Flow<Receipt>

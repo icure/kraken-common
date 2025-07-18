@@ -19,5 +19,5 @@ data class CodeIdsByTypeCodeVersionIntervalFilter(
 	val startVersion: String? = null,
 	val endType: String? = null,
 	val endCode: String? = null,
-	val endVersion: String? = null
+	val endVersion: String? = null,
 ) : AbstractFilterDto<CodeDto>

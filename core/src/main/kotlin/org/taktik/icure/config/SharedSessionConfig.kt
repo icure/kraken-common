@@ -23,7 +23,10 @@ class SharedSessionConfig {
 	fun webSessionIdResolver() = CookieWebSessionIdResolver().apply { addCookieInitializer { cb -> cb.sameSite("None").secure(true) } }
 
 	@Bean
-	fun webSessionManager(repository: ReactiveSessionRepository<MapSession>, webSessionIdResolver: WebSessionIdResolver?) = object : DefaultWebSessionManager() {
+	fun webSessionManager(
+		repository: ReactiveSessionRepository<MapSession>,
+		webSessionIdResolver: WebSessionIdResolver?,
+	) = object : DefaultWebSessionManager() {
 		override fun getSession(exchange: ServerWebExchange) = exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.getSession(exchange)
 	}.apply<DefaultWebSessionManager> {
 		webSessionIdResolver?.let { this.sessionIdResolver = it }

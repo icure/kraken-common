@@ -5,9 +5,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 data class Diff(val propertyName: String, val diffs: List<Diff> = listOf()) {
-	fun toString(prefix: String = ""): String {
-		return "$prefix$propertyName, diffs=\n${diffs.joinToString("\n") { prefix + it.toString("  $prefix") }})"
-	}
+	fun toString(prefix: String = ""): String = "$prefix$propertyName, diffs=\n${diffs.joinToString("\n") { prefix + it.toString("  $prefix") }})"
 }
 
 fun <K : Any> K.differences(o: K?): List<Diff> {
@@ -20,9 +18,14 @@ fun <K : Any> K.differences(o: K?): List<Diff> {
 					v != other[idx] -> Diff("$idx <-> $idx", v?.differences(other[idx]) ?: listOf())
 					else -> null
 				}
-			} + if ((other as List<*>).size > (this as List<*>).size) other.takeLast(other.size - this.size).mapIndexed { idx, _ ->
-				Diff("missing <-> ${idx + this.size}", listOf())
-			} else listOf()
+			} +
+				if ((other as List<*>).size > (this as List<*>).size) {
+					other.takeLast(other.size - this.size).mapIndexed { idx, _ ->
+						Diff("missing <-> ${idx + this.size}", listOf())
+					}
+				} else {
+					listOf()
+				}
 		} else if (self is Set<*>) {
 			val notInSelf = (other as Set<*>) - self
 			val notInOther = self - (other as Set<*>)
@@ -35,14 +38,14 @@ fun <K : Any> K.differences(o: K?): List<Diff> {
 					notInOther.map { o -> o to (s?.differences(o) ?: listOf()) }.minByOrNull { it.second.size }?.let {
 						it.first?.let { it1 -> othersTreated.add(it1) }
 						it.second.toList()
-					} ?: listOf()
+					} ?: listOf(),
 				)
 			}.toList() +
 				(notInOther - othersTreated).map { o ->
 					Diff(
 						"->",
 						notInSelf.map { s -> s?.differences(o) ?: listOf() }.minByOrNull { it.size }?.toList()
-							?: listOf()
+							?: listOf(),
 					)
 				}.toList()
 		} else {

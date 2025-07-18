@@ -38,7 +38,7 @@ suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEve
 	mapper: (U) -> T,
 	realLimit: Int,
 	objectMapper: ObjectMapper,
-	predicate: Predicate? = null
+	predicate: Predicate? = null,
 ): PaginatedList<T> {
 	var viewRowCount = 0
 	var lastProcessedViewRow: ViewRowWithDoc<*, *, *>? = null
@@ -47,53 +47,54 @@ suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEve
 	var nextKeyPair: PaginatedDocumentKeyIdPair? = null
 
 	val resultRows = mutableListOf<T>()
-	this.mapNotNull { viewQueryResultEvent ->
-		when (viewQueryResultEvent) {
-			is ViewRowWithDoc<*, *, *> -> {
-				when {
-					viewRowCount == realLimit -> {
-						nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
-						viewRowCount++
-						lastProcessedViewRow?.doc as? U
-					}
-					viewRowCount < realLimit -> {
-						val previous = lastProcessedViewRow
-						lastProcessedViewRow = viewQueryResultEvent
-						viewRowCount++
-						previous?.doc as? U // if this is the first one, the Mono will be empty, so it will be ignored by flatMap
-					}
-					else -> { // we have more elements than expected, just ignore them
-						viewRowCount++
-						null
-					}
-				}?.takeUnless { predicate?.apply(it) == false }
-			}
-			is ViewRowNoDoc<*, *> -> {
-				when {
-					viewRowCount == realLimit -> {
-						nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
-						viewRowCount++
-						lastProcessedViewRowNoDoc?.id as? U
-					}
-					viewRowCount < realLimit -> {
-						val previous = lastProcessedViewRowNoDoc
-						lastProcessedViewRowNoDoc = viewQueryResultEvent
-						viewRowCount++
-						previous?.id as? U // if this is the first one, the Mono will be empty, so it will be ignored by flatMap
-					}
-					else -> { // we have more elements than expected, just ignore them
-						viewRowCount++
-						null
+	this
+		.mapNotNull { viewQueryResultEvent ->
+			when (viewQueryResultEvent) {
+				is ViewRowWithDoc<*, *, *> -> {
+					when {
+						viewRowCount == realLimit -> {
+							nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
+							viewRowCount++
+							lastProcessedViewRow?.doc as? U
+						}
+						viewRowCount < realLimit -> {
+							val previous = lastProcessedViewRow
+							lastProcessedViewRow = viewQueryResultEvent
+							viewRowCount++
+							previous?.doc as? U // if this is the first one, the Mono will be empty, so it will be ignored by flatMap
+						}
+						else -> { // we have more elements than expected, just ignore them
+							viewRowCount++
+							null
+						}
+					}?.takeUnless { predicate?.apply(it) == false }
+				}
+				is ViewRowNoDoc<*, *> -> {
+					when {
+						viewRowCount == realLimit -> {
+							nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
+							viewRowCount++
+							lastProcessedViewRowNoDoc?.id as? U
+						}
+						viewRowCount < realLimit -> {
+							val previous = lastProcessedViewRowNoDoc
+							lastProcessedViewRowNoDoc = viewQueryResultEvent
+							viewRowCount++
+							previous?.id as? U // if this is the first one, the Mono will be empty, so it will be ignored by flatMap
+						}
+						else -> { // we have more elements than expected, just ignore them
+							viewRowCount++
+							null
+						}
 					}
 				}
+				else -> {
+					null
+				}
 			}
-			else -> {
-				null
-			}
-		}
-	}.map {
-		mapper(it)
-	}.toCollection(resultRows)
+		}.map {
+			mapper(it)
+		}.toCollection(resultRows)
 
 	if (resultRows.size < realLimit) {
 		((lastProcessedViewRow?.doc as? U) ?: lastProcessedViewRowNoDoc?.id as U?)?.let { resultRows.add(mapper(it)) }
@@ -102,38 +103,42 @@ suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEve
 }
 
 @Suppress("UNCHECKED_CAST")
-suspend fun <T : Serializable> Flow<ViewQueryResultEvent>.paginatedList(realLimit: Int, objectMapper: ObjectMapper): PaginatedList<T> {
+suspend fun <T : Serializable> Flow<ViewQueryResultEvent>.paginatedList(
+	realLimit: Int,
+	objectMapper: ObjectMapper,
+): PaginatedList<T> {
 	var viewRowCount = 0
 	var lastProcessedViewRow: ViewRowWithDoc<*, *, *>? = null
 	var nextKeyPair: PaginatedDocumentKeyIdPair? = null
 
 	val resultRows = mutableListOf<T>()
-	this.mapNotNull { viewQueryResultEvent ->
-		when (viewQueryResultEvent) {
-			is ViewRowWithDoc<*, *, *> -> {
-				when {
-					viewRowCount == realLimit -> {
-						nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
-						viewRowCount++
-						lastProcessedViewRow?.doc as? T
-					}
-					viewRowCount < realLimit -> {
-						val previous = lastProcessedViewRow
-						lastProcessedViewRow = viewQueryResultEvent
-						viewRowCount++
-						previous?.doc as? T
-					}
-					else -> { // we have more elements than expected, just ignore them
-						viewRowCount++
-						null
+	this
+		.mapNotNull { viewQueryResultEvent ->
+			when (viewQueryResultEvent) {
+				is ViewRowWithDoc<*, *, *> -> {
+					when {
+						viewRowCount == realLimit -> {
+							nextKeyPair = PaginatedDocumentKeyIdPair(objectMapper.valueToTree(viewQueryResultEvent.key), viewQueryResultEvent.id)
+							viewRowCount++
+							lastProcessedViewRow?.doc as? T
+						}
+						viewRowCount < realLimit -> {
+							val previous = lastProcessedViewRow
+							lastProcessedViewRow = viewQueryResultEvent
+							viewRowCount++
+							previous?.doc as? T
+						}
+						else -> { // we have more elements than expected, just ignore them
+							viewRowCount++
+							null
+						}
 					}
 				}
+				else -> {
+					null
+				}
 			}
-			else -> {
-				null
-			}
-		}
-	}.toCollection(resultRows)
+		}.toCollection(resultRows)
 	if (resultRows.size < realLimit) {
 		(lastProcessedViewRow?.doc as? T)?.let {
 			resultRows.add(it)

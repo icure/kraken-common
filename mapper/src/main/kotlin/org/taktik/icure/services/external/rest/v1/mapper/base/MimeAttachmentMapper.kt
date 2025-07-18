@@ -10,4 +10,3 @@ interface MimeAttachmentMapper {
 	fun map(mimeAttachmentDto: MimeAttachmentDto): MimeAttachment
 	fun map(mimeAttachment: MimeAttachment): MimeAttachmentDto
 }
-

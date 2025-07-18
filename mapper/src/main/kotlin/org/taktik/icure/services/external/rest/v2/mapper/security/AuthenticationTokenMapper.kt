@@ -11,9 +11,10 @@ import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTok
 @Mapper(componentModel = "spring", uses = [InstantMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface UnsecureAuthenticationTokenV2Mapper {
 	@Mappings(
-		Mapping(target = "token", expression = """kotlin(requireNotNull(authenticationTokenDto.token) { "Token is missing" })""")
+		Mapping(target = "token", expression = """kotlin(requireNotNull(authenticationTokenDto.token) { "Token is missing" })"""),
 	)
 	fun map(authenticationTokenDto: AuthenticationTokenDto): AuthenticationToken
-	//Deletion date is not mapped back because the corresponding tokens will be deleted
+
+	// Deletion date is not mapped back because the corresponding tokens will be deleted
 	fun map(authenticationToken: AuthenticationToken): AuthenticationTokenDto
 }

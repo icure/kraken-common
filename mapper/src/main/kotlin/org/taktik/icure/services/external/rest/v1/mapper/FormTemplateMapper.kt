@@ -28,7 +28,7 @@ abstract class FormTemplateMapper {
 			.configure(KotlinFeature.NullIsSameAsDefault, true)
 			.configure(KotlinFeature.NullToEmptyCollection, true)
 			.configure(KotlinFeature.NullToEmptyMap, true)
-			.build()
+			.build(),
 	).apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
 
 	val yaml: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(
@@ -36,7 +36,7 @@ abstract class FormTemplateMapper {
 			.configure(KotlinFeature.NullIsSameAsDefault, true)
 			.configure(KotlinFeature.NullToEmptyCollection, true)
 			.configure(KotlinFeature.NullToEmptyMap, true)
-			.build()
+			.build(),
 	).apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
 
 	@Mappings(
@@ -46,7 +46,7 @@ abstract class FormTemplateMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	abstract fun map(formTemplateDto: FormTemplateDto): FormTemplate
 
@@ -57,8 +57,11 @@ abstract class FormTemplateMapper {
 
 	fun mapLayout(formLayout: ByteArray?): FormLayout? = formLayout?.let {
 		try {
-			if (it[0] == 123.toByte()) json.readValue(it, FormLayout::class.java) else
+			if (it[0] == 123.toByte()) {
+				json.readValue(it, FormLayout::class.java)
+			} else {
 				yaml.readValue(it, FormLayout::class.java)
+			}
 		} catch (e: Exception) {
 			throw IllegalArgumentException("Could not parse form template layout. Try again requesting the raw template.")
 		}
@@ -66,8 +69,11 @@ abstract class FormTemplateMapper {
 
 	fun mapTemplateLayout(formTemplateLayout: ByteArray?): FormTemplateLayout? = formTemplateLayout?.let {
 		try {
-			if (it[0] == 123.toByte()) json.readValue(it, FormTemplateLayout::class.java) else
+			if (it[0] == 123.toByte()) {
+				json.readValue(it, FormTemplateLayout::class.java)
+			} else {
 				yaml.readValue(it, FormTemplateLayout::class.java)
+			}
 		} catch (e: Exception) {
 			try {
 				yaml.readValue(it, FormTemplateLayout::class.java)
@@ -77,9 +83,7 @@ abstract class FormTemplateMapper {
 		}
 	}
 
-	fun mapLayout(formTemplateDto: FormTemplateDto): ByteArray? {
-		return formTemplateDto.templateLayout?.let {
-			json.writeValueAsBytes(it)
-		}
+	fun mapLayout(formTemplateDto: FormTemplateDto): ByteArray? = formTemplateDto.templateLayout?.let {
+		json.writeValueAsBytes(it)
 	}
 }

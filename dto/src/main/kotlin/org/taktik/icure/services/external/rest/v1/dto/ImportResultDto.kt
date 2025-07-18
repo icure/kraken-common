@@ -19,5 +19,5 @@ data class ImportResultDto(
 	val forms: List<FormDto> = emptyList(),
 	val hcps: List<HealthcarePartyDto> = emptyList(),
 	val documents: List<DocumentDto> = emptyList(),
-	val attachments: Map<String, MimeAttachmentDto> = emptyMap()
+	val attachments: Map<String, MimeAttachmentDto> = emptyMap(),
 )

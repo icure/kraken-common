@@ -36,5 +36,5 @@ data class InvoiceByHcPartyCodeDateFilter(
 	@Schema(required = true)
 	val code: String,
 	val startInvoiceDate: Long? = null,
-	val endInvoiceDate: Long? = null
+	val endInvoiceDate: Long? = null,
 ) : AbstractFilterDto<InvoiceDto>

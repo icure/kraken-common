@@ -16,8 +16,8 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
-import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
@@ -29,15 +29,19 @@ class TarificationLogicImpl(
 	private val tarificationDAO: TarificationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters), TarificationLogic {
-
+	filters: Filters,
+) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters),
+	TarificationLogic {
 	override suspend fun getTarification(id: String): Tarification? {
 		val datastoreInformation = getInstanceAndGroup()
 		return tarificationDAO.get(datastoreInformation, id)
 	}
 
-	override suspend fun getTarification(type: String, tarification: String, version: String): Tarification? {
+	override suspend fun getTarification(
+		type: String,
+		tarification: String,
+		version: String,
+	): Tarification? {
 		val datastoreInformation = getInstanceAndGroup()
 		return tarificationDAO.get(datastoreInformation, "$type|$tarification|$version")
 	}
@@ -48,14 +52,20 @@ class TarificationLogicImpl(
 	}
 
 	override suspend fun createTarification(tarification: Tarification) = fix(tarification, isCreate = true) { fixedTarification ->
-		if(fixedTarification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		if (fixedTarification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		fixedTarification.code ?: error("Code field is null")
 		fixedTarification.type ?: error("Type field is null")
 		fixedTarification.version ?: error("Version field is null")
 
 		val datastoreInformation = getInstanceAndGroup()
 		// assigning Tarification id type|tarification|version
-		tarificationDAO.create(datastoreInformation, fixedTarification.copy(id = fixedTarification.type + "|" + fixedTarification.code + "|" + fixedTarification.version))
+		tarificationDAO.create(
+			datastoreInformation,
+			fixedTarification.copy(
+				id =
+				fixedTarification.type + "|" + fixedTarification.code + "|" + fixedTarification.version,
+			),
+		)
 	}
 
 	override suspend fun modifyTarification(tarification: Tarification) = fix(tarification, isCreate = false) { fixedTarification ->
@@ -67,12 +77,21 @@ class TarificationLogicImpl(
 		modifyEntities(setOf(fixedTarification)).firstOrNull()
 	}
 
-	override fun findTarificationsBy(type: String?, tarification: String?, version: String?): Flow<Tarification> = flow {
+	override fun findTarificationsBy(
+		type: String?,
+		tarification: String?,
+		version: String?,
+	): Flow<Tarification> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(tarificationDAO.listTarificationsBy(datastoreInformation, type, tarification, version))
 	}
 
-	override fun findTarificationsBy(region: String?, type: String?, tarification: String?, version: String?): Flow<Tarification> = flow {
+	override fun findTarificationsBy(
+		region: String?,
+		type: String?,
+		tarification: String?,
+		version: String?,
+	): Flow<Tarification> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(tarificationDAO.listTarificationsBy(datastoreInformation, region, type, tarification, version))
 	}
@@ -82,12 +101,13 @@ class TarificationLogicImpl(
 		type: String?,
 		tarification: String?,
 		version: String?,
-		paginationOffset: PaginationOffset<ComplexKey>
+		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(tarificationDAO
-			.findTarificationsBy(datastoreInformation, region, type, tarification, version, paginationOffset.limitIncludingKey())
-			.toPaginatedFlow<Tarification>(paginationOffset.limit)
+		emitAll(
+			tarificationDAO
+				.findTarificationsBy(datastoreInformation, region, type, tarification, version, paginationOffset.limitIncludingKey())
+				.toPaginatedFlow<Tarification>(paginationOffset.limit),
 		)
 	}
 
@@ -96,11 +116,18 @@ class TarificationLogicImpl(
 		language: String?,
 		label: String?,
 		types: Set<String>?,
-		paginationOffset: PaginationOffset<ComplexKey>
+		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 
-		suspend fun findTarificationsOfTypesByLabelRecursive(region: String?, language: String?, label: String?, types: Set<String>?, paginationOffset: PaginationOffset<ComplexKey>, extensionFactor: Float = 1f): Flow<ViewRowWithDoc<*, *, *>> {
+		suspend fun findTarificationsOfTypesByLabelRecursive(
+			region: String?,
+			language: String?,
+			label: String?,
+			types: Set<String>?,
+			paginationOffset: PaginationOffset<ComplexKey>,
+			extensionFactor: Float = 1f,
+		): Flow<ViewRowWithDoc<*, *, *>> {
 			val offset = paginationOffset.copy(limit = (paginationOffset.limit * extensionFactor).toInt())
 			var toEmit: ViewRowWithDoc<*, *, *>? = null
 			var sentElements = 0
@@ -109,31 +136,34 @@ class TarificationLogicImpl(
 			return tarificationDAO
 				.findTarificationsByLabel(datastoreInformation, region, language, label, offset)
 				.transform {
-					if(it is ViewRowWithDoc<*, *, *> && it.doc is Tarification) {
-						if(toEmit != null) {
+					if (it is ViewRowWithDoc<*, *, *> && it.doc is Tarification) {
+						if (toEmit != null) {
 							emit(checkNotNull(toEmit))
 							toEmit = null
 						}
-						if(types == null || types.contains((it.doc as Tarification).type)) {
+						if (types == null || types.contains((it.doc as Tarification).type)) {
 							sentElements++
 							toEmit = it
 						}
 						seenElements++
 					}
 				}.onCompletion {
-					if(sentElements < paginationOffset.limit && sentElements < seenElements && toEmit != null) {
+					if (sentElements < paginationOffset.limit && sentElements < seenElements && toEmit != null) {
 						emitAll(
 							findTarificationsOfTypesByLabelRecursive(
-								region, language, label, types,
+								region,
+								language,
+								label,
+								types,
 								paginationOffset.copy(
 									startKey = toEmit?.key as? ComplexKey,
 									startDocumentId = toEmit?.id,
-									limit = paginationOffset.limit - sentElements
+									limit = paginationOffset.limit - sentElements,
 								),
-								(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(100f)
-							)
+								(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(100f),
+							),
 						)
-					} else if(toEmit != null){
+					} else if (toEmit != null) {
 						emit(checkNotNull(toEmit))
 					}
 				}
@@ -146,28 +176,38 @@ class TarificationLogicImpl(
 				label,
 				types,
 				paginationOffset.limitIncludingKey(),
-				100f
-			).toPaginatedFlow<Tarification>(paginationOffset.limit)
+				100f,
+			).toPaginatedFlow<Tarification>(paginationOffset.limit),
 		)
 	}
 
-	override fun findTarificationsByLabel(region: String?, language: String?, type: String?, label: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
+	override fun findTarificationsByLabel(
+		region: String?,
+		language: String?,
+		type: String?,
+		label: String?,
+		paginationOffset: PaginationOffset<List<String?>>,
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(tarificationDAO.findTarificationsByLabel(datastoreInformation, region, language, type, label, paginationOffset))
 	}
 
-	override suspend fun getOrCreateTarification(type: String, tarification: String): Tarification? {
+	override suspend fun getOrCreateTarification(
+		type: String,
+		tarification: String,
+	): Tarification? {
 		val listTarifications = findTarificationsBy(type, tarification, null).toList()
-		return listTarifications.takeIf { it.isNotEmpty() }?.let { it.sortedWith { a: Tarification, b: Tarification ->
-			b.version!!.compareTo(
-				a.version!!
-			)
-		}
-		}?.first()
+		return listTarifications
+			.takeIf { it.isNotEmpty() }
+			?.let {
+				it.sortedWith { a: Tarification, b: Tarification ->
+					b.version!!.compareTo(
+						a.version!!,
+					)
+				}
+			}?.first()
 			?: createTarification(Tarification.from(type, tarification, "1.0"))
 	}
 
-	override fun getGenericDAO(): TarificationDAO {
-		return tarificationDAO
-	}
+	override fun getGenericDAO(): TarificationDAO = tarificationDAO
 }

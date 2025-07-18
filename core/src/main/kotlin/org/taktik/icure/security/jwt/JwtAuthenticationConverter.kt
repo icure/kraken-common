@@ -13,21 +13,29 @@ import reactor.core.publisher.Mono
 
 data class EncodedJwtAuthenticationToken(
 	private val encodedJwt: String,
-): Authentication{
+) : Authentication {
 	override fun getName(): String = "jwt"
+
 	override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf()
+
 	override fun getCredentials(): Any = encodedJwt
+
 	override fun getDetails(): Any = Any()
+
 	override fun getPrincipal(): Any = Any()
+
 	override fun isAuthenticated(): Boolean = false
+
 	override fun setAuthenticated(isAuthenticated: Boolean) {}
 }
 
 @Component
-class JwtAuthenticationConverter: ServerAuthenticationConverter {
-
+class JwtAuthenticationConverter : ServerAuthenticationConverter {
 	override fun convert(exchange: ServerWebExchange?): Mono<Authentication> = mono {
-		exchange?.request?.headers?.get("Authorization")
+		exchange
+			?.request
+			?.headers
+			?.get("Authorization")
 			?.filterNotNull()
 			?.first()
 			?.let {

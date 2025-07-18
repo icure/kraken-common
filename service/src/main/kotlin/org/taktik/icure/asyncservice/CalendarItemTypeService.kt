@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
-import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeService {
 	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?

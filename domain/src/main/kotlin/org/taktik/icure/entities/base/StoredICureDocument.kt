@@ -16,6 +16,8 @@ package org.taktik.icure.entities.base
  * @property medicalLocationId
  *
  */
-interface StoredICureDocument : StoredDocument, ICureDocument<String> {
+interface StoredICureDocument :
+	StoredDocument,
+	ICureDocument<String> {
 	fun solveConflictsWith(other: StoredICureDocument) = super<StoredDocument>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other)
 }

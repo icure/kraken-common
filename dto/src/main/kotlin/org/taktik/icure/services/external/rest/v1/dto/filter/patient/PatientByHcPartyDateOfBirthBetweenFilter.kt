@@ -19,5 +19,5 @@ data class PatientByHcPartyDateOfBirthBetweenFilter(
 	override val desc: String? = null,
 	val minDateOfBirth: Int? = null,
 	val maxDateOfBirth: Int? = null,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

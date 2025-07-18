@@ -2,9 +2,9 @@ package org.taktik.icure.asynclogic.objectstorage
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
-import java.io.IOException
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
+import java.io.IOException
 
 /**
  * Handles object storage for attachments. Depending on the implementation this may include caching,

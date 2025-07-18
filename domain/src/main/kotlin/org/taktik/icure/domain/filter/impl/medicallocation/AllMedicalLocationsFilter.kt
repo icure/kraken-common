@@ -7,7 +7,8 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AllMedicalLocationsFilter(
 	override val desc: String? = null,
-) : AbstractFilter<MedicalLocation>, Filters.AllFilter<String, MedicalLocation> {
+) : AbstractFilter<MedicalLocation>,
+	Filters.AllFilter<String, MedicalLocation> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true

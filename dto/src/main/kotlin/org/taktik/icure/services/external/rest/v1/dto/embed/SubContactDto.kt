@@ -15,9 +15,10 @@ import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity represents a sub-contact. It is serialized in JSON and saved in the underlying icure-contact CouchDB database.""")
+@Schema(
+	description = """This entity represents a sub-contact. It is serialized in JSON and saved in the underlying icure-contact CouchDB database.""",
+)
 data class SubContactDto(
-
 	@Schema(description = "The Id of the sub-contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
@@ -29,11 +30,16 @@ data class SubContactDto(
 	override val endOfLife: Long? = null,
 	@Schema(description = "Description of the sub-contact") val descr: String? = null,
 	@Schema(description = "Protocol based on which the sub-contact was used for linking services to structuring elements") val protocol: String? = null,
-	val status: Int? = null, //To be refactored
-	@Schema(description = "Id of the form used in the sub-contact. Several sub-contacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID") val formId: String? = null, // form or subform unique ID. Several subcontacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID
+	val status: Int? = null, // To be refactored
+	@Schema(
+		description = "Id of the form used in the sub-contact. Several sub-contacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID",
+	) val formId: String? = null, // form or subform unique ID. Several subcontacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID
 	@Schema(description = "Id of the plan of action (healthcare approach) that is linked by the sub-contact to a service.") val planOfActionId: String? = null,
 	@Schema(description = "Id of the healthcare element that is linked by the sub-contact to a service") val healthElementId: String? = null,
 	val classificationId: String? = null,
-	@Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.") val services: List<ServiceLinkDto> = emptyList(),
-	override val encryptedSelf: String? = null
-) : EncryptableDto, ICureDocumentDto<String?>
+	@Schema(
+		description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.",
+	) val services: List<ServiceLinkDto> = emptyList(),
+	override val encryptedSelf: String? = null,
+) : EncryptableDto,
+	ICureDocumentDto<String?>

@@ -142,7 +142,6 @@ data class TimePicker(
 	override val translate: Boolean? = null,
 ) : Field
 
-
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -167,8 +166,7 @@ data class MultipleChoice(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field
-
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -194,7 +192,7 @@ data class DropdownField(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -220,7 +218,7 @@ data class RadioButton(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -246,8 +244,7 @@ data class CheckBox(
 	override val hideCondition: String? = null,
 	override val now: Boolean? = null,
 	override val translate: Boolean? = null,
-): Field
-
+) : Field
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)

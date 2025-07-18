@@ -42,6 +42,7 @@ import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.security.warn
 import org.taktik.icure.services.external.rest.v1.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v1.dto.PublicKeyDto
 import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
@@ -55,7 +56,6 @@ import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 
 @RestController
@@ -70,18 +70,25 @@ class HealthcarePartyController(
 	private val filterMapper: FilterMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
 ) {
 	companion object {
 		private val log: Logger = LoggerFactory.getLogger(this::class.java)
 	}
 
-	@Operation(summary = "Get the current healthcare party if logged in.", description = "General information about the current healthcare Party")
+	@Operation(
+		summary = "Get the current healthcare party if logged in.",
+		description = "General information about the current healthcare Party",
+	)
 	@GetMapping("/current")
 	fun getCurrentHealthcareParty() = mono {
 		// If the current user is not an HCP this method gives a 401. 400 or 404 would be more appropriate, however, some clients have business logic relying on this error, so it is better to not change this...
-		val healthcareParty = healthcarePartyService.getHealthcareParty(sessionLogic.getCurrentHealthcarePartyId())
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the current healthcare party. Probable reasons: no healthcare party is logged in, or server error. Please try again or read the server log.")
+		val healthcareParty =
+			healthcarePartyService.getHealthcareParty(sessionLogic.getCurrentHealthcarePartyId())
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"A problem regarding fetching the current healthcare party. Probable reasons: no healthcare party is logged in, or server error. Please try again or read the server log.",
+				)
 		healthcarePartyMapper.map(healthcareParty)
 	}
 
@@ -91,7 +98,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
+		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
@@ -108,7 +115,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?
+		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return if (name.isNullOrEmpty()) {
@@ -118,14 +125,17 @@ class HealthcarePartyController(
 		}.mapElements(healthcarePartyMapper::map).asPaginatedFlux()
 	}
 
-	@Operation(summary = "Find healthcare parties by nihii or ssin with(out) pagination", description = "Returns a list of healthcare parties.")
+	@Operation(
+		summary = "Find healthcare parties by nihii or ssin with(out) pagination",
+		description = "Returns a list of healthcare parties.",
+	)
 	@GetMapping("/byNihiiOrSsin/{searchValue}")
 	fun findBySsinOrNihii(
 		@PathVariable searchValue: String,
 		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean
+		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean,
 	): PaginatedFlux<HealthcarePartyDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
@@ -138,8 +148,9 @@ class HealthcarePartyController(
 	@GetMapping("/byNameStrict/{name}")
 	fun listByName(
 		@Parameter(description = "The Last name search value")
-		@PathVariable name: String
-	) = healthcarePartyService.listHealthcarePartiesByName(name)
+		@PathVariable name: String,
+	) = healthcarePartyService
+		.listHealthcarePartiesByName(name)
 		.map { healthcarePartyMapper.map(it) }
 		.injectReactorContext()
 
@@ -152,7 +163,7 @@ class HealthcarePartyController(
 		@Parameter(description = "The last postCode for the HCP") @PathVariable lastCode: String,
 		@Parameter(description = "A healthcare party Last name") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A healthcare party document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<HealthcarePartyDto> {
 		val key = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -164,13 +175,16 @@ class HealthcarePartyController(
 
 	@Operation(summary = "Create a healthcare party", description = "One of Name or Last name+First name, Nihii, and Public key are required.")
 	@PostMapping
-	fun createHealthcareParty(@RequestBody h: HealthcarePartyDto) = mono {
-		val hcParty = try {
-			healthcarePartyService.createHealthcareParty(healthcarePartyMapper.map(h))
-		} catch (e: MissingRequirementsException) {
-			log.warn(e) { e.message }
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+	fun createHealthcareParty(
+		@RequestBody h: HealthcarePartyDto,
+	) = mono {
+		val hcParty =
+			try {
+				healthcarePartyService.createHealthcareParty(healthcarePartyMapper.map(h))
+			} catch (e: MissingRequirementsException) {
+				log.warn(e) { e.message }
+				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
+			}
 
 		val succeed = hcParty != null
 		if (succeed) {
@@ -180,66 +194,87 @@ class HealthcarePartyController(
 		}
 	}
 
-
 	@Suppress("DEPRECATION")
 	@Deprecated(message = "A HCP may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner. As a HCp may now have multiple AES keys, this service is deprecated. Use /{healthcarePartyId}/aesExchangeKeys",
 		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES key)",
-		deprecated = true
+		deprecated = true,
 	)
 	@GetMapping("/{healthcarePartyId}/keys")
-	fun getHcPartyKeysForDelegate(@PathVariable healthcarePartyId: String) = mono {
+	fun getHcPartyKeysForDelegate(
+		@PathVariable healthcarePartyId: String,
+	) = mono {
 		healthcarePartyService.getHcPartyKeysForDelegate(healthcarePartyId)
 	}
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
-		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
+		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)",
 	)
 	@GetMapping("/{healthcarePartyId}/aesExchangeKeys")
-	fun getAesExchangeKeysForDelegate(@PathVariable healthcarePartyId: String) = mono {
+	fun getAesExchangeKeysForDelegate(
+		@PathVariable healthcarePartyId: String,
+	) = mono {
 		healthcarePartyService.getAesExchangeKeysForDelegate(healthcarePartyId)
 	}
 
 	@Operation(summary = "Get a healthcareParty by his ID", description = "General information about the healthcare Party")
 	@GetMapping("/{healthcarePartyId}")
-	fun getHealthcareParty(@PathVariable healthcarePartyId: String) = mono {
-		val healthcareParty = healthcarePartyService.getHealthcareParty(healthcarePartyId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the healthcare party. Probable reasons: no such party exists, or server error. Please try again or read the server log.")
+	fun getHealthcareParty(
+		@PathVariable healthcarePartyId: String,
+	) = mono {
+		val healthcareParty =
+			healthcarePartyService.getHealthcareParty(healthcarePartyId)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"A problem regarding fetching the healthcare party. Probable reasons: no such party exists, or server error. Please try again or read the server log.",
+				)
 		healthcarePartyMapper.map(healthcareParty)
 	}
 
 	@Operation(summary = "Get healthcareParties by their IDs", description = "General information about the healthcare Party")
 	@GetMapping("/byIds/{healthcarePartyIds}")
-	fun getHealthcareParties(@PathVariable healthcarePartyIds: String) =
-		healthcarePartyService.getHealthcareParties(healthcarePartyIds.split(','))
-			.map { healthcarePartyMapper.map(it) }
-			.injectReactorContext()
+	fun getHealthcareParties(
+		@PathVariable healthcarePartyIds: String,
+	) = healthcarePartyService
+		.getHealthcareParties(healthcarePartyIds.split(','))
+		.map { healthcarePartyMapper.map(it) }
+		.injectReactorContext()
 
 	@Operation(summary = "Find children of an healthcare parties", description = "Return a list of children hcp.")
 	@GetMapping("/{parentId}/children")
-	fun getHealthcarePartiesByParentId(@PathVariable parentId: String) =
-		healthcarePartyService.getHealthcarePartiesByParentId(parentId)
-			.map { healthcarePartyMapper.map(it) }
-			.injectReactorContext()
+	fun getHealthcarePartiesByParentId(
+		@PathVariable parentId: String,
+	) = healthcarePartyService
+		.getHealthcarePartiesByParentId(parentId)
+		.map { healthcarePartyMapper.map(it) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get public key of a healthcare party", description = "Returns the public key of a healthcare party in Hex")
 	@GetMapping("/{healthcarePartyId}/publicKey")
-	fun getPublicKey(@PathVariable healthcarePartyId: String) = mono {
-		val publicKey = try {
-			healthcarePartyService.getPublicKey(healthcarePartyId)
-		} catch (e: DocumentNotFoundException) {
-			log.warn(e.message, e)
-			throw ResponseStatusException(HttpStatus.NOT_FOUND, e.message)
-		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "No public key is found.")
+	fun getPublicKey(
+		@PathVariable healthcarePartyId: String,
+	) = mono {
+		val publicKey =
+			try {
+				healthcarePartyService.getPublicKey(healthcarePartyId)
+			} catch (e: DocumentNotFoundException) {
+				log.warn(e.message, e)
+				throw ResponseStatusException(HttpStatus.NOT_FOUND, e.message)
+			} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "No public key is found.")
 
 		PublicKeyDto(healthcarePartyId, publicKey)
 	}
 
-	@Operation(summary = "Delete a healthcare party", description = "Deleting a healthcareParty. Response is an array containing the id of deleted healthcare party.")
+	@Operation(
+		summary = "Delete a healthcare party",
+		description = "Deleting a healthcareParty. Response is an array containing the id of deleted healthcare party.",
+	)
 	@DeleteMapping("/{healthcarePartyIds}")
-	fun deleteHealthcareParties(@PathVariable healthcarePartyIds: String): Flux<DocIdentifierDto> = flow {
+	fun deleteHealthcareParties(
+		@PathVariable healthcarePartyIds: String,
+	): Flux<DocIdentifierDto> = flow {
 		try {
 			emitAll(healthcarePartyService.deleteHealthcareParties(healthcarePartyIds.split(',').map { IdAndRev(it, null) }))
 		} catch (e: DeletionException) {
@@ -251,18 +286,23 @@ class HealthcarePartyController(
 
 	@Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")
 	@PutMapping
-	fun modifyHealthcareParty(@RequestBody healthcarePartyDto: HealthcarePartyDto) = mono {
+	fun modifyHealthcareParty(
+		@RequestBody healthcarePartyDto: HealthcarePartyDto,
+	) = mono {
 		healthcarePartyService.modifyHealthcareParty(healthcarePartyMapper.map(healthcarePartyDto))?.let {
 			healthcarePartyMapper.map(it)
 		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
 	}
 
-	@Operation(summary = "Filter healthcare parties for the current user (HcParty)", description = "Returns a list of healthcare party along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter healthcare parties for the current user (HcParty)",
+		description = "Returns a list of healthcare party along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterHealthPartiesBy(
 		@Parameter(description = "A HealthcareParty document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<HealthcarePartyDto>
+		@RequestBody filterChain: FilterChain<HealthcarePartyDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -275,9 +315,8 @@ class HealthcarePartyController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthcarePartiesBy(
 		@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
-	) =
-		healthcarePartyService.matchHealthcarePartiesBy(
-			filter = filterMapper.tryMap(filter).orThrow()
+	) = healthcarePartyService
+		.matchHealthcarePartiesBy(
+			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
-
 }

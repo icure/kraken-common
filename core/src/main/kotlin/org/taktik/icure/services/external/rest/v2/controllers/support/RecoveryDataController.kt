@@ -27,61 +27,63 @@ import reactor.core.publisher.Mono
 @RequestMapping("/rest/v2/recoverydata")
 @Tag(name = "recoveryData")
 class RecoveryDataController(
-    private val recoveryDataService: RecoveryDataService,
-    private val recoveryDataV2Mapper: RecoveryDataV2Mapper,
-    private val docIdentifierMapper: DocIdentifierV2Mapper
+	private val recoveryDataService: RecoveryDataService,
+	private val recoveryDataV2Mapper: RecoveryDataV2Mapper,
+	private val docIdentifierMapper: DocIdentifierV2Mapper,
 ) {
-    @PostMapping
-    fun createRecoveryData(
-        @RequestBody(required = true) recoveryData: RecoveryDataDto
-    ): Mono<RecoveryDataDto> = mono {
-        recoveryDataV2Mapper.map(recoveryDataService.createRecoveryData(recoveryDataV2Mapper.map(recoveryData)))
-    }
+	@PostMapping
+	fun createRecoveryData(
+		@RequestBody(required = true) recoveryData: RecoveryDataDto,
+	): Mono<RecoveryDataDto> = mono {
+		recoveryDataV2Mapper.map(recoveryDataService.createRecoveryData(recoveryDataV2Mapper.map(recoveryData)))
+	}
 
-    @GetMapping("/{id}")
-    fun getRecoveryData(
-        @PathVariable id: String
-    ): Mono<RecoveryDataDto> = mono {
-        recoveryDataV2Mapper.map(
-            recoveryDataService.getRecoveryData(id)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "RecoveryData not found")
-        )
-    }
+	@GetMapping("/{id}")
+	fun getRecoveryData(
+		@PathVariable id: String,
+	): Mono<RecoveryDataDto> = mono {
+		recoveryDataV2Mapper.map(
+			recoveryDataService.getRecoveryData(id)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "RecoveryData not found"),
+		)
+	}
 
-    @DeleteMapping("/{id}")
-    fun deleteRecoveryData(
-        @PathVariable id: String
-    ): Mono<DocIdentifierDto> = mono {
-        recoveryDataService.purgeRecoveryData(id).let(docIdentifierMapper::map)
-    }
+	@DeleteMapping("/{id}")
+	fun deleteRecoveryData(
+		@PathVariable id: String,
+	): Mono<DocIdentifierDto> = mono {
+		recoveryDataService.purgeRecoveryData(id).let(docIdentifierMapper::map)
+	}
 
-    @DeleteMapping("/forRecipient/{recipientId}")
-    fun deleteAllRecoveryDataForRecipient(
-        @PathVariable recipientId: String
-    ): Mono<ContentDto> = mono {
-        ContentDto(numberValue = recoveryDataService.deleteAllRecoveryDataForRecipient(recipientId).toDouble())
-    }
+	@DeleteMapping("/forRecipient/{recipientId}")
+	fun deleteAllRecoveryDataForRecipient(
+		@PathVariable recipientId: String,
+	): Mono<ContentDto> = mono {
+		ContentDto(numberValue = recoveryDataService.deleteAllRecoveryDataForRecipient(recipientId).toDouble())
+	}
 
-    @DeleteMapping("/forRecipient/{recipientId}/ofType/{type}")
-    fun deleteAllRecoveryDataOfTypeForRecipient(
-        @PathVariable type: RecoveryDataDto.Type,
-        @PathVariable recipientId: String
-    ): Mono<ContentDto> = mono {
-        ContentDto(
-            numberValue = recoveryDataService.deleteAllRecoveryDataOfTypeForRecipient(
-                RecoveryData.Type.valueOf(type.name),
-                recipientId
-            ).toDouble()
-        )
-    }
+	@DeleteMapping("/forRecipient/{recipientId}/ofType/{type}")
+	fun deleteAllRecoveryDataOfTypeForRecipient(
+		@PathVariable type: RecoveryDataDto.Type,
+		@PathVariable recipientId: String,
+	): Mono<ContentDto> = mono {
+		ContentDto(
+			numberValue =
+			recoveryDataService
+				.deleteAllRecoveryDataOfTypeForRecipient(
+					RecoveryData.Type.valueOf(type.name),
+					recipientId,
+				).toDouble(),
+		)
+	}
 
-    @GetMapping("/waiting/{id}")
-    fun getRecoveryDataWaiting(
-        @PathVariable id: String,
-        @RequestParam(required = false) timeoutSeconds: Int? = null
-    ): Mono<RecoveryDataDto> = mono {
-        require(timeoutSeconds == null || timeoutSeconds <= 30) { "Max wait time is 30 seconds" }
-        recoveryDataService.waitForRecoveryData(id, timeoutSeconds ?: 30)?.let(recoveryDataV2Mapper::map)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "RecoveryData not found")
-    }
+	@GetMapping("/waiting/{id}")
+	fun getRecoveryDataWaiting(
+		@PathVariable id: String,
+		@RequestParam(required = false) timeoutSeconds: Int? = null,
+	): Mono<RecoveryDataDto> = mono {
+		require(timeoutSeconds == null || timeoutSeconds <= 30) { "Max wait time is 30 seconds" }
+		recoveryDataService.waitForRecoveryData(id, timeoutSeconds ?: 30)?.let(recoveryDataV2Mapper::map)
+			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "RecoveryData not found")
+	}
 }

@@ -16,11 +16,11 @@ import org.taktik.icure.entities.base.CodeStub
  * @property age is the age range for the reference range (e.g. if age is not specified, then the reference range applies to all ages of patients)
  */
 data class ReferenceRange(
-    @param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
-    @param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
-    @param:ContentValue(ContentValues.ANY_STRING) val stringValue: String? = null,
-    @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val tags: List<CodeStub> = emptyList(),
-    @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val codes: List<CodeStub> = emptyList(),
-    @param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val notes: List<Annotation> = emptyList(),
-    @param:ContentValue(ContentValues.NESTED_ENTITY) val age: Range? = null
+	@param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
+	@param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
+	@param:ContentValue(ContentValues.ANY_STRING) val stringValue: String? = null,
+	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val tags: List<CodeStub> = emptyList(),
+	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val codes: List<CodeStub> = emptyList(),
+	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val notes: List<Annotation> = emptyList(),
+	@param:ContentValue(ContentValues.NESTED_ENTITY) val age: Range? = null,
 )

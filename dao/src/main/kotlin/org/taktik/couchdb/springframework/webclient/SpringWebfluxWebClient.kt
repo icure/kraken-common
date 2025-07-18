@@ -18,11 +18,6 @@
 
 package org.taktik.couchdb.springframework.webclient
 
-import java.net.URI
-import java.nio.ByteBuffer
-import java.time.Duration
-import java.util.AbstractMap
-import java.util.function.Consumer
 import io.icure.asyncjacksonhttpclient.net.web.HttpMethod
 import io.icure.asyncjacksonhttpclient.net.web.Request
 import io.icure.asyncjacksonhttpclient.net.web.Response
@@ -37,17 +32,20 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.net.URI
+import java.nio.ByteBuffer
+import java.time.Duration
+import java.util.AbstractMap
+import java.util.function.Consumer
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SpringWebfluxWebClient(val reactorClientHttpConnector: ReactorClientHttpConnector? = null, val filters: Consumer<MutableList<ExchangeFilterFunction>>? = null) : WebClient {
-	override fun uri(uri: URI): Request {
-		return SpringWebfluxRequest(
-			org.springframework.web.reactive.function.client.WebClient.builder()
-				.let { c -> reactorClientHttpConnector?.let { c.clientConnector(it) } ?: c }
-				.let { c -> filters?.let { c.filters(it) } ?: c }.build(),
-			uri
-		)
-	}
+	override fun uri(uri: URI): Request = SpringWebfluxRequest(
+		org.springframework.web.reactive.function.client.WebClient.builder()
+			.let { c -> reactorClientHttpConnector?.let { c.clientConnector(it) } ?: c }
+			.let { c -> filters?.let { c.filters(it) } ?: c }.build(),
+		uri,
+	)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,7 +54,7 @@ class SpringWebfluxRequest(
 	private val uri: URI,
 	private val method: HttpMethod? = null,
 	private val headers: HttpHeaders = DefaultHttpHeaders(),
-	private val bodyPublisher: Flow<ByteBuffer>? = null
+	private val bodyPublisher: Flow<ByteBuffer>? = null,
 ) : Request {
 	override fun method(method: HttpMethod, timeoutDuration: Duration?): Request = SpringWebfluxRequest(client, uri, method, headers, bodyPublisher)
 	override fun header(name: String, value: String): Request = SpringWebfluxRequest(client, uri, method, headers.add(name, value), bodyPublisher)
@@ -64,12 +62,10 @@ class SpringWebfluxRequest(
 	override fun retrieve() = SpringWebfluxResponse(
 		headers.entries().fold(client.method(method.toSpringMethod()).uri(uri)) { acc, (name, value) -> acc.header(name, value) }.let {
 			bodyPublisher?.let { bp -> it.body(bp.asFlux(), ByteBuffer::class.java) } ?: it
-		}
+		},
 	)
 
-	override fun toString(): String {
-		return "-X $method $uri"
-	}
+	override fun toString(): String = "-X $method $uri"
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,72 +75,68 @@ class SpringWebfluxResponse(
 	private val headerHandler: Map<String, (String) -> Mono<Unit>> = mapOf(),
 	private val timingHandler: ((Long) -> Mono<Unit>)? = null,
 ) : Response {
-	override fun onStatus(status: Int, handler: (ResponseStatus) -> Mono<out Throwable>): Response {
-		return SpringWebfluxResponse(requestHeaderSpec, statusHandlers + (status to handler), headerHandler, timingHandler)
-	}
+	override fun onStatus(status: Int, handler: (ResponseStatus) -> Mono<out Throwable>): Response = SpringWebfluxResponse(requestHeaderSpec, statusHandlers + (status to handler), headerHandler, timingHandler)
 
-	override fun onHeader(header: String, handler: (String) -> Mono<Unit>): Response {
-		return SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler + (header to handler), timingHandler)
-	}
+	override fun onHeader(header: String, handler: (String) -> Mono<Unit>): Response = SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler + (header to handler), timingHandler)
 
-	override fun withTiming(handler: (Long) -> Mono<Unit>): Response {
-		return SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler, handler)
-	}
+	override fun withTiming(handler: (Long) -> Mono<Unit>): Response = SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler, handler)
 
 	override fun toFlux(): Flux<ByteBuffer> {
 		val start = System.currentTimeMillis()
 
-		return Flux.deferContextual { ctx -> requestHeaderSpec.exchangeToFlux { cr ->
-			val statusCode: Int = cr.statusCode().value()
+		return Flux.deferContextual { ctx ->
+			requestHeaderSpec.exchangeToFlux { cr ->
+				val statusCode: Int = cr.statusCode().value()
 
-			val headers = cr.headers().asHttpHeaders()
-			val flatHeaders = headers.flatMap { (k, vals) -> vals.map { v -> AbstractMap.SimpleEntry(k, v) } }
+				val headers = cr.headers().asHttpHeaders()
+				val flatHeaders = headers.flatMap { (k, vals) -> vals.map { v -> AbstractMap.SimpleEntry(k, v) } }
 
-			val headerHandlers = if (headerHandler.isNotEmpty()) {
-				headers.flatMap { (k, values) -> values.map { k to it } }.fold(Mono.empty()) { m: Mono<*>, (k, v) -> m.then(headerHandler[k]?.let { it(v) } ?: Mono.empty()) }
-			} else Mono.empty()
+				val headerHandlers = if (headerHandler.isNotEmpty()) {
+					headers.flatMap { (k, values) -> values.map { k to it } }.fold(Mono.empty()) { m: Mono<*>, (k, v) -> m.then(headerHandler[k]?.let { it(v) } ?: Mono.empty()) }
+				} else {
+					Mono.empty()
+				}
 
-			headerHandlers.thenMany(
-				statusHandlers[statusCode]?.let { handler ->
-					cr.bodyToMono(ByteBuffer::class.java).flatMapMany { byteBuffer ->
-						val arr = ByteArray(byteBuffer.remaining())
-						byteBuffer.get(arr)
-						val res = handler(object : ResponseStatus(statusCode, flatHeaders) {
-							override fun responseBodyAsString() = arr.toString(Charsets.UTF_8)
-						})
-						if (res == Mono.empty<Throwable>()) {
-							Mono.just(ByteBuffer.wrap(arr))
-						} else {
-							res.flatMap { Mono.error(it) }
-						}
-					}.switchIfEmpty(
-						handler(object : ResponseStatus(statusCode, flatHeaders) {
-							override fun responseBodyAsString() = ""
-						}).let { res ->
+				headerHandlers.thenMany(
+					statusHandlers[statusCode]?.let { handler ->
+						cr.bodyToMono(ByteBuffer::class.java).flatMapMany { byteBuffer ->
+							val arr = ByteArray(byteBuffer.remaining())
+							byteBuffer.get(arr)
+							val res = handler(object : ResponseStatus(statusCode, flatHeaders) {
+								override fun responseBodyAsString() = arr.toString(Charsets.UTF_8)
+							})
 							if (res == Mono.empty<Throwable>()) {
-								Mono.just(ByteBuffer.wrap(ByteArray(0)))
+								Mono.just(ByteBuffer.wrap(arr))
 							} else {
 								res.flatMap { Mono.error(it) }
 							}
-						}
-					)
-				} ?: cr.bodyToFlux(ByteBuffer::class.java)
-			)
-		}.doOnTerminate {
-            timingHandler?.let { it(System.currentTimeMillis() - start).contextWrite(ctx).subscribe() }
-        } }
+						}.switchIfEmpty(
+							handler(object : ResponseStatus(statusCode, flatHeaders) {
+								override fun responseBodyAsString() = ""
+							}).let { res ->
+								if (res == Mono.empty<Throwable>()) {
+									Mono.just(ByteBuffer.wrap(ByteArray(0)))
+								} else {
+									res.flatMap { Mono.error(it) }
+								}
+							},
+						)
+					} ?: cr.bodyToFlux(ByteBuffer::class.java),
+				)
+			}.doOnTerminate {
+				timingHandler?.let { it(System.currentTimeMillis() - start).contextWrite(ctx).subscribe() }
+			}
+		}
 	}
 }
 
-private fun HttpMethod?.toSpringMethod(): org.springframework.http.HttpMethod {
-	return when (this) {
-		HttpMethod.GET -> org.springframework.http.HttpMethod.GET
-		HttpMethod.HEAD -> org.springframework.http.HttpMethod.HEAD
-		HttpMethod.POST -> org.springframework.http.HttpMethod.POST
-		HttpMethod.PUT -> org.springframework.http.HttpMethod.PUT
-		HttpMethod.PATCH -> org.springframework.http.HttpMethod.PATCH
-		HttpMethod.DELETE -> org.springframework.http.HttpMethod.DELETE
-		HttpMethod.OPTIONS -> org.springframework.http.HttpMethod.OPTIONS
-		null -> org.springframework.http.HttpMethod.GET
-	}
+private fun HttpMethod?.toSpringMethod(): org.springframework.http.HttpMethod = when (this) {
+	HttpMethod.GET -> org.springframework.http.HttpMethod.GET
+	HttpMethod.HEAD -> org.springframework.http.HttpMethod.HEAD
+	HttpMethod.POST -> org.springframework.http.HttpMethod.POST
+	HttpMethod.PUT -> org.springframework.http.HttpMethod.PUT
+	HttpMethod.PATCH -> org.springframework.http.HttpMethod.PATCH
+	HttpMethod.DELETE -> org.springframework.http.HttpMethod.DELETE
+	HttpMethod.OPTIONS -> org.springframework.http.HttpMethod.OPTIONS
+	null -> org.springframework.http.HttpMethod.GET
 }

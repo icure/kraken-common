@@ -10,7 +10,6 @@ import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadata
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -30,7 +29,12 @@ data class IcureStubDto(
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	override val securityMetadata: SecurityMetadataDto? = null
-) : ICureDocumentDto<String>, VersionableDto<String>, HasEncryptionMetadataDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : ICureDocumentDto<String>,
+	VersionableDto<String>,
+	HasEncryptionMetadataDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 }

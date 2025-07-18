@@ -5,5 +5,5 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.EntityInfo
 
 interface EntityInfoDAO {
-    fun getEntitiesInfo(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<EntityInfo>
+	fun getEntitiesInfo(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<EntityInfo>
 }

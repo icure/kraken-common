@@ -7,5 +7,12 @@ import org.taktik.icure.services.external.rest.v1.dto.base.EnumVersionDto
 
 @EnumVersionDto(1L)
 enum class PatientHealthCarePartyTypeDto {
-	doctor, referral, medicalhouse, retirementhome, hospital, other, referringphysician, managingorganization
+	doctor,
+	referral,
+	medicalhouse,
+	retirementhome,
+	hospital,
+	other,
+	referringphysician,
+	managingorganization,
 }

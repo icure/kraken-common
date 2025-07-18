@@ -50,7 +50,7 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	fun listInvoicesByHcPartyAndGroupId(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
-		inputGroupId: String
+		inputGroupId: String,
 	): Flow<Invoice>
 
 	/**

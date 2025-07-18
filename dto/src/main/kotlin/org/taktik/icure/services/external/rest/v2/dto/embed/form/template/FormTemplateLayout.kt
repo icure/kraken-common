@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class FormTemplateLayout(
 	@Schema(required = true)
 	val form: String,
-	val actions : List<Action> = emptyList(),
+	val actions: List<Action> = emptyList(),
 	val sections: List<Section> = emptyList(),
 	val description: String? = null,
 	val keywords: List<String>? = null,

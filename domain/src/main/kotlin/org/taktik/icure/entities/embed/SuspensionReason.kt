@@ -8,5 +8,9 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class SuspensionReason {
-	notInsured, noReasonGiven, isHospitalized, outsideOfCountry, changeOfMutuality
+	notInsured,
+	noReasonGiven,
+	isHospitalized,
+	outsideOfCountry,
+	changeOfMutuality,
 }

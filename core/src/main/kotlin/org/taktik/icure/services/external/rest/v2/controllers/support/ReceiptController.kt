@@ -30,8 +30,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-
-
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.embed.ReceiptBlobType
@@ -46,8 +44,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ReceiptBulkShareResultV2Mapper
-import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.writeTo
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -64,38 +62,46 @@ class ReceiptController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Creates a receipt")
 	@PostMapping
-	fun createReceipt(@RequestBody receiptDto: ReceiptDto) = mono {
-		receiptService.createReceipt(receiptV2Mapper.map(receiptDto))
+	fun createReceipt(
+		@RequestBody receiptDto: ReceiptDto,
+	) = mono {
+		receiptService
+			.createReceipt(receiptV2Mapper.map(receiptDto))
 			?.let { receiptV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Receipt creation failed.")
 	}
 
-
 	@Operation(summary = "Deletes multiple Receipts")
 	@PostMapping("/delete/batch")
-	fun deleteReceipts(@RequestBody receiptIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		receiptService.deleteReceipts(
-			receiptIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteReceipts(
+		@RequestBody receiptIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = receiptService
+		.deleteReceipts(
+			receiptIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Receipts if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteReceiptsWithRev(@RequestBody receiptIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		receiptService.deleteReceipts(
-			receiptIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteReceiptsWithRev(
+		@RequestBody receiptIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = receiptService
+		.deleteReceipts(
+			receiptIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an Receipt")
 	@DeleteMapping("/{receiptId}")
 	fun deleteReceipt(
 		@PathVariable receiptId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		receiptService.deleteReceipt(receiptId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -105,7 +111,7 @@ class ReceiptController(
 	@PostMapping("/undelete/{receiptId}")
 	fun undeleteReceipt(
 		@PathVariable receiptId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<ReceiptDto> = mono {
 		receiptV2Mapper.map(receiptService.undeleteReceipt(receiptId, rev))
 	}
@@ -113,23 +119,34 @@ class ReceiptController(
 	@DeleteMapping("/purge/{receiptId}")
 	fun purgeReceipt(
 		@PathVariable receiptId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		receiptService.purgeReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Get an attachment", responses = [ApiResponse(responseCode = "200", content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))])])
+	@Operation(
+		summary = "Get an attachment",
+		responses = [
+			ApiResponse(
+				responseCode = "200",
+				content = [Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = Schema(type = "string", format = "binary"))],
+			),
+		],
+	)
 	@GetMapping("/{receiptId}/attachment/{attachmentId}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
 	fun getReceiptAttachment(
 		@PathVariable receiptId: String,
-		@PathVariable attachmentId: String
+		@PathVariable attachmentId: String,
 	) = mono {
-		val attachment = ByteArrayOutputStream().use {
-			receiptService.getAttachment(receiptId, attachmentId).writeTo(it)
-			it.toByteArray()
+		val attachment =
+			ByteArrayOutputStream().use {
+				receiptService.getAttachment(receiptId, attachmentId).writeTo(it)
+				it.toByteArray()
+			}
+		if (attachment.isEmpty()) {
+			throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found")
+				.also { logger.error(it.message) }
 		}
-		if (attachment.isEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found")
-			.also { logger.error(it.message) }
 		attachment
 	}
 
@@ -138,44 +155,57 @@ class ReceiptController(
 	fun setReceiptAttachment(
 		@PathVariable receiptId: String,
 		@PathVariable blobType: String,
-		@Parameter(description = "Revision of the latest known version of the receipt. If it doesn't match the current revision the method will fail with CONFLICT.")
+		@Parameter(
+			description = "Revision of the latest known version of the receipt. If it doesn't match the current revision the method will fail with CONFLICT.",
+		)
 		@RequestParam(required = true)
 		rev: String,
-		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray
+		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
 	) = mono {
 		val receipt = receiptService.getReceipt(receiptId)
 		if (receipt != null) {
 			if (receipt.rev != rev) throw ResponseStatusException(HttpStatus.CONFLICT, "Current receipt revision does not match provided revision.")
 			receiptV2Mapper.map(receiptService.addReceiptAttachment(receipt, ReceiptBlobType.valueOf(blobType), payload))
-		} else throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Receipt modification failed")
+		} else {
+			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Receipt modification failed")
+		}
 	}
 
 	@Operation(summary = "Gets a receipt")
 	@GetMapping("/{receiptId}")
-	fun getReceipt(@PathVariable receiptId: String) = mono {
+	fun getReceipt(
+		@PathVariable receiptId: String,
+	) = mono {
 		receiptService.getReceipt(receiptId)?.let { receiptV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Receipt not found")
 	}
 
 	@Operation(summary = "Gets a receipt")
 	@GetMapping("/byRef/{ref}")
-	fun listByReference(@PathVariable ref: String): Flux<ReceiptDto> =
-		receiptService.listReceiptsByReference(ref).map { receiptV2Mapper.map(it) }.injectReactorContext()
+	fun listByReference(
+		@PathVariable ref: String,
+	): Flux<ReceiptDto> = receiptService.listReceiptsByReference(ref).map { receiptV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Updates a receipt")
 	@PutMapping
-	fun modifyReceipt(@RequestBody receiptDto: ReceiptDto) = mono {
-		receiptService.modifyReceipt(receiptV2Mapper.map(receiptDto))
+	fun modifyReceipt(
+		@RequestBody receiptDto: ReceiptDto,
+	) = mono {
+		receiptService
+			.modifyReceipt(receiptV2Mapper.map(receiptDto))
 			.let { receiptV2Mapper.map(it) }
 	}
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<ReceiptDto>> = flow {
-		emitAll(receiptService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
-	}.injectCachedReactorContext(reactorCacheInjector,50)
+		emitAll(
+			receiptService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

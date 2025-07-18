@@ -20,7 +20,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
-interface DocumentService : EntityWithSecureDelegationsService<Document>, EntityWithConflictResolutionService {
+interface DocumentService :
+	EntityWithSecureDelegationsService<Document>,
+	EntityWithConflictResolutionService {
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws
@@ -33,7 +35,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 */
 	suspend fun createDocument(
 		document: Document,
-		strict: Boolean = false
+		strict: Boolean = false,
 	): Document?
 
 	suspend fun getMainAttachment(documentId: String): Flow<DataBuffer>
@@ -73,7 +75,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	 */
 	fun createOrModifyDocuments(
 		documents: List<BatchUpdateDocumentInfo>,
-		strict: Boolean = false
+		strict: Boolean = false,
 	): Flow<Document>
 
 	/**
@@ -92,7 +94,7 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 		documentId: String,
 		documentRev: String?,
 		mainAttachmentChange: DataAttachmentChange? = null,
-		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document?
 
 	fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode: String, hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
@@ -135,53 +137,53 @@ interface DocumentService : EntityWithSecureDelegationsService<Document>, Entity
 	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	suspend fun getDocumentsByExternalUuid(documentId: String): List<Document>
 
-    /**
-     * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
-     * Ignores entities that:
-     * - don't exist
-     * - the user can't delete due to limited lack of write access
-     * - don't match the provided revision (if provided)
-     *
-     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the deleted [Document].
-     */
-    fun deleteDocuments(ids: List<IdAndRev>): Flow<Document>
+	/**
+	 * Marks a batch of entities as deleted.
+	 * The data of the entities is preserved, but they won't appear in most queries.
+	 * Ignores entities that:
+	 * - don't exist
+	 * - the user can't delete due to limited lack of write access
+	 * - don't match the provided revision (if provided)
+	 *
+	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+	 * @return a [Flow] containing the deleted [Document].
+	 */
+	fun deleteDocuments(ids: List<IdAndRev>): Flow<Document>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev the latest rev of the entity to delete.
-     * @return the deleted [Document].
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteDocument(id: String, rev: String?): Document
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param id the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [Document].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deleteDocument(id: String, rev: String?): Document
 
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgeDocument(id: String, rev: String): DocIdentifier
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgeDocument(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteDocument(id: String, rev: String): Document
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeleteDocument(id: String, rev: String): Document
 
 	/**
 	 * Modifies [Document]s in batch ensuring there is no change to deleted attachments and ids of attachments.

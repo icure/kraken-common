@@ -24,7 +24,7 @@ import java.util.Base64
 @ConditionalOnProperty(prefix = "icure.couchdb.external.loading", name = ["publicSigningKey"], matchIfMissing = false)
 class ExternalViewsLoader(
 	private val objectMapper: ObjectMapper,
-	@Value("\${icure.couchdb.external.loading.publicSigningKey}") rawPublicSigningKey: String
+	@Value("\${icure.couchdb.external.loading.publicSigningKey}") rawPublicSigningKey: String,
 ) {
 
 	companion object {
@@ -32,7 +32,7 @@ class ExternalViewsLoader(
 
 		data class SignedContent(
 			val jsonContent: JsonNode,
-			val signature: String
+			val signature: String,
 		)
 	}
 
@@ -51,7 +51,9 @@ class ExternalViewsLoader(
 
 	private fun preprocessResourcePath(baseUrl: String, resourcePath: String): String = baseUrl
 		.replace("https://github.com/", "https://raw.githubusercontent.com/")
-		.trimEnd('/') + "/" + resourcePath.trim('/')
+		.trimEnd('/') +
+		"/" +
+		resourcePath.trim('/')
 
 	private fun verifySignature(signedContent: SignedContent): Boolean {
 		val content = objectMapper.writeValueAsString(signedContent.jsonContent)
@@ -85,19 +87,17 @@ class ExternalViewsLoader(
 		return objectMapper.treeToValue(signedContent.jsonContent)
 	}
 
-	private suspend fun getOrDownloadManifest(repoUrl: String): Map<String, String> = manifestCache.getIfPresent(repoUrl) ?:
-		downloadAndVerifyResource<Map<String, String>>(repoUrl, "output/manifest.json").also {
+	private suspend fun getOrDownloadManifest(repoUrl: String): Map<String, String> = manifestCache.getIfPresent(repoUrl)
+		?: downloadAndVerifyResource<Map<String, String>>(repoUrl, "output/manifest.json").also {
 			manifestCache.put(repoUrl, it)
 		}
 
-	suspend fun loadExternalViews(entityClass: Class<*>, repoUrl: String, partition: String): ExternalViewRepository? =
-		getOrDownloadManifest(repoUrl)[entityClass.simpleName.lowercase()]?.let { viewUrl ->
-			val views = downloadAndVerifyResource<Map<String, View>>(repoUrl, viewUrl)
-			ExternalViewRepository(
-				secondaryPartition = partition,
-				klass = entityClass,
-				views = views
-			)
-		}
-
+	suspend fun loadExternalViews(entityClass: Class<*>, repoUrl: String, partition: String): ExternalViewRepository? = getOrDownloadManifest(repoUrl)[entityClass.simpleName.lowercase()]?.let { viewUrl ->
+		val views = downloadAndVerifyResource<Map<String, View>>(repoUrl, viewUrl)
+		ExternalViewRepository(
+			secondaryPartition = partition,
+			klass = entityClass,
+			views = views,
+		)
+	}
 }

@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByDataOwnerTagFilter
 import org.taktik.icure.entities.Patient
 import javax.security.auth.login.LoginException
@@ -20,21 +20,22 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class PatientByDataOwnerTagFilter(
 	private val patientDAO: PatientDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByDataOwnerTagFilter> {
-
 	override fun resolve(
-        filter: PatientByDataOwnerTagFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: PatientByDataOwnerTagFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
 		try {
-			emitAll(patientDAO.listPatientIdsByDataOwnerTag(
-				datastoreInformation = datastoreInformation,
-				searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId),
-				tagType = filter.tagType,
-				tagCode = filter.tagCode,
-			))
+			emitAll(
+				patientDAO.listPatientIdsByDataOwnerTag(
+					datastoreInformation = datastoreInformation,
+					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId),
+					tagType = filter.tagType,
+					tagCode = filter.tagCode,
+				),
+			)
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)
 		}

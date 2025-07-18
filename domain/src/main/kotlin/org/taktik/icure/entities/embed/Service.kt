@@ -71,66 +71,70 @@ import java.util.*
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Service(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
-	val transactionId: String? = null, //Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
+	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
 	val identifier: List<Identifier> = emptyList(),
-	@JsonIgnore val subContactIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val plansOfActionIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val healthElementsIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val formIds: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val secretForeignKeys: Set<String>? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact
-	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact
-	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), //Only used when the Service is emitted outside its contact
-	@JsonIgnore val contactId: String? = null, //Only used when the Service is emitted outside its contact
-	@JsonIgnore val securityMetadata: SecurityMetadata? = null,  //Only used when the Service is emitted outside its contact
+	@JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val formIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val secretForeignKeys: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
+	@JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
 	val label: String? = null,
 	@Deprecated("Deleted in V2") val dataClassName: String? = null,
-	val index: Long? = null, //Used for sorting
-	@param:ContentValue(ContentValues.LOCALIZED_NESTED_ENTITIES) val content: Map<String /* ISO language code */, Content> = emptyMap(), //Localized, in the case when the service contains a document, the document id is the SerializableValue
-	@Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, //Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
-	val textIndexes: Map<String, String> = emptyMap(), //Same structure as content but used for full text indexation
+	val index: Long? = null, // Used for sorting
+	@param:ContentValue(ContentValues.LOCALIZED_NESTED_ENTITIES) val content: Map<String /* ISO language code */, Content> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
+	@Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
+	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
 	@param:ContentValue(ContentValues.FUZZY_DATE) @field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@param:ContentValue(ContentValues.FUZZY_DATE) @field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@param:ContentValue(ContentValues.FUZZY_DATE) val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
-	val formId: String? = null, //Used to group logically related services - legacy, use subContacts
+	val formId: String? = null, // Used to group logically related services - legacy, use subContacts
 	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	override val endOfLife: Long? = null,
-	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null, //userId
-	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null, //healthcarePartyId
+	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null, // userId
+	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null, // healthcarePartyId
 	override val medicalLocationId: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val comment: String? = null,
-	val status: Int? = null, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
+	val status: Int? = null, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
 	val invoicingCodes: Set<String> = emptySet(),
 	val notes: List<Annotation> = emptyList(),
-	@JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class) val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), //Links towards related services (possibly in other contacts)
-	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), //stub object of the Code used to qualify the content of the Service
-	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), //stub object of the tag used to qualify the type of the Service
+	@JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class) val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), // Links towards related services (possibly in other contacts)
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
-	) : Encryptable, ICureDocument<String>, Comparable<Service> {
+) : Encryptable,
+	ICureDocument<String>,
+	Comparable<Service> {
 	companion object : DynamicInitializer<Service>
 
 	fun merge(other: Service) = Service(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Service) = super<Encryptable>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
-		"label" to if (this.label.isNullOrBlank()) other.label else this.label,
-		"dataClassName" to (this.dataClassName ?: other.dataClassName),
-		"index" to (this.index ?: other.index),
-		"contactId" to (this.contactId ?: other.contactId),
-		"content" to (other.content + this.content),
-		"encryptedContent" to (this.encryptedContent ?: other.encryptedContent),
-		"textIndexes" to (other.textIndexes + this.textIndexes),
-		"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-		"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-		"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-		"formId" to (this.formId ?: other.formId),
-		"author" to (this.author ?: other.author),
-		"responsible" to (this.responsible ?: other.responsible),
-		"comment" to (this.comment ?: other.comment),
-		"status" to (this.status ?: other.status),
-		"invoicingCodes" to (other.invoicingCodes + this.invoicingCodes),
-		"notes" to (other.notes + this.notes),
-		"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks)
-	)
+	fun solveConflictsWith(other: Service) = super<Encryptable>.solveConflictsWith(other) +
+		super<ICureDocument>.solveConflictsWith(other) +
+		mapOf(
+			"label" to if (this.label.isNullOrBlank()) other.label else this.label,
+			"dataClassName" to (this.dataClassName ?: other.dataClassName),
+			"index" to (this.index ?: other.index),
+			"contactId" to (this.contactId ?: other.contactId),
+			"content" to (other.content + this.content),
+			"encryptedContent" to (this.encryptedContent ?: other.encryptedContent),
+			"textIndexes" to (other.textIndexes + this.textIndexes),
+			"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
+			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
+			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
+			"formId" to (this.formId ?: other.formId),
+			"author" to (this.author ?: other.author),
+			"responsible" to (this.responsible ?: other.responsible),
+			"comment" to (this.comment ?: other.comment),
+			"status" to (this.status ?: other.status),
+			"invoicingCodes" to (other.invoicingCodes + this.invoicingCodes),
+			"notes" to (other.notes + this.notes),
+			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
+		)
 
 	override fun compareTo(other: Service): Int {
 		if (this == other) {
@@ -142,13 +146,12 @@ data class Service(
 		return if (idx != 0) idx else 1
 	}
 
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }
 
 private data class ServiceWithEncryptionMetadataStub(
@@ -157,8 +160,9 @@ private data class ServiceWithEncryptionMetadataStub(
 	override val delegations: Map<String, Set<Delegation>>,
 	override val encryptionKeys: Map<String, Set<Delegation>>,
 	override val encryptedSelf: Base64String?,
-	override val securityMetadata: SecurityMetadata?
-): HasEncryptionMetadata, Encryptable
+	override val securityMetadata: SecurityMetadata?,
+) : HasEncryptionMetadata,
+	Encryptable
 
 /**
  * If the service is 'pimped' with contact information returns the service as an encryptable entity stub, allowing it
@@ -166,17 +170,20 @@ private data class ServiceWithEncryptionMetadataStub(
  */
 fun Service.withEncryptionMetadata(): HasEncryptionMetadata? = if (
 	contactId != null
-) ServiceWithEncryptionMetadataStub(
-	secretForeignKeys = secretForeignKeys ?: emptySet(),
-	cryptedForeignKeys = cryptedForeignKeys,
-	delegations = delegations,
-	encryptionKeys = encryptionKeys,
-	encryptedSelf = encryptedSelf,
-	securityMetadata = securityMetadata
-) else null
+) {
+	ServiceWithEncryptionMetadataStub(
+		secretForeignKeys = secretForeignKeys ?: emptySet(),
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		encryptedSelf = encryptedSelf,
+		securityMetadata = securityMetadata,
+	)
+} else {
+	null
+}
 
 /**
  * If [this] is a pimped service works as [HasEncryptionMetadata.hasDataOwnerOrDelegationKey], else returns false.
  */
-fun Service.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean =
-	withEncryptionMetadata()?.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey) ?: false
+fun Service.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean = withEncryptionMetadata()?.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey) ?: false

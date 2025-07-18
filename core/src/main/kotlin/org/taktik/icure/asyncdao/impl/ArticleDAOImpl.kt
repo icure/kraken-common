@@ -20,11 +20,22 @@ import org.taktik.icure.entities.Article
 
 @Repository("articleDAO")
 @Profile("app")
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Article' && !doc.deleted) emit( null, doc._id )}")
+@View(
+	name = "all",
+	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Article' && !doc.deleted) emit( null, doc._id )}",
+)
 class ArticleDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<Article>(Article::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ArticleDAO
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<Article>(
+	Article::class.java,
+	couchDbDispatcher,
+	idGenerator,
+	entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider,
+	daoConfig = daoConfig,
+),
+	ArticleDAO

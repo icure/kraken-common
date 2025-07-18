@@ -5,6 +5,6 @@ package org.taktik.icure.entities.embed
  * Used for entity-level permissions.
  */
 enum class AccessLevel {
-    READ,
-    WRITE
+	READ,
+	WRITE,
 }

@@ -11,17 +11,16 @@ data class CalendarItemByDataOwnerPatientStartTimeFilter(
 	override val endDate: Long?,
 	override val secretPatientIds: Set<String>,
 	override val descending: Boolean?,
-	override val desc: String? = null
-) : AbstractFilter<CalendarItem>, CalendarItemByDataOwnerPatientStartTimeFilter {
+	override val desc: String? = null,
+) : AbstractFilter<CalendarItem>,
+	CalendarItemByDataOwnerPatientStartTimeFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item)
-			&& item.secretForeignKeys.intersect(secretPatientIds).isNotEmpty()
-			&& (startDate == null || (item.startTime != null && item.startTime >= startDate))
-			&& (endDate == null || (item.startTime != null && item.startTime <= endDate))
-
+	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) &&
+		item.secretForeignKeys.intersect(secretPatientIds).isNotEmpty() &&
+		(startDate == null || (item.startTime != null && item.startTime >= startDate)) &&
+		(endDate == null || (item.startTime != null && item.startTime <= endDate))
 }

@@ -8,7 +8,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DesignDocumentDto
 @Mapper(
 	componentModel = "spring",
 	uses = [ViewV2Mapper::class],
-	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface DesignDocumentV2Mapper {
 	fun map(designDocumentDto: DesignDocumentDto): DesignDocument

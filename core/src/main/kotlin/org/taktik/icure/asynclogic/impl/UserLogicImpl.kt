@@ -23,10 +23,10 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.constants.Users
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
@@ -46,19 +46,22 @@ import java.text.DecimalFormat
 import java.time.Instant
 import java.util.*
 
-open class UserLogicImpl (
+open class UserLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	filters: Filters,
 	protected val userDAO: UserDAO,
 	protected val secretValidator: SecretValidator,
 	private val userEnhancer: UserEnhancer,
 	fixer: Fixer,
-	private val globalUserUpdater: GlobalUserUpdater
-) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters), UserLogic {
-
+	private val globalUserUpdater: GlobalUserUpdater,
+) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters),
+	UserLogic {
 	private val shortTokenFormatter = DecimalFormat("000000")
 
-	override suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): EnhancedUser? {
+	override suspend fun getUser(
+		id: String,
+		includeMetadataFromGlobalUser: Boolean,
+	): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
 		return userEnhancer.enhance(userDAO.getUserOnUserDb(datastoreInformation, id, false), includeMetadataFromGlobalUser)
 	}
@@ -88,7 +91,8 @@ open class UserLogicImpl (
 	}
 
 	override fun findByNameEmailPhone(
-		searchString: String, pagination: PaginationOffset<String>
+		searchString: String,
+		pagination: PaginationOffset<String>,
 	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByNameEmailPhone(datastoreInformation, searchString, pagination), false))
@@ -99,14 +103,16 @@ open class UserLogicImpl (
 		emitAll(
 			userEnhancer.enhanceFlow(
 				userDAO.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login)),
-				false
-			)
+				false,
+			),
 		)
 	}
 
 	override suspend fun getUserByLogin(login: String): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
-		return userDAO.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login)).firstOrNull()
+		return userDAO
+			.listUsersByUsername(datastoreInformation, UserLogic.formatLogin(login))
+			.firstOrNull()
 			?.let { userEnhancer.enhance(it, false) }
 	}
 
@@ -121,11 +127,12 @@ open class UserLogicImpl (
 	}
 
 	private suspend fun createOrModifyUser(user: User): EnhancedUser? {
-		val created: User = doCreateOrModifyUsers(
-			getInstanceAndGroup(),
-			listOf(user),
-			true
-		).single().entityOrThrow()
+		val created: User =
+			doCreateOrModifyUsers(
+				getInstanceAndGroup(),
+				listOf(user),
+				true,
+			).single().entityOrThrow()
 		return userEnhancer.enhance(globalUserUpdater.tryUpdate(created), false)
 	}
 
@@ -146,11 +153,11 @@ open class UserLogicImpl (
 					doCreateOrModifyUsers(
 						getInstanceAndGroup(),
 						entities,
-						false
-					).filterSuccessfulUpdates()
+						false,
+					).filterSuccessfulUpdates(),
 				),
-				false
-			)
+				false,
+			),
 		)
 	}
 
@@ -159,7 +166,7 @@ open class UserLogicImpl (
 		key: String,
 		tokenValidity: Long,
 		token: String?,
-		useShortToken: Boolean
+		useShortToken: Boolean,
 	): String {
 		val datastoreInformation = getInstanceAndGroup()
 		return doCreateToken(key, tokenValidity, token, useShortToken, datastoreInformation) {
@@ -171,21 +178,17 @@ open class UserLogicImpl (
 		}
 	}
 
-	override suspend fun disableUser(userId: String): User? {
-		return getUser(userId, false)?.let {
-			val datastoreInformation = getInstanceAndGroup()
-			userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))?.also {
-				globalUserUpdater.tryUpdate(it)
-			}
+	override suspend fun disableUser(userId: String): User? = getUser(userId, false)?.let {
+		val datastoreInformation = getInstanceAndGroup()
+		userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))?.also {
+			globalUserUpdater.tryUpdate(it)
 		}
 	}
 
-	override suspend fun enableUser(userId: String): User? {
-		return getUser(userId, false)?.let {
-			val datastoreInformation = getInstanceAndGroup()
-			userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))?.also { it ->
-				globalUserUpdater.tryUpdate(it)
-			}
+	override suspend fun enableUser(userId: String): User? = getUser(userId, false)?.let {
+		val datastoreInformation = getInstanceAndGroup()
+		userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))?.also { it ->
+			globalUserUpdater.tryUpdate(it)
 		}
 	}
 
@@ -209,17 +212,19 @@ open class UserLogicImpl (
 		return userDAO.contains(datastoreInformation, id)
 	}
 
-	override suspend fun getEntity(id: String): User? {
-		return getUser(id, false)
-	}
+	override suspend fun getEntity(id: String): User? = getUser(id, false)
 
-	override fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean) = flow {
+	override fun listUsers(
+		paginationOffset: PaginationOffset<String>,
+		skipPatients: Boolean,
+	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			userEnhancer.enhanceViewFlow(
-				userDAO.findUsers(datastoreInformation, paginationOffset.limitIncludingKey(), skipPatients),
-				false
-			).toPaginatedFlow<User>(paginationOffset.limit)
+			userEnhancer
+				.enhanceViewFlow(
+					userDAO.findUsers(datastoreInformation, paginationOffset.limitIncludingKey(), skipPatients),
+					false,
+				).toPaginatedFlow<User>(paginationOffset.limit),
 		)
 	}
 
@@ -229,24 +234,36 @@ open class UserLogicImpl (
 	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation)
-		val sortedIds = paginationOffset.takeUnless { it.startDocumentId == null }?.let { paginationOffset -> // Sub-set starting from startDocId to the end (including last element)
-			ids.dropWhile { id -> id != paginationOffset.startDocumentId }
-		} ?: ids
+		val sortedIds =
+			paginationOffset
+				.takeUnless {
+					it.startDocumentId == null
+				}?.let { paginationOffset ->
+					// Sub-set starting from startDocId to the end (including last element)
+					ids.dropWhile { id -> id != paginationOffset.startDocumentId }
+				} ?: ids
 
 		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more healthcare parties for the start key of the next page
 		emitAll(userEnhancer.enhanceViewFlow(userDAO.findUsersByIds(datastoreInformation, selectedIds), false))
 	}
 
-	override suspend fun setProperties(userId: String, properties: List<PropertyStub>): User? {
+	override suspend fun setProperties(
+		userId: String,
+		properties: List<PropertyStub>,
+	): User? {
 		val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
-		val updatedProperties = properties.fold(user.properties) { props, p ->
-			val prop = user.properties.find { pp -> pp.type?.identifier == p.type?.identifier }
-			prop?.let {
-				props - it + it.copy(
-					type = if (it.type?.type != null) it.type else it.type?.copy(type = p.typedValue?.type), typedValue = p.typedValue
-				)
-			} ?: (props + p)
-		}
+		val updatedProperties =
+			properties.fold(user.properties) { props, p ->
+				val prop = user.properties.find { pp -> pp.type?.identifier == p.type?.identifier }
+				prop?.let {
+					props -
+						it +
+						it.copy(
+							type = if (it.type?.type != null) it.type else it.type?.copy(type = p.typedValue?.type),
+							typedValue = p.typedValue,
+						)
+				} ?: (props + p)
+			}
 		return modifyUser(user.copy(properties = updatedProperties))
 	}
 
@@ -255,53 +272,59 @@ open class UserLogicImpl (
 		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation, ids), false))
 	}
 
-	override fun getGenericDAO(): UserDAO {
-		return userDAO
+	override fun getGenericDAO(): UserDAO = userDAO
+
+	override suspend fun getUserByGenericIdentifier(genericIdentifier: String): User? = getUser(genericIdentifier, false)
+		?: getUserByLogin(genericIdentifier)
+		?: getUserByEmail(genericIdentifier)
+		?: getUserByPhone(genericIdentifier)
+
+	override fun solveConflicts(
+		limit: Int?,
+		ids: List<String>?,
+	) = flow {
+		emitAll(
+			doSolveConflicts(
+				ids,
+				limit,
+				getInstanceAndGroup(),
+			),
+		)
 	}
-
-	override suspend fun getUserByGenericIdentifier(genericIdentifier: String): User? =
-		getUser(genericIdentifier, false)
-			?: getUserByLogin(genericIdentifier)
-			?: getUserByEmail(genericIdentifier)
-			?: getUserByPhone(genericIdentifier)
-
-
-	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
-		ids,
-		limit,
-		getInstanceAndGroup()
-	)) }
 
 	protected fun doSolveConflicts(
 		ids: List<String>?,
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
-	) =  flow {
+	) = flow {
 		// TODO need to notify separately global user updater or do we let the UserReplicator take care of it?
-		val flow = ids?.asFlow()?.mapNotNull { userDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-			?: userDAO.listConflicts(datastoreInformation)
-				.mapNotNull { userDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+		val flow =
+			ids?.asFlow()?.mapNotNull { userDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+				?: userDAO
+					.listConflicts(datastoreInformation)
+					.mapNotNull { userDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
 		(limit?.let { flow.take(it) } ?: flow)
 			.mapNotNull { user ->
-				user.conflicts?.mapNotNull { conflictingRevision ->
-					userDAO.get(
-						datastoreInformation, user.id, conflictingRevision
-					)
-				}?.fold(user to emptyList<User>()) { (kept, toBePurged), conflict ->
-					kept.merge(conflict) to toBePurged + conflict
-				}?.let { (mergedUser, toBePurged) ->
-					userDAO.save(datastoreInformation, mergedUser).also {
-						toBePurged.forEach {
-							if (it.rev != null && it.rev != mergedUser.rev) {
-								userDAO.purge(datastoreInformation, listOf(it)).single()
+				user.conflicts
+					?.mapNotNull { conflictingRevision ->
+						userDAO.get(
+							datastoreInformation,
+							user.id,
+							conflictingRevision,
+						)
+					}?.fold(user to emptyList<User>()) { (kept, toBePurged), conflict ->
+						kept.merge(conflict) to toBePurged + conflict
+					}?.let { (mergedUser, toBePurged) ->
+						userDAO.save(datastoreInformation, mergedUser).also {
+							toBePurged.forEach {
+								if (it.rev != null && it.rev != mergedUser.rev) {
+									userDAO.purge(datastoreInformation, listOf(it)).single()
+								}
 							}
 						}
 					}
-				}
-			}
-			.collect { emit(IdAndRev(it.id, it.rev)) }
+			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
-
 
 	/**
 	 * Creates a new user, abstracting all the differences between the different implementations of the user logic.
@@ -314,11 +337,15 @@ open class UserLogicImpl (
 	protected fun doCreateOrModifyUsers(
 		datastoreInformation: IDatastoreInformation,
 		users: Collection<User>,
-		throwOnDuplicate: Boolean
+		throwOnDuplicate: Boolean,
 	): Flow<BulkSaveResult<User>> = flow {
-		val existingUsers = users.filter { it.rev != null }.takeIf { it.isNotEmpty() }?.let { updates ->
-			userDAO.getEntities(datastoreInformation, updates.map { it.id }).toList().associateBy { it.id }
-		}.orEmpty()
+		val existingUsers =
+			users
+				.filter { it.rev != null }
+				.takeIf { it.isNotEmpty() }
+				?.let { updates ->
+					userDAO.getEntities(datastoreInformation, updates.map { it.id }).toList().associateBy { it.id }
+				}.orEmpty()
 		users.forEach { validateUser(it, existingUsers[it.id]) }
 		val nonDuplicateUsers = users.toMutableList()
 		checkOrFilterDuplicates(
@@ -327,7 +354,7 @@ open class UserLogicImpl (
 			throwOnDuplicate,
 			"logins",
 			{ it.login },
-			{ userDAO.findUsedUsernames(datastoreInformation, it) }
+			{ userDAO.findUsedUsernames(datastoreInformation, it) },
 		)
 		checkOrFilterDuplicates(
 			nonDuplicateUsers,
@@ -335,7 +362,7 @@ open class UserLogicImpl (
 			throwOnDuplicate,
 			"emails",
 			{ it.email },
-			{ userDAO.findUsedEmails(datastoreInformation, it) }
+			{ userDAO.findUsedEmails(datastoreInformation, it) },
 		)
 		checkOrFilterDuplicates(
 			nonDuplicateUsers,
@@ -343,23 +370,26 @@ open class UserLogicImpl (
 			throwOnDuplicate,
 			"phones",
 			{ it.login },
-			{ userDAO.findUsedPhones(datastoreInformation, it) }
+			{ userDAO.findUsedPhones(datastoreInformation, it) },
 		)
-		nonDuplicateUsers.map { user ->
-			fix(
-				user.copy(
-					createdDate = Instant.now(),
-					status = user.status ?: Users.Status.ACTIVE,
-					login = user.login ?: user.email ?: user.mobilePhone,
-					email = user.email?.takeIf { it.isNotBlank() },
-					mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
-					applicationTokens = emptyMap(),
-				).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
-				isCreate = user.rev == null
-			)
-		}.takeIf { it.isNotEmpty() }?.also {
-			emitAll(userDAO.saveBulk(datastoreInformation, it))
-		}
+		nonDuplicateUsers
+			.map { user ->
+				fix(
+					user
+						.copy(
+							createdDate = Instant.now(),
+							status = user.status ?: Users.Status.ACTIVE,
+							login = user.login ?: user.email ?: user.mobilePhone,
+							email = user.email?.takeIf { it.isNotBlank() },
+							mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
+							applicationTokens = emptyMap(),
+						).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
+					isCreate = user.rev == null,
+				)
+			}.takeIf { it.isNotEmpty() }
+			?.also {
+				emitAll(userDAO.saveBulk(datastoreInformation, it))
+			}
 	}
 
 	private suspend inline fun checkOrFilterDuplicates(
@@ -368,50 +398,54 @@ open class UserLogicImpl (
 		throwOnDuplicate: Boolean,
 		fieldsName: String,
 		crossinline checkField: (User) -> String?,
-		getExisting: (Collection<String>) -> Flow<String>
+		getExisting: (Collection<String>) -> Flow<String>,
 	) {
-		users.mapNotNull { u ->
-			val updatedField = checkField(u)
-			if (updatedField == existingUsers[u.id]?.let(checkField))
-				// If entity existed and the field has been unchanged we trust it is still unique
-				null
-			else
-				updatedField
-		}.takeIf {
-			it.isNotEmpty()
-		}?.also { fields ->
-			val existingFields = getExisting(fields).toSet()
-			if (throwOnDuplicate && existingFields.isNotEmpty())
-				throw DuplicateDocumentException("Users with $fieldsName $existingFields already exist")
-			else
-				users.removeAll { checkField(it) != null && checkField(it) in existingFields }
-		}
+		users
+			.mapNotNull { u ->
+				val updatedField = checkField(u)
+				if (updatedField == existingUsers[u.id]?.let(checkField)) {
+					// If entity existed and the field has been unchanged we trust it is still unique
+					null
+				} else {
+					updatedField
+				}
+			}.takeIf {
+				it.isNotEmpty()
+			}?.also { fields ->
+				val existingFields = getExisting(fields).toSet()
+				if (throwOnDuplicate && existingFields.isNotEmpty()) {
+					throw DuplicateDocumentException("Users with $fieldsName $existingFields already exist")
+				} else {
+					users.removeAll { checkField(it) != null && checkField(it) in existingFields }
+				}
+			}
 	}
 
 	private val EMAIL_REGEX = Regex(".+@.+")
 	private val PHONE_REGEX = Regex("\\+?[0-9]{6,20}")
+
 	fun validateUser(
 		user: User,
-		existingUser: User?
+		existingUser: User?,
 	) {
 		require(
 			!user.login.isNullOrBlank() ||
-			!user.email.isNullOrBlank() ||
-			!user.mobilePhone.isNullOrBlank()
+				!user.email.isNullOrBlank() ||
+				!user.mobilePhone.isNullOrBlank(),
 		) {
 			"Invalid user ${user.id} - one of `login`, `email` or `mobilePhone` must be not blank"
 		}
 		require(
 			user.mobilePhone?.let {
 				it == existingUser?.mobilePhone || PHONE_REGEX.matchEntire(it) != null
-			} ?: true
+			} ?: true,
 		) {
 			"Invalid mobilePhone \"${user.mobilePhone}\" for user ${user.id}"
 		}
 		require(
 			user.email?.let {
 				it == existingUser?.email || EMAIL_REGEX.matchEntire(it) != null
-			} ?: true
+			} ?: true,
 		) {
 			"Invalid email \"${user.email}\" for user ${user.id}"
 		}
@@ -437,57 +471,71 @@ open class UserLogicImpl (
 		token: String?,
 		useShortToken: Boolean,
 		datastoreInformation: IDatastoreInformation,
-		getUser: suspend () -> User
+		getUser: suspend () -> User,
 	): Pair<User, String> {
 		val user = getUser()
 
 		// Short tokens generated by this code are not perfectly uniformly distributed but good enough
-		val authenticationToken = token ?: (
-				if (useShortToken) UUID.randomUUID().leastSignificantBits.let { shortTokenFormatter.format(it % 1000000) }
-				else UUID.randomUUID().toString())
+		val authenticationToken =
+			token ?: (
+				if (useShortToken) {
+					UUID.randomUUID().leastSignificantBits.let { shortTokenFormatter.format(it % 1000000) }
+				} else {
+					UUID.randomUUID().toString()
+				}
+				)
 
-		val tokenValidityWithinBounds = tokenValidity
-			.coerceAtLeast(1)
-			.coerceAtMost(
-				if (useShortToken || authenticationToken.length < 10) 600 else Long.MAX_VALUE
-			)
+		val tokenValidityWithinBounds =
+			tokenValidity
+				.coerceAtLeast(1)
+				.coerceAtMost(
+					if (useShortToken || authenticationToken.length < 10) 600 else Long.MAX_VALUE,
+				)
 
 		return Pair(
 			userDAO.save(
 				datastoreInformation,
 				user.copy(
-					authenticationTokens = user.authenticationTokens + (key to AuthenticationToken(
-						secretValidator.encodeAndValidateSecrets(
-							authenticationToken,
-							if(tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY)
-								SecretType.SHORT_TOKEN
-							else SecretType.LONG_TOKEN
-						),
-						validity = tokenValidity))
-				)
+					authenticationTokens =
+					user.authenticationTokens +
+						(
+							key to
+								AuthenticationToken(
+									secretValidator.encodeAndValidateSecrets(
+										authenticationToken,
+										if (tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY) {
+											SecretType.SHORT_TOKEN
+										} else {
+											SecretType.LONG_TOKEN
+										},
+									),
+									validity = tokenValidity,
+								)
+							),
+				),
 			) ?: throw IllegalStateException("Cannot create token for user"),
-			authenticationToken
+			authenticationToken,
 		)
 	}
 
-	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<User> {
-		return globalUserUpdater.tryingUpdates(super.deleteEntities(identifiers))
-	}
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<User> = globalUserUpdater.tryingUpdates(super.deleteEntities(identifiers))
 
-	override suspend fun undeleteEntity(id: String, rev: String?): User {
-		return globalUserUpdater.tryUpdate(super.undeleteEntity(id, rev))
-	}
+	override suspend fun undeleteEntity(
+		id: String,
+		rev: String?,
+	): User = globalUserUpdater.tryUpdate(super.undeleteEntity(id, rev))
 
-	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<User> {
-		return globalUserUpdater.tryingUpdates(super.undeleteEntities(identifiers))
-	}
+	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<User> = globalUserUpdater.tryingUpdates(super.undeleteEntities(identifiers))
 
-	override suspend fun deleteEntity(id: String, rev: String?): User {
-		return globalUserUpdater.tryUpdate(super.deleteEntity(id, rev))
-	}
+	override suspend fun deleteEntity(
+		id: String,
+		rev: String?,
+	): User = globalUserUpdater.tryUpdate(super.deleteEntity(id, rev))
 
-	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier {
-		return super.purgeEntity(id, rev).also { globalUserUpdater.tryPurge(localId = id, localRev = rev) }
+	override suspend fun purgeEntity(
+		id: String,
+		rev: String,
+	): DocIdentifier = super.purgeEntity(id, rev).also {
+		globalUserUpdater.tryPurge(localId = id, localRev = rev)
 	}
 }
-

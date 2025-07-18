@@ -17,5 +17,5 @@ data class CalendarItemByDataOwnerLifecycleBetween(
 	val startTimestamp: Long? = null,
 	val endTimestamp: Long? = null,
 	val descending: Boolean = false,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<CalendarItemDto>

@@ -24,29 +24,30 @@ import org.taktik.icure.utils.injectReactorContext
 @RequestMapping("/rest/v2/exchangedatamap")
 @Tag(name = "exchangeDataMap")
 class ExchangeDataMapController(
-    private val exchangeDataMapService: ExchangeDataMapService,
-    private val exchangeDataMapV2Mapper: ExchangeDataMapV2Mapper
+	private val exchangeDataMapService: ExchangeDataMapService,
+	private val exchangeDataMapV2Mapper: ExchangeDataMapV2Mapper,
 ) {
-    @Operation(description = "Creates a new Exchange Data Map batch, updating the ones that already exist")
-    @PutMapping("/batch")
-    fun createOrUpdateExchangeDataMapBatch(
-        @RequestBody batch: ExchangeDataMapCreationBatch
-    ) = mono {
-        require (batch.batch.values.all { it.isNotEmpty() }) {
-            "Should not create exchange data map with no content"
-        }
-        exchangeDataMapService.createOrUpdateExchangeDataMapBatchByAccessControlKey(
-            batch.batch
-        ).collect()
-        ResponseEntity.ok().body("ok")
-    }
+	@Operation(description = "Creates a new Exchange Data Map batch, updating the ones that already exist")
+	@PutMapping("/batch")
+	fun createOrUpdateExchangeDataMapBatch(
+		@RequestBody batch: ExchangeDataMapCreationBatch,
+	) = mono {
+		require(batch.batch.values.all { it.isNotEmpty() }) {
+			"Should not create exchange data map with no content"
+		}
+		exchangeDataMapService
+			.createOrUpdateExchangeDataMapBatchByAccessControlKey(
+				batch.batch,
+			).collect()
+		ResponseEntity.ok().body("ok")
+	}
 
-    @Operation(description = "Gets an Exchange Data Map batch by ids")
-    @PostMapping("/batch")
-    fun getExchangeDataMapBatch(
-        @RequestBody ids: ListOfIdsDto
-    ) = exchangeDataMapService.getExchangeDataMapBatch(ids.ids)
-        .map(exchangeDataMapV2Mapper::map)
-        .injectReactorContext()
-
+	@Operation(description = "Gets an Exchange Data Map batch by ids")
+	@PostMapping("/batch")
+	fun getExchangeDataMapBatch(
+		@RequestBody ids: ListOfIdsDto,
+	) = exchangeDataMapService
+		.getExchangeDataMapBatch(ids.ids)
+		.map(exchangeDataMapV2Mapper::map)
+		.injectReactorContext()
 }

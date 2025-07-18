@@ -155,7 +155,7 @@ interface CodeDAO : GenericDAO<Code> {
 	 */
 	fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?): Flow<String>
 	fun getCodesByIdsForPagination(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<ViewQueryResultEvent>
-    fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Code>
+	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Code>
 
 	/**
 	 * Retrieves all the [Code.id]s with the specified region, type, code, and version.
@@ -180,6 +180,6 @@ interface CodeDAO : GenericDAO<Code> {
 		region: String?,
 		type: String?,
 		code: String?,
-		version: String?
+		version: String?,
 	): Flow<String>
 }

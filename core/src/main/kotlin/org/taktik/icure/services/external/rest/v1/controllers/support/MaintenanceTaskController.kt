@@ -42,13 +42,15 @@ class MaintenanceTaskController(
 	private val maintenanceTaskService: MaintenanceTaskService,
 	private val maintenanceTaskMapper: MaintenanceTaskMapper,
 	private val filterChainMapper: FilterChainMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
-
 	@Operation(summary = "Creates a maintenanceTask")
 	@PostMapping
-	fun createMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
-		maintenanceTaskService.createMaintenanceTask(maintenanceTaskMapper.map(maintenanceTaskDto))
+	fun createMaintenanceTask(
+		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
+	) = mono {
+		maintenanceTaskService
+			.createMaintenanceTask(maintenanceTaskMapper.map(maintenanceTaskDto))
 			?.let {
 				maintenanceTaskMapper.map(it)
 			} ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask creation failed.")
@@ -56,35 +58,44 @@ class MaintenanceTaskController(
 
 	@Operation(summary = "Delete maintenanceTasks")
 	@DeleteMapping("/{maintenanceTaskIds}")
-	fun deleteMaintenanceTask(@PathVariable maintenanceTaskIds: String) =
-		maintenanceTaskService.deleteMaintenanceTasks(maintenanceTaskIds.split(',').map { IdAndRev(it, null) })
-			.catch { e ->
-				if (e is AccessDeniedException)
-					throw ResponseStatusException(HttpStatus.FORBIDDEN, e.message)
-				throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask deletion failed.")
+	fun deleteMaintenanceTask(
+		@PathVariable maintenanceTaskIds: String,
+	) = maintenanceTaskService
+		.deleteMaintenanceTasks(maintenanceTaskIds.split(',').map { IdAndRev(it, null) })
+		.catch { e ->
+			if (e is AccessDeniedException) {
+				throw ResponseStatusException(HttpStatus.FORBIDDEN, e.message)
 			}
-			.injectReactorContext()
+			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask deletion failed.")
+		}.injectReactorContext()
 
 	@Operation(summary = "Gets a maintenanceTask")
 	@GetMapping("/{maintenanceTaskId}")
-	fun getMaintenanceTask(@PathVariable maintenanceTaskId: String) = mono {
+	fun getMaintenanceTask(
+		@PathVariable maintenanceTaskId: String,
+	) = mono {
 		maintenanceTaskService.getMaintenanceTask(maintenanceTaskId)?.let(maintenanceTaskMapper::map)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask not found")
 	}
 
 	@Operation(summary = "Updates a maintenanceTask")
 	@PutMapping
-	fun modifyMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
-		maintenanceTaskService.modifyMaintenanceTask(maintenanceTaskMapper.map(maintenanceTaskDto))?.let{ maintenanceTaskMapper.map(it) }
+	fun modifyMaintenanceTask(
+		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
+	) = mono {
+		maintenanceTaskService.modifyMaintenanceTask(maintenanceTaskMapper.map(maintenanceTaskDto))?.let { maintenanceTaskMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask modification failed.")
 	}
 
-	@Operation(summary = "Filter maintenanceTasks for the current user (HcParty) ", description = "Returns a list of maintenanceTasks along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter maintenanceTasks for the current user (HcParty) ",
+		description = "Returns a list of maintenanceTasks along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterMaintenanceTasksBy(
 		@Parameter(description = "A maintenanceTask document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>
+		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)

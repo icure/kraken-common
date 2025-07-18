@@ -14,5 +14,5 @@ import java.io.Serializable
 data class PermissionSetWithAuthorities(
 	val permissionSetIdentifier: PermissionSetIdentifier,
 	val permissions: Set<Permission>,
-	val grantedAuthorities: Set<GrantedAuthority>
+	val grantedAuthorities: Set<GrantedAuthority>,
 ) : Serializable

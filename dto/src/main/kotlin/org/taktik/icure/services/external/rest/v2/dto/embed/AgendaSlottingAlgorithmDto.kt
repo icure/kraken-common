@@ -20,6 +20,7 @@ sealed interface AgendaSlottingAlgorithmDto {
 	 * The returned slots for that time table item are 10:10, 10:20, 10:30, 13:05, 13:15
 	 */
 	data class FixedIntervals(
-		val intervalMinutes: Int
-	) : AgendaSlottingAlgorithmDto, Serializable
+		val intervalMinutes: Int,
+	) : AgendaSlottingAlgorithmDto,
+		Serializable
 }

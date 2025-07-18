@@ -33,25 +33,29 @@ class MedicalLocationController(
 	private val medicalLocationService: MedicalLocationService,
 	private val medicalLocationMapper: MedicalLocationMapper,
 ) {
-
 	@Operation(summary = "Creates a medical location")
 	@PostMapping
-	fun createMedicalLocation(@RequestBody medicalLocationDto: MedicalLocationDto) = mono {
+	fun createMedicalLocation(
+		@RequestBody medicalLocationDto: MedicalLocationDto,
+	) = mono {
 		medicalLocationService.createMedicalLocation(medicalLocationMapper.map(medicalLocationDto))?.let { medicalLocationMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Medical location creation failed")
 	}
 
 	@Operation(summary = "Deletes a medical location")
 	@DeleteMapping("/{locationIds}")
-	fun deleteMedicalLocation(@PathVariable locationIds: String) =
-		medicalLocationService
-			.deleteMedicalLocations(locationIds.split(',').map { IdAndRev(it, null) })
-			.map(medicalLocationMapper::map)
-			.injectReactorContext()
+	fun deleteMedicalLocation(
+		@PathVariable locationIds: String,
+	) = medicalLocationService
+		.deleteMedicalLocations(locationIds.split(',').map { IdAndRev(it, null) })
+		.map(medicalLocationMapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Gets a medical location")
 	@GetMapping("/{locationId}")
-	fun getMedicalLocation(@PathVariable locationId: String) = mono {
+	fun getMedicalLocation(
+		@PathVariable locationId: String,
+	) = mono {
 		medicalLocationService.getMedicalLocation(locationId)?.let { medicalLocationMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location fetching failed")
 	}
@@ -65,7 +69,9 @@ class MedicalLocationController(
 
 	@Operation(summary = "Modifies a medical location")
 	@PutMapping
-	fun modifyMedicalLocation(@RequestBody medicalLocationDto: MedicalLocationDto) = mono {
+	fun modifyMedicalLocation(
+		@RequestBody medicalLocationDto: MedicalLocationDto,
+	) = mono {
 		medicalLocationService.modifyMedicalLocation(medicalLocationMapper.map(medicalLocationDto))?.let { medicalLocationMapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location modification failed")
 	}

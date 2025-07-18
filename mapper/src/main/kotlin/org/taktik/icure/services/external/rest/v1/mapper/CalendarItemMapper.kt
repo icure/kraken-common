@@ -32,8 +32,8 @@ abstract class CalendarItemMapper {
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
-		require (calendarItem.resourceGroup == null) { "Can't use calendar item with `resourceGroup` on v1 apis"}
-		require (calendarItem.availabilitiesAssignmentStrategy == null) { "Can't use calendar item with `availabilitiesAssignmentStrategy` on v1 apis"}
+		require(calendarItem.resourceGroup == null) { "Can't use calendar item with `resourceGroup` on v1 apis" }
+		require(calendarItem.availabilitiesAssignmentStrategy == null) { "Can't use calendar item with `availabilitiesAssignmentStrategy` on v1 apis" }
 		return doMap(calendarItem)
 	}
 

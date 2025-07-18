@@ -22,7 +22,7 @@ class JacksonPredicateDeserializer : JsonObjectDeserializer<Predicate>() {
 	private val scanner = Reflections(Predicate::class.java, TypeAnnotationsScanner(), SubTypesScanner())
 
 	init {
-        Preconditions.checkArgument(Modifier.isAbstract(Predicate::class.java.modifiers), "Superclass must be abstract")
+		Preconditions.checkArgument(Modifier.isAbstract(Predicate::class.java.modifiers), "Superclass must be abstract")
 		val classes = scanner.getTypesAnnotatedWith(JsonPolymorphismRoot::class.java).filter { Predicate::class.java.isAssignableFrom(it) }
 		for (subClass in classes) {
 			val discriminated = subClass.getAnnotation(JsonDiscriminated::class.java)
@@ -32,7 +32,12 @@ class JacksonPredicateDeserializer : JsonObjectDeserializer<Predicate>() {
 		}
 	}
 
-	override fun deserializeObject(jsonParser: JsonParser?, context: DeserializationContext?, codec: ObjectCodec, tree: JsonNode): Predicate {
+	override fun deserializeObject(
+		jsonParser: JsonParser?,
+		context: DeserializationContext?,
+		codec: ObjectCodec,
+		tree: JsonNode,
+	): Predicate {
 		val discr = tree[discriminator].textValue() ?: throw IllegalArgumentException("Missing discriminator $discriminator in object")
 		val selectedSubClass = subclasses[discr] ?: throw IllegalArgumentException("Invalid subclass $discr in object")
 		return codec.treeToValue(tree, selectedSubClass)

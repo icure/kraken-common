@@ -15,13 +15,13 @@ interface InsuranceDAO : GenericDAO<Insurance> {
 
 	fun listInsurancesByName(datastoreInformation: IDatastoreInformation, name: String): Flow<Insurance>
 
-    /**
-     * Retrieves all the insurances in the group specified in the [IDatastoreInformation] in a format
-     * for pagination.
-     *
-     * @param datastoreInformation an instance of [IDatastoreInformation] to specify group and CouchDB instance.
-     * @param paginationOffset a [PaginationOffset] of [Nothing] (i.e. with an always-null start key) for the pagination.
-     * @return a [Flow] of [Insurance]s wrapped in [ViewQueryResultEvent]s for pagination.
-     */
-    fun getAllInsurances(datastoreInformation: IDatastoreInformation, paginationOffset: PaginationOffset<Nothing>): Flow<ViewQueryResultEvent>
+	/**
+	 * Retrieves all the insurances in the group specified in the [IDatastoreInformation] in a format
+	 * for pagination.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to specify group and CouchDB instance.
+	 * @param paginationOffset a [PaginationOffset] of [Nothing] (i.e. with an always-null start key) for the pagination.
+	 * @return a [Flow] of [Insurance]s wrapped in [ViewQueryResultEvent]s for pagination.
+	 */
+	fun getAllInsurances(datastoreInformation: IDatastoreInformation, paginationOffset: PaginationOffset<Nothing>): Flow<ViewQueryResultEvent>
 }

@@ -15,9 +15,11 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	@Schema(required = true)
 	val entityClass: String,
 	val filter: FilterChain<O>?,
-	val accessControlKeys: List<AccessControlKeyHexStringDto>?
+	val accessControlKeys: List<AccessControlKeyHexStringDto>?,
 ) : java.io.Serializable
 
 enum class SubscriptionEventType {
-	CREATE, UPDATE, DELETE
+	CREATE,
+	UPDATE,
+	DELETE,
 }

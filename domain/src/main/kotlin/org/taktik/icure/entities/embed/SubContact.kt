@@ -62,14 +62,15 @@ data class SubContact(
 	override val endOfLife: Long? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val descr: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val protocol: String? = null,
-	val status: Int? = null, //To be refactored
+	val status: Int? = null, // To be refactored
 	val formId: String? = null, // form or subform unique ID. Several subcontacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID
 	val planOfActionId: String? = null,
 	val healthElementId: String? = null,
 	val classificationId: String? = null,
 	val services: List<ServiceLink> = emptyList(),
-	override val encryptedSelf: String? = null
-) : Encryptable, ICureDocument<String?> {
+	override val encryptedSelf: String? = null,
+) : Encryptable,
+	ICureDocument<String?> {
 	companion object : DynamicInitializer<SubContact> {
 		const val STATUS_LABO_RESULT = 1
 		const val STATUS_UNREAD = 2
@@ -81,22 +82,23 @@ data class SubContact(
 	}
 
 	fun merge(other: SubContact) = SubContact(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: SubContact) = super<Encryptable>.solveConflictsWith(other) + super<ICureDocument>.solveConflictsWith(other) + mapOf(
-		"descr" to (this.descr ?: other.descr),
-		"protocol" to (this.protocol ?: other.protocol),
-		"status" to (this.status ?: other.status),
-		"formId" to (this.formId ?: other.formId),
-		"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
-		"healthElementId" to (this.healthElementId ?: other.healthElementId),
-		"classificationId" to (this.classificationId ?: other.classificationId),
-		"services" to MergeUtil.mergeListsDistinct(this.services, other.services, { a, b -> a.serviceId == b.serviceId })
-	)
+	fun solveConflictsWith(other: SubContact) = super<Encryptable>.solveConflictsWith(other) +
+		super<ICureDocument>.solveConflictsWith(other) +
+		mapOf(
+			"descr" to (this.descr ?: other.descr),
+			"protocol" to (this.protocol ?: other.protocol),
+			"status" to (this.status ?: other.status),
+			"formId" to (this.formId ?: other.formId),
+			"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
+			"healthElementId" to (this.healthElementId ?: other.healthElementId),
+			"classificationId" to (this.classificationId ?: other.classificationId),
+			"services" to MergeUtil.mergeListsDistinct(this.services, other.services, { a, b -> a.serviceId == b.serviceId }),
+		)
 
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

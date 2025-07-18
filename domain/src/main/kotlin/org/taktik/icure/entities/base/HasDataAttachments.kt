@@ -30,18 +30,21 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 	fun solveDeletedAttachmentsConflicts(other: HasDataAttachments<T>): List<DeletedAttachment> = MergeUtil.mergeListsDistinct(
 		this.deletedAttachments,
 		other.deletedAttachments,
-		comparator = { a, b -> a.key == b.key && a.objectStoreAttachmentId == b.objectStoreAttachmentId && a.couchDbAttachmentId == b.couchDbAttachmentId }
+		comparator = { a, b -> a.key == b.key && a.objectStoreAttachmentId == b.objectStoreAttachmentId && a.couchDbAttachmentId == b.couchDbAttachmentId },
 	)
 
-	fun solveDataAttachmentsConflicts(other: HasDataAttachments<T>): Map<String, DataAttachment> =
-		(this.dataAttachments.keys + other.dataAttachments.keys).associateWith { k ->
-			val a = this.dataAttachments[k]
-			val b = other.dataAttachments[k]
-			if (a != null && b != null) {
-				if (b.objectStoreAttachmentId != null && b.objectStoreAttachmentId == a.couchDbAttachmentId) // b is a "migrated" version of a
-					b
-				else
-					a
-			} else a ?: b!!
+	fun solveDataAttachmentsConflicts(other: HasDataAttachments<T>): Map<String, DataAttachment> = (this.dataAttachments.keys + other.dataAttachments.keys).associateWith { k ->
+		val a = this.dataAttachments[k]
+		val b = other.dataAttachments[k]
+		if (a != null && b != null) {
+			if (b.objectStoreAttachmentId != null && b.objectStoreAttachmentId == a.couchDbAttachmentId) {
+				// b is a "migrated" version of a
+				b
+			} else {
+				a
+			}
+		} else {
+			a ?: b!!
 		}
+	}
 }

@@ -11,4 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class Label(value: String?) : PrimitiveString(value)
+class Label(
+	value: String?,
+) : PrimitiveString(value)

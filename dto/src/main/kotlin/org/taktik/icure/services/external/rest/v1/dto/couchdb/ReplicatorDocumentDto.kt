@@ -1,6 +1,5 @@
 package org.taktik.icure.services.external.rest.v1.dto.couchdb
 
-import java.time.ZonedDateTime
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -8,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.handlers.ZonedDateTimeDeserializer
 import org.taktik.couchdb.handlers.ZonedDateTimeSerializer
 import org.taktik.icure.services.external.rest.v1.dto.base.VersionableDto
+import java.time.ZonedDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,5 +29,8 @@ data class ReplicatorDocumentDto(
 	val revsInfo: List<Map<String, String>>? = null,
 	val revHistory: Map<String, String>? = null,
 ) : VersionableDto<String> {
-	override fun withIdRev(id: String?, rev: String) = id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
 }

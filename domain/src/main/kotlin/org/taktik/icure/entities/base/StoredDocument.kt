@@ -19,24 +19,24 @@ interface StoredDocument : Versionable<String> {
 		 * This value can be used to get a rough estimate of which version of an entity is the most recent (not
 		 * always accurate).
 		 */
-		fun sequenceOfRev(rev: String): Int =
-			requireNotNull(rev.split("-").takeIf { it.size == 2 }?.firstOrNull()?.toIntOrNull()) {
-				"Invalid revision, can't determine sequence number: $rev"
-			}
+		fun sequenceOfRev(rev: String): Int = requireNotNull(rev.split("-").takeIf { it.size == 2 }?.firstOrNull()?.toIntOrNull()) {
+			"Invalid revision, can't determine sequence number: $rev"
+		}
 	}
 
 	@Suppress("PropertyName")
 	@JsonProperty("java_type")
-	fun getJavaType(): String {
-		return this::class.qualifiedName!!
-	}
+	fun getJavaType(): String = this::class.qualifiedName!!
+
 	@JsonProperty("java_type")
 	fun setJavaType(value: String) {
-		if (this::class.qualifiedName != value) throw DeserializationTypeException(
-			this.id,
-			this::class,
-			value
-		)
+		if (this::class.qualifiedName != value) {
+			throw DeserializationTypeException(
+				this.id,
+				this::class,
+				value,
+			)
+		}
 	}
 
 	val deletionDate: Long?
@@ -44,24 +44,24 @@ interface StoredDocument : Versionable<String> {
 	val conflicts: List<String>?
 	val attachments: Map<String, Attachment>?
 
-	fun solveConflictsWith(other: StoredDocument): Map<String, Any?> {
-		return mapOf(
-			"id" to this.id,
-			"rev" to this.rev,
-			"revHistory" to (other.revHistory?.let { it + (this.revHistory ?: mapOf()) } ?: this.revHistory),
-			"revisionsInfo" to this.revisionsInfo,
-			"conflicts" to this.conflicts,
-			"attachments" to solveAttachmentsConflicts(this.attachments, other.attachments),
-			"deletionDate" to (this.deletionDate ?: other.deletionDate)
-		)
-	}
+	fun solveConflictsWith(other: StoredDocument): Map<String, Any?> = mapOf(
+		"id" to this.id,
+		"rev" to this.rev,
+		"revHistory" to (other.revHistory?.let { it + (this.revHistory ?: mapOf()) } ?: this.revHistory),
+		"revisionsInfo" to this.revisionsInfo,
+		"conflicts" to this.conflicts,
+		"attachments" to solveAttachmentsConflicts(this.attachments, other.attachments),
+		"deletionDate" to (this.deletionDate ?: other.deletionDate),
+	)
 
-	private fun solveAttachmentsConflicts(thisAttachments: Map<String, Attachment>?, otherAttachments: Map<String, Attachment>?): Map<String, Attachment>? = this.attachments?.mapValues {(key, a) ->
+	private fun solveAttachmentsConflicts(thisAttachments: Map<String, Attachment>?, otherAttachments: Map<String, Attachment>?): Map<String, Attachment>? = this.attachments?.mapValues { (key, a) ->
 		val b = otherAttachments?.get(key)
 
 		if (b != null) {
 			if (b.length?.let { it > (a.length ?: 0) } == true) b else a
-		} else a
+		} else {
+			a
+		}
 	}
 
 	fun withDeletionDate(deletionDate: Long?): StoredDocument

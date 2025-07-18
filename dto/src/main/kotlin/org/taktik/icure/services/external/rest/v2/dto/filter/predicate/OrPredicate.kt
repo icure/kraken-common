@@ -27,4 +27,6 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class OrPredicate(val predicates: List<Predicate> = emptyList()) : Predicate
+data class OrPredicate(
+	val predicates: List<Predicate> = emptyList(),
+) : Predicate

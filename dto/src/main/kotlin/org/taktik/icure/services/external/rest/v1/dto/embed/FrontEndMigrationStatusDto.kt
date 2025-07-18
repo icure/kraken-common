@@ -4,11 +4,13 @@
 
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
-import java.io.Serializable
 import org.taktik.icure.services.external.rest.v1.dto.base.EnumVersionDto
+import java.io.Serializable
 
 @EnumVersionDto(1L)
-
 enum class FrontEndMigrationStatusDto : Serializable {
-	STARTED, PAUSED, ERROR, SUCCESS
+	STARTED,
+	PAUSED,
+	ERROR,
+	SUCCESS,
 }

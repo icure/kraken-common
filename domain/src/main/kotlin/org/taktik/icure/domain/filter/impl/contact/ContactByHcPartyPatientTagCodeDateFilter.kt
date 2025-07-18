@@ -18,8 +18,9 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 	override val codeType: String? = null,
 	override val codeCode: String? = null,
 	override val startOfContactOpeningDate: Long? = null,
-	override val endOfContactOpeningDate: Long? = null
-) : AbstractFilter<Contact>, org.taktik.icure.domain.filter.contact.ContactByHcPartyPatientTagCodeDateFilter {
+	override val endOfContactOpeningDate: Long? = null,
+) : AbstractFilter<Contact>,
+	org.taktik.icure.domain.filter.contact.ContactByHcPartyPatientTagCodeDateFilter {
 	init {
 		if (tagCode != null) {
 			require(tagType != null) { "If you specify tagCode you must also specify tagType" }
@@ -30,23 +31,24 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 	}
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (
-			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
-				(patientSecretForeignKeys == null || item.secretForeignKeys.intersect(patientSecretForeignKeys.toSet()).isNotEmpty()) &&
-				(
-					tagType == null || item.services.any { svc ->
-						(svc.tags.any { t -> tagType == t.type && (tagCode == null || tagCode == t.code) } &&
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+			(patientSecretForeignKeys == null || item.secretForeignKeys.intersect(patientSecretForeignKeys.toSet()).isNotEmpty()) &&
+			(
+				tagType == null ||
+					item.services.any { svc ->
+						(
+							svc.tags.any { t -> tagType == t.type && (tagCode == null || tagCode == t.code) } &&
 								(codeType == null || svc.codes.any { cs -> codeType == cs.type && (codeCode == null || codeCode == cs.code) }) &&
 								(startOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate > startOfContactOpeningDate || svc.openingDate != null && svc.openingDate > startOfContactOpeningDate) &&
 								(endOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate < endOfContactOpeningDate || svc.openingDate != null && svc.openingDate < endOfContactOpeningDate)
 							)
 					}
-					)
-			)
-	}
+				)
+		)
 }

@@ -20,5 +20,5 @@ data class MaintenanceTaskAfterDateFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
 	@Schema(required = true)
-	val date: Long
+	val date: Long,
 ) : AbstractFilterDto<MaintenanceTaskDto>

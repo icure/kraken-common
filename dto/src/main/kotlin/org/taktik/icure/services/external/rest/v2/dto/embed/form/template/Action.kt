@@ -9,5 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class Action(
 	@Schema(defaultValue = "emptyList()") val launchers: List<Launcher>? = emptyList(),
 	val expression: String? = null,
-	@Schema(defaultValue = "emptyList()") val states : List<State>? = emptyList()
+	@Schema(defaultValue = "emptyList()") val states: List<State>? = emptyList(),
 )

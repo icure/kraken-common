@@ -19,5 +19,6 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class InvoiceInterventionTypeDto {
-	total, userfees
+	total,
+	userfees,
 }

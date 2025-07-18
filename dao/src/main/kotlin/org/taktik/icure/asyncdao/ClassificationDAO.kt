@@ -42,5 +42,4 @@ interface ClassificationDAO : GenericDAO<Classification> {
 	 * @return a [Flow] of Classification ids.
 	 */
 	fun listClassificationIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-
 }

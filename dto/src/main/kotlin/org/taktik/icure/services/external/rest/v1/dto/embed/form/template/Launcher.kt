@@ -7,11 +7,17 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.form.template.Trigge
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class Launcher(
-    val name: String = "",
-    val triggerer: Trigger = Trigger.INIT,
-    val shouldPassValue: Boolean = false,
+	val name: String = "",
+	val triggerer: Trigger = Trigger.INIT,
+	val shouldPassValue: Boolean = false,
 )
 
 enum class Trigger {
-	INIT, CHANGE, CLICK, VISIBLE, ERROR, VALID, EVENT
+	INIT,
+	CHANGE,
+	CLICK,
+	VISIBLE,
+	ERROR,
+	VALID,
+	EVENT,
 }

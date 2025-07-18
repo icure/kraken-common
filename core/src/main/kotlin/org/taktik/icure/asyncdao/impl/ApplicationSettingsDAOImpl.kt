@@ -17,10 +17,20 @@ import org.taktik.icure.entities.ApplicationSettings
 
 @Repository("ApplicationSettingsDAO")
 @Profile("app")
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ApplicationSettings' && !doc.deleted) emit( null, doc._id )}")
+@View(
+	name = "all",
+	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ApplicationSettings' && !doc.deleted) emit( null, doc._id )}",
+)
 class ApplicationSettingsDAOImpl(
-    @Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
-    idGenerator: IDGenerator,
-    designDocumentProvider: DesignDocumentProvider,
-    daoConfig: DaoConfig
-) : GenericDAOImpl<ApplicationSettings>(ApplicationSettings::class.java, couchDbDispatcher, idGenerator, designDocumentProvider = designDocumentProvider, daoConfig = daoConfig), ApplicationSettingsDAO
+	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
+	idGenerator: IDGenerator,
+	designDocumentProvider: DesignDocumentProvider,
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<ApplicationSettings>(
+	ApplicationSettings::class.java,
+	couchDbDispatcher,
+	idGenerator,
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+),
+	ApplicationSettingsDAO

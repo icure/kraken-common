@@ -21,5 +21,5 @@ data class ServiceByContactsAndSubcontactsFilter(
 	val contacts: Set<String>,
 	val subContacts: Set<String>? = null,
 	val startValueDate: Long? = null,
-	val endValueDate: Long? = null
+	val endValueDate: Long? = null,
 ) : AbstractFilterDto<ServiceDto>

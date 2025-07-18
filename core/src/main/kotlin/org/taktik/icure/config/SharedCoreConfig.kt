@@ -15,8 +15,10 @@ import org.taktik.icure.serialization.IcureDomainObjectMapper
 class SharedCoreConfig {
 	@Bean
 	fun uuidGenerator() = UUIDGenerator()
+
 	@Bean
 	fun filters() = Filters()
+
 	@Bean
 	fun objectMapper(): ObjectMapper = IcureDomainObjectMapper.new()
 }

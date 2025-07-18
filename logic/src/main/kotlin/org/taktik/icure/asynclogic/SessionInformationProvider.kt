@@ -11,7 +11,7 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
 import org.taktik.icure.validation.DataOwnerProvider
 import java.io.Serializable
 
-interface SessionInformationProvider: DataOwnerProvider {
+interface SessionInformationProvider : DataOwnerProvider {
 	suspend fun getCurrentSessionContext(): AsyncSessionContext
 
 	suspend fun getCurrentHealthcarePartyId(): String
@@ -67,5 +67,4 @@ interface SessionInformationProvider: DataOwnerProvider {
 		 */
 		fun getHcpHierarchy(): List<String>
 	}
-
 }

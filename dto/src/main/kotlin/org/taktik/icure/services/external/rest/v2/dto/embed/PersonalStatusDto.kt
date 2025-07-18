@@ -20,5 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import java.io.Serializable
 
 enum class PersonalStatusDto : Serializable {
-	single, in_couple, married, separated, divorced, divorcing, widowed, widower, complicated, unknown, contract, other, annulled, polygamous
+	single,
+	in_couple,
+	married,
+	separated,
+	divorced,
+	divorcing,
+	widowed,
+	widower,
+	complicated,
+	unknown,
+	contract,
+	other,
+	annulled,
+	polygamous,
 }

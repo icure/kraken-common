@@ -24,7 +24,9 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface InvoiceService : EntityWithSecureDelegationsService<Invoice>, EntityWithConflictResolutionService {
+interface InvoiceService :
+	EntityWithSecureDelegationsService<Invoice>,
+	EntityWithConflictResolutionService {
 	suspend fun createInvoice(invoice: Invoice): Invoice?
 
 	suspend fun getInvoice(invoiceId: String): Invoice?

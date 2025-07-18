@@ -33,7 +33,7 @@ interface HealthElementTemplateV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(healthElementTemplateDto: HealthElementTemplateDto): HealthElementTemplate
 	fun map(healthElementTemplate: HealthElementTemplate): HealthElementTemplateDto

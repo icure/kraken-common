@@ -14,5 +14,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageByParentIdsFilter(
 	val parentIds: List<String>,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

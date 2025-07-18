@@ -55,6 +55,6 @@ interface MaintenanceTaskDAO : GenericDAO<MaintenanceTask> {
 	 */
 	fun findMaintenanceTasksByIds(
 		datastoreInformation: IDatastoreInformation,
-		maintenanceTasksId: Flow<String>
+		maintenanceTasksId: Flow<String>,
 	): Flow<ViewQueryResultEvent>
 }

@@ -38,5 +38,5 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	val type: String,
 	@Schema(required = true)
 	val language: String,
-	val label: String? = null
+	val label: String? = null,
 ) : AbstractFilterDto<CodeDto>

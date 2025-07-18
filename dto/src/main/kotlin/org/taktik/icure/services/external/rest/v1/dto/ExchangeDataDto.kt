@@ -11,16 +11,19 @@ import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """Data necessary for the secure sharing of entities between data owners.""")
 data class ExchangeDataDto(
-    override val id: String,
-    override val rev: String? = null,
-    @get:Schema(description = """ID of the data owner which created this exchange data, in order to share some data with the [delegate].""")
-    val delegator: String,
-    @get:Schema(description = """ID of a data owner which can use this exchange data to access data shared with him by [delegator].""")
-    val delegate: String,
-    @get:Schema(description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
-delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""")
-    val exchangeKey: Map<KeypairFingerprintString, Base64String>,
-    @get:Schema(description = """Key used for access control to data shared from the delegator to the delegate, encrypted with the public keys of both
+	override val id: String,
+	override val rev: String? = null,
+	@get:Schema(description = """ID of the data owner which created this exchange data, in order to share some data with the [delegate].""")
+	val delegator: String,
+	@get:Schema(description = """ID of a data owner which can use this exchange data to access data shared with him by [delegator].""")
+	val delegate: String,
+	@get:Schema(
+		description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
+delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""",
+	)
+	val exchangeKey: Map<KeypairFingerprintString, Base64String>,
+	@get:Schema(
+		description = """Key used for access control to data shared from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator.
 This key will be used by the client to calculate the keys of [SecurityMetadata.secureDelegations] in
 [HasSecureDelegationsAccessControl.securityMetadata] which allows to implement a form of access control where the
@@ -39,27 +42,35 @@ between data.
 ```
 accessControlKey = sha256Bytes(accessControlSecret + entityClass + sfk[0]).take(16)
 securityMetadataKey = sha256Hex(accessControlKey)
-```""")
-    val accessControlSecret: Map<KeypairFingerprintString, Base64String>,
-    @get:Schema(description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
+```""",
+	)
+	val accessControlSecret: Map<KeypairFingerprintString, Base64String>,
+	@get:Schema(
+		description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 sign it with his own private key.
-This field will contain the signature by fingerprint of the public key to use for verification.""")
-    val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
-    @get:Schema(description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
-the exchange data, without voiding the authenticity guarantee.""")
-    val sharedSignatureKey: Map<KeypairFingerprintString, Base64String>,
-    @get:Schema(description = """Base 64 signature of the exchange data, to ensure it was not tampered by third parties. This signature validates:
+This field will contain the signature by fingerprint of the public key to use for verification.""",
+	)
+	val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
+	@get:Schema(
+		description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
+the exchange data, without voiding the authenticity guarantee.""",
+	)
+	val sharedSignatureKey: Map<KeypairFingerprintString, Base64String>,
+	@get:Schema(
+		description = """Base 64 signature of the exchange data, to ensure it was not tampered by third parties. This signature validates:
 - The (decrypted) exchange key
 - The (decrypted) access control secret
 - The delegator and delegates being part of the exchange data
-- The public keys used in the exchange data (allows to consider them as verified in a second moment).""")
-    val sharedSignature: Base64String,
-    override val deletionDate: Long? = null,
+- The public keys used in the exchange data (allows to consider them as verified in a second moment).""",
+	)
+	val sharedSignature: Base64String,
+	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {
-    override fun withIdRev(id: String?, rev: String): ExchangeDataDto =
-        id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	): ExchangeDataDto = id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
 
-    override fun withDeletionDate(deletionDate: Long?): ExchangeDataDto =
-        this.copy(deletionDate = deletionDate)
+	override fun withDeletionDate(deletionDate: Long?): ExchangeDataDto = this.copy(deletionDate = deletionDate)
 }

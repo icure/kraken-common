@@ -24,7 +24,7 @@ abstract class AgendaMapper {
 		Mapping(target = "userRights", ignore = true),
 		Mapping(target = "schedules", ignore = true),
 		Mapping(target = "slottingAlgorithm", ignore = true),
-		Mapping(target = "unpublished", ignore = true)
+		Mapping(target = "unpublished", ignore = true),
 	)
 	abstract fun map(agendaDto: AgendaDto): Agenda
 

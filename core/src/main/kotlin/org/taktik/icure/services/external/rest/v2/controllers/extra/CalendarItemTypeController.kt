@@ -47,7 +47,7 @@ class CalendarItemTypeController(
 	private val calendarItemTypeService: CalendarItemTypeService,
 	private val calendarItemTypeV2Mapper: CalendarItemTypeV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -55,7 +55,7 @@ class CalendarItemTypeController(
 	@GetMapping
 	fun getCalendarItemTypes(
 		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CalendarItemTypeDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
@@ -67,20 +67,18 @@ class CalendarItemTypeController(
 	@Operation(summary = "Gets calendarItemTypes for agendaId")
 	@GetMapping("/byAgenda/{agendaId}")
 	fun listCalendarItemTypesByAgendaId(
-		@Parameter(description = "The CalendarItemType agenda ID") @PathVariable agendaId: String
-	): Flux<CalendarItemTypeDto> {
-		return calendarItemTypeService
-			.listCalendarItemTypesByAgendId(agendaId)
-			.map(calendarItemTypeV2Mapper::map)
-			.injectReactorContext()
-	}
+		@Parameter(description = "The CalendarItemType agenda ID") @PathVariable agendaId: String,
+	): Flux<CalendarItemTypeDto> = calendarItemTypeService
+		.listCalendarItemTypesByAgendId(agendaId)
+		.map(calendarItemTypeV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Gets all calendarItemTypes including deleted entities")
 	@GetMapping("/includeDeleted")
 	fun getCalendarItemTypesIncludingDeleted(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A CalendarItemType document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CalendarItemTypeDto> {
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
@@ -91,39 +89,56 @@ class CalendarItemTypeController(
 
 	@Operation(summary = "Creates a calendarItemType")
 	@PostMapping
-	fun createCalendarItemType(@RequestBody calendarItemTypeDto: CalendarItemTypeDto) = mono {
-		calendarItemTypeService.createCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))?.let { calendarItemTypeV2Mapper.map(it) }
+	fun createCalendarItemType(
+		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
+	) = mono {
+		calendarItemTypeService
+			.createCalendarItemType(
+				calendarItemTypeV2Mapper.map(calendarItemTypeDto),
+			)?.let { calendarItemTypeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItemType creation failed")
 	}
 
 	@Operation(summary = "Deletes a batch of calendarItemTypes")
 	@PostMapping("/delete/batch")
-	fun deleteCalendarItemTypes(@RequestBody calendarItemTypeIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		calendarItemTypeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			calendarItemTypeService.deleteCalendarItemTypes(ids)
-				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+	fun deleteCalendarItemTypes(
+		@RequestBody calendarItemTypeIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = calendarItemTypeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+		calendarItemTypeService
+			.deleteCalendarItemTypes(ids)
+			.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+			.injectReactorContext()
+	}
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
 
 	@DeleteMapping("/purge/{calendarItemTypeId}")
 	fun purgeCalendarItemType(
 		@PathVariable calendarItemTypeId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		calendarItemTypeService.purgeCalendarItemType(calendarItemTypeId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a calendarItemType")
 	@GetMapping("/{calendarItemTypeId}")
-	fun getCalendarItemType(@PathVariable calendarItemTypeId: String) = mono {
+	fun getCalendarItemType(
+		@PathVariable calendarItemTypeId: String,
+	) = mono {
 		calendarItemTypeService.getCalendarItemType(calendarItemTypeId)?.let { calendarItemTypeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItemType fetching failed")
 	}
 
 	@Operation(summary = "Modifies an calendarItemType")
 	@PutMapping
-	fun modifyCalendarItemType(@RequestBody calendarItemTypeDto: CalendarItemTypeDto) = mono {
-		calendarItemTypeService.modifyCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))?.let { calendarItemTypeV2Mapper.map(it) }
+	fun modifyCalendarItemType(
+		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
+	) = mono {
+		calendarItemTypeService
+			.modifyCalendarItemType(
+				calendarItemTypeV2Mapper.map(calendarItemTypeDto),
+			)?.let { calendarItemTypeV2Mapper.map(it) }
 			?: throw DocumentNotFoundException("CalendarItemType modification failed")
 	}
 }

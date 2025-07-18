@@ -19,5 +19,5 @@ data class DocumentByDataOwnerPatientDateFilter(
 	val startDate: Instant? = null,
 	val endDate: Instant? = null,
 	val descending: Boolean? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<DocumentDto>

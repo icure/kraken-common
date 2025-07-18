@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.FormTemplate
 
-interface FormTemplateDAO : GenericDAO<FormTemplate>, AttachmentManagementDAO<FormTemplate> {
+interface FormTemplateDAO :
+	GenericDAO<FormTemplate>,
+	AttachmentManagementDAO<FormTemplate> {
 	fun listFormTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?, loadLayout: Boolean): Flow<FormTemplate>
 
 	fun listFormsByGuid(datastoreInformation: IDatastoreInformation, guid: String, loadLayout: Boolean): Flow<FormTemplate>

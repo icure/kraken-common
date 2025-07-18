@@ -16,8 +16,9 @@ data class HealthElementByHcPartyTagCodeFilter(
 	override val codeCode: String? = null,
 	override val tagType: String? = null,
 	override val tagCode: String? = null,
-	override val status: Int? = null
-) : AbstractFilter<HealthElement>, org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyTagCodeFilter {
+	override val status: Int? = null,
+) : AbstractFilter<HealthElement>,
+	org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyTagCodeFilter {
 	init {
 		if (tagCode != null) {
 			require(tagType != null) { "If you specify tagCode you must also specify tagType" }
@@ -28,16 +29,15 @@ data class HealthElementByHcPartyTagCodeFilter(
 	}
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(healthcarePartyId)
 
-	override fun matches(item: HealthElement, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (
-			(searchKeyMatcher(healthcarePartyId, item)) &&
+	override fun matches(item: HealthElement, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		(searchKeyMatcher(healthcarePartyId, item)) &&
 			(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
 			(tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
 			(status == null || item.status == status)
 		)
-	}
 }

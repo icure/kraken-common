@@ -16,10 +16,12 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class UnauthorizedEntryPoint : ServerAuthenticationEntryPoint {
-
 	val objectMapper: ObjectMapper by lazy { ObjectMapper() }
 
-	override fun commence(exchange: ServerWebExchange, e: AuthenticationException): Mono<Void> {
+	override fun commence(
+		exchange: ServerWebExchange,
+		e: AuthenticationException,
+	): Mono<Void> {
 		exchange.response.statusCode = HttpStatus.UNAUTHORIZED
 		val body = objectMapper.writeValueAsString(mapOf("message" to e.message)).toByteArray()
 		val buffer = exchange.response.bufferFactory().wrap(body)

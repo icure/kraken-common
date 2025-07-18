@@ -37,8 +37,9 @@ data class Annotation(
 	val markdown: Map<String, String> = emptyMap(),
 	val confidential: Boolean? = null,
 	val location: String? = null,
-	val encryptedSelf: String? = null
-) : Identifiable<String>, Serializable {
+	val encryptedSelf: String? = null,
+) : Identifiable<String>,
+	Serializable {
 
 	companion object : DynamicInitializer<Annotation>
 

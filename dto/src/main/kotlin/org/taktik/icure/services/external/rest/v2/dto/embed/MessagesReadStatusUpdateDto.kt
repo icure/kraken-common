@@ -26,5 +26,5 @@ data class MessagesReadStatusUpdateDto(
 	val ids: List<String>? = null,
 	val userId: String? = null,
 	val time: Long? = null,
-	val status: Boolean? = null
+	val status: Boolean? = null,
 )

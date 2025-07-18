@@ -10,7 +10,7 @@ interface AgendaSlottingAlgorithmV2Mapper {
 	fun map(dto: AgendaSlottingAlgorithmDto): AgendaSlottingAlgorithm = when (dto) {
 		is AgendaSlottingAlgorithmDto.FixedIntervals -> map(dto)
 	}
-	fun map(obj: AgendaSlottingAlgorithm): AgendaSlottingAlgorithmDto= when (obj) {
+	fun map(obj: AgendaSlottingAlgorithm): AgendaSlottingAlgorithmDto = when (obj) {
 		is AgendaSlottingAlgorithm.FixedIntervals -> map(obj)
 	}
 

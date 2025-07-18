@@ -18,5 +18,12 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class PaymentTypeDto {
-	cash, wired, insurance, creditcard, debitcard, paypal, bitcoin, other
+	cash,
+	wired,
+	insurance,
+	creditcard,
+	debitcard,
+	paypal,
+	bitcoin,
+	other,
 }

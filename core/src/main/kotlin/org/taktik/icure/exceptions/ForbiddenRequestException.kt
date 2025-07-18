@@ -3,4 +3,6 @@
  */
 package org.taktik.icure.exceptions
 
-class ForbiddenRequestException(msg: String) : IllegalArgumentException(msg)
+class ForbiddenRequestException(
+	msg: String,
+) : IllegalArgumentException(msg)

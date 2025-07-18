@@ -49,5 +49,5 @@ data class Identifier(
 	/**
 	 * The value that is unique
 	 */
-	val value: String? = null
+	val value: String? = null,
 ) : Serializable

@@ -10,5 +10,5 @@ data class BasicDto(
 	@Schema(required = true)
 	val username: String,
 	@Schema(required = true)
-	val password: String
+	val password: String,
 )

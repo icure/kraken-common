@@ -10,8 +10,9 @@ data class PatientByDataOwnerModifiedAfterFilter(
 	override val startDate: Long?,
 	override val endDate: Long?,
 	override val descending: Boolean?,
-	override val desc: String?
-)  : AbstractFilter<Patient>, PatientByDataOwnerModifiedAfterFilter {
+	override val desc: String?,
+) : AbstractFilter<Patient>,
+	PatientByDataOwnerModifiedAfterFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
@@ -19,10 +20,9 @@ data class PatientByDataOwnerModifiedAfterFilter(
 
 	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val lastModified = item.modified ?: item.created
-		return searchKeyMatcher(dataOwnerId, item)
-			&& lastModified != null
-			&& (startDate == null || lastModified <= startDate)
-			&& (endDate == null || lastModified >= endDate)
+		return searchKeyMatcher(dataOwnerId, item) &&
+			lastModified != null &&
+			(startDate == null || lastModified <= startDate) &&
+			(endDate == null || lastModified >= endDate)
 	}
-
 }

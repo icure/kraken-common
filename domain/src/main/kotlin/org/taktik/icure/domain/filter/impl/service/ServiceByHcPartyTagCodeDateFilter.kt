@@ -21,7 +21,8 @@ data class ServiceByHcPartyTagCodeDateFilter(
 	override val startValueDate: Long? = null,
 	override val endValueDate: Long? = null,
 	override val descending: Boolean = false,
-) : AbstractFilter<Service>, org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodeDateFilter {
+) : AbstractFilter<Service>,
+	org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodeDateFilter {
 	init {
 		if (tagCode != null) {
 			require(tagType != null) { "If you specify tagCode you must also specify tagType" }
@@ -35,9 +36,8 @@ data class ServiceByHcPartyTagCodeDateFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (
-			item.endOfLife == null &&
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		item.endOfLife == null &&
 			(healthcarePartyId == null || item.withEncryptionMetadata()?.let { searchKeyMatcher(healthcarePartyId, it) } == true) &&
 			(patientSecretForeignKeys == null || item.secretForeignKeys?.intersect(patientSecretForeignKeys.toSet())?.isNotEmpty() == true) &&
 			(tagType == null || item.tags.any { tagType == it.type && (tagCode == null || tagCode == it.code) }) &&
@@ -45,5 +45,4 @@ data class ServiceByHcPartyTagCodeDateFilter(
 			(startValueDate == null || item.valueDate != null && item.valueDate > startValueDate || item.openingDate != null && item.openingDate > startValueDate) &&
 			(endValueDate == null || item.valueDate != null && item.valueDate < endValueDate || item.openingDate != null && item.openingDate < endValueDate)
 		)
-	}
 }

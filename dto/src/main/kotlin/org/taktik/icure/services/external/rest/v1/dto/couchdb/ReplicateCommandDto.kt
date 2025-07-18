@@ -16,8 +16,10 @@ data class ReplicateCommandDto(
 	val filter: String? = null,
 	val selector: String? = null,
 	val source: RemoteDto,
-	val target: RemoteDto
+	val target: RemoteDto,
 ) : VersionableDto<String> {
-
-	override fun withIdRev(id: String?, rev: String) = id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = id?.let { this.copy(id = it, rev = rev) } ?: this.copy(rev = rev)
 }

@@ -14,15 +14,15 @@ data class PatientByDataOwnerTagFilter(
 	override val dataOwnerId: String,
 	override val tagType: String,
 	override val tagCode: String? = null,
-) : AbstractFilter<Patient>, PatientByDataOwnerTagFilter {
+) : AbstractFilter<Patient>,
+	PatientByDataOwnerTagFilter {
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (searchKeyMatcher(dataOwnerId, item)) &&
-				(item.tags.containsStubWithTypeAndCode(tagType, tagCode))
-	}
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (searchKeyMatcher(dataOwnerId, item)) &&
+		(item.tags.containsStubWithTypeAndCode(tagType, tagCode))
 }

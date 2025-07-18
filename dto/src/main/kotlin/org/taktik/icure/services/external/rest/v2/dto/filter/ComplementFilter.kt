@@ -35,5 +35,6 @@ data class ComplementFilter<O : IdentifiableDto<String>>(
 	@Schema(required = true)
 	override val superSet: AbstractFilterDto<O>,
 	@Schema(required = true)
-	override val subSet: AbstractFilterDto<O>
-) : AbstractFilterDto<O>, FilterDto.ComplementFilter<O>
+	override val subSet: AbstractFilterDto<O>,
+) : AbstractFilterDto<O>,
+	FilterDto.ComplementFilter<O>

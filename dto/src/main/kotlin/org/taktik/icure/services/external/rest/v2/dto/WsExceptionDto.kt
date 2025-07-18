@@ -29,5 +29,5 @@ class WsExceptionDto(
 	@Schema(required = true)
 	val error: String,
 	@Schema(required = true)
-	val translations: Map<String, String>
+	val translations: Map<String, String>,
 )

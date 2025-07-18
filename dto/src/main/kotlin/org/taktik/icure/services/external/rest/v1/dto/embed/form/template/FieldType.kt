@@ -3,7 +3,9 @@ package org.taktik.icure.services.external.rest.v1.dto.embed.form.template
 import kotlin.reflect.KClass
 
 @Suppress("EnumEntryName")
-enum class FieldType(val clazz: KClass<out Field>) {
+enum class FieldType(
+	val clazz: KClass<out Field>,
+) {
 	textfield(TextField::class),
 	`measure-field`(MeasureField::class),
 	`number-field`(NumberField::class),
@@ -13,11 +15,10 @@ enum class FieldType(val clazz: KClass<out Field>) {
 	`multiple-choice`(MultipleChoice::class),
 	dropdown(DropdownField::class),
 	`radio-button`(RadioButton::class),
-	checkbox(CheckBox::class);
+	checkbox(CheckBox::class),
+	;
 
 	companion object {
-		fun fromClass(clazz: KClass<out Field>): FieldType {
-			return values().firstOrNull { it.clazz == clazz } ?: throw IllegalArgumentException("Unknown field type $clazz")
-		}
+		fun fromClass(clazz: KClass<out Field>): FieldType = values().firstOrNull { it.clazz == clazz } ?: throw IllegalArgumentException("Unknown field type $clazz")
 	}
 }

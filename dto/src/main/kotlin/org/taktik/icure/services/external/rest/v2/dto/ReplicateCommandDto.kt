@@ -14,5 +14,5 @@ data class ReplicateCommandDto(
 	@JsonProperty("target_url") @Schema(required = true) val targetUrl: String,
 	@JsonProperty("target_username") @Schema(required = true) val targetUsername: String,
 	@JsonProperty("target_password") @Schema(required = true) val targetPassword: String,
-	val id: String? = null
+	val id: String? = null,
 )

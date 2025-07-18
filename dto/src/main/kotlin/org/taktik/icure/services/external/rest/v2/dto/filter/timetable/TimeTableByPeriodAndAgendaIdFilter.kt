@@ -17,5 +17,5 @@ data class TimeTableByPeriodAndAgendaIdFilter(
 	val startDate: Long? = null,
 	val endDate: Long? = null,
 	val descending: Boolean? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<TimeTableDto>

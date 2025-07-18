@@ -5,4 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class HealthcarePartyHistoryStatusDto(val status: HealthcarePartyStatusDto, val specialisationCode: String, val startDate: Long, val active: Boolean)
+data class HealthcarePartyHistoryStatusDto(
+	val status: HealthcarePartyStatusDto,
+	val specialisationCode: String,
+	val startDate: Long,
+	val active: Boolean,
+)

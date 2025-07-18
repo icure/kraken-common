@@ -35,10 +35,10 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.Contact
@@ -58,19 +58,18 @@ import kotlin.collections.set
 @Profile("app")
 @Views(
 	View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted) emit( null, doc._id )}"),
-	View(name = "by_service", map = "classpath:js/contact/By_service.js") // Legacy
+	View(name = "by_service", map = "classpath:js/contact/By_service.js"), // Legacy
 )
 class ContactDAOImpl(
 	@Qualifier("healthdataCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ContactDAO {
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+	ContactDAO {
 
-	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? {
-		return get(datastoreInformation, id)
-	}
+	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? = get(datastoreInformation, id)
 
 	override fun getContacts(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<Contact> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -83,8 +82,8 @@ class ContactDAOImpl(
 	}
 
 	@Views(
-    	View(name = "by_hcparty_openingdate", map = "classpath:js/contact/By_hcparty_openingdate.js"),
-    	View(name = "by_data_owner_openingdate", map = "classpath:js/contact/By_data_owner_openingdate.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_openingdate", map = "classpath:js/contact/By_hcparty_openingdate.js"),
+		View(name = "by_data_owner_openingdate", map = "classpath:js/contact/By_data_owner_openingdate.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -99,24 +98,26 @@ class ContactDAOImpl(
 			startKey,
 			endKey,
 			pagination,
-			false
+			false,
 		)
-		emitAll(client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({it.components[0] as String}, {(it.components[1] as? Number)?.toLong()})))
+		emitAll(client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({ it.components[0] as String }, { (it.components[1] as? Number)?.toLong() })))
 	}
 
 	override fun listContactIdsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, descending: Boolean): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKey =
-			if (descending)
+			if (descending) {
 				ComplexKey.of(hcPartyId, endOpeningDate ?: ComplexKey.emptyObject())
-			else
+			} else {
 				ComplexKey.of(hcPartyId, startOpeningDate)
+			}
 		val endKey =
-			if (descending)
+			if (descending) {
 				ComplexKey.of(hcPartyId, startOpeningDate)
-			else
+			} else {
 				ComplexKey.of(hcPartyId, endOpeningDate ?: ComplexKey.emptyObject())
+			}
 
 		val viewQueries = createQueries(
 			datastoreInformation,
@@ -127,10 +128,11 @@ class ContactDAOImpl(
 			.endKey(endKey)
 			.descending(descending)
 			.doNotIncludeDocs()
-		emitAll(client
-			.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as String}, {(it.components[1] as? Number)?.toLong()}))
-			.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-			.map { it.id }
+		emitAll(
+			client
+				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as String }, { (it.components[1] as? Number)?.toLong() }))
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+				.map { it.id },
 		)
 	}
 
@@ -147,30 +149,29 @@ class ContactDAOImpl(
 			hcPartyId,
 			hcPartyId,
 			pagination,
-			false
+			false,
 		)
-        emitAll(client.interleave<String, String, Contact>(viewQueries, compareBy { it }))
+		emitAll(client.interleave<String, String, Contact>(viewQueries, compareBy { it }))
 	}
 
 	@Views(
-    	View(name = "by_hcparty_identifier", map = "classpath:js/contact/By_hcparty_identifier.js"),
-    	View(name = "by_data_owner_identifier", map = "classpath:js/contact/By_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_identifier", map = "classpath:js/contact/By_hcparty_identifier.js"),
+		View(name = "by_data_owner_identifier", map = "classpath:js/contact/By_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	override fun listContactIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String> =
-		flow {
-			val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listContactIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-			val keys = identifiers.flatMap { identifier ->
-				searchKeys.map { key -> arrayOf(key, identifier.system, identifier.value) }
-			}
+		val keys = identifiers.flatMap { identifier ->
+			searchKeys.map { key -> arrayOf(key, identifier.system, identifier.value) }
+		}
 
-			val viewQueries = createQueries(
-				datastoreInformation,
-				"by_hcparty_identifier",
-				"by_data_owner_identifier" to DATA_OWNER_PARTITION
-			).keys(keys).doNotIncludeDocs()
-			emitAll(client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}, {it[2]})).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id })
-		}.distinct()
+		val viewQueries = createQueries(
+			datastoreInformation,
+			"by_hcparty_identifier",
+			"by_data_owner_identifier" to DATA_OWNER_PARTITION,
+		).keys(keys).doNotIncludeDocs()
+		emitAll(client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }, { it[2] })).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id })
+	}.distinct()
 
 	override fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -185,30 +186,35 @@ class ContactDAOImpl(
 	override fun listContactIdsByHealthcareParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-        val viewQueries = createQueries(datastoreInformation, "by_hcparty", "by_data_owner" to DATA_OWNER_PARTITION).startKey(hcPartyId)
+		val viewQueries = createQueries(datastoreInformation, "by_hcparty", "by_data_owner" to DATA_OWNER_PARTITION).startKey(hcPartyId)
 			.endKey(hcPartyId)
-            .doNotIncludeDocs()
-        emitAll(client.interleave<String, String>(viewQueries, compareBy { it }).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinctUntilChanged())
+			.doNotIncludeDocs()
+		emitAll(client.interleave<String, String>(viewQueries, compareBy { it }).filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinctUntilChanged())
 	}
 
 	@Deprecated("This method is inefficient for high volumes of keys, use listContactIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
-    	View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
-    	View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
+		View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val keys = secretPatientKeys.flatMap { fk ->
-			searchKeys.map { key -> arrayOf(key, fk) } }
+			searchKeys.map { key -> arrayOf(key, fk) }
+		}
 
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patientfk".main(),
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 		).keys(keys).includeDocs()
-		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
+		emitAll(
+			relink(
+				client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
+					.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc },
+			),
+		)
 	}.distinctById()
 
 	@View(name = "by_hcparty_patientfk_openingdate", map = "classpath:js/contact/By_hcparty_patientfk_openingdate_map.js", secondaryPartition = MAURICE_PARTITION)
@@ -218,7 +224,7 @@ class ContactDAOImpl(
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		views = listOf("by_hcparty_patientfk_openingdate" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
 		datastoreInformation = datastoreInformation,
@@ -226,57 +232,66 @@ class ContactDAOImpl(
 		secretForeignKeys = secretForeignKeys,
 		startDate = startDate,
 		endDate = endDate,
-		descending = descending
+		descending = descending,
 	)
 
 	@Views(
-    	View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
-    	View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
+		View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactIdsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val keys = secretPatientKeys.flatMap { fk ->
-			searchKeys.map { key -> arrayOf(key, fk) } }
+			searchKeys.map { key -> arrayOf(key, fk) }
+		}
 
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 		).keys(keys).doNotIncludeDocs()
-		emitAll(client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().mapNotNull { it.id })
+		emitAll(
+			client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
+				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().mapNotNull { it.id },
+		)
 	}.distinct()
 
 	private suspend fun createQueriesForSearchKeysAndFormIds(
 		datastoreInformation: IDatastoreInformation,
 		formIds: List<String>,
-		searchKeys: Set<String>
+		searchKeys: Set<String>,
 	) = createQueries(
 		datastoreInformation,
 		"by_hcparty_formid",
-		"by_data_owner_formid" to DATA_OWNER_PARTITION
-	).keys(formIds.flatMap { k ->
-		searchKeys.map { arrayOf(it, k) }
-	})
+		"by_data_owner_formid" to DATA_OWNER_PARTITION,
+	).keys(
+		formIds.flatMap { k ->
+			searchKeys.map { arrayOf(it, k) }
+		},
+	)
 
 	@Views(
-    	View(name = "by_hcparty_formid", map = "classpath:js/contact/By_hcparty_formid_map.js"),
-    	View(name = "by_data_owner_formid", map = "classpath:js/contact/By_data_owner_formid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_formid", map = "classpath:js/contact/By_hcparty_formid_map.js"),
+		View(name = "by_data_owner_formid", map = "classpath:js/contact/By_data_owner_formid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, listOf(formId), searchKeys).includeDocs()
-		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
+		emitAll(
+			relink(
+				client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
+					.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc },
+			),
+		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
 	override fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, ids, searchKeys).doNotIncludeDocs()
-		val result = client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
+		val result = client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().mapNotNull { it.id }.distinct()
 
 		emitAll(relink(getContacts(datastoreInformation, result)))
@@ -285,12 +300,12 @@ class ContactDAOImpl(
 	override fun listContactIdsByDataOwnerAndFormIds(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		formIds: List<String>
+		formIds: List<String>,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, formIds, searchKeys).doNotIncludeDocs()
-		client.interleave<Array<String>, String>(viewQueries, compareBy({it[0]}, {it[1]}))
+		client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
 			.mapNotNull { it.id }
 			.distinct().also {
@@ -299,8 +314,8 @@ class ContactDAOImpl(
 	}
 
 	@Views(
-    	View(name = "by_hcparty_serviceid", map = "classpath:js/contact/By_hcparty_serviceid_map.js"),
-    	View(name = "by_data_owner_serviceid", map = "classpath:js/contact/By_data_owner_serviceid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_serviceid", map = "classpath:js/contact/By_hcparty_serviceid_map.js"),
+		View(name = "by_data_owner_serviceid", map = "classpath:js/contact/By_data_owner_serviceid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactsByHcPartyAndServiceId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, serviceId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -308,10 +323,14 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_serviceid",
-			"by_data_owner_serviceid" to DATA_OWNER_PARTITION
+			"by_data_owner_serviceid" to DATA_OWNER_PARTITION,
 		).keys(searchKeys.map { arrayOf(it, serviceId) }).includeDocs()
-		emitAll(relink(client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
+		emitAll(
+			relink(
+				client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
+					.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc },
+			),
+		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
 	override fun findContactsByHcPartyServiceId(datastoreInformation: IDatastoreInformation, hcPartyId: String, serviceId: String) = flow {
@@ -320,10 +339,14 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_serviceid",
-			"by_data_owner_serviceid" to DATA_OWNER_PARTITION
+			"by_data_owner_serviceid" to DATA_OWNER_PARTITION,
 		).key(ComplexKey.of(hcPartyId, serviceId)).includeDocs()
-		emitAll(relink(client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}))
-			.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }))
+		emitAll(
+			relink(
+				client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }))
+					.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc },
+			),
+		)
 	}
 
 	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
@@ -335,7 +358,7 @@ class ContactDAOImpl(
 		val res = client.queryView<String, Array<String>>(viewQuery)
 		emitAll(
 			(linkQualification?.let { lt -> res.filter { it.value!![0] == lt } } ?: res)
-				.map { it.value!![1] }
+				.map { it.value!![1] },
 		)
 	}
 
@@ -348,20 +371,20 @@ class ContactDAOImpl(
 		emitAll(
 			client.queryView<String, String>(viewQuery).map {
 				checkNotNull(it.value) { "A Service cannot have a null id" }
-			}
+			},
 		)
 	}
 
 	@Views(
 		View(name = "service_by_hcparty", map = "classpath:js/contact/Service_by_hcparty_map.js"),
-		View(name = "service_by_data_owner", map = "classpath:js/contact/Service_by_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner", map = "classpath:js/contact/Service_by_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByHcParty(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"service_by_hcparty",
-			"service_by_data_owner" to DATA_OWNER_PARTITION
+			"service_by_data_owner" to DATA_OWNER_PARTITION,
 		)
 			.keys(searchKeys)
 			.doNotIncludeDocs()
@@ -383,7 +406,7 @@ class ContactDAOImpl(
 					contact.services.filter { service ->
 						service.qualifiedLinks.values.flatMap { it.keys }.contains(associationId)
 					}.asFlow()
-				}
+				},
 		)
 	}
 
@@ -396,25 +419,25 @@ class ContactDAOImpl(
 		code: String?,
 		startDate: Long? = null,
 		endDate: Long? = null,
-		descending: Boolean = false
+		descending: Boolean = false,
 	): NoDocViewQueries {
 		val from = ComplexKey.of(
 			hcPartyId,
 			type,
 			code,
-			startDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: startDate
+			startDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: startDate,
 		)
-		val to =  ComplexKey.of(
+		val to = ComplexKey.of(
 			hcPartyId,
 			type ?: ComplexKey.emptyObject(),
 			code ?: ComplexKey.emptyObject(),
-			endDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: endDate ?: ComplexKey.emptyObject()
+			endDate?.takeIf { it < 99999999 }?.let { it * 1000000 } ?: endDate ?: ComplexKey.emptyObject(),
 		)
 
 		return createQueries(
 			datastoreInformation,
 			mainView,
-			secondaryView to DATA_OWNER_PARTITION
+			secondaryView to DATA_OWNER_PARTITION,
 		)
 			.startKey(if (descending) to else from)
 			.endKey(if (descending) from else to)
@@ -425,7 +448,7 @@ class ContactDAOImpl(
 
 	@Views(
 		View(name = "service_by_hcparty_tag", map = "classpath:js/contact/Service_by_hcparty_tag.js"),
-		View(name = "service_by_data_owner_tag", map = "classpath:js/contact/Service_by_data_owner_tag.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner_tag", map = "classpath:js/contact/Service_by_data_owner_tag.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -439,15 +462,21 @@ class ContactDAOImpl(
 			code = tagCode,
 			startDate = startValueDate,
 			endDate = endValueDate,
-			descending = descending
+			descending = descending,
 		)
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-			{ it.components[0] as? String },
-			{ it.components[1] as? String },
-			{ it.components[2] as? String },
-			{ (it.components[3] as? Number)?.toLong() },
-		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct())
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy(
+					{ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ it.components[2] as? String },
+					{ (it.components[3] as? Number)?.toLong() },
+				),
+				DeduplicationMode.ID_AND_VALUE,
+			).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct(),
+		)
 	}
 
 	override fun listContactIdsByServiceTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?): Flow<String> = flow {
@@ -459,21 +488,27 @@ class ContactDAOImpl(
 			secondaryView = "service_by_data_owner_tag",
 			hcPartyId = hcPartyId,
 			type = tagType,
-			code = tagCode
+			code = tagCode,
 		)
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-			{ it.components[0] as? String },
-			{ it.components[1] as? String },
-			{ it.components[2] as? String },
-			{ (it.components[3] as? Number)?.toLong() },
-		), DeduplicationMode.ID).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct())
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy(
+					{ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ it.components[2] as? String },
+					{ (it.components[3] as? Number)?.toLong() },
+				),
+				DeduplicationMode.ID,
+			).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct(),
+		)
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@Views(
 		View(name = "service_by_hcparty_patient_tag", map = "classpath:js/contact/Service_by_hcparty_patient_tag.js"),
-		View(name = "service_by_data_owner_patient_tag", map = "classpath:js/contact/Service_by_data_owner_patient_tag.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner_patient_tag", map = "classpath:js/contact/Service_by_data_owner_patient_tag.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByPatientAndTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, patientSecretForeignKeys: List<String>, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -488,40 +523,46 @@ class ContactDAOImpl(
 				patientSecretForeignKey,
 				tagType,
 				tagCode,
-				canonicalStartValueDate
+				canonicalStartValueDate,
 			)
 			val to = ComplexKey.of(
 				hcPartyId,
 				patientSecretForeignKey,
 				tagType ?: ComplexKey.emptyObject(),
 				tagCode ?: ComplexKey.emptyObject(),
-				canonicalEndValueDate ?: ComplexKey.emptyObject()
+				canonicalEndValueDate ?: ComplexKey.emptyObject(),
 			)
 
 			val viewQueries = createQueries(
 				datastoreInformation,
 				"service_by_hcparty_patient_tag",
-				"service_by_data_owner_patient_tag" to DATA_OWNER_PARTITION
+				"service_by_data_owner_patient_tag" to DATA_OWNER_PARTITION,
 			)
 				.startKey(if (descending) to else from)
 				.endKey(if (descending) from else to)
 				.descending(descending)
 				.doNotIncludeDocs()
 
-			idFlows.add(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-				{ it.components[0] as? String },
-				{ it.components[1] as? String },
-				{ it.components[2] as? String },
-				{ it.components[3] as? String },
-				{ (it.components[4] as? Number)?.toLong() }
-			), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value })
+			idFlows.add(
+				client.interleave<ComplexKey, String>(
+					viewQueries,
+					compareBy(
+						{ it.components[0] as? String },
+						{ it.components[1] as? String },
+						{ it.components[2] as? String },
+						{ it.components[3] as? String },
+						{ (it.components[4] as? Number)?.toLong() },
+					),
+					DeduplicationMode.ID_AND_VALUE,
+				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value },
+			)
 		}
 		emitAll(idFlows.asFlow().flattenConcat().distinct())
 	}
 
 	@Views(
 		View(name = "service_by_hcparty_code", map = "classpath:js/contact/Service_by_hcparty_code.js", reduce = "_count"),
-		View(name = "service_by_data_owner_code", map = "classpath:js/contact/Service_by_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner_code", map = "classpath:js/contact/Service_by_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -535,15 +576,21 @@ class ContactDAOImpl(
 			code = codeCode,
 			startDate = startValueDate,
 			endDate = endValueDate,
-			descending = descending
+			descending = descending,
 		)
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-			{ it.components[0] as? String },
-			{ it.components[1] as? String },
-			{ it.components[2] as? String },
-			{ (it.components[3] as? Number)?.toLong() },
-		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct())
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy(
+					{ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ it.components[2] as? String },
+					{ (it.components[3] as? Number)?.toLong() },
+				),
+				DeduplicationMode.ID_AND_VALUE,
+			).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.value }.distinct(),
+		)
 	}
 
 	override fun listContactIdsByServiceCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String, codeCode: String?): Flow<String> = flow {
@@ -555,91 +602,107 @@ class ContactDAOImpl(
 			secondaryView = "service_by_data_owner_code",
 			hcPartyId = hcPartyId,
 			type = codeType,
-			code = codeCode
+			code = codeCode,
 		)
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-			{ it.components[0] as? String },
-			{ it.components[1] as? String },
-			{ it.components[2] as? String },
-			{ (it.components[3] as? Number)?.toLong() },
-		), DeduplicationMode.ID).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct())
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy(
+					{ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ it.components[2] as? String },
+					{ (it.components[3] as? Number)?.toLong() },
+				),
+				DeduplicationMode.ID,
+			).filterIsInstance<ViewRowNoDoc<String, String>>().mapNotNull { it.id }.distinct(),
+		)
 	}
 
 	@Views(
-    	View(name = "by_hcparty_tag", map = "classpath:js/contact/By_hcparty_tag.js", reduce = "_count"),
-    	View(name = "by_data_owner_tag", map = "classpath:js/contact/By_data_owner_tag.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_tag", map = "classpath:js/contact/By_hcparty_tag.js", reduce = "_count"),
+		View(name = "by_data_owner_tag", map = "classpath:js/contact/By_data_owner_tag.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val normalizedStartValueDate = if (startValueDate != null && startValueDate < 99999999) {
 			startValueDate * 1000000
-		} else startValueDate
+		} else {
+			startValueDate
+		}
 		val normalizedEndValueDate = if (endValueDate != null && endValueDate < 99999999) {
 			endValueDate * 1000000
-		} else endValueDate
+		} else {
+			endValueDate
+		}
 		val from = ComplexKey.of(
 			hcPartyId,
 			tagType,
 			tagCode,
-			normalizedStartValueDate
+			normalizedStartValueDate,
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			tagType ?: ComplexKey.emptyObject(),
 			tagCode ?: ComplexKey.emptyObject(),
-			normalizedEndValueDate ?: ComplexKey.emptyObject()
+			normalizedEndValueDate ?: ComplexKey.emptyObject(),
 		)
 
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_tag",
-			"by_data_owner_tag" to DATA_OWNER_PARTITION
+			"by_data_owner_tag" to DATA_OWNER_PARTITION,
 		)
 			.startKey(from)
 			.endKey(to)
 			.reduce(false)
 			.doNotIncludeDocs()
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-			{ it.components[0] as? String },
-			{ it.components[1] as? String },
-			{ it.components[2] as? String },
-			{ (it.components[3] as? Number)?.toLong() },
-		), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id }.distinct())
+		emitAll(
+			client.interleave<ComplexKey, String>(
+				viewQueries,
+				compareBy(
+					{ it.components[0] as? String },
+					{ it.components[1] as? String },
+					{ it.components[2] as? String },
+					{ (it.components[3] as? Number)?.toLong() },
+				),
+				DeduplicationMode.ID_AND_VALUE,
+			).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id }.distinct(),
+		)
 	}
 
 	@Views(
 		View(name = "service_id_by_hcparty_helements", map = "classpath:js/contact/Service_id_by_hcparty_helement_ids.js"),
-		View(name = "service_id_by_data_owner_helements", map = "classpath:js/contact/Service_id_by_data_owner_helement_ids.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_id_by_data_owner_helements", map = "classpath:js/contact/Service_id_by_data_owner_helement_ids.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByHcPartyHealthElementIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, healthElementIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"service_id_by_hcparty_helements",
-			"service_id_by_data_owner_helements" to DATA_OWNER_PARTITION
+			"service_id_by_data_owner_helements" to DATA_OWNER_PARTITION,
 		)
 			.keys(
 				healthElementIds.flatMap {
 					searchKeys.map { key ->
 						ComplexKey.of(key, it)
 					}
-				}
+				},
 			)
 			.doNotIncludeDocs()
 
 		emitAll(
 			client
 				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }), DeduplicationMode.ID_AND_VALUE)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value }
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value },
 		)
 	}.distinct()
 
 	@Views(
 		View(name = "service_by_hcparty_identifier", map = "classpath:js/contact/Service_by_hcparty_identifier.js"),
-		View(name = "service_by_data_owner_identifier", map = "classpath:js/contact/Service_by_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner_identifier", map = "classpath:js/contact/Service_by_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServiceIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -647,61 +710,67 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"service_by_hcparty_identifier",
-			"service_by_data_owner_identifier" to DATA_OWNER_PARTITION
+			"service_by_data_owner_identifier" to DATA_OWNER_PARTITION,
 		)
 			.keys(
 				identifiers.flatMap {
 					searchKeys.map { key ->
 						ComplexKey.of(key, it.system, it.value)
 					}
-				}
+				},
 			).doNotIncludeDocs()
 
 		emitAll(
 			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }), DeduplicationMode.ID_AND_VALUE)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.value }
+				.mapNotNull { it.value },
 		)
 	}.distinct()
 
 	@Views(
-    	View(name = "by_hcparty_code", map = "classpath:js/contact/By_hcparty_code.js", reduce = "_count"),
-    	View(name = "by_data_owner_code", map = "classpath:js/contact/By_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
+		View(name = "by_hcparty_code", map = "classpath:js/contact/By_hcparty_code.js", reduce = "_count"),
+		View(name = "by_data_owner_code", map = "classpath:js/contact/By_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listContactIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val normalizedStartValueDate = if (startValueDate != null && startValueDate < 99999999) {
 			startValueDate * 1000000
-		} else startValueDate
+		} else {
+			startValueDate
+		}
 		val normalizedEndValueDate = if (endValueDate != null && endValueDate < 99999999) {
 			endValueDate * 1000000
-		} else endValueDate
+		} else {
+			endValueDate
+		}
 		val from = ComplexKey.of(
 			hcPartyId,
 			codeType,
 			codeCode,
-			normalizedStartValueDate
+			normalizedStartValueDate,
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			codeType ?: ComplexKey.emptyObject(),
 			codeCode ?: ComplexKey.emptyObject(),
-			normalizedEndValueDate ?: ComplexKey.emptyObject()
+			normalizedEndValueDate ?: ComplexKey.emptyObject(),
 		)
 
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_code",
-			"by_data_owner_code" to DATA_OWNER_PARTITION
+			"by_data_owner_code" to DATA_OWNER_PARTITION,
 		)
 			.startKey(from)
 			.endKey(to)
 			.reduce(false)
 			.doNotIncludeDocs()
 
-		emitAll(client.interleave<ComplexKey, String>(viewQueries, compareBy({it.components[0] as? String}, {it.components[1] as? String}), DeduplicationMode.ID_AND_VALUE)
-			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id })
+		emitAll(
+			client.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }), DeduplicationMode.ID_AND_VALUE)
+				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id },
+		)
 	}
 
 	override fun listCodesFrequencies(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String) = flow {
@@ -710,12 +779,12 @@ class ContactDAOImpl(
 		val from = ComplexKey.of(
 			hcPartyId,
 			codeType,
-			null
+			null,
 		)
 		val to = ComplexKey.of(
 			hcPartyId,
 			codeType,
-			ComplexKey.emptyObject()
+			ComplexKey.emptyObject(),
 		)
 
 		val viewQuery = createQuery(datastoreInformation, "service_by_hcparty_code").startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(3)
@@ -723,11 +792,10 @@ class ContactDAOImpl(
 		emitAll(client.queryView<Array<String>, Long>(viewQuery).map { Pair(ComplexKey.of(*(it.key as Array<String>)), it.value) })
 	}
 
-
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@Views(
 		View(name = "service_by_hcparty_patient_code", map = "classpath:js/contact/Service_by_hcparty_patient_code.js"),
-		View(name = "service_by_data_owner_patient_code", map = "classpath:js/contact/Service_by_data_owner_patient_code.js", secondaryPartition = DATA_OWNER_PARTITION)
+		View(name = "service_by_data_owner_patient_code", map = "classpath:js/contact/Service_by_data_owner_patient_code.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
 	override fun listServicesIdsByPatientAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, patientSecretForeignKeys: List<String>, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -742,33 +810,39 @@ class ContactDAOImpl(
 				patientSecretForeignKey,
 				codeType,
 				codeCode,
-				canonicalStartValueDate
+				canonicalStartValueDate,
 			)
 			val to = ComplexKey.of(
 				hcPartyId,
 				patientSecretForeignKey,
 				codeType ?: ComplexKey.emptyObject(),
 				codeCode ?: ComplexKey.emptyObject(),
-				canonicalEndValueDate ?: ComplexKey.emptyObject()
+				canonicalEndValueDate ?: ComplexKey.emptyObject(),
 			)
 
 			val viewQueries = createQueries(
 				datastoreInformation,
 				"service_by_hcparty_patient_code",
-				"service_by_data_owner_patient_code" to DATA_OWNER_PARTITION
+				"service_by_data_owner_patient_code" to DATA_OWNER_PARTITION,
 			)
 				.startKey(if (descending) to else from)
 				.endKey(if (descending) from else to)
 				.descending(descending)
 				.doNotIncludeDocs()
 
-			idFlows.add(client.interleave<ComplexKey, String>(viewQueries, compareBy(
-				{ it.components[0] as? String },
-				{ it.components[1] as? String },
-				{ it.components[2] as? String },
-				{ it.components[3] as? String },
-				{ (it.components[4] as? Number)?.toLong() }
-			), DeduplicationMode.ID_AND_VALUE).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value })
+			idFlows.add(
+				client.interleave<ComplexKey, String>(
+					viewQueries,
+					compareBy(
+						{ it.components[0] as? String },
+						{ it.components[1] as? String },
+						{ it.components[2] as? String },
+						{ it.components[3] as? String },
+						{ (it.components[4] as? Number)?.toLong() },
+					),
+					DeduplicationMode.ID_AND_VALUE,
+				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.value },
+			)
 		}
 		emitAll(idFlows.asFlow().flattenConcat().distinct())
 	}
@@ -779,22 +853,26 @@ class ContactDAOImpl(
 		patientSecretForeignKeys: List<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	) = flow {
-
 		fun listContactsByDataOwnerPatient() = flow {
 			val client = couchDbDispatcher.getClient(datastoreInformation)
 
 			val keys = patientSecretForeignKeys.flatMap { fk ->
-				searchKeys.map { key -> arrayOf(key, fk) } }
+				searchKeys.map { key -> arrayOf(key, fk) }
+			}
 
 			val viewQueries = createQueries(
 				datastoreInformation,
 				"by_hcparty_patientfk_openingdate" to MAURICE_PARTITION,
-				"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+				"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 			).keys(keys).includeDocs()
-			emitAll(relink(client.interleave<Array<String>, Long, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
-				.filterIsInstance<ViewRowWithDoc<Array<String>, Long, Contact>>().map { it.doc }))
+			emitAll(
+				relink(
+					client.interleave<Array<String>, Long, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
+						.filterIsInstance<ViewRowWithDoc<Array<String>, Long, Contact>>().map { it.doc },
+				),
+			)
 		}.distinctById()
 
 		val serviceIdToDate = mutableMapOf<String, Long>()
@@ -802,9 +880,11 @@ class ContactDAOImpl(
 		listContactsByDataOwnerPatient().collect { contact ->
 			contact.services.mapNotNull { service ->
 				val date = service.valueDate ?: service.openingDate
-				if((date == null && startDate == null && endDate == null) || date !== null && (startDate == null || date >= startDate) && (endDate == null || date <= endDate)) {
+				if ((date == null && startDate == null && endDate == null) || date !== null && (startDate == null || date >= startDate) && (endDate == null || date <= endDate)) {
 					service.id to (date ?: 0)
-				} else null
+				} else {
+					null
+				}
 			}.forEach { (serviceId, date) ->
 				val currentDate = serviceIdToDate[serviceId]
 				if (currentDate == null || currentDate < date) {
@@ -814,34 +894,39 @@ class ContactDAOImpl(
 		}
 
 		serviceIdToDate.entries.sortedWith(
-			if(descending) Comparator { o1, o2 ->
-				o2.value.compareTo(o1.value).let {
-					if(it == 0) o2.key.compareTo(o1.key) else it
+			if (descending) {
+				Comparator { o1, o2 ->
+					o2.value.compareTo(o1.value).let {
+						if (it == 0) o2.key.compareTo(o1.key) else it
+					}
 				}
-			} else compareBy({ it.value }, { it.key })
+			} else {
+				compareBy({ it.value }, { it.key })
+			},
 		).forEach { emit(it.key) }
 	}
-
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val keys = patientSecretForeignKeys.flatMap { fk ->
-			searchKeys.map { key -> arrayOf(key, fk) } }
+			searchKeys.map { key -> arrayOf(key, fk) }
+		}
 
 		val viewQueries = createQueries(
 			datastoreInformation,
 			"by_hcparty_patientfk",
-			"by_data_owner_patientfk" to DATA_OWNER_PARTITION
+			"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 		).keys(keys).includeDocs()
 		emitAll(
-			relink(client
-				.interleave<Array<String>, String, Contact>(viewQueries, compareBy({it[0]}, {it[1]}))
-				.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc }
+			relink(
+				client
+					.interleave<Array<String>, String, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
+					.filterIsInstance<ViewRowWithDoc<Array<String>, String, Contact>>().map { it.doc },
 			).mapNotNull { c ->
 				c.services.map { it.id }.asFlow()
-			}.flattenConcat()
+			}.flattenConcat(),
 		)
 	}
 
@@ -853,23 +938,19 @@ class ContactDAOImpl(
 		emitAll(client.queryView<String, ContactIdServiceId>(viewQuery).mapNotNull { it.value })
 	}
 
-	override fun listContactsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>): Flow<Contact> {
-		return getContacts(datastoreInformation, this.listIdsByServices(datastoreInformation, services).map { it.contactId })
-	}
+	override fun listContactsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>): Flow<Contact> = getContacts(datastoreInformation, this.listIdsByServices(datastoreInformation, services).map { it.contactId })
 
-	override fun relink(cs: Flow<Contact>): Flow<Contact> {
-		return cs.map { c ->
-			val services = mutableMapOf<String, Service?>()
-			c.services.forEach { s -> s.id.let { services[it] = s } }
-			c.subContacts.forEach { ss ->
-				ss.services.forEach { s ->
-					val ssvc = services[s.serviceId]
-					//If it is null, leave it null...
-					s.service = ssvc
-				}
+	override fun relink(cs: Flow<Contact>): Flow<Contact> = cs.map { c ->
+		val services = mutableMapOf<String, Service?>()
+		c.services.forEach { s -> s.id.let { services[it] = s } }
+		c.subContacts.forEach { ss ->
+			ss.services.forEach { s ->
+				val ssvc = services[s.serviceId]
+				// If it is null, leave it null...
+				s.service = ssvc
 			}
-			c
 		}
+		c
 	}
 
 	@View(name = "by_externalid", map = "classpath:js/contact/By_externalid.js")
@@ -885,7 +966,7 @@ class ContactDAOImpl(
 
 	override fun listContactIdsByExternalId(
 		datastoreInformation: IDatastoreInformation,
-		externalId: String
+		externalId: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -905,7 +986,7 @@ class ContactDAOImpl(
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
-		when(partition) {
+		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)
 			Partitions.Maurice -> warmup(datastoreInformation, "service_by_linked_id" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)

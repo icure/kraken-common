@@ -25,7 +25,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
 
-interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWithConflictResolutionService {
+interface PatientService :
+	EntityWithSecureDelegationsService<Patient>,
+	EntityWithConflictResolutionService {
 	suspend fun countByHcParty(healthcarePartyId: String): Int
 	fun listOfMergesAfter(date: Long?): Flow<Patient>
 
@@ -164,40 +166,41 @@ interface PatientService : EntityWithSecureDelegationsService<Patient>, EntityWi
 	 */
 	fun deletePatients(ids: List<IdAndRev>): Flow<Patient>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev the latest rev of the entity to delete.
-     * @return the deleted [Patient].
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deletePatient(id: String, rev: String?): Patient
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param id the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [Patient].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deletePatient(id: String, rev: String?): Patient
 
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgePatient(id: String, rev: String): DocIdentifier
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgePatient(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeletePatient(id: String, rev: String): Patient
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeletePatient(id: String, rev: String): Patient
+
 	/**
 	 * Returns all the [Patient]s where [Patient.deletionDate] is after [start] and before [end], if provided, sorted
 	 * by [Patient.deletionDate] and provided in a format for pagination.

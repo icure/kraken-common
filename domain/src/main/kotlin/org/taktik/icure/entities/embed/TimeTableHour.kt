@@ -11,7 +11,7 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class  TimeTableHour(
+data class TimeTableHour(
 	@param:ContentValue(ContentValues.ANY_LONG) val startHour: Long? = null, // hh:mm:ss
-	@param:ContentValue(ContentValues.ANY_LONG) val endHour: Long? = null // hh:mm:ss
+	@param:ContentValue(ContentValues.ANY_LONG) val endHour: Long? = null, // hh:mm:ss
 ) : Serializable

@@ -23,9 +23,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
@@ -36,22 +36,21 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class PatientByHcPartyAndAddressFilter(
 	private val patientDAO: PatientDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndAddressFilter> {
-
 	override fun resolve(
-        filter: PatientByHcPartyAndAddressFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: PatientByHcPartyAndAddressFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
 		try {
 			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic))
-			if(filter.postalCode.isNullOrEmpty() && filter.houseNumber.isNullOrEmpty()) {
+			if (filter.postalCode.isNullOrEmpty() && filter.houseNumber.isNullOrEmpty()) {
 				mergeUniqueIdsForSearchKeys(searchKeys) { key ->
 					patientDAO.listPatientIdsByHcPartyAndAddress(
 						datastoreInformation = datastoreInformation,
 						searchString = filter.searchString,
-						healthcarePartyId = key
+						healthcarePartyId = key,
 					)
 				}.let { emitAll(it) }
 			} else {
@@ -61,7 +60,7 @@ class PatientByHcPartyAndAddressFilter(
 						streetAndCity = filter.searchString,
 						postalCode = filter.postalCode,
 						houseNumber = filter.houseNumber,
-						healthcarePartyId = key
+						healthcarePartyId = key,
 					)
 				}.let { emitAll(it) }
 			}

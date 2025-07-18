@@ -41,25 +41,25 @@ data class Keyword(
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
 ) : StoredICureDocument {
 	companion object : DynamicInitializer<Keyword>
 
 	fun merge(other: Keyword) = Keyword(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Keyword) = super<StoredICureDocument>.solveConflictsWith(other) + mapOf(
-		"value" to (this.value ?: other.value),
-		"subWords" to (other.subWords + this.subWords),
-		"userId" to (this.userId ?: other.userId)
-	)
+	fun solveConflictsWith(other: Keyword) = super<StoredICureDocument>.solveConflictsWith(other) +
+		mapOf(
+			"value" to (this.value ?: other.value),
+			"subWords" to (other.subWords + this.subWords),
+			"userId" to (this.userId ?: other.userId),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

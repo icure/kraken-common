@@ -9,5 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class RegistrationSuccessDto(
 	@Schema(required = true) val groupId: String,
 	@Schema(required = true) val userId: String,
-	@Schema(required = true) val token: String
+	@Schema(required = true) val token: String,
 )

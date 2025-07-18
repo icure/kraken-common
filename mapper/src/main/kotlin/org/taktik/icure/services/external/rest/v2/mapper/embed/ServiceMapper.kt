@@ -33,7 +33,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 interface ServiceV2Mapper {
 
 	@Mappings(
-		Mapping(target = "dataClassName", ignore = true)
+		Mapping(target = "dataClassName", ignore = true),
 	)
 	fun map(serviceDto: ServiceDto): Service
 	fun map(service: Service): ServiceDto

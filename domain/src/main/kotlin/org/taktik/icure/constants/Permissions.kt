@@ -23,114 +23,120 @@ interface Permissions {
 	enum class Type(
 		private val bitIndex: Int,
 		val isNoCriterionSupported: Boolean,
-		supportedCriterionTypes: Array<CriterionType>
+		supportedCriterionTypes: Array<CriterionType>,
 	) {
 		// 1
 		AUTHENTICATE(0, true, arrayOf(CriterionType.VIRTUALHOST)), // 2
 		ADMIN(1, true, arrayOf(CriterionType.VIRTUALHOST)), // 16
 		PATIENT_VIEW(4, true, arrayOf(CriterionType.VIRTUALHOST, CriterionType.CURRENT_USER)), // 32
 		DATA_VIEW(
-			5, true,
+			5,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 64
 		CONFIDENTIAL_DATA_VIEW(
-			6, true,
+			6,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 128
 		DATA_CREATE(
-			7, true,
+			7,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 256
 		DATA_EDIT(
-			8, true,
+			8,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 1024
 		DATA_DELETE(
-			9, true,
+			9,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 2048
 		PATIENT_CREATE(
-			10, true,
+			10,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 4096
 		PATIENT_EDIT(
-			11, true,
+			11,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 8192
 		PATIENT_MERGE(
-			12, true,
+			12,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
+				CriterionType.PATIENT_STATUS,
+			),
 		), // 16384
 		PATIENT_DELETE(
-			13, true,
+			13,
+			true,
 			arrayOf(
 				CriterionType.VIRTUALHOST,
 				CriterionType.DATA_TYPE,
 				CriterionType.CURRENT_USER,
 				CriterionType.DATA_TYPE,
-				CriterionType.PATIENT_STATUS
-			)
-		);
+				CriterionType.PATIENT_STATUS,
+			),
+		),
+		;
 
 		private val supportedCriterionTypes: Set<CriterionType>
 		val bitValue: Int
 			get() = 1 shl bitIndex
 
-		fun isEnabled(integer: Int): Boolean {
-			return integer and bitValue == bitValue
-		}
+		fun isEnabled(integer: Int): Boolean = integer and bitValue == bitValue
 
-		fun isCriterionTypeSupported(criterionType: CriterionType): Boolean {
-			return supportedCriterionTypes.contains(criterionType)
-		}
+		fun isCriterionTypeSupported(criterionType: CriterionType): Boolean = supportedCriterionTypes.contains(criterionType)
 
 		init {
 			this.supportedCriterionTypes = HashSet(Arrays.asList(*supportedCriterionTypes))
@@ -138,14 +144,25 @@ interface Permissions {
 	}
 
 	enum class CriterionType {
-		VIRTUALHOST, CURRENT_USER, DATA_TYPE, PATIENT_STATUS
+		VIRTUALHOST,
+		CURRENT_USER,
+		DATA_TYPE,
+		PATIENT_STATUS,
 	}
 
 	enum class CriterionTypeCurrentUser {
-		DATA_CREATION_USER, DATA_MODIFICATION_USER, PATIENT_CREATION_USER, PATIENT_MODIFICATION_USER, PATIENT_REFERENCE_HC_USER, PATIENT_HC_TEAM_USER
+		DATA_CREATION_USER,
+		DATA_MODIFICATION_USER,
+		PATIENT_CREATION_USER,
+		PATIENT_MODIFICATION_USER,
+		PATIENT_REFERENCE_HC_USER,
+		PATIENT_HC_TEAM_USER,
 	}
 
 	enum class CriterionDataType {
-		ADMINISTRATIVE, HEALTH, SENSITIVE, CONFIDENTIAL
+		ADMINISTRATIVE,
+		HEALTH,
+		SENSITIVE,
+		CONFIDENTIAL,
 	}
 }

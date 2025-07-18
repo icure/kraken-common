@@ -25,9 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
-import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
+import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
@@ -50,9 +50,11 @@ data class AddressDto(
 	@Schema(description = "Additional notes", deprecated = true) val note: String? = null,
 	@Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
 	@Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
-	override val encryptedSelf: Base64StringDto? = null
-) : EncryptableDto, Serializable, Comparable<AddressDto>, HasTagsDto, HasCodesDto {
-	override fun compareTo(other: AddressDto): Int {
-		return addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
-	}
+	override val encryptedSelf: Base64StringDto? = null,
+) : EncryptableDto,
+	Serializable,
+	Comparable<AddressDto>,
+	HasTagsDto,
+	HasCodesDto {
+	override fun compareTo(other: AddressDto): Int = addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
 }

@@ -7,13 +7,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthcarePartyByParentIdFilter(
 	override val parentId: String,
-	override val desc: String? = null
-) : AbstractFilter<HealthcareParty>, HealthcarePartyByParentIdFilter {
+	override val desc: String? = null,
+) : AbstractFilter<HealthcareParty>,
+	HealthcarePartyByParentIdFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.parentId == parentId
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.parentId == parentId
 }

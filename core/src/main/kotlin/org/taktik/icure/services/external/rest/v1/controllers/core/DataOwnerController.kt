@@ -28,44 +28,56 @@ import reactor.core.publisher.Mono
 @RequestMapping("/rest/v1/dataowner")
 @Tag(name = "dataowner")
 class DataOwnerController(
-    private val dataOwnerService: DataOwnerService,
-    private val userLogic: UserLogic,
-    private val sessionLogic: SessionInformationProvider,
-    private val dataOwnerWithTypeMapper: DataOwnerWithTypeMapper,
-    private val cryptoActorStubMapper: CryptoActorStubMapper
+	private val dataOwnerService: DataOwnerService,
+	private val userLogic: UserLogic,
+	private val sessionLogic: SessionInformationProvider,
+	private val dataOwnerWithTypeMapper: DataOwnerWithTypeMapper,
+	private val cryptoActorStubMapper: CryptoActorStubMapper,
 ) {
-
 	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
 	@GetMapping("/{dataOwnerId}")
-	fun getDataOwner(@PathVariable dataOwnerId: String): Mono<DataOwnerWithTypeDto> = mono {
+	fun getDataOwner(
+		@PathVariable dataOwnerId: String,
+	): Mono<DataOwnerWithTypeDto> = mono {
 		dataOwnerService.getDataOwner(dataOwnerId)?.let { dataOwnerWithTypeMapper.map(it) }
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@Operation(
 		summary = "Get a data owner stub by his ID",
-		description = "Key-related information about the data owner"
+		description = "Key-related information about the data owner",
 	)
 	@GetMapping("/stub/{dataOwnerId}")
-	fun getDataOwnerStub(@PathVariable dataOwnerId: String): Mono<CryptoActorStubWithTypeDto> = mono {
+	fun getDataOwnerStub(
+		@PathVariable dataOwnerId: String,
+	): Mono<CryptoActorStubWithTypeDto> = mono {
 		dataOwnerService.getCryptoActorStub(dataOwnerId)?.let { cryptoActorStubMapper.map(it) }
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@Operation(
 		summary = "Update key-related information of a data owner",
-		description = "Updates information such as the public keys of a data owner or aes exchange keys"
+		description = "Updates information such as the public keys of a data owner or aes exchange keys",
 	)
 	@PutMapping("/stub")
-	fun modifyDataOwnerStub(@RequestBody updated: CryptoActorStubWithTypeDto): Mono<CryptoActorStubWithTypeDto> = mono {
+	fun modifyDataOwnerStub(
+		@RequestBody updated: CryptoActorStubWithTypeDto,
+	): Mono<CryptoActorStubWithTypeDto> = mono {
 		cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
 	}
 
-	@Operation(summary = "Get the data owner corresponding to the current user", description = "General information about the current data owner")
+	@Operation(
+		summary = "Get the data owner corresponding to the current user",
+		description = "General information about the current data owner",
+	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		val user = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+		val user =
+			userLogic.getUser(sessionLogic.getCurrentUserId(), false)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+				)
 		(user.healthcarePartyId ?: user.patientId ?: user.deviceId)?.let { getDataOwner(it) }?.awaitSingle()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
 	}

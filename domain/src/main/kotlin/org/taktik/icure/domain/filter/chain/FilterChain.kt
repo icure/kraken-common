@@ -11,7 +11,7 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class FilterChain<O : Identifiable<String>>(val filter: AbstractFilter<O>, val predicate: org.taktik.icure.domain.filter.predicate.Predicate? = null) {
 
-	fun applyTo(items: List<O>,  searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> {
+	fun applyTo(items: List<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> {
 		val filteredItems: List<O> = filter.applyTo(items, searchKeyMatcher)
 		return if (predicate == null) filteredItems else filteredItems.filter { input: O -> predicate.apply(input) }
 	}

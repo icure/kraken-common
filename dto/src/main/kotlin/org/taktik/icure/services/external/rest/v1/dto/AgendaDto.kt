@@ -32,7 +32,12 @@ data class AgendaDto(
 	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
-) : StoredDocumentDto, ICureDocumentDto<String> {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	ICureDocumentDto<String> {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

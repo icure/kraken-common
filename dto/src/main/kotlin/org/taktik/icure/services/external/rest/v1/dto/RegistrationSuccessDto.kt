@@ -8,5 +8,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class RegistrationSuccessDto(
 	val groupId: String,
 	val userId: String,
-	val token: String
+	val token: String,
 )

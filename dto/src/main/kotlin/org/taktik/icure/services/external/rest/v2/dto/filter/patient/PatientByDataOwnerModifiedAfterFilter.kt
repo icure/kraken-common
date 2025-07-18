@@ -17,5 +17,5 @@ data class PatientByDataOwnerModifiedAfterFilter(
 	val startDate: Long?,
 	val endDate: Long?,
 	val descending: Boolean?,
-	override val desc: String?
-)  : AbstractFilterDto<PatientDto>
+	override val desc: String?,
+) : AbstractFilterDto<PatientDto>

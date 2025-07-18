@@ -13,26 +13,27 @@ import org.taktik.icure.entities.embed.Service as ICureService
 @Service
 @Profile("app")
 class ExternalViewFilter<O : Identifiable<String>>(
-	private val daoList: List<GenericDAOImpl<*>>
-) : Filter<String, O, ExternalViewFilter<O>>{
-
+	private val daoList: List<GenericDAOImpl<*>>,
+) : Filter<String, O, ExternalViewFilter<O>> {
 	override fun resolve(
 		filter: ExternalViewFilter<O>,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	): Flow<String> {
 		// In case I have a service, I have to get the Contact DAO instead.
-		val filterCanonicalName = filter.entityQualifiedName.takeIf {
-			it != ICureService::class.java.canonicalName
-		} ?: Contact::class.java.canonicalName
-		return daoList.firstOrNull {
-			it.entityClass.canonicalName == filterCanonicalName
-		}?.listEntitiesIdInCustomView(
-			datastoreInformation = datastoreInformation,
-			viewName = filter.view,
-			partitionName = filter.partition,
-			startKey = filter.startKey,
-			endKey = filter.endKey
-		) ?: throw IllegalArgumentException("Logic for ${filter.entityQualifiedName} not found")
+		val filterCanonicalName =
+			filter.entityQualifiedName.takeIf {
+				it != ICureService::class.java.canonicalName
+			} ?: Contact::class.java.canonicalName
+		return daoList
+			.firstOrNull {
+				it.entityClass.canonicalName == filterCanonicalName
+			}?.listEntitiesIdInCustomView(
+				datastoreInformation = datastoreInformation,
+				viewName = filter.view,
+				partitionName = filter.partition,
+				startKey = filter.startKey,
+				endKey = filter.endKey,
+			) ?: throw IllegalArgumentException("Logic for ${filter.entityQualifiedName} not found")
 	}
 }

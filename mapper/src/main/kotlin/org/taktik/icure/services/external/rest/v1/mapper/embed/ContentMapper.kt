@@ -7,6 +7,6 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.ContentDto
 
 @Mapper(componentModel = "spring", uses = [ServiceMapper::class, MeasureMapper::class, MedicationMapper::class, TimeSeriesMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ContentMapper {
-    fun map(contentDto: ContentDto): Content
-    fun map(content: Content): ContentDto
+	fun map(contentDto: ContentDto): Content
+	fun map(content: Content): ContentDto
 }

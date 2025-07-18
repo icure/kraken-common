@@ -22,4 +22,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class MapOfIdsDto(val mapOfIds: Map<String, List<String>> = emptyMap())
+data class MapOfIdsDto(
+	val mapOfIds: Map<String, List<String>> = emptyMap(),
+)

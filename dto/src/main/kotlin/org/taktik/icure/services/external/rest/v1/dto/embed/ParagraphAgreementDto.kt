@@ -4,9 +4,9 @@
 
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,5 +32,5 @@ data class ParagraphAgreementDto(
 	val strength: Double? = null,
 	val strengthUnit: String? = null,
 	val agreementAppendices: List<AgreementAppendixDto>? = null,
-	val documentId: String? = null
+	val documentId: String? = null,
 ) : Serializable

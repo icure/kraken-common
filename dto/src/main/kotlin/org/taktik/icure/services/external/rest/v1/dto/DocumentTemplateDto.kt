@@ -28,7 +28,6 @@ data class DocumentTemplateDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
 	@Schema(type = "string", format = "byte") val attachment: ByteArray? = null,
 	@Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
 	val mainUti: String? = null,
@@ -41,10 +40,15 @@ data class DocumentTemplateDto(
 	val group: DocumentGroupDto? = null,
 	val descr: String? = null,
 	val disabled: String? = null,
-	val specialty: CodeStubDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String> {
+	val specialty: CodeStubDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String> {
 	companion object : DynamicInitializer<DocumentTemplateDto>
 
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

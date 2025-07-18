@@ -11,7 +11,7 @@ import org.taktik.icure.entities.Classification
  * If the [endDate] timestamp is not null, only the ids of the [Classification]s created before it will be returned.
  * As this filter explicitly requires a data owner id, it does not need a security precondition.
  */
-interface ClassificationByDataOwnerPatientCreatedDateFilter: Filter<String, Classification> {
+interface ClassificationByDataOwnerPatientCreatedDateFilter : Filter<String, Classification> {
 	val dataOwnerId: String
 	val secretForeignKeys: Set<String>
 	val startDate: Long?

@@ -10,5 +10,4 @@ interface BasicMapper {
 
 	fun map(basic: Basic): BasicDto
 	fun map(basicDto: BasicDto): Basic
-
 }

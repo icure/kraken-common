@@ -14,7 +14,9 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
-interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegationsLogic<Document> {
+interface DocumentLogic :
+	EntityPersister<Document>,
+	EntityWithSecureDelegationsLogic<Document> {
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws
@@ -26,7 +28,7 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 	 */
 	suspend fun createDocument(
 		document: Document,
-		strict: Boolean = false
+		strict: Boolean = false,
 	): Document?
 
 	suspend fun getDocument(documentId: String): Document?
@@ -75,7 +77,7 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 	 */
 	fun createOrModifyDocuments(
 		documents: List<BatchUpdateDocumentInfo>,
-		strict: Boolean = false
+		strict: Boolean = false,
 	): Flow<Document>
 
 	/**
@@ -94,7 +96,7 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 		documentId: String,
 		documentRev: String?,
 		mainAttachmentChange: DataAttachmentChange? = null,
-		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap()
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document?
 
 	fun listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode: String, hcPartyId: String, secretForeignKeys: List<String>): Flow<Document>
@@ -132,5 +134,4 @@ interface DocumentLogic : EntityPersister<Document>, EntityWithSecureDelegations
 
 	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 	suspend fun getDocumentsByExternalUuid(documentId: String): List<Document>
-
 }

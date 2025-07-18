@@ -6,7 +6,8 @@ package org.taktik.icure.entities
 enum class DataOwnerType {
 	HCP,
 	DEVICE,
-	PATIENT;
+	PATIENT,
+	;
 
 	companion object {
 		fun valueOfOrNullCaseInsensitive(stringValue: String): DataOwnerType? = when (stringValue.uppercase()) {

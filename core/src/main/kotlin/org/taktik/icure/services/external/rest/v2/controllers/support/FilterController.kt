@@ -19,16 +19,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByIdsF
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.AllHealthcarePartiesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByNameFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskAfterDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndExternalIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndIdentifiersFilter
@@ -49,8 +49,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceById
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySecretForeignKeys
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.AllUsersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilter
-import org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatientIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByNameEmailPhoneFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatientIdFilter
 
 @RestController("FilterControllerV2")
 @Profile("app")
@@ -103,7 +103,7 @@ class FilterController {
 		val allUsersFilter: AllUsersFilter? = null,
 		val userByIdsFilter: UserByIdsFilter? = null,
 		val usersByPatientIdFilter: UsersByPatientIdFilter? = null,
-		val userByNameEmailPhoneFilter: UserByNameEmailPhoneFilter? = null
+		val userByNameEmailPhoneFilter: UserByNameEmailPhoneFilter? = null,
 	)
 
 	@GetMapping("/definitions")

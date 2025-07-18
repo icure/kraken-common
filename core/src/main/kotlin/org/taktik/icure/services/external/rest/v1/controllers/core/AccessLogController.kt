@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.AccessLogService
@@ -52,30 +51,36 @@ class AccessLogController(
 	private val accessLogMapper: AccessLogMapper,
 	private val objectMapper: ObjectMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
-
 	@Operation(summary = "Create an access log")
 	@PostMapping
-	fun createAccessLog(@RequestBody accessLogDto: AccessLogDto) = mono {
-		val accessLog = accessLogService.createAccessLog(accessLogMapper.map(accessLogDto))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
+	fun createAccessLog(
+		@RequestBody accessLogDto: AccessLogDto,
+	) = mono {
+		val accessLog =
+			accessLogService.createAccessLog(accessLogMapper.map(accessLogDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
 		accessLogMapper.map(accessLog)
 	}
 
 	@Operation(summary = "Delete access logs by batch")
 	@DeleteMapping("/{accessLogIds}")
-	fun deleteAccessLog(@PathVariable accessLogIds: String): Flux<DocIdentifierDto> {
-		return accessLogService.deleteAccessLogs(accessLogIds.split(',').map { IdAndRev(it, null) })
-			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
-			.injectReactorContext()
-	}
+	fun deleteAccessLog(
+		@PathVariable accessLogIds: String,
+	): Flux<DocIdentifierDto> = accessLogService
+		.deleteAccessLogs(accessLogIds.split(',').map { IdAndRev(it, null) })
+		.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get an access log")
 	@GetMapping("/{accessLogId}")
-	fun getAccessLog(@PathVariable accessLogId: String) = mono {
-		val accessLog = accessLogService.getAccessLog(accessLogId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
+	fun getAccessLog(
+		@PathVariable accessLogId: String,
+	) = mono {
+		val accessLog =
+			accessLogService.getAccessLog(accessLogId)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
 
 		accessLogMapper.map(accessLog)
 	}
@@ -88,18 +93,19 @@ class AccessLogController(
 		@RequestParam(required = false) startKey: Long?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-		@RequestParam(required = false) descending: Boolean?
+		@RequestParam(required = false) descending: Boolean?,
 	): PaginatedFlux<AccessLogDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val (from, to) = when {
-			descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
-			descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
-			fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
-			fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
-			descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
-			else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
-		}
+		val (from, to) =
+			when {
+				descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
+				descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
+				fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
+				fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
+				descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
+				else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
+			}
 
 		return accessLogService
 			.listAccessLogsBy(from, to, paginationOffset, descending == true)
@@ -116,7 +122,7 @@ class AccessLogController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
+		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?,
 	): PaginatedFlux<AccessLogDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -132,7 +138,7 @@ class AccessLogController(
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(
 		@RequestParam("hcPartyId") hcPartyId: String,
-		@RequestParam("secretFKeys") secretFKeys: String
+		@RequestParam("secretFKeys") secretFKeys: String,
 	) = flow {
 		val secretPatientKeys = HashSet(secretFKeys.split(",")).toList()
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogMapper.map(it) })
@@ -144,16 +150,19 @@ class AccessLogController(
 	@PostMapping("/byHcPartySecretForeignKeys")
 	fun findAccessLogsByHCPartyPatientForeignKeys(
 		@RequestParam("hcPartyId") hcPartyId: String,
-		@RequestBody secretPatientKeys: List<String>
+		@RequestBody secretPatientKeys: List<String>,
 	) = flow {
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogMapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Modifies an access log")
 	@PutMapping
-	fun modifyAccessLog(@RequestBody accessLogDto: AccessLogDto) = mono {
-		val accessLog = accessLogService.modifyAccessLog(accessLogMapper.map(accessLogDto))
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
+	fun modifyAccessLog(
+		@RequestBody accessLogDto: AccessLogDto,
+	) = mono {
+		val accessLog =
+			accessLogService.modifyAccessLog(accessLogMapper.map(accessLogDto))
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
 		accessLogMapper.map(accessLog)
 	}
 }

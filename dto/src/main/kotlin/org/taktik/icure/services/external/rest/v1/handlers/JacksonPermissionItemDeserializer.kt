@@ -11,25 +11,26 @@ import org.taktik.icure.services.external.rest.v1.dto.security.PermissionItemDto
 import java.io.IOException
 
 class JacksonPermissionItemDeserializer : JsonDeserializer<PermissionItemDto>() {
+	override fun deserialize(
+		p: JsonParser?,
+		ctxt: DeserializationContext?,
+	): PermissionItemDto = try {
+		val codec = p?.codec
+		val tree = codec?.readTree<JsonNode>(p)
 
-	override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): PermissionItemDto {
-		return try {
-			val codec = p?.codec
-			val tree = codec?.readTree<JsonNode>(p)
-
-			deserializeObject(codec!!, tree!!)
-		} catch (ex: Exception) {
-			if (ex is IOException) {
-				throw ex
-			}
-			throw JsonMappingException(p, "Object deserialize error", ex)
+		deserializeObject(codec!!, tree!!)
+	} catch (ex: Exception) {
+		if (ex is IOException) {
+			throw ex
 		}
+		throw JsonMappingException(p, "Object deserialize error", ex)
 	}
 
-	fun deserializeObject(codec: ObjectCodec, tree: JsonNode): PermissionItemDto {
-		return when (tree["itemType"]?.asText()) {
-			"AlwaysPermissionItemDto" -> codec.treeToValue(tree, AlwaysPermissionItemDto::class.java)
-			else -> throw IllegalArgumentException("Unknown Permission Item")
-		}
+	fun deserializeObject(
+		codec: ObjectCodec,
+		tree: JsonNode,
+	): PermissionItemDto = when (tree["itemType"]?.asText()) {
+		"AlwaysPermissionItemDto" -> codec.treeToValue(tree, AlwaysPermissionItemDto::class.java)
+		else -> throw IllegalArgumentException("Unknown Permission Item")
 	}
 }

@@ -22,18 +22,18 @@ interface DocumentTemplateService {
 
 	suspend fun modifyDocumentTemplate(documentTemplate: DocumentTemplate): DocumentTemplate?
 
-    /**
-     * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
-     * Ignores entities that:
-     * - don't exist
-     * - the user can't delete due to limited lack of write access
-     * - don't match the provided revision (if provided)
-     *
-     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the deleted [DocumentTemplate]s.
-     */
-    fun deleteDocumentTemplates(ids: List<IdAndRev>): Flow<DocumentTemplate>
+	/**
+	 * Marks a batch of entities as deleted.
+	 * The data of the entities is preserved, but they won't appear in most queries.
+	 * Ignores entities that:
+	 * - don't exist
+	 * - the user can't delete due to limited lack of write access
+	 * - don't match the provided revision (if provided)
+	 *
+	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+	 * @return a [Flow] containing the deleted [DocumentTemplate]s.
+	 */
+	fun deleteDocumentTemplates(ids: List<IdAndRev>): Flow<DocumentTemplate>
 //
 //    /**
 //     * Marks an entity as deleted.

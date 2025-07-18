@@ -95,8 +95,10 @@ data class CalendarItem(
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+) : StoredICureDocument,
+	HasEncryptionMetadata,
+	Encryptable {
 	companion object : DynamicInitializer<CalendarItem>
 
 	init {
@@ -118,49 +120,54 @@ data class CalendarItem(
 		 * Off-schedule calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] will block all
 		 * availabilities for their entire duration.
 		 */
-		@JsonProperty("S") Strict,
+		@JsonProperty("S")
+		Strict,
+
 		/**
 		 * Force the availability algorithm to use the loose strategy: this means that during its time the calendar item
 		 * will limit the availabilities for other calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy]
 		 * and in the result, however, it won't black all availabilities if it can't be placed exactly within the
 		 * schedule.
 		 */
-		@JsonProperty("L") Loose,
+		@JsonProperty("L")
+		Loose,
 	}
 
 	fun merge(other: CalendarItem) = CalendarItem(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CalendarItem) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
-		"title" to (this.title ?: other.title),
-		"calendarItemTypeId" to (this.calendarItemTypeId ?: other.calendarItemTypeId),
-		"masterCalendarItemId" to (this.masterCalendarItemId ?: other.masterCalendarItemId),
-		"patientId" to (this.patientId ?: other.patientId),
-		"important" to (this.important ?: other.important),
-		"homeVisit" to (this.homeVisit ?: other.homeVisit),
-		"phoneNumber" to (this.phoneNumber ?: other.phoneNumber),
-		"placeId" to (this.placeId ?: other.placeId),
-		"address" to (this.address ?: other.address),
-		"addressText" to (this.addressText ?: other.addressText),
-		"startTime" to (this.startTime ?: other.startTime),
-		"endTime" to (this.endTime ?: other.endTime),
-		"confirmationTime" to (this.confirmationTime ?: other.confirmationTime),
-		"confirmationId" to (this.confirmationId ?: other.confirmationId),
-		"duration" to (this.duration ?: other.duration),
-		"allDay" to (this.allDay ?: other.allDay),
-		"details" to (this.details ?: other.details),
-		"wasMigrated" to (this.wasMigrated ?: other.wasMigrated),
-		"agendaId" to (this.agendaId ?: other.agendaId),
-		"recurrenceId" to (this.recurrenceId ?: other.recurrenceId),
-		"meetingTags" to (other.meetingTags + this.meetingTags),
-		"flowItem" to (this.flowItem ?: other.flowItem)
-	)
+	fun solveConflictsWith(other: CalendarItem) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		super<Encryptable>.solveConflictsWith(other) +
+		mapOf(
+			"title" to (this.title ?: other.title),
+			"calendarItemTypeId" to (this.calendarItemTypeId ?: other.calendarItemTypeId),
+			"masterCalendarItemId" to (this.masterCalendarItemId ?: other.masterCalendarItemId),
+			"patientId" to (this.patientId ?: other.patientId),
+			"important" to (this.important ?: other.important),
+			"homeVisit" to (this.homeVisit ?: other.homeVisit),
+			"phoneNumber" to (this.phoneNumber ?: other.phoneNumber),
+			"placeId" to (this.placeId ?: other.placeId),
+			"address" to (this.address ?: other.address),
+			"addressText" to (this.addressText ?: other.addressText),
+			"startTime" to (this.startTime ?: other.startTime),
+			"endTime" to (this.endTime ?: other.endTime),
+			"confirmationTime" to (this.confirmationTime ?: other.confirmationTime),
+			"confirmationId" to (this.confirmationId ?: other.confirmationId),
+			"duration" to (this.duration ?: other.duration),
+			"allDay" to (this.allDay ?: other.allDay),
+			"details" to (this.details ?: other.details),
+			"wasMigrated" to (this.wasMigrated ?: other.wasMigrated),
+			"agendaId" to (this.agendaId ?: other.agendaId),
+			"recurrenceId" to (this.recurrenceId ?: other.recurrenceId),
+			"meetingTags" to (other.meetingTags + this.meetingTags),
+			"flowItem" to (this.flowItem ?: other.flowItem),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

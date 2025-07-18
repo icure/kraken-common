@@ -16,25 +16,25 @@ import org.taktik.icure.utils.invoke
 data class InvoicingCode(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") val id: String?,
 	val dateCode: Long? = null,
-	val logicalId: String? = null, //Stays the same when a code is resent to the IO
+	val logicalId: String? = null, // Stays the same when a code is resent to the IO
 	@param:ContentValue(ContentValues.ANY_STRING) val label: String? = null,
 	val userId: String? = null,
 	val contactId: String? = null,
 	val serviceId: String? = null,
 	val tarificationId: String? = null,
-	//For obsolete codes or codes not linked to a tarification
+	// For obsolete codes or codes not linked to a tarification
 	val code: String? = null,
 	val paymentType: PaymentType? = null,
 	@param:ContentValue(ContentValues.ANY_DOUBLE) val paid: Double? = null,
-	val totalAmount: Double? = null, //=reimbursement+doctorSupplement+intervention,
+	val totalAmount: Double? = null, // =reimbursement+doctorSupplement+intervention,
 	val reimbursement: Double? = null,
 	val patientIntervention: Double? = null,
 	val doctorSupplement: Double? = null,
 	val amiIntervention: Double? = null,
-	val conventionAmount: Double? = null, //Should be reimbursement+intervention,
+	val conventionAmount: Double? = null, // Should be reimbursement+intervention,
 	val vat: Double? = null,
-	val error: String? = null, //Etarif
-	//TODO... Might want to encrypt this as it could be used to identify the patient
+	val error: String? = null, // Etarif
+	// TODO... Might want to encrypt this as it could be used to identify the patient
 	val contract: String? = null,
 	val contractDate: Long? = null,
 	val units: Int? = null,
@@ -70,8 +70,9 @@ data class InvoicingCode(
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
 	val codeLabel: String? = null,
-	override val encryptedSelf: String? = null
-) : Encryptable, Comparable<InvoicingCode?> {
+	override val encryptedSelf: String? = null,
+) : Encryptable,
+	Comparable<InvoicingCode?> {
 	companion object : DynamicInitializer<InvoicingCode> {
 		const val STATUS_PAID: Long = 1
 		const val STATUS_PRINTED: Long = 2
@@ -140,10 +141,8 @@ data class InvoicingCode(
 				?: other.cancelPatientInterventionReason
 			),
 		"status" to (this.status ?: other.status),
-		"codeLabel" to (this.codeLabel ?: other.codeLabel)
+		"codeLabel" to (this.codeLabel ?: other.codeLabel),
 	)
 
-	override fun compareTo(other: InvoicingCode?): Int {
-		return if (other == null) -1 else dateCode?.compareTo(other.dateCode ?: 0) ?: 0
-	}
+	override fun compareTo(other: InvoicingCode?): Int = if (other == null) -1 else dateCode?.compareTo(other.dateCode ?: 0) ?: 0
 }

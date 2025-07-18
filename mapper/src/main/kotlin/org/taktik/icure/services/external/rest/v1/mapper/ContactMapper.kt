@@ -26,7 +26,7 @@ interface ContactMapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "notes", ignore = true)
+		Mapping(target = "notes", ignore = true),
 	)
 	fun map(contactDto: ContactDto): Contact
 	fun map(contact: Contact): ContactDto

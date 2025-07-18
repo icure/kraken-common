@@ -21,38 +21,41 @@ import java.io.Serializable
  */
 class PaginatedCollectingJackson2JsonEncoder(
 	private val mapper: ObjectMapper,
-	vararg mimeTypes: MimeType
+	vararg mimeTypes: MimeType,
 ) : Jackson2JsonEncoder(mapper, *mimeTypes) {
-
 	override fun encode(
 		inputStream: Publisher<*>,
 		bufferFactory: DataBufferFactory,
 		elementType: ResolvableType,
 		mimeType: MimeType?,
-		hints: MutableMap<String, Any>?
-	): Flux<DataBuffer> = if(inputStream is PaginatedFlux<*>) {
+		hints: MutableMap<String, Any>?,
+	): Flux<DataBuffer> = if (inputStream is PaginatedFlux<*>) {
 		var nextPageElement: NextPageElement<*>? = null
-		inputStream.mapNotNull {
-			when(it) {
-				is NextPageElement<*> -> {
-					nextPageElement = it
-					null
+		inputStream
+			.mapNotNull {
+				when (it) {
+					is NextPageElement<*> -> {
+						nextPageElement = it
+						null
+					}
+					is PaginationRowElement<*, *> -> it.element as Serializable
 				}
-				is PaginationRowElement<*, *> -> it.element as Serializable
+			}.collectList()
+			.map { rows ->
+				PaginatedList(
+					rows = rows,
+					nextKeyPair =
+					nextPageElement?.let {
+						PaginatedDocumentKeyIdPair(
+							startKey = it.startKey?.let { sk -> mapper.valueToTree(sk) },
+							startKeyDocId = it.startKeyDocId,
+						)
+					},
+				)
+			}.let {
+				super.encode(it, bufferFactory, elementType, mimeType, hints)
 			}
-		}.collectList().map { rows ->
-			PaginatedList(
-				rows = rows,
-				nextKeyPair = nextPageElement?.let {
-					PaginatedDocumentKeyIdPair(
-						startKey = it.startKey?.let { sk -> mapper.valueToTree(sk) },
-						startKeyDocId = it.startKeyDocId
-					)
-				}
-			)
-		}.let {
-			super.encode(it, bufferFactory, elementType, mimeType, hints)
-		}
-	} else super.encode(inputStream, bufferFactory, elementType, mimeType, hints)
-
+	} else {
+		super.encode(inputStream, bufferFactory, elementType, mimeType, hints)
+	}
 }

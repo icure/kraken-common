@@ -3,14 +3,14 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
-import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
+import java.io.Serializable
+import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,19 +28,30 @@ data class ReferralPeriod(
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val endDate: Instant? = null,
 
-	val comment: String? = null
-) : Serializable, Comparable<ReferralPeriod> {
+	val comment: String? = null,
+) : Serializable,
+	Comparable<ReferralPeriod> {
 
-	override fun compareTo(other: ReferralPeriod): Int {
-		return when {
-			this == other -> 0
-			startDate != other.startDate -> {
-				if (startDate == null) 1 else if (other.startDate == null) 0 else startDate.compareTo(other.startDate)
+	override fun compareTo(other: ReferralPeriod): Int = when {
+		this == other -> 0
+		startDate != other.startDate -> {
+			if (startDate == null) {
+				1
+			} else if (other.startDate == null) {
+				0
+			} else {
+				startDate.compareTo(other.startDate)
 			}
-			endDate != other.endDate -> {
-				if (endDate == null) 1 else if (other.endDate == null) 0 else endDate.compareTo(other.endDate)
-			}
-			else -> 1
 		}
+		endDate != other.endDate -> {
+			if (endDate == null) {
+				1
+			} else if (other.endDate == null) {
+				0
+			} else {
+				endDate.compareTo(other.endDate)
+			}
+		}
+		else -> 1
 	}
 }

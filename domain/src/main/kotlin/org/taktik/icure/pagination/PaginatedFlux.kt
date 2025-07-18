@@ -21,15 +21,17 @@ class PaginatedFlux<T>(
 	private val flow: Flow<PaginationElement>,
 	private val context: CoroutineContext,
 	private val injector: ReactorCacheInjector? = null,
-	private val cacheSize: Int? = null
+	private val cacheSize: Int? = null,
 ) : Flux<PaginationElement>() {
 
 	@OptIn(InternalCoroutinesApi::class)
 	override fun subscribe(subscriber: CoreSubscriber<in PaginationElement>) {
 		val subscriberContext =
-			if(injector != null && cacheSize != null && cacheSize > 0)
+			if (injector != null && cacheSize != null && cacheSize > 0) {
 				injector.injectCacheInContext(subscriber.currentContext().asCoroutineContext(), cacheSize)
-			else subscriber.currentContext().asCoroutineContext()
+			} else {
+				subscriber.currentContext().asCoroutineContext()
+			}
 
 		subscriber.onSubscribe(FlowSubscription(flow.flowOn(subscriberContext), subscriber, context))
 	}

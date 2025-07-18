@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class SharedPaginationConfig(
-	@Value("\${icure.pagination.defaultLimit:1000}") val defaultLimit: Int
+	@Value("\${icure.pagination.defaultLimit:1000}") val defaultLimit: Int,
 )

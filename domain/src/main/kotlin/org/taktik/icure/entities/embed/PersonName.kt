@@ -1,8 +1,8 @@
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 /**
  * @property lastName Last Name of the person
@@ -24,5 +24,5 @@ data class PersonName(
 	val prefix: List<String> = emptyList(),
 	val suffix: List<String> = emptyList(),
 	val text: String? = null,
-	val use: PersonNameUse? = null
+	val use: PersonNameUse? = null,
 ) : Serializable

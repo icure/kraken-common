@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PlaceDAO
 import org.taktik.icure.asynclogic.PlaceLogic
-import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
 import org.taktik.icure.pagination.PaginationElement
@@ -26,11 +26,11 @@ class PlaceLogicImpl(
 	private val placeDAO: PlaceDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters), PlaceLogic {
-
+	filters: Filters,
+) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters),
+	PlaceLogic {
 	override suspend fun createPlace(place: Place): Place? = fix(place, isCreate = true) { fixedPlace ->
-		if(fixedPlace.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		if (fixedPlace.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		placeDAO.create(datastoreInformation, fixedPlace)
 	}
@@ -47,13 +47,12 @@ class PlaceLogicImpl(
 
 	override fun getAllPlaces(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(placeDAO
-			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
-			.toPaginatedFlow<Place>(paginationOffset.limit)
+		emitAll(
+			placeDAO
+				.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
+				.toPaginatedFlow<Place>(paginationOffset.limit),
 		)
 	}
 
-	override fun getGenericDAO(): PlaceDAO {
-		return placeDAO
-	}
+	override fun getGenericDAO(): PlaceDAO = placeDAO
 }

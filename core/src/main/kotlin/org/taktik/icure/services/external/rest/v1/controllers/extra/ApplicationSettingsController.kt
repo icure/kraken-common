@@ -29,9 +29,8 @@ import reactor.core.publisher.Flux
 @Tag(name = "applicationsettings")
 class ApplicationSettingsController(
 	private val applicationSettingsService: ApplicationSettingsService,
-	private val applicationSettingsMapper: ApplicationSettingsMapper
+	private val applicationSettingsMapper: ApplicationSettingsMapper,
 ) {
-
 	@Operation(summary = "Gets all application settings")
 	@GetMapping
 	fun getApplicationSettings(): Flux<ApplicationSettingsDto> {
@@ -41,15 +40,23 @@ class ApplicationSettingsController(
 
 	@Operation(summary = "Create new application settings")
 	@PostMapping
-	fun createApplicationSettings(@RequestBody applicationSettingsDto: ApplicationSettingsDto) = mono {
-		val applicationSettings = applicationSettingsService.createApplicationSettings(applicationSettingsMapper.map(applicationSettingsDto)) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
+	fun createApplicationSettings(
+		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
+	) = mono {
+		val applicationSettings =
+			applicationSettingsService.createApplicationSettings(applicationSettingsMapper.map(applicationSettingsDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
 		applicationSettingsMapper.map(applicationSettings)
 	}
 
 	@Operation(summary = "Update application settings")
 	@PutMapping
-	fun updateApplicationSettings(@RequestBody applicationSettingsDto: ApplicationSettingsDto) = mono {
-		val applicationSettings = applicationSettingsService.modifyApplicationSettings(applicationSettingsMapper.map(applicationSettingsDto)) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings modification failed")
+	fun updateApplicationSettings(
+		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
+	) = mono {
+		val applicationSettings =
+			applicationSettingsService.modifyApplicationSettings(applicationSettingsMapper.map(applicationSettingsDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings modification failed")
 		applicationSettingsMapper.map(applicationSettings)
 	}
 }

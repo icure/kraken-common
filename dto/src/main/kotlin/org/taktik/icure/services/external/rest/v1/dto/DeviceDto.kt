@@ -30,14 +30,14 @@ import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity is a root level object. It represents a device. It is serialized in JSON and saved in the underlying icure-base CouchDB database.""")
+@Schema(
+	description = """This entity is a root level object. It represents a device. It is serialized in JSON and saved in the underlying icure-base CouchDB database.""",
+)
 data class DeviceDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-
 	val identifiers: List<IdentifierDto> = emptyList(),
-
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
@@ -46,27 +46,31 @@ data class DeviceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val medicalLocationId: String? = null,
-
 	val externalId: String? = null,
-
 	override val name: String? = null,
 	val type: String? = null,
 	val brand: String? = null,
 	val model: String? = null,
 	val serialNumber: String? = null,
-
 	override val parentId: String? = null,
 	val picture: ByteArray? = null,
-
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
 	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
 	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
-	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
+	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
-) : StoredDocumentDto, ICureDocumentDto<String>, NamedDto, CryptoActorDto, DataOwnerDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	NamedDto,
+	CryptoActorDto,
+	DataOwnerDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

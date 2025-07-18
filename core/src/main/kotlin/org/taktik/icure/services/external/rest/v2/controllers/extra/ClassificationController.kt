@@ -63,39 +63,58 @@ class ClassificationController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
-	private val idWithRevV2Mapper: IdWithRevV2Mapper
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
-
-	@Operation(summary = "Create a classification with the current user", description = "Returns an instance of created classification Template.")
+	@Operation(
+		summary = "Create a classification with the current user",
+		description = "Returns an instance of created classification Template.",
+	)
 	@PostMapping
-	fun createClassification(@RequestBody c: ClassificationDto) = mono {
-		val element = classificationService.createClassification(classificationV2Mapper.map(c))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification creation failed.")
+	fun createClassification(
+		@RequestBody c: ClassificationDto,
+	) = mono {
+		val element =
+			classificationService.createClassification(classificationV2Mapper.map(c))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification creation failed.")
 
 		classificationV2Mapper.map(element)
 	}
 
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationId}")
-	fun getClassification(@PathVariable classificationId: String) = mono {
-		val element = classificationService.getClassification(classificationId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting classification failed. Possible reasons: no such classification exists, or server error. Please try again or read the server log.")
+	fun getClassification(
+		@PathVariable classificationId: String,
+	) = mono {
+		val element =
+			classificationService.getClassification(classificationId)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting classification failed. Possible reasons: no such classification exists, or server error. Please try again or read the server log.",
+				)
 
 		classificationV2Mapper.map(element)
 	}
 
 	@Operation(summary = "Get a list of classifications")
 	@PostMapping("/byIds")
-	fun getClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<ClassificationDto> {
+	fun getClassifications(
+		@RequestBody classificationIds: ListOfIdsDto,
+	): Flux<ClassificationDto> {
 		require(classificationIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		return classificationService.getClassifications(classificationIds.ids).map(classificationV2Mapper::map).injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listClassificationIdsByDataOwnerPatientCreated instead")
-	@Operation(summary = "List classification found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma")
+	@Operation(
+		summary = "List classification found by healthcare party and secret foreign keys.",
+		description = "Keys must be delimited by comma",
+	)
 	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findClassificationsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<ClassificationDto> {
+	fun findClassificationsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKeys: String,
+	): Flux<ClassificationDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val elementList = classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
@@ -109,7 +128,7 @@ class ClassificationController(
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
 		@RequestParam(required = false) descending: Boolean?,
-		@RequestBody secretPatientKeys: ListOfIdsDto
+		@RequestBody secretPatientKeys: ListOfIdsDto,
 	): Flux<String> {
 		require(secretPatientKeys.ids.isNotEmpty()) {
 			"You need to provide at least one secret patient key"
@@ -120,29 +139,35 @@ class ClassificationController(
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate,
 				endDate = endDate,
-				descending = descending ?: false)
-			.injectReactorContext()
+				descending = descending ?: false,
+			).injectReactorContext()
 	}
 
 	@Operation(summary = "Deletes multiple Classifications")
 	@PostMapping("/delete/batch")
-	fun deleteClassifications(@RequestBody classificationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		classificationService.deleteClassifications(
-			classificationIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteClassifications(
+		@RequestBody classificationIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = classificationService
+		.deleteClassifications(
+			classificationIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Classifications if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteClassificationsWithRev(@RequestBody classificationIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		classificationService.deleteClassifications(
-			classificationIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteClassificationsWithRev(
+		@RequestBody classificationIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = classificationService
+		.deleteClassifications(
+			classificationIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an Classification")
 	@DeleteMapping("/{classificationId}")
 	fun deleteClassification(
 		@PathVariable classificationId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		classificationService.deleteClassification(classificationId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -152,7 +177,7 @@ class ClassificationController(
 	@PostMapping("/undelete/{classificationId}")
 	fun undeleteClassification(
 		@PathVariable classificationId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<ClassificationDto> = mono {
 		classificationV2Mapper.map(classificationService.undeleteClassification(classificationId, rev))
 	}
@@ -160,16 +185,19 @@ class ClassificationController(
 	@DeleteMapping("/purge/{classificationId}")
 	fun purgeClassification(
 		@PathVariable classificationId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		classificationService.purgeClassification(classificationId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
-	fun modifyClassification(@RequestBody classificationDto: ClassificationDto) = mono {
-		val classification = classificationService.modifyClassification(classificationV2Mapper.map(classificationDto))
-			?: throw DocumentNotFoundException("Classification modification failed.")
+	fun modifyClassification(
+		@RequestBody classificationDto: ClassificationDto,
+	) = mono {
+		val classification =
+			classificationService.modifyClassification(classificationV2Mapper.map(classificationDto))
+				?: throw DocumentNotFoundException("Classification modification failed.")
 
 		classificationV2Mapper.map(classification)
 	}
@@ -181,45 +209,52 @@ class ClassificationController(
 	fun findClassificationsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-	): Flux<IcureStubDto> =
-		classificationService.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
-			.map { classification -> stubV2Mapper.mapToStub(classification) }
-			.injectReactorContext()
+	): Flux<IcureStubDto> = classificationService
+		.listClassificationsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+		.map { classification -> stubV2Mapper.mapToStub(classification) }
+		.injectReactorContext()
 
 	@Operation(summary = "List classification stubs found by ids.")
 	@PostMapping("/delegations")
 	fun findClassificationsDelegationsStubsByIds(
 		@RequestBody classificationIds: ListOfIdsDto,
-	): Flux<IcureStubDto> =
-		classificationService.getClassifications(classificationIds.ids)
-			.map { classification -> stubV2Mapper.mapToStub(classification) }
-			.injectReactorContext()
+	): Flux<IcureStubDto> = classificationService
+		.getClassifications(classificationIds.ids)
+		.map { classification -> stubV2Mapper.mapToStub(classification) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get the ids of the Classifications matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchClassificationBy(
-		@RequestBody filter: AbstractFilterDto<ClassificationDto>
-	) = classificationService.matchClassificationsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<ClassificationDto>,
+	) = classificationService
+		.matchClassificationsBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(description = "Shares one or more classifications with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<ClassificationDto>> = flow {
-		emitAll(classificationService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
+		emitAll(
+			classificationService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
 	@Operation(description = "Shares one or more classifications with one or more data owners but does not return the updated entity.")
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
-		emitAll(classificationService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).minimal() })
+		emitAll(
+			classificationService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

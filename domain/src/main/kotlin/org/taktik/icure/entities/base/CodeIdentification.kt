@@ -12,15 +12,13 @@ interface CodeIdentification {
 	val context: String?
 	val label: Map<String, String>?
 
-	fun solveConflictsWith(other: CodeIdentification): Map<String, Any?> {
-		return mapOf(
-			"id" to (this.id),
-			"code" to (this.code ?: other.code),
-			"type" to (this.type ?: other.type),
-			"context" to (this.context ?: other.context),
-			"version" to (this.version ?: other.version),
-			"label" to (other.label?.let { it + (this.label ?: mapOf()) } ?: this.label)
-		)
-	}
+	fun solveConflictsWith(other: CodeIdentification): Map<String, Any?> = mapOf(
+		"id" to (this.id),
+		"code" to (this.code ?: other.code),
+		"type" to (this.type ?: other.type),
+		"context" to (this.context ?: other.context),
+		"version" to (this.version ?: other.version),
+		"label" to (other.label?.let { it + (this.label ?: mapOf()) } ?: this.label),
+	)
 	fun normalizeIdentification(): CodeIdentification
 }

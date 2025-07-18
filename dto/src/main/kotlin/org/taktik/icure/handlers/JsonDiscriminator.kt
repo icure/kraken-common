@@ -8,4 +8,6 @@ import java.lang.annotation.RetentionPolicy
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-annotation class JsonDiscriminator(val value: String)
+annotation class JsonDiscriminator(
+	val value: String,
+)

@@ -20,13 +20,20 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
 
-interface PatientLogic: EntityPersister<Patient>, EntityWithSecureDelegationsLogic<Patient> {
+interface PatientLogic :
+	EntityPersister<Patient>,
+	EntityWithSecureDelegationsLogic<Patient> {
 
 	companion object {
 		@Suppress("EnumEntryName")
-		enum class PatientSearchField { patientName, ssin, dateOfBirth;
+		enum class PatientSearchField {
+			patientName,
+			ssin,
+			dateOfBirth,
+			;
+
 			companion object {
-				fun lenientValueOf(s: String) = when(s) {
+				fun lenientValueOf(s: String) = when (s) {
 					"name", "patientName" -> patientName
 					else -> valueOf(s)
 				}

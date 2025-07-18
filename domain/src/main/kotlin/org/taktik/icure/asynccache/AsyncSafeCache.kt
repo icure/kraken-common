@@ -25,10 +25,11 @@ class AsyncSafeCache<K : Any, V>(val cache: Cache) {
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	suspend fun get(key: K, valueProvider: AsyncValueProvider<K, V>) =
-		(cache.get(key)?.get() ?: mutex.withLock {
+	suspend fun get(key: K, valueProvider: AsyncValueProvider<K, V>) = (
+		cache.get(key)?.get() ?: mutex.withLock {
 			cache.get(key)?.get() ?: valueProvider.getValue(key)?.also { cache.put(key, it) }
-		}) as V?
+		}
+		) as V?
 
 	@Suppress("UNCHECKED_CAST")
 	suspend fun getIfPresent(key: K) = mutex.withLock {

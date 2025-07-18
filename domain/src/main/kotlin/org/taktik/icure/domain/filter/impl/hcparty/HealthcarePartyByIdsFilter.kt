@@ -24,8 +24,9 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthcarePartyByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilter<HealthcareParty>, Filters.IdsFilter<String, HealthcareParty> {
+	override val desc: String? = null,
+) : AbstractFilter<HealthcareParty>,
+	Filters.IdsFilter<String, HealthcareParty> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

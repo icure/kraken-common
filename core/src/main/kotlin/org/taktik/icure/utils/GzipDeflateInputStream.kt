@@ -9,43 +9,59 @@ import java.util.zip.CRC32
 import java.util.zip.Deflater
 import java.util.zip.DeflaterInputStream
 
-class GzipDeflateInputStream(`in`: InputStream, bufferSize: Int = 512) : SequenceInputStream(StatefullGzipStreamEnumerator(`in`, bufferSize)) {
+class GzipDeflateInputStream(
+	`in`: InputStream,
+	bufferSize: Int = 512,
+) : SequenceInputStream(StatefullGzipStreamEnumerator(`in`, bufferSize)) {
 	enum class StreamState {
-		HEADER, CONTENT, TRAILER, DONE
+		HEADER,
+		CONTENT,
+		TRAILER,
+		DONE,
 	}
 
-	private class StatefullGzipStreamEnumerator(private val `in`: InputStream, private val bufferSize: Int) : Enumeration<InputStream> {
+	private class StatefullGzipStreamEnumerator(
+		private val `in`: InputStream,
+		private val bufferSize: Int,
+	) : Enumeration<InputStream> {
 		private var state: StreamState = StreamState.HEADER
 		private var contentStream: DeflateInputStream? = null
+
 		override fun hasMoreElements() = state != StreamState.DONE
-		override fun nextElement(): InputStream? {
-			return when (state) {
-				StreamState.HEADER -> ByteArrayInputStream(GZIP_HEADER).also { state = StreamState.CONTENT }
-				StreamState.CONTENT -> DeflateInputStream(CRC32InputStream(`in`), bufferSize)
-					.also { state = StreamState.TRAILER; contentStream = it }
-				StreamState.TRAILER -> ByteArrayInputStream(contentStream!!.createTrailer()).also { state = StreamState.DONE }
-				StreamState.DONE -> null
-			}
+
+		override fun nextElement(): InputStream? = when (state) {
+			StreamState.HEADER -> ByteArrayInputStream(GZIP_HEADER).also { state = StreamState.CONTENT }
+			StreamState.CONTENT ->
+				DeflateInputStream(CRC32InputStream(`in`), bufferSize)
+					.also {
+						state = StreamState.TRAILER
+						contentStream = it
+					}
+			StreamState.TRAILER -> ByteArrayInputStream(contentStream!!.createTrailer()).also { state = StreamState.DONE }
+			StreamState.DONE -> null
 		}
 
 		companion object {
 			const val GZIP_MAGIC = 0x8b1f
-			val GZIP_HEADER = byteArrayOf(
-				GZIP_MAGIC.toByte(), // Magic number (short)
-				(GZIP_MAGIC shr 8).toByte(), // Magic number (short)
-				Deflater.DEFLATED.toByte(), // Compression method (CM)
-				0, // Flags (FLG)
-				0, // Modification time MTIME (int)
-				0, // Modification time MTIME (int)
-				0, // Modification time MTIME (int)
-				0, // Modification time MTIME (int)
-				0, // Extra flags (XFLG)
-				0 // Operating system (OS)
-			)
+			val GZIP_HEADER =
+				byteArrayOf(
+					GZIP_MAGIC.toByte(), // Magic number (short)
+					(GZIP_MAGIC shr 8).toByte(), // Magic number (short)
+					Deflater.DEFLATED.toByte(), // Compression method (CM)
+					0, // Flags (FLG)
+					0, // Modification time MTIME (int)
+					0, // Modification time MTIME (int)
+					0, // Modification time MTIME (int)
+					0, // Modification time MTIME (int)
+					0, // Extra flags (XFLG)
+					0, // Operating system (OS)
+				)
 		}
 	}
 
-	private class CRC32InputStream(stream: InputStream) : FilterInputStream(stream) {
+	private class CRC32InputStream(
+		stream: InputStream,
+	) : FilterInputStream(stream) {
 		private val crc = CRC32()
 		var byteCount: Long = 0
 			private set
@@ -59,7 +75,11 @@ class GzipDeflateInputStream(`in`: InputStream, bufferSize: Int = 512) : Sequenc
 			}
 		}
 
-		override fun read(b: ByteArray, off: Int, len: Int) = super.read(b, off, len).also {
+		override fun read(
+			b: ByteArray,
+			off: Int,
+			len: Int,
+		) = super.read(b, off, len).also {
 			if (it >= 0) {
 				crc.update(b, off, it)
 				byteCount += it.toLong()
@@ -67,7 +87,10 @@ class GzipDeflateInputStream(`in`: InputStream, bufferSize: Int = 512) : Sequenc
 		}
 	}
 
-	private class DeflateInputStream(private var crcIn: CRC32InputStream, bufferSize: Int) : DeflaterInputStream(crcIn, Deflater(Deflater.DEFAULT_COMPRESSION, true), bufferSize) {
+	private class DeflateInputStream(
+		private var crcIn: CRC32InputStream,
+		bufferSize: Int,
+	) : DeflaterInputStream(crcIn, Deflater(Deflater.DEFAULT_COMPRESSION, true), bufferSize) {
 		override fun close() {
 			crcIn.let {
 				try {
@@ -95,7 +118,11 @@ class GzipDeflateInputStream(`in`: InputStream, bufferSize: Int = 512) : Sequenc
 		 * Writes integer in Intel byte order to a byte array, starting at a
 		 * given offset.
 		 */
-		private fun writeInt(i: Int, buf: ByteArray, offset: Int) {
+		private fun writeInt(
+			i: Int,
+			buf: ByteArray,
+			offset: Int,
+		) {
 			writeShort(i and 0xffff, buf, offset)
 			writeShort(i shr 16 and 0xffff, buf, offset + 2)
 		}
@@ -104,7 +131,11 @@ class GzipDeflateInputStream(`in`: InputStream, bufferSize: Int = 512) : Sequenc
 		 * Writes short integer in Intel byte order to a byte array, starting
 		 * at a given offset
 		 */
-		private fun writeShort(s: Int, buf: ByteArray, offset: Int) {
+		private fun writeShort(
+			s: Int,
+			buf: ByteArray,
+			offset: Int,
+		) {
 			buf[offset] = (s and 0xff).toByte()
 			buf[offset + 1] = (s shr 8 and 0xff).toByte()
 		}

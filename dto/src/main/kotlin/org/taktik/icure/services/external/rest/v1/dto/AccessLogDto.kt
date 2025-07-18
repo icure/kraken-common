@@ -3,7 +3,6 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto
 
-import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -18,13 +17,16 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
+import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents Access Log.""")
 data class AccessLogDto(
 	@Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,
-	@Schema(description = "The revision of the access log in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	@Schema(
+		description = "The revision of the access log in the database, used for conflict management / optimistic locking.",
+	) override val rev: String? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
@@ -38,7 +40,10 @@ data class AccessLogDto(
 	@Schema(description = "The type of access") val accessType: String? = null,
 	@Schema(description = "Id of the user making the requests") val user: String? = null,
 	@Schema(description = "Further details about the access") val detail: String? = null,
-	@JsonSerialize(using = InstantSerializer::class, include = JsonSerialize.Inclusion.NON_NULL) @JsonDeserialize(using = InstantDeserializer::class)
+	@JsonSerialize(
+		using = InstantSerializer::class,
+		include = JsonSerialize.Inclusion.NON_NULL,
+	) @JsonDeserialize(using = InstantDeserializer::class)
 	@Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
 	@get:Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
@@ -46,8 +51,15 @@ data class AccessLogDto(
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

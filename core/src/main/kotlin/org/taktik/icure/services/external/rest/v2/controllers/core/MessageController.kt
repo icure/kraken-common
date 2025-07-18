@@ -79,7 +79,7 @@ class MessageController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
@@ -87,32 +87,39 @@ class MessageController(
 
 	@Operation(summary = "Creates a message")
 	@PostMapping
-	fun createMessage(@RequestBody messageDto: MessageDto) = mono {
+	fun createMessage(
+		@RequestBody messageDto: MessageDto,
+	) = mono {
 		messageService.createMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
 				.also { logger.error(it.message) }
 	}
 
-
 	@Operation(summary = "Deletes multiple Messages")
 	@PostMapping("/delete/batch")
-	fun deleteMessages(@RequestBody messageIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		messageService.deleteMessages(
-			messageIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteMessages(
+		@RequestBody messageIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = messageService
+		.deleteMessages(
+			messageIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Messages if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteMessagesWithRev(@RequestBody messageIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		messageService.deleteMessages(
-			messageIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteMessagesWithRev(
+		@RequestBody messageIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = messageService
+		.deleteMessages(
+			messageIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an Message")
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(
 		@PathVariable messageId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		messageService.deleteMessage(messageId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -122,7 +129,7 @@ class MessageController(
 	@PostMapping("/undelete/{messageId}")
 	fun undeleteMessage(
 		@PathVariable messageId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<MessageDto> = mono {
 		messageV2Mapper.map(messageService.undeleteMessage(messageId, rev))
 	}
@@ -130,14 +137,16 @@ class MessageController(
 	@DeleteMapping("/purge/{messageId}")
 	fun purgeMessage(
 		@PathVariable messageId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		messageService.purgeMessage(messageId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a message")
 	@GetMapping("/{messageId}")
-	fun getMessage(@PathVariable messageId: String) = mono {
+	fun getMessage(
+		@PathVariable messageId: String,
+	) = mono {
 		messageService.getMessage(messageId)?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found")
 				.also { logger.error(it.message) }
@@ -145,23 +154,30 @@ class MessageController(
 
 	@Operation(summary = "Gets multiple messages by their ids")
 	@PostMapping("/byIds")
-	fun getMessages(@RequestBody messageIds: ListOfIdsDto): Flux<MessageDto> {
+	fun getMessages(
+		@RequestBody messageIds: ListOfIdsDto,
+	): Flux<MessageDto> {
 		require(messageIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return messageService.getMessages(messageIds.ids).map(messageV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "Get all messages for current HC Party and provided transportGuids")
 	@PostMapping("/byTransportGuid/list")
-	fun listMessagesByTransportGuids(@RequestParam("hcpId") hcpId: String, @RequestBody transportGuids: ListOfIdsDto) =
-		messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
+	fun listMessagesByTransportGuids(
+		@RequestParam("hcpId") hcpId: String,
+		@RequestBody transportGuids: ListOfIdsDto,
+	) = messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Operation(summary = "List messages found by healthcare party and secret foreign keys.", description = "Keys must be delimited by comma.")
 	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findMessagesByHCPartyPatientForeignKeys(@RequestParam secretFKeys: String): Flux<MessageDto> {
+	fun findMessagesByHCPartyPatientForeignKeys(
+		@RequestParam secretFKeys: String,
+	): Flux<MessageDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		return messageService.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
+		return messageService
+			.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
 			.map { contact -> messageV2Mapper.map(contact) }
 			.injectReactorContext()
 	}
@@ -173,7 +189,7 @@ class MessageController(
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
 		@RequestParam(required = false) descending: Boolean?,
-		@RequestBody secretPatientKeys: ListOfIdsDto
+		@RequestBody secretPatientKeys: ListOfIdsDto,
 	): Flux<String> {
 		require(secretPatientKeys.ids.isNotEmpty()) {
 			"You need to provide at least one secret patient key"
@@ -182,28 +198,29 @@ class MessageController(
 			.listMessageIdsByDataOwnerPatientSentDate(
 				dataOwnerId = dataOwnerId,
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
-				startDate = startDate?.let{ FuzzyValues.getFuzzyDateTime(it) },
+				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
-				descending = descending ?: false)
-			.injectReactorContext()
+				descending = descending ?: false,
+			).injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	@Operation(summary = "List messages found by healthcare party and secret foreign keys.")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun findMessagesByHCPartyPatientForeignKeys(@RequestBody secretPatientKeys: List<String>): Flux<MessageDto> {
-		return messageService.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
-			.map { contact -> messageV2Mapper.map(contact) }
-			.injectReactorContext()
-	}
+	fun findMessagesByHCPartyPatientForeignKeys(
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<MessageDto> = messageService
+		.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
+		.map { contact -> messageV2Mapper.map(contact) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
 	@GetMapping
 	fun findMessages(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
-		@RequestParam(required = false) limit: Int?
+		@RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<MessageDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -216,20 +233,24 @@ class MessageController(
 
 	@Operation(summary = "Get children messages of provided message")
 	@GetMapping("/{messageId}/children")
-	fun getChildrenMessages(@PathVariable messageId: String) =
-		messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
+	fun getChildrenMessages(
+		@PathVariable messageId: String,
+	) = messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
-	fun getMessagesChildren(@RequestBody parentIds: ListOfIdsDto) =
-		messageService.getMessagesChildren(parentIds.ids)
-			.map(messageV2Mapper::map)
-			.injectReactorContext()
+	fun getMessagesChildren(
+		@RequestBody parentIds: ListOfIdsDto,
+	) = messageService
+		.getMessagesChildren(parentIds.ids)
+		.map(messageV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/byInvoice")
-	fun listMessagesByInvoices(@RequestBody ids: ListOfIdsDto) =
-		messageService.listMessagesByInvoiceIds(ids.ids).map { messageV2Mapper.map(it) }.injectReactorContext()
+	fun listMessagesByInvoices(
+		@RequestBody ids: ListOfIdsDto,
+	) = messageService.listMessagesByInvoiceIds(ids.ids).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided transportGuid")
 	@GetMapping("/byTransportGuid")
@@ -239,7 +260,7 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-		@RequestParam(required = false) hcpId: String?
+		@RequestParam(required = false) hcpId: String?,
 	): PaginatedFlux<MessageDto> = flow {
 		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
 		val startKeyElements = startKey?.let { startKeyArray -> objectMapper.readValue<ComplexKey>(startKeyArray) }
@@ -260,17 +281,19 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-		@RequestParam(required = false) hcpId: String?
+		@RequestParam(required = false) hcpId: String?,
 	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		emitAll(messageService.findMessagesByTransportGuidSentDate(
-			hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
-			transportGuid,
-			from,
-			to,
-			paginationOffset
-		))
+		emitAll(
+			messageService.findMessagesByTransportGuidSentDate(
+				hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
+				transportGuid,
+				from,
+				to,
+				paginationOffset,
+			),
+		)
 	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
@@ -281,7 +304,7 @@ class MessageController(
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) reverse: Boolean?,
-		@RequestParam(required = false) hcpId: String?
+		@RequestParam(required = false) hcpId: String?,
 	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -296,7 +319,7 @@ class MessageController(
 		@RequestParam(required = false) startKey: JsonString?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-		@RequestParam(required = false) hcpId: String?
+		@RequestParam(required = false) hcpId: String?,
 	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
@@ -306,7 +329,9 @@ class MessageController(
 
 	@Operation(summary = "Updates a message")
 	@PutMapping
-	fun modifyMessage(@RequestBody messageDto: MessageDto) = mono {
+	fun modifyMessage(
+		@RequestBody messageDto: MessageDto,
+	) = mono {
 		messageService.modifyMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "New delegation for message failed")
 				.also { logger.error(it.message) }
@@ -316,20 +341,23 @@ class MessageController(
 	@PutMapping("/status/{status}")
 	fun setMessagesStatusBits(
 		@PathVariable status: Int,
-		@RequestBody messageIds: ListOfIdsDto
+		@RequestBody messageIds: ListOfIdsDto,
 	) = messageService.setStatus(messageIds.ids, status).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Set read status for given list of messages")
 	@PutMapping("/readstatus")
-	fun setMessagesReadStatus(@RequestBody data: MessagesReadStatusUpdate) = flow {
+	fun setMessagesReadStatus(
+		@RequestBody data: MessagesReadStatusUpdate,
+	) = flow {
 		data.ids?.takeIf { it.isNotEmpty() }?.let { ids ->
 			emitAll(
-				messageService.setReadStatus(
-					ids,
-					data.userId,
-					data.status ?: false,
-					data.time
-				).map { messageV2Mapper.map(it) }
+				messageService
+					.setReadStatus(
+						ids,
+						data.userId,
+						data.status ?: false,
+						data.time,
+					).map { messageV2Mapper.map(it) },
 			)
 		}
 	}.injectReactorContext()
@@ -337,22 +365,25 @@ class MessageController(
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<MessageDto>> = flow {
-		emitAll(messageService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
+		emitAll(
+			messageService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
 	@Operation(
 		summary = "List messages for the current user (HcParty) or the given hcparty in the filter ",
-		description = "Returns a list of messages along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page."
+		description = "Returns a list of messages along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
 	)
 	@PostMapping("/filter")
 	fun filterMessagesBy(
 		@Parameter(description = "A Message document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<MessageDto>
+		@RequestBody filterChain: FilterChain<MessageDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
@@ -365,8 +396,9 @@ class MessageController(
 	@Operation(summary = "Get ids of the Messages matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMessagesBy(
-		@RequestBody filter: AbstractFilterDto<MessageDto>
-	) = messageService.matchMessagesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<MessageDto>,
+	) = messageService
+		.matchMessagesBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

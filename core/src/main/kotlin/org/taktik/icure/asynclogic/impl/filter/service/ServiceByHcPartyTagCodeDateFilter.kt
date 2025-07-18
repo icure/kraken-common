@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.toCollection
 import org.springframework.context.annotation.Profile
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodeDateFilter
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
@@ -25,14 +25,13 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class ServiceByHcPartyTagCodeDateFilter(
 	private val contactDAO: ContactDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyTagCodeDateFilter> {
-
 	override fun resolve(
-        filter: ServiceByHcPartyTagCodeDateFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: ServiceByHcPartyTagCodeDateFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
 		try {
 			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId)
@@ -43,28 +42,30 @@ class ServiceByHcPartyTagCodeDateFilter(
 			val codeType = filter.codeType
 			val codeCode = filter.codeCode
 			if (tagType != null && tagCode != null) {
-				ids = listServiceIdsByTag(
-					datastoreInformation = datastoreInformation,
-					searchKeys = searchKeys,
-					patientSecretForeignKeys = patientSfks,
-					tagType = tagType,
-					tagCode = tagCode,
-					startValueDate = filter.startValueDate,
-					endValueDate = filter.endValueDate,
-					descending = filter.descending
-				).toCollection(LinkedHashSet())
+				ids =
+					listServiceIdsByTag(
+						datastoreInformation = datastoreInformation,
+						searchKeys = searchKeys,
+						patientSecretForeignKeys = patientSfks,
+						tagType = tagType,
+						tagCode = tagCode,
+						startValueDate = filter.startValueDate,
+						endValueDate = filter.endValueDate,
+						descending = filter.descending,
+					).toCollection(LinkedHashSet())
 			}
 			if (codeType != null && codeCode != null) {
-				val byCode = listServiceIdsByCode(
-					datastoreInformation = datastoreInformation,
-					searchKeys = searchKeys,
-					patientSecretForeignKeys = patientSfks,
-					codeType = codeType,
-					codeCode = codeCode,
-					startValueDate = filter.startValueDate,
-					endValueDate = filter.endValueDate,
-					descending = filter.descending
-				).toCollection(LinkedHashSet())
+				val byCode =
+					listServiceIdsByCode(
+						datastoreInformation = datastoreInformation,
+						searchKeys = searchKeys,
+						patientSecretForeignKeys = patientSfks,
+						codeType = codeType,
+						codeCode = codeCode,
+						startValueDate = filter.startValueDate,
+						endValueDate = filter.endValueDate,
+						descending = filter.descending,
+					).toCollection(LinkedHashSet())
 				if (ids == null) {
 					ids = byCode
 				} else {
@@ -85,9 +86,9 @@ class ServiceByHcPartyTagCodeDateFilter(
 		codeCode: String,
 		startValueDate: Long?,
 		endValueDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String> = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
-		if (patientSecretForeignKeys == null)
+		if (patientSecretForeignKeys == null) {
 			contactDAO.listServiceIdsByCode(
 				datastoreInformation,
 				key,
@@ -95,9 +96,9 @@ class ServiceByHcPartyTagCodeDateFilter(
 				codeCode,
 				startValueDate,
 				endValueDate,
-				descending
+				descending,
 			)
-		else
+		} else {
 			contactDAO.listServicesIdsByPatientAndCode(
 				datastoreInformation,
 				key,
@@ -106,8 +107,9 @@ class ServiceByHcPartyTagCodeDateFilter(
 				codeCode,
 				startValueDate,
 				endValueDate,
-				descending
+				descending,
 			)
+		}
 	}
 
 	private fun listServiceIdsByTag(
@@ -119,28 +121,28 @@ class ServiceByHcPartyTagCodeDateFilter(
 		startValueDate: Long?,
 		endValueDate: Long?,
 		descending: Boolean,
-	): Flow<String> =
-		mergeUniqueIdsForSearchKeys(searchKeys) { key ->
-			if (patientSecretForeignKeys == null)
-				contactDAO.listServiceIdsByTag(
-					datastoreInformation,
-					key,
-					tagType,
-					tagCode,
-					startValueDate,
-					endValueDate,
-					descending
-				)
-			else
-				contactDAO.listServiceIdsByPatientAndTag(
-					datastoreInformation,
-					key,
-					patientSecretForeignKeys,
-					tagType,
-					tagCode,
-					startValueDate,
-					endValueDate,
-					descending
-				)
+	): Flow<String> = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
+		if (patientSecretForeignKeys == null) {
+			contactDAO.listServiceIdsByTag(
+				datastoreInformation,
+				key,
+				tagType,
+				tagCode,
+				startValueDate,
+				endValueDate,
+				descending,
+			)
+		} else {
+			contactDAO.listServiceIdsByPatientAndTag(
+				datastoreInformation,
+				key,
+				patientSecretForeignKeys,
+				tagType,
+				tagCode,
+				startValueDate,
+				endValueDate,
+				descending,
+			)
 		}
+	}
 }

@@ -29,18 +29,18 @@ interface InsuranceService {
 //     */
 //    fun deleteInsurances(ids: List<IdAndRev>): Flow<DocIdentifier>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param insuranceId the id of the entity to delete.
-     * @param rev the latest rev of the entity to delete.
-     * @return the deleted [Insurance].
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [insuranceId] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteInsurance(insuranceId: String, rev: String?): Insurance
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param insuranceId the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [Insurance].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [insuranceId] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deleteInsurance(insuranceId: String, rev: String?): Insurance
 
 //    /**
 //     * Deletes an entity.
@@ -77,5 +77,5 @@ interface InsuranceService {
 	 * @return a [Flow] of [Insurance]s wrapped in [PaginationElement]s for pagination.
 	 * @throws AccessDeniedException if the user is not an admin or a healthcare party.
 	 */
-    fun getAllInsurances(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
+	fun getAllInsurances(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement>
 }

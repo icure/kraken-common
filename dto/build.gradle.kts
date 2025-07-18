@@ -17,11 +17,12 @@ version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
 
-    val projectPrefix = when(rootProject.name) {
-        "kmehr-importer" -> ":kmehr-module:kraken-common"
-        "kraken-common" -> ""
-        else -> ":kraken-common"
-    }
+    val projectPrefix =
+        when (rootProject.name) {
+            "kmehr-importer" -> ":kmehr-module:kraken-common"
+            "kraken-common" -> ""
+            else -> ":kraken-common"
+        }
 
     implementation(project("$projectPrefix:utils"))
 

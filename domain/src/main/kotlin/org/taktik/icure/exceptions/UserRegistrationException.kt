@@ -4,12 +4,12 @@
 package org.taktik.icure.exceptions
 
 class UserRegistrationException : ICureException {
-    constructor()
-    constructor(message: String?) : super(message)
-    constructor(cause: Throwable?) : super(cause)
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
+	constructor()
+	constructor(message: String?) : super(message)
+	constructor(cause: Throwable?) : super(cause)
+	constructor(message: String?, cause: Throwable?) : super(message, cause)
 
-    companion object {
-        private const val serialVersionUID = 1L
-    }
+	companion object {
+		private const val serialVersionUID = 1L
+	}
 }

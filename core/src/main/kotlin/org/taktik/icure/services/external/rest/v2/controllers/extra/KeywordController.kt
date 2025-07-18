@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -45,50 +44,66 @@ class KeywordController(
 	private val keywordService: KeywordService,
 	private val keywordV2Mapper: KeywordV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Create a keyword with the current user", description = "Returns an instance of created keyword.")
 	@PostMapping
-	fun createKeyword(@RequestBody c: KeywordDto) = mono {
+	fun createKeyword(
+		@RequestBody c: KeywordDto,
+	) = mono {
 		keywordService.createKeyword(keywordV2Mapper.map(c))?.let { keywordV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Keyword creation failed.")
 	}
 
 	@Operation(summary = "Get a keyword")
 	@GetMapping("/{keywordId}")
-	fun getKeyword(@PathVariable keywordId: String) = mono {
+	fun getKeyword(
+		@PathVariable keywordId: String,
+	) = mono {
 		keywordService.getKeyword(keywordId)?.let { keywordV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting keyword failed. Possible reasons: no such keyword exists, or server error. Please try again or read the server log.")
+			?: throw ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Getting keyword failed. Possible reasons: no such keyword exists, or server error. Please try again or read the server log.",
+			)
 	}
 
 	@Operation(summary = "Get keywords by user")
 	@GetMapping("/byUser/{userId}")
-	fun getKeywordsByUser(@PathVariable userId: String) =
-		keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordV2Mapper.map(c) } }.injectReactorContext()
+	fun getKeywordsByUser(
+		@PathVariable userId: String,
+	) = keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordV2Mapper.map(c) } }.injectReactorContext()
 
 	@Operation(summary = "Gets all keywords with pagination")
 	@GetMapping
 	fun getKeywords(
 		@Parameter(description = "A Keyword document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<KeywordDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return keywordService.getAllKeywords(offset).mapElements(keywordV2Mapper::map).asPaginatedFlux()
 	}
+
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")
 	@PostMapping("/delete/batch")
-	fun deleteKeywords(@RequestBody keywordIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		keywordIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			keywordService.deleteKeywords(ids.toSet())
-				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+	fun deleteKeywords(
+		@RequestBody keywordIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = keywordIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+		keywordService
+			.deleteKeywords(ids.toSet())
+			.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+			.injectReactorContext()
+	}
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
 
 	@Operation(summary = "Modify a keyword", description = "Returns the modified keyword.")
 	@PutMapping
-	fun modifyKeyword(@RequestBody keywordDto: KeywordDto) = mono {
+	fun modifyKeyword(
+		@RequestBody keywordDto: KeywordDto,
+	) = mono {
 		keywordService.modifyKeyword(keywordV2Mapper.map(keywordDto))?.let { keywordV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Keyword modification failed.")
 	}

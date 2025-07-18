@@ -29,7 +29,7 @@ final data class ObjectStorageProperties(
 	/**
 	 * Delay in milliseconds between when a migratable attachment is found and when the migration is actually executed.
 	 */
-	var migrationDelayMs: Long = 15 * 60 * 1000
+	var migrationDelayMs: Long = 15 * 60 * 1000,
 ) : InitializingBean {
 	override fun afterPropertiesSet() {
 		require(migrationSizeLimit >= sizeLimit) {

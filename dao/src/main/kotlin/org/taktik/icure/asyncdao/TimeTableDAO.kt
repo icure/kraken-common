@@ -71,6 +71,6 @@ interface TimeTableDAO : GenericDAO<TimeTable> {
 		startDate: Long?,
 		endDate: Long?,
 		agendaId: String,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 }

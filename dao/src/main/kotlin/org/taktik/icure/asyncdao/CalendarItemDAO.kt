@@ -25,7 +25,7 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		 * for pagination.
 		 */
 		val periodMarker: Long,
-		val appointmentDetails: AppointmentDetails?
+		val appointmentDetails: AppointmentDetails?,
 	) {
 		data class AppointmentDetails(
 			@JsonProperty("e") val endTime: Long? = null,
@@ -49,7 +49,7 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		searchEnd: Long,
 		agendaId: String,
 		limit: Int,
-		lastKnownDocumentId: String?
+		lastKnownDocumentId: String?,
 	): Flow<CalendarItemStub>
 
 	fun listCalendarItemByStartDateAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>
@@ -90,7 +90,7 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		startDate: Long,
 		endDate: Long,
 		agendaId: String,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<CalendarItem>
 
 	fun listCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<CalendarItem>
@@ -128,7 +128,7 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 	 */
 	fun listCalendarItemIdsByRecurrenceId(
 		datastoreInformation: IDatastoreInformation,
-		recurrenceId: String
+		recurrenceId: String,
 	): Flow<String>
 
 	/**
@@ -166,6 +166,6 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		startDate: Long?,
-		endDate: Long?
+		endDate: Long?,
 	): Flow<String>
 }

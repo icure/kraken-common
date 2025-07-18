@@ -7,6 +7,6 @@ import org.taktik.icure.services.external.rest.v2.dto.IndexingInfoDto
 
 @Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface IndexingInfoV2Mapper {
-    fun map(indexingInfoDto: IndexingInfoDto): IndexingInfo
-    fun map(indexingInfo: IndexingInfo): IndexingInfoDto
+	fun map(indexingInfoDto: IndexingInfoDto): IndexingInfo
+	fun map(indexingInfo: IndexingInfo): IndexingInfoDto
 }

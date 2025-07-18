@@ -10,5 +10,12 @@ import org.taktik.icure.services.external.rest.v1.dto.base.EnumVersionDto
  */
 @EnumVersionDto(1L)
 enum class PaymentTypeDto {
-	cash, wired, insurance, creditcard, debitcard, paypal, bitcoin, other
+	cash,
+	wired,
+	insurance,
+	creditcard,
+	debitcard,
+	paypal,
+	bitcoin,
+	other,
 }

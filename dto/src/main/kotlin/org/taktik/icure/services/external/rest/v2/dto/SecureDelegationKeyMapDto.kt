@@ -35,7 +35,7 @@ data class SecureDelegationKeyMapDto(
 	/**
 	 * The secure delegation key this map refers to.
 	 */
-    @Schema(required = true) val delegationKey: String,
+	@Schema(required = true) val delegationKey: String,
 	/**
 	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
 	 * and if not encrypted.
@@ -55,7 +55,13 @@ data class SecureDelegationKeyMapDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val deletionDate: Long? = null,
-) : StoredDocumentDto, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

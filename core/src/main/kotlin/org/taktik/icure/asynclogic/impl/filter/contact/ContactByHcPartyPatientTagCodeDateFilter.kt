@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.contact.ContactByHcPartyPatientTagCodeDateFilter
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
@@ -24,46 +24,48 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class ContactByHcPartyPatientTagCodeDateFilter(
 	private val contactDAO: ContactDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByHcPartyPatientTagCodeDateFilter> {
-
 	override fun resolve(
-        filter: ContactByHcPartyPatientTagCodeDateFilter,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: ContactByHcPartyPatientTagCodeDateFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
 		try {
-			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(
-				filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
-			)
+			val searchKeys =
+				sessionLogic.getAllSearchKeysIfCurrentDataOwner(
+					filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic),
+				)
 			val searchByTag = filter.tagType != null && filter.tagCode != null
 			val searchByCode = filter.codeType != null && filter.codeCode != null
 
 			val ids = mutableSetOf<String>()
 			if (searchByTag) {
-				val contactIds = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
-					contactDAO.listContactIdsByTag(
-						datastoreInformation,
-						key,
-						filter.tagType!!,
-						filter.tagCode!!,
-						filter.startOfContactOpeningDate,
-						filter.endOfContactOpeningDate
-					)
-				}.toSet()
+				val contactIds =
+					mergeUniqueIdsForSearchKeys(searchKeys) { key ->
+						contactDAO.listContactIdsByTag(
+							datastoreInformation,
+							key,
+							filter.tagType!!,
+							filter.tagCode!!,
+							filter.startOfContactOpeningDate,
+							filter.endOfContactOpeningDate,
+						)
+					}.toSet()
 				ids.addAll(contactIds)
 			}
 			if (searchByCode) {
-				val byCode = mergeUniqueIdsForSearchKeys(searchKeys) { key ->
-					contactDAO.listContactIdsByCode(
-						datastoreInformation,
-						key,
-						filter.codeType!!,
-						filter.codeCode!!,
-						filter.startOfContactOpeningDate,
-						filter.endOfContactOpeningDate
-					)
-				}.toSet()
+				val byCode =
+					mergeUniqueIdsForSearchKeys(searchKeys) { key ->
+						contactDAO.listContactIdsByCode(
+							datastoreInformation,
+							key,
+							filter.codeType!!,
+							filter.codeCode!!,
+							filter.startOfContactOpeningDate,
+							filter.endOfContactOpeningDate,
+						)
+					}.toSet()
 				if (!searchByTag) {
 					ids.addAll(byCode)
 				} else {
@@ -71,11 +73,13 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 				}
 			}
 			if (!filter.patientSecretForeignKeys.isNullOrEmpty()) {
-				val byPatient = contactDAO.listContactIdsByHcPartyAndPatient(
-					datastoreInformation = datastoreInformation,
-					searchKeys = searchKeys,
-					secretPatientKeys = filter.patientSecretForeignKeys!!
-				).toSet()
+				val byPatient =
+					contactDAO
+						.listContactIdsByHcPartyAndPatient(
+							datastoreInformation = datastoreInformation,
+							searchKeys = searchKeys,
+							secretPatientKeys = filter.patientSecretForeignKeys!!,
+						).toSet()
 
 				if (!searchByTag && !searchByCode) {
 					ids.addAll(byPatient)

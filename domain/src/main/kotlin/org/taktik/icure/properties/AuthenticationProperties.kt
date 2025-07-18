@@ -14,5 +14,5 @@ import org.springframework.stereotype.Component
 data class AuthenticationProperties(
 	var local: Boolean = false,
 	var minPasswordLength: Int = 6,
-	var recommendedPasswordLength: Int = 8
+	var recommendedPasswordLength: Int = 8,
 )

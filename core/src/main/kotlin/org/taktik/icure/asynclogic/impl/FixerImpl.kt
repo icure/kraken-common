@@ -13,91 +13,136 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-open class FixerImpl (
-	private val fixedValueProvider: FixedValueProvider
+open class FixerImpl(
+	private val fixedValueProvider: FixedValueProvider,
 ) : Fixer {
-	private val factory: ValidatorFactory = Validation
-		.byDefaultProvider()
-		.configure()
-		.messageInterpolator(ParameterMessageInterpolator())
-		.buildValidatorFactory()
+	private val factory: ValidatorFactory =
+		Validation
+			.byDefaultProvider()
+			.configure()
+			.messageInterpolator(ParameterMessageInterpolator())
+			.buildValidatorFactory()
 
-	private data class Fix(val fixPath: List<FixPointSelector>, val value: Any?) {
+	private data class Fix(
+		val fixPath: List<FixPointSelector>,
+		val value: Any?,
+	) {
 		fun behead() = this.copy(fixPath = fixPath.drop(1))
 	}
 
-	private data class FixPointSelector(val name: String, val leaf: Boolean, val iterable: Boolean, val beanInIteration: Any?)
+	private data class FixPointSelector(
+		val name: String,
+		val leaf: Boolean,
+		val iterable: Boolean,
+		val beanInIteration: Any?,
+	)
 
 	@Suppress("UNCHECKED_CAST")
-	private fun <K : Any> applyFixes(doc: K, fixes: List<Fix>): K {
-		val docFixes = fixes.groupBy { f -> f.fixPath.first().let { Triple(it.name, it.leaf, it.iterable) } }.map { (sel, groupedFixes) ->
-			val (name, leaf, iterable) = sel
-			if (iterable) {
-				val collection = doc::class.memberProperties.find { it.name == name }?.getter?.call(doc)
-				Pair(
-					name,
-					(collection as? MutableSet<*>)?.let { applyFixOnCollection(it, groupedFixes).toMutableSet() }
-						?: (collection as? MutableList<*>)?.let { applyFixOnCollection(it, groupedFixes).toMutableList() }
-						?: (collection as? Set<*>)?.let { applyFixOnCollection(it, groupedFixes).toSet() }
-						?: (collection as? Collection<*>)?.let { applyFixOnCollection(it, groupedFixes) }
-				)
-			} else if (!leaf) {
-				val item = doc::class.memberProperties.find { it.name == name }?.getter?.call(doc)
-				Pair(name, item?.let { applyFixes(it, groupedFixes.filter { f -> f.fixPath.first().beanInIteration === it }.map { f -> f.behead() }) })
-			} else Pair(name, groupedFixes.first().value)
-		}
+	private fun <K : Any> applyFixes(
+		doc: K,
+		fixes: List<Fix>,
+	): K {
+		val docFixes =
+			fixes.groupBy { f -> f.fixPath.first().let { Triple(it.name, it.leaf, it.iterable) } }.map { (sel, groupedFixes) ->
+				val (name, leaf, iterable) = sel
+				if (iterable) {
+					val collection =
+						doc::class
+							.memberProperties
+							.find { it.name == name }
+							?.getter
+							?.call(doc)
+					Pair(
+						name,
+						(collection as? MutableSet<*>)?.let { applyFixOnCollection(it, groupedFixes).toMutableSet() }
+							?: (collection as? MutableList<*>)?.let { applyFixOnCollection(it, groupedFixes).toMutableList() }
+							?: (collection as? Set<*>)?.let { applyFixOnCollection(it, groupedFixes).toSet() }
+							?: (collection as? Collection<*>)?.let { applyFixOnCollection(it, groupedFixes) },
+					)
+				} else if (!leaf) {
+					val item =
+						doc::class
+							.memberProperties
+							.find { it.name == name }
+							?.getter
+							?.call(doc)
+					Pair(name, item?.let { applyFixes(it, groupedFixes.filter { f -> f.fixPath.first().beanInIteration === it }.map { f -> f.behead() }) })
+				} else {
+					Pair(name, groupedFixes.first().value)
+				}
+			}
 		return doc::class.memberFunctions.find { it.name == "copy" }?.let { copy ->
-			val args = (listOf(copy.instanceParameter!! to doc) + docFixes.mapNotNull { it: Pair<String, Any?> -> copy.findParameterByName(it.first)?.let { p -> p to it.second } }).toMap()
+			val args =
+				(
+					listOf(copy.instanceParameter!! to doc) +
+						docFixes.mapNotNull { it: Pair<String, Any?> -> copy.findParameterByName(it.first)?.let { p -> p to it.second } }
+					).toMap()
 			(copy as? KFunction<K>)?.callBy(args) ?: doc
 		} ?: doc
 	}
 
-	private fun applyFixOnCollection(items: Collection<*>, groupedFixes: List<Fix>): List<Any?> {
-		return items.map {
-			it?.let {
-				if (groupedFixes.any { f -> f.fixPath.first().beanInIteration === it })
-					applyFixes(it, groupedFixes.filter { f -> f.fixPath.first().beanInIteration === it }.map { f -> f.behead() })
-				else it
+	private fun applyFixOnCollection(
+		items: Collection<*>,
+		groupedFixes: List<Fix>,
+	): List<Any?> = items.map {
+		it?.let {
+			if (groupedFixes.any { f -> f.fixPath.first().beanInIteration === it }) {
+				applyFixes(it, groupedFixes.filter { f -> f.fixPath.first().beanInIteration === it }.map { f -> f.behead() })
+			} else {
+				it
 			}
 		}
 	}
 
-	protected suspend fun <E : Any> fix(doc: E, isCreate: Boolean, getFixValue: suspend (autoFix: AutoFix, value: Any?) -> Any?): E {
+	protected suspend fun <E : Any> fix(
+		doc: E,
+		isCreate: Boolean,
+		getFixValue: suspend (autoFix: AutoFix, value: Any?) -> Any?,
+	): E {
 		val violations = factory.validator.validate(doc)
 
-		return violations.fold(listOf<Fix>()) { fixes, cv ->
-			val annotation = cv.constraintDescriptor.annotation
-			try {
-				val members = annotation.annotationClass.members
-				members.find {
-					it.name == "autoFix"
-				}?.takeIf {
-					isCreate || (members.find { it.name == "applyOnModify" }?.call(annotation) as Boolean? != false)
-				}?.let {
-					it.call(annotation) as? AutoFix
-				}?.let { autoFix ->
-					if (autoFix != AutoFix.NOFIX) {
-						try {
-							val pp = cv.propertyPath.toList()
-							fixes + Fix(
-								pp.mapIndexed { idx, it ->
-									val isLeaf = pp.size == idx + 1
-									FixPointSelector(it.name, isLeaf, !isLeaf && pp[idx + 1].isInIterable, (it as NodeImpl).value)
-								},
-								getFixValue(autoFix, cv.invalidValue)
-							)
-						} catch (e: Exception) {
-							fixes
-						}
-					} else fixes
-				} ?: fixes
-			} catch (e: NoSuchMethodException) { //Skip
-				fixes
+		return violations
+			.fold(listOf<Fix>()) { fixes, cv ->
+				val annotation = cv.constraintDescriptor.annotation
+				try {
+					val members = annotation.annotationClass.members
+					members
+						.find {
+							it.name == "autoFix"
+						}?.takeIf {
+							isCreate || (members.find { it.name == "applyOnModify" }?.call(annotation) as Boolean? != false)
+						}?.let {
+							it.call(annotation) as? AutoFix
+						}?.let { autoFix ->
+							if (autoFix != AutoFix.NOFIX) {
+								try {
+									val pp = cv.propertyPath.toList()
+									fixes +
+										Fix(
+											pp.mapIndexed { idx, it ->
+												val isLeaf = pp.size == idx + 1
+												FixPointSelector(it.name, isLeaf, !isLeaf && pp[idx + 1].isInIterable, (it as NodeImpl).value)
+											},
+											getFixValue(autoFix, cv.invalidValue),
+										)
+								} catch (e: Exception) {
+									fixes
+								}
+							} else {
+								fixes
+							}
+						} ?: fixes
+				} catch (e: NoSuchMethodException) {
+					// Skip
+					fixes
+				}
+			}.let { fixes ->
+				applyFixes(doc, fixes)
 			}
-		}.let { fixes ->
-			applyFixes(doc, fixes)
-		}
 	}
 
-	override suspend fun <E : Any> fix(doc: E, isCreate: Boolean): E = fix(doc, isCreate, fixedValueProvider::fix)
+	override suspend fun <E : Any> fix(
+		doc: E,
+		isCreate: Boolean,
+	): E = fix(doc, isCreate, fixedValueProvider::fix)
 }

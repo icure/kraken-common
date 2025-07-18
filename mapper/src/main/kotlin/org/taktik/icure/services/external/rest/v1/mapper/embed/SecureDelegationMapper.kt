@@ -11,11 +11,7 @@ interface SecureDelegationMapper {
 
 	fun map(secureDelegation: SecureDelegation): SecureDelegationDto
 
-	fun mapSecureDelegationsMaps(delegations: Map<String, SecureDelegation>): Map<String, SecureDelegationDto> {
-		return delegations.mapValues { map(it.value) }
-	}
+	fun mapSecureDelegationsMaps(delegations: Map<String, SecureDelegation>): Map<String, SecureDelegationDto> = delegations.mapValues { map(it.value) }
 
-	fun mapSecureDelegationDtosMaps(delegations: Map<String, SecureDelegationDto>): Map<String, SecureDelegation> {
-		return delegations.mapValues { map(it.value) }
-	}
+	fun mapSecureDelegationDtosMaps(delegations: Map<String, SecureDelegationDto>): Map<String, SecureDelegation> = delegations.mapValues { map(it.value) }
 }

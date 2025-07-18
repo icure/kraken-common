@@ -15,5 +15,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class GroupWithContentFilter(
 	val superGroupId: String,
 	val searchString: String,
-	override val desc: String? = null
-): AbstractFilterDto<GroupDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<GroupDto>

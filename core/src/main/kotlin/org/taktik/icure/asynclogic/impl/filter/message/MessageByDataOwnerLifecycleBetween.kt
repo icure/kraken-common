@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.message.MessageByDataOwnerLifecycleBetween
 import org.taktik.icure.entities.Message
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -18,13 +18,12 @@ import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 @Profile("app")
 class MessageByDataOwnerLifecycleBetween(
 	private val messageDAO: MessageDAO,
-	private val sessionInformationProvider: SessionInformationProvider
+	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerLifecycleBetween> {
-
 	override fun resolve(
 		filter: MessageByDataOwnerLifecycleBetween,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
 		mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId)) { key ->
 			messageDAO.listMessageIdsByDataOwnerLifecycleBetween(
@@ -32,9 +31,8 @@ class MessageByDataOwnerLifecycleBetween(
 				searchKey = key,
 				startTimestamp = filter.startTimestamp,
 				endTimestamp = filter.endTimestamp,
-				descending = filter.descending
+				descending = filter.descending,
 			)
 		}.let { emitAll(it) }
 	}
-
 }

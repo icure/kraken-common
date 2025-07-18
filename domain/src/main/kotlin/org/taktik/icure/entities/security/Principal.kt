@@ -7,6 +7,8 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.PropertyStub
 
-interface Principal : Identifiable<String>, Named {
+interface Principal :
+	Identifiable<String>,
+	Named {
 	val properties: Set<PropertyStub>
 }

@@ -29,7 +29,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableItemDto
 interface TimeTableItemV2Mapper {
 	@Mappings(
 		Mapping(target = "days", ignore = true),
-		Mapping(target = "recurrenceTypes", ignore = true)
+		Mapping(target = "recurrenceTypes", ignore = true),
 	)
 	fun map(timeTableItemDto: TimeTableItemDto): TimeTableItem
 

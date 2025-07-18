@@ -32,6 +32,7 @@ import org.taktik.icure.asyncservice.createEntities
 import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.security.warn
 import org.taktik.icure.services.external.rest.v1.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v1.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -48,7 +49,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.filter.FilterMapper
 import org.taktik.icure.services.external.rest.v1.utils.paginatedList
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.security.warn
 import reactor.core.publisher.Flux
 
 @RestController
@@ -63,43 +63,60 @@ class HealthElementController(
 	private val filterMapper: FilterMapper,
 	private val stubMapper: StubMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(
 		summary = "Create a healthcare element with the current user",
-		description = "Returns an instance of created healthcare element."
+		description = "Returns an instance of created healthcare element.",
 	)
 	@PostMapping
-	fun createHealthElement(@RequestBody c: HealthElementDto) = mono {
-		val element = healthElementService.createHealthElement(healthElementMapper.map(c))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
+	fun createHealthElement(
+		@RequestBody c: HealthElementDto,
+	) = mono {
+		val element =
+			healthElementService.createHealthElement(healthElementMapper.map(c))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
 
 		healthElementMapper.map(element)
 	}
 
 	@Operation(summary = "Get a healthcare element")
 	@GetMapping("/{healthElementId}")
-	fun getHealthElement(@PathVariable healthElementId: String) = mono {
-		val element = healthElementService.getHealthElement(healthElementId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting healthcare element failed. Possible reasons: no such healthcare element exists, or server error. Please try again or read the server log.")
+	fun getHealthElement(
+		@PathVariable healthElementId: String,
+	) = mono {
+		val element =
+			healthElementService.getHealthElement(healthElementId)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting healthcare element failed. Possible reasons: no such healthcare element exists, or server error. Please try again or read the server log.",
+				)
 
 		healthElementMapper.map(element)
 	}
 
 	@Operation(summary = "Get healthElements by batch", description = "Get a list of healthElement by ids/keys.")
 	@PostMapping("/byIds")
-	fun getHealthElements(@RequestBody healthElementIds: ListOfIdsDto): Flux<HealthElementDto> = flow {
+	fun getHealthElements(
+		@RequestBody healthElementIds: ListOfIdsDto,
+	): Flux<HealthElementDto> = flow {
 		val healthElements = healthElementService.getHealthElements(healthElementIds.ids)
 		emitAll(healthElements.map { c -> healthElementMapper.map(c) })
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
-	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.", description = "Keys hast to delimited by comma")
+	@Operation(
+		summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.",
+		description = "Keys hast to delimited by comma",
+	)
 	@GetMapping("/byHcPartySecretForeignKeys")
-	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestParam secretFKeys: String): Flux<HealthElementDto> {
+	fun findHealthElementsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestParam secretFKeys: String,
+	): Flux<HealthElementDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val elementList = healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
@@ -112,7 +129,10 @@ class HealthElementController(
 	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	@Operation(summary = "List healthcare elements found By Healthcare Party and secret foreign key element ids.")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun findHealthElementsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<HealthElementDto> {
+	fun findHealthElementsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<HealthElementDto> {
 		val elementList = healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
 		return elementList
@@ -126,10 +146,11 @@ class HealthElementController(
 	@GetMapping("/byHcPartySecretForeignKeys/delegations")
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
-		@RequestParam secretFKeys: String
+		@RequestParam secretFKeys: String,
 	): Flux<IcureStubDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
-		return healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+		return healthElementService
+			.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 			.map { healthElement -> stubMapper.mapToStub(healthElement) }
 			.injectReactorContext()
 	}
@@ -141,43 +162,58 @@ class HealthElementController(
 	fun findHealthElementsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-	): Flux<IcureStubDto> {
-		return healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
-			.map { healthElement -> stubMapper.mapToStub(healthElement) }
-			.injectReactorContext()
-	}
+	): Flux<IcureStubDto> = healthElementService
+		.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+		.map { healthElement -> stubMapper.mapToStub(healthElement) }
+		.injectReactorContext()
 
 	@Operation(summary = "List health element stubs found by ids.")
 	@PostMapping("/delegationsByIds")
 	fun listHealthElementsDelegationsStubById(
 		@RequestBody healthElementIds: ListOfIdsDto,
-	): Flux<IcureStubDto> {
-		return healthElementService.getHealthElements(healthElementIds.ids)
-			.map { healthElement -> stubMapper.mapToStub(healthElement) }
-			.injectReactorContext()
-	}
+	): Flux<IcureStubDto> = healthElementService
+		.getHealthElements(healthElementIds.ids)
+		.map { healthElement -> stubMapper.mapToStub(healthElement) }
+		.injectReactorContext()
 
 	@Operation(summary = "Update delegations in healthElements.")
 	@PostMapping("/delegations")
-	fun setHealthElementsDelegations(@RequestBody stubs: List<IcureStubDto>) = flow {
-		val healthElements = healthElementService.getHealthElements(stubs.map { it.id }).map { he ->
-			stubs.find { s -> s.id == he.id }?.let { stub ->
-				he.copy(
-					delegations = he.delegations.mapValues { (s, dels) -> stub.delegations[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
-						stub.delegations.filterKeys { k -> !he.delegations.containsKey(k) }.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
-					encryptionKeys = he.encryptionKeys.mapValues { (s, dels) -> stub.encryptionKeys[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
-						stub.encryptionKeys.filterKeys { k -> !he.encryptionKeys.containsKey(k) }.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
-					cryptedForeignKeys = he.cryptedForeignKeys.mapValues { (s, dels) -> stub.cryptedForeignKeys[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
-						stub.cryptedForeignKeys.filterKeys { k -> !he.cryptedForeignKeys.containsKey(k) }.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
-				)
-			} ?: he
-		}
+	fun setHealthElementsDelegations(
+		@RequestBody stubs: List<IcureStubDto>,
+	) = flow {
+		val healthElements =
+			healthElementService.getHealthElements(stubs.map { it.id }).map { he ->
+				stubs.find { s -> s.id == he.id }?.let { stub ->
+					he.copy(
+						delegations =
+						he.delegations.mapValues { (s, dels) -> stub.delegations[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
+							stub.delegations
+								.filterKeys { k ->
+									!he.delegations.containsKey(k)
+								}.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
+						encryptionKeys =
+						he.encryptionKeys.mapValues { (s, dels) -> stub.encryptionKeys[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
+							stub.encryptionKeys
+								.filterKeys { k ->
+									!he.encryptionKeys.containsKey(k)
+								}.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
+						cryptedForeignKeys =
+						he.cryptedForeignKeys.mapValues { (s, dels) -> stub.cryptedForeignKeys[s]?.map { delegationMapper.map(it) }?.toSet() ?: dels } +
+							stub.cryptedForeignKeys
+								.filterKeys { k ->
+									!he.cryptedForeignKeys.containsKey(k)
+								}.mapValues { (_, value) -> value.map { delegationMapper.map(it) }.toSet() },
+					)
+				} ?: he
+			}
 		emitAll(healthElementService.modifyEntities(healthElements).map { healthElementMapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Delete healthcare elements.", description = "Response is a set containing the ID's of deleted healthcare elements.")
 	@DeleteMapping("/{healthElementIds}")
-	fun deleteHealthElements(@PathVariable healthElementIds: String): Flux<DocIdentifierDto> = flow {
+	fun deleteHealthElements(
+		@PathVariable healthElementIds: String,
+	): Flux<DocIdentifierDto> = flow {
 		val ids = healthElementIds.split(',')
 		if (ids.isEmpty()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
@@ -189,15 +225,20 @@ class HealthElementController(
 
 	@Operation(summary = "Modify a healthcare element", description = "Returns the modified healthcare element.")
 	@PutMapping
-	fun modifyHealthElement(@RequestBody healthElementDto: HealthElementDto) = mono {
-		val modifiedHealthElement = healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
+	fun modifyHealthElement(
+		@RequestBody healthElementDto: HealthElementDto,
+	) = mono {
+		val modifiedHealthElement =
+			healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
 		healthElementMapper.map(modifiedHealthElement)
 	}
 
 	@Operation(summary = "Modify a batch of healthcare elements", description = "Returns the modified healthcare elements.")
 	@PutMapping("/batch")
-	fun modifyHealthElements(@RequestBody healthElementDtos: List<HealthElementDto>): Flux<HealthElementDto> = flow {
+	fun modifyHealthElements(
+		@RequestBody healthElementDtos: List<HealthElementDto>,
+	): Flux<HealthElementDto> = flow {
 		try {
 			val hes = healthElementService.modifyEntities(healthElementDtos.map { f -> healthElementMapper.map(f) })
 			emitAll(hes.map { healthElementMapper.map(it) })
@@ -209,7 +250,9 @@ class HealthElementController(
 
 	@Operation(summary = "Create a batch of healthcare elements", description = "Returns the created healthcare elements.")
 	@PostMapping("/batch")
-	fun createHealthElements(@RequestBody healthElementDtos: List<HealthElementDto>): Flux<HealthElementDto> = flow {
+	fun createHealthElements(
+		@RequestBody healthElementDtos: List<HealthElementDto>,
+	): Flux<HealthElementDto> = flow {
 		try {
 			val hes = healthElementService.createEntities(healthElementDtos.map { f -> healthElementMapper.map(f) })
 			emitAll(hes.map { healthElementMapper.map(it) })
@@ -219,9 +262,15 @@ class HealthElementController(
 		}
 	}.injectReactorContext()
 
-	@Operation(summary = "Delegates a healthcare element to a healthcare party", description = "It delegates a healthcare element to a healthcare party (By current healthcare party). Returns the element with new delegations.")
+	@Operation(
+		summary = "Delegates a healthcare element to a healthcare party",
+		description = "It delegates a healthcare element to a healthcare party (By current healthcare party). Returns the element with new delegations.",
+	)
 	@PostMapping("/{healthElementId}/delegate")
-	fun newHealthElementDelegations(@PathVariable healthElementId: String, @RequestBody ds: List<DelegationDto>) = mono {
+	fun newHealthElementDelegations(
+		@PathVariable healthElementId: String,
+		@RequestBody ds: List<DelegationDto>,
+	) = mono {
 		healthElementService.addDelegations(healthElementId, ds.map { d -> delegationMapper.map(d) })
 		val healthElementWithDelegation = healthElementService.getHealthElement(healthElementId)
 
@@ -235,13 +284,13 @@ class HealthElementController(
 
 	@Operation(
 		summary = "Filter health elements for the current user (HcParty)",
-		description = "Returns a list of health elements along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page."
+		description = "Returns a list of health elements along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
 	)
 	@PostMapping("/filter")
 	fun filterHealthElementsBy(
 		@Parameter(description = "A HealthElement document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<HealthElementDto>
+		@RequestBody filterChain: FilterChain<HealthElementDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -254,9 +303,9 @@ class HealthElementController(
 	@Operation(summary = "Get the ids of the Health Elements matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthElementsBy(
-		@RequestBody filter: AbstractFilterDto<HealthElementDto>
-	) = healthElementService.matchHealthElementsBy(
-		filter = filterMapper.tryMap(filter).orThrow()
-	).injectReactorContext()
-
+		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
+	) = healthElementService
+		.matchHealthElementsBy(
+			filter = filterMapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

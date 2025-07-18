@@ -22,18 +22,18 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class PatientByHcPartyAndTelecomFilter(
-    override val desc: String? = null,
-    override val searchString: String? = null,
-    override val healthcarePartyId: String? = null
-) : AbstractFilter<Patient>, org.taktik.icure.domain.filter.patient.PatientByHcPartyAndTelecomFilter {
+	override val desc: String? = null,
+	override val searchString: String? = null,
+	override val healthcarePartyId: String? = null,
+) : AbstractFilter<Patient>,
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyAndTelecomFilter {
 
-    override val canBeUsedInWebsocket = true
-    // The HCP id is coalesced in the resolve
-    override val requiresSecurityPrecondition: Boolean = false
-    override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
+	override val canBeUsedInWebsocket = true
 
-    override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-        return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item))
-                && (searchString == null || item.addresses.any { adr -> adr.telecoms.any { tc -> tc.telecomNumber?.contains(searchString)!! } })
-    }
+	// The HCP id is coalesced in the resolve
+	override val requiresSecurityPrecondition: Boolean = false
+	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
+
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+		(searchString == null || item.addresses.any { adr -> adr.telecoms.any { tc -> tc.telecomNumber?.contains(searchString)!! } })
 }

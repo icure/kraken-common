@@ -51,20 +51,20 @@ import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.PersistenceException
+import org.taktik.icure.security.error
 import org.taktik.icure.utils.ViewQueries
 import org.taktik.icure.utils.createPagedQueries
 import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
-import org.taktik.icure.security.error
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
@@ -78,7 +78,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<T>? = null,
 	private val designDocumentProvider: DesignDocumentProvider,
-	protected val daoConfig: DaoConfig
+	protected val daoConfig: DaoConfig,
 ) : GenericDAO<T> {
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
@@ -86,7 +86,12 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			datastoreInformation, "all", null, null, offset, false
+			datastoreInformation,
+			"all",
+			null,
+			null,
+			offset,
+			false,
 		)
 		emitAll(client.queryView(viewQuery, keyClass, String::class.java, entityClass))
 	}
@@ -102,10 +107,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	override suspend fun hasAny(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return designDocContainsAllView(datastoreInformation) && client.queryView<String, String>(createQuery(
-			datastoreInformation,
-			"all"
-		).limit(1)).count() > 0
+		return designDocContainsAllView(datastoreInformation) &&
+			client.queryView<String, String>(
+				createQuery(
+					datastoreInformation,
+					"all",
+				).limit(1),
+			).count() > 0
 	}
 
 	/**
@@ -116,7 +124,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	private suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return client.get<DesignDocument>(
-			designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this)
+			designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this),
 		)?.views?.containsKey("all") ?: false
 	}
 
@@ -126,10 +134,16 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		if (designDocContainsAllView(datastoreInformation)) {
 			val client = couchDbDispatcher.getClient(datastoreInformation)
-			client.queryView<String, String>(if (limit != null) createQuery(datastoreInformation, "all").limit(limit) else createQuery(
-				datastoreInformation,
-				"all"
-			)).onEach { emit(it.id) }.collect()
+			client.queryView<String, String>(
+				if (limit != null) {
+					createQuery(datastoreInformation, "all").limit(limit)
+				} else {
+					createQuery(
+						datastoreInformation,
+						"all",
+					)
+				},
+			).onEach { emit(it.id) }.collect()
 		}
 	}
 
@@ -162,8 +176,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<T> =
-		getEntities(datastoreInformation, ids.asFlow())
+	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<T> = getEntities(datastoreInformation, ids.asFlow())
 
 	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -187,7 +200,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			client.get(
 				toRetrieve,
 				entityClass,
-				onEntityException = EntityExceptionBehaviour.Recover
+				onEntityException = EntityExceptionBehaviour.Recover,
 			).collect { retrieved ->
 				val postLoaded = this@GenericDAOImpl.postLoad(datastoreInformation, retrieved)
 				cacheChain?.putInCache(datastoreInformation.getFullIdFor(postLoaded.id), postLoaded)
@@ -210,13 +223,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		check(cached.isEmpty()) { "Should have consumed all cached entities" }
 	}
 
-	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? {
-		return save(datastoreInformation, true, entity)
-	}
+	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? = save(datastoreInformation, true, entity)
 
-	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T? {
-		return save(datastoreInformation, null, entity)
-	}
+	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T? = save(datastoreInformation, null, entity)
 
 	/**
 	 * Creates or updates an entity on the database. It creates one if the newEntity parameter is set to true or if the
@@ -239,7 +248,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 					client.create(e, entityClass)
 				} else {
 					client.update(e, entityClass)
-					//saveRevHistory(entity, null);
+					// saveRevHistory(entity, null);
 				}.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
 					afterSave(datastoreInformation, it, e)
@@ -249,7 +258,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
 			throw e
 		}
-
 	}
 
 	/**
@@ -258,9 +266,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity that is about to be saved.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun beforeSave(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun beforeSave(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	/**
 	 * This operation is performed after saving an entity to the database.
@@ -269,9 +275,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param preSaveEntity the entity [T] before it was stored on the db.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun afterSave(datastoreInformation: IDatastoreInformation, savedEntity: T, preSaveEntity: T): T {
-		return savedEntity
-	}
+	protected open suspend fun afterSave(datastoreInformation: IDatastoreInformation, savedEntity: T, preSaveEntity: T): T = savedEntity
 
 	/**
 	 * This operation is performed before deleting an entity to the database.
@@ -280,9 +284,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity that is about to be deleted.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun beforeDelete(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun beforeDelete(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	/**
 	 * This operation is performed after deleted an entity to the database.
@@ -290,9 +292,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the deleted entity.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun afterDelete(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun afterDelete(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	/**
 	 * This operation is performed before undeleting an entity on the database.
@@ -300,9 +300,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity that is about to be undeleted.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun beforeUnDelete(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun beforeUnDelete(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	/**
 	 * This operation is performed after undeleting an entity on the database.
@@ -310,9 +308,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity that is about to be undeleted.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun afterUnDelete(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun afterUnDelete(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	/**
 	 * This operation is performed after loading an entity from the database.
@@ -320,13 +316,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the loaded entity.
 	 * @return the entity after the operation.
 	 */
-	protected open suspend fun postLoad(datastoreInformation: IDatastoreInformation, entity: T): T {
-		return entity
-	}
+	protected open suspend fun postLoad(datastoreInformation: IDatastoreInformation, entity: T): T = entity
 
 	override fun purge(
 		datastoreInformation: IDatastoreInformation,
-		entities: Collection<T>
+		entities: Collection<T>,
 	): Flow<BulkSaveResult<DocIdentifier>> = flow {
 		// Before purging the entity we do a "standard" delete. This helps with
 		val removed = internalRemove(datastoreInformation, entities).filterSuccessfulUpdates().toList()
@@ -352,17 +346,17 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	protected fun <T> Flow<BulkUpdateResult>.toSaveResult(
-		mapSuccess: suspend (id: String, rev: String) -> T
-	): Flow<BulkSaveResult<T>> =
-		map { r ->
-			if (r.ok == true) {
-				BulkSaveResult.Success(mapSuccess(r.id, r.rev!!))
-			} else r.toBulkSaveResultFailure()
+		mapSuccess: suspend (id: String, rev: String) -> T,
+	): Flow<BulkSaveResult<T>> = map { r ->
+		if (r.ok == true) {
+			BulkSaveResult.Success(mapSuccess(r.id, r.rev!!))
+		} else {
+			r.toBulkSaveResultFailure()
 				?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 		}
+	}
 
-	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> =
-		internalRemove(datastoreInformation, entities)
+	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> = internalRemove(datastoreInformation, entities)
 
 	private fun internalRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -399,11 +393,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			}.associateBy { it.id }
 			val bulkUpdateResults = client.bulkUpdate(
 				fixedEntitiesById.values,
-				entityClass
+				entityClass,
 			).toSaveResult { id, rev ->
 				val fixedEntityWithNewRev = afterUnDelete(
 					datastoreInformation,
-					fixedEntitiesById.getValue(id).withIdRev(rev = rev) as T
+					fixedEntitiesById.getValue(id).withIdRev(rev = rev) as T,
 				)
 				cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), fixedEntityWithNewRev)
 				fixedEntityWithNewRev
@@ -428,7 +422,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		val fixedEntitiesById = fixedEntities.associateBy { it.id }
 
-		val results = client.bulkUpdate(fixedEntities, entityClass).toList() //Attachment dirty has been lost
+		val results = client.bulkUpdate(fixedEntities, entityClass).toList() // Attachment dirty has been lost
 
 		val conflicts = results.filter { it.error == "conflict" }.map { r -> UpdateConflictException(r.id, r.rev ?: "unknown") }.toList()
 		if (conflicts.isNotEmpty()) {
@@ -445,14 +439,14 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)).also { saved ->
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
 				}
-			}
+			},
 		)
 	}
 
 	@Suppress("UNCHECKED_CAST")
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,
-		entities: Collection<T>
+		entities: Collection<T>,
 	): Flow<BulkSaveResult<T>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -470,7 +464,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			client.bulkUpdate(fixedEntities, entityClass).map { updateResult ->
 				if (updateResult.ok == true) {
 					val updatedEntity = fixedEntitiesById.getValue(updateResult.id).withIdRev(
-						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
+						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" },
 					) as T
 					updatedEntity.let {
 						cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
@@ -480,7 +474,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 					updateResult.toBulkSaveResultFailure()
 						?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 				}
-			}
+			},
 		)
 	}
 
@@ -489,14 +483,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		partitionsWithRepo: Map<String, String>,
 		updateIfExists: Boolean,
 		dryRun: Boolean,
-		ignoreIfUnchanged: Boolean
+		ignoreIfUnchanged: Boolean,
 	): List<DesignDocument> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val generatedDocs = designDocumentProvider.generateExternalDesignDocuments(
 			entityClass = this.entityClass,
 			partitionsWithRepo = partitionsWithRepo,
 			client = client,
-			ignoreIfUnchanged = ignoreIfUnchanged)
+			ignoreIfUnchanged = ignoreIfUnchanged,
+		)
 		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
 	}
 
@@ -505,7 +500,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		updateIfExists: Boolean,
 		dryRun: Boolean,
 		partition: Partitions,
-		ignoreIfUnchanged: Boolean
+		ignoreIfUnchanged: Boolean,
 	): List<DesignDocument> = forceInitStandardDesignDocument(couchDbDispatcher.getClient(datastoreInformation), updateIfExists, dryRun, partition, ignoreIfUnchanged)
 
 	override suspend fun forceInitStandardDesignDocument(
@@ -513,7 +508,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		updateIfExists: Boolean,
 		dryRun: Boolean,
 		partition: Partitions,
-		ignoreIfUnchanged: Boolean
+		ignoreIfUnchanged: Boolean,
 	): List<DesignDocument> {
 		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client, partition, ignoreIfUnchanged)
 		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
@@ -523,7 +518,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		generatedDocs: Set<DesignDocument>,
 		client: Client,
 		updateIfExists: Boolean,
-		dryRun: Boolean
+		dryRun: Boolean,
 	) = generatedDocs.mapNotNull { generated ->
 		suspendRetryForSomeException<DesignDocument?, CouchDbConflictException>(3) {
 			val fromDatabase = client.get(generated.id, DesignDocument::class.java)
@@ -541,7 +536,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				} else {
 					merged
 				}
-			} else null
+			} else {
+				null
+			}
 		}
 	}
 
@@ -567,17 +564,19 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun getExistingEntityAttachmentStubs(
 		datastoreInformation: IDatastoreInformation,
 		entity: T,
-		excludingAttachmentId: String? = null
-	): Map<String, Attachment>? =
-		if (entity.rev == null)
-			null
-		else (get(datastoreInformation, entity.id) ?:
-			throw ConflictRequestException("Entity with id ${entity.id} not found, but was expected to exist with revision ${entity.rev}")
-		).attachments?.let { oldAttachments ->
+		excludingAttachmentId: String? = null,
+	): Map<String, Attachment>? = if (entity.rev == null) {
+		null
+	} else {
+		(
+			get(datastoreInformation, entity.id)
+				?: throw ConflictRequestException("Entity with id ${entity.id} not found, but was expected to exist with revision ${entity.rev}")
+			).attachments?.let { oldAttachments ->
 			excludingAttachmentId?.let { oldAttachmentId ->
 				oldAttachments - oldAttachmentId
 			} ?: oldAttachments
 		}
+	}
 
 	/**
 	 * Retrieves all the ids for an entity in the legacy and secure delegation views given a set of search keys and
@@ -592,32 +591,39 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val keys = secretForeignKeys.flatMap { fk ->
-			searchKeys.map { key -> ComplexKey.of(key, fk)}
+			searchKeys.map { key -> ComplexKey.of(key, fk) }
 		}.sortedWith(compareBy({ it.components[0] as String }, { it.components[1] as String }))
 
 		val viewQueries = createQueries(
 			datastoreInformation,
-			*views.toTypedArray()
+			*views.toTypedArray(),
 		).doNotIncludeDocs().keys(keys)
 
 		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
 			.filterIsInstance<ViewRowNoDoc<ComplexKey, Long>>()
 			.mapNotNull {
-				if((it.value == null && startDate == null && endDate == null) || it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
+				if ((it.value == null && startDate == null && endDate == null) || it.value !== null && (startDate == null || it.value!! >= startDate) && (endDate == null || it.value!! <= endDate)) {
 					it.id to (it.value ?: 0)
-				} else null
+				} else {
+					null
+				}
 			}
 			.toList()
-			.sortedWith(if(descending) Comparator { o1, o2 ->
-				o2.second.compareTo(o1.second).let {
-					if(it == 0) o2.first.compareTo(o1.first) else it
-				}
-			} else compareBy({ it.second }, { it.first })
+			.sortedWith(
+				if (descending) {
+					Comparator { o1, o2 ->
+						o2.second.compareTo(o1.second).let {
+							if (it == 0) o2.first.compareTo(o1.first) else it
+						}
+					}
+				} else {
+					compareBy({ it.second }, { it.first })
+				},
 			)
 			.forEach { emit(it.first) }
 	}.distinctUntilChanged() // This works because ids will be sorted by date first
@@ -627,25 +633,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		viewName: String,
 		partitionName: String,
 		startKey: ExternalFilterKey?,
-		endKey: ExternalFilterKey?
+		endKey: ExternalFilterKey?,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val query = createQuery(
 			datastoreInformation = datastoreInformation,
 			viewName = viewName,
-			secondaryPartition = partitionName
+			secondaryPartition = partitionName,
 		).includeDocs(false).let {
-			if(startKey != null) it.startKey(startKey.key)
-			else it
+			if (startKey != null) {
+				it.startKey(startKey.key)
+			} else {
+				it
+			}
 		}.let {
-			if(endKey != null) it.endKey(endKey.key)
-			else it
+			if (endKey != null) {
+				it.endKey(endKey.key)
+			} else {
+				it
+			}
 		}
 
-		emitAll(client.queryView<Any?, Any?, Any?>(query)
-			.filterIsInstance<ViewRowNoDoc<*, *>>()
-			.map { it.id }
+		emitAll(
+			client.queryView<Any?, Any?, Any?>(query)
+				.filterIsInstance<ViewRowNoDoc<*, *>>()
+				.map { it.id },
 		)
 	}
 
@@ -655,11 +668,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			.createQueries(client, this, entityClass, true, view)
 			.keys(listOf(arrayOf("identifier")))
 			.doNotIncludeDocs()
-		client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
+		client.interleave<Array<String>, String>(viewQueries, compareBy { it[0] }).firstOrNull()
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
-		when(partition) {
+		when (partition) {
 			Partitions.All -> {
 				warmupPartition(datastoreInformation, Partitions.Main)
 				warmupPartition(datastoreInformation, Partitions.DataOwner)
@@ -672,14 +685,18 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	override suspend fun warmupExternalDesignDocs(
 		datastoreInformation: IDatastoreInformation,
-		designDocuments: List<DesignDocument>
+		designDocuments: List<DesignDocument>,
 	) = designDocuments.mapNotNull {
-		if(it.id.contains("-")) {
+		if (it.id.contains("-")) {
 			val (dd, partition) = it.id.split("-", limit = 2)
-			if(dd.contains(entityClass.simpleName) && it.views.isNotEmpty()) {
+			if (dd.contains(entityClass.simpleName) && it.views.isNotEmpty()) {
 				it.views.keys.first() to partition
-			} else null
-		} else null
+			} else {
+				null
+			}
+		} else {
+			null
+		}
 	}.forEach {
 		warmup(datastoreInformation, it)
 	}
@@ -687,26 +704,18 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun createQuery(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
-		secondaryPartition: String? = null
-	): ViewQuery =
-		designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, secondaryPartition)
+		secondaryPartition: String? = null,
+	): ViewQuery = designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, secondaryPartition)
 
-	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, vararg viewQueries: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, daoConfig.useDataOwnerPartition, *viewQueries)
+	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, vararg viewQueries: Pair<String, String?>) = designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, daoConfig.useDataOwnerPartition, *viewQueries)
 
-	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation,viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, daoConfig.useDataOwnerPartition)
+	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) = designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, daoConfig.useDataOwnerPartition)
 
+	protected suspend fun <P> pagedViewQuery(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery = designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
 
-	protected suspend fun <P> pagedViewQuery(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
-		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
+	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) = designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
 
-	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
+	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries = designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueries, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
 
-	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueries, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
-
-	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
-		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
+	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) = designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
 }

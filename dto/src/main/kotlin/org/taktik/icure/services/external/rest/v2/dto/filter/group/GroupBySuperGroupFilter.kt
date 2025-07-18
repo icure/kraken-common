@@ -14,5 +14,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GroupBySuperGroupFilter(
 	val superGroupId: String,
-	override val desc: String? = null
-): AbstractFilterDto<GroupDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<GroupDto>

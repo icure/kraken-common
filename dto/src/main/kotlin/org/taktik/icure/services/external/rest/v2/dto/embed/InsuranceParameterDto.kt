@@ -18,5 +18,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class InsuranceParameterDto {
-	status, tc1, tc2, preferentialstatus, chronicaldisease, paymentapproval, mdaInputReference
+	status,
+	tc1,
+	tc2,
+	preferentialstatus,
+	chronicaldisease,
+	paymentapproval,
+	mdaInputReference,
 }

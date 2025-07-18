@@ -79,7 +79,7 @@ final data class IcureEntitiesCacheProperties(
 	var tarification: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var timeTable: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var recoveryData: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
-	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST)
+	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	// When adding also add to allConfigurationsByClassName
 ) {
 	data class EntityConfiguration(
@@ -90,7 +90,7 @@ final data class IcureEntitiesCacheProperties(
 		/**
 		 * Type of the cache. Can be "local", "global", or "none:.
 		 */
-		var type: CacheType
+		var type: CacheType,
 	) {
 		init {
 			require(ttl > 0) { "TTL must be greater than 0" }
@@ -111,7 +111,7 @@ final data class IcureEntitiesCacheProperties(
 		/**
 		 * The data will be cached "globally", rendering it available to all requests and other nodes.
 		 */
-		GLOBAL
+		GLOBAL,
 	}
 
 	val allConfigurationsByClassName: Map<String, EntityConfiguration> by lazy {
@@ -152,10 +152,8 @@ final data class IcureEntitiesCacheProperties(
 			SecureDelegationKeyMap::class.java.name to secureDelegationKeyMap,
 		)
 	}
-	
-	fun getConfigurationForClass(clazz: Class<*>): EntityConfiguration =
-		allConfigurationsByClassName[clazz.name] ?: throw IllegalArgumentException("Can't find cache configuration for class $clazz")
 
-	fun getConfigurationForName(name: String): EntityConfiguration =
-		allConfigurationsByClassName[name] ?: throw IllegalArgumentException("Can't find cache configuration for name $name")
+	fun getConfigurationForClass(clazz: Class<*>): EntityConfiguration = allConfigurationsByClassName[clazz.name] ?: throw IllegalArgumentException("Can't find cache configuration for class $clazz")
+
+	fun getConfigurationForName(name: String): EntityConfiguration = allConfigurationsByClassName[name] ?: throw IllegalArgumentException("Can't find cache configuration for name $name")
 }

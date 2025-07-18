@@ -50,7 +50,6 @@ class ICureController(
 	private val indexingInfoMapper: IndexingInfoMapper,
 	private val replicationInfoMapper: ReplicationInfoMapper,
 ) {
-
 	private val idAndRevToIdWithRevDto = { idWithRev: IdAndRev -> idWithRevMapper.map(idWithRev) }
 
 	@Operation(summary = "Get version")
@@ -79,50 +78,79 @@ class ICureController(
 
 	@Operation(summary = "Force update design doc")
 	@PostMapping("/dd/{entityName}")
-	fun updateDesignDoc(@PathVariable entityName: String, @RequestParam(required = false) warmup: Boolean? = null) = mono {
+	fun updateDesignDoc(
+		@PathVariable entityName: String,
+		@RequestParam(required = false) warmup: Boolean? = null,
+	) = mono {
 		iCureService.updateDesignDocForCurrentUser(entityName, warmup ?: false)
 		true
 	}
 
 	@Operation(summary = "Resolve patients conflicts")
 	@PostMapping("/conflicts/patient")
-	fun resolvePatientsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = patientService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolvePatientsConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = patientService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "Resolve contacts conflicts")
 	@PostMapping("/conflicts/contact")
-	fun resolveContactsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = contactService.solveConflicts(
-        limit
-    ).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveContactsConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = contactService
+		.solveConflicts(
+			limit,
+		).map(idAndRevToIdWithRevDto)
+		.injectReactorContext()
 
 	@Operation(summary = "resolve forms conflicts")
 	@PostMapping("/conflicts/form")
-	fun resolveFormsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = formService.solveConflicts(
-        limit
-    ).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveFormsConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = formService
+		.solveConflicts(
+			limit,
+		).map(idAndRevToIdWithRevDto)
+		.injectReactorContext()
 
 	@Operation(summary = "resolve healthcare elements conflicts")
 	@PostMapping("/conflicts/healthelement")
-	fun resolveHealthElementsConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = healthElementService.solveConflicts(
-        limit
-    ).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveHealthElementsConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = healthElementService
+		.solveConflicts(
+			limit,
+		).map(idAndRevToIdWithRevDto)
+		.injectReactorContext()
 
 	@Operation(summary = "resolve invoices conflicts")
 	@PostMapping("/conflicts/invoice")
-	fun resolveInvoicesConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = invoiceService.solveConflicts(
-        limit
-    ).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveInvoicesConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = invoiceService
+		.solveConflicts(
+			limit,
+		).map(idAndRevToIdWithRevDto)
+		.injectReactorContext()
 
 	@Operation(summary = "resolve messages conflicts")
 	@PostMapping("/conflicts/message")
-	fun resolveMessagesConflicts(@RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> = messageService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveMessagesConflicts(
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = messageService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@Operation(summary = "resolve documents conflicts")
 	@PostMapping("/conflicts/document")
-	fun resolveDocumentsConflicts(@RequestParam(required = false) ids: String?, @RequestParam(required = false) limit: Int? = null): Flux<IdWithRevDto> =documentService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+	fun resolveDocumentsConflicts(
+		@RequestParam(required = false) ids: String?,
+		@RequestParam(required = false) limit: Int? = null,
+	): Flux<IdWithRevDto> = documentService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
 
 	@PostMapping("/loglevel/{loglevel}", produces = [MediaType.TEXT_PLAIN_VALUE])
 	@Throws(Exception::class)
-	fun loglevel(@PathVariable("loglevel") logLevel: String, @RequestParam(value = "package") packageName: String) = mono {
+	fun loglevel(
+		@PathVariable("loglevel") logLevel: String,
+		@RequestParam(value = "package") packageName: String,
+	) = mono {
 		iCureService.setLogLevel(logLevel, packageName)
 	}
 }

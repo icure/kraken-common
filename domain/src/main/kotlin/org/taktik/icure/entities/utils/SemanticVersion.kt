@@ -15,7 +15,7 @@ value class SemanticVersion(val version: String) : Comparable<SemanticVersion> {
 		val thisMatch = checkNotNull(semVerRegex.find(version)) {
 			"Cannot match version: $version"
 		}
-		val otherMatch =checkNotNull(semVerRegex.find(other.version)) {
+		val otherMatch = checkNotNull(semVerRegex.find(other.version)) {
 			"Cannot match version: $version"
 		}
 		return thisMatch.groupValues[1].toInt().compareTo(otherMatch.groupValues[1].toInt()).takeIf { it != 0 }
@@ -24,5 +24,4 @@ value class SemanticVersion(val version: String) : Comparable<SemanticVersion> {
 				it != 0 || (thisMatch.groupValues.size == 3 && otherMatch.groupValues.size == 4)
 			} ?: thisMatch.groupValues.getOrElse(4) { "" }.compareTo(otherMatch.groupValues.getOrElse(4) { "" })
 	}
-
 }

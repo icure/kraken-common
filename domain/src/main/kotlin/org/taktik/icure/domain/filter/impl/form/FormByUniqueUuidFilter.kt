@@ -8,13 +8,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 data class FormByUniqueUuidFilter(
 	override val uniqueId: String,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<Form>, FormByUniqueUuidFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Form>,
+	FormByUniqueUuidFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Form, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.uniqueId == uniqueId
+	override fun matches(item: Form, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.uniqueId == uniqueId
 }

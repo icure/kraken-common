@@ -6,11 +6,11 @@ import org.taktik.icure.entities.requests.EntityShareRequest
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityShareRequestDto
 
 @Mapper(
-    componentModel = "spring",
-    uses = [],
-    injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	componentModel = "spring",
+	uses = [],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface EntityShareRequestV2Mapper {
-    fun map(requestDto: EntityShareRequestDto): EntityShareRequest
-    fun map(request: EntityShareRequest): EntityShareRequestDto
+	fun map(requestDto: EntityShareRequestDto): EntityShareRequest
+	fun map(request: EntityShareRequest): EntityShareRequestDto
 }

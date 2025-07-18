@@ -20,53 +20,53 @@ import org.taktik.icure.pagination.PaginationElement
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
 
-    /**
-     * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
-     * Ignores entities that:
-     * - don't exist
-     * - the user can't delete due to limited lack of write access
-     * - don't match the provided revision (if provided)
-     *
-     * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
-     * @return a [Flow] containing the deleted [CalendarItem].
-     */
-    fun deleteCalendarItems(ids: List<IdAndRev>): Flow<CalendarItem>
+	/**
+	 * Marks a batch of entities as deleted.
+	 * The data of the entities is preserved, but they won't appear in most queries.
+	 * Ignores entities that:
+	 * - don't exist
+	 * - the user can't delete due to limited lack of write access
+	 * - don't match the provided revision (if provided)
+	 *
+	 * @param ids a [List] containing the ids and optionally the revisions of the entities to delete.
+	 * @return a [Flow] containing the deleted [CalendarItem].
+	 */
+	fun deleteCalendarItems(ids: List<IdAndRev>): Flow<CalendarItem>
 
-    /**
-     * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
-     *
-     * @param id the id of the entity to delete.
-     * @param rev the latest rev of the entity to delete.
-     * @return the deleted [CalendarItem].
-     * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun deleteCalendarItem(id: String, rev: String?): CalendarItem
+	/**
+	 * Marks an entity as deleted.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
+	 *
+	 * @param id the id of the entity to delete.
+	 * @param rev the latest rev of the entity to delete.
+	 * @return the deleted [CalendarItem].
+	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun deleteCalendarItem(id: String, rev: String?): CalendarItem
 
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgeCalendarItem(id: String, rev: String): DocIdentifier
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgeCalendarItem(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteCalendarItem(id: String, rev: String): CalendarItem
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeleteCalendarItem(id: String, rev: String): CalendarItem
 	suspend fun getCalendarItem(calendarItemId: String): CalendarItem?
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
 	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<CalendarItem>
@@ -147,7 +147,7 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	fun findCalendarItemsByHCPartyAndSecretPatientKeys(
 		hcPartyId: String,
 		secretPatientKeys: List<String>,
-		paginationOffset: PaginationOffset<List<Any>>
+		paginationOffset: PaginationOffset<List<Any>>,
 	): Flow<ViewQueryResultEvent>
 
 	/**

@@ -10,7 +10,9 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 
-interface ClassificationLogic : EntityPersister<Classification>, EntityWithSecureDelegationsLogic<Classification> {
+interface ClassificationLogic :
+	EntityPersister<Classification>,
+	EntityWithSecureDelegationsLogic<Classification> {
 
 	suspend fun createClassification(classification: Classification): Classification?
 

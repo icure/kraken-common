@@ -97,32 +97,36 @@ data class Form(
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+) : StoredICureDocument,
+	HasEncryptionMetadata,
+	Encryptable {
 	companion object : DynamicInitializer<Form>
 
 	fun merge(other: Form) = Form(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Form) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
-		"status" to (this.status ?: other.status),
-		"version" to (this.version ?: other.version),
-		"descr" to (this.descr ?: other.descr),
-		"formTemplateId" to (this.formTemplateId ?: other.formTemplateId),
-		"contactId" to (this.contactId ?: other.contactId),
-		"uniqueId" to (this.uniqueId ?: other.uniqueId),
-		"logicalUuid" to (this.logicalUuid ?: other.logicalUuid),
-		"healthElementId" to (this.healthElementId ?: other.healthElementId),
-		"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
-		"parent" to (this.parent ?: other.parent)
-	)
+	fun solveConflictsWith(other: Form) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		super<Encryptable>.solveConflictsWith(other) +
+		mapOf(
+			"status" to (this.status ?: other.status),
+			"version" to (this.version ?: other.version),
+			"descr" to (this.descr ?: other.descr),
+			"formTemplateId" to (this.formTemplateId ?: other.formTemplateId),
+			"contactId" to (this.contactId ?: other.contactId),
+			"uniqueId" to (this.uniqueId ?: other.uniqueId),
+			"logicalUuid" to (this.logicalUuid ?: other.logicalUuid),
+			"healthElementId" to (this.healthElementId ?: other.healthElementId),
+			"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
+			"parent" to (this.parent ?: other.parent),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

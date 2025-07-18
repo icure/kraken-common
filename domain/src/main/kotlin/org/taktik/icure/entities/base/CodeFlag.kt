@@ -82,5 +82,5 @@ enum class CodeFlag {
 	deptvisceraldigestiveabdominalsurgery,
 	depttransplantsurgery,
 	deptpercutaneous,
-	deptchildbirth
+	deptchildbirth,
 }

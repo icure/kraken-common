@@ -33,7 +33,7 @@ interface CryptoActor {
 	// The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }
 	val transferKeys: Map<String, Map<String, String>>
 
-	val privateKeyShamirPartitions: Map<String, String> //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
+	val privateKeyShamirPartitions: Map<String, String> // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	val publicKey: String?
 
 	// The public keys stored in this set must be used only for RSA-OAEP with Sha-256 encryption. (Instead, the one contained in the publicKey and
@@ -44,16 +44,14 @@ interface CryptoActor {
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
-	fun solveConflictsWith(other: CryptoActor): Map<String, Any?> {
-		return mapOf(
-			"hcPartyKeys" to mergeMapsOfListsDistinct(this.hcPartyKeys, other.hcPartyKeys),
-			"privateKeyShamirPartitions" to (other.privateKeyShamirPartitions + this.privateKeyShamirPartitions),
-			"publicKey" to (this.publicKey ?: other.publicKey),
-			"aesExchangeKeys" to (other.aesExchangeKeys + this.aesExchangeKeys),
-			"transferKeys" to (other.transferKeys + this.transferKeys),
-			"cryptoActorProperties" to (this.cryptoActorProperties ?: other.cryptoActorProperties)
-		)
-	}
+	fun solveConflictsWith(other: CryptoActor): Map<String, Any?> = mapOf(
+		"hcPartyKeys" to mergeMapsOfListsDistinct(this.hcPartyKeys, other.hcPartyKeys),
+		"privateKeyShamirPartitions" to (other.privateKeyShamirPartitions + this.privateKeyShamirPartitions),
+		"publicKey" to (this.publicKey ?: other.publicKey),
+		"aesExchangeKeys" to (other.aesExchangeKeys + this.aesExchangeKeys),
+		"transferKeys" to (other.transferKeys + this.transferKeys),
+		"cryptoActorProperties" to (this.cryptoActorProperties ?: other.cryptoActorProperties),
+	)
 }
 
 /**
@@ -61,8 +59,10 @@ interface CryptoActor {
  * used for non-stored entities.
  * @return a [CryptoActorStub] with the same crypto-actor content as this [CryptoActor].
  */
-fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String> =
-	if (this is CryptoActorStub) this else this.rev?.let { rev ->
+fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versionable<String> = if (this is CryptoActorStub) {
+	this
+} else {
+	this.rev?.let { rev ->
 		CryptoActorStub(
 			id = this.id,
 			rev = rev,
@@ -76,3 +76,4 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			cryptoActorProperties = this.cryptoActorProperties,
 		)
 	}
+}

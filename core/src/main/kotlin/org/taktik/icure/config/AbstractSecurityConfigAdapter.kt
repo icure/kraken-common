@@ -13,36 +13,46 @@ import org.taktik.icure.spring.asynccache.Cache
 import reactor.core.publisher.Mono
 
 abstract class AbstractSecurityConfigAdapter {
-
 	protected abstract val cache: Cache<String, SecurityToken>
 	protected abstract val sessionEnabled: Boolean
 
-	protected val sessionLessSecurityContextRepository = object : WebSessionServerSecurityContextRepository() {
-		override fun save(exchange: ServerWebExchange, context: SecurityContext) =
-			exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.save(exchange, context)
-		override fun load(exchange: ServerWebExchange) =
-			exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.load(exchange)
-	}
+	protected val sessionLessSecurityContextRepository =
+		object : WebSessionServerSecurityContextRepository() {
+			override fun save(
+				exchange: ServerWebExchange,
+				context: SecurityContext,
+			) = exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.save(exchange, context)
+
+			override fun load(exchange: ServerWebExchange) = exchange.request.headers["X-Bypass-Session"]?.let { Mono.empty() } ?: super.load(exchange)
+		}
 
 	protected val multiTokenAuthConverter: (ServerWebExchange) -> Mono<Authentication> = { exchange ->
 		// First I check for the JWT Header
-		(exchange.authorizationBearerToken
-			?: exchange.webSocketBearerToken
-			?: exchange.request.queryParams["jwt"]?.firstOrNull())?.let {
+		(
+			exchange.authorizationBearerToken
+				?: exchange.webSocketBearerToken
+				?: exchange.request.queryParams["jwt"]?.firstOrNull()
+			)?.let {
 			Mono.just(EncodedJwtAuthenticationToken(encodedJwt = it))
 		} ?: getAuthenticationFromPathOneTimeToken(exchange) ?: if (sessionEnabled) {
-			exchange.session.flatMap { webSession -> //Otherwise, I check the session
+			exchange.session.flatMap { webSession ->
+				// Otherwise, I check the session
 				ServerHttpBasicAuthenticationConverter().convert(exchange).flatMap { auth ->
-					//Ignore basic auth if SPRING_SECURITY_CONTEXT was loaded from session
+					// Ignore basic auth if SPRING_SECURITY_CONTEXT was loaded from session
 					webSession.attributes[WebSessionServerSecurityContextRepository.DEFAULT_SPRING_SECURITY_CONTEXT_ATTR_NAME]?.let {
 						(it as? SecurityContext)?.let { context ->
-							if (context.authentication.principal != auth.principal) Mono.just(auth)
-							else Mono.empty()
+							if (context.authentication.principal != auth.principal) {
+								Mono.just(auth)
+							} else {
+								Mono.empty()
+							}
 						}
 					} ?: Mono.just(auth)
 				}
 			}
-		} else Mono.empty()
+		} else {
+			Mono.empty()
+		}
 	}
 
 	private val ServerWebExchange.authorizationBearerToken: String?
@@ -72,12 +82,20 @@ abstract class AbstractSecurityConfigAdapter {
 								cache.evict(value)
 								if (exchange.request.method == restriction.method && path.startsWith(restriction.path)) {
 									restriction.authentication
-								} else null
+								} else {
+									null
+								}
 							} ?: throw UnauthorizedRequestException("Invalid token")
 						}
-					} else null
-				} else null
+					} else {
+						null
+					}
+				} else {
+					null
+				}
 			}
-		} else null
+		} else {
+			null
+		}
 	}
 }

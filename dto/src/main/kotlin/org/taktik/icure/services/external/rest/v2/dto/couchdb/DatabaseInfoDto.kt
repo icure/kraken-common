@@ -3,9 +3,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.couchdb
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,5 +19,5 @@ data class DatabaseInfoDto(
 	val q: Int? = null,
 	val n: Int? = null,
 	val w: Int? = null,
-	val r: Int? = null
+	val r: Int? = null,
 ) : Serializable

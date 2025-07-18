@@ -14,5 +14,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AgendaWithPropertyFilter(
 	val propertyId: String,
-	override val desc: String? = null
-): AbstractFilterDto<AgendaDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<AgendaDto>

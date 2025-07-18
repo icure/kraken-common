@@ -34,5 +34,5 @@ data class PatientByHcPartyDateOfBirthFilter(
 	override val desc: String? = null,
 	@Schema(required = true)
 	val dateOfBirth: Int,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

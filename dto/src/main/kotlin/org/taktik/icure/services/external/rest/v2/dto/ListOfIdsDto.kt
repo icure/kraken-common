@@ -18,5 +18,5 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 data class ListOfIdsDto(
-	val ids: List<String> = emptyList()
+	val ids: List<String> = emptyList(),
 )

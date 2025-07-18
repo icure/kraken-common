@@ -27,8 +27,9 @@ data class HealthcarePartyByTagCodeFilter(
 	override val tagType: String? = null,
 	override val tagCode: String? = null,
 	override val codeType: String? = null,
-	override val codeCode: String? = null
-) : AbstractFilter<HealthcareParty>, org.taktik.icure.domain.filter.hcparty.HealthcarePartyByTagCodeFilter {
+	override val codeCode: String? = null,
+) : AbstractFilter<HealthcareParty>,
+	org.taktik.icure.domain.filter.hcparty.HealthcarePartyByTagCodeFilter {
 	init {
 		if (tagCode != null) {
 			require(tagType != null) { "If you specify tagCode you must also specify tagType" }
@@ -43,8 +44,6 @@ data class HealthcarePartyByTagCodeFilter(
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
-			(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode))
-	}
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
+		(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode))
 }

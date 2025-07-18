@@ -188,7 +188,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: AccessLogByUserIdUserTypeDateFilter): org.taktik.icure.domain.filter.impl.accesslog.AccessLogByUserIdUserTypeDateFilter
 
 	@JvmName("tryMapAccessLogFilter")
-	fun tryMap(filterDto: AbstractFilterDto<AccessLogDto>): AbstractFilter<AccessLog>? = when(filterDto) {
+	fun tryMap(filterDto: AbstractFilterDto<AccessLogDto>): AbstractFilter<AccessLog>? = when (filterDto) {
 		is AccessLogByDataOwnerPatientDateFilter -> map(filterDto)
 		is AccessLogByDateFilter -> map(filterDto)
 		is AccessLogByUserIdUserTypeDateFilter -> map(filterDto)
@@ -203,7 +203,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: AgendaWithPropertyFilter): org.taktik.icure.domain.filter.impl.agenda.AgendaWithPropertyFilter
 
 	@JvmName("tryMapAgendaFilter")
-	fun tryMap(filterDto: AbstractFilterDto<AgendaDto>): AbstractFilter<Agenda>? = when(filterDto) {
+	fun tryMap(filterDto: AbstractFilterDto<AgendaDto>): AbstractFilter<Agenda>? = when (filterDto) {
 		is AllAgendasFilter -> map(filterDto)
 		is AgendaByUserIdFilter -> map(filterDto)
 		is AgendaReadableByUserIdFilter -> map(filterDto)
@@ -220,7 +220,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: CalendarItemByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 
 	@JvmName("tryMapCalendarItemFilter")
-	fun tryMap(filterDto: AbstractFilterDto<CalendarItemDto>): AbstractFilter<CalendarItem>? = when(filterDto) {
+	fun tryMap(filterDto: AbstractFilterDto<CalendarItemDto>): AbstractFilter<CalendarItem>? = when (filterDto) {
 		is CalendarItemByPeriodAndAgendaIdFilter -> map(filterDto)
 		is CalendarItemByPeriodAndDataOwnerIdFilter -> map(filterDto)
 		is CalendarItemByDataOwnerPatientStartTimeFilter -> map(filterDto)
@@ -232,7 +232,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDot: ClassificationByDataOwnerPatientCreatedDateFilter): org.taktik.icure.domain.filter.impl.classification.ClassificationByDataOwnerPatientCreatedDateFilter
 
 	@JvmName("tryMapClassificationFilter")
-	fun tryMap(filterDto: AbstractFilterDto<ClassificationDto>): AbstractFilter<Classification>? = when(filterDto) {
+	fun tryMap(filterDto: AbstractFilterDto<ClassificationDto>): AbstractFilter<Classification>? = when (filterDto) {
 		is ClassificationByDataOwnerPatientCreatedDateFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
@@ -372,6 +372,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: PatientByHcPartyDateOfBirthFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyDateOfBirthFilter
 	abstract fun map(filterDto: PatientByHcPartyFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyFilter
 	abstract fun map(filterDto: PatientByHcPartyGenderEducationProfession): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyGenderEducationProfession
+
 	@Suppress("DEPRECATION")
 	abstract fun map(filterDto: org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameContainsFuzzyFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameContainsFuzzyFilter
 	abstract fun map(filterDto: PatientByHcPartyNameFilter): org.taktik.icure.domain.filter.impl.patient.PatientByHcPartyNameFilter
@@ -498,7 +499,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: MessageByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerLifecycleBetween
 
 	@JvmName("tryMapMessageFilter")
-	fun tryMap(filterDto: AbstractFilterDto<MessageDto>): AbstractFilter<Message>? = when(filterDto) {
+	fun tryMap(filterDto: AbstractFilterDto<MessageDto>): AbstractFilter<Message>? = when (filterDto) {
 		is MessageByDataOwnerFromAddressFilter -> map(filterDto)
 		is MessageByDataOwnerToAddressFilter -> map(filterDto)
 		is MessageByHcPartyTransportGuidReceivedFilter -> map(filterDto)
@@ -509,22 +510,19 @@ abstract class FilterV2Mapper {
 		else -> tryMapMessage(filterDto)
 	}
 
-	protected open fun tryMapMessage(filterDto: AbstractFilterDto<MessageDto>) =
-		mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	protected open fun tryMapMessage(filterDto: AbstractFilterDto<MessageDto>) = mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 
 	abstract fun map(predicate: OrPredicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.OrPredicate
 	abstract fun map(predicate: AndPredicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AndPredicate
 	abstract fun map(predicate: NotPredicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.NotPredicate
 	abstract fun map(predicate: KeyValuePredicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate
 
-	fun map(predicate: Predicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate {
-		return when (predicate) {
-			is OrPredicate -> map(predicate)
-			is AndPredicate -> map(predicate)
-			is NotPredicate -> map(predicate)
-			is KeyValuePredicate -> map(predicate)
-			else -> throw IllegalArgumentException("Unsupported filter class")
-		}
+	fun map(predicate: Predicate): org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate = when (predicate) {
+		is OrPredicate -> map(predicate)
+		is AndPredicate -> map(predicate)
+		is NotPredicate -> map(predicate)
+		is KeyValuePredicate -> map(predicate)
+		else -> throw IllegalArgumentException("Unsupported filter class")
 	}
 
 	abstract fun map(predicateDto: org.taktik.icure.services.external.rest.v2.dto.filter.predicate.OrPredicate): OrPredicate
@@ -532,71 +530,67 @@ abstract class FilterV2Mapper {
 	abstract fun map(predicateDto: org.taktik.icure.services.external.rest.v2.dto.filter.predicate.NotPredicate): NotPredicate
 	abstract fun map(predicateDto: org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate): KeyValuePredicate
 
-	fun map(predicateDto: org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate): Predicate {
-		return when (predicateDto) {
-			is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.OrPredicate -> map(predicateDto)
-			is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AndPredicate -> map(predicateDto)
-			is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.NotPredicate -> map(predicateDto)
-			is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate -> map(predicateDto)
-			else -> throw IllegalArgumentException("Unsupported predicate class")
+	fun map(predicateDto: org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate): Predicate = when (predicateDto) {
+		is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.OrPredicate -> map(predicateDto)
+		is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AndPredicate -> map(predicateDto)
+		is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.NotPredicate -> map(predicateDto)
+		is org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate -> map(predicateDto)
+		else -> throw IllegalArgumentException("Unsupported predicate class")
+	}
+
+	protected inline fun <
+		I : IdentifiableDto<String>,
+		O : Identifiable<String>,
+		> mapGeneralFilterToDomain(
+		filterDto: AbstractFilterDto<I>,
+		tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?,
+	) = when (filterDto) {
+		is UnionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
+		is ComplementFilter<I> -> mapToDomain(filterDto, tryMapFilter)
+		is IntersectionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
+		is ExternalViewFilter -> map(filterDto)
+		else -> null
+	}
+
+	protected inline fun <
+		I : IdentifiableDto<String>,
+		O : Identifiable<String>,
+		> mapToDomain(
+		filterDto: UnionFilter<I>,
+		tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?,
+	) = filterDto.filters.mapNotNull { tryMapFilter(it) }.takeIf { it.size == filterDto.filters.size }?.let {
+		org.taktik.icure.domain.filter.impl.UnionFilter(
+			desc = filterDto.desc,
+			filters = it,
+		)
+	}
+
+	protected inline fun <
+		I : IdentifiableDto<String>,
+		O : Identifiable<String>,
+		> mapToDomain(
+		filterDto: ComplementFilter<I>,
+		tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?,
+	) = tryMapFilter(filterDto.superSet)?.let { superSet ->
+		tryMapFilter(filterDto.subSet)?.let { subSet ->
+			org.taktik.icure.domain.filter.impl.ComplementFilter(
+				desc = filterDto.desc,
+				subSet = subSet,
+				superSet = superSet,
+			)
 		}
 	}
 
 	protected inline fun <
-				I : IdentifiableDto<String>,
-				O : Identifiable<String>
-				> mapGeneralFilterToDomain(
-		filterDto: AbstractFilterDto<I>,
-		tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?
-		) = when (filterDto) {
-			is UnionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
-			is ComplementFilter<I> -> mapToDomain(filterDto, tryMapFilter)
-			is IntersectionFilter<I> -> mapToDomain(filterDto, tryMapFilter)
-			is ExternalViewFilter -> map(filterDto)
-			else -> null
-		}
-
-	protected inline fun <
-				I : IdentifiableDto<String>,
-				O : Identifiable<String>
-				> mapToDomain(
-			filterDto: UnionFilter<I>,
-			tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?
-		) = filterDto.filters.mapNotNull { tryMapFilter(it) }.takeIf { it.size == filterDto.filters.size }?.let {
-			org.taktik.icure.domain.filter.impl.UnionFilter(
-				desc = filterDto.desc,
-				filters = it
-			)
-		}
-
-	protected inline fun <
-				I : IdentifiableDto<String>,
-				O : Identifiable<String>
-				> mapToDomain(
-			filterDto: ComplementFilter<I>,
-			tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?
-		) =
-			tryMapFilter(filterDto.superSet)?.let { superSet ->
-				tryMapFilter(filterDto.subSet)?.let { subSet ->
-					org.taktik.icure.domain.filter.impl.ComplementFilter(
-						desc = filterDto.desc,
-						subSet = subSet,
-						superSet = superSet
-					)
-				}
-			}
-
-	protected inline fun <
-				I : IdentifiableDto<String>,
-				O : Identifiable<String>
-				> mapToDomain(
-			filterDto: IntersectionFilter<I>,
-			tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?
-		) = filterDto.filters.mapNotNull { tryMapFilter(it) }.takeIf { it.size == filterDto.filters.size }?.let {
-			org.taktik.icure.domain.filter.impl.IntersectionFilter(
-				desc = filterDto.desc,
-				filters = it
-			)
-		}
+		I : IdentifiableDto<String>,
+		O : Identifiable<String>,
+		> mapToDomain(
+		filterDto: IntersectionFilter<I>,
+		tryMapFilter: (AbstractFilterDto<I>) -> AbstractFilter<O>?,
+	) = filterDto.filters.mapNotNull { tryMapFilter(it) }.takeIf { it.size == filterDto.filters.size }?.let {
+		org.taktik.icure.domain.filter.impl.IntersectionFilter(
+			desc = filterDto.desc,
+			filters = it,
+		)
+	}
 }
-

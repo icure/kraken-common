@@ -32,7 +32,6 @@ data class FormDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
 	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val status: String? = null,
 	val version: Int? = null,
@@ -44,15 +43,23 @@ data class FormDto(
 	@Schema(description = "The healthcare element to which this form is attached.") val healthElementId: String? = null,
 	@Schema(description = "The healthcare approach to which this form is attached.") val planOfActionId: String? = null,
 	@Schema(description = "The parent of this form, used to determine the forms hierarchy") val parent: String? = null,
-	@Schema(description = "Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.") val anchorId: String? = null,
-
+	@Schema(
+		description = "Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.",
+	) val anchorId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

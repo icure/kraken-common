@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.asynclogic.FormTemplateLogic
-import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -23,10 +23,13 @@ class FormTemplateLogicImpl(
 	private val formTemplateDAO: FormTemplateDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<FormTemplate, FormTemplateDAO>(fixer, datastoreInstanceProvider, filters), FormTemplateLogic {
-
-	override fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>) = flow {
+	filters: Filters,
+) : GenericLogicImpl<FormTemplate, FormTemplateDAO>(fixer, datastoreInstanceProvider, filters),
+	FormTemplateLogic {
+	override fun createFormTemplates(
+		entities: Collection<FormTemplate>,
+		createdEntities: Collection<FormTemplate>,
+	) = flow {
 		emitAll(super.createEntities(entities))
 	}
 
@@ -41,19 +44,31 @@ class FormTemplateLogicImpl(
 	}
 
 	@Deprecated("This method has unintuitive behaviour, read FormTemplateService.getFormTemplatesByGuid doc for more info")
-	override fun getFormTemplatesByGuid(userId: String, specialityCode: String, formTemplateGuid: String): Flow<FormTemplate> = flow {
+	override fun getFormTemplatesByGuid(
+		userId: String,
+		specialityCode: String,
+		formTemplateGuid: String,
+	): Flow<FormTemplate> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		formTemplateDAO.listFormTemplatesByUserGuid(datastoreInformation, userId, formTemplateGuid, true).onEmpty {
-			emitAll(formTemplateDAO.listFormsBySpecialtyAndGuid(datastoreInformation, specialityCode, formTemplateGuid, true))
-		}.collect(this)
+		formTemplateDAO
+			.listFormTemplatesByUserGuid(datastoreInformation, userId, formTemplateGuid, true)
+			.onEmpty {
+				emitAll(formTemplateDAO.listFormsBySpecialtyAndGuid(datastoreInformation, specialityCode, formTemplateGuid, true))
+			}.collect(this)
 	}
 
-	override fun getFormTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<FormTemplate> = flow {
+	override fun getFormTemplatesBySpecialty(
+		specialityCode: String,
+		loadLayout: Boolean,
+	): Flow<FormTemplate> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(formTemplateDAO.listFormsBySpecialtyAndGuid(datastoreInformation, specialityCode, null, loadLayout))
 	}
 
-	override fun getFormTemplatesByUser(userId: String, loadLayout: Boolean): Flow<FormTemplate> = flow {
+	override fun getFormTemplatesByUser(
+		userId: String,
+		loadLayout: Boolean,
+	): Flow<FormTemplate> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(formTemplateDAO.listFormTemplatesByUserGuid(datastoreInformation, userId, null, loadLayout))
 	}
@@ -63,7 +78,5 @@ class FormTemplateLogicImpl(
 		formTemplateDAO.save(datastoreInformation, fixedTemplate)
 	}
 
-	override fun getGenericDAO(): FormTemplateDAO {
-		return formTemplateDAO
-	}
+	override fun getGenericDAO(): FormTemplateDAO = formTemplateDAO
 }

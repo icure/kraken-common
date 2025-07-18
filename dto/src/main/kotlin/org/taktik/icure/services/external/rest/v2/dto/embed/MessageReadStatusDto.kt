@@ -24,4 +24,7 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class MessageReadStatusDto(val time: Long? = null, @Schema(defaultValue = "false") val read: Boolean = false): Serializable
+data class MessageReadStatusDto(
+	val time: Long? = null,
+	@Schema(defaultValue = "false") val read: Boolean = false,
+) : Serializable
