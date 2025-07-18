@@ -13,7 +13,7 @@ version = "0.0.1-SNAPSHOT"
 kotlin {
 	jvmToolchain(21)
 	compilerOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
+		freeCompilerArgs = listOf("-Xjsr305=strict", "-Xannotation-default-target=param-property")
 	}
 }
 
