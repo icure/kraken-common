@@ -10,11 +10,10 @@ repositories {
 
 version = "0.0.1-SNAPSHOT"
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-	kotlinOptions {
+kotlin {
+	jvmToolchain(21)
+	compilerOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		languageVersion = "1.9"
-		jvmTarget = "21"
 	}
 }
 
