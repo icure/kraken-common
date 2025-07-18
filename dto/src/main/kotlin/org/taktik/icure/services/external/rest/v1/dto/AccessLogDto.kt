@@ -43,7 +43,7 @@ data class AccessLogDto(
 
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonSerialize(
-		using = InstantSerializer::class
+		using = InstantSerializer::class,
 	)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@get:Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,

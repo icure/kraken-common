@@ -28,11 +28,11 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		val appointmentDetails: AppointmentDetails?,
 	) {
 		data class AppointmentDetails(
-			@JsonProperty("e") val endTime: Long? = null,
-			@JsonProperty("d") val duration: Long? = null,
-			@JsonProperty("t") val calendarItemTypeId: String? = null,
-			@JsonProperty("g") val resourceGroupId: String? = null,
-			@JsonProperty("a") val assignmentStrategy: CalendarItem.AvailabilitiesAssignmentStrategy? = null,
+			@param:JsonProperty("e") val endTime: Long? = null,
+			@param:JsonProperty("d") val duration: Long? = null,
+			@param:JsonProperty("t") val calendarItemTypeId: String? = null,
+			@param:JsonProperty("g") val resourceGroupId: String? = null,
+			@param:JsonProperty("a") val assignmentStrategy: CalendarItem.AvailabilitiesAssignmentStrategy? = null,
 		) : Serializable
 	}
 

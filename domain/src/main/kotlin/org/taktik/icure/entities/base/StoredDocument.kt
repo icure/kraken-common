@@ -25,10 +25,10 @@ interface StoredDocument : Versionable<String> {
 	}
 
 	@Suppress("PropertyName")
-	@param:JsonProperty("java_type")
+	@JsonProperty("java_type")
 	fun getJavaType(): String = this::class.qualifiedName!!
 
-	@param:JsonProperty("java_type")
+	@JsonProperty("java_type")
 	fun setJavaType(value: String) {
 		if (this::class.qualifiedName != value) {
 			throw DeserializationTypeException(

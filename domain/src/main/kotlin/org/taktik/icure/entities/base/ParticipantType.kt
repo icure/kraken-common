@@ -11,78 +11,78 @@ enum class ParticipantType {
 	/**
 	 * The practitioner who is responsible for admitting a patient to a patient encounter.
 	 */
-	@param:JsonProperty("admitter")
+	@JsonProperty("admitter")
 	Admitter,
 
 	/**
 	 * The practitioner that has responsibility for overseeing a patient's care during a patient encounter.
 	 */
-	@param:JsonProperty("attender")
+	@JsonProperty("attender")
 	Attender,
 
 	/**
 	 * A person or organization who should be contacted for follow-up questions about the act in place of the author.
 	 */
-	@param:JsonProperty("callback")
+	@JsonProperty("callback")
 	CallbackContact,
 
 	/**
 	 * An advisor participating in the service by performing evaluations and making recommendations.
 	 */
-	@param:JsonProperty("consultant")
+	@JsonProperty("consultant")
 	Consultant,
 
 	/**
 	 * The practitioner who is responsible for the discharge of a patient from a patient encounter.
 	 */
-	@param:JsonProperty("discharger")
+	@JsonProperty("discharger")
 	Discharger,
 
 	/**
 	 * Only with Transportation services. A person who escorts the patient.
 	 */
-	@param:JsonProperty("escort")
+	@JsonProperty("escort")
 	Escort,
 
 	/**
 	 * A person having referred the subject of the service to the performer (referring physician). Typically, a referring physician will receive a report.
 	 */
-	@param:JsonProperty("referrer")
+	@JsonProperty("referrer")
 	Referrer,
 
 	/**
 	 * A person assisting in an act through his substantial presence and involvement. This includes: assistants, technicians, associates, or whatever the job titles may be.
 	 */
-	@param:JsonProperty("secondaryPerformer")
+	@JsonProperty("secondaryPerformer")
 	SecondaryPerformer,
 
 	/**
 	 * The principal or primary performer of the act.
 	 */
-	@param:JsonProperty("primaryPerformer")
+	@JsonProperty("primaryPerformer")
 	PrimaryPerformer,
 
 	/**
 	 * Indicates that the target of the participation is involved in some manner in the act, but does not qualify how.
 	 */
-	@param:JsonProperty("participation")
+	@JsonProperty("participation")
 	Participation,
 
 	/**
 	 * A translator who is facilitating communication with the patient during the encounter.
 	 */
-	@param:JsonProperty("translator")
+	@JsonProperty("translator")
 	Translator,
 
 	/**
 	 * A person to be contacted in case of an emergency during the encounter.
 	 */
-	@param:JsonProperty("emergency")
+	@JsonProperty("emergency")
 	Emergency,
 
 	/**
 	 * Location where the contact happened. If the contact happened in a Hospital, Retirement House, ...
 	 */
-	@param:JsonProperty("location")
+	@JsonProperty("location")
 	Location,
 }

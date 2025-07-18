@@ -120,7 +120,7 @@ data class CalendarItem(
 		 * Off-schedule calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] will block all
 		 * availabilities for their entire duration.
 		 */
-		@param:JsonProperty("S")
+		@JsonProperty("S")
 		Strict,
 
 		/**
@@ -129,7 +129,7 @@ data class CalendarItem(
 		 * and in the result, however, it won't black all availabilities if it can't be placed exactly within the
 		 * schedule.
 		 */
-		@param:JsonProperty("L")
+		@JsonProperty("L")
 		Loose,
 	}
 
