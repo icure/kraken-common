@@ -24,7 +24,7 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ExchangeData(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].
 	 */
@@ -83,11 +83,11 @@ data class ExchangeData(
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
 	 */
 	val sharedSignature: Base64String,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 ) : StoredDocument,
 	HasExplicitDataOwnerAccess {
 	init {

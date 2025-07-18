@@ -46,5 +46,5 @@ data class TimeTableItem(
 	 */
 	val reservingRights: Set<String> = emptySet(),
 
-	@JsonProperty("isUnavailable") val unavailable: Boolean = false,
+	@param:JsonProperty("isUnavailable") val unavailable: Boolean = false,
 ) : Serializable

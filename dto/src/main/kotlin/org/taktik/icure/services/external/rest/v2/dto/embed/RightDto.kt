@@ -27,7 +27,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RightDto(
 	val userId: String? = null,
-	@Schema(defaultValue = "false") val read: Boolean = false,
-	@Schema(defaultValue = "false") val write: Boolean = false,
-	@Schema(defaultValue = "false") val administration: Boolean = false,
+	@get:Schema(defaultValue = "false") val read: Boolean = false,
+	@get:Schema(defaultValue = "false") val write: Boolean = false,
+	@get:Schema(defaultValue = "false") val administration: Boolean = false,
 ) : Serializable

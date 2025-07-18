@@ -24,7 +24,7 @@ data class AuthenticationToken(
 	val token: String,
 
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val creationTime: Instant = Instant.now(),
 

@@ -27,7 +27,7 @@ data class PlanOfActionTemplateDto(
 	val descr: String? = null,
 	val note: String? = null,
 	val relevant: Boolean = true,
-	@Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@get:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	var forms: List<FormSkeletonDto> = emptyList(),
 ) : ICureDocumentDto<String>,
 	NamedDto

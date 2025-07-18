@@ -22,7 +22,7 @@ import org.taktik.icure.entities.utils.Base64String
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecureDelegationKeyMap(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * The secure delegation key this map refers to.
 	 */
@@ -46,11 +46,11 @@ data class SecureDelegationKeyMap(
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 ) : StoredDocument,
 	HasEncryptionMetadata,
 	Encryptable {

@@ -26,7 +26,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PaymentDto(
-	@Schema(defaultValue = "0") val paymentDate: Long = 0,
+	@get:Schema(defaultValue = "0") val paymentDate: Long = 0,
 	val paymentType: PaymentTypeDto? = null,
 	val paid: Double? = null,
 ) : Serializable

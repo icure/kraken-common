@@ -44,17 +44,17 @@ data class AgendaDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val daySplitHour: Int? = null,
-	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,
 	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
-	@Schema(description = "Associates a user id to the permission that user has on the entity.")
-	@JsonInclude(JsonInclude.Include.NON_NULL) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	@get:Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@param:JsonInclude(JsonInclude.Include.NON_NULL) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
-	@JsonInclude(JsonInclude.Include.NON_NULL) val properties: Set<PropertyStubDto> = emptySet(),
-	@JsonInclude(JsonInclude.Include.NON_NULL) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
+	@param:JsonInclude(JsonInclude.Include.NON_NULL) val properties: Set<PropertyStubDto> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_NULL) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String> {
 	override fun withIdRev(

@@ -21,8 +21,8 @@ data class ReplicatorDocumentDto(
 	val continuous: Boolean? = null,
 	val doc_ids: List<String>? = null,
 	val replicationState: String? = null,
-	@JsonSerialize(using = ZonedDateTimeSerializer::class)
-	@JsonDeserialize(using = ZonedDateTimeDeserializer::class)
+	@param:JsonSerialize(using = ZonedDateTimeSerializer::class)
+	@param:JsonDeserialize(using = ZonedDateTimeDeserializer::class)
 	val replicationStateTime: ZonedDateTime? = null,
 	val replicationStats: ReplicationStatsDto? = null,
 	val errorCount: Int? = null,

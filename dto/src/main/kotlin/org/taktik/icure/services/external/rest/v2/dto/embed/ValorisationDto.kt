@@ -35,7 +35,7 @@ data class ValorisationDto(
 	val patientIntervention: Double? = null,
 	val doctorSupplement: Double? = null,
 	val vat: Double? = null,
-	@Schema(defaultValue = "emptyMap()") val label: Map<String, String>? = emptyMap(), // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	@get:Schema(defaultValue = "emptyMap()") val label: Map<String, String>? = emptyMap(), // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

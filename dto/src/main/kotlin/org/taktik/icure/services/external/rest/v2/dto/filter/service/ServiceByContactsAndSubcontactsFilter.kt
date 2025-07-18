@@ -34,7 +34,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class ServiceByContactsAndSubcontactsFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val contacts: Set<String>,
 	val subContacts: Set<String>? = null,
 	val startValueDate: Long? = null,

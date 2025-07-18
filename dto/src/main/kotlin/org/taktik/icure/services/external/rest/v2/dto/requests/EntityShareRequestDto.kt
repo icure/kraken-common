@@ -29,7 +29,7 @@ data class EntityShareRequestDto(
 	 * Values generated using the access control secret of the exchange data used for the encryption of the ids and keys
 	 * to share. Once hashed they are used as secure delegation keys.
 	 */
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val accessControlKeys: Set<AccessControlKeyHexStringDto>,
 	/**
 	 * Encrypted secret ids to share with the delegate.

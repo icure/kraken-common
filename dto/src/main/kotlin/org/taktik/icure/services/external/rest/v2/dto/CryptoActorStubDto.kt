@@ -17,13 +17,13 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CryptoActorStubDto(
 	override val id: String,
-	@Schema(required = true) override val rev: String, // Stubs can't be created, but only updated or retrieved: rev is never null.
+	@get:Schema(required = true) override val rev: String, // Stubs can't be created, but only updated or retrieved: rev is never null.
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(),
 	override val publicKey: SpkiHexStringDto? = null,
-	@Schema(required = true) override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto>,
+	@get:Schema(required = true) override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto>,
 	override val parentId: String? = null,
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : VersionableDto<String>,

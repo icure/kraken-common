@@ -38,8 +38,8 @@ import java.time.Instant
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents Access Log.""")
 data class AccessLogDto(
-	@Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,
-	@Schema(
+	@get:Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,
+	@get:Schema(
 		description = "The revision of the access log in the database, used for conflict management / optimistic locking.",
 	) override val rev: String? = null,
 	override val created: Long? = null,
@@ -51,15 +51,15 @@ data class AccessLogDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@Schema(description = "Id of the object that is being requested.") val objectId: String? = null,
-	@Schema(description = "The type of access") val accessType: String? = null,
-	@Schema(description = "Id of the user making the requests") val user: String? = null,
-	@Schema(description = "Further details about the access") val detail: String? = null,
+	@get:Schema(description = "Id of the object that is being requested.") val objectId: String? = null,
+	@get:Schema(description = "The type of access") val accessType: String? = null,
+	@get:Schema(description = "Id of the user making the requests") val user: String? = null,
+	@get:Schema(description = "Further details about the access") val detail: String? = null,
 	@JsonSerialize(
 		using = InstantSerializer::class,
 		include = JsonSerialize.Inclusion.NON_NULL,
 	) @JsonDeserialize(using = InstantDeserializer::class)
-	@Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
+	@get:Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
 	@get:Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

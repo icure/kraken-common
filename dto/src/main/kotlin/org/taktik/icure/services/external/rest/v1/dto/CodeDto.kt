@@ -34,7 +34,7 @@ data class CodeDto(
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	val data: String? = null,
 	val appendices: Map<AppendixTypeDto, String> = emptyMap(),
-	@Schema(defaultValue = "false") val disabled: Boolean = false,
+	@get:Schema(defaultValue = "false") val disabled: Boolean = false,
 ) : StoredDocumentDto,
 	CodeIdentificationDto<String> {
 	companion object {

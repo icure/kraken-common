@@ -12,5 +12,5 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageReadStatusDto(
 	val time: Long? = null,
-	@Schema(defaultValue = "false") val read: Boolean = false,
+	@get:Schema(defaultValue = "false") val read: Boolean = false,
 ) : Serializable

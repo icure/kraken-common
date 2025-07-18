@@ -29,7 +29,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
 data class CodeStub(
-	@JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
+	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used
 	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
 	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT

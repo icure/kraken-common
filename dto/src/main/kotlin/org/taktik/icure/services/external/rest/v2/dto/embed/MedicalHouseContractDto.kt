@@ -40,13 +40,13 @@ data class MedicalHouseContractDto(
 	val startOfCoverage: Long? = null, // yyyyMMdd
 	val endOfContract: Long? = null, // yyyyMMdd : signdate
 	val endOfCoverage: Long? = null, // yyyyMMdd
-	@Schema(defaultValue = "false") val kine: Boolean = false,
-	@Schema(defaultValue = "false") val gp: Boolean = false,
-	@Schema(defaultValue = "false") val ptd: Boolean = false,
-	@Schema(defaultValue = "false") val nurse: Boolean = false,
-	@Schema(defaultValue = "false") val noKine: Boolean = false,
-	@Schema(defaultValue = "false") val noGp: Boolean = false,
-	@Schema(defaultValue = "false") val noNurse: Boolean = false,
+	@get:Schema(defaultValue = "false") val kine: Boolean = false,
+	@get:Schema(defaultValue = "false") val gp: Boolean = false,
+	@get:Schema(defaultValue = "false") val ptd: Boolean = false,
+	@get:Schema(defaultValue = "false") val nurse: Boolean = false,
+	@get:Schema(defaultValue = "false") val noKine: Boolean = false,
+	@get:Schema(defaultValue = "false") val noGp: Boolean = false,
+	@get:Schema(defaultValue = "false") val noNurse: Boolean = false,
 	val unsubscriptionReasonId: Int? = null,
 	val ptdStart: Long? = null,
 	val ptdEnd: Long? = null,
@@ -56,7 +56,7 @@ data class MedicalHouseContractDto(
 	val endOfSuspension: Long? = null, // yyyyMMdd
 	val suspensionReason: SuspensionReasonDto? = null,
 	val suspensionSource: String? = null,
-	@Schema(defaultValue = "false") val forcedSuspension: Boolean = false, // no automatic unSuspension = false
+	@get:Schema(defaultValue = "false") val forcedSuspension: Boolean = false, // no automatic unSuspension = false
 	val signatureType: MhcSignatureTypeDto? = null,
 	val status: Int? = null,
 	val options: Map<String, String> = HashMap(),

@@ -212,7 +212,7 @@ class DocumentTemplateController(
 	@PutMapping("/{documentTemplateId}/attachment", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
 	fun setDocumentTemplateAttachment(
 		@PathVariable documentTemplateId: String,
-		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
+		@get:Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
 	) = mono {
 		val documentTemplate =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)
@@ -224,7 +224,7 @@ class DocumentTemplateController(
 	@PutMapping("/{documentTemplateId}/attachmentJson", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
 	fun setDocumentTemplateAttachmentJson(
 		@PathVariable documentTemplateId: String,
-		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArrayDto,
+		@get:Schema(type = "string", format = "binary") @RequestBody payload: ByteArrayDto,
 	) = mono {
 		val documentTemplate =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)

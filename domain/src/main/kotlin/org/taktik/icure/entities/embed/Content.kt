@@ -16,21 +16,21 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Content(
-	@JsonProperty("s") val stringValue: String? = null,
-	@JsonProperty("n") val numberValue: Double? = null,
-	@JsonProperty("b") val booleanValue: Boolean? = null,
-	@JsonProperty("i")
+	@param:JsonProperty("s") val stringValue: String? = null,
+	@param:JsonProperty("n") val numberValue: Double? = null,
+	@param:JsonProperty("b") val booleanValue: Boolean? = null,
+	@param:JsonProperty("i")
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
-	@JsonProperty("dt") val fuzzyDateValue: Long? = null,
-	@JsonProperty("x") val binaryValue: ByteArray? = null,
-	@JsonProperty("d") val documentId: String? = null,
-	@JsonProperty("m") val measureValue: Measure? = null,
-	@JsonProperty("p") val medicationValue: Medication? = null,
-	@JsonProperty("c") val compoundValue: Set<Service>? = null,
-	@JsonProperty("ts") val timeSeries: TimeSeries? = null,
+	@param:JsonProperty("dt") val fuzzyDateValue: Long? = null,
+	@param:JsonProperty("x") val binaryValue: ByteArray? = null,
+	@param:JsonProperty("d") val documentId: String? = null,
+	@param:JsonProperty("m") val measureValue: Measure? = null,
+	@param:JsonProperty("p") val medicationValue: Medication? = null,
+	@param:JsonProperty("c") val compoundValue: Set<Service>? = null,
+	@param:JsonProperty("ts") val timeSeries: TimeSeries? = null,
 	val ratio: List<Measure>? = null,
 	val range: List<Measure>? = null,
 ) : Serializable {

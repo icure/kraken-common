@@ -9,6 +9,7 @@ import java.io.Serializable
 /**
  * Created by aduchate on 21/01/13, 14:50
  */
+@Suppress("EnumEntryName")
 @EnumVersionDto(1L)
 enum class TelecomTypeDto : Serializable {
 	mobile,

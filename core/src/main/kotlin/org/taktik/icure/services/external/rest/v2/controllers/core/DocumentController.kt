@@ -206,7 +206,7 @@ class DocumentController(
 		@RequestParam(required = false)
 		@Parameter(description = "Utis for the attachment")
 		utis: List<String>?,
-		@Schema(type = "string", format = "binary")
+		@get:Schema(type = "string", format = "binary")
 		@RequestBody
 		payload: Flow<DataBuffer>,
 		@RequestHeader(name = HttpHeaders.CONTENT_LENGTH, required = false)
@@ -355,7 +355,7 @@ class DocumentController(
 		@RequestParam(required = false)
 		@Parameter(description = "Utis for the attachment")
 		utis: List<String>?,
-		@Schema(type = "string", format = "binary")
+		@get:Schema(type = "string", format = "binary")
 		@RequestBody
 		payload: Flow<DataBuffer>,
 		@RequestHeader(name = HttpHeaders.CONTENT_LENGTH, required = false)

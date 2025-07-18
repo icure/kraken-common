@@ -77,7 +77,7 @@ import org.taktik.icure.validation.ValidCode
 
 data class Contact(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -111,10 +111,10 @@ data class Contact(
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	val notes: List<Annotation> = emptyList(),
 ) : StoredICureDocument,
 	HasEncryptionMetadata,

@@ -38,8 +38,8 @@ import org.taktik.icure.utils.DynamicInitializer
 	description = """This entity is a root level object. It represents a Message. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
 data class MessageDto(
-	@Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@Schema(
+	@get:Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@get:Schema(
 		description = "The revision of the message in the database, used for conflict management / optimistic locking.",
 	) override val rev: String? = null,
 	override val created: Long? = null,
@@ -51,19 +51,19 @@ data class MessageDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
-	@Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
+	@get:Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
+	@get:Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
 	val formId: String? = null,
-	@Schema(description = "Status of the message") val status: Int? = null,
-	@Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
-	@Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), // The id of the hcp whose the message is addressed to
-	@Schema(
+	@get:Schema(description = "Status of the message") val status: Int? = null,
+	@get:Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
+	@get:Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), // The id of the hcp whose the message is addressed to
+	@get:Schema(
 		description = "The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)",
 	) val toAddresses: Set<String> = emptySet(),
-	@Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
-	@Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
+	@get:Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
+	@get:Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
 	val metas: Map<String, String> = emptyMap(),
-	@Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
+	@get:Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
 	val messageAttachments: List<MessageAttachmentDto> = emptyList(),
     /*
         CHAP4:IN:   ${Mycarenet message ref}
@@ -82,9 +82,9 @@ data class MessageDto(
 	val transportGuid: String? = null, // Each message should have a transportGuid: see above for formats
 	val remark: String? = null,
 	val conversationGuid: String? = null,
-	@Schema(description = "Subject for the message") val subject: String? = null,
-	@Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
-	@Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, // ID of parent in a message conversation
+	@get:Schema(description = "Subject for the message") val subject: String? = null,
+	@get:Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
+	@get:Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, // ID of parent in a message conversation
 	val externalRef: String? = null,
 	val unassignedResults: Set<String> = emptySet(), // refs
 	val assignedResults: Map<String, String> = emptyMap(), // ContactId -> ref

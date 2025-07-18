@@ -91,8 +91,8 @@ import org.taktik.icure.validation.ValidCode
 
 data class HealthcareParty(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val modified: Long? = null,
 
@@ -149,7 +149,7 @@ data class HealthcareParty(
 	 * If set to true the healthcare party is considered public, and a stripped down version of the healthcare party
 	 * will be accessible through the anonymous endpoints.
 	 */
-	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
 	// For a pair of HcParties, this key is called the AES exchange key
 	// Each HcParty always has one AES exchange key for himself
@@ -168,10 +168,10 @@ data class HealthcareParty(
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
 ) : StoredDocument,
 	Named,

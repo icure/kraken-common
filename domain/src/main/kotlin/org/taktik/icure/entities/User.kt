@@ -65,8 +65,8 @@ import java.time.Instant
 
 data class User(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 
 	val identifier: List<Identifier> = listOf(),
@@ -91,12 +91,12 @@ data class User(
 	val deviceId: String? = null,
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val createdDate: Instant? = null, // TODO remove if unused (use created insted)
 
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val termsOfUseDate: Instant? = null,
 
@@ -114,10 +114,10 @@ data class User(
 	 */
 	@JsonIgnore val systemMetadata: SystemMetadata? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredDocument,
 	Principal,
 	Cloneable,

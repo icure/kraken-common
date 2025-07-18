@@ -35,6 +35,7 @@ import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.
  *
  * Favour parent over child as it is better (for conflicts) to change 5 different documents once instead of changing 5 times the same document
  */
+@Suppress("EnumEntryName")
 enum class LinkQualificationDto {
 	exact,
 	narrower,

@@ -21,9 +21,9 @@ data class TypedValueDto(
 	val integerValue: Long? = null,
 	val doubleValue: Double? = null,
 	val stringValue: String? = null,
-	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
 	override val encryptedSelf: String? = null,
 ) : Comparable<TypedValueDto>,

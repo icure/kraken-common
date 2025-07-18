@@ -31,9 +31,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageByHcPartyTransportGuidReceivedFilter(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val healthcarePartyId: String,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val transportGuid: String,
 	val descending: Boolean? = null,
 	override val desc: String? = null,

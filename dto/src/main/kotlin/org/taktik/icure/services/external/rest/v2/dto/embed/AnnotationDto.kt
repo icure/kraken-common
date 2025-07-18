@@ -15,7 +15,7 @@ import java.util.UUID
     |thermometer is faulty.""",
 )
 data class AnnotationDto(
-	@Schema(
+	@get:Schema(
 		description = "The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id.",
 	) override val id: String = UUID.randomUUID().toString(),
 	val author: String? = null,

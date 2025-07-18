@@ -27,9 +27,9 @@ data class UserStubDto(
 	val groupId: String? = null,
 	val healthcarePartyId: String? = null,
 	val patientId: String? = null,
-	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val email: String? = null,
 ) : StoredDocumentDto,
 	Cloneable,

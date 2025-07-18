@@ -3,11 +3,8 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.base
 
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class EnumVersionDto(
 	val value: Long,
 )

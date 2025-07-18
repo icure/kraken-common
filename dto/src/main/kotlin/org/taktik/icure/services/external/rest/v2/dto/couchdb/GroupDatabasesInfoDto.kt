@@ -11,10 +11,10 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GroupDatabasesInfoDto(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val groupId: String,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val databasesInfo: List<DatabaseInfoDto>,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val gcpStorageSize: Long,
 ) : Serializable

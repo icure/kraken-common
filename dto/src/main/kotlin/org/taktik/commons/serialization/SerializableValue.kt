@@ -72,7 +72,7 @@ class SerializableValue : Serializable {
 			} else if (objectValue is String) {
 				stringObject = objectValue as String?
 			} else if (objectValue is Date) {
-				dateObject = Date((objectValue as Date).time)
+				dateObject = Date(objectValue.time)
 			} else if (objectValue is Char) {
 				characterObject = objectValue as Char?
 			} else if (objectValue is Byte) {
@@ -112,11 +112,11 @@ class SerializableValue : Serializable {
 		return result
 	}
 
-	override fun equals(obj: Any?): Boolean {
-		if (this === obj) return true
-		if (obj == null) return false
-		if (javaClass != obj.javaClass) return false
-		val other = obj as SerializableValue
+	override fun equals(other: Any?): Boolean {
+		if (this === other) return true
+		if (other == null) return false
+		if (javaClass != other.javaClass) return false
+		other as SerializableValue
 		if (booleanObject == null) {
 			if (other.booleanObject != null) return false
 		} else if (booleanObject != other.booleanObject) {
@@ -178,9 +178,5 @@ class SerializableValue : Serializable {
 			return false
 		}
 		return true
-	}
-
-	companion object {
-		private const val serialVersionUID = 1L
 	}
 }

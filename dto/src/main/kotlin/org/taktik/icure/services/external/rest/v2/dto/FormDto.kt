@@ -36,8 +36,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormDto(
-	@Schema(description = "the Id of the form. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@Schema(description = "the revision of the form in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	@get:Schema(description = "the Id of the form. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@get:Schema(description = "the revision of the form in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
@@ -51,14 +51,14 @@ data class FormDto(
 	val status: String? = null,
 	val version: Int? = null,
 	val logicalUuid: String? = null,
-	@Schema(description = "Name/basic description of the form") val descr: String? = null,
-	@Schema(description = "A unique external id (from another external source).") val uniqueId: String? = null,
-	@Schema(description = "Id of the form template being used to display the form") val formTemplateId: String? = null,
-	@Schema(description = "Id of the contact for which the form is being used.") val contactId: String? = null,
-	@Schema(description = "The healthcare element to which this form is attached.") val healthElementId: String? = null,
-	@Schema(description = "The healthcare approach to which this form is attached.") val planOfActionId: String? = null,
-	@Schema(description = "The parent of this form, used to determine the forms hierarchy") val parent: String? = null,
-	@Schema(
+	@get:Schema(description = "Name/basic description of the form") val descr: String? = null,
+	@get:Schema(description = "A unique external id (from another external source).") val uniqueId: String? = null,
+	@get:Schema(description = "Id of the form template being used to display the form") val formTemplateId: String? = null,
+	@get:Schema(description = "Id of the contact for which the form is being used.") val contactId: String? = null,
+	@get:Schema(description = "The healthcare element to which this form is attached.") val healthElementId: String? = null,
+	@get:Schema(description = "The healthcare approach to which this form is attached.") val planOfActionId: String? = null,
+	@get:Schema(description = "The parent of this form, used to determine the forms hierarchy") val parent: String? = null,
+	@get:Schema(
 		description = "Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.",
 	) val anchorId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),

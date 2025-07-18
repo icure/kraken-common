@@ -21,8 +21,8 @@ import org.taktik.icure.utils.invoke
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MedicalLocation(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	@param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val description: String? = null,
@@ -37,10 +37,10 @@ data class MedicalLocation(
 	val agendaIds: Set<String> = emptySet(),
 	val options: Map<String, String> = emptyMap(),
 	val publicInformations: Map<String, String> = emptyMap(),
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
 ) : StoredDocument,
 	Named {

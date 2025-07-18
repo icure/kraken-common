@@ -16,7 +16,7 @@ import java.time.Instant
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NotificationEvent(
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val date: Instant? = null,
 	val status: Status? = null,

@@ -19,20 +19,20 @@ data class ContentDto(
 	val stringValue: String? = null,
 	val numberValue: Double? = null,
 	val booleanValue: Boolean? = null,
-	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
-	@Schema(
+	@get:Schema(
 		description = "Value as date. The format could have a all three (day, month and year) or values on any of these three, whatever is known.",
 	) val fuzzyDateValue: Long? = null,
-	@Schema(type = "string", format = "byte") val binaryValue: ByteArray? = null,
-	@Schema(description = "Linked document.") val documentId: String? = null,
-	@Schema(
+	@get:Schema(type = "string", format = "byte") val binaryValue: ByteArray? = null,
+	@get:Schema(description = "Linked document.") val documentId: String? = null,
+	@get:Schema(
 		description = "Values of measurements recorded. Fields included would be the value, permissible range (min. and max.), severity, unit of measurement, etc ",
 	) val measureValue: MeasureDto? = null,
-	@Schema(description = "The details of prescribed or suggested medication") val medicationValue: MedicationDto? = null,
-	@Schema(description = "A high frequency time-series containing the ts in ms from the start (double) and the values") val timeSeries: TimeSeriesDto? = null,
+	@get:Schema(description = "The details of prescribed or suggested medication") val medicationValue: MedicationDto? = null,
+	@get:Schema(description = "A high frequency time-series containing the ts in ms from the start (double) and the values") val timeSeries: TimeSeriesDto? = null,
 	val compoundValue: List<ServiceDto>? = null,
 	val ratio: List<MeasureDto>? = null,
 	val range: List<MeasureDto>? = null,

@@ -22,7 +22,7 @@ import java.lang.IllegalStateException
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RecoveryData(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * Id of the data owner that this recovery data is meant for
 	 */
@@ -40,11 +40,11 @@ data class RecoveryData(
 	 * expire. Negative values or zero mean the data is already expired.
 	 */
 	val expirationInstant: Long? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 ) : StoredDocument,
 	HasExplicitDataOwnerAccess {
 	/**

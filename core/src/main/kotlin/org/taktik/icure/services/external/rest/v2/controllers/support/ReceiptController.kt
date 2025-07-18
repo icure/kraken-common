@@ -160,7 +160,7 @@ class ReceiptController(
 		)
 		@RequestParam(required = true)
 		rev: String,
-		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
+		@get:Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
 	) = mono {
 		val receipt = receiptService.getReceipt(receiptId)
 		if (receipt != null) {

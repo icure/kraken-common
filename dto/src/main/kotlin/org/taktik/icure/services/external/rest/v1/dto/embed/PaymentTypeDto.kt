@@ -8,6 +8,7 @@ import org.taktik.icure.services.external.rest.v1.dto.base.EnumVersionDto
 /**
  * Created by aduchate on 21/01/13, 15:59
  */
+@Suppress("EnumEntryName")
 @EnumVersionDto(1L)
 enum class PaymentTypeDto {
 	cash,

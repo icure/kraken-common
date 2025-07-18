@@ -30,7 +30,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CalendarItem(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -39,7 +39,7 @@ data class CalendarItem(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	@param:ContentValue(ContentValues.TIMESTAMP) override val endOfLife: Long? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) @NotNull val title: String? = null,
 	val calendarItemTypeId: String? = null,
 	val masterCalendarItemId: String? = null,
@@ -92,10 +92,10 @@ data class CalendarItem(
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
@@ -120,7 +120,7 @@ data class CalendarItem(
 		 * Off-schedule calendar items with [Strict] [CalendarItem.availabilitiesAssignmentStrategy] will block all
 		 * availabilities for their entire duration.
 		 */
-		@JsonProperty("S")
+		@param:JsonProperty("S")
 		Strict,
 
 		/**
@@ -129,7 +129,7 @@ data class CalendarItem(
 		 * and in the result, however, it won't black all availabilities if it can't be placed exactly within the
 		 * schedule.
 		 */
-		@JsonProperty("L")
+		@param:JsonProperty("L")
 		Loose,
 	}
 

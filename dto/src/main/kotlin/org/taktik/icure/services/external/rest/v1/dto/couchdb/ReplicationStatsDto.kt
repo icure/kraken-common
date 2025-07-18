@@ -19,8 +19,8 @@ data class ReplicationStatsDto(
 	val changesPending: Int? = null,
 	val docWriteFailures: Int? = null,
 	val checkpointedSourceSeq: String? = null,
-	@JsonSerialize(using = ZonedDateTimeSerializer::class)
-	@JsonDeserialize(using = ZonedDateTimeDeserializer::class)
+	@param:JsonSerialize(using = ZonedDateTimeSerializer::class)
+	@param:JsonDeserialize(using = ZonedDateTimeDeserializer::class)
 	val startTime: ZonedDateTime? = null,
 	val error: String? = null,
 ) : Serializable

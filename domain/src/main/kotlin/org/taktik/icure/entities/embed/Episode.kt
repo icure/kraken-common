@@ -18,7 +18,7 @@ import java.util.UUID
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Episode(
-	@JsonProperty("_id") override val id: String = UUID.randomUUID().toString(), // Autofix if needed when loading from db
+	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(), // Autofix if needed when loading from db
 	override val name: String? = null,
 	val comment: String? = null,
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) var startDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.

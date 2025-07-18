@@ -23,7 +23,7 @@ data class TypedValue(
 	val stringValue: String? = null,
 
 	@JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
 	override val encryptedSelf: String? = null,

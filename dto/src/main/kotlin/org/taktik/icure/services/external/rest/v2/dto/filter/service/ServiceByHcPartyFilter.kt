@@ -31,7 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ServiceByHcPartyFilter(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val hcpId: String,
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

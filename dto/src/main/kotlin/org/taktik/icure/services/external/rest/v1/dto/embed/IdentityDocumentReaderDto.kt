@@ -15,7 +15,7 @@ data class IdentityDocumentReaderDto(
 	val justificatifDocumentNumber: String? = null,
 	val supportSerialNumber: String? = null,
 	val timeReadingEIdDocument: Long? = null,
-	@Schema(defaultValue = "0") val eidDocumentSupportType: Int = 0,
-	@Schema(defaultValue = "0") val reasonManualEncoding: Int = 0,
-	@Schema(defaultValue = "0") val reasonUsingVignette: Int = 0,
+	@get:Schema(defaultValue = "0") val eidDocumentSupportType: Int = 0,
+	@get:Schema(defaultValue = "0") val reasonManualEncoding: Int = 0,
+	@get:Schema(defaultValue = "0") val reasonUsingVignette: Int = 0,
 ) : Serializable

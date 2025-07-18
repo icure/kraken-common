@@ -34,7 +34,7 @@ data class MaintenanceTaskDto(
 	override val deletionDate: Long? = null,
 	val taskType: String? = null,
 	val properties: Set<PropertyStubDto> = emptySet(),
-	@Schema(defaultValue = "TaskStatusDto.pending")
+	@get:Schema(defaultValue = "TaskStatusDto.pending")
 	val status: TaskStatusDto = TaskStatusDto.pending,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

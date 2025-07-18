@@ -16,7 +16,7 @@ sealed interface StoredObjectInformationDto {
 	 * @param md5HashHexString hex string representation of the md5 hash of the content.
 	 */
 	data class AvailableDto(
-		@Schema(required = true)
+		@get:Schema(required = true)
 		val md5HashHexString: String,
 	) : StoredObjectInformationDto
 
@@ -26,9 +26,9 @@ sealed interface StoredObjectInformationDto {
 	 * @param md5HashHexString md5 hash of the expected hash of the full content as an hex string.
 	 */
 	data class StoringDto(
-		@Schema(required = true)
+		@get:Schema(required = true)
 		val nextByte: Long,
-		@Schema(required = true)
+		@get:Schema(required = true)
 		val md5HashHexString: String?,
 	) : StoredObjectInformationDto
 

@@ -28,8 +28,8 @@ import org.taktik.icure.utils.invoke
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Tarification(
 	@param:ContentValue(ContentValues.TARIFICATION_ID) @JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	override val context: String? = null, // ex: When embedded the context where this code is used
 	@param:ContentValue(ContentValues.ANY_STRING) override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
@@ -54,13 +54,13 @@ data class Tarification(
 	val hasRelatedCode: Boolean? = null,
 	val needsPrescriber: Boolean? = null,
 	val relatedCodes: Set<String> = emptySet(),
-	@JsonProperty("nGroup") val ngroup: String? = null, // An obscure bug prevents Jackson to interpret the annotation if the name of the property is xAbcd
+	@param:JsonProperty("nGroup") val ngroup: String? = null, // An obscure bug prevents Jackson to interpret the annotation if the name of the property is xAbcd
 	val letterValues: List<LetterValue> = emptyList(),
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
 ) : StoredDocument,
 	CodeIdentification {

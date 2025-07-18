@@ -8,9 +8,9 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class OperationTokenDto(
-	@Schema(description = "The hash of the token", required = true) val tokenHash: String,
-	@Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
-	@Schema(description = "Token validity in seconds", required = true) val validity: Long,
-	@Schema(description = "The operation this token is intended for", required = true) val operation: OperationDto,
-	@Schema(description = "A description for the token") val description: String? = null,
+	@get:Schema(description = "The hash of the token", required = true) val tokenHash: String,
+	@get:Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
+	@get:Schema(description = "Token validity in seconds", required = true) val validity: Long,
+	@get:Schema(description = "The operation this token is intended for", required = true) val operation: OperationDto,
+	@get:Schema(description = "A description for the token") val description: String? = null,
 )
