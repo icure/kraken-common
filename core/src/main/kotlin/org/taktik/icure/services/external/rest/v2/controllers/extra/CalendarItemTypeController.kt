@@ -106,7 +106,7 @@ class CalendarItemTypeController(
 		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
 
 	@DeleteMapping("/purge/{calendarItemTypeId}")
-	fun purgeCalendarItemTYPE(
+	fun purgeCalendarItemType(
 		@PathVariable calendarItemTypeId: String,
 		@RequestParam(required=true) rev: String
 	): Mono<DocIdentifierDto> = mono {
