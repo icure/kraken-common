@@ -32,13 +32,20 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.FlowItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 
 @Mapper(componentModel = "spring", uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-interface CalendarItemV2Mapper {
+abstract class CalendarItemV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "tentative", ignore = true),
 	)
-	fun map(calendarItemDto: CalendarItemDto): CalendarItem
-	fun map(calendarItem: CalendarItem): CalendarItemDto
+	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
+
+	fun map(calendarItem: CalendarItem): CalendarItemDto {
+		require (calendarItem.tentative == null) { "The calendar item is still tentative, can't be retrieved yet" }
+		return doMap(calendarItem)
+	}
+
+	protected abstract fun doMap(calendarItem: CalendarItem): CalendarItemDto
 }

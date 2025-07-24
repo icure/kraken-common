@@ -82,6 +82,17 @@ data class CalendarItem(
 	 * For agendas created through the restricted endpoints this will be set to null.
 	 */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
+	/**
+	 * A value used only internally by iCure for optimistic locking to prevent double bookings.
+	 *
+	 * Calendar items with this value set (i.e. not null) won't be returned by the user-facing endpoints.
+	 * The endpoints creating these calendar items will take care of either set it to null after confirming the
+	 * appointment, or purge the calendar item if it was required to abort.
+	 *
+	 * When not null this value is a number generated with a secure random to prevent the revision from being
+	 * predictable.
+	 */
+	val tentative: Long? = null,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),

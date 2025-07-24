@@ -28,12 +28,14 @@ abstract class CalendarItemMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "resourceGroup", ignore = true),
 		Mapping(target = "availabilitiesAssignmentStrategy", ignore = true),
+		Mapping(target = "tentative", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
 		require (calendarItem.resourceGroup == null) { "Can't use calendar item with `resourceGroup` on v1 apis"}
 		require (calendarItem.availabilitiesAssignmentStrategy == null) { "Can't use calendar item with `availabilitiesAssignmentStrategy` on v1 apis"}
+		require (calendarItem.tentative == null) { "The calendar item is still tentative, can't be retrieved yet" }
 		return doMap(calendarItem)
 	}
 
