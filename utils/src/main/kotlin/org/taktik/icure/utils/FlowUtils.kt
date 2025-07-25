@@ -39,6 +39,12 @@ fun <T : Any> Flow<T>.injectReactorContext(): Flux<T> =
         this.flowOn(Context.of(ctxView).asCoroutineContext() + Dispatchers.Default).asFlux()
     }
 
+suspend fun <K, V> Flow<Pair<K, V>>.toMap(): Map<K, V> {
+    val res = mutableMapOf<K, V>()
+    collect { res[it.first] = it.second }
+    return res
+}
+
 suspend fun Flow<ByteBuffer>.toInputStream(): InputStream = withContext(IO) {
     val buffers = toList()
 
