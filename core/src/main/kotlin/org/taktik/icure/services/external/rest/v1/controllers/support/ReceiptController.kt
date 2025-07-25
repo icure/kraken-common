@@ -98,7 +98,7 @@ class ReceiptController(
 		@PathVariable receiptId: String,
 		@PathVariable blobType: String,
 		@RequestParam(required = false) enckeys: String?,
-		@get:Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
+		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
 	) = mono {
 		var encryptedPayload = payload
 		if (enckeys?.isNotEmpty() == true) {
