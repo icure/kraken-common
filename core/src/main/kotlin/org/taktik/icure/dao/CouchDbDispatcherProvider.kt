@@ -15,7 +15,7 @@ interface CouchDbDispatcherProvider {
 		prefix: String,
 		dbFamily: String,
 		couchDbCredentialsProvider: CouchDbCredentialsProvider,
-		createdReplicasIfNotExists: Int? = null
+		createdReplicasIfNotExists: Int
 	): CouchDbDispatcher
 
 }
