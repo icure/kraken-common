@@ -330,6 +330,11 @@ data class Agenda(
 	 */
 	val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
+	/**
+	 * If not null limits the amount of appointments that each user without special privileges is allowed to take for
+	 * this agenda during each month.
+ 	 */
+	val publicBookingQuota: Int? = null,
 	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? =  null,
 	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
