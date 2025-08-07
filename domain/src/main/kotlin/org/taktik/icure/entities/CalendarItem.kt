@@ -83,16 +83,10 @@ data class CalendarItem(
 	 */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	/**
-	 * A value used only internally by iCure for optimistic locking to prevent double bookings.
-	 *
-	 * Calendar items with this value set (i.e. not null) won't be returned by the user-facing endpoints.
-	 * The endpoints creating these calendar items will take care of either set it to null after confirming the
-	 * appointment, or purge the calendar item if it was required to abort.
-	 *
-	 * When not null this value is a number generated with a secure random to prevent the revision from being
-	 * predictable.
+	 * A value used only internally by iCure in the tentative calendar items, to mark the time when they were created.
+	 * Used by the tentative calendar item cleanup process to chek if a calendar item should be cleaned up or not.
 	 */
-	val tentative: Long? = null,
+	val tentativeTimestamp: Long? = null,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),

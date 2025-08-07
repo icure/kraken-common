@@ -38,12 +38,11 @@ abstract class CalendarItemV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "tentative", ignore = true),
+		Mapping(target = "tentativeTimestamp", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
-		require (calendarItem.tentative == null) { "The calendar item is still tentative, can't be retrieved yet" }
 		return doMap(calendarItem)
 	}
 

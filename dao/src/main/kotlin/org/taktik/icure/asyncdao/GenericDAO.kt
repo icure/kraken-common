@@ -19,6 +19,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import java.time.Duration
 
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
@@ -48,6 +49,24 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 */
 	val isGenericGroupDao get() = true
 	val entityClass: Class<T>
+
+	/**
+	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
+	 */
+	suspend fun getEntityWithFullQuorum(
+		datastoreInformation: IDatastoreInformation,
+		id: String,
+		timeout: Duration? = null,
+	): T?
+
+	/**
+	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
+	 */
+	suspend fun saveEntityWithFullQuorum(
+		datastoreInformation: IDatastoreInformation,
+		entity: T,
+		timeout: Duration? = null,
+	): Pair<T, Boolean>
 
 	/**
 	 * Retrieves all the entities [T]s in a group in a format for pagination.

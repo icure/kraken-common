@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import io.netty.handler.codec.http.HttpHeaders.newEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -70,6 +71,7 @@ import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
+import java.time.Duration
 import java.util.*
 
 abstract class GenericDAOImpl<T : StoredDocument>(
@@ -249,7 +251,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
 			throw e
 		}
-
 	}
 
 	/**
@@ -709,4 +710,47 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
 		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
+
+	override suspend fun getEntityWithFullQuorum(
+		datastoreInformation: IDatastoreInformation,
+		id: String,
+		timeout: Duration?
+	): T? {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val quorum = client.shards().shards.maxOf { it.value.size }
+
+		return try {
+				client.getWithQuorum(id, entityClass, quorum)?.let {
+					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
+					postLoad(datastoreInformation, it)
+				}
+		} catch (_: DocumentNotFoundException) {
+			null
+		}
+	}
+
+	override suspend fun saveEntityWithFullQuorum(
+		datastoreInformation: IDatastoreInformation,
+		entity: T,
+		timeout: Duration?
+	): Pair<T, Boolean> {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val quorum = client.shards().shards.maxOf { it.value.size }
+
+		try {
+			return beforeSave(datastoreInformation, entity).let { e ->
+				if (e.rev == null) {
+					client.createWithQuorum(e, entityClass, quorum, timeout)
+				} else {
+					client.updateWithQuorum(e, entityClass, quorum, timeout)
+				}.let {
+					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.first.id), it.first)
+					Pair(afterSave(datastoreInformation, it.first, e), it.second)
+				}
+			}
+		} catch (e: CouchDbException) {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
+			throw e
+		}
+	}
 }
