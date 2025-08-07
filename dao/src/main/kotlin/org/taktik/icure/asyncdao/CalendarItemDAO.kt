@@ -20,14 +20,14 @@ interface CalendarItemDAO : GenericDAO<CalendarItem> {
 		 */
 		val id: String,
 		/**
-		 * If [appointmentDetails] is not null this is the start time of the calendar item.
+		 * If [bookingDetails] is not null this is the start time of the calendar item.
 		 * Otherwise, this is a value between the corresponding calendar item start time and end time, to be used only
 		 * for pagination.
 		 */
 		val periodMarker: Long,
-		val appointmentDetails: AppointmentDetails?
+		val bookingDetails: BookingDetails?
 	) {
-		data class AppointmentDetails(
+		data class BookingDetails(
 			@JsonProperty("e") val endTime: Long? = null,
 			@JsonProperty("d") val duration: Long? = null,
 			@JsonProperty("t") val calendarItemTypeId: String? = null,

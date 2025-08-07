@@ -90,7 +90,7 @@ class CalendarItemDAOImpl(
 			.skip(if (lastKnownDocumentId == null) 0 else 1)
 			.limit(limit)
 
-		emitAll(client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.AppointmentDetails?>(
+		emitAll(client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.BookingDetails?>(
 			viewQuery
 		).map {
 			CalendarItemDAO.CalendarItemStub(
