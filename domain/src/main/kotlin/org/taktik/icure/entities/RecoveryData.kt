@@ -21,52 +21,52 @@ import java.lang.IllegalStateException
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RecoveryData(
-    @param:ContentValue(ContentValues.UUID) @JsonProperty("_id")  override val id: String,
-    @JsonProperty("_rev") override val rev: String? = null,
-    /**
-     * Id of the data owner that this recovery data is meant for
-     */
-    val recipient: String,
-    /**
-     * Encrypted recovery data. The structure of the decrypted data depends on the [type] of the recovery data.
-     */
-    val encryptedSelf: String,
-    /**
-     * Type of the recovery data.
-     */
-    val type: Type,
-    /**
-     * Timestamp (unix epoch in ms) at which this recovery data will expire. If null, this recovery data will never
-     * expire. Negative values or zero mean the data is already expired.
-     */
-    val expirationInstant: Long? = null,
-    @JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-    @JsonProperty("deleted") override val deletionDate: Long? = null,
-    @JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-    @JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-    @JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-) : StoredDocument, HasExplicitDataOwnerAccess {
-    /**
-     * Represents possible types of recovery data.
-     */
-    enum class Type {
-        /**
-         * This recovery data is meant to be used to recover a keypair of the recipient. This could be for making a key
-         * available on another device, or for recovering a keypair that has been fully lost.
-         */
-        KEYPAIR_RECOVERY,
-        /**
-         * This recovery data is meant to be used to recover an exchange key of the recipient. The main purpose of this
-         * is to allow data owners to share data with other data owners that do not have created a keypair yet, but it
-         * can also be used as part of the give-access-back recovery mechanism.
-         */
-        EXCHANGE_KEY_RECOVERY
-    }
+	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	/**
+	 * Id of the data owner that this recovery data is meant for
+	 */
+	val recipient: String,
+	/**
+	 * Encrypted recovery data. The structure of the decrypted data depends on the [type] of the recovery data.
+	 */
+	val encryptedSelf: String,
+	/**
+	 * Type of the recovery data.
+	 */
+	val type: Type,
+	/**
+	 * Timestamp (unix epoch in ms) at which this recovery data will expire. If null, this recovery data will never
+	 * expire. Negative values or zero mean the data is already expired.
+	 */
+	val expirationInstant: Long? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+) : StoredDocument,
+	HasExplicitDataOwnerAccess {
+	/**
+	 * Represents possible types of recovery data.
+	 */
+	enum class Type {
+		/**
+		 * This recovery data is meant to be used to recover a keypair of the recipient. This could be for making a key
+		 * available on another device, or for recovering a keypair that has been fully lost.
+		 */
+		KEYPAIR_RECOVERY,
 
-    override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() = mapOf(recipient to AccessLevel.WRITE)
-    override fun withDeletionDate(deletionDate: Long?) =
-        throw IllegalStateException("Recovery data cannot be deleted normally: it must be purged instead.")
+		/**
+		 * This recovery data is meant to be used to recover an exchange key of the recipient. The main purpose of this
+		 * is to allow data owners to share data with other data owners that do not have created a keypair yet, but it
+		 * can also be used as part of the give-access-back recovery mechanism.
+		 */
+		EXCHANGE_KEY_RECOVERY,
+	}
 
-    override fun withIdRev(id: String?, rev: String) =
-        copy(id = id ?: this.id, rev = rev)
+	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() = mapOf(recipient to AccessLevel.WRITE)
+	override fun withDeletionDate(deletionDate: Long?) = throw IllegalStateException("Recovery data cannot be deleted normally: it must be purged instead.")
+
+	override fun withIdRev(id: String?, rev: String) = copy(id = id ?: this.id, rev = rev)
 }

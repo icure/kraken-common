@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AggregatedMetricsDto(
-    val activeEntitiesCount: Long? = null
+	val activeEntitiesCount: Long? = null,
 )

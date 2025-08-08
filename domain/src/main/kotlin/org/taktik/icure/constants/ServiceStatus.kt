@@ -18,101 +18,79 @@
 package org.taktik.icure.constants
 
 enum class ServiceStatus(val value: Int) {
-	NONE(0), INACTIVE(1), IRRELEVANT(2), ABSENT(4);
+	NONE(0),
+	INACTIVE(1),
+	IRRELEVANT(2),
+	ABSENT(4),
+	;
 
 	companion object {
-		private fun getValue(value: Int?, valueIfNull: Int): Int {
-			return value ?: valueIfNull
-		}
+		private fun getValue(value: Int?, valueIfNull: Int): Int = value ?: valueIfNull
 
 		/**
 		 * Check if last bit is 0
 		 */
-		fun isActive(status: Int?): Boolean {
-			return isActive(status, NONE.value)
-		}
+		fun isActive(status: Int?): Boolean = isActive(status, NONE.value)
 
 		/**
 		 * Check if last bit is 0
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isActive(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and INACTIVE.value == 0
-		}
+		fun isActive(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and INACTIVE.value == 0
 
 		/**
 		 * Check if last bit is 1
 		 */
-		fun isInactive(status: Int?): Boolean {
-			return isInactive(status, NONE.value)
-		}
+		fun isInactive(status: Int?): Boolean = isInactive(status, NONE.value)
 
 		/**
 		 * Check if last bit is 1
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isInactive(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and INACTIVE.value != 0
-		}
+		fun isInactive(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and INACTIVE.value != 0
 
 		/**
 		 * Check if last-but-one bit is 0
 		 */
-		fun isRelevant(status: Int?): Boolean {
-			return isRelevant(status, NONE.value)
-		}
+		fun isRelevant(status: Int?): Boolean = isRelevant(status, NONE.value)
 
 		/**
 		 * Check if last-but-one bit is 0
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isRelevant(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and IRRELEVANT.value == 0
-		}
+		fun isRelevant(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and IRRELEVANT.value == 0
 
 		/**
 		 * Check if last-but-one bit is 1
 		 */
-		fun isIrrelevant(status: Int?): Boolean {
-			return isIrrelevant(status, NONE.value)
-		}
+		fun isIrrelevant(status: Int?): Boolean = isIrrelevant(status, NONE.value)
 
 		/**
 		 * Check if last-but-one bit is 1
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isIrrelevant(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and IRRELEVANT.value != 0
-		}
+		fun isIrrelevant(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and IRRELEVANT.value != 0
 
 		/**
 		 * Check if last-but-two bit is 0
 		 */
-		fun isPresent(status: Int?): Boolean {
-			return isPresent(status, NONE.value)
-		}
+		fun isPresent(status: Int?): Boolean = isPresent(status, NONE.value)
 
 		/**
 		 * Check if last-but-two bit is 0
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isPresent(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and ABSENT.value == 0
-		}
+		fun isPresent(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and ABSENT.value == 0
 
 		/**
 		 * Check if last-but-two bit is 1
 		 */
-		fun isAbsent(status: Int?): Boolean {
-			return isAbsent(status, NONE.value)
-		}
+		fun isAbsent(status: Int?): Boolean = isAbsent(status, NONE.value)
 
 		/**
 		 * Check if last-but-two bit is 1
 		 * @param valueIfNull value used if status is null (default 0)
 		 */
-		fun isAbsent(status: Int?, valueIfNull: Int): Boolean {
-			return getValue(status, valueIfNull) and ABSENT.value != 0
-		}
+		fun isAbsent(status: Int?, valueIfNull: Int): Boolean = getValue(status, valueIfNull) and ABSENT.value != 0
 	}
 }

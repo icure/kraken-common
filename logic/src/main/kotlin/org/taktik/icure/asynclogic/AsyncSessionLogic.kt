@@ -5,15 +5,15 @@ import org.springframework.web.server.WebSession
 import org.taktik.icure.security.jwt.JwtAuthentication
 
 interface AsyncSessionLogic {
-    suspend fun login(
-        username: String,
-        password: String,
-        session: WebSession? = null,
-        groupId: String?,
-        applicationId: String?
-    ): JwtAuthentication
+	suspend fun login(
+		username: String,
+		password: String,
+		session: WebSession? = null,
+		groupId: String?,
+		applicationId: String?,
+	): JwtAuthentication
 
-    suspend fun logout()
+	suspend fun logout()
 
-    suspend fun getAuthentication(): Authentication
+	suspend fun getAuthentication(): Authentication
 }

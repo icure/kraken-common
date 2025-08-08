@@ -29,18 +29,39 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimiti
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class KeyValuePredicate(val key: String? = null, val operator: Operator? = null, val value: AnyPrimitive? = null) : Predicate
+data class KeyValuePredicate(
+	val key: String? = null,
+	val operator: Operator? = null,
+	val value: AnyPrimitive? = null,
+) : Predicate
 
-enum class Operator(val code: String) {
-	@Schema(defaultValue = "==") EQUAL("=="),
-	@Schema(defaultValue = "!=") NOTEQUAL("!="),
-	@Schema(defaultValue = ">") GREATERTHAN(">"),
-	@Schema(defaultValue = "<") SMALLERTHAN("<"),
-	@Schema(defaultValue = ">=") GREATERTHANOREQUAL(">="),
-	@Schema(defaultValue = "<=") SMALLERTHANOREQUAL("<="),
-	@Schema(defaultValue = "%=") LIKE("%="),
-	@Schema(defaultValue = "%%=") ILIKE("%%=");
-	override fun toString(): String {
-		return code
-	}
+enum class Operator(
+	val code: String,
+) {
+	@Schema(defaultValue = "==")
+	EQUAL("=="),
+
+	@Schema(defaultValue = "!=")
+	NOTEQUAL("!="),
+
+	@Schema(defaultValue = ">")
+	GREATERTHAN(">"),
+
+	@Schema(defaultValue = "<")
+	SMALLERTHAN("<"),
+
+	@Schema(defaultValue = ">=")
+	GREATERTHANOREQUAL(">="),
+
+	@Schema(defaultValue = "<=")
+	SMALLERTHANOREQUAL("<="),
+
+	@Schema(defaultValue = "%=")
+	LIKE("%="),
+
+	@Schema(defaultValue = "%%=")
+	ILIKE("%%="),
+	;
+
+	override fun toString(): String = code
 }

@@ -3,10 +3,10 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 /**
  * Created by aduchate on 01/02/13, 20:10
@@ -15,5 +15,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ServiceLink(
 	val serviceId: String? = null,
-	@get:JsonIgnore @set:JsonIgnore @JsonIgnore @Transient var service: Service? = null
+	@get:JsonIgnore @set:JsonIgnore @JsonIgnore @Transient var service: Service? = null,
 ) : Serializable

@@ -30,7 +30,6 @@ data class MedicalLocationDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-
 	override val name: String? = null,
 	val description: String? = null,
 	val responsible: String? = null,
@@ -44,7 +43,12 @@ data class MedicalLocationDto(
 	val agendaIds: Set<String> = emptySet(),
 	val options: Map<String, String> = emptyMap(),
 	val publicInformations: Map<String, String> = emptyMap(),
-	) : StoredDocumentDto, NamedDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	NamedDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

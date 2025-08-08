@@ -10,5 +10,4 @@ interface RemoteAuthenticationV2Mapper {
 
 	fun map(remoteAuthentication: Authentication): RemoteAuthenticationDto
 	fun map(remoteAuthenticationDto: RemoteAuthenticationDto): Authentication
-
 }

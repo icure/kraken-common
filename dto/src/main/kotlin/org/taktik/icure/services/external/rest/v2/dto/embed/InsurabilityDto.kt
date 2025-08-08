@@ -21,24 +21,27 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
  * Created by aduchate on 21/01/13, 15:37
  */
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
-	@Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
-	@Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
-	@Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
-	@Schema(description = "Is dental care covered.") val dental: Boolean? = null,
-	@Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
-	@Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
-	@Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
-	@Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
-	@Schema(description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).") val titularyId: String? = null,
-	override val encryptedSelf: Base64StringDto? = null
-) : EncryptableDto, Serializable
+	@get:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
+	@get:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
+	@get:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
+	@get:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
+	@get:Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
+	@get:Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
+	@get:Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
+	@get:Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
+	@get:Schema(
+		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
+	) val titularyId: String? = null,
+	override val encryptedSelf: Base64StringDto? = null,
+) : EncryptableDto,
+	Serializable

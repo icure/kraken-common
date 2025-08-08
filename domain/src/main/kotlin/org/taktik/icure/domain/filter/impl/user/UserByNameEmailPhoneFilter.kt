@@ -24,8 +24,9 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class UserByNameEmailPhoneFilter(
 	override val searchString: String,
-	override val desc: String? = null
-) : AbstractFilter<User>, org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter {
+	override val desc: String? = null,
+) : AbstractFilter<User>,
+	org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
@@ -38,7 +39,7 @@ data class UserByNameEmailPhoneFilter(
 			item.login?.lowercase(),
 			item.email?.lowercase(),
 			item.mobilePhone?.lowercase(),
-			item.status?.toString()?.lowercase()
+			item.status?.toString()?.lowercase(),
 		).any { checkNotNull(it.sanitize()).startsWith(sanitizedQuery) }
 	}
 }

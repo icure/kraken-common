@@ -16,11 +16,22 @@ import org.taktik.icure.entities.ExchangeDataMap
 
 @Repository("exchangeDataMapDAO")
 @Profile("app")
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ExchangeDataMap' && !doc.deleted) emit(doc._id, doc._id)}")
+@View(
+	name = "all",
+	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ExchangeDataMap' && !doc.deleted) emit(doc._id, doc._id)}",
+)
 class ExchangeDataMapDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<ExchangeDataMap>(ExchangeDataMap::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ExchangeDataMapDAO
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<ExchangeDataMap>(
+	ExchangeDataMap::class.java,
+	couchDbDispatcher,
+	idGenerator,
+	entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider,
+	daoConfig = daoConfig,
+),
+	ExchangeDataMapDAO

@@ -25,5 +25,5 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PropertyTypeStubDto(
 	val identifier: String? = null,
-	val type: TypedValuesTypeDto? = null
+	val type: TypedValuesTypeDto? = null,
 )

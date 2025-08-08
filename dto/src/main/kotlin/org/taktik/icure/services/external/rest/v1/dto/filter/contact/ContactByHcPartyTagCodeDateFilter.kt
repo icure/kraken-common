@@ -23,5 +23,5 @@ data class ContactByHcPartyTagCodeDateFilter(
 	val codeType: String? = null,
 	val codeCode: String? = null,
 	val startOfContactOpeningDate: Long? = null,
-	val endOfContactOpeningDate: Long? = null
+	val endOfContactOpeningDate: Long? = null,
 ) : AbstractFilterDto<ContactDto>

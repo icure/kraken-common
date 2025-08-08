@@ -20,8 +20,8 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
-import org.taktik.icure.entities.embed.TypedValuesType
 import org.taktik.icure.entities.embed.TypedValue
+import org.taktik.icure.entities.embed.TypedValuesType
 import org.taktik.icure.services.external.rest.InstantMapper
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
@@ -29,8 +29,10 @@ import java.util.*
 
 @Mapper(componentModel = "spring", uses = [InstantMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class TypedValueV2Mapper {
-	fun map(typedValueDto: TypedValueDto?): TypedValue? {
-		return if (typedValueDto == null) null else when (typedValueDto.type) {
+	fun map(typedValueDto: TypedValueDto?): TypedValue? = if (typedValueDto == null) {
+		null
+	} else {
+		when (typedValueDto.type) {
 			TypedValuesTypeDto.STRING -> TypedValue.withTypeAndValue(TypedValuesType.STRING, typedValueDto.stringValue)
 			TypedValuesTypeDto.DATE -> TypedValue.withTypeAndValue(TypedValuesType.DATE, typedValueDto.dateValue)
 			TypedValuesTypeDto.INTEGER -> TypedValue.withTypeAndValue(TypedValuesType.INTEGER, typedValueDto.integerValue)
@@ -43,19 +45,21 @@ abstract class TypedValueV2Mapper {
 				integerValue = typedValueDto.integerValue,
 				doubleValue = typedValueDto.doubleValue,
 				stringValue = typedValueDto.stringValue,
-				dateValue = typedValueDto.dateValue
+				dateValue = typedValueDto.dateValue,
 			)
 		} ?: TypedValue(
 			booleanValue = typedValueDto.booleanValue,
 			integerValue = typedValueDto.integerValue,
 			doubleValue = typedValueDto.doubleValue,
 			stringValue = typedValueDto.stringValue,
-			dateValue = typedValueDto.dateValue
+			dateValue = typedValueDto.dateValue,
 		)
 	}
 
-	fun map(typedValue: TypedValue?): TypedValueDto? {
-		return if (typedValue == null) null else when (typedValue.type) {
+	fun map(typedValue: TypedValue?): TypedValueDto? = if (typedValue == null) {
+		null
+	} else {
+		when (typedValue.type) {
 			TypedValuesType.STRING -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.STRING, typedValue.stringValue)
 			TypedValuesType.DATE -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.DATE, typedValue.dateValue)
 			TypedValuesType.INTEGER -> TypedValueDto.withTypeAndValue(TypedValuesTypeDto.INTEGER, typedValue.integerValue)
@@ -68,7 +72,7 @@ abstract class TypedValueV2Mapper {
 				integerValue = typedValue.integerValue,
 				doubleValue = typedValue.doubleValue,
 				stringValue = typedValue.stringValue,
-				dateValue = typedValue.dateValue
+				dateValue = typedValue.dateValue,
 			)
 		}
 	}

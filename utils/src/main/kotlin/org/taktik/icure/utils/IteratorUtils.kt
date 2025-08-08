@@ -12,13 +12,13 @@ fun <T, R> Iterator<T>.map(mapper: (T) -> R): Iterator<R> = object : Iterator<R>
 /**
  * Merges a [List] of [Iterator]s providing a single iterator that will produce sorted values.
  */
-fun <T: Comparable<T>> List<Iterator<T>>.sortedMerge(): Iterator<T> = object:Iterator<T> {
+fun <T : Comparable<T>> List<Iterator<T>>.sortedMerge(): Iterator<T> = object : Iterator<T> {
 	val buffer: MutableList<T?> = this@sortedMerge.map { null }.toMutableList()
 	var previous: T? = null
 
 	override fun hasNext() = this@sortedMerge.any { it.hasNext() } || buffer.any { it != null }
 	override fun next(): T {
-		//Drain the iterators
+		// Drain the iterators
 		this@sortedMerge.forEachIndexed { idx, it ->
 			if (it.hasNext() && buffer[idx] == null) {
 				buffer[idx] = it.next()
@@ -36,7 +36,7 @@ fun <T: Comparable<T>> List<Iterator<T>>.sortedMerge(): Iterator<T> = object:Ite
 			buffer[idx] = null
 		}
 		return value?.also { v ->
-			previous?.let { p -> if(v < p) throw IllegalStateException("Provided iterators must be sorted") }
+			previous?.let { p -> if (v < p) throw IllegalStateException("Provided iterators must be sorted") }
 			previous = v
 		} ?: throw NoSuchElementException()
 	}

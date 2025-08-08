@@ -4,6 +4,7 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
+@Suppress("EnumEntryName")
 enum class DocumentTypeDto {
 	admission,
 	alert,
@@ -43,7 +44,8 @@ enum class DocumentTypeDto {
 	template,
 	template_admin,
 	treatmentsuspension,
-	vaccination;
+	vaccination,
+	;
 
 	companion object {
 		fun fromName(name: String): DocumentTypeDto? = values().find { it.name == name }

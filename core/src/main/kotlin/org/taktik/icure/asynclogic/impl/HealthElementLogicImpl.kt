@@ -22,9 +22,9 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
@@ -34,56 +34,65 @@ import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
 
-open class HealthElementLogicImpl (
+open class HealthElementLogicImpl(
 	filters: Filters,
 	private val healthElementDAO: HealthElementDAO,
 	sessionLogic: SessionInformationProvider,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
-	fixer: Fixer
-) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters), HealthElementLogic {
-
+	fixer: Fixer,
+) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(
+	fixer,
+	sessionLogic,
+	datastoreInstanceProvider,
+	exchangeDataMapLogic,
+	filters,
+),
+	HealthElementLogic {
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,
-		updatedMetadata: SecurityMetadata
+		updatedMetadata: SecurityMetadata,
 	): HealthElement = entity.copy(securityMetadata = updatedMetadata)
 
-	override fun getGenericDAO(): HealthElementDAO {
-		return healthElementDAO
-	}
+	override fun getGenericDAO(): HealthElementDAO = healthElementDAO
 
-	override fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement> =
-		super.createEntities(
-			entities
-				.map { healthElement ->
-					fix(healthElement, isCreate = true).also { fixedHealElement ->
-						if (fixedHealElement.rev != null) {
-							throw IllegalArgumentException("A new entity should not have a rev")
-						}
+	override fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement> = super.createEntities(
+		entities
+			.map { healthElement ->
+				fix(healthElement, isCreate = true).also { fixedHealElement ->
+					if (fixedHealElement.rev != null) {
+						throw IllegalArgumentException("A new entity should not have a rev")
 					}
 				}
-		)
+			},
+	)
 
-	override suspend fun getHealthElement(healthElementId: String): HealthElement? =
-		getEntity(healthElementId)
+	override suspend fun getHealthElement(healthElementId: String): HealthElement? = getEntity(healthElementId)
 
-	override fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement> =
-		getEntities(healthElementIds)
+	override fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement> = getEntities(healthElementIds)
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
-	override fun listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>) =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys))
-		}
+	override fun listHealthElementsByHcPartyAndSecretPatientKeys(
+		hcPartyId: String,
+		secretPatientKeys: List<String>,
+	) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
+				secretPatientKeys,
+			),
+		)
+	}
 
 	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		dataOwnerId: String,
 		secretForeignKeys: Set<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
@@ -93,34 +102,45 @@ open class HealthElementLogicImpl (
 				secretForeignKeys,
 				startDate,
 				endDate,
-				descending
-			)
+				descending,
+			),
 		)
 	}
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
-	override suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement> {
+	override suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(
+		hcPartyId: String,
+		secretPatientKeys: List<String>,
+	): List<HealthElement> {
 		val datastoreInformation = getInstanceAndGroup()
-		return healthElementDAO.listHealthElementsByHCPartyAndSecretPatientKeys(datastoreInformation, getAllSearchKeysIfCurrentDataOwner(hcPartyId), secretPatientKeys).toList()
-			.groupBy { it.healthElementId }.values.mapNotNull { value ->
+		return healthElementDAO
+			.listHealthElementsByHCPartyAndSecretPatientKeys(
+				datastoreInformation,
+				getAllSearchKeysIfCurrentDataOwner(hcPartyId),
+				secretPatientKeys,
+			).toList()
+			.groupBy { it.healthElementId }
+			.values
+			.mapNotNull { value ->
 				value.maxByOrNull { it: HealthElement ->
 					it.modified ?: it.created ?: 0L
 				}
 			}
 	}
 
-	override suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement? =
-			fix(healthElement, isCreate = false) { fixedHealthElement ->
-					modifyEntities(setOf(fixedHealthElement)).firstOrNull()
-			}
+	override suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement? = fix(healthElement, isCreate = false) { fixedHealthElement ->
+		modifyEntities(setOf(fixedHealthElement)).firstOrNull()
+	}
 
 	override fun modifyEntities(entities: Collection<HealthElement>): Flow<HealthElement> = flow {
 		emitAll(super.modifyEntities(entities.map { fix(it, isCreate = false) }))
 	}
 
-
-	override suspend fun addDelegation(healthElementId: String, delegation: Delegation): HealthElement? {
+	override suspend fun addDelegation(
+		healthElementId: String,
+		delegation: Delegation,
+	): HealthElement? {
 		val datastoreInformation = getInstanceAndGroup()
 		val healthElement = getHealthElement(healthElementId)
 		return delegation.delegatedTo?.let { healthcarePartyId ->
@@ -128,75 +148,95 @@ open class HealthElementLogicImpl (
 				healthElementDAO.save(
 					datastoreInformation,
 					c.copy(
-						delegations = c.delegations + mapOf(
-							healthcarePartyId to setOf(delegation)
-						)
-					)
+						delegations =
+						c.delegations +
+							mapOf(
+								healthcarePartyId to setOf(delegation),
+							),
+					),
 				)
 			}
 		} ?: healthElement
 	}
 
-	override suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement? {
+	override suspend fun addDelegations(
+		healthElementId: String,
+		delegations: List<Delegation>,
+	): HealthElement? {
 		val datastoreInformation = getInstanceAndGroup()
 		val healthElement = getHealthElement(healthElementId)
 		return healthElement?.let {
 			healthElementDAO.save(
 				datastoreInformation,
 				it.copy(
-					delegations = it.delegations +
-						delegations.mapNotNull { d -> d.delegatedTo?.let { delegateTo -> delegateTo to setOf(d) } }
-				)
+					delegations =
+					it.delegations +
+						delegations.mapNotNull { d -> d.delegatedTo?.let { delegateTo -> delegateTo to setOf(d) } },
+				),
 			)
 		}
 	}
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?) = flow { emitAll(doSolveConflicts(
-		ids,
-		limit,
-		getInstanceAndGroup()
-	)) }
+	override fun solveConflicts(
+		limit: Int?,
+		ids: List<String>?,
+	) = flow {
+		emitAll(
+			doSolveConflicts(
+				ids,
+				limit,
+				getInstanceAndGroup(),
+			),
+		)
+	}
 
 	protected fun doSolveConflicts(
 		ids: List<String>?,
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
-	) =  flow {
-		val flow = ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-			?: healthElementDAO.listConflicts(datastoreInformation)
-				.mapNotNull { healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
+	) = flow {
+		val flow =
+			ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
+				?: healthElementDAO
+					.listConflicts(datastoreInformation)
+					.mapNotNull { healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
 		(limit?.let { flow.take(it) } ?: flow)
 			.mapNotNull { healthElement ->
-				healthElement.conflicts?.mapNotNull { conflictingRevision ->
-					healthElementDAO.get(
-						datastoreInformation, healthElement.id, conflictingRevision
-					)
-				}?.fold(healthElement to emptyList<HealthElement>()) { (kept, toBePurged), conflict ->
-					kept.merge(conflict) to toBePurged + conflict
-				}?.let { (mergedHealthElement, toBePurged) ->
-					healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
-						toBePurged.forEach {
-							if (it.rev != null && it.rev != mergedHealthElement.rev) {
-								healthElementDAO.purge(datastoreInformation, listOf(it)).single()
+				healthElement.conflicts
+					?.mapNotNull { conflictingRevision ->
+						healthElementDAO.get(
+							datastoreInformation,
+							healthElement.id,
+							conflictingRevision,
+						)
+					}?.fold(healthElement to emptyList<HealthElement>()) { (kept, toBePurged), conflict ->
+						kept.merge(conflict) to toBePurged + conflict
+					}?.let { (mergedHealthElement, toBePurged) ->
+						healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
+							toBePurged.forEach {
+								if (it.rev != null && it.rev != mergedHealthElement.rev) {
+									healthElementDAO.purge(datastoreInformation, listOf(it)).single()
+								}
 							}
 						}
 					}
-				}
-			}
-			.collect { emit(IdAndRev(it.id, it.rev)) }
+			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
-	override fun filter(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthElement>) =
-			flow {
-				val datastoreInformation = getInstanceAndGroup()
-				val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
-				aggregateResults(
-					ids = ids,
-					limit = paginationOffset.limit,
-					supplier = { healthElementIds: Collection<String> -> healthElementDAO.findHealthElementsByIds(datastoreInformation, healthElementIds.asFlow()) },
-					startDocumentId = paginationOffset.startDocumentId
-				).forEach { emit(it) }
-				emit(TotalCount(ids.size))
-			}
-
+	override fun filter(
+		paginationOffset: PaginationOffset<Nothing>,
+		filter: FilterChain<HealthElement>,
+	) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
+		aggregateResults(
+			ids = ids,
+			limit = paginationOffset.limit,
+			supplier = { healthElementIds: Collection<String> ->
+				healthElementDAO.findHealthElementsByIds(datastoreInformation, healthElementIds.asFlow())
+			},
+			startDocumentId = paginationOffset.startDocumentId,
+		).forEach { emit(it) }
+		emit(TotalCount(ids.size))
+	}
 }

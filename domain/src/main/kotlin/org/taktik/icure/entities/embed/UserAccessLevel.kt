@@ -10,5 +10,5 @@ package org.taktik.icure.entities.embed
 enum class UserAccessLevel(val level: Int) {
 	Admin(3),
 	Write(2),
-	Read(1)
+	Read(1),
 }

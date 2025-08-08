@@ -24,7 +24,7 @@ interface IcureObjectStorageMigration<T : HasDataAttachments<T>> {
 	 * - The attachment has been successfully uploaded to the cloud. If the attachment was not updated the task will be delayed further.
 	 * @param entity entity which owns the attachment.
 	 * @param attachmentId id of the attachment.
- 	 */
+	 */
 	suspend fun scheduleMigrateAttachment(entity: T, attachmentId: String)
 
 	/**

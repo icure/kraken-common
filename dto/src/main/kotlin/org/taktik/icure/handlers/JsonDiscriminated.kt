@@ -3,9 +3,8 @@
  */
 package org.taktik.icure.handlers
 
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-annotation class JsonDiscriminated(val value: String)
+annotation class JsonDiscriminated(
+	val value: String,
+)

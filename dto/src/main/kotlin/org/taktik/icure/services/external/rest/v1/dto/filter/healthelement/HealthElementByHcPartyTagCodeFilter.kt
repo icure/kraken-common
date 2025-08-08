@@ -24,5 +24,5 @@ data class HealthElementByHcPartyTagCodeFilter(
 	val codeCode: String? = null,
 	val tagType: String? = null,
 	val tagCode: String? = null,
-	val status: Int? = null
+	val status: Int? = null,
 ) : AbstractFilterDto<HealthElementDto>

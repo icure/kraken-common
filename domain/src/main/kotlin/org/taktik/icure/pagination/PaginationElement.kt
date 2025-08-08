@@ -17,7 +17,7 @@ sealed interface PaginationElement
  */
 data class PaginationRowElement<T, K>(
 	val element: T,
-	val key: K? = null
+	val key: K? = null,
 ) : PaginationElement {
 
 	fun asNextPageElement(): NextPageElement<K> = when {
@@ -25,9 +25,9 @@ data class PaginationRowElement<T, K>(
 		element is String -> NextPageElement(element, key)
 		else -> throw IllegalArgumentException("Cannot derive a NextPage element from this entity")
 	}
-
 }
+
 /**
  * Represents the key to retrieve the next page. If present, it must be the last element of the flow.
  */
-data class NextPageElement<K>(val startKeyDocId: String? = null, val startKey: K? = null): PaginationElement
+data class NextPageElement<K>(val startKeyDocId: String? = null, val startKey: K? = null) : PaginationElement

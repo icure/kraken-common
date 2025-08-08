@@ -11,18 +11,17 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import java.io.Serializable
 
 @Service
 @Profile("app")
-class IntersectionFilter<T : Serializable, O : Identifiable<T>> :
-	Filter<T, O, org.taktik.icure.domain.filter.Filters.IntersectionFilter<T, O>> {
+class IntersectionFilter<T : Serializable, O : Identifiable<T>> : Filter<T, O, org.taktik.icure.domain.filter.Filters.IntersectionFilter<T, O>> {
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.IntersectionFilter<T, O>,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
-    ): Flow<T> = flow {
+		datastoreInformation: IDatastoreInformation,
+	): Flow<T> = flow {
 		val filters = filter.filters
 		val result = LinkedHashSet<T>()
 		for (i in filters.indices) {

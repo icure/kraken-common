@@ -9,8 +9,9 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AuthenticationTokenDto(
-	@Schema(description = "Encrypted token") val token: String?,
-	@Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
-	@Schema(description = "Token validity in seconds") val validity: Long,
-	@Schema(description = "hard delete (unix epoch in ms) timestamp of the object") val deletionDate: Long? = null,
-) : Cloneable, Serializable
+	@get:Schema(description = "Encrypted token") val token: String?,
+	@get:Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
+	@get:Schema(description = "Token validity in seconds") val validity: Long,
+	@get:Schema(description = "hard delete (unix epoch in ms) timestamp of the object") val deletionDate: Long? = null,
+) : Cloneable,
+	Serializable

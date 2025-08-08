@@ -5,7 +5,7 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.TimeTable
 
 interface TimeTableDAO : GenericDAO<TimeTable> {
@@ -71,6 +71,6 @@ interface TimeTableDAO : GenericDAO<TimeTable> {
 		startDate: Long?,
 		endDate: Long?,
 		agendaId: String,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 }

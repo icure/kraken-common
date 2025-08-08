@@ -10,32 +10,32 @@ import org.taktik.icure.entities.RecoveryData
  * key + recipient id is enough to find the recovery data.
  */
 interface RecoveryDataLogic {
-    /**
-     * Create some recovery data.
-     */
-    suspend fun createRecoveryData(recoveryData: RecoveryData): RecoveryData
+	/**
+	 * Create some recovery data.
+	 */
+	suspend fun createRecoveryData(recoveryData: RecoveryData): RecoveryData
 
-    /**
-     * Get some recovery data.
-     */
-    suspend fun getRecoveryData(id: String): RecoveryData?
+	/**
+	 * Get some recovery data.
+	 */
+	suspend fun getRecoveryData(id: String): RecoveryData?
 
-    // No need for update
+	// No need for update
 
-    /**
-     * Delete some recovery data
-     */
-    suspend fun purgeRecoveryData(id: String): DocIdentifier
+	/**
+	 * Delete some recovery data
+	 */
+	suspend fun purgeRecoveryData(id: String): DocIdentifier
 
-    /**
-     * Deletes all recovery data of a given recipient.
-     * @return the amount of recovery data that has been deleted
-     */
-    suspend fun deleteAllRecoveryDataForRecipient(recipientId: String): Int
+	/**
+	 * Deletes all recovery data of a given recipient.
+	 * @return the amount of recovery data that has been deleted
+	 */
+	suspend fun deleteAllRecoveryDataForRecipient(recipientId: String): Int
 
-    /**
-     * Deletes all recovery data of a given type for a given recipient.
-     * * @return the amount of recovery data that has been deleted
-     */
-    suspend fun deleteAllRecoveryDataOfTypeForRecipient(type: RecoveryData.Type, recipientId: String): Int
+	/**
+	 * Deletes all recovery data of a given type for a given recipient.
+	 * * @return the amount of recovery data that has been deleted
+	 */
+	suspend fun deleteAllRecoveryDataOfTypeForRecipient(type: RecoveryData.Type, recipientId: String): Int
 }

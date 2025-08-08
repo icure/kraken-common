@@ -13,17 +13,16 @@ data class PatientByHcPartyGenderEducationProfession(
 	override val healthcarePartyId: String? = null,
 	override val gender: Gender? = null,
 	override val education: String? = null,
-	override val profession: String? = null
-) : AbstractFilter<Patient>, org.taktik.icure.domain.filter.patient.PatientByHcPartyGenderEducationProfession {
+	override val profession: String? = null,
+) : AbstractFilter<Patient>,
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyGenderEducationProfession {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
-				(gender == null || item.gender != null && item.gender === gender) &&
-				(education == null || item.education != null && item.education == education) &&
-				(profession == null || item.profession != null && item.profession == profession)
-	}
+	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+		(gender == null || item.gender != null && item.gender === gender) &&
+		(education == null || item.education != null && item.education == education) &&
+		(profession == null || item.profession != null && item.profession == profession)
 }

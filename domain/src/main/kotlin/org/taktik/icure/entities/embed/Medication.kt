@@ -3,7 +3,6 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -11,6 +10,7 @@ import org.apache.commons.lang3.StringUtils
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,9 +27,9 @@ data class Medication(
 	val instructionForPatient: String? = null,
 	val instructionForReimbursement: String? = null,
 	val commentForDelivery: String? = null,
-	val drugRoute: String? = null, //CD-DRUG-ROUTE
-	val temporality: String? = null, //CD-TEMPORALITY : chronic, acute, oneshot
-	val frequency: CodeStub? = null, //CD-PERIODICITY
+	val drugRoute: String? = null, // CD-DRUG-ROUTE
+	val temporality: String? = null, // CD-TEMPORALITY : chronic, acute, oneshot
+	val frequency: CodeStub? = null, // CD-PERIODICITY
 	val reimbursementReason: CodeStub? = null,
 	val substitutionAllowed: Boolean? = null,
 	val beginMoment: Long? = null,
@@ -47,23 +47,33 @@ data class Medication(
 	val medicationSchemeSafeVersion: Int? = null,
 	val medicationSchemeTimeStampOnSafe: Long? = null,
 	val medicationSchemeDocumentId: String? = null,
-	val safeIdName: String? = null, //can be: vitalinkuri, RSWID, RSBID
-	val idOnSafes: String? = null, //medicationschemeelement : value of vitalinkuri, RSBID, RSWID
-	val timestampOnSafe: Long? = null, //transaction date+time
-	val changeValidated: Boolean? = null, //accept change on safe
-	val newSafeMedication: Boolean? = null, //new medication on safe
-	@param:ContentValue(ContentValues.ANY_STRING) val medicationUse: String? = null, //free text
-	@param:ContentValue(ContentValues.ANY_STRING) val beginCondition: String? = null, //free text
-	@param:ContentValue(ContentValues.ANY_STRING) val endCondition: String? = null, //free text
+	val safeIdName: String? = null, // can be: vitalinkuri, RSWID, RSBID
+	val idOnSafes: String? = null, // medicationschemeelement : value of vitalinkuri, RSBID, RSWID
+	val timestampOnSafe: Long? = null, // transaction date+time
+	val changeValidated: Boolean? = null, // accept change on safe
+	val newSafeMedication: Boolean? = null, // new medication on safe
+	@param:ContentValue(ContentValues.ANY_STRING) val medicationUse: String? = null, // free text
+	@param:ContentValue(ContentValues.ANY_STRING) val beginCondition: String? = null, // free text
+	@param:ContentValue(ContentValues.ANY_STRING) val endCondition: String? = null, // free text
 	val origin: String? = null, // regularprocess, recorded
 	val medicationChanged: Boolean? = null,
 	val posologyChanged: Boolean? = null,
 	val suspension: List<Suspension>? = null,
 	val prescriptionRID: String? = null,
-	val status: Int? = null
+	val status: Int? = null,
 ) : Serializable {
 	override fun toString(): String {
-		var result = String.format("%s, %s", if (compoundPrescription != null) compoundPrescription else if (substanceProduct != null) substanceProduct else medicinalProduct, posologyText)
+		var result = String.format(
+			"%s, %s",
+			if (compoundPrescription != null) {
+				compoundPrescription
+			} else if (substanceProduct != null) {
+				substanceProduct
+			} else {
+				medicinalProduct
+			},
+			posologyText,
+		)
 		if (numberOfPackages != null && numberOfPackages > 0) {
 			result = String.format("%s packages of %s", numberOfPackages, result)
 		}
@@ -79,10 +89,22 @@ data class Medication(
 			if (regimen == null || regimen.size == 0) {
 				return posology
 			}
-			var unit = if (regimen[0].administratedQuantity == null) null else if (regimen[0].administratedQuantity?.administrationUnit != null) regimen[0].administratedQuantity?.administrationUnit?.code else regimen[0].administratedQuantity?.unit
+			var unit = if (regimen[0].administratedQuantity == null) {
+				null
+			} else if (regimen[0].administratedQuantity?.administrationUnit != null) {
+				regimen[0].administratedQuantity?.administrationUnit?.code
+			} else {
+				regimen[0].administratedQuantity?.unit
+			}
 			var quantity = if (regimen[0].administratedQuantity == null) null else regimen[0].administratedQuantity?.quantity
 			for (ri in regimen.subList(1, regimen.size)) {
-				val oUnit = if (ri.administratedQuantity == null) null else if (ri.administratedQuantity.administrationUnit != null) ri.administratedQuantity.administrationUnit.code else ri.administratedQuantity.unit
+				val oUnit = if (ri.administratedQuantity == null) {
+					null
+				} else if (ri.administratedQuantity.administrationUnit != null) {
+					ri.administratedQuantity.administrationUnit.code
+				} else {
+					ri.administratedQuantity.unit
+				}
 				val oQuantity = if (ri.administratedQuantity == null) null else ri.administratedQuantity.quantity
 				if (!StringUtils.equals(unit, oUnit)) {
 					unit = "take(s)"
@@ -106,10 +128,10 @@ data class Medication(
 
 	companion object {
 		const val REIMBURSED = "REIMBURSED"
-		const val STATUS_NOT_SENT = 1 shl 0 //not send by recip-e
-		const val STATUS_SENT = 1 shl 1 //sent by recip-e
-		const val STATUS_PENDING = 1 shl 2 //not delivered to patient
-		const val STATUS_DELIVERED = 1 shl 3 //delivered to patient
-		const val STATUS_REVOKED = 1 shl 4 //revoked by physician
+		const val STATUS_NOT_SENT = 1 shl 0 // not send by recip-e
+		const val STATUS_SENT = 1 shl 1 // sent by recip-e
+		const val STATUS_PENDING = 1 shl 2 // not delivered to patient
+		const val STATUS_DELIVERED = 1 shl 3 // delivered to patient
+		const val STATUS_REVOKED = 1 shl 4 // revoked by physician
 	}
 }

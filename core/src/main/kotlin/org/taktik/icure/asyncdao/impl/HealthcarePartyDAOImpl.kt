@@ -26,10 +26,10 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitize
 import org.taktik.icure.db.sanitizeString
@@ -44,19 +44,24 @@ internal class HealthcarePartyDAOImpl(
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<HealthcareParty>(HealthcareParty::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), HealthcarePartyDAO {
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<HealthcareParty>(HealthcareParty::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+	HealthcarePartyDAO {
 	@View(name = "by_public", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.public ? true : false, null)}", secondaryPartition = MAURICE_PARTITION)
 	override fun listHealthcarePartiesByPublic(
 		datastoreInformation: IDatastoreInformation,
-		public: Boolean
+		public: Boolean,
 	): Flow<HealthcareParty> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-			datastoreInformation,
-			"by_public",
-			MAURICE_PARTITION
-		).key(public).includeDocs(true)).map { it.doc })
+		emitAll(
+			client.queryViewIncludeDocs<String, String, HealthcareParty>(
+				createQuery(
+					datastoreInformation,
+					"by_public",
+					MAURICE_PARTITION,
+				).key(public).includeDocs(true),
+			).map { it.doc },
+		)
 	}
 
 	@View(name = "by_nihii", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.nihii.substr(0,8), doc._id )}")
@@ -68,11 +73,13 @@ internal class HealthcarePartyDAOImpl(
 				flowOf()
 			} else {
 				val key = if (nihii.length > 8) nihii.substring(0, 8) else nihii
-				client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-					datastoreInformation,
-					"by_nihii"
-				).key(key).includeDocs(true)).map { it.doc }
-			}
+				client.queryViewIncludeDocs<String, String, HealthcareParty>(
+					createQuery(
+						datastoreInformation,
+						"by_nihii",
+					).key(key).includeDocs(true),
+				).map { it.doc }
+			},
 		)
 	}
 
@@ -80,10 +87,14 @@ internal class HealthcarePartyDAOImpl(
 	override fun listHealthcarePartiesBySsin(datastoreInformation: IDatastoreInformation, ssin: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		emitAll(client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-			datastoreInformation,
-			"by_ssin"
-		).key(ssin).includeDocs(true)).map { it.doc })
+		emitAll(
+			client.queryViewIncludeDocs<String, String, HealthcareParty>(
+				createQuery(
+					datastoreInformation,
+					"by_ssin",
+				).key(ssin).includeDocs(true),
+			).map { it.doc },
+		)
 	}
 
 	@View(name = "by_speciality_postcode", map = "classpath:js/healthcareparty/By_speciality_postcode.js")
@@ -96,7 +107,7 @@ internal class HealthcarePartyDAOImpl(
 			ComplexKey.of(type, spec, firstCode),
 			ComplexKey.of(type, spec, lastCode),
 			offset,
-			false
+			false,
 		)
 		emitAll(client.queryView(viewQuery, ComplexKey::class.java, String::class.java, HealthcareParty::class.java))
 	}
@@ -106,7 +117,7 @@ internal class HealthcarePartyDAOImpl(
 		type: String,
 		spec: String,
 		firstCode: String,
-		lastCode: String
+		lastCode: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -126,11 +137,17 @@ internal class HealthcarePartyDAOImpl(
 		val viewQuery = pagedViewQuery(
 			datastoreInformation,
 			"allForPagination",
-			if (pagination.startKey != null) pagination.startKey.toString() else if (desc != null && desc) "\ufff0" else "\u0000",
+			if (pagination.startKey != null) {
+				pagination.startKey.toString()
+			} else if (desc != null && desc) {
+				"\ufff0"
+			} else {
+				"\u0000"
+			},
 			if (desc != null && desc) "\u0000" else "\ufff0",
 			pagination,
 			desc
-				?: false
+				?: false,
 		)
 
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, HealthcareParty::class.java))
@@ -140,10 +157,14 @@ internal class HealthcarePartyDAOImpl(
 	override fun listHealthcarePartiesByName(datastoreInformation: IDatastoreInformation, name: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		emitAll(client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-			datastoreInformation,
-			"by_name"
-		).key(name).includeDocs(true)).map { it.doc })
+		emitAll(
+			client.queryViewIncludeDocs<String, String, HealthcareParty>(
+				createQuery(
+					datastoreInformation,
+					"by_name",
+				).key(name).includeDocs(true),
+			).map { it.doc },
+		)
 	}
 
 	@View(name = "by_ssin_or_nihii", map = "classpath:js/healthcareparty/By_ssin_or_nihii.js")
@@ -161,7 +182,7 @@ internal class HealthcarePartyDAOImpl(
 	override fun listHealthcarePartyIdsBySsinOrNihii(
 		datastoreInformation: IDatastoreInformation,
 		searchValue: String?,
-		desc: Boolean
+		desc: Boolean,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -184,7 +205,11 @@ internal class HealthcarePartyDAOImpl(
 		val r = if (searchString != null) sanitizeString(searchString) else null
 		val isDesc = desc != null && desc
 		val from = if (offset.startKey == null) if (isDesc) r!! + "\ufff0" else r else offset.startKey
-		val to = if (r != null) if (isDesc) r else r + "\ufff0" else if (isDesc) null else "\ufff0"
+		val to = if (r != null) if (isDesc) r else r + "\ufff0" else if (isDesc) {
+			null
+		} else {
+			"\ufff0"
+		}
 
 		val viewQuery = pagedViewQuery(datastoreInformation, "by_hcParty_name", from, to, offset, isDesc)
 
@@ -198,11 +223,13 @@ internal class HealthcarePartyDAOImpl(
 		val to = ComplexKey.of(r + "\ufff0")
 
 		emitAll(
-			client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-				datastoreInformation,
-				"by_hcParty_name"
-			).startKey(from).endKey(to).includeDocs(true).limit(limit + offset)).map { it.doc }
-				.withIndex().filter { it.index >= offset }.map { it.value }
+			client.queryViewIncludeDocs<String, String, HealthcareParty>(
+				createQuery(
+					datastoreInformation,
+					"by_hcParty_name",
+				).startKey(from).endKey(to).includeDocs(true).limit(limit + offset),
+			).map { it.doc }
+				.withIndex().filter { it.index >= offset }.map { it.value },
 		)
 	}
 
@@ -211,11 +238,13 @@ internal class HealthcarePartyDAOImpl(
 	override suspend fun getHcPartyKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, String> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		//Not transactional aware
-		val result = client.queryView<String, List<String>>(createQuery(
-			datastoreInformation,
-			"by_hcparty_delegate_keys"
-		).key(healthcarePartyId).includeDocs(false)).mapNotNull { it.value }
+		// Not transactional aware
+		val result = client.queryView<String, List<String>>(
+			createQuery(
+				datastoreInformation,
+				"by_hcparty_delegate_keys",
+			).key(healthcarePartyId).includeDocs(false),
+		).mapNotNull { it.value }
 
 		val resultMap = HashMap<String, String>()
 		result.collect {
@@ -230,24 +259,28 @@ internal class HealthcarePartyDAOImpl(
 		val result = client.queryView<String, List<String>>(
 			createQuery(datastoreInformation, "by_delegate_aes_exchange_keys")
 				.key(healthcarePartyId)
-				.includeDocs(false)
+				.includeDocs(false),
 		).map { it.key to it.value }
 
 		return result.fold(emptyMap()) { acc, (key, value) ->
 			if (key != null && value != null) {
-				acc + (
-					value[0] to (acc[value[0]] ?: emptyMap()).let {
-						it + (
-							value[1].let { v -> v.substring((v.length - 32).coerceAtLeast(0)) } to (
-								it[value[1]]
-									?: emptyMap()
-								).let { dels ->
-								dels + (value[2] to value[3])
-							}
-							)
-					}
-					)
-			} else acc
+				acc +
+					(
+						value[0] to (acc[value[0]] ?: emptyMap()).let {
+							it +
+								(
+									value[1].let { v -> v.substring((v.length - 32).coerceAtLeast(0)) } to (
+										it[value[1]]
+											?: emptyMap()
+										).let { dels ->
+										dels + (value[2] to value[3])
+									}
+									)
+						}
+						)
+			} else {
+				acc
+			}
 		}
 	}
 
@@ -255,15 +288,19 @@ internal class HealthcarePartyDAOImpl(
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		emitAll(client.queryViewIncludeDocs<String, String, HealthcareParty>(createQuery(
-			datastoreInformation,
-			"by_parent"
-		).key(parentId).includeDocs(true)).map { it.doc })
+		emitAll(
+			client.queryViewIncludeDocs<String, String, HealthcareParty>(
+				createQuery(
+					datastoreInformation,
+					"by_parent",
+				).key(parentId).includeDocs(true),
+			).map { it.doc },
+		)
 	}
 
 	override fun listHealthcarePartyIdsByParentId(
 		datastoreInformation: IDatastoreInformation,
-		parentId: String
+		parentId: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -287,7 +324,7 @@ internal class HealthcarePartyDAOImpl(
 			.keys(
 				hcpIdentifiers.map {
 					ComplexKey.of(it.system, it.value)
-				}
+				},
 			)
 
 		emitAll(
@@ -298,7 +335,7 @@ internal class HealthcarePartyDAOImpl(
 					} else {
 						null
 					}
-				}
+				},
 		)
 	}
 
@@ -308,11 +345,11 @@ internal class HealthcarePartyDAOImpl(
 
 		val from = ComplexKey.of(
 			codeType,
-			codeCode
+			codeCode,
 		)
 		val to = ComplexKey.of(
 			codeType,
-			codeCode ?: ComplexKey.emptyObject()
+			codeCode ?: ComplexKey.emptyObject(),
 		)
 
 		val viewQuery = createQuery(datastoreInformation, "by_codes")
@@ -329,11 +366,11 @@ internal class HealthcarePartyDAOImpl(
 
 		val from = ComplexKey.of(
 			tagType,
-			tagCode
+			tagCode,
 		)
 		val to = ComplexKey.of(
 			tagType,
-			tagCode ?: ComplexKey.emptyObject()
+			tagCode ?: ComplexKey.emptyObject(),
 		)
 
 		val viewQuery = createQuery(datastoreInformation, "by_tags")
@@ -344,7 +381,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.value })
 	}
 
-    override fun listHealthcarePartyIdsByName(datastoreInformation: IDatastoreInformation, name: String, desc: Boolean) = flow {
+	override fun listHealthcarePartyIdsByName(datastoreInformation: IDatastoreInformation, name: String, desc: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val r = name.sanitize() ?: ""
@@ -358,5 +395,5 @@ internal class HealthcarePartyDAOImpl(
 			.descending(desc)
 
 		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
-    }
+	}
 }

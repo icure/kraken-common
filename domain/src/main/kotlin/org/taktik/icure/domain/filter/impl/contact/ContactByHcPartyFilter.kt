@@ -24,8 +24,9 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class ContactByHcPartyFilter(
 	override val hcpId: String,
-	override val desc: String? = null
-) : AbstractFilter<Contact>, Filters.ByHcpartyFilter<String, Contact> {
+	override val desc: String? = null,
+) : AbstractFilter<Contact>,
+	Filters.ByHcpartyFilter<String, Contact> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

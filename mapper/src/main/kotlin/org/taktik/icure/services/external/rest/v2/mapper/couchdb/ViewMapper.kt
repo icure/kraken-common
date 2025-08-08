@@ -8,7 +8,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.ViewDto
 @Mapper(
 	componentModel = "spring",
 	uses = [],
-	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface ViewV2Mapper {
 	fun map(viewDto: ViewDto): View

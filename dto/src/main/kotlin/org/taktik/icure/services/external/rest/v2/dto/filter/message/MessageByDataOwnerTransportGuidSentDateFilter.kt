@@ -19,5 +19,5 @@ data class MessageByDataOwnerTransportGuidSentDateFilter(
 	val fromDate: Instant?,
 	val toDate: Instant?,
 	val descending: Boolean? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

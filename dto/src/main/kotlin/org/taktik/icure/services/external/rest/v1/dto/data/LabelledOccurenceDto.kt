@@ -3,4 +3,7 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.data
 
-class LabelledOccurenceDto(val label: String, val occurence: Long)
+class LabelledOccurenceDto(
+	val label: String,
+	val occurence: Long,
+)

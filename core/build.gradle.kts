@@ -5,15 +5,15 @@ plugins {
     id("com.icure.kotlin-library-conventions")
     kotlin("plugin.serialization")
 
-    alias(coreLibs.plugins.springBootPlugin) apply(true)
-    alias(coreLibs.plugins.springBootDependenciesManagement) apply(true)
-    alias(coreLibs.plugins.kotlinAllOpen) apply(true)
-    alias(coreLibs.plugins.kotlinSpring) apply(true)
+    alias(coreLibs.plugins.springBootPlugin) apply (true)
+    alias(coreLibs.plugins.springBootDependenciesManagement) apply (true)
+    alias(coreLibs.plugins.kotlinAllOpen) apply (true)
+    alias(coreLibs.plugins.kotlinSpring) apply (true)
     alias(coreLibs.plugins.mavenRepository)
-    alias(coreLibs.plugins.gitVersion) apply(true)
-    alias(coreLibs.plugins.helmRepository) apply(true)
-    alias(coreLibs.plugins.licenceReport) apply(true)
-    alias(coreLibs.plugins.ksp) apply(true)
+    alias(coreLibs.plugins.gitVersion) apply (true)
+    alias(coreLibs.plugins.helmRepository) apply (true)
+    alias(coreLibs.plugins.licenceReport) apply (true)
+    alias(coreLibs.plugins.ksp) apply (true)
     `maven-publish`
 }
 
@@ -23,11 +23,12 @@ licenseReport {
 
 dependencies {
 
-    val projectPrefix = when (rootProject.name) {
-        "kmehr-importer" -> ":kmehr-module:kraken-common"
-        "kraken-common" -> ""
-        else -> ":kraken-common"
-    }
+    val projectPrefix =
+        when (rootProject.name) {
+            "kmehr-importer" -> ":kmehr-module:kraken-common"
+            "kraken-common" -> ""
+            else -> ":kraken-common"
+        }
 
     implementation(project("$projectPrefix:logic"))
     implementation(project("$projectPrefix:mapper"))

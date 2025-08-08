@@ -7,13 +7,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class MessageByInvoiceIdsFilter(
 	override val invoiceIds: Set<String>,
-	override val desc: String? = null
-) : AbstractFilter<Message>, MessageByInvoiceIdsFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Message>,
+	MessageByInvoiceIdsFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		invoiceIds.intersect(item.invoiceIds).isNotEmpty()
+	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = invoiceIds.intersect(item.invoiceIds).isNotEmpty()
 }

@@ -53,12 +53,10 @@ interface UnsecureUserV2Mapper {
 
 		fun map(meta: User.SystemMetadata): UserDto.SystemMetadata
 
-		fun map(loginIdentifierDto: LoginIdentifierDto): Identifier =
-			Identifier(assigner = loginIdentifierDto.assigner, value = loginIdentifierDto.value)
-		fun map(identifier: Identifier): LoginIdentifierDto =
-			LoginIdentifierDto(
-				assigner = checkNotNull(identifier.assigner) { "LoginIdentifier assigner cannot be null" },
-				value = checkNotNull(identifier.value) { "LoginIdentifier value cannot be null" }
-			)
+		fun map(loginIdentifierDto: LoginIdentifierDto): Identifier = Identifier(assigner = loginIdentifierDto.assigner, value = loginIdentifierDto.value)
+		fun map(identifier: Identifier): LoginIdentifierDto = LoginIdentifierDto(
+			assigner = checkNotNull(identifier.assigner) { "LoginIdentifier assigner cannot be null" },
+			value = checkNotNull(identifier.value) { "LoginIdentifier value cannot be null" },
+		)
 	}
 }

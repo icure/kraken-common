@@ -18,5 +18,5 @@ data class CalendarItemByDataOwnerPatientStartTimeFilter(
 	val endDate: Long?,
 	val secretPatientIds: Set<String>,
 	val descending: Boolean?,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<CalendarItemDto>

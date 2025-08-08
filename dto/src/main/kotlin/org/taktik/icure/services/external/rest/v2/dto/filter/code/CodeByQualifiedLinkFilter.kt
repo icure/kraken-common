@@ -15,5 +15,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class CodeByQualifiedLinkFilter(
 	val linkType: String,
 	val linkedId: String? = null,
-	override val desc: String? = null
-): AbstractFilterDto<CodeDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<CodeDto>

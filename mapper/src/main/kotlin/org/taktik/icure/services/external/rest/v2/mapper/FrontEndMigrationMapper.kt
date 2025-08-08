@@ -32,7 +32,7 @@ interface FrontEndMigrationV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(frontEndMigrationDto: FrontEndMigrationDto): FrontEndMigration
 	fun map(frontEndMigration: FrontEndMigration): FrontEndMigrationDto

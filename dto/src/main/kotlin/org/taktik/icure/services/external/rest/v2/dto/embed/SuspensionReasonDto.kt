@@ -19,5 +19,9 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class SuspensionReasonDto {
-	notInsured, noReasonGiven, isHospitalized, outsideOfCountry, changeOfMutuality
+	notInsured,
+	noReasonGiven,
+	isHospitalized,
+	outsideOfCountry,
+	changeOfMutuality,
 }

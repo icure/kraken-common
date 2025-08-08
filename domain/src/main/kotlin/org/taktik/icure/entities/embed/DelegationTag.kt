@@ -23,5 +23,5 @@ enum class DelegationTag {
 	cdItemParameter,
 	cdItemMedication,
 	cdItemTreatment,
-	cdItemVaccine
+	cdItemVaccine,
 }

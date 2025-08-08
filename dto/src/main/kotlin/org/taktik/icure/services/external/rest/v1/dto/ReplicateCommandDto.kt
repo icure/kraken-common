@@ -12,5 +12,5 @@ data class ReplicateCommandDto(
 	val targetUrl: String,
 	val targetUsername: String,
 	val targetPassword: String,
-	val id: String? = null
+	val id: String? = null,
 )

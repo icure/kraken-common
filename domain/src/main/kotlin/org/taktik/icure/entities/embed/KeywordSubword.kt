@@ -13,5 +13,5 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KeywordSubword(
 	@param:ContentValue(ContentValues.ANY_STRING) val value: String? = null,
-	val subWords: List<KeywordSubword>? = null
+	val subWords: List<KeywordSubword>? = null,
 ) : Serializable

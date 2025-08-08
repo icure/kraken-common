@@ -11,7 +11,8 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 data class MaintenanceTaskByIdsFilter(
 	override val desc: String? = null,
 	override val ids: Set<String>,
-) : AbstractFilter<MaintenanceTask>, Filters.IdsFilter<String, MaintenanceTask> {
+) : AbstractFilter<MaintenanceTask>,
+	Filters.IdsFilter<String, MaintenanceTask> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

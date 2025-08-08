@@ -7,5 +7,7 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class HealthcarePartyStatus {
-	trainee, withconvention, accreditated
+	trainee,
+	withconvention,
+	accreditated,
 }

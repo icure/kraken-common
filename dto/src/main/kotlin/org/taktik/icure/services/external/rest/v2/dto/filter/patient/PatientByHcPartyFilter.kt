@@ -31,5 +31,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PatientByHcPartyFilter(
 	override val desc: String? = null,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

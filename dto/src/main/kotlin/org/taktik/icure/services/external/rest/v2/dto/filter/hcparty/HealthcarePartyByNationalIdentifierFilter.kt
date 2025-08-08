@@ -15,5 +15,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class HealthcarePartyByNationalIdentifierFilter(
 	val searchValue: String,
 	val descending: Boolean? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

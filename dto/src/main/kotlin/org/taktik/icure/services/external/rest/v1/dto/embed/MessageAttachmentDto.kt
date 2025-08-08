@@ -7,6 +7,6 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageAttachmentDto(
-    val type: DocumentLocationDto? = null,
-    val ids: List<String> = emptyList()
-): Serializable
+	val type: DocumentLocationDto? = null,
+	val ids: List<String> = emptyList(),
+) : Serializable

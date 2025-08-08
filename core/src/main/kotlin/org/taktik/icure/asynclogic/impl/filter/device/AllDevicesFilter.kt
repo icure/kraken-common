@@ -21,19 +21,19 @@ package org.taktik.icure.asynclogic.impl.filter.device
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.DeviceDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Device
 
 @Service
 @Profile("app")
 class AllDevicesFilter(
-	private val deviceDAO: DeviceDAO
+	private val deviceDAO: DeviceDAO,
 ) : Filter<String, Device, org.taktik.icure.domain.filter.Filters.AllFilter<String, Device>> {
 	override fun resolve(
-        filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Device>,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = deviceDAO.getEntityIds(datastoreInformation)
+		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Device>,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = deviceDAO.getEntityIds(datastoreInformation)
 }

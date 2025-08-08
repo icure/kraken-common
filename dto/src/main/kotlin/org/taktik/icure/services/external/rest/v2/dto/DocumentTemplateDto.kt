@@ -20,12 +20,12 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ReportVersionDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,9 +42,8 @@ data class DocumentTemplateDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
-	@Schema(type = "string", format = "byte") val attachment: ByteArray? = null,
-	@Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
+	@get:Schema(type = "string", format = "byte") val attachment: ByteArray? = null,
+	@get:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
 	val mainUti: String? = null,
 	val name: String? = null,
 	val otherUtis: Set<String> = emptySet(),
@@ -55,10 +54,15 @@ data class DocumentTemplateDto(
 	val group: DocumentGroupDto? = null,
 	val descr: String? = null,
 	val disabled: String? = null,
-	val specialty: CodeStubDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String> {
+	val specialty: CodeStubDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String> {
 	companion object : DynamicInitializer<DocumentTemplateDto>
 
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

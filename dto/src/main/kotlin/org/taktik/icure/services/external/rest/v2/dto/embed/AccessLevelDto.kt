@@ -5,6 +5,6 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
  * Used for entity-level permissions.
  */
 enum class AccessLevelDto {
-    READ,
-    WRITE
+	READ,
+	WRITE,
 }

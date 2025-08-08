@@ -42,49 +42,72 @@ class ClassificationTemplateController(
 	private val classificationTemplateService: ClassificationTemplateService,
 	private val classificationTemplateMapper: ClassificationTemplateMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
-
-	@Operation(summary = "Create a classification Template with the current user", description = "Returns an instance of created classification Template.")
+	@Operation(
+		summary = "Create a classification Template with the current user",
+		description = "Returns an instance of created classification Template.",
+	)
 	@PostMapping
-	fun createClassificationTemplate(@RequestBody c: ClassificationTemplateDto) = mono {
-		val element = classificationTemplateService.createClassificationTemplate(classificationTemplateMapper.map(c))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template creation failed.")
+	fun createClassificationTemplate(
+		@RequestBody c: ClassificationTemplateDto,
+	) = mono {
+		val element =
+			classificationTemplateService.createClassificationTemplate(classificationTemplateMapper.map(c))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template creation failed.")
 		classificationTemplateMapper.map(element)
 	}
 
 	@Operation(summary = "Get a classification Template")
 	@GetMapping("/{classificationTemplateId}")
-	fun getClassificationTemplate(@PathVariable classificationTemplateId: String) = mono {
-		val element = classificationTemplateService.getClassificationTemplate(classificationTemplateId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting classification Template failed. Possible reasons: no such classification Template exists, or server error. Please try again or read the server log.")
+	fun getClassificationTemplate(
+		@PathVariable classificationTemplateId: String,
+	) = mono {
+		val element =
+			classificationTemplateService.getClassificationTemplate(classificationTemplateId)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting classification Template failed. Possible reasons: no such classification Template exists, or server error. Please try again or read the server log.",
+				)
 		classificationTemplateMapper.map(element)
 	}
 
 	@Operation(summary = "Get a list of classifications Templates", description = "Ids are seperated by a coma")
 	@GetMapping("/byIds/{ids}")
-	fun getClassificationTemplateByIds(@PathVariable ids: String): Flux<ClassificationTemplateDto> {
+	fun getClassificationTemplateByIds(
+		@PathVariable ids: String,
+	): Flux<ClassificationTemplateDto> {
 		val elements = classificationTemplateService.getClassificationTemplates(ids.split(','))
 		return elements.map { classificationTemplateMapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Delete classification Templates.", description = "Response is a set containing the ID's of deleted classification Templates.")
+	@Operation(
+		summary = "Delete classification Templates.",
+		description = "Response is a set containing the ID's of deleted classification Templates.",
+	)
 	@DeleteMapping("/{classificationTemplateIds}")
-	fun deleteClassificationTemplates(@PathVariable classificationTemplateIds: String): Flux<DocIdentifierDto> {
-		val ids = classificationTemplateIds.split(',').takeUnless { it.isEmpty() }
-			?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
-		return classificationTemplateService.deleteClassificationTemplates(ids)
+	fun deleteClassificationTemplates(
+		@PathVariable classificationTemplateIds: String,
+	): Flux<DocIdentifierDto> {
+		val ids =
+			classificationTemplateIds.split(',').takeUnless { it.isEmpty() }
+				?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.")
+		return classificationTemplateService
+			.deleteClassificationTemplates(ids)
 			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 			.injectReactorContext()
 	}
 
 	@Operation(summary = "Modify a classification Template", description = "Returns the modified classification Template.")
 	@PutMapping
-	fun modifyClassificationTemplate(@RequestBody classificationTemplateDto: ClassificationTemplateDto) = mono {
-		//TODO Ne modifier que le label
+	fun modifyClassificationTemplate(
+		@RequestBody classificationTemplateDto: ClassificationTemplateDto,
+	) = mono {
+		// TODO Ne modifier que le label
 		classificationTemplateService.modifyClassificationTemplate(classificationTemplateMapper.map(classificationTemplateDto))
-		val modifiedClassificationTemplate = classificationTemplateService.getClassificationTemplate(classificationTemplateDto.id)
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template modification failed")
+		val modifiedClassificationTemplate =
+			classificationTemplateService.getClassificationTemplate(classificationTemplateDto.id)
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template modification failed")
 		classificationTemplateMapper.map(modifiedClassificationTemplate)
 	}
 
@@ -93,7 +116,7 @@ class ClassificationTemplateController(
 	fun listClassificationTemplates(
 		@Parameter(description = "A label") @RequestBody(required = false) startKey: String?,
 		@Parameter(description = "An classification template document ID") @RequestBody(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestBody(required = false) limit: Int?,
 	): PaginatedFlux<ClassificationTemplateDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 

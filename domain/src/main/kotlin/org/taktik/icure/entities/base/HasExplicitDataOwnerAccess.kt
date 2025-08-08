@@ -12,19 +12,19 @@ import org.taktik.icure.entities.embed.AccessLevel
  * an entity will be able to read the encrypted data.
  */
 interface HasExplicitDataOwnerAccess {
-    /**
-     * Data owners with explicit access to the entity, and corresponding access level.
-     */
-    // Currently fine-grained permissions are not yet supported, but for new entity types with explicit data owner access which may need to
-    // support fine-grained access control in future you should consider representing it as a map { "*": AccessLevel }, as done in
-    // SecureDelegation.permissions
-    @get:JsonIgnore val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
+	/**
+	 * Data owners with explicit access to the entity, and corresponding access level.
+	 */
+	// Currently fine-grained permissions are not yet supported, but for new entity types with explicit data owner access which may need to
+	// support fine-grained access control in future you should consider representing it as a map { "*": AccessLevel }, as done in
+	// SecureDelegation.permissions
+	@get:JsonIgnore val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 }
 
 fun HasExplicitDataOwnerAccess.dataOwnerIdsWithExplicitAccessOfAtLeast(
-    accessLevel: AccessLevel
+	accessLevel: AccessLevel,
 ) = if (accessLevel == AccessLevel.READ) {
-    dataOwnersWithExplicitAccess.keys
+	dataOwnersWithExplicitAccess.keys
 } else {
-    dataOwnersWithExplicitAccess.filterValues { it == AccessLevel.WRITE }.keys
+	dataOwnersWithExplicitAccess.filterValues { it == AccessLevel.WRITE }.keys
 }

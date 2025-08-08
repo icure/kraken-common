@@ -28,7 +28,7 @@ class CodeStubDeserializer : JsonObjectDeserializer<CodeStub>() {
 			version = version,
 			context = context,
 			contextLabel = contextLabel,
-			label = label?.let { codec.treeToValue(it, Map::class.java) as Map<String, String> } ?: mapOf()
+			label = label?.let { codec.treeToValue(it, Map::class.java) as Map<String, String> } ?: mapOf(),
 		)
 		return codeStub
 	}

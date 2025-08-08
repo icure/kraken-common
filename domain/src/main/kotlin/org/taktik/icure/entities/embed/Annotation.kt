@@ -28,7 +28,7 @@ import java.util.*
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Annotation(
-	@JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
+	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) val author: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val modified: Long? = null,
@@ -37,8 +37,9 @@ data class Annotation(
 	val markdown: Map<String, String> = emptyMap(),
 	val confidential: Boolean? = null,
 	val location: String? = null,
-	val encryptedSelf: String? = null
-) : Identifiable<String>, Serializable {
+	val encryptedSelf: String? = null,
+) : Identifiable<String>,
+	Serializable {
 
 	companion object : DynamicInitializer<Annotation>
 

@@ -75,14 +75,13 @@ class CalendarItemController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
-
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
 	fun getCalendarItems(
 		@Parameter(description = "A CalendarItem document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CalendarItemDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemService
@@ -93,68 +92,83 @@ class CalendarItemController(
 
 	@Operation(summary = "Creates a calendarItem")
 	@PostMapping
-	fun createCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
-		val calendarItem = calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItem creation failed")
+	fun createCalendarItem(
+		@RequestBody calendarItemDto: CalendarItemDto,
+	) = mono {
+		val calendarItem =
+			calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItem creation failed")
 
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
 	@Operation(summary = "Deletes multiple CalendarItems")
 	@PostMapping("/delete/batch")
-	fun deleteCalendarItems(@RequestBody calendarItemIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		calendarItemService.deleteCalendarItems(
-			calendarItemIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
-	
+	fun deleteCalendarItems(
+		@RequestBody calendarItemIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = calendarItemService
+		.deleteCalendarItems(
+			calendarItemIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
+
 	@Operation(summary = "Deletes a multiple CalendarItems if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteCalendarItemsWithRev(@RequestBody calendarItemIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		calendarItemService.deleteCalendarItems(
-			calendarItemIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
-	
+	fun deleteCalendarItemsWithRev(
+		@RequestBody calendarItemIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = calendarItemService
+		.deleteCalendarItems(
+			calendarItemIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
+
 	@Operation(summary = "Deletes a CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		calendarItemService.deleteCalendarItem(calendarItemId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
 	}
-	
+
 	@PostMapping("/undelete/{calendarItemId}")
 	fun undeleteCalendarItem(
 		@PathVariable calendarItemId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<CalendarItemDto> = mono {
 		calendarItemV2Mapper.map(calendarItemService.undeleteCalendarItem(calendarItemId, rev))
 	}
-	
+
 	@DeleteMapping("/purge/{calendarItemId}")
 	fun purgeCalendarItem(
 		@PathVariable calendarItemId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
-	fun getCalendarItem(@PathVariable calendarItemId: String) = mono {
-		val calendarItem = calendarItemService.getCalendarItem(calendarItemId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItem fetching failed")
+	fun getCalendarItem(
+		@PathVariable calendarItemId: String,
+	) = mono {
+		val calendarItem =
+			calendarItemService.getCalendarItem(calendarItemId)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItem fetching failed")
 
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
 	@Operation(summary = "Modifies a calendarItem")
 	@PutMapping
-	fun modifyCalendarItem(@RequestBody calendarItemDto: CalendarItemDto) = mono {
-		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-			?: throw DocumentNotFoundException("CalendarItem modification failed")
+	fun modifyCalendarItem(
+		@RequestBody calendarItemDto: CalendarItemDto,
+	) = mono {
+		val calendarItem =
+			calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
+				?: throw DocumentNotFoundException("CalendarItem modification failed")
 
 		calendarItemV2Mapper.map(calendarItem)
 	}
@@ -164,7 +178,7 @@ class CalendarItemController(
 	fun getCalendarItemsByPeriodAndHcPartyId(
 		@RequestParam startDate: Long,
 		@RequestParam endDate: Long,
-		@RequestParam hcPartyId: String
+		@RequestParam hcPartyId: String,
 	): Flux<CalendarItemDto> {
 		if (hcPartyId.isBlank()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "hcPartyId was empty")
@@ -178,7 +192,7 @@ class CalendarItemController(
 	fun getCalendarsByPeriodAndAgendaId(
 		@RequestParam startDate: Long,
 		@RequestParam endDate: Long,
-		@RequestParam agendaId: String
+		@RequestParam agendaId: String,
 	): Flux<CalendarItemDto> {
 		if (agendaId.isBlank()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
@@ -189,7 +203,9 @@ class CalendarItemController(
 
 	@Operation(summary = "Get calendarItems by ids")
 	@PostMapping("/byIds")
-	fun getCalendarItemsWithIds(@RequestBody calendarItemIds: ListOfIdsDto): Flux<CalendarItemDto> {
+	fun getCalendarItemsWithIds(
+		@RequestBody calendarItemIds: ListOfIdsDto,
+	): Flux<CalendarItemDto> {
 		require(calendarItemIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		val calendars = calendarItemService.getCalendarItems(calendarItemIds.ids)
 		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
@@ -199,7 +215,7 @@ class CalendarItemController(
 	@GetMapping("/byHcPartySecretForeignKeys")
 	fun listCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
-		@RequestParam secretFKeys: String
+		@RequestParam secretFKeys: String,
 	): Flux<CalendarItemDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val elementList = calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
@@ -209,7 +225,10 @@ class CalendarItemController(
 
 	@Operation(summary = "Find CalendarItems by hcparty and patient")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun listCalendarItemsByHCPartyPatientForeignKeys(@RequestParam hcPartyId: String, @RequestBody secretPatientKeys: List<String>): Flux<CalendarItemDto> {
+	fun listCalendarItemsByHCPartyPatientForeignKeys(
+		@RequestParam hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	): Flux<CalendarItemDto> {
 		val elementList = calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
 
 		return elementList.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
@@ -220,7 +239,11 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestParam secretFKeys: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(
+			description =
+			"The start key for pagination: a JSON representation of an array containing all the necessary " +
+				"components to form the Complex Key's startKey",
+		) @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
 	) = mono {
@@ -237,7 +260,11 @@ class CalendarItemController(
 	fun findCalendarItemsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: JsonString?,
+		@Parameter(
+			description =
+			"The start key for pagination: a JSON representation of an array containing all the necessary " +
+				"components to form the Complex Key's startKey",
+		) @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
 	) = mono {
@@ -255,7 +282,7 @@ class CalendarItemController(
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
 		@RequestParam(required = false) descending: Boolean?,
-		@RequestBody secretPatientKeys: ListOfIdsDto
+		@RequestBody secretPatientKeys: ListOfIdsDto,
 	): Flux<String> {
 		require(secretPatientKeys.ids.isNotEmpty()) {
 			"You need to provide at least one secret patient key"
@@ -266,8 +293,8 @@ class CalendarItemController(
 				secretForeignKeys = secretPatientKeys.ids.toSet(),
 				startDate = startDate?.let { FuzzyValues.getFuzzyDateTime(it) },
 				endDate = endDate?.let { FuzzyValues.getFuzzyDateTime(it) },
-				descending = descending ?: false)
-			.injectReactorContext()
+				descending = descending ?: false,
+			).injectReactorContext()
 	}
 
 	@Operation(summary = "List calendar items stubs found by healthcare party and secret foreign keys.")
@@ -275,27 +302,29 @@ class CalendarItemController(
 	fun findCalendarItemsDelegationsStubsByHCPartyPatientForeignKeys(
 		@RequestParam hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-	): Flux<IcureStubDto> {
-		return calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
-			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
-			.injectReactorContext()
-	}
+	): Flux<IcureStubDto> = calendarItemService
+		.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
+		.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
+		.injectReactorContext()
 
 	@Operation(summary = "List calendar items stubs by ids")
 	@PostMapping("/delegations")
 	fun findCalendarItemsDelegationsStubsByIds(
 		@RequestBody calendarItemIds: ListOfIdsDto,
-	): Flux<IcureStubDto> {
-		return calendarItemService.getCalendarItems(calendarItemIds.ids)
-			.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
-			.injectReactorContext()
-	}
+	): Flux<IcureStubDto> = calendarItemService
+		.getCalendarItems(calendarItemIds.ids)
+		.map { calendarItem -> stubV2Mapper.mapToStub(calendarItem) }
+		.injectReactorContext()
 
 	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")
 	@GetMapping("/byRecurrenceId")
 	fun findCalendarItemsByRecurrenceId(
 		@RequestParam recurrenceId: String,
-		@Parameter(description = "The start key for pagination: a JSON representation of an array containing all the necessary " + "components to form the Complex Key's startKey") @RequestParam(required = false) startKey: String?,
+		@Parameter(
+			description =
+			"The start key for pagination: a JSON representation of an array containing all the necessary " +
+				"components to form the Complex Key's startKey",
+		) @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CalendarItemDto> = calendarItemService
@@ -306,29 +335,35 @@ class CalendarItemController(
 	@Operation(summary = "Get the ids of the CalendarItems matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCalendarItemsBy(
-		@RequestBody filter: AbstractFilterDto<CalendarItemDto>
-	) = calendarItemService.matchCalendarItemsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
-
+		@RequestBody filter: AbstractFilterDto<CalendarItemDto>,
+	) = calendarItemService
+		.matchCalendarItemsBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<CalendarItemDto>> = flow {
-		emitAll(calendarItemService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
+		emitAll(
+			calendarItemService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
 	@Operation(description = "Shares one or more calendar items with one or more data owners but does not return the updated entity.")
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
-		emitAll(calendarItemService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it).minimal() })
+		emitAll(
+			calendarItemService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 }

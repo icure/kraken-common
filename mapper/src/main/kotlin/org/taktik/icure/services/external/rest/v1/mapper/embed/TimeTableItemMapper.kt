@@ -14,7 +14,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.TimeTableItemDto
 @Mapper(componentModel = "spring", uses = [TimeTableHourMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 abstract class TimeTableItemMapper {
 	@Mappings(
-		Mapping(target = "reservingRights", ignore = true)
+		Mapping(target = "reservingRights", ignore = true),
 	)
 	abstract fun map(timeTableItemDto: TimeTableItemDto): TimeTableItem
 

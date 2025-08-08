@@ -26,5 +26,6 @@ data class FormContent(
 	val descr: String? = null,
 	val isAllowMultiple: Boolean = false,
 	val isDeleted: Boolean = false,
-	val items: List<IFormItem> = emptyList()
-) : FormItem(label, index, guid, tags), DisplayableContent
+	val items: List<IFormItem> = emptyList(),
+) : FormItem(label, index, guid, tags),
+	DisplayableContent

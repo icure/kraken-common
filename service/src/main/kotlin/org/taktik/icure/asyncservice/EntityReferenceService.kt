@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-
 import org.taktik.icure.entities.EntityReference
 
 interface EntityReferenceService {

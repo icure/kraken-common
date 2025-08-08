@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyGenderEducationProfession
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.utils.getLoggedHealthCarePartyId
@@ -22,14 +22,13 @@ import javax.security.auth.login.LoginException
 @Profile("app")
 class PatientByHcPartyGenderEducationProfession(
 	private val patientDAO: PatientDAO,
-	private val sessionLogic: SessionInformationProvider
+	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyGenderEducationProfession> {
-
 	override fun resolve(
-        filter: PatientByHcPartyGenderEducationProfession,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
+		filter: PatientByHcPartyGenderEducationProfession,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
 		try {
 			val hcpId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			emitAll(
@@ -39,9 +38,9 @@ class PatientByHcPartyGenderEducationProfession(
 						healthcarePartyId = key,
 						gender = filter.gender,
 						education = filter.education,
-						profession = filter.profession
+						profession = filter.profession,
 					)
-				}
+				},
 			)
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)

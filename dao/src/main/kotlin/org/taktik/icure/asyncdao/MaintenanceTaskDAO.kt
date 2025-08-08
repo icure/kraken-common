@@ -6,7 +6,7 @@ package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.embed.Identifier
 
@@ -55,6 +55,6 @@ interface MaintenanceTaskDAO : GenericDAO<MaintenanceTask> {
 	 */
 	fun findMaintenanceTasksByIds(
 		datastoreInformation: IDatastoreInformation,
-		maintenanceTasksId: Flow<String>
+		maintenanceTasksId: Flow<String>,
 	): Flow<ViewQueryResultEvent>
 }

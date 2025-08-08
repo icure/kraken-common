@@ -3,9 +3,9 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,9 +13,11 @@ data class DatabaseSynchronizationDto(
 	val source: String? = null,
 	val target: String? = null,
 	val filter: String? = null,
-	val localTarget: Target? = null
+	val localTarget: Target? = null,
 ) : Serializable {
 	enum class Target {
-		base, healthdata, patient
+		base,
+		healthdata,
+		patient,
 	}
 }

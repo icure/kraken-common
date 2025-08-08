@@ -32,5 +32,6 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DeviceByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilterDto<DeviceDto>, FilterDto.IdsFilter<String, DeviceDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<DeviceDto>,
+	FilterDto.IdsFilter<String, DeviceDto>

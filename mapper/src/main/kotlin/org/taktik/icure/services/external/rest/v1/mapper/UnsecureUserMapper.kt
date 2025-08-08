@@ -12,8 +12,8 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.services.external.rest.v1.dto.UserDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.PropertyStubMapper
-import org.taktik.icure.services.external.rest.v1.mapper.security.UnsecureAuthenticationTokenMapper
 import org.taktik.icure.services.external.rest.v1.mapper.security.PermissionMapper
+import org.taktik.icure.services.external.rest.v1.mapper.security.UnsecureAuthenticationTokenMapper
 
 @Mapper(componentModel = "spring", uses = [PermissionMapper::class, PropertyStubMapper::class, IdentifierMapper::class, UnsecureAuthenticationTokenMapper::class, UnsecureUserMapper.SystemMetadataMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface UnsecureUserMapper {

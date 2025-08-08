@@ -27,7 +27,7 @@ open class Field(
 	val labels: Map<String, *>? = null,
 	val unit: String? = null,
 	val now: Boolean? = null,
-	val translate: Boolean? = null
+	val translate: Boolean? = null,
 ) : StructureElement {
 	val type: FieldType
 		get() = FieldType.fromClass(this::class)

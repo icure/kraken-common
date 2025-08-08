@@ -18,7 +18,7 @@ abstract class RawFormTemplateV2Mapper {
 	@Mappings(
 		Mapping(target = "layout", ignore = true),
 		Mapping(target = "templateLayout", ignore = true),
-		Mapping(target = "rawTemplateLayout", expression = "kotlin(formTemplate.templateLayout ?: formTemplate.layout)")
+		Mapping(target = "rawTemplateLayout", expression = "kotlin(formTemplate.templateLayout ?: formTemplate.layout)"),
 	)
 	abstract fun map(formTemplate: FormTemplate): FormTemplateDto
 }

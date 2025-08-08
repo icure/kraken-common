@@ -31,5 +31,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class UnionFilter<O : IdentifiableDto<String>>(
 	override val desc: String? = null,
-	override val filters: List<AbstractFilterDto<O>> = emptyList()
-) : AbstractFilterDto<O>, FilterDto.UnionFilter<O>
+	override val filters: List<AbstractFilterDto<O>> = emptyList(),
+) : AbstractFilterDto<O>,
+	FilterDto.UnionFilter<O>

@@ -15,8 +15,19 @@
  *     License along with this program.  If not, see
  *     <https://www.gnu.org/licenses/>.
  */
-
 package org.taktik.icure.services.external.rest.v2.dto.base
+
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.basedOn
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.derivedFrom
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.device
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.focus
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.hasMember
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.narrower
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.parent
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.performer
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.request
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.sequence
+import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto.specimen
 
 /**
  * The qualification of a link between two concepts
@@ -38,7 +49,28 @@ package org.taktik.icure.services.external.rest.v2.dto.base
  * Favour parent over child as it is better (for conflicts) to change 5 different documents once instead of changing 5 times the same document
  */
 enum class LinkQualificationDto {
-	exact, narrower, broader, approximate, sequence, parent, child, relatedCode, linkedPackage,
-	relatedService, inResponseTo, replaces, transforms, transformsAndReplaces, appendsTo,
-	basedOn, derivedFrom, device, focus, hasMember, performer, specimen, resultInterpreter, request
+	exact,
+	narrower,
+	broader,
+	approximate,
+	sequence,
+	parent,
+	child,
+	relatedCode,
+	linkedPackage,
+	relatedService,
+	inResponseTo,
+	replaces,
+	transforms,
+	transformsAndReplaces,
+	appendsTo,
+	basedOn,
+	derivedFrom,
+	device,
+	focus,
+	hasMember,
+	performer,
+	specimen,
+	resultInterpreter,
+	request,
 }

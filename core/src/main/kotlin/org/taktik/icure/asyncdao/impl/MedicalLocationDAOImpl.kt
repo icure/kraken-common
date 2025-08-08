@@ -16,36 +16,62 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MedicalLocationDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.MedicalLocation
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.MedicalLocation' && !doc.deleted) emit( null, doc._id )}")
+@View(
+	name = "all",
+	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.MedicalLocation' && !doc.deleted) emit( null, doc._id )}",
+)
 open class MedicalLocationDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<MedicalLocation>(MedicalLocation::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), MedicalLocationDAO {
-
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<MedicalLocation>(
+	MedicalLocation::class.java,
+	couchDbDispatcher,
+	idGenerator,
+	entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider,
+	daoConfig = daoConfig,
+),
+	MedicalLocationDAO {
 	@View(name = "by_post_code", map = "classpath:js/medicallocation/By_post_code_map.js")
-	override fun byPostCode(datastoreInformation: IDatastoreInformation, postCode: String) = flow {
+	override fun byPostCode(
+		datastoreInformation: IDatastoreInformation,
+		postCode: String,
+	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, MedicalLocation>(createQuery(
-			datastoreInformation,
-			"by_post_code"
-		).includeDocs(true).key(postCode)).map { it.doc })
+		emitAll(
+			client
+				.queryViewIncludeDocs<String, String, MedicalLocation>(
+					createQuery(
+						datastoreInformation,
+						"by_post_code",
+					).includeDocs(true).key(postCode),
+				).map { it.doc },
+		)
 	}
 
-	override fun idsByPostCode(datastoreInformation: IDatastoreInformation, postCode: String): Flow<String> = flow {
+	override fun idsByPostCode(
+		datastoreInformation: IDatastoreInformation,
+		postCode: String,
+	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryView<String, String>(createQuery(
-			datastoreInformation,
-			"by_post_code"
-		).includeDocs(false).key(postCode)).map { it.id })
+		emitAll(
+			client
+				.queryView<String, String>(
+					createQuery(
+						datastoreInformation,
+						"by_post_code",
+					).includeDocs(false).key(postCode),
+				).map { it.id },
+		)
 	}
 }

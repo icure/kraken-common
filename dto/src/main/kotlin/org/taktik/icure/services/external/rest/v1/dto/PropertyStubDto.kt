@@ -15,5 +15,5 @@ data class PropertyStubDto(
 	val type: PropertyTypeStubDto? = null,
 	val typedValue: TypedValueDto? = null,
 	@Deprecated("Remove from list instead") val deletionDate: Long? = null,
-	override val encryptedSelf: String? = null
+	override val encryptedSelf: String? = null,
 ) : EncryptableDto

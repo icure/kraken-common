@@ -17,4 +17,4 @@ data class UserGroupDto(
 	val healthcarePartyId: String? = null,
 	val deviceId: String? = null,
 	val nameOfParentOfTopmostGroupInHierarchy: String? = null,
-	)
+)

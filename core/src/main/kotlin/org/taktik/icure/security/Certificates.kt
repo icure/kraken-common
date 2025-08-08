@@ -3,18 +3,6 @@
  */
 package org.taktik.icure.security
 
-import java.io.ByteArrayInputStream
-import java.io.IOException
-import java.math.BigInteger
-import java.security.KeyPair
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.cert.CertificateException
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
-import java.util.Date
-import java.util.Hashtable
-import java.util.Vector
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.BasicConstraints
@@ -31,6 +19,18 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure
 import org.taktik.icure.entities.HealthcareParty
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.math.BigInteger
+import java.security.KeyPair
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.cert.CertificateException
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import java.util.Date
+import java.util.Hashtable
+import java.util.Vector
 
 /**
  * Created by emad7105 on 13/04/2015.
@@ -40,7 +40,10 @@ object Certificates {
 	 * Creates a Master certificate for ICure.
 	 */
 	@Throws(Exception::class)
-	fun createMasterCertificateV3(publicKey: PublicKey, privateKey: PrivateKey): X509Certificate {
+	fun createMasterCertificateV3(
+		publicKey: PublicKey,
+		privateKey: PrivateKey,
+	): X509Certificate {
 		val issuer = X500Name("C=BE, O=Taktik, OU=ICureCloud, CN=ICureCloud")
 		val subject = X500Name("C=BE, O=Taktik, OU=ICureCloud, CN=ICureCloud") // self signed
 		val serial = BigInteger.valueOf(CryptoUtils.random.nextLong())
@@ -71,7 +74,7 @@ object Certificates {
 		hcparty: HealthcareParty,
 		hcPartyEmail: String,
 		icurePublicKey: PublicKey?,
-		icurePrivateKey: PrivateKey
+		icurePrivateKey: PrivateKey,
 	): X509Certificate {
 		//
 		// Signers
@@ -119,12 +122,12 @@ object Certificates {
 		x509v3CertBuilder.addExtension(
 			Extension.subjectKeyIdentifier,
 			true,
-			SubjectKeyIdentifier(hcpartyPublicKey.encoded)
+			SubjectKeyIdentifier(hcpartyPublicKey.encoded),
 		)
 		x509v3CertBuilder.addExtension(
 			Extension.authorityKeyIdentifier,
 			true,
-			AuthorityKeyIdentifierStructure(icurePublicKey)
+			AuthorityKeyIdentifierStructure(icurePublicKey),
 		)
 
 		//
@@ -146,19 +149,15 @@ object Certificates {
 	}
 
 	@Throws(Exception::class)
-	fun createMasterCertificateV3(keyPair: KeyPair): X509Certificate {
-		return createMasterCertificateV3(keyPair.public, keyPair.private)
-	}
+	fun createMasterCertificateV3(keyPair: KeyPair): X509Certificate = createMasterCertificateV3(keyPair.public, keyPair.private)
 
 	@Throws(Exception::class)
 	fun createCertificateV3(
 		hcpartyPublicKey: PublicKey,
 		hcparty: HealthcareParty,
 		hcpartyEmail: String,
-		icureKeyPair: KeyPair
-	): X509Certificate {
-		return createCertificateV3(hcpartyPublicKey, hcparty, hcpartyEmail, icureKeyPair.public, icureKeyPair.private)
-	}
+		icureKeyPair: KeyPair,
+	): X509Certificate = createCertificateV3(hcpartyPublicKey, hcparty, hcpartyEmail, icureKeyPair.public, icureKeyPair.private)
 
 	@Throws(CertificateException::class, IOException::class)
 	private fun convertToJavaCertificate(certificate: Certificate): X509Certificate {

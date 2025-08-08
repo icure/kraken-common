@@ -9,9 +9,9 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.results.BulkSaveResult
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.StoredICureDocument
 
@@ -28,20 +28,23 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	idGenerator: IDGenerator,
 	cacheChainLink: EntityCacheChainLink<T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
+	daoConfig: DaoConfig,
 ) : GenericDAOImpl<T>(entityClass, couchDbDispatcher, idGenerator, cacheChainLink, designDocumentProvider, daoConfig = daoConfig) {
-	override suspend fun save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entity: T): T? =
-		super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
+	override suspend fun save(
+		datastoreInformation: IDatastoreInformation,
+		newEntity: Boolean?,
+		entity: T,
+	): T? = super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
 
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,
-		entities: Collection<T>
-	): Flow<BulkSaveResult<T>> {
-		return super.saveBulk(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
-	}
+		entities: Collection<T>,
+	): Flow<BulkSaveResult<T>> = super.saveBulk(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 
-	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) =
-		super.unRemove(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
+	override fun unRemove(
+		datastoreInformation: IDatastoreInformation,
+		entities: Collection<T>,
+	) = super.unRemove(datastoreInformation, entities.map { it.apply { setTimestamps(this) } })
 
 	private fun setTimestamps(entity: ICureDocument<String>) {
 		val epochMillis = System.currentTimeMillis()

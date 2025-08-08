@@ -7,9 +7,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Section(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val section: String,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val fields: List<StructureElement>,
 	val description: String? = null,
 	val keywords: List<String>? = null,

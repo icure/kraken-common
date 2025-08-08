@@ -31,7 +31,7 @@ interface MeasureV2Mapper {
 
 	@Mappings(
 		Mapping(target = "min", ignore = true),
-		Mapping(target = "max", ignore = true)
+		Mapping(target = "max", ignore = true),
 	)
 	fun map(measureDto: MeasureDto): Measure
 	fun map(measure: Measure): MeasureDto

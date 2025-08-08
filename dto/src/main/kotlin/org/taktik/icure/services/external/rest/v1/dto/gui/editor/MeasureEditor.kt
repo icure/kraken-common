@@ -31,4 +31,7 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.Editor
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class MeasureEditor(override val displayValueDate: Boolean = false) : Editor(), ValueDateEditor
+class MeasureEditor(
+	override val displayValueDate: Boolean = false,
+) : Editor(),
+	ValueDateEditor

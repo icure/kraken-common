@@ -35,5 +35,5 @@ data class PatientByHcPartyGenderEducationProfession(
 	val healthcarePartyId: String? = null,
 	val gender: GenderDto? = null,
 	val education: String? = null,
-	val profession: String? = null
+	val profession: String? = null,
 ) : AbstractFilterDto<PatientDto>

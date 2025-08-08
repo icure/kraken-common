@@ -2,9 +2,9 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.Sha256HexString
-import org.taktik.icure.entities.ExchangeData
 import java.io.Serializable
 
 /**
@@ -38,63 +38,63 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecureDelegation(
-    /**
-     * Optionally the id of the delegator data owner for this [SecureDelegation]. May be null if this information must
-     * be hidden to prevent data leakages (see class documentation for more details).
-     */
-    val delegator: String? = null,
-    /**
-     * Optionally the id of the delegate data owner for this [SecureDelegation]. May be null if this information must
-     * be hidden to prevent data leakages (see class documentation for more details).
-     */
-    val delegate: String? = null,
-    /**
-     * Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
-     * `secretForeignKeys` field of children entities.
-     */
-    val secretIds: Set<Base64String> = emptySet(),
-    /**
-     * Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).
-     */
-    val encryptionKeys: Set<Base64String> = emptySet(),
-    /**
-     * Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
-     * such as the id of the patient for a contact or healthcare element.
-     */
-    val owningEntityIds: Set<Base64String> = emptySet(),
-    /**
-     * Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
-     * only [SecureDelegation] that they can directly access or any children delegations.
-     */
-    val parentDelegations: Set<Sha256HexString> = emptySet(),
-    /**
-     * If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
-     * data used for the encryption of this delegation. Otherwise, this will be null.
-     */
-    val exchangeDataId: String? = null,
-    /**
-     * Permissions of users with access to this [SecureDelegation] on the corresponding entity.
-     * The permissions only refer to the actual content of the entity and not to any metadata (excluding the `encryptedSelf`):
-     * any data owner will always be allowed to use the methods to share the with other data owners, even if these method
-     * require to modify the entity and the data owner has read-only permissions.
-     * Delegations without any parents will always have full read-write permissions.
-     *
-     * In the future we plan to implement fine-grained permissions; for this purpose we may be change this field to have
-     * a polymorphic type or we may add additional fields.
-     */
-    val permissions: AccessLevel
-): Serializable {
-    init {
-        when (listOfNotNull(delegator, delegate).size) {
-            2 -> require(!exchangeDataId.isNullOrBlank()) {
-                "If the security metadata explicitly specifies both delegator and delegate then the exchange data id should be included unencrypted.\n$this"
-            }
-            else -> require(exchangeDataId == null) {
-                "If the security metadata includes an anonymous delegator or delegate then the exchange data id should not be indicated.\n$this"
-            }
-        }
-        if (parentDelegations.isEmpty()) {
-            require(permissions == AccessLevel.WRITE) { "Top-level delegations should have full read-write permissions." }
-        }
-    }
+	/**
+	 * Optionally the id of the delegator data owner for this [SecureDelegation]. May be null if this information must
+	 * be hidden to prevent data leakages (see class documentation for more details).
+	 */
+	val delegator: String? = null,
+	/**
+	 * Optionally the id of the delegate data owner for this [SecureDelegation]. May be null if this information must
+	 * be hidden to prevent data leakages (see class documentation for more details).
+	 */
+	val delegate: String? = null,
+	/**
+	 * Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
+	 * `secretForeignKeys` field of children entities.
+	 */
+	val secretIds: Set<Base64String> = emptySet(),
+	/**
+	 * Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).
+	 */
+	val encryptionKeys: Set<Base64String> = emptySet(),
+	/**
+	 * Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
+	 * such as the id of the patient for a contact or healthcare element.
+	 */
+	val owningEntityIds: Set<Base64String> = emptySet(),
+	/**
+	 * Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
+	 * only [SecureDelegation] that they can directly access or any children delegations.
+	 */
+	val parentDelegations: Set<Sha256HexString> = emptySet(),
+	/**
+	 * If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
+	 * data used for the encryption of this delegation. Otherwise, this will be null.
+	 */
+	val exchangeDataId: String? = null,
+	/**
+	 * Permissions of users with access to this [SecureDelegation] on the corresponding entity.
+	 * The permissions only refer to the actual content of the entity and not to any metadata (excluding the `encryptedSelf`):
+	 * any data owner will always be allowed to use the methods to share the with other data owners, even if these method
+	 * require to modify the entity and the data owner has read-only permissions.
+	 * Delegations without any parents will always have full read-write permissions.
+	 *
+	 * In the future we plan to implement fine-grained permissions; for this purpose we may be change this field to have
+	 * a polymorphic type or we may add additional fields.
+	 */
+	val permissions: AccessLevel,
+) : Serializable {
+	init {
+		when (listOfNotNull(delegator, delegate).size) {
+			2 -> require(!exchangeDataId.isNullOrBlank()) {
+				"If the security metadata explicitly specifies both delegator and delegate then the exchange data id should be included unencrypted.\n$this"
+			}
+			else -> require(exchangeDataId == null) {
+				"If the security metadata includes an anonymous delegator or delegate then the exchange data id should not be indicated.\n$this"
+			}
+		}
+		if (parentDelegations.isEmpty()) {
+			require(permissions == AccessLevel.WRITE) { "Top-level delegations should have full read-write permissions." }
+		}
+	}
 }

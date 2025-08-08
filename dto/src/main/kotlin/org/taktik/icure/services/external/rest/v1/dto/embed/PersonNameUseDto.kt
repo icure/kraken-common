@@ -1,9 +1,17 @@
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
-import java.io.Serializable
 import org.taktik.icure.entities.base.EnumVersion
+import java.io.Serializable
 
+@Suppress("EnumEntryName")
 @EnumVersion(1L)
 enum class PersonNameUseDto : Serializable {
-	usual, official, temp, nickname, anonymous, maiden, old, other;
+	usual,
+	official,
+	temp,
+	nickname,
+	anonymous,
+	maiden,
+	old,
+	other,
 }

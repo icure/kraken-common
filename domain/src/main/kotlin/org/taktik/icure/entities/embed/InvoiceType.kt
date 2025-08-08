@@ -9,8 +9,8 @@ import org.taktik.icure.entities.base.EnumVersion
 enum class InvoiceType {
 	patient,
 	mutualfund,
-	payingagency, //CPAS, complementary assurances...
-	insurance, //Deprecated, see MediumType
-	efact, //Deprecated, see MediumType
-	other //Deprecated
+	payingagency, // CPAS, complementary assurances...
+	insurance, // Deprecated, see MediumType
+	efact, // Deprecated, see MediumType
+	other, // Deprecated
 }

@@ -5,7 +5,12 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
-fun isXDayweekOfMonthInRange(dayOfWeek: DayOfWeek, weekNumber: Long, start: LocalDateTime, end: LocalDateTime): Boolean {
+fun isXDayweekOfMonthInRange(
+	dayOfWeek: DayOfWeek,
+	weekNumber: Long,
+	start: LocalDateTime,
+	end: LocalDateTime,
+): Boolean {
 	val endM = end.minusDays(1)
 	return if (start.month != endM.month) {
 		getXDayweekOfMonth(dayOfWeek, weekNumber, start).let { it.isEqual(start) || it.isAfter(start) } &&
@@ -18,8 +23,17 @@ fun isXDayweekOfMonthInRange(dayOfWeek: DayOfWeek, weekNumber: Long, start: Loca
 	}
 }
 
-fun getXDayweekOfMonth(dayOfWeek: DayOfWeek, weekNumber: Long, date: LocalDateTime): LocalDateTime {
-	var firstOfMonth = date.withDayOfMonth(1).withHour(0).withSecond(0).withNano(0)
+fun getXDayweekOfMonth(
+	dayOfWeek: DayOfWeek,
+	weekNumber: Long,
+	date: LocalDateTime,
+): LocalDateTime {
+	var firstOfMonth =
+		date
+			.withDayOfMonth(1)
+			.withHour(0)
+			.withSecond(0)
+			.withNano(0)
 	while (firstOfMonth.dayOfWeek != dayOfWeek) {
 		firstOfMonth = firstOfMonth.plusDays(1)
 	}
@@ -28,7 +42,9 @@ fun getXDayweekOfMonth(dayOfWeek: DayOfWeek, weekNumber: Long, date: LocalDateTi
 
 @Deprecated("Is using deprecated fuzzy values")
 fun Long.toEpochMillisecond() = FuzzyValues.getDateTime(this)!!.atZone(ZoneId.systemDefault()).toEpochSecond() * 1000
+
 @Deprecated("Is using deprecated fuzzy values")
 fun Long.toLocalDateTime() = FuzzyValues.getDateTime(this)
+
 @Deprecated("Is using deprecated fuzzy values")
 fun LocalDateTime.toFuzzyLong() = FuzzyValues.getFuzzyDateTime(this, ChronoUnit.SECONDS)

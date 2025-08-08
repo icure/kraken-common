@@ -18,5 +18,5 @@ data class CodeByRegionTypesLanguageLabelVersionFilters(
 	val language: String,
 	val label: String,
 	val version: String? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<CodeDto>

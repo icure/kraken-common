@@ -7,7 +7,7 @@ package org.taktik.icure.asyncdao
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.CalendarItem
@@ -55,7 +55,7 @@ interface ContactDAO : GenericDAO<Contact> {
 		hcPartyId: String,
 		startOpeningDate: Long?,
 		endOpeningDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 	fun findContactsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
 	fun findContactsByIds(datastoreInformation: IDatastoreInformation, contactIds: Flow<String>): Flow<ViewQueryResultEvent>
@@ -195,7 +195,7 @@ interface ContactDAO : GenericDAO<Contact> {
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
 		codeType: String,
-		codeCode: String?
+		codeCode: String?,
 	): Flow<String>
 
 	// endregion
@@ -377,7 +377,7 @@ interface ContactDAO : GenericDAO<Contact> {
 		patientSecretForeignKeys: List<String>,
 		startDate: Long?,
 		endDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 	// endregion
 }

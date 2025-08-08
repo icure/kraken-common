@@ -18,7 +18,7 @@ interface PlaceMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(placeDto: PlaceDto): Place
 	fun map(place: Place): PlaceDto

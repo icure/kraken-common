@@ -17,4 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-class AuthenticationResponse(var healthcarePartyId: String? = null, var reason: String? = null, var successful: Boolean = false, var username: String? = null)
+class AuthenticationResponse(
+	var healthcarePartyId: String? = null,
+	var reason: String? = null,
+	var successful: Boolean = false,
+	var username: String? = null,
+)

@@ -4,9 +4,9 @@
 
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,5 +15,6 @@ data class CareTeamMembership(
 	val endDate: Long? = null,
 	val careTeamMemberId: String? = null,
 	val membershipType: MembershipType? = null,
-	override val encryptedSelf: String? = null
-) : Encryptable, Serializable
+	override val encryptedSelf: String? = null,
+) : Encryptable,
+	Serializable

@@ -7,18 +7,18 @@ import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
 object IcureDomainObjectMapper {
-    /**
-     * Get a new instance of object mapper with appropriate configuration for the serialization and deserialization of
-     * iCure entities.
-     */
-    fun new() = ObjectMapper().registerModule(
-        KotlinModule.Builder()
-            .configure(KotlinFeature.NullIsSameAsDefault, true)
-            .configure(KotlinFeature.NullToEmptyMap, true)
-            .configure(KotlinFeature.NullToEmptyCollection, true)
-            .build()
-    ).apply {
-        setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
-    }
+	/**
+	 * Get a new instance of object mapper with appropriate configuration for the serialization and deserialization of
+	 * iCure entities.
+	 */
+	fun new() = ObjectMapper().registerModule(
+		KotlinModule.Builder()
+			.configure(KotlinFeature.NullIsSameAsDefault, true)
+			.configure(KotlinFeature.NullToEmptyMap, true)
+			.configure(KotlinFeature.NullToEmptyCollection, true)
+			.build(),
+	).apply {
+		setSerializationInclusion(JsonInclude.Include.NON_NULL)
+		configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
+	}
 }

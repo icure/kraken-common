@@ -34,5 +34,5 @@ data class PatientByHcPartyAndAddressFilter(
 	val searchString: String? = null,
 	val healthcarePartyId: String? = null,
 	val postalCode: String? = null,
-	val houseNumber: String? = null
+	val houseNumber: String? = null,
 ) : AbstractFilterDto<PatientDto>

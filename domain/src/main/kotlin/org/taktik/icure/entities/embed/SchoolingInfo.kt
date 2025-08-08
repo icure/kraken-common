@@ -4,10 +4,10 @@
 
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.base.CodeStub
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,5 +16,6 @@ data class SchoolingInfo(
 	val endDate: Long? = null,
 	val school: String? = null,
 	val typeOfEducation: CodeStub? = null,
-	override val encryptedSelf: String?
-) : Serializable, Encryptable
+	override val encryptedSelf: String?,
+) : Serializable,
+	Encryptable

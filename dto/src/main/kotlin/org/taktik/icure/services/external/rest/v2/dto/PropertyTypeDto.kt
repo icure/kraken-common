@@ -26,17 +26,20 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PropertyTypeDto(
-    override val id: String,
-    override val rev: String? = null,
-    override val deletionDate: Long? = null,
-
-    val identifier: String,
-    val type: TypedValuesTypeDto? = null,
-    val scope: PropertyTypeScopeDto? = null,
-    val unique: Boolean = false,
-    val editor: String? = null,
-    val localized: Boolean = false
+	override val id: String,
+	override val rev: String? = null,
+	override val deletionDate: Long? = null,
+	val identifier: String,
+	val type: TypedValuesTypeDto? = null,
+	val scope: PropertyTypeScopeDto? = null,
+	val unique: Boolean = false,
+	val editor: String? = null,
+	val localized: Boolean = false,
 ) : StoredDocumentDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

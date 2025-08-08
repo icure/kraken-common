@@ -9,20 +9,19 @@ data class ContactByDataOwnerServiceCodeFilter(
 	override val dataOwnerId: String,
 	override val codeType: String,
 	override val codeCode: String?,
-	override val desc: String? = null
-) : AbstractFilter<Contact>, ContactByDataOwnerServiceCodeFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Contact>,
+	ContactByDataOwnerServiceCodeFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) =
-		searchKeyMatcher(dataOwnerId, item)
-			&& item.services.isNotEmpty()
-			&& item.services.any { service ->
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchKeyMatcher(dataOwnerId, item) &&
+		item.services.isNotEmpty() &&
+		item.services.any { service ->
 			service.codes.any {
 				it.type == codeType && (codeCode == null || it.code == codeCode)
 			}
 		}
-
 }

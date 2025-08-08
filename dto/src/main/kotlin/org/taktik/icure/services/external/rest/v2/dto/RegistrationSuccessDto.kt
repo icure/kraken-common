@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RegistrationSuccessDto(
-	@Schema(required = true) val groupId: String,
-	@Schema(required = true) val userId: String,
-	@Schema(required = true) val token: String
+	@get:Schema(required = true) val groupId: String,
+	@get:Schema(required = true) val userId: String,
+	@get:Schema(required = true) val token: String,
 )

@@ -8,5 +8,6 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class InvoiceInterventionType {
-	total, userfees
+	total,
+	userfees,
 }

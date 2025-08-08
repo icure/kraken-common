@@ -21,19 +21,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthElement
 
 @Service
 @Profile("app")
-class HealthElementByIdsFilter :
-    Filter<String, HealthElement, org.taktik.icure.domain.filter.Filters.IdsFilter<String, HealthElement>> {
+class HealthElementByIdsFilter : Filter<String, HealthElement, org.taktik.icure.domain.filter.Filters.IdsFilter<String, HealthElement>> {
 	override fun resolve(
-        filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, HealthElement>,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ): Flow<String> = filter.ids.asFlow()
-
+		filter: org.taktik.icure.domain.filter.Filters.IdsFilter<String, HealthElement>,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	): Flow<String> = filter.ids.asFlow()
 }

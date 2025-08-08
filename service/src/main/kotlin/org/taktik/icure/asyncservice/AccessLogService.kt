@@ -24,7 +24,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 
 	/**
 	 * Marks a batch of entities as deleted.
-     * The data of the entities is preserved, but they won't appear in most queries.
+	 * The data of the entities is preserved, but they won't appear in most queries.
 	 * Ignores entities that:
 	 * - don't exist
 	 * - the user can't delete due to limited lack of write access
@@ -37,10 +37,10 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 
 	/**
 	 * Marks an entity as deleted.
-     * The data of the entity is preserved, but the entity won't appear in most queries.
+	 * The data of the entity is preserved, but the entity won't appear in most queries.
 	 *
 	 * @param id the id of the entity to delete.
-     * @param rev the rev of the entity to delete.
+	 * @param rev the rev of the entity to delete.
 	 * @return the deleted [AccessLog].
 	 * @throws AccessDeniedException if the current user doesn't have the permission to delete the entity.
 	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
@@ -50,23 +50,23 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 
 	/**
 	 * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeAccessLog(id: String, rev: String): DocIdentifier
 
 	/**
 	 * Restores an entity marked as deleted.
 	 * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
 	 */
 	suspend fun undeleteAccessLog(id: String, rev: String): AccessLog
 

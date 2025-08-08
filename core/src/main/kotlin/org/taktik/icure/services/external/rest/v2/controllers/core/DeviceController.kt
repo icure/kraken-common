@@ -58,7 +58,7 @@ class DeviceController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
 ) {
 	companion object {
 		private val log = LoggerFactory.getLogger(DeviceController::class.java)
@@ -66,52 +66,77 @@ class DeviceController(
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
 	@GetMapping("/{deviceId}")
-	fun getDevice(@PathVariable deviceId: String) = mono {
+	fun getDevice(
+		@PathVariable deviceId: String,
+	) = mono {
 		deviceService.getDevice(deviceId)?.let(deviceV2Mapper::map)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.")
+			?: throw ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
+			)
 	}
 
 	@Operation(summary = "Get devices by id", description = "It gets device administrative data.")
 	@PostMapping("/byIds")
-	fun getDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DeviceDto> =
-		deviceService.getDevices(deviceIds.ids)
-			.map { deviceV2Mapper.map(it) }
-			.injectReactorContext()
+	fun getDevices(
+		@RequestBody deviceIds: ListOfIdsDto,
+	): Flux<DeviceDto> = deviceService
+		.getDevices(deviceIds.ids)
+		.map { deviceV2Mapper.map(it) }
+		.injectReactorContext()
 
-	@Operation(summary = "Create a device", description = "Name, last name, date of birth, and gender are required. After creation of the device and obtaining the ID, you need to create an initial delegation.")
+	@Operation(
+		summary = "Create a device",
+		description = "Name, last name, date of birth, and gender are required. After creation of the device and obtaining the ID, you need to create an initial delegation.",
+	)
 	@PostMapping
-	fun createDevice(@RequestBody p: DeviceDto) = mono {
+	fun createDevice(
+		@RequestBody p: DeviceDto,
+	) = mono {
 		deviceService.createDevice(deviceV2Mapper.map(p))?.let(deviceV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device creation failed.")
 	}
 
 	@Operation(summary = "Modify a device", description = "Returns the updated device")
 	@PutMapping
-	fun updateDevice(@RequestBody deviceDto: DeviceDto) = mono {
+	fun updateDevice(
+		@RequestBody deviceDto: DeviceDto,
+	) = mono {
 		deviceService.modifyDevice(deviceV2Mapper.map(deviceDto))?.let(deviceV2Mapper::map)
-			?: throw DocumentNotFoundException("Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.").also { log.error(it.message) }
+			?: throw DocumentNotFoundException(
+				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
+			).also {
+				log.error(it.message)
+			}
 	}
 
 	@Operation(summary = "Create devices in bulk", description = "Returns the id and _rev of created devices")
 	@PostMapping("/bulk", "/batch")
-	fun createDevices(@RequestBody deviceDtos: List<DeviceDto>) = mono {
+	fun createDevices(
+		@RequestBody deviceDtos: List<DeviceDto>,
+	) = mono {
 		val devices = deviceService.createDevices(deviceDtos.map(deviceV2Mapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
 
 	@Operation(summary = "Modify devices in bulk", description = "Returns the id and _rev of modified devices")
 	@PutMapping("/bulk", "/batch")
-	fun updateDevices(@RequestBody deviceDtos: List<DeviceDto>) = mono {
+	fun updateDevices(
+		@RequestBody deviceDtos: List<DeviceDto>,
+	) = mono {
 		val devices = deviceService.modifyDevices(deviceDtos.map(deviceV2Mapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
 
-	@Operation(summary = "Filter devices for the current user (HcParty) ", description = "Returns a list of devices along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter devices for the current user (HcParty) ",
+		description = "Returns a list of devices along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterDevicesBy(
 		@Parameter(description = "A device document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<DeviceDto>
+		@RequestBody filterChain: FilterChain<DeviceDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
@@ -122,11 +147,11 @@ class DeviceController(
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
-		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
+		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)",
 	)
 	@GetMapping("/{deviceId}/aesExchangeKeys")
 	fun getDeviceAesExchangeKeysForDelegate(
-		@PathVariable deviceId: String
+		@PathVariable deviceId: String,
 	): Mono<Map<String, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>> = mono {
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
@@ -134,31 +159,37 @@ class DeviceController(
 	@Operation(summary = "Get the ids of the Devices matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDevicesBy(
-		@RequestBody filter: AbstractFilterDto<DeviceDto>
-	) = deviceService.matchDevicesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
-
+		@RequestBody filter: AbstractFilterDto<DeviceDto>,
+	) = deviceService
+		.matchDevicesBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Devices")
 	@PostMapping("/delete/batch")
-	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		deviceService.deleteDevices(
-			deviceIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteDevices(
+		@RequestBody deviceIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = deviceService
+		.deleteDevices(
+			deviceIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple Devices if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteDevicesWithRev(@RequestBody deviceIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		deviceService.deleteDevices(
-			deviceIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteDevicesWithRev(
+		@RequestBody deviceIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = deviceService
+		.deleteDevices(
+			deviceIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an Device")
 	@DeleteMapping("/{deviceId}")
 	fun deleteDevice(
 		@PathVariable deviceId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		deviceService.deleteDevice(deviceId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -168,7 +199,7 @@ class DeviceController(
 	@PostMapping("/undelete/{deviceId}")
 	fun undeleteDevice(
 		@PathVariable deviceId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DeviceDto> = mono {
 		deviceV2Mapper.map(deviceService.undeleteDevice(deviceId, rev))
 	}
@@ -176,7 +207,7 @@ class DeviceController(
 	@DeleteMapping("/purge/{deviceId}")
 	fun purgeDevice(
 		@PathVariable deviceId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		deviceService.purgeDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}

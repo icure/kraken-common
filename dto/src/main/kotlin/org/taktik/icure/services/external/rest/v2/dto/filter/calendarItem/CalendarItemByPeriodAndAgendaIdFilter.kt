@@ -17,5 +17,5 @@ data class CalendarItemByPeriodAndAgendaIdFilter(
 	val startTime: Long,
 	val endTime: Long,
 	val descending: Boolean? = null,
-	override val desc: String? = null
-): AbstractFilterDto<CalendarItemDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<CalendarItemDto>

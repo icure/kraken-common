@@ -34,7 +34,7 @@ interface DeviceMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(deviceDto: DeviceDto): Device
 	fun map(device: Device): DeviceDto

@@ -24,13 +24,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthElementByHcPartyFilter(
 	override val hcpId: String,
-	override val desc: String? = null
-) : AbstractFilter<HealthElement>, Filters.ByHcpartyFilter<String, HealthElement> {
+	override val desc: String? = null,
+) : AbstractFilter<HealthElement>,
+	Filters.ByHcpartyFilter<String, HealthElement> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)
 
 	override fun matches(item: HealthElement, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean) = searchKeyMatcher(hcpId, item)
-
 }

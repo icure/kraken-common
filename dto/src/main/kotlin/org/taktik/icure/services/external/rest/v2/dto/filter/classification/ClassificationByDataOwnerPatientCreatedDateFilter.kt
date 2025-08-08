@@ -18,5 +18,5 @@ data class ClassificationByDataOwnerPatientCreatedDateFilter(
 	val endDate: Long?,
 	val secretForeignKeys: Set<String>,
 	val descending: Boolean?,
-	override val desc: String? = null
-): AbstractFilterDto<ClassificationDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<ClassificationDto>

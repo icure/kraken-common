@@ -13,4 +13,4 @@ import java.io.Serializable
 data class AnonymousMedicalLocationDto(
 	val id: String,
 	val publicInformations: Map<String, String> = emptyMap(),
-): Serializable
+) : Serializable

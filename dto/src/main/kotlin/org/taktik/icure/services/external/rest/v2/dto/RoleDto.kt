@@ -30,11 +30,17 @@ data class RoleDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-
 	override val name: String? = null,
 	val permissions: Set<String> = emptySet(),
-) : StoredDocumentDto, PrincipalDto, Cloneable, Serializable {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+) : StoredDocumentDto,
+	PrincipalDto,
+	Cloneable,
+	Serializable {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
 	@get:JsonIgnore

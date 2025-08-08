@@ -27,20 +27,24 @@ import org.taktik.icure.services.external.rest.v2.mapper.EntityReferenceV2Mapper
 @Tag(name = "entityref")
 class EntityReferenceController(
 	private val entityReferenceService: EntityReferenceService,
-	private val entityReferenceV2Mapper: EntityReferenceV2Mapper
+	private val entityReferenceV2Mapper: EntityReferenceV2Mapper,
 ) {
-
 	@Operation(summary = "Find latest reference for a prefix ")
 	@GetMapping("/latest/{prefix}")
-	fun getLatest(@PathVariable prefix: String) = mono {
+	fun getLatest(
+		@PathVariable prefix: String,
+	) = mono {
 		entityReferenceService.getLatest(prefix)?.let { entityReferenceV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to fetch Entity Reference")
 	}
 
 	@Operation(summary = "Create an entity reference")
 	@PostMapping
-	fun createEntityReference(@RequestBody er: EntityReferenceDto) = mono {
+	fun createEntityReference(
+		@RequestBody er: EntityReferenceDto,
+	) = mono {
 		val created = entityReferenceService.createEntityReferences(listOf(entityReferenceV2Mapper.map(er)))
-		created.firstOrNull()?.let { entityReferenceV2Mapper.map(it) } ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Entity reference creation failed.")
+		created.firstOrNull()?.let { entityReferenceV2Mapper.map(it) }
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Entity reference creation failed.")
 	}
 }

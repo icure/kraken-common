@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
@@ -50,7 +50,7 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	fun listInvoicesByHcPartyAndGroupId(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
-		inputGroupId: String
+		inputGroupId: String,
 	): Flow<Invoice>
 
 	/**

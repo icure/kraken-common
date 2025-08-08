@@ -12,17 +12,17 @@ data class MessageByDataOwnerTransportGuidSentDateFilter(
 	override val fromDate: Instant?,
 	override val toDate: Instant?,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<Message>, MessageByDataOwnerTransportGuidSentDateFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Message>,
+	MessageByDataOwnerTransportGuidSentDateFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item)
-			&& (item.transportGuid != null && item.transportGuid.startsWith(transportGuid))
-			&& item.sent != null
-			&& (fromDate == null || item.sent >= fromDate.toEpochMilli())
-			&& (toDate == null || item.sent <= toDate.toEpochMilli())
+	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) &&
+		(item.transportGuid != null && item.transportGuid.startsWith(transportGuid)) &&
+		item.sent != null &&
+		(fromDate == null || item.sent >= fromDate.toEpochMilli()) &&
+		(toDate == null || item.sent <= toDate.toEpochMilli())
 }

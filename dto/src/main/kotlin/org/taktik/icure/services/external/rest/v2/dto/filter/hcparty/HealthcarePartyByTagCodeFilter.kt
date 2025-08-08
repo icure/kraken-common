@@ -17,5 +17,5 @@ data class HealthcarePartyByTagCodeFilter(
 	val tagCode: String? = null,
 	val codeType: String? = null,
 	val codeCode: String? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

@@ -22,5 +22,9 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 </T> */
 interface VersionableDto<T> : IdentifiableDto<T> {
 	val rev: String?
-	fun withIdRev(id: T?, rev: String): VersionableDto<T>
+
+	fun withIdRev(
+		id: T?,
+		rev: String,
+	): VersionableDto<T>
 }

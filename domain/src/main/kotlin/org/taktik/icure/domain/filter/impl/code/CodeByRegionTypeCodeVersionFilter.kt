@@ -11,8 +11,9 @@ data class CodeByRegionTypeCodeVersionFilter(
 	override val type: String?,
 	override val code: String?,
 	override val version: String?,
-	override val desc: String?
-) : AbstractFilter<Code>, CodeByRegionTypeCodeVersionFilter {
+	override val desc: String?,
+) : AbstractFilter<Code>,
+	CodeByRegionTypeCodeVersionFilter {
 
 	override val canBeUsedInWebsocket = version != LATEST_VERSION
 	override val requiresSecurityPrecondition: Boolean = false
@@ -22,10 +23,9 @@ data class CodeByRegionTypeCodeVersionFilter(
 		if (version == LATEST_VERSION) {
 			throw UnsupportedOperationException("This filter with version == $LATEST_VERSION not support the matches operation.")
 		}
-		return item.regions.contains(region)
-			&& (type == null || item.type == type)
-			&& (code == null || item.code == code)
-			&& (version == null || item.version == version)
+		return item.regions.contains(region) &&
+			(type == null || item.type == type) &&
+			(code == null || item.code == code) &&
+			(version == null || item.version == version)
 	}
-
 }

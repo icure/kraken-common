@@ -11,5 +11,5 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecurityDto(
 	val admins: RightDto = RightDto(),
-	val members: RightDto = RightDto()
+	val members: RightDto = RightDto(),
 ) : Serializable

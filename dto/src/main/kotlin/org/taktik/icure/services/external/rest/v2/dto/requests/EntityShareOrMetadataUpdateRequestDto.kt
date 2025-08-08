@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = false)
 data class EntityShareOrMetadataUpdateRequestDto(
-    val share: EntityShareRequestDto? = null,
-    val update: EntitySharedMetadataUpdateRequestDto? = null,
+	val share: EntityShareRequestDto? = null,
+	val update: EntitySharedMetadataUpdateRequestDto? = null,
 )

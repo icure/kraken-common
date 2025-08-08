@@ -7,5 +7,7 @@ import org.taktik.icure.entities.base.EnumVersion
 
 @EnumVersion(1L)
 enum class PartnershipStatus {
-	active, complicated, past
+	active,
+	complicated,
+	past,
 }

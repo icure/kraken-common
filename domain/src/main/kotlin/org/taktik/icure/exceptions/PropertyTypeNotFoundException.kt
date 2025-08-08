@@ -4,7 +4,7 @@
 package org.taktik.icure.exceptions
 
 class PropertyTypeNotFoundException : ICureException {
-    constructor() : super()
-    constructor(message: String?) : super(message)
-    constructor(message: String?, t: Throwable?) : super(message, t)
+	constructor() : super()
+	constructor(message: String?) : super(message)
+	constructor(message: String?, t: Throwable?) : super(message, t)
 }

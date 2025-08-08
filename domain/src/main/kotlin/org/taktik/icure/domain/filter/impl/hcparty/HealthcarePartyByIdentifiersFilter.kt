@@ -25,14 +25,13 @@ import org.taktik.icure.entities.embed.Identifier
 
 data class HealthcarePartyByIdentifiersFilter(
 	override val identifiers: List<Identifier>,
-	override val desc: String? = null
-) : AbstractFilter<HealthcareParty>, HealthcarePartyByIdentifiersFilter {
+	override val desc: String? = null,
+) : AbstractFilter<HealthcareParty>,
+	HealthcarePartyByIdentifiersFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return item.deletionDate == null && identifiers.any { searchIdentifier -> item.identifier.any { it.system == searchIdentifier.system && it.value == searchIdentifier.value } }
-	}
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.deletionDate == null && identifiers.any { searchIdentifier -> item.identifier.any { it.system == searchIdentifier.system && it.value == searchIdentifier.value } }
 }

@@ -6,23 +6,26 @@ package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.User
 
 interface UserDAO : GenericDAO<User> {
 	fun listUserIdsByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String): Flow<String>
 	fun listUsersByUsername(datastoreInformation: IDatastoreInformation, username: String): Flow<User>
+
 	/**
 	 * @return all items from [usernames] that appear in at least a [User.login].
 	 */
 	fun findUsedUsernames(datastoreInformation: IDatastoreInformation, usernames: Collection<String>): Flow<String>
 	fun listUsersByEmail(datastoreInformation: IDatastoreInformation, searchString: String): Flow<User>
+
 	/**
 	 * @return all items from [emails] that appear in at least a [User.email]
 	 */
 	fun findUsedEmails(datastoreInformation: IDatastoreInformation, emails: Collection<String>): Flow<String>
 	fun listUsersByPhone(datastoreInformation: IDatastoreInformation, phone: String): Flow<User>
+
 	/**
 	 * @return all items from [phones] that appear normalized in at least a [User.mobilePhone]
 	 */

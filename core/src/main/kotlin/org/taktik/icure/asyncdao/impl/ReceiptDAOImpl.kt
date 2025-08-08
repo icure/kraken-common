@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import java.nio.ByteBuffer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -19,12 +18,13 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ReceiptDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Receipt
+import java.nio.ByteBuffer
 
 @Repository("receiptDAO")
 @Profile("app")
@@ -34,8 +34,9 @@ class ReceiptDAOImpl(
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericIcureDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), ReceiptDAO {
+	daoConfig: DaoConfig,
+) : GenericIcureDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+	ReceiptDAO {
 
 	@View(name = "by_reference", map = "classpath:js/receipt/By_ref.js")
 	override fun listByReference(datastoreInformation: IDatastoreInformation, ref: String) = flow {

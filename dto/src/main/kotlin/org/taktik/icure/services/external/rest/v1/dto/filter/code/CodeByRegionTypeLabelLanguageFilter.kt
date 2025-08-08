@@ -21,5 +21,5 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	val region: String? = null,
 	val type: String,
 	val language: String,
-	val label: String? = null
+	val label: String? = null,
 ) : AbstractFilterDto<CodeDto>

@@ -20,9 +20,9 @@ import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -31,9 +31,9 @@ import org.taktik.icure.validation.aspect.Fixer
 abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	fixer: Fixer,
 	private val datastoreInstanceProvider: DatastoreInstanceProvider,
-	protected val filters: Filters
-) : AutoFixableLogic<E>(fixer), EntityPersister<E> {
-
+	protected val filters: Filters,
+) : AutoFixableLogic<E>(fixer),
+	EntityPersister<E> {
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
 	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
@@ -41,65 +41,81 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
-		emitAll(getGenericDAO()
-			.saveBulk(
-				datastoreInformation = getInstanceAndGroup(),
-				entities = entities.map { fix(it, isCreate = false) }
-			).filterSuccessfulUpdates()
+		emitAll(
+			getGenericDAO()
+				.saveBulk(
+					datastoreInformation = getInstanceAndGroup(),
+					entities = entities.map { fix(it, isCreate = false) },
+				).filterSuccessfulUpdates(),
 		)
 	}
 
-	protected suspend fun getEntitiesWithExpectedRev(identifiers: Collection<IdAndRev>): List<E> {
-		return getGenericDAO().getEntitiesWithExpectedRev(
-			getInstanceAndGroup(),
-			identifiers
-		)
-	}
+	protected suspend fun getEntitiesWithExpectedRev(identifiers: Collection<IdAndRev>): List<E> = getGenericDAO().getEntitiesWithExpectedRev(
+		getInstanceAndGroup(),
+		identifiers,
+	)
 
 	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
 		emitAll(
 			getGenericDAO()
 				.remove(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
-				.mapNotNull { it.entityOrNull() }
+				.mapNotNull { it.entityOrNull() },
 		)
 	}
 
-	protected suspend fun getEntityWithExpectedRev(id: String, rev: String?): E {
-		return getGenericDAO().getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
-	}
+	protected suspend fun getEntityWithExpectedRev(
+		id: String,
+		rev: String?,
+	): E = getGenericDAO().getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
 
-	override suspend fun undeleteEntity(id: String, rev: String?): E =
-		checkNotNull(getGenericDAO().unRemove(
-			getInstanceAndGroup(),
-			listOf(getEntityWithExpectedRev(id, rev))
-		).singleOrNull()) {
-			"Too many update result from undelete"
-		}.entityOrThrow()
+	override suspend fun undeleteEntity(
+		id: String,
+		rev: String?,
+	): E = checkNotNull(
+		getGenericDAO()
+			.unRemove(
+				getInstanceAndGroup(),
+				listOf(getEntityWithExpectedRev(id, rev)),
+			).singleOrNull(),
+	) {
+		"Too many update result from undelete"
+	}.entityOrThrow()
 
 	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
 		emitAll(
-			getGenericDAO().unRemove(
-				getInstanceAndGroup(),
-				getEntitiesWithExpectedRev(identifiers)
-			).mapNotNull { it.entityOrNull() }
+			getGenericDAO()
+				.unRemove(
+					getInstanceAndGroup(),
+					getEntitiesWithExpectedRev(identifiers),
+				).mapNotNull { it.entityOrNull() },
 		)
 	}
 
-	override suspend fun deleteEntity(id: String, rev: String?): E =
-		checkNotNull(getGenericDAO().remove(
-			getInstanceAndGroup(),
-			listOf(getEntityWithExpectedRev(id, rev))
-		).singleOrNull()) {
-			"Too many update result from delete"
-		}.entityOrThrow()
+	override suspend fun deleteEntity(
+		id: String,
+		rev: String?,
+	): E = checkNotNull(
+		getGenericDAO()
+			.remove(
+				getInstanceAndGroup(),
+				listOf(getEntityWithExpectedRev(id, rev)),
+			).singleOrNull(),
+	) {
+		"Too many update result from delete"
+	}.entityOrThrow()
 
-	override suspend fun purgeEntity(id: String, rev: String): DocIdentifier =
-		checkNotNull(getGenericDAO().purge(
-			getInstanceAndGroup(),
-			listOf(getEntityWithExpectedRev(id, rev))
-		).singleOrNull()) {
-			"Too many update result from purge"
-		}.entityOrThrow()
+	override suspend fun purgeEntity(
+		id: String,
+		rev: String,
+	): DocIdentifier = checkNotNull(
+		getGenericDAO()
+			.purge(
+				getInstanceAndGroup(),
+				listOf(getEntityWithExpectedRev(id, rev)),
+			).singleOrNull(),
+	) {
+		"Too many update result from purge"
+	}.entityOrThrow()
 
 	override fun getEntities(identifiers: Collection<String>): Flow<E> = flow {
 		emitAll(getGenericDAO().getEntities(getInstanceAndGroup(), identifiers))
@@ -113,17 +129,11 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		emitAll(getGenericDAO().getEntityIds(getInstanceAndGroup()))
 	}
 
-	override suspend fun hasEntities(): Boolean {
-		return getGenericDAO().hasAny(getInstanceAndGroup())
-	}
+	override suspend fun hasEntities(): Boolean = getGenericDAO().hasAny(getInstanceAndGroup())
 
-	override suspend fun exists(id: String): Boolean {
-		return getGenericDAO().contains(getInstanceAndGroup(), id)
-	}
+	override suspend fun exists(id: String): Boolean = getGenericDAO().contains(getInstanceAndGroup(), id)
 
-	override suspend fun getEntity(id: String): E? {
-		return getGenericDAO().get(getInstanceAndGroup(), id)
-	}
+	override suspend fun getEntity(id: String): E? = getGenericDAO().get(getInstanceAndGroup(), id)
 
 	override fun getEntities(identifiers: Flow<String>): Flow<E> = flow {
 		emitAll(getGenericDAO().getEntities(getInstanceAndGroup(), identifiers))
@@ -131,7 +141,6 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 
 	override fun createEntities(entities: Flow<E>): Flow<E> = flow {
 		emitAll(this@GenericLogicImpl.createEntities(entities.toList()))
-
 	}
 
 	override fun modifyEntities(entities: Flow<E>): Flow<E> = flow {

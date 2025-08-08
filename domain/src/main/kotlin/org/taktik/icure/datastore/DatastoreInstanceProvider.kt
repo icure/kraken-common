@@ -1,4 +1,4 @@
-package org.taktik.icure.asynclogic.datastore
+package org.taktik.icure.datastore
 
 interface DatastoreInstanceProvider {
 	suspend fun getInstanceAndGroup(): IDatastoreInformation

@@ -11,23 +11,23 @@ import org.taktik.icure.entities.embed.SecurityMetadata
  * owners, but they can never give an access level higher than their own.
  */
 interface HasSecureDelegationsAccessControl : HasExplicitDataOwnerAccess {
-    /**
-     * Security metadata for the entity, contains metadata necessary for access control.
-     * In [HasEncryptionMetadata] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
-     * [HasEncryptionMetadata.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
-     * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
-     */
-    val securityMetadata: SecurityMetadata?
+	/**
+	 * Security metadata for the entity, contains metadata necessary for access control.
+	 * In [HasEncryptionMetadata] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
+	 * [HasEncryptionMetadata.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
+	 * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
+	 */
+	val securityMetadata: SecurityMetadata?
 
-    override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() =
-        securityMetadata?.secureDelegations?.values
-            ?.flatMap { delegation ->
-                listOfNotNull(
-                    delegation.delegate?.let { it to delegation.permissions },
-                    delegation.delegator?.let { it to delegation.permissions }
-                )
-            }
-            ?.groupBy { it.first }
-            ?.mapValues { (_, v) -> if (v.any { it.second == AccessLevel.WRITE }) AccessLevel.WRITE else AccessLevel.READ }
-            ?: emptyMap()
+	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() =
+		securityMetadata?.secureDelegations?.values
+			?.flatMap { delegation ->
+				listOfNotNull(
+					delegation.delegate?.let { it to delegation.permissions },
+					delegation.delegator?.let { it to delegation.permissions },
+				)
+			}
+			?.groupBy { it.first }
+			?.mapValues { (_, v) -> if (v.any { it.second == AccessLevel.WRITE }) AccessLevel.WRITE else AccessLevel.READ }
+			?: emptyMap()
 }

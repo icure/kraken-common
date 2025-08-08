@@ -18,5 +18,6 @@ import org.taktik.icure.services.external.rest.v1.dto.base.IdentifiableDto
 data class ComplementFilter<O : IdentifiableDto<String>>(
 	override val desc: String? = null,
 	override val superSet: AbstractFilterDto<O>,
-	override val subSet: AbstractFilterDto<O>
-) : AbstractFilterDto<O>, FilterDto.ComplementFilter<O>
+	override val subSet: AbstractFilterDto<O>,
+) : AbstractFilterDto<O>,
+	FilterDto.ComplementFilter<O>

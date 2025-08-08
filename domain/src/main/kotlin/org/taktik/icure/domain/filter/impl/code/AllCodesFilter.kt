@@ -11,7 +11,8 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AllCodesFilter(
 	override val desc: String? = null,
-) : AbstractFilter<Code>, Filters.AllFilter<String, Code> {
+) : AbstractFilter<Code>,
+	Filters.AllFilter<String, Code> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

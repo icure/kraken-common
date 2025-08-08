@@ -82,8 +82,8 @@ import org.taktik.icure.validation.ValidCode
 
 data class Device(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -122,41 +122,47 @@ data class Device(
 	// The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }
 	override val transferKeys: Map<String, Map<String, String>> = emptyMap(),
 
-	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), //Format is hcpId of key that has been partitioned : "threshold|partition in hex"
+	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(), // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument, Named, CryptoActor, DataOwner {
+) : StoredICureDocument,
+	Named,
+	CryptoActor,
+	DataOwner {
 	companion object : DynamicInitializer<Device>
 
 	fun merge(other: Device) = HealthcareParty(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Device) = super<StoredICureDocument>.solveConflictsWith(other) + super<CryptoActor>.solveConflictsWith(other) + super<DataOwner>.solveConflictsWith(other) + mapOf(
-		"parentId" to (this.parentId ?: other.parentId),
-		"picture" to (this.picture ?: other.picture),
-		"externalId" to (this.type ?: other.externalId),
-		"type" to (this.type ?: other.type),
-		"brand" to (this.type ?: other.brand),
-		"model" to (this.type ?: other.model),
-		"serialNumber" to (this.type ?: other.serialNumber),
-		"identifier" to mergeListsDistinct(
-			this.identifiers, other.identifiers,
-			{ a, b -> a.system == b.system && a.value == b.value },
-		),
-	)
+	fun solveConflictsWith(other: Device) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<CryptoActor>.solveConflictsWith(other) +
+		super<DataOwner>.solveConflictsWith(other) +
+		mapOf(
+			"parentId" to (this.parentId ?: other.parentId),
+			"picture" to (this.picture ?: other.picture),
+			"externalId" to (this.type ?: other.externalId),
+			"type" to (this.type ?: other.type),
+			"brand" to (this.type ?: other.brand),
+			"model" to (this.type ?: other.model),
+			"serialNumber" to (this.type ?: other.serialNumber),
+			"identifier" to mergeListsDistinct(
+				this.identifiers,
+				other.identifiers,
+				{ a, b -> a.system == b.system && a.value == b.value },
+			),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

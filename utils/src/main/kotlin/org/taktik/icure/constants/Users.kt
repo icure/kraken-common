@@ -5,16 +5,19 @@ package org.taktik.icure.constants
 
 interface Users {
 	enum class Type {
-		database, ldap, token
+		database,
+		ldap,
+		token,
 	}
 
 	enum class Status {
-		ACTIVE, DISABLED, REGISTERING;
+		ACTIVE,
+		DISABLED,
+		REGISTERING,
+		;
 
 		companion object {
-			fun fromInt(value: Int): Status {
-				return Status::class.java.enumConstants[value]
-			}
+			fun fromInt(value: Int): Status = Status::class.java.enumConstants[value]
 		}
 	}
 }

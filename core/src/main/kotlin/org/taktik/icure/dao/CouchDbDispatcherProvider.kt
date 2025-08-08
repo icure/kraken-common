@@ -7,7 +7,6 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.security.CouchDbCredentialsProvider
 
 interface CouchDbDispatcherProvider {
-
 	@OptIn(ExperimentalCoroutinesApi::class)
 	fun getDispatcher(
 		httpClient: WebClient,
@@ -15,7 +14,6 @@ interface CouchDbDispatcherProvider {
 		prefix: String,
 		dbFamily: String,
 		couchDbCredentialsProvider: CouchDbCredentialsProvider,
-		createdReplicasIfNotExists: Int
+		createdReplicasIfNotExists: Int,
 	): CouchDbDispatcher
-
 }

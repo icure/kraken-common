@@ -12,7 +12,9 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.MaintenanceTask
 
-interface MaintenanceTaskLogic : EntityPersister<MaintenanceTask>, EntityWithSecureDelegationsLogic<MaintenanceTask> {
+interface MaintenanceTaskLogic :
+	EntityPersister<MaintenanceTask>,
+	EntityWithSecureDelegationsLogic<MaintenanceTask> {
 	suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask?
 
 	/**

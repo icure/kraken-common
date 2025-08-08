@@ -26,5 +26,6 @@ class PlaceDAOImpl(
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<Place>(Place::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), PlaceDAO
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<Place>(Place::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+	PlaceDAO

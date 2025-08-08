@@ -117,18 +117,17 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
  * from [SRC].
  */
 @Suppress("UNCHECKED_CAST")
-fun <SRC: Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginationElement> =
-	map {
-		when(it) {
-			is NextPageElement<*> -> it
-			is PaginationRowElement<*, *> -> {
-				PaginationRowElement(
-					element = mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" }),
-					key = it.key
-				)
-			}
+fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginationElement> = map {
+	when (it) {
+		is NextPageElement<*> -> it
+		is PaginationRowElement<*, *> -> {
+			PaginationRowElement(
+				element = mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" }),
+				key = it.key,
+			)
 		}
 	}
+}
 
 /**
  * Terminal operator for a [Flow] of [PaginationElement]. It collects it generating a [PaginatedList].
@@ -140,7 +139,7 @@ fun <SRC: Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper:
 suspend fun <T : Serializable, K> Flow<PaginationElement>.toPaginatedList(): PaginatedList<T> {
 	var nextKey: NextPageElement<K>? = null
 	val rows = mapNotNull {
-		when(it) {
+		when (it) {
 			is NextPageElement<*> -> {
 				nextKey = it as? NextPageElement<K>
 				null
@@ -150,7 +149,7 @@ suspend fun <T : Serializable, K> Flow<PaginationElement>.toPaginatedList(): Pag
 	}.toList()
 	return PaginatedList(
 		rows = rows,
-		nextKeyPair = PaginatedDocumentKeyIdPair(startKey = nextKey?.startKey, startKeyDocId = nextKey?.startKeyDocId)
+		nextKeyPair = PaginatedDocumentKeyIdPair(startKey = nextKey?.startKey, startKeyDocId = nextKey?.startKeyDocId),
 	)
 }
 

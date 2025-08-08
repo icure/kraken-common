@@ -56,35 +56,40 @@ class TimeTableController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
-
 	@Operation(summary = "Creates a timeTable")
 	@PostMapping
-	fun createTimeTable(@RequestBody timeTableDto: TimeTableDto) =
-		mono {
-			timeTableService.createTimeTable(timeTableV2Mapper.map(timeTableDto))?.let { timeTableV2Mapper.map(it) }
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
-		}
-
+	fun createTimeTable(
+		@RequestBody timeTableDto: TimeTableDto,
+	) = mono {
+		timeTableService.createTimeTable(timeTableV2Mapper.map(timeTableDto))?.let { timeTableV2Mapper.map(it) }
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
+	}
 
 	@Operation(summary = "Deletes multiple TimeTables")
 	@PostMapping("/delete/batch")
-	fun deleteTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		timeTableService.deleteTimeTables(
-			timeTableIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteTimeTables(
+		@RequestBody timeTableIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = timeTableService
+		.deleteTimeTables(
+			timeTableIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple TimeTables if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteTimeTablesWithRev(@RequestBody timeTableIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		timeTableService.deleteTimeTables(
-			timeTableIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteTimeTablesWithRev(
+		@RequestBody timeTableIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = timeTableService
+		.deleteTimeTables(
+			timeTableIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an TimeTable")
 	@DeleteMapping("/{timeTableId}")
 	fun deleteTimeTable(
 		@PathVariable timeTableId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		timeTableService.deleteTimeTable(timeTableId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -94,7 +99,7 @@ class TimeTableController(
 	@PostMapping("/undelete/{timeTableId}")
 	fun undeleteTimeTable(
 		@PathVariable timeTableId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<TimeTableDto> = mono {
 		timeTableV2Mapper.map(timeTableService.undeleteTimeTable(timeTableId, rev))
 	}
@@ -102,88 +107,96 @@ class TimeTableController(
 	@DeleteMapping("/purge/{timeTableId}")
 	fun purgeTimeTable(
 		@PathVariable timeTableId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		timeTableService.purgeTimeTable(timeTableId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a timeTable")
 	@GetMapping("/{timeTableId}")
-	fun getTimeTable(@PathVariable timeTableId: String) =
-		mono {
-			if (timeTableId.equals("new", ignoreCase = true)) {
-				//Create an hourItem
-				val timeTableHour = TimeTableHour(
+	fun getTimeTable(
+		@PathVariable timeTableId: String,
+	) = mono {
+		if (timeTableId.equals("new", ignoreCase = true)) {
+			// Create an hourItem
+			val timeTableHour =
+				TimeTableHour(
 					startHour = java.lang.Long.parseLong("0800"),
-					endHour = java.lang.Long.parseLong("0900")
+					endHour = java.lang.Long.parseLong("0900"),
 				)
 
-				//Create a timeTableItem
-				val timeTableItem = TimeTableItem(
+			// Create a timeTableItem
+			val timeTableItem =
+				TimeTableItem(
 					rrule = null,
 					calendarItemTypeId = "consult",
-					hours = mutableListOf(timeTableHour)
+					hours = mutableListOf(timeTableHour),
 				)
-				//Create the timeTable
-				val timeTable = TimeTable(
+			// Create the timeTable
+			val timeTable =
+				TimeTable(
 					id = UUID.randomUUID().toString(),
 					startTime = java.lang.Long.parseLong("20180601000"),
 					endTime = java.lang.Long.parseLong("20180801000"),
 					name = "myPeriod",
-					items = mutableListOf(timeTableItem)
+					items = mutableListOf(timeTableItem),
 				)
 
-				//Return it
-				timeTableV2Mapper.map(timeTable)
-			} else {
-				timeTableService.getTimeTable(timeTableId)?.let { timeTableV2Mapper.map(it) }
-					?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TimeTable fetching failed")
-			}
+			// Return it
+			timeTableV2Mapper.map(timeTable)
+		} else {
+			timeTableService.getTimeTable(timeTableId)?.let { timeTableV2Mapper.map(it) }
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TimeTable fetching failed")
 		}
+	}
 
 	@Operation(summary = "Get a list of time tables")
 	@PostMapping("/byIds")
-	fun getTimeTables(@RequestBody timeTableIds: ListOfIdsDto): Flux<TimeTableDto> {
+	fun getTimeTables(
+		@RequestBody timeTableIds: ListOfIdsDto,
+	): Flux<TimeTableDto> {
 		require(timeTableIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		return timeTableService.getTimeTables(timeTableIds.ids).map(timeTableV2Mapper::map).injectReactorContext()
 	}
 
 	@Operation(summary = "Modifies a timeTable")
 	@PutMapping
-	fun modifyTimeTable(@RequestBody timeTableDto: TimeTableDto) =
-		mono {
-			timeTableService.modifyTimeTable(timeTableV2Mapper.map(timeTableDto)).let { timeTableV2Mapper.map(it) }
-		}
+	fun modifyTimeTable(
+		@RequestBody timeTableDto: TimeTableDto,
+	) = mono {
+		timeTableService.modifyTimeTable(timeTableV2Mapper.map(timeTableDto)).let { timeTableV2Mapper.map(it) }
+	}
 
 	@Operation(summary = "Get TimeTables by Period and AgendaId")
 	@PostMapping("/byPeriodAndAgendaId")
 	fun getTimeTablesByPeriodAndAgendaId(
 		@Parameter(required = true) @RequestParam startDate: Long,
 		@Parameter(required = true) @RequestParam endDate: Long,
-		@Parameter(required = true) @RequestParam agendaId: String
-	): Flux<TimeTableDto> =
-		flow {
-			if (agendaId.isBlank()) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
-			}
-			emitAll(timeTableService.getTimeTablesByPeriodAndAgendaId(startDate, endDate, agendaId).map { timeTableV2Mapper.map(it) })
-		}.injectReactorContext()
+		@Parameter(required = true) @RequestParam agendaId: String,
+	): Flux<TimeTableDto> = flow {
+		if (agendaId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
+		}
+		emitAll(timeTableService.getTimeTablesByPeriodAndAgendaId(startDate, endDate, agendaId).map { timeTableV2Mapper.map(it) })
+	}.injectReactorContext()
 
 	@Operation(summary = "Get TimeTables by AgendaId")
 	@PostMapping("/byAgendaId")
-	fun getTimeTablesByAgendaId(@Parameter(required = true) @RequestParam agendaId: String): Flux<TimeTableDto> =
-		flow {
-			if (agendaId.isBlank()) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
-			}
-			emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableV2Mapper.map(it) })
-		}.injectReactorContext()
+	fun getTimeTablesByAgendaId(
+		@Parameter(required = true) @RequestParam agendaId: String,
+	): Flux<TimeTableDto> = flow {
+		if (agendaId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
+		}
+		emitAll(timeTableService.getTimeTablesByAgendaId(agendaId).map { timeTableV2Mapper.map(it) })
+	}.injectReactorContext()
 
 	@Operation(summary = "Get the ids of the TimeTables matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchTimeTablesBy(
-		@RequestBody filter: AbstractFilterDto<TimeTableDto>
-	) = timeTableService.matchTimeTablesBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<TimeTableDto>,
+	) = timeTableService
+		.matchTimeTablesBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

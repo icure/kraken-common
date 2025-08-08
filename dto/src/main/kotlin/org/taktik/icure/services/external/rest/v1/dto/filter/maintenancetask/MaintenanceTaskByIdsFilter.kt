@@ -18,5 +18,6 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MaintenanceTaskByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilterDto<MaintenanceTaskDto>, FilterDto.IdsFilter<String, MaintenanceTaskDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<MaintenanceTaskDto>,
+	FilterDto.IdsFilter<String, MaintenanceTaskDto>

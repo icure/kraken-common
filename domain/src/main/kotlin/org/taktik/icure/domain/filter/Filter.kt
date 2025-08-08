@@ -3,10 +3,10 @@
  */
 package org.taktik.icure.domain.filter
 
-import java.io.Serializable
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import java.io.Serializable
 
 interface Filter<T : Serializable, O : Identifiable<T>> {
 	fun matches(item: O, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean

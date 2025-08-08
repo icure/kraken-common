@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -18,13 +18,12 @@ import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 @Profile("app")
 class CalendarItemByDataOwnerLifecycleBetween(
 	private val calendarItemDAO: CalendarItemDAO,
-	private val sessionInformationProvider: SessionInformationProvider
+	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByDataOwnerLifecycleBetween> {
-
 	override fun resolve(
 		filter: CalendarItemByDataOwnerLifecycleBetween,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
 		mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId)) { key ->
 			calendarItemDAO.listCalendarItemIdsByDataOwnerLifecycleBetween(
@@ -32,9 +31,8 @@ class CalendarItemByDataOwnerLifecycleBetween(
 				searchKey = key,
 				startTimestamp = filter.startTimestamp,
 				endTimestamp = filter.endTimestamp,
-				descending = filter.descending
+				descending = filter.descending,
 			)
 		}.let { emitAll(it) }
 	}
-
 }

@@ -7,7 +7,7 @@ package org.taktik.icure.asyncdao
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Address
@@ -37,6 +37,7 @@ interface PatientDAO : GenericDAO<Patient> {
 	 * @return a [Flow] of [Patient.id]s.
 	 */
 	fun listPatientIdsByActive(datastoreInformation: IDatastoreInformation, active: Boolean, searchKeys: Set<String>): Flow<String>
+
 	/**
 	 * Retrieves all the [Patient.id]s delegated to a data owner (by checking their [searchKeys]) and where [Patient.tags] contains
 	 * at least one tag with type [tagType] and code [tagCode]. If [tagCode] is null, the presence of any tag with the specified [tagType]

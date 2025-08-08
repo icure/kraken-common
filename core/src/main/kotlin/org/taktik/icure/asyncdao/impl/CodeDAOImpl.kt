@@ -35,10 +35,10 @@ import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.base.Code
@@ -48,25 +48,26 @@ import kotlin.math.min
 @Repository("codeDAO")
 @Profile("app")
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted) emit( null, doc._id )}")
- class CodeDAOImpl(
+class CodeDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig), CodeDAO {
+	daoConfig: DaoConfig,
+) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+	CodeDAO {
 
 	companion object {
 		private const val SMALLEST_CHAR = "\u0000"
 		private val semVerRegex = "^[0-9]+(\\.[0-9]+)*$".toRegex()
 
 		private val semanticComparator: (a: String, b: String) -> Int = { a, b ->
-			if(semVerRegex.matches(a) && semVerRegex.matches(b)) {
+			if (semVerRegex.matches(a) && semVerRegex.matches(b)) {
 				val aComponents = a.split(".").map { it.toInt() }
 				val bComponents = b.split(".").map { it.toInt() }
 				var compareResult: Int? = null
 				var i = 0
-				while(compareResult == null && i < min(aComponents.size, bComponents.size)) {
+				while (compareResult == null && i < min(aComponents.size, bComponents.size)) {
 					compareResult = (aComponents[i].compareTo(bComponents[i])).takeIf { it != 0 }
 					i++
 				}
@@ -76,7 +77,9 @@ import kotlin.math.min
 					aComponents.size < bComponents.size -> -1
 					else -> 0
 				}
-			} else a.compareTo(b)
+			} else {
+				a.compareTo(b)
+			}
 		}
 
 		/**
@@ -101,15 +104,17 @@ import kotlin.math.min
 			fun setLatestRow(row: ViewRowWithDoc<*, *, *>, limit: Int) {
 				val lastCode = lastVisited?.doc as? Code
 				val newCode = row.doc as Code
-				if (lastCode != null && sentElements < limit && // If I have something to emit and I still have space on the page
+				if (lastCode != null &&
+					sentElements < limit && // If I have something to emit and I still have space on the page
 					(lastCode.code != newCode.code || lastCode.type != newCode.type)
 				) { // The codes are sorted, If this one is different for something
 					seenElements++
 					sentElements++
 					toEmit = lastVisited
 					lastVisited = row
-				} else if (lastCode?.version != null  // If the new code is an instance of the same code, but of a previous or equal version
-					&& newCode.version != null && semanticComparator(lastCode.version!!, newCode.version!!) >= 0
+				} else if (lastCode?.version != null && // If the new code is an instance of the same code, but of a previous or equal version
+					newCode.version != null &&
+					semanticComparator(lastCode.version!!, newCode.version!!) >= 0
 				) {
 					seenElements++
 					toEmit = null
@@ -147,23 +152,24 @@ import kotlin.math.min
 				toEmit = null
 				seenElements += seen
 			}
-
 		}
 
 		data class CodeAccumulator(
 			val code: Code? = null,
-			val toEmit: Code? = null
+			val toEmit: Code? = null,
 		)
 
 		private fun Code.verifyVersion(version: String) = (this.version == version)
 		private fun Code.matchesAllLabelParts(language: String, labelParts: Set<String>): Boolean {
 			if (labelParts.isEmpty()) return true
 
-			val remainingParts = (label?.get(language)?.split("[ |/'`]+".toRegex())?.mapNotNull {
-				sanitizeString(it)?.takeIf { s -> s.length > 2 }
-			}?.toSet()?.let { labelParts - it } ?: labelParts).toMutableSet()
+			val remainingParts = (
+				label?.get(language)?.split("[ |/'`]+".toRegex())?.mapNotNull {
+					sanitizeString(it)?.takeIf { s -> s.length > 2 }
+				}?.toSet()?.let { labelParts - it } ?: labelParts
+				).toMutableSet()
 
-			if(remainingParts.isEmpty()) return true
+			if (remainingParts.isEmpty()) return true
 
 			for (term in searchTerms.getOrDefault(language, emptySet())) {
 				val sanitizedTerms = term.split("[ |/'`]+".toRegex()).mapNotNull {
@@ -172,7 +178,7 @@ import kotlin.math.min
 				remainingParts.removeIf { label ->
 					sanitizedTerms.none { it.startsWith(label) }
 				}
-				if(remainingParts.isEmpty()) return true
+				if (remainingParts.isEmpty()) return true
 			}
 			return false
 		}
@@ -206,17 +212,17 @@ import kotlin.math.min
 						ComplexKey.of(
 							type,
 							code,
-							version
-						)
+							version,
+						),
 					)
 					.endKey(
 						ComplexKey.of(
 							type ?: ComplexKey.emptyObject(),
 							code ?: ComplexKey.emptyObject(),
-							version ?: ComplexKey.emptyObject()
-						)
-					)
-			).map { it.doc }
+							version ?: ComplexKey.emptyObject(),
+						),
+					),
+			).map { it.doc },
 		)
 	}
 
@@ -228,14 +234,14 @@ import kotlin.math.min
 			region ?: SMALLEST_CHAR,
 			type ?: SMALLEST_CHAR,
 			code ?: SMALLEST_CHAR,
-			if (version == null || version == LATEST_VERSION) SMALLEST_CHAR else version
+			if (version == null || version == LATEST_VERSION) SMALLEST_CHAR else version,
 		)
 
 		val endKey = ComplexKey.of(
 			region ?: ComplexKey.emptyObject(),
 			type ?: ComplexKey.emptyObject(),
 			code ?: ComplexKey.emptyObject(),
-			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version
+			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version,
 		)
 
 		var lastAcc = CodeAccumulator()
@@ -245,23 +251,24 @@ import kotlin.math.min
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(startKey)
-					.endKey(endKey)
+					.endKey(endKey),
 			).map {
 				it.doc
 			}.let { flw ->
 				when {
 					version == "latest" -> { // If the version is latest
 						flw.scan(CodeAccumulator()) { acc, code ->
-							val newAcc = acc.code?.let { // If I have a previous code
+							val newAcc = acc.code?.let {
+								// If I have a previous code
 								when {
 									// If I reached a different code, then I have to emit the previous one
 									code.type != it.type || code.code != it.code -> CodeAccumulator(code, it)
 									// If the code is the same, I return the new one only if the version is a greater one
 									// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
 									// not correctly sorted.
-									code.version != null
-										&& it.version != null
-										&& semanticComparator(code.version!!, it.version!!) > 0 -> CodeAccumulator(code)
+									code.version != null &&
+										it.version != null &&
+										semanticComparator(code.version!!, it.version!!) > 0 -> CodeAccumulator(code)
 									// Otherwise, I keep the current one
 									else -> acc
 								}
@@ -269,7 +276,7 @@ import kotlin.math.min
 							newAcc.also {
 								lastAcc = it
 							}
-						}.mapNotNull{
+						}.mapNotNull {
 							it.toEmit
 						}
 					}
@@ -284,7 +291,7 @@ import kotlin.math.min
 				// If last code is not null, I have to emit it
 				// This can happen only with the latest filter
 				if (lastAcc.code != null) emit(checkNotNull(lastAcc.code))
-			}
+			},
 		)
 	}
 
@@ -297,18 +304,22 @@ import kotlin.math.min
 					.group(true)
 					.groupLevel(2)
 					.startKey(ComplexKey.of(region, type, null, null))
-					.endKey(ComplexKey.of(
-						region ?: ComplexKey.emptyObject(),
-						type ?: ComplexKey.emptyObject(),
-						ComplexKey.emptyObject(), ComplexKey.emptyObject()))
-			).mapNotNull { it.key?.get(1) }
+					.endKey(
+						ComplexKey.of(
+							region ?: ComplexKey.emptyObject(),
+							type ?: ComplexKey.emptyObject(),
+							ComplexKey.emptyObject(),
+							ComplexKey.emptyObject(),
+						),
+					),
+			).mapNotNull { it.key?.get(1) },
 		)
 	}
 
 	override fun findCodesBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
-			findCodesByRecursively(datastoreInformation, client, region, type, code, version, paginationOffset, null)
+			findCodesByRecursively(datastoreInformation, client, region, type, code, version, paginationOffset, null),
 		)
 	}
 
@@ -317,20 +328,26 @@ import kotlin.math.min
 			region ?: SMALLEST_CHAR,
 			type ?: SMALLEST_CHAR,
 			code ?: SMALLEST_CHAR,
-			if (version == null || version == LATEST_VERSION) SMALLEST_CHAR else version
+			if (version == null || version == LATEST_VERSION) SMALLEST_CHAR else version,
 		)
 		val to = ComplexKey.of(
 			region ?: ComplexKey.emptyObject(),
 			type ?: ComplexKey.emptyObject(),
-			if (code == null) ComplexKey.emptyObject() else if (version == null) code + "\ufff0" else code,
-			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version + "\ufff0"
+			if (code == null) {
+				ComplexKey.emptyObject()
+			} else if (version == null) {
+				code + "\ufff0"
+			} else {
+				code
+			},
+			if (version == null || version == LATEST_VERSION) ComplexKey.emptyObject() else version + "\ufff0",
 		)
 		return from to to
 	}
 
 	private fun findCodesByRecursively(datastoreInformation: IDatastoreInformation, client: Client, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>, extensionFactor: Float?): Flow<ViewQueryResultEvent> = flow {
 		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
-		val extendedLimit = (paginationOffset.limit * ( extensionFactor ?: 1f) ).toInt()
+		val extendedLimit = (paginationOffset.limit * (extensionFactor ?: 1f)).toInt()
 
 		val viewQuery = pagedViewQuery(
 			datastoreInformation,
@@ -338,48 +355,52 @@ import kotlin.math.min
 			from,
 			to,
 			paginationOffset.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) }.copy(limit = extendedLimit),
-			false
+			false,
 		)
 
 		val versionAccumulator = QueryResultAccumulator()
 		emitAll(
 			client.queryView(viewQuery, Array<String>::class.java, String::class.java, Code::class.java).let { flw ->
-				if (version == null || version != LATEST_VERSION) flw
-				else flw.scan(versionAccumulator) { acc, it ->
-					when (it) {
-						is ViewRowWithDoc<*, *, *> -> acc.apply { setLatestRow(it, paginationOffset.limit) }
-						is TotalCount -> acc.apply { setTotalAndResetEmission(it.total)}
-						is Offset -> acc.apply { setOffsetAndResetEmission(it.offset) }
-						else -> acc.apply { resetEmission() }
-					}
-				}.transform {
-					if (it.toEmit != null) emit(it.toEmit!!) // If I have something to emit, I emit it
-				}.onCompletion {
-					// If it viewed all the elements there can be more
-					// AND it did not fill the page
-					// it does the recursive call
-					if (versionAccumulator.seenElements >= extendedLimit && versionAccumulator.sentElements < paginationOffset.limit)
-						emitAll(
-							@Suppress("UNCHECKED_CAST")
-							findCodesByRecursively(
-								datastoreInformation,
-								client,
-								region,
-								type,
-								code,
-								version,
-								paginationOffset.copy(startKey = (versionAccumulator.lastVisited?.key as? Array<String>)?.toList(), startDocumentId = versionAccumulator.lastVisited?.id, limit = paginationOffset.limit - versionAccumulator.sentElements),
-								(if (versionAccumulator.seenElements == 0) ( extensionFactor ?: 1f) * 2 else (versionAccumulator.seenElements.toFloat() / versionAccumulator.sentElements)).coerceAtMost(100f)
+				if (version == null || version != LATEST_VERSION) {
+					flw
+				} else {
+					flw.scan(versionAccumulator) { acc, it ->
+						when (it) {
+							is ViewRowWithDoc<*, *, *> -> acc.apply { setLatestRow(it, paginationOffset.limit) }
+							is TotalCount -> acc.apply { setTotalAndResetEmission(it.total) }
+							is Offset -> acc.apply { setOffsetAndResetEmission(it.offset) }
+							else -> acc.apply { resetEmission() }
+						}
+					}.transform {
+						if (it.toEmit != null) emit(it.toEmit!!) // If I have something to emit, I emit it
+					}.onCompletion {
+						// If it viewed all the elements there can be more
+						// AND it did not fill the page
+						// it does the recursive call
+						if (versionAccumulator.seenElements >= extendedLimit && versionAccumulator.sentElements < paginationOffset.limit) {
+							emitAll(
+								@Suppress("UNCHECKED_CAST")
+								findCodesByRecursively(
+									datastoreInformation,
+									client,
+									region,
+									type,
+									code,
+									version,
+									paginationOffset.copy(startKey = (versionAccumulator.lastVisited?.key as? Array<String>)?.toList(), startDocumentId = versionAccumulator.lastVisited?.id, limit = paginationOffset.limit - versionAccumulator.sentElements),
+									(if (versionAccumulator.seenElements == 0) (extensionFactor ?: 1f) * 2 else (versionAccumulator.seenElements.toFloat() / versionAccumulator.sentElements)).coerceAtMost(100f),
+								),
 							)
-						)
-					else {
-						// If the version filter is latest and there are no more elements to visit and the page is not full, I emit the last element
-						if (versionAccumulator.lastVisited != null && versionAccumulator.sentElements < paginationOffset.limit)
-							emit(versionAccumulator.lastVisited as ViewQueryResultEvent) //If the version filter is "latest" then the last code must be always emitted
-						emit(TotalCount(versionAccumulator.elementsFound ?: 0))
+						} else {
+							// If the version filter is latest and there are no more elements to visit and the page is not full, I emit the last element
+							if (versionAccumulator.lastVisited != null && versionAccumulator.sentElements < paginationOffset.limit) {
+								emit(versionAccumulator.lastVisited as ViewQueryResultEvent) // If the version filter is "latest" then the last code must be always emitted
+							}
+							emit(TotalCount(versionAccumulator.elementsFound ?: 0))
+						}
 					}
 				}
-			}
+			},
 		)
 	}
 
@@ -396,40 +417,44 @@ import kotlin.math.min
 		var lastAcc = CodeAccumulator()
 		emitAll(
 			client.queryView<ComplexKey, String>(viewQuery).let { flw ->
-				if (version == null || version != LATEST_VERSION) flw.map { it.id }
-				else flw.scan(CodeAccumulator()) { acc, row ->
-					val (_, keyType, keyCode, keyVersion) = checkNotNull(row.key).components
-					val rowAsCode = Code(
-						id = row.id,
-						type = keyType as? String,
-						code = keyCode as? String,
-						version = keyVersion as? String
-					) // I save the last code I visit
-					val newAcc = acc.code?.let { // If I have a previous code
-						when {
-							// If I reached a different code, then I have to emit the previous one
-							keyType != it.type || keyCode != it.code -> CodeAccumulator(rowAsCode, it)
-							// If the code is the same, I return the new one only if the version is a greater one
-							// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
-							// not correctly sorted.
-							keyVersion != null
-								&& it.version != null
-								&& semanticComparator(keyVersion as String, it.version!!) > 0 -> CodeAccumulator(rowAsCode)
-							// Otherwise, I keep the current one
-							else -> acc
+				if (version == null || version != LATEST_VERSION) {
+					flw.map { it.id }
+				} else {
+					flw.scan(CodeAccumulator()) { acc, row ->
+						val (_, keyType, keyCode, keyVersion) = checkNotNull(row.key).components
+						val rowAsCode = Code(
+							id = row.id,
+							type = keyType as? String,
+							code = keyCode as? String,
+							version = keyVersion as? String,
+						) // I save the last code I visit
+						val newAcc = acc.code?.let {
+							// If I have a previous code
+							when {
+								// If I reached a different code, then I have to emit the previous one
+								keyType != it.type || keyCode != it.code -> CodeAccumulator(rowAsCode, it)
+								// If the code is the same, I return the new one only if the version is a greater one
+								// Note: the versions are ordered lexicographically in CouchDB, so semantic versions are
+								// not correctly sorted.
+								keyVersion != null &&
+									it.version != null &&
+									semanticComparator(keyVersion as String, it.version!!) > 0 -> CodeAccumulator(rowAsCode)
+								// Otherwise, I keep the current one
+								else -> acc
+							}
+						} ?: CodeAccumulator(rowAsCode)
+						newAcc.also {
+							lastAcc = it
 						}
-					} ?: CodeAccumulator(rowAsCode)
-					newAcc.also {
-						lastAcc = it
+					}.mapNotNull {
+						it.toEmit?.id
+					}.onCompletion {
+						// If last code is not null, I have to emit it
+						// This can happen only with the latest filter
+						if (lastAcc.code != null) emit(checkNotNull(lastAcc.code?.id))
 					}
-				}.mapNotNull{
-					it.toEmit?.id
-				}.onCompletion {
-					// If last code is not null, I have to emit it
-					// This can happen only with the latest filter
-					if (lastAcc.code != null) emit(checkNotNull(lastAcc.code?.id))
 				}
-			}
+			},
 		)
 	}
 
@@ -447,7 +472,7 @@ import kotlin.math.min
 		ComplexKey.of(language, type, sanitizedLabel + "\ufff0", ComplexKey.emptyObject()),
 		paginationOffset.copy(limit = limit).toPaginationOffset { sk -> ComplexKey.of(*sk.mapIndexed { i, s -> if (i == 3) s?.let { sanitizeString(it) } else s }.toTypedArray()) },
 		false,
-		MAURICE_PARTITION
+		MAURICE_PARTITION,
 	)
 
 	private fun findSpecificVersionOfCodesByLabel(
@@ -461,7 +486,7 @@ import kotlin.math.min
 		paginationOffset: PaginationOffset<List<String?>>,
 		extensionFactor: Float = 1f,
 		prevTotalCount: Int = 0,
-		isContinue: Boolean = false
+		isContinue: Boolean = false,
 	): Flow<ViewQueryResultEvent> = flow {
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		val extendedLimit = (paginationOffset.limit * extensionFactor).toInt()
@@ -471,7 +496,7 @@ import kotlin.math.min
 			type,
 			sanitizedLabel,
 			extendedLimit,
-			paginationOffset
+			paginationOffset,
 		)
 		val versionAccumulator = QueryResultAccumulator()
 		client.queryView(viewQuery, Array<String>::class.java, Array<String>::class.java, Code::class.java).scan(versionAccumulator) { acc, it ->
@@ -479,20 +504,25 @@ import kotlin.math.min
 			// parameter, if they match all the label parts and have the region, if a region is specified.
 			when (it) {
 				is ViewRowWithDoc<*, *, *> ->
-					if (acc.sentElements < paginationOffset.limit && (it.doc as Code).let {
-						it.verifyVersion(version) && it.matchesAllLabelParts(language, otherParts) && it.matchesRegion(region)
-					}) acc.apply { setRow(it, isContinue) }
-					else acc.apply { resetEmission(1) }
+					if (acc.sentElements < paginationOffset.limit &&
+						(it.doc as Code).let {
+							it.verifyVersion(version) && it.matchesAllLabelParts(language, otherParts) && it.matchesRegion(region)
+						}
+					) {
+						acc.apply { setRow(it, isContinue) }
+					} else {
+						acc.apply { resetEmission(1) }
+					}
 				is TotalCount -> acc.apply { setTotalAndResetEmission(it.total) }
 				else -> acc.apply { resetEmission() }
 			}
 		}.transform {
-			if (it.toEmit != null) emit(it.toEmit!!) //If I have something to emit, I emit it
+			if (it.toEmit != null) emit(it.toEmit!!) // If I have something to emit, I emit it
 		}.onCompletion {
 			// If it viewed all the elements there can be more
 			// AND it did not fill the page
 			// it does the recursive call
-			if (versionAccumulator.seenElements >= extendedLimit && versionAccumulator.sentElements < paginationOffset.limit)
+			if (versionAccumulator.seenElements >= extendedLimit && versionAccumulator.sentElements < paginationOffset.limit) {
 				emitAll(
 					findSpecificVersionOfCodesByLabel(
 						datastoreInformation,
@@ -505,21 +535,26 @@ import kotlin.math.min
 						paginationOffset.copy(
 							startKey = (versionAccumulator.lastVisited?.key as? Array<*>)?.mapNotNull { it as? String },
 							startDocumentId = versionAccumulator.lastVisited?.id,
-							limit = paginationOffset.limit - versionAccumulator.sentElements
+							limit = paginationOffset.limit - versionAccumulator.sentElements,
 						),
 						versionAccumulator.seenElements.let {
-							if(it == 0) extensionFactor * 2
-							else versionAccumulator.seenElements.toFloat() / versionAccumulator.sentElements
+							if (it == 0) {
+								extensionFactor * 2
+							} else {
+								versionAccumulator.seenElements.toFloat() / versionAccumulator.sentElements
+							}
 						}.coerceAtMost(100f),
 						versionAccumulator.sentElements + prevTotalCount,
-						true
-					)
+						true,
+					),
 				)
-			else emit(TotalCount((versionAccumulator.elementsFound ?: 0) + prevTotalCount))
+			} else {
+				emit(TotalCount((versionAccumulator.elementsFound ?: 0) + prevTotalCount))
+			}
 		}.also { emitAll(it) }
 	}
 
-	private fun  findLatestVersionOfCodesByLabel(
+	private fun findLatestVersionOfCodesByLabel(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		region: String?,
@@ -528,7 +563,6 @@ import kotlin.math.min
 		label: String,
 		offset: PaginationOffset<List<String?>>,
 	): Flow<ViewQueryResultEvent> = flow {
-
 		// Utility function that will return a set of type code pair for each code that matches the label, language, and
 		// region passed as parameters. It will run recursively until it retrieves enough codes to fill a page.
 		suspend fun findKeyByTypeCode(
@@ -540,7 +574,7 @@ import kotlin.math.min
 			label: String,
 			offset: PaginationOffset<List<String?>>,
 			extensionFactor: Float = 1f,
-			alreadyEmitted: LinkedHashSet<List<String>> = LinkedHashSet()
+			alreadyEmitted: LinkedHashSet<List<String>> = LinkedHashSet(),
 		): Flow<Pair<List<String>, Array<String>>> = flow {
 			val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 			val extendedLimit = if (offset.limit > 0) (offset.limit * extensionFactor).toInt() else 10
@@ -550,63 +584,67 @@ import kotlin.math.min
 				type,
 				sanitizedLabel,
 				extendedLimit,
-				offset
+				offset,
 			)
 			var seenElements = 0
 			var sentElements = 0
 			var lastVisited: ViewRowWithDoc<*, *, *>? = null
-			emitAll(client.queryView(viewQuery, Array<String>::class.java, Array<String>::class.java, Code::class.java)
-				.filterIsInstance<ViewRowWithDoc<*, *, *>>()
-				.transform {
-					val currentCode = it.doc as Code
-					seenElements++
-					if (currentCode.type != null
-						&& currentCode.code != null
-						&& currentCode.matchesAllLabelParts(language, otherParts)
-						&& currentCode.matchesRegion(region)
-					) {
-						@Suppress("UNCHECKED_CAST")
-						(it.key as? Array<String>)?.also { k ->
-							val emissionKey = listOf(currentCode.type!!, currentCode.code!!)
-							if (!alreadyEmitted.contains(emissionKey)) {
-								sentElements++
-								alreadyEmitted.add(emissionKey)
-								emit(Pair(emissionKey, k))
-							}
-						}
-					}
-					lastVisited = it
-				}.onCompletion {
-					(lastVisited?.doc as? Code)?.also { lastCode ->
-						if (seenElements >= extendedLimit &&
-							(sentElements < offset.limit || listOf(
-								lastCode.type,
-								lastCode.code
-							) == alreadyEmitted.last())
+			emitAll(
+				client.queryView(viewQuery, Array<String>::class.java, Array<String>::class.java, Code::class.java)
+					.filterIsInstance<ViewRowWithDoc<*, *, *>>()
+					.transform {
+						val currentCode = it.doc as Code
+						seenElements++
+						if (currentCode.type != null &&
+							currentCode.code != null &&
+							currentCode.matchesAllLabelParts(language, otherParts) &&
+							currentCode.matchesRegion(region)
 						) {
 							@Suppress("UNCHECKED_CAST")
-							emitAll(
-								findKeyByTypeCode(
-									datastoreInformation,
-									client,
-									region,
-									language,
-									type,
-									label,
-									offset.copy(
-										startKey = (lastVisited?.key as? Array<String>)?.toList(),
-										startDocumentId = lastVisited?.id,
-										limit = (offset.limit - sentElements).coerceAtLeast(1)
-									),
-									(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(
-										100f
-									),
-									alreadyEmitted
-								)
-							)
+							(it.key as? Array<String>)?.also { k ->
+								val emissionKey = listOf(currentCode.type!!, currentCode.code!!)
+								if (!alreadyEmitted.contains(emissionKey)) {
+									sentElements++
+									alreadyEmitted.add(emissionKey)
+									emit(Pair(emissionKey, k))
+								}
+							}
 						}
-					}
-				}
+						lastVisited = it
+					}.onCompletion {
+						(lastVisited?.doc as? Code)?.also { lastCode ->
+							if (seenElements >= extendedLimit &&
+								(
+									sentElements < offset.limit ||
+										listOf(
+											lastCode.type,
+											lastCode.code,
+										) == alreadyEmitted.last()
+									)
+							) {
+								@Suppress("UNCHECKED_CAST")
+								emitAll(
+									findKeyByTypeCode(
+										datastoreInformation,
+										client,
+										region,
+										language,
+										type,
+										label,
+										offset.copy(
+											startKey = (lastVisited?.key as? Array<String>)?.toList(),
+											startDocumentId = lastVisited?.id,
+											limit = (offset.limit - sentElements).coerceAtLeast(1),
+										),
+										(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(
+											100f,
+										),
+										alreadyEmitted,
+									),
+								)
+							}
+						}
+					},
 			)
 		}
 
@@ -620,10 +658,10 @@ import kotlin.math.min
 				createQuery(datastoreInformation, "by_type_code", MAURICE_PARTITION)
 					.includeDocs(true)
 					.reduce(false)
-					.keys(validCodes.keys)
+					.keys(validCodes.keys),
 			).transform {
 				// The old code is emitted when a new type is found
-				if(toEmit != null && (toEmit?.type != it.doc.type || toEmit?.code != it.doc.code)) {
+				if (toEmit != null && (toEmit?.type != it.doc.type || toEmit?.code != it.doc.code)) {
 					val code = toEmit!!
 					emit(ViewRowWithDoc(code.id, validCodes.getValue(listOf(code.type!!, code.code!!)), code.id, code))
 				}
@@ -642,7 +680,7 @@ import kotlin.math.min
 				toEmit?.also { code ->
 					emit(ViewRowWithDoc(code.id, validCodes.getValue(listOf(code.type!!, code.code!!)), code.id, code))
 				}
-			}
+			},
 		)
 	}
 
@@ -666,18 +704,18 @@ import kotlin.math.min
 			type,
 			sanitizedLabel,
 			extendedLimit,
-			paginationOffset
+			paginationOffset,
 		)
 		var seenElements = 0
 		var sentElements = 0
 		var lastVisited: ViewRowWithDoc<*, *, *>? = null
 		client.queryView(viewQuery, Array<String>::class.java, Array<String>::class.java, Code::class.java).transform {
-			when(it) {
+			when (it) {
 				is ViewRowWithDoc<*, *, *> -> {
 					seenElements++
 					lastVisited = it
 					val currentCode = (it.doc as Code)
-					if(currentCode.matchesAllLabelParts(language, otherParts) && currentCode.matchesRegion(region)) {
+					if (currentCode.matchesAllLabelParts(language, otherParts) && currentCode.matchesRegion(region)) {
 						sentElements++
 						emit(it)
 					}
@@ -688,7 +726,7 @@ import kotlin.math.min
 			// If it viewed all the elements there can be more
 			// AND it did not fill the page
 			// it does the recursive call
-			if (seenElements >= extendedLimit && sentElements < paginationOffset.limit)
+			if (seenElements >= extendedLimit && sentElements < paginationOffset.limit) {
 				emitAll(
 					findCodesByLabel(
 						datastoreInformation,
@@ -700,16 +738,21 @@ import kotlin.math.min
 						paginationOffset.copy(
 							startKey = (lastVisited?.key as? Array<*>)?.mapNotNull { it as? String },
 							startDocumentId = lastVisited?.id,
-							limit = paginationOffset.limit - sentElements
+							limit = paginationOffset.limit - sentElements,
 						),
 						seenElements.let {
-							if(it == 0) extensionFactor * 2
-							else seenElements.toFloat() / sentElements
+							if (it == 0) {
+								extensionFactor * 2
+							} else {
+								seenElements.toFloat() / sentElements
+							}
 						}.coerceAtMost(100f),
 						sentElements + prevTotalCount,
-					)
+					),
 				)
-			else emit(TotalCount(sentElements + prevTotalCount))
+			} else {
+				emit(TotalCount(sentElements + prevTotalCount))
+			}
 		}.also { emitAll(it) }
 	}
 
@@ -720,7 +763,7 @@ import kotlin.math.min
 	)
 	override fun findCodesByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String, type: String, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		when(version) {
+		when (version) {
 			LATEST_VERSION -> findLatestVersionOfCodesByLabel(
 				datastoreInformation,
 				client,
@@ -728,7 +771,7 @@ import kotlin.math.min
 				language,
 				type,
 				label,
-				paginationOffset
+				paginationOffset,
 			)
 			null -> findCodesByLabel(datastoreInformation, client, region, language, type, label, paginationOffset)
 			else -> findSpecificVersionOfCodesByLabel(
@@ -739,7 +782,7 @@ import kotlin.math.min
 				type,
 				label,
 				version,
-				paginationOffset
+				paginationOffset,
 			)
 		}.also { emitAll(it) }
 	}
@@ -750,11 +793,11 @@ import kotlin.math.min
 		val from =
 			ComplexKey.of(
 				linkType,
-				linkedId
+				linkedId,
 			)
 		val to = ComplexKey.of(
 			linkType,
-			linkedId ?: ComplexKey.emptyObject()
+			linkedId ?: ComplexKey.emptyObject(),
 		)
 
 		val viewQuery = pagedViewQuery(
@@ -763,7 +806,7 @@ import kotlin.math.min
 			from,
 			to,
 			paginationOffset.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
-			false
+			false,
 		)
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, String::class.java, Code::class.java))
 	}
@@ -776,13 +819,13 @@ import kotlin.math.min
 				language,
 				type,
 				sanitizedLabel ?: SMALLEST_CHAR,
-				SMALLEST_CHAR
+				SMALLEST_CHAR,
 			)
 		val to = ComplexKey.of(
 			language,
 			type,
 			sanitizedLabel?.let { it + "\ufff0" } ?: ComplexKey.emptyObject(),
-			ComplexKey.emptyObject()
+			ComplexKey.emptyObject(),
 		)
 
 		val query = createQuery(datastoreInformation, "by_language_type_label", MAURICE_PARTITION)
@@ -794,7 +837,7 @@ import kotlin.math.min
 		emitAll(
 			client.queryView<Array<String>, Array<String>?>(query).mapNotNull { row ->
 				row.id.takeIf { region == null || row.value?.contains(region) == true }
-			}
+			},
 		)
 	}
 
@@ -816,8 +859,8 @@ import kotlin.math.min
 					.includeDocs(false)
 					.reduce(false)
 					.startKey(from)
-					.endKey(to)
-			).mapNotNull { it.id }
+					.endKey(to),
+			).mapNotNull { it.id },
 		)
 	}
 
@@ -825,11 +868,11 @@ import kotlin.math.min
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(
 			linkType,
-			linkedId
+			linkedId,
 		)
 		val to = ComplexKey.of(
 			linkType,
-			linkedId ?: ComplexKey.emptyObject()
+			linkedId ?: ComplexKey.emptyObject(),
 		)
 
 		emitAll(
@@ -837,8 +880,8 @@ import kotlin.math.min
 				createQuery(datastoreInformation, "by_qualifiedlink_id")
 					.includeDocs(false)
 					.startKey(from)
-					.endKey(to)
-			).mapNotNull { it.id }
+					.endKey(to),
+			).mapNotNull { it.id },
 		)
 	}
 
@@ -859,7 +902,7 @@ import kotlin.math.min
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(ComplexKey.of(lang, type, sanitizedLabel, SMALLEST_CHAR))
-					.endKey(ComplexKey.of(lang, type, sanitizedLabel, ComplexKey.emptyObject()))
+					.endKey(ComplexKey.of(lang, type, sanitizedLabel, ComplexKey.emptyObject())),
 			).mapNotNull { row ->
 				row.doc.takeIf { it.matchesRegion(region) && it.matchesAllLabelParts(lang, otherParts) }
 			}.firstOrNull()
@@ -875,7 +918,7 @@ import kotlin.math.min
 	}
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
-		when(partition) {
+		when (partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_language_type_label" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}

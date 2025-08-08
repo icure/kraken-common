@@ -72,34 +72,42 @@ class AccessLogController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 ) {
-
 	@Operation(summary = "Creates an access log")
 	@PostMapping
-	fun createAccessLog(@RequestBody accessLogDto: AccessLogDto) = mono {
-		val accessLog = accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
+	fun createAccessLog(
+		@RequestBody accessLogDto: AccessLogDto,
+	) = mono {
+		val accessLog =
+			accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
 		accessLogV2Mapper.map(accessLog)
 	}
 
 	@Operation(summary = "Deletes multiple access logs")
 	@PostMapping("/delete/batch")
-	fun deleteAccessLogs(@RequestBody accessLogIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		accessLogService.deleteAccessLogs(
-			accessLogIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteAccessLogs(
+		@RequestBody accessLogIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.deleteAccessLogs(
+			accessLogIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes multiple access log if they match the provided rev")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteAccessLogsWithRev(@RequestBody accessLogIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		accessLogService.deleteAccessLogs(
-			accessLogIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteAccessLogsWithRev(
+		@RequestBody accessLogIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.deleteAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an Access Log")
 	@DeleteMapping("/{accessLogId}")
 	fun deleteAccessLog(
 		@PathVariable accessLogId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		accessLogService.deleteAccessLog(accessLogId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -109,7 +117,7 @@ class AccessLogController(
 	@PostMapping("/undelete/{accessLogId}")
 	fun undeleteAccessLog(
 		@PathVariable accessLogId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<AccessLogDto> = mono {
 		accessLogV2Mapper.map(accessLogService.undeleteAccessLog(accessLogId, rev))
 	}
@@ -117,16 +125,19 @@ class AccessLogController(
 	@DeleteMapping("/purge/{accessLogId}")
 	fun purgeAccessLog(
 		@PathVariable accessLogId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		accessLogService.purgeAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets an access log")
 	@GetMapping("/{accessLogId}")
-	fun getAccessLog(@PathVariable accessLogId: String) = mono {
-		val accessLog = accessLogService.getAccessLog(accessLogId)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
+	fun getAccessLog(
+		@PathVariable accessLogId: String,
+	) = mono {
+		val accessLog =
+			accessLogService.getAccessLog(accessLogId)
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
 
 		accessLogV2Mapper.map(accessLog)
 	}
@@ -139,18 +150,19 @@ class AccessLogController(
 		@RequestParam(required = false) startKey: Long?,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-		@RequestParam(required = false) descending: Boolean?
+		@RequestParam(required = false) descending: Boolean?,
 	): PaginatedFlux<AccessLogDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val (from, to) = when {
-			descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
-			descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
-			fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
-			fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
-			descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
-			else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
-		}
+		val (from, to) =
+			when {
+				descending == true && fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> fromEpoch to toEpoch
+				descending == true && fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> toEpoch to fromEpoch
+				fromEpoch != null && toEpoch != null && fromEpoch >= toEpoch -> toEpoch to fromEpoch
+				fromEpoch != null && toEpoch != null && fromEpoch < toEpoch -> fromEpoch to toEpoch
+				descending == true -> (toEpoch ?: Long.MAX_VALUE) to (fromEpoch ?: 0)
+				else -> (fromEpoch ?: 0) to (toEpoch ?: Long.MAX_VALUE)
+			}
 
 		return accessLogService
 			.listAccessLogsBy(from, to, paginationOffset, descending == true)
@@ -167,20 +179,29 @@ class AccessLogController(
 		@Parameter(description = "The start key for pagination") @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?
+		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?,
 	): PaginatedFlux<AccessLogDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return accessLogService.findAccessLogsByUserAfterDate(
-			userId, accessType, startDate, paginationOffset, descending ?: false
-		).mapElements(accessLogV2Mapper::map).asPaginatedFlux()
+		return accessLogService
+			.findAccessLogsByUserAfterDate(
+				userId,
+				accessType,
+				startDate,
+				paginationOffset,
+				descending ?: false,
+			).mapElements(accessLogV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Operation(summary = "List access logs found By Healthcare Party and secret foreign keyelementIds.")
 	@GetMapping("/byHcPartySecretForeignKeys")
-	fun listAccessLogsByHCPartyAndPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestParam("secretFKeys") secretFKeys: String) = flow {
+	fun listAccessLogsByHCPartyAndPatientForeignKeys(
+		@RequestParam("hcPartyId") hcPartyId: String,
+		@RequestParam("secretFKeys") secretFKeys: String,
+	) = flow {
 		val secretPatientKeys = HashSet(secretFKeys.split(",")).toList()
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
 	}.injectReactorContext()
@@ -192,7 +213,7 @@ class AccessLogController(
 		@RequestParam(required = false) startDate: Long?,
 		@RequestParam(required = false) endDate: Long?,
 		@RequestParam(required = false) descending: Boolean?,
-		@RequestBody secretPatientKeys: ListOfIdsDto
+		@RequestBody secretPatientKeys: ListOfIdsDto,
 	): Flux<String> {
 		require(secretPatientKeys.ids.isNotEmpty()) {
 			"You need to provide at least one secret patient key"
@@ -204,7 +225,9 @@ class AccessLogController(
 
 	@Operation(summary = "Get AccessLogs by ids")
 	@PostMapping("/byIds")
-	fun getAccessLogByIds(@RequestBody accessLogIds: ListOfIdsDto): Flux<AccessLogDto> {
+	fun getAccessLogByIds(
+		@RequestBody accessLogIds: ListOfIdsDto,
+	): Flux<AccessLogDto> {
 		require(accessLogIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return accessLogService
 			.getAccessLogs(accessLogIds.ids)
@@ -216,33 +239,43 @@ class AccessLogController(
 	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key elementIds.")
 	@PostMapping("/byHcPartySecretForeignKeys")
-	fun findAccessLogsByHCPartyPatientForeignKeys(@RequestParam("hcPartyId") hcPartyId: String, @RequestBody secretPatientKeys: List<String>) = flow {
+	fun findAccessLogsByHCPartyPatientForeignKeys(
+		@RequestParam("hcPartyId") hcPartyId: String,
+		@RequestBody secretPatientKeys: List<String>,
+	) = flow {
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Modifies an access log")
 	@PutMapping
-	fun modifyAccessLog(@RequestBody accessLogDto: AccessLogDto) = mono {
-		val accessLog = accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
+	fun modifyAccessLog(
+		@RequestBody accessLogDto: AccessLogDto,
+	) = mono {
+		val accessLog =
+			accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
 		accessLogV2Mapper.map(accessLog)
 	}
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<AccessLogDto>> = flow {
-		emitAll(accessLogService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
+		emitAll(
+			accessLogService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
 	@Operation(summary = "Get the ids of the Access Logs matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchAccessLogsBy(
-		@RequestBody filter: AbstractFilterDto<AccessLogDto>
-	) = accessLogService.matchAccessLogsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<AccessLogDto>,
+	) = accessLogService
+		.matchAccessLogsBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

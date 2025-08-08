@@ -19,11 +19,11 @@ import org.taktik.icure.validation.aspect.Fixer
 @Profile("app")
 class FrontEndMigrationLogicImpl(
 	private val frontEndMigrationDAO: FrontEndMigrationDAO,
-	datastoreInstanceProvider: org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider, filters), FrontEndMigrationLogic {
-
+	filters: Filters,
+) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider, filters),
+	FrontEndMigrationLogic {
 	override suspend fun createFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration? {
 		val datastoreInformation = getInstanceAndGroup()
 		return frontEndMigrationDAO.create(datastoreInformation, frontEndMigration)
@@ -34,11 +34,12 @@ class FrontEndMigrationLogicImpl(
 		return frontEndMigrationDAO.get(datastoreInformation, frontEndMigrationId)
 	}
 
-	override fun getFrontEndMigrationByUserIdName(userId: String, name: String?): Flow<FrontEndMigration> {
-		return flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(frontEndMigrationDAO.getFrontEndMigrationsByUserIdAndName(datastoreInformation, userId, name))
-		}
+	override fun getFrontEndMigrationByUserIdName(
+		userId: String,
+		name: String?,
+	): Flow<FrontEndMigration> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(frontEndMigrationDAO.getFrontEndMigrationsByUserIdAndName(datastoreInformation, userId, name))
 	}
 
 	override suspend fun modifyFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration? {
@@ -46,7 +47,5 @@ class FrontEndMigrationLogicImpl(
 		return frontEndMigrationDAO.save(datastoreInformation, frontEndMigration)
 	}
 
-	override fun getGenericDAO(): FrontEndMigrationDAO {
-		return frontEndMigrationDAO
-	}
+	override fun getGenericDAO(): FrontEndMigrationDAO = frontEndMigrationDAO
 }

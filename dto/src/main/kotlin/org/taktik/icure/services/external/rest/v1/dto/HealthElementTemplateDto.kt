@@ -26,10 +26,15 @@ data class HealthElementTemplateDto(
 	override val deletionDate: Long? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	val relevant: Boolean = true,
-	val plansOfAction: List<PlanOfActionTemplateDto> = emptyList()
-) : StoredDocumentDto, ICureDocumentDto<String> {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	val plansOfAction: List<PlanOfActionTemplateDto> = emptyList(),
+) : StoredDocumentDto,
+	ICureDocumentDto<String> {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

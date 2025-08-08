@@ -10,16 +10,16 @@ data class MaintenanceTaskByHcPartyAndIdentifiersFilter(
 	override val desc: String? = null,
 	override val healthcarePartyId: String? = null,
 	override val identifiers: List<Identifier>,
-) : AbstractFilter<MaintenanceTask>, MaintenanceTaskByHcPartyAndIdentifiersFilter {
+) : AbstractFilter<MaintenanceTask>,
+	MaintenanceTaskByHcPartyAndIdentifiersFilter {
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return item.endOfLife == null
-				&& (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item))
-				&& identifiers.any { searchIdentifier -> item.identifier.any { it.system == searchIdentifier.system && it.id == searchIdentifier.id } }
-	}
+	override fun matches(item: MaintenanceTask, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.endOfLife == null &&
+		(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+		identifiers.any { searchIdentifier -> item.identifier.any { it.system == searchIdentifier.system && it.id == searchIdentifier.id } }
 }

@@ -18,9 +18,12 @@ import reactor.util.context.Context
  * @param cacheSize the maximum size of the cache for each type of entity. If data is batched the recommended cache size
  * is batchSize * 2. This way if the same element is needed in two different batches it may still be available.
  */
-fun <T : Any> Flow<T>.injectCachedReactorContext(injector: ReactorCacheInjector, cacheSize: Int): Flux<T> {
-    require(cacheSize > 0)
-    return Mono.deferContextual { Mono.just(it) }.flatMapMany { ctxView ->
-        this.flowOn(injector.injectCacheInContext(Context.of(ctxView).asCoroutineContext(), cacheSize)).asFlux()
-    }
+fun <T : Any> Flow<T>.injectCachedReactorContext(
+	injector: ReactorCacheInjector,
+	cacheSize: Int,
+): Flux<T> {
+	require(cacheSize > 0)
+	return Mono.deferContextual { Mono.just(it) }.flatMapMany { ctxView ->
+		this.flowOn(injector.injectCacheInContext(Context.of(ctxView).asCoroutineContext(), cacheSize)).asFlux()
+	}
 }

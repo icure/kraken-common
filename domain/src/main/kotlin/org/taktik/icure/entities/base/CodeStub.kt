@@ -29,19 +29,20 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
 data class CodeStub(
-	@JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
-	override val context: String? = null, //ex: When embedded the context where this code is used
-	override val type: String? = null, //ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
-	override val code: String? = null, //ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
-	override val version: String? = null, //ex: 10. Must be lexicographically searchable
+	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
+	override val context: String? = null, // ex: When embedded the context where this code is used
+	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
+	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
+	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	val contextLabel: String? = null,
-	override val label: Map<String, String>? = null //ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
-) : CodeIdentification, Serializable {
+	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+) : CodeIdentification,
+	Serializable {
 
 	companion object : DynamicInitializer<CodeStub> {
 		fun from(type: String, code: String, version: String) = CodeStub(id = "$type|$code|$version", type = type, code = code, version = version)
 		fun fromId(id: String) = id.split("|")
-			.also { require(it.size == 3) { "id: ${id} must have type|code|version format"} }
+			.also { require(it.size == 3) { "id: $id must have type|code|version format" } }
 			.let { CodeStub(id = id, type = it[0], code = it[1], version = it[2]) }
 	}
 
@@ -50,21 +51,28 @@ data class CodeStub(
 
 	override fun normalizeIdentification(): CodeStub {
 		val parts = this.id.split("|").toTypedArray()
-		return if (this.type == null || this.code == null || this.version == null) this.copy(
-			type = this.type ?: parts[0],
-			code = this.code ?: parts[1],
-			version = this.version ?: parts[2]
-		) else this
+		return if (this.type == null || this.code == null || this.version == null) {
+			this.copy(
+				type = this.type ?: parts[0],
+				code = this.code ?: parts[1],
+				version = this.version ?: parts[2],
+			)
+		} else {
+			this
+		}
 	}
 
 	fun requireNormalized() {
 		val parts = this.id.split("|")
 		require(
-			parts.size == 3
-			&& !type.isNullOrBlank() && parts[0] == type
-			&& !code.isNullOrBlank() && parts[1] == code
-			&& !version.isNullOrBlank() && parts[2] == version
-			&& label.isNullOrEmpty() // TODO Deprecate label
+			parts.size == 3 &&
+				!type.isNullOrBlank() &&
+				parts[0] == type &&
+				!code.isNullOrBlank() &&
+				parts[1] == code &&
+				!version.isNullOrBlank() &&
+				parts[2] == version &&
+				label.isNullOrEmpty(), // TODO Deprecate label
 		) { "Invalid code stub: $this" }
 	}
 

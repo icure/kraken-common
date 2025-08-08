@@ -22,5 +22,5 @@ class SubFormEditor(
 	val compulsoryFormGuids: List<String>? = null,
 	val growsHorizontally: Boolean? = null,
 	val collapsed: Boolean? = null,
-	val showHeader: Boolean = true
+	val showHeader: Boolean = true,
 ) : Editor()

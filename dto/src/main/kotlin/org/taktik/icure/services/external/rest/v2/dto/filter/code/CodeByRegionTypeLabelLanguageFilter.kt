@@ -34,9 +34,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class CodeByRegionTypeLabelLanguageFilter(
 	override val desc: String? = null,
 	val region: String? = null,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val type: String,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val language: String,
-	val label: String? = null
+	val label: String? = null,
 ) : AbstractFilterDto<CodeDto>

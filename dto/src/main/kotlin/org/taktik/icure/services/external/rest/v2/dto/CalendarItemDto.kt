@@ -35,60 +35,70 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CalendarItemDto(
-    override val id: String,
-    override val rev: String? = null,
-    override val created: Long? = null,
-    override val modified: Long? = null,
-    override val author: String? = null,
-    override val responsible: String? = null,
-    override val medicalLocationId: String? = null,
-    override val tags: Set<CodeStubDto> = emptySet(),
-    override val codes: Set<CodeStubDto> = emptySet(),
-    override val endOfLife: Long? = null,
-    override val deletionDate: Long? = null,
-    val title: String? = null,
-    val calendarItemTypeId: String? = null,
-    val masterCalendarItemId: String? = null,
-    @get:Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
-    val important: Boolean? = null,
-    val homeVisit: Boolean? = null,
-    val phoneNumber: String? = null,
-    val placeId: String? = null,
-    val address: AddressDto? = null,
-    val addressText: String? = null,
-    val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-    val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-    val confirmationTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-    val cancellationTimestamp: Long? = null,
-    @Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-    val confirmationId: String? = null,
-    @Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
-    val duration: Long? = null,
-    @Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
-    val allDay: Boolean? = null,
-    val details: String? = null,
-    val wasMigrated: Boolean? = null,
-    val agendaId: String? = null,
-    val resourceGroup: CodeStubDto? = null,
-    val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
-    val hcpId: String? = null,
-    val recurrenceId: String? = null,
-    val meetingTags: Set<CalendarItemTagDto> = emptySet(),
-    val flowItem: FlowItemDto? = null,
-    override val secretForeignKeys: Set<String> = emptySet(),
-    override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-    override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-    override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-    override val encryptedSelf: Base64StringDto? = null,
-    override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val id: String,
+	override val rev: String? = null,
+	override val created: Long? = null,
+	override val modified: Long? = null,
+	override val author: String? = null,
+	override val responsible: String? = null,
+	override val medicalLocationId: String? = null,
+	override val tags: Set<CodeStubDto> = emptySet(),
+	override val codes: Set<CodeStubDto> = emptySet(),
+	override val endOfLife: Long? = null,
+	override val deletionDate: Long? = null,
+	val title: String? = null,
+	val calendarItemTypeId: String? = null,
+	val masterCalendarItemId: String? = null,
+	@get:Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
+	val important: Boolean? = null,
+	val homeVisit: Boolean? = null,
+	val phoneNumber: String? = null,
+	val placeId: String? = null,
+	val address: AddressDto? = null,
+	val addressText: String? = null,
+	val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
+	val confirmationTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
+	val cancellationTimestamp: Long? = null,
+	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
+	val confirmationId: String? = null,
+	@Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
+	val duration: Long? = null,
+	@Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
+	val allDay: Boolean? = null,
+	val details: String? = null,
+	val wasMigrated: Boolean? = null,
+	val agendaId: String? = null,
+	val resourceGroup: CodeStubDto? = null,
+	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
+	val hcpId: String? = null,
+	val recurrenceId: String? = null,
+	val meetingTags: Set<CalendarItemTagDto> = emptySet(),
+	val flowItem: FlowItemDto? = null,
+	override val secretForeignKeys: Set<String> = emptySet(),
+	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	override val encryptedSelf: Base64StringDto? = null,
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
-    enum class AvailabilitiesAssignmentStrategy {
-        @JsonProperty("S") Strict,
-        @JsonProperty("L") Loose,
-    }
+	enum class AvailabilitiesAssignmentStrategy {
+		@JsonProperty("S")
+		Strict,
+
+		@JsonProperty("L")
+		Loose,
+	}
 }

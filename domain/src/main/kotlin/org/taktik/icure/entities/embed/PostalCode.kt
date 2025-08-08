@@ -3,17 +3,15 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PostalCode(
 	val code: String? = null,
-	val label: Map<String, String> = emptyMap()
+	val label: Map<String, String> = emptyMap(),
 ) : Serializable {
-	override fun toString(): String {
-		return code ?: "N/A"
-	}
+	override fun toString(): String = code ?: "N/A"
 }

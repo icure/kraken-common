@@ -19,5 +19,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class ReceiptBlobTypeDto {
-	xades, kmehrRequest, kmehrResponse, soapRequest, soapResponse, soapConversation, tack
+	xades,
+	kmehrRequest,
+	kmehrResponse,
+	soapRequest,
+	soapResponse,
+	soapConversation,
+	tack,
 }

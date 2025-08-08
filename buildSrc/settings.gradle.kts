@@ -1,7 +1,7 @@
 dependencyResolutionManagement {
-	versionCatalogs {
-		create("coreLibs") {
-			from(files("../libs.versions.toml"))
-		}
-	}
+    versionCatalogs {
+        create("coreLibs") {
+            from(files("../libs.versions.toml"))
+        }
+    }
 }

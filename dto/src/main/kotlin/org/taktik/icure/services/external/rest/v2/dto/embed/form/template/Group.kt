@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 data class Group(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val group: String,
 	val fields: List<StructureElement>? = null,
 ) : StructureElement

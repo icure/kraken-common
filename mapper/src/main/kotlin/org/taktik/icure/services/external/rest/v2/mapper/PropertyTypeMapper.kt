@@ -33,13 +33,11 @@ abstract class PropertyTypeV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	abstract fun map(propertyTypeDto: PropertyTypeDto): PropertyType
 	abstract fun map(propertyType: PropertyType): PropertyTypeDto
 
-	fun map(propertyTypeScope: PropertyTypeScope): PropertyTypeScopeDto =
-		PropertyTypeScopeDto.valueOf(propertyTypeScope.name)
-	fun map(propertyTypeScopeDto: PropertyTypeScopeDto): PropertyTypeScope =
-		PropertyTypeScope.valueOf(propertyTypeScopeDto.name)
+	fun map(propertyTypeScope: PropertyTypeScope): PropertyTypeScopeDto = PropertyTypeScopeDto.valueOf(propertyTypeScope.name)
+	fun map(propertyTypeScopeDto: PropertyTypeScopeDto): PropertyTypeScope = PropertyTypeScope.valueOf(propertyTypeScopeDto.name)
 }

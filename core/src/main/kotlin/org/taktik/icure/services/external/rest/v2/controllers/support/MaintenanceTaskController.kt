@@ -68,37 +68,45 @@ class MaintenanceTaskController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
 ) {
 	@Operation(summary = "Creates a maintenanceTask")
 	@PostMapping
-	fun createMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
-		maintenanceTaskService.createMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
+	fun createMaintenanceTask(
+		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
+	) = mono {
+		maintenanceTaskService
+			.createMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
 			?.let {
 				maintenanceTaskV2Mapper.map(it)
 			} ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask creation failed.")
 	}
 
-
 	@Operation(summary = "Deletes multiple MaintenanceTasks")
 	@PostMapping("/delete/batch")
-	fun deleteMaintenanceTasks(@RequestBody maintenanceTaskIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		maintenanceTaskService.deleteMaintenanceTasks(
-			maintenanceTaskIds.ids.map { IdAndRev(it, null) }
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteMaintenanceTasks(
+		@RequestBody maintenanceTaskIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = maintenanceTaskService
+		.deleteMaintenanceTasks(
+			maintenanceTaskIds.ids.map { IdAndRev(it, null) },
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes a multiple MaintenanceTasks if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
-	fun deleteMaintenanceTasksWithRev(@RequestBody maintenanceTaskIds: ListOfIdsAndRevDto): Flux<DocIdentifierDto> =
-		maintenanceTaskService.deleteMaintenanceTasks(
-			maintenanceTaskIds.ids.map(idWithRevV2Mapper::map)
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }.injectReactorContext()
+	fun deleteMaintenanceTasksWithRev(
+		@RequestBody maintenanceTaskIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = maintenanceTaskService
+		.deleteMaintenanceTasks(
+			maintenanceTaskIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 
 	@Operation(summary = "Deletes an MaintenanceTask")
 	@DeleteMapping("/{maintenanceTaskId}")
 	fun deleteMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		maintenanceTaskService.deleteMaintenanceTask(maintenanceTaskId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -108,7 +116,7 @@ class MaintenanceTaskController(
 	@PostMapping("/undelete/{maintenanceTaskId}")
 	fun undeleteMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<MaintenanceTaskDto> = mono {
 		maintenanceTaskV2Mapper.map(maintenanceTaskService.undeleteMaintenanceTask(maintenanceTaskId, rev))
 	}
@@ -116,39 +124,49 @@ class MaintenanceTaskController(
 	@DeleteMapping("/purge/{maintenanceTaskId}")
 	fun purgeMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		maintenanceTaskService.purgeMaintenanceTask(maintenanceTaskId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Gets a maintenanceTask")
 	@GetMapping("/{maintenanceTaskId}")
-	fun getMaintenanceTask(@PathVariable maintenanceTaskId: String) = mono {
+	fun getMaintenanceTask(
+		@PathVariable maintenanceTaskId: String,
+	) = mono {
 		maintenanceTaskService.getMaintenanceTask(maintenanceTaskId)?.let(maintenanceTaskV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask not found")
 	}
 
 	@Operation(summary = "Retrieves multiple MaintenanceTasks by their ids")
 	@PostMapping("/byIds")
-	fun getMaintenanceTasks(@RequestBody ids: ListOfIdsDto) =
-		maintenanceTaskService.getMaintenanceTasks(ids.ids)
-			.map(maintenanceTaskV2Mapper::map)
-			.injectReactorContext()
+	fun getMaintenanceTasks(
+		@RequestBody ids: ListOfIdsDto,
+	) = maintenanceTaskService
+		.getMaintenanceTasks(ids.ids)
+		.map(maintenanceTaskV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Updates a maintenanceTask")
 	@PutMapping
-	fun modifyMaintenanceTask(@RequestBody maintenanceTaskDto: MaintenanceTaskDto) = mono {
-		maintenanceTaskService.modifyMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
+	fun modifyMaintenanceTask(
+		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
+	) = mono {
+		maintenanceTaskService
+			.modifyMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
 			?.let { maintenanceTaskV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask modification failed.")
 	}
 
-	@Operation(summary = "Filter maintenanceTasks for the current user (HcParty) ", description = "Returns a list of maintenanceTasks along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter maintenanceTasks for the current user (HcParty) ",
+		description = "Returns a list of maintenanceTasks along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterMaintenanceTasksBy(
 		@Parameter(description = "A maintenanceTask document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>
+		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -161,19 +179,22 @@ class MaintenanceTaskController(
 	@Operation(summary = "Get ids of MaintenanceTasks matching the provided filter for the current user.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchMaintenanceTasksBy(
-		@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>
-	) = maintenanceTaskService.matchMaintenanceTasksBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow(),
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>,
+	) = maintenanceTaskService
+		.matchMaintenanceTasksBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
-		@RequestBody request: BulkShareOrUpdateMetadataParamsDto
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<MaintenanceTaskDto>> = flow {
-		emitAll(maintenanceTaskService.bulkShareOrUpdateMetadata(
-			entityShareOrMetadataUpdateRequestV2Mapper.map(request)
-		).map { bulkShareResultV2Mapper.map(it) })
+		emitAll(
+			maintenanceTaskService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it) },
+		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
-
 }

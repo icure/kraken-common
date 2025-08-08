@@ -3,10 +3,23 @@
  */
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import org.taktik.icure.entities.base.EnumVersion
+import java.io.Serializable
 
 @EnumVersion(1L)
 enum class PersonalStatus : Serializable {
-	single, in_couple, married, separated, divorced, divorcing, widowed, widower, complicated, unknown, contract, other, annulled, polygamous
+	single,
+	in_couple,
+	married,
+	separated,
+	divorced,
+	divorcing,
+	widowed,
+	widower,
+	complicated,
+	unknown,
+	contract,
+	other,
+	annulled,
+	polygamous,
 }

@@ -118,7 +118,7 @@ import org.taktik.icure.validation.ValidCode
  */
 data class Patient(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	val identifier: List<Identifier> = listOf(),
 	override val created: Long? = null,
 	override val modified: Long? = null,
@@ -127,11 +127,11 @@ data class Patient(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) override val firstName: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) override val lastName: String? = null, //Is usually either maidenName or spouseName,
+	@param:ContentValue(ContentValues.ANY_STRING) override val lastName: String? = null, // Is usually either maidenName or spouseName,
 	override val companyName: String? = null,
-	override val languages: List<String> = emptyList(), //alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
+	override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST)override val addresses: List<Address> = emptyList(),
 	override val civility: String? = null,
 	override val gender: Gender? = Gender.unknown,
@@ -164,7 +164,7 @@ data class Patient(
 	val nationality: String? = null,
 	val preferredUserId: String? = null,
 	@JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
-	val externalId: String? = null, //No guarantee of unicity
+	val externalId: String? = null, // No guarantee of unicity
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val insurabilities: List<Insurability> = emptyList(),
 	val partnerships: List<Partnership> = emptyList(),
 	val patientHealthCareParties: List<PatientHealthCareParty> = emptyList(),
@@ -212,23 +212,29 @@ data class Patient(
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 	override val medicalLocationId: String? = null,
 	override val parentId: Nothing? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
-) : StoredICureDocument, Person, HasEncryptionMetadata, CryptoActor, DataOwner, Encryptable {
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+) : StoredICureDocument,
+	Person,
+	HasEncryptionMetadata,
+	CryptoActor,
+	DataOwner,
+	Encryptable {
 	companion object : DynamicInitializer<Patient>
 
 	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Patient) =
-		super<StoredICureDocument>.solveConflictsWith(other) +
-			super<Person>.solveConflictsWith(other) +
-			super<HasEncryptionMetadata>.solveConflictsWith(other) +
-			super<CryptoActor>.solveConflictsWith(other) +
-			super<DataOwner>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Patient) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<Person>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		super<CryptoActor>.solveConflictsWith(other) +
+		super<DataOwner>.solveConflictsWith(other) +
+		mapOf(
 			"encryptionKeys" to this.encryptionKeys, // Only keep this ones
 			"identifier" to mergeListsDistinct(
-				this.identifier, other.identifier,
+				this.identifier,
+				other.identifier,
 				{ a, b -> a.system == b.system && a.value == b.value },
 			),
 			"birthSex" to (this.birthSex ?: other.birthSex),
@@ -275,26 +281,27 @@ data class Patient(
 			"schoolingInfos" to mergeListsDistinct(schoolingInfos, other.schoolingInfos),
 			"employementInfos" to mergeListsDistinct(employementInfos, other.employementInfos),
 			"insurabilities" to mergeListsDistinct(
-				insurabilities, other.insurabilities,
+				insurabilities,
+				other.insurabilities,
 				{ a, b -> a.insuranceId == b.insuranceId && a.startDate == b.startDate },
-				{ a, b -> if (a.endDate != null) a else b }
+				{ a, b -> if (a.endDate != null) a else b },
 			),
 			"patientHealthCareParties" to mergeListsDistinct(
-				patientHealthCareParties, other.patientHealthCareParties,
+				patientHealthCareParties,
+				other.patientHealthCareParties,
 				{ a, b -> a.healthcarePartyId == b.healthcarePartyId && a.type == b.type },
-				{ a, b -> a.merge(b) }
-			)
+				{ a, b -> a.merge(b) },
+			),
 		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = super.dataOwnersWithExplicitAccess + mapOf(id to AccessLevel.WRITE)

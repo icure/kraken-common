@@ -5,7 +5,7 @@
 package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Classification
 
 interface ClassificationDAO : GenericDAO<Classification> {
@@ -42,5 +42,4 @@ interface ClassificationDAO : GenericDAO<Classification> {
 	 * @return a [Flow] of Classification ids.
 	 */
 	fun listClassificationIdsByDataOwnerPatientCreated(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-
 }

@@ -11,12 +11,12 @@ import org.taktik.icure.services.external.rest.v2.dto.RecoveryDataDto
 
 @Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface RecoveryDataV2Mapper {
-    @Mappings(
-        Mapping(target = "attachments", ignore = true),
-        Mapping(target = "revHistory", ignore = true),
-        Mapping(target = "conflicts", ignore = true),
-        Mapping(target = "revisionsInfo", ignore = true)
-    )
-    fun map(recoveryDataDto: RecoveryDataDto): RecoveryData
-    fun map(recoveryData: RecoveryData): RecoveryDataDto
+	@Mappings(
+		Mapping(target = "attachments", ignore = true),
+		Mapping(target = "revHistory", ignore = true),
+		Mapping(target = "conflicts", ignore = true),
+		Mapping(target = "revisionsInfo", ignore = true),
+	)
+	fun map(recoveryDataDto: RecoveryDataDto): RecoveryData
+	fun map(recoveryData: RecoveryData): RecoveryDataDto
 }

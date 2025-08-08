@@ -1,13 +1,13 @@
 package org.taktik.icure.services.external.rest.v1.dto.couchdb
 
-import java.io.Serializable
-import java.time.ZonedDateTime
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.handlers.ZonedDateTimeDeserializer
 import org.taktik.couchdb.handlers.ZonedDateTimeSerializer
+import java.io.Serializable
+import java.time.ZonedDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,8 +19,8 @@ data class ReplicationStatsDto(
 	val changesPending: Int? = null,
 	val docWriteFailures: Int? = null,
 	val checkpointedSourceSeq: String? = null,
-	@JsonSerialize(using = ZonedDateTimeSerializer::class)
-	@JsonDeserialize(using = ZonedDateTimeDeserializer::class)
+	@param:JsonSerialize(using = ZonedDateTimeSerializer::class)
+	@param:JsonDeserialize(using = ZonedDateTimeDeserializer::class)
 	val startTime: ZonedDateTime? = null,
-	val error: String? = null
+	val error: String? = null,
 ) : Serializable

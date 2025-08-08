@@ -10,5 +10,5 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 enum class UserAccessLevelDto {
 	Admin,
 	Read,
-	Write
+	Write,
 }

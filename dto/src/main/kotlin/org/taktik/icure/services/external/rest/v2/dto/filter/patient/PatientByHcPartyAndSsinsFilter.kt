@@ -32,5 +32,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 data class PatientByHcPartyAndSsinsFilter(
 	override val desc: String? = null,
 	val ssins: List<String>? = null,
-	val healthcarePartyId: String? = null
+	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

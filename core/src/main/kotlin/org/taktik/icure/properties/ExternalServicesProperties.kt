@@ -19,5 +19,5 @@ data class ExternalServicesProperties(
 	/**
 	 * Specifies if the data of the fake GcpStorageClient should be stored in ram (true) or in a temporary directory on the file system (false).
 	 */
-	var storeFakeObjectStorageInRam: Boolean = false
+	var storeFakeObjectStorageInRam: Boolean = false,
 )

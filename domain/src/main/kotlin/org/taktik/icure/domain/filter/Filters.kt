@@ -3,8 +3,8 @@
  */
 package org.taktik.icure.domain.filter
 
-import java.io.Serializable
 import org.taktik.couchdb.id.Identifiable
+import java.io.Serializable
 
 interface Filters {
 

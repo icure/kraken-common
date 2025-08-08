@@ -8,9 +8,9 @@ import org.taktik.icure.entities.Document
  * @property previousDocument the current version of the document or null if [newDocument] is a completely new document which will be created.
  */
 data class BatchUpdateDocumentInfo(val newDocument: Document, val previousDocument: Document?) {
-    /**
-     * Checks whether the document is a new document which will be created.
-     */
-    val isNewDocument: Boolean
-        get() = previousDocument == null
+	/**
+	 * Checks whether the document is a new document which will be created.
+	 */
+	val isNewDocument: Boolean
+		get() = previousDocument == null
 }

@@ -13,5 +13,4 @@ sealed interface ExternalFilterKey {
 	data class ExternalFilterStringKey(override val key: String) : ExternalFilterKey
 	data class ExternalFilterLongKey(override val key: Long) : ExternalFilterKey
 	data class ExternalFilterComplexKey(override val key: ComplexKey) : ExternalFilterKey
-
 }

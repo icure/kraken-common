@@ -7,6 +7,6 @@ import org.taktik.couchdb.exception.UpdateConflictException
 import org.taktik.icure.entities.base.StoredDocument
 
 class BulkUpdateConflictException(
-    val conflicts: List<UpdateConflictException>,
-    val savedDocuments: List<StoredDocument?>
+	val conflicts: List<UpdateConflictException>,
+	val savedDocuments: List<StoredDocument?>,
 ) : PersistenceException()

@@ -44,19 +44,24 @@ data class AgendaDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val daySplitHour: Int? = null,
-	@JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,
 	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
-	@Schema(description = "Associates a user id to the permission that user has on the entity.")
-	@JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	@get:Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
 	val publicBookingQuota: Int? = null,
-	val properties: Set<PropertyStubDto> = emptySet(),
-	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String> {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

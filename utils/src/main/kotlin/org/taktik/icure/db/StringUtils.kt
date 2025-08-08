@@ -11,10 +11,10 @@ import java.io.InputStreamReader
 import java.text.Normalizer
 
 @Contract("null -> null; !null -> !null")
-fun sanitizeString(key: String?): String? {
-	return if (key == null) {
-		null
-	} else removeDiacriticalMarks(key).replace("\\s".toRegex(), "").replace("\\W".toRegex(), "").lowercase()
+fun sanitizeString(key: String?): String? = if (key == null) {
+	null
+} else {
+	removeDiacriticalMarks(key).replace("\\s".toRegex(), "").replace("\\W".toRegex(), "").lowercase()
 }
 
 private fun removeDiacriticalMarks(key: String): String {
@@ -22,7 +22,7 @@ private fun removeDiacriticalMarks(key: String): String {
 		return Normalizer.normalize(key.replace("ø".toRegex(), "o").replace("æ".toRegex(), "ae").replace("Æ".toRegex(), "AE").replace("Œ".toRegex(), "oe").replace("œ".toRegex(), "oe"), Normalizer.Form.NFD)
 			.replace("\\p{InCombiningDiacriticalMarks}".toRegex(), "")
 	} catch (ignored: NoSuchMethodException) { }
-	//Fallback
+	// Fallback
 	return key.replace("[\u00E8\u00E9\u00EA\u00EB]".toRegex(), "e")
 		.replace("[\u00FB\u00F9\u00FC]".toRegex(), "u")
 		.replace("[\u00E7]".toRegex(), "c")
@@ -103,9 +103,7 @@ fun detectFrenchCp850Cp1252(data: ByteArray?): String? {
 	return null
 }
 
-fun equals(s1: String?, s2: String?): Boolean {
-	return s1 != null && s2 != null && (StringUtils.equals(s1, s2) || StringUtils.equals(sanitizeString(s1), sanitizeString(s2)))
-}
+fun equals(s1: String?, s2: String?): Boolean = s1 != null && s2 != null && (StringUtils.equals(s1, s2) || StringUtils.equals(sanitizeString(s1), sanitizeString(s2)))
 
 @Contract("null -> null; !null -> !null")
 fun String?.sanitize() = sanitizeString(this)

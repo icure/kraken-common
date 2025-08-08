@@ -10,5 +10,4 @@ interface RemoteV2Mapper {
 
 	fun map(remote: Remote): RemoteDto
 	fun map(remoteDto: RemoteDto): Remote
-
 }

@@ -12,9 +12,11 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	val eventTypes: List<EventType>,
 	val entityClass: String,
 	val filter: FilterChain<O>?,
-	val accessControlKeys: List<HexString>? = null
+	val accessControlKeys: List<HexString>? = null,
 ) : java.io.Serializable {
 	enum class EventType {
-		CREATE, UPDATE, DELETE
+		CREATE,
+		UPDATE,
+		DELETE,
 	}
 }

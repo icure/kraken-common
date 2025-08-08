@@ -11,18 +11,17 @@ data class ClassificationByDataOwnerPatientCreatedDateFilter(
 	override val endDate: Long?,
 	override val secretForeignKeys: Set<String>,
 	override val descending: Boolean?,
-	override val desc: String? = null
-) : AbstractFilter<Classification>, ClassificationByDataOwnerPatientCreatedDateFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Classification>,
+	ClassificationByDataOwnerPatientCreatedDateFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Classification, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item)
-			&& item.secretForeignKeys.intersect(secretForeignKeys).isNotEmpty()
-			&& item.created != null
-			&& (startDate == null || item.created >= startDate)
-			&& (endDate == null || item.created <= endDate)
-
+	override fun matches(item: Classification, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) &&
+		item.secretForeignKeys.intersect(secretForeignKeys).isNotEmpty() &&
+		item.created != null &&
+		(startDate == null || item.created >= startDate) &&
+		(endDate == null || item.created <= endDate)
 }

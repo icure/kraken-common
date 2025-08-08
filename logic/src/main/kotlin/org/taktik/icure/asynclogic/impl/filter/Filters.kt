@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import java.io.Serializable
 
 class Filters : ApplicationContextAware {
@@ -20,11 +20,12 @@ class Filters : ApplicationContextAware {
 
 	fun <T : Serializable, O : Identifiable<T>> resolve(filter: org.taktik.icure.domain.filter.Filter<T, O>, datastoreInformation: IDatastoreInformation) = flow<T> {
 		val truncatedFullClassName = filter.javaClass.name.replace(".+?filter\\.impl\\.".toRegex(), "").replace(".+?dto\\.filter\\.".toRegex(), "")
-		val filterClass = try{
+		val filterClass = try {
 			Class.forName("org.taktik.icure.asynclogic.impl.filter.$truncatedFullClassName")
 		} catch (e: ClassNotFoundException) {
 			throw IllegalStateException("Could not find class for filter $truncatedFullClassName", e)
 		}
+
 		@Suppress("UNCHECKED_CAST")
 		val filterToBeResolved = (filtersCache[truncatedFullClassName] as Filter<T, O, org.taktik.icure.domain.filter.Filter<T, O>>?) ?: kotlin.run {
 			try {

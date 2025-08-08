@@ -20,5 +20,5 @@ data class InvoiceByHcPartyCodeDateFilter(
 	val healthcarePartyId: String? = null,
 	val code: String,
 	val startInvoiceDate: Long? = null,
-	val endInvoiceDate: Long? = null
+	val endInvoiceDate: Long? = null,
 ) : AbstractFilterDto<InvoiceDto>

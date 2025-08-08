@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthcarePartyHistoryStatusDto(
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val status: HealthcarePartyStatusDto,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val specialisationCode: String,
-	@Schema(required = true)
+	@get:Schema(required = true)
 	val startDate: Long,
-	@Schema(required = true)
-	val active: Boolean
+	@get:Schema(required = true)
+	val active: Boolean,
 )

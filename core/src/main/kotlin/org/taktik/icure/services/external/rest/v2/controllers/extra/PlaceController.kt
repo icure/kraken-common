@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-
 import org.taktik.icure.asyncservice.PlaceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -46,29 +45,38 @@ class PlaceController(
 	private val placeService: PlaceService,
 	private val placeV2Mapper: PlaceV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Creates a place")
 	@PostMapping
-	fun createPlace(@RequestBody placeDto: PlaceDto) = mono {
+	fun createPlace(
+		@RequestBody placeDto: PlaceDto,
+	) = mono {
 		placeService.createPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
 	}
 
 	@Operation(summary = "Deletes places")
 	@PostMapping("/delete/batch")
-	fun deletePlaces(@RequestBody placeIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		placeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			placeService.deletePlaces(ids.map { IdAndRev(it, null) })
-				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+	fun deletePlaces(
+		@RequestBody placeIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = placeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+		placeService
+			.deletePlaces(ids.map { IdAndRev(it, null) })
+			.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+			.injectReactorContext()
+	}
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
 
 	@Operation(summary = "Gets a place")
 	@GetMapping("/{placeId}")
-	fun getPlace(@PathVariable placeId: String) = mono {
+	fun getPlace(
+		@PathVariable placeId: String,
+	) = mono {
 		placeService.getPlace(placeId)?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
@@ -77,7 +85,7 @@ class PlaceController(
 	@GetMapping
 	fun getPlaces(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<PlaceDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return placeService
@@ -88,7 +96,9 @@ class PlaceController(
 
 	@Operation(summary = "Modifies an place")
 	@PutMapping
-	fun modifyPlace(@RequestBody placeDto: PlaceDto) = mono {
+	fun modifyPlace(
+		@RequestBody placeDto: PlaceDto,
+	) = mono {
 		placeService.modifyPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
 	}

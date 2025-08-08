@@ -9,8 +9,8 @@ const val HCP_HIERARCHY = "hh"
 const val AUTHORITIES = "a"
 
 interface JwtDetails : Jwt {
-    val dataOwnerId: String?
-    val dataOwnerType: DataOwnerType?
-    val hcpHierarchy: List<String>
-    val authorities: Set<GrantedAuthority>
+	val dataOwnerId: String?
+	val dataOwnerType: DataOwnerType?
+	val hcpHierarchy: List<String>
+	val authorities: Set<GrantedAuthority>
 }

@@ -10,6 +10,6 @@ import org.taktik.icure.annotations.entities.ContentValues
  * @property high is the higher bound (inclusive) of the range
  */
 data class Range(
-    @param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
-    @param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
+	@param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
+	@param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
 )

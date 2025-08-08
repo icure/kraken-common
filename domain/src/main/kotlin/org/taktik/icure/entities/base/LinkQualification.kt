@@ -24,8 +24,28 @@ package org.taktik.icure.entities.base
  * Favour parent over child as it is better (for conflicts) to change 5 different documents once instead of changing 5 times the same document
  */
 enum class LinkQualification {
-    exact, narrower, broader, approximate, sequence, parent, child, relatedCode, linkedPackage,
-    relatedService, inResponseTo, replaces, transforms, transformsAndReplaces, appendsTo,
-    basedOn, derivedFrom, device, focus, hasMember, performer, specimen,
-    resultInterpreter, request
+	exact,
+	narrower,
+	broader,
+	approximate,
+	sequence,
+	parent,
+	child,
+	relatedCode,
+	linkedPackage,
+	relatedService,
+	inResponseTo,
+	replaces,
+	transforms,
+	transformsAndReplaces,
+	appendsTo,
+	basedOn,
+	derivedFrom,
+	device,
+	focus,
+	hasMember,
+	performer,
+	specimen,
+	resultInterpreter,
+	request,
 }

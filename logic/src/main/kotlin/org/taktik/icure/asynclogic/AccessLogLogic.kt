@@ -13,7 +13,9 @@ import org.taktik.icure.domain.result.AggregatedAccessLogs
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.pagination.PaginationElement
 
-interface AccessLogLogic : EntityWithSecureDelegationsLogic<AccessLog>, EntityPersister<AccessLog> {
+interface AccessLogLogic :
+	EntityWithSecureDelegationsLogic<AccessLog>,
+	EntityPersister<AccessLog> {
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
 
 	/**

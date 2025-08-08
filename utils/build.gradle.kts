@@ -2,7 +2,7 @@
 plugins {
     id("com.icure.kotlin-library-conventions")
 
-    alias(coreLibs.plugins.kotlinAllOpen) apply(true)
+    alias(coreLibs.plugins.kotlinAllOpen) apply (true)
     alias(coreLibs.plugins.mavenRepository)
     alias(coreLibs.plugins.gitVersion)
 }
@@ -19,5 +19,4 @@ dependencies {
     implementation(coreLibs.kotlinxCoroutinesReactor)
     implementation(coreLibs.apacheCommonsLang3)
     implementation(coreLibs.jacksonKotlin)
-
 }

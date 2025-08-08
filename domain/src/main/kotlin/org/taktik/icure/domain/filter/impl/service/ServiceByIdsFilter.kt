@@ -24,8 +24,9 @@ import org.taktik.icure.entities.embed.Service
 
 data class ServiceByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilter<Service>, Filters.IdsFilter<String, Service> {
+	override val desc: String? = null,
+) : AbstractFilter<Service>,
+	Filters.IdsFilter<String, Service> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

@@ -14,7 +14,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Revisionable
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -29,14 +29,14 @@ enum class Partitions(val partitionName: String) {
 	All(""),
 	Main(""),
 	DataOwner(DATA_OWNER_PARTITION),
-	Maurice(MAURICE_PARTITION);
+	Maurice(MAURICE_PARTITION),
+	;
 
 	companion object {
 
 		fun valueOfOrNull(partition: String): Partitions? = runCatching {
 			Partitions.valueOf(partition)
 		}.getOrNull()
-
 	}
 }
 
@@ -191,7 +191,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,
-		ignoreIfUnchanged: Boolean = false
+		ignoreIfUnchanged: Boolean = false,
 	): List<DesignDocument>
 
 	/**
@@ -209,7 +209,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,
-		ignoreIfUnchanged: Boolean = false
+		ignoreIfUnchanged: Boolean = false,
 	): List<DesignDocument>
 
 	/**
@@ -259,7 +259,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		partitionsWithRepo: Map<String, String>,
 		updateIfExists: Boolean,
 		dryRun: Boolean,
-		ignoreIfUnchanged: Boolean = false
+		ignoreIfUnchanged: Boolean = false,
 	): List<DesignDocument>
 
 	/**
@@ -277,18 +277,18 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 		viewName: String,
 		partitionName: String,
 		startKey: ExternalFilterKey?,
-		endKey: ExternalFilterKey?
+		endKey: ExternalFilterKey?,
 	): Flow<String>
 }
 
 suspend fun <T> GenericDAO<T>.getEntitiesWithExpectedRev(
 	datastoreInformation: IDatastoreInformation,
-	identifiers: Collection<IdAndRev>
+	identifiers: Collection<IdAndRev>,
 ): List<T> where T : Revisionable<String> {
 	val expectedRevById = identifiers.associate { it.id to it.rev }
 	return getEntities(
 		datastoreInformation,
-		identifiers.map { it.id }
+		identifiers.map { it.id },
 	).toList().filter {
 		expectedRevById.getValue(it.id).let { expectedRev -> expectedRev == null || expectedRev == it.rev }
 	}
@@ -297,7 +297,7 @@ suspend fun <T> GenericDAO<T>.getEntitiesWithExpectedRev(
 suspend fun <T> GenericDAO<T>.getEntityWithExpectedRev(
 	datastoreInformation: IDatastoreInformation,
 	id: String,
-	rev: String?
+	rev: String?,
 ): T where T : Revisionable<String> {
 	val retrieved = get(datastoreInformation, id)
 		?: throw NotFoundRequestException("Entity with id $id not found")
@@ -306,4 +306,3 @@ suspend fun <T> GenericDAO<T>.getEntityWithExpectedRev(
 	}
 	return retrieved
 }
-

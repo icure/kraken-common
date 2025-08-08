@@ -7,13 +7,13 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class CalendarItemByRecurrenceIdFilter(
 	override val recurrenceId: String,
-	override val desc: String? = null
-) : AbstractFilter<CalendarItem>, CalendarItemByRecurrenceIdFilter {
+	override val desc: String? = null,
+) : AbstractFilter<CalendarItem>,
+	CalendarItemByRecurrenceIdFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.recurrenceId == recurrenceId
+	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.recurrenceId == recurrenceId
 }

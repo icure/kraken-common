@@ -3,8 +3,8 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import java.io.Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class LoginCredentials : Serializable {

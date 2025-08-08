@@ -10,16 +10,15 @@ data class CalendarItemByPeriodAndAgendaIdFilter(
 	override val startTime: Long,
 	override val endTime: Long,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<CalendarItem>, CalendarItemByPeriodAndAgendaIdFilter {
+	override val desc: String? = null,
+) : AbstractFilter<CalendarItem>,
+	CalendarItemByPeriodAndAgendaIdFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.agendaId == agendaId
-			&& (item.startTime != null && startTime <= item.startTime )
-			&& (item.endTime == null || endTime >= item.endTime)
-
+	override fun matches(item: CalendarItem, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.agendaId == agendaId &&
+		(item.startTime != null && startTime <= item.startTime) &&
+		(item.endTime == null || endTime >= item.endTime)
 }

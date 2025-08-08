@@ -15,8 +15,9 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	override val region: String? = null,
 	override val type: String,
 	override val language: String,
-	override val label: String? = null
-) : AbstractFilter<Code>, org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter {
+	override val label: String? = null,
+) : AbstractFilter<Code>,
+	org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
@@ -26,19 +27,18 @@ data class CodeByRegionTypeLabelLanguageFilter(
 		if (this === other) return true
 		if (other !is CodeByRegionTypeLabelLanguageFilter) return false
 		return region == other.region &&
-				type == other.type &&
-				language == other.language &&
-				label == other.label
+			type == other.type &&
+			language == other.language &&
+			label == other.label
 	}
 
-	override fun hashCode(): Int {
-		return Objects.hash(region, type, language, label)
-	}
+	override fun hashCode(): Int = Objects.hash(region, type, language, label)
 
 	override fun matches(item: Code, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val ss = sanitizeString(label)
-		return ss != null && (
-			(region == null || item.regions.contains(region)) && item.label?.get(language)?.let { s -> sanitizeString(s)?.contains(ss) } == true
-		)
+		return ss != null &&
+			(
+				(region == null || item.regions.contains(region)) && item.label?.get(language)?.let { s -> sanitizeString(s)?.contains(ss) } == true
+				)
 	}
 }

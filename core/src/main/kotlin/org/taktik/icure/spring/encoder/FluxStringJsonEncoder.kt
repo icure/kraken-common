@@ -13,15 +13,16 @@ import reactor.core.publisher.Mono
 import java.io.IOException
 
 class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON) {
-
 	companion object {
 		private class StringArrayJoinHelper {
 			private var firstEmitted = false
 
-			fun getPrefix(): String = if(!firstEmitted) {
+			fun getPrefix(): String = if (!firstEmitted) {
 				firstEmitted = true
 				FLUX_PREFIX
-			} else FLUX_DELIMITER
+			} else {
+				FLUX_DELIMITER
+			}
 		}
 
 		const val FLUX_DELIMITER = ","
@@ -29,35 +30,42 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 		const val FLUX_SUFFIX = "]"
 	}
 
-	override fun canEncode(elementType: ResolvableType, mimeType: MimeType?): Boolean =
-		MimeType.valueOf(MediaType.APPLICATION_JSON_VALUE) == mimeType && elementType.resolve() == String::class.java && super.canEncode(elementType, mimeType)
-
+	override fun canEncode(
+		elementType: ResolvableType,
+		mimeType: MimeType?,
+	): Boolean = MimeType.valueOf(MediaType.APPLICATION_JSON_VALUE) == mimeType &&
+		elementType.resolve() == String::class.java &&
+		super.canEncode(elementType, mimeType)
 
 	override fun encode(
 		inputStream: Publisher<out String>,
 		bufferFactory: DataBufferFactory,
 		elementType: ResolvableType,
 		mimeType: MimeType?,
-		hints: MutableMap<String, Any>?
+		hints: MutableMap<String, Any>?,
 	): Flux<DataBuffer> = Flux.deferContextual { contextView ->
-		val hintsToUse = if(contextView.isEmpty) hints else Hints.merge(hints, contextView.javaClass.name, contextView)
+		val hintsToUse = if (contextView.isEmpty) hints else Hints.merge(hints, contextView.javaClass.name, contextView)
 		try {
 			val helper = StringArrayJoinHelper()
 
-			if(inputStream is Flux<*>) {
-				Flux.from(inputStream).map {
-					bufferFactory.wrap("${helper.getPrefix()}\"$it\"".toByteArray())
-				}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
-				.concatWith(Mono.fromCallable { bufferFactory.wrap(FLUX_SUFFIX.toByteArray()) })
-				.doOnNext { dataBuffer ->
-					Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
-				}
+			if (inputStream is Flux<*>) {
+				Flux
+					.from(inputStream)
+					.map {
+						bufferFactory.wrap("${helper.getPrefix()}\"$it\"".toByteArray())
+					}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
+					.concatWith(Mono.fromCallable { bufferFactory.wrap(FLUX_SUFFIX.toByteArray()) })
+					.doOnNext { dataBuffer ->
+						Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
+					}
 			} else {
-				Flux.from(inputStream).map {
-					bufferFactory.wrap(it.toByteArray())
-				}.doOnNext { dataBuffer ->
-					Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
-				}
+				Flux
+					.from(inputStream)
+					.map {
+						bufferFactory.wrap(it.toByteArray())
+					}.doOnNext { dataBuffer ->
+						Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
+					}
 			}
 		} catch (e: IOException) {
 			Flux.error(e)

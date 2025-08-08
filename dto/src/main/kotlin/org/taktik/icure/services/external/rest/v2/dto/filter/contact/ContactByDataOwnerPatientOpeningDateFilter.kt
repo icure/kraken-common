@@ -18,5 +18,5 @@ data class ContactByDataOwnerPatientOpeningDateFilter(
 	val startDate: Long? = null,
 	val endDate: Long? = null,
 	val descending: Boolean? = null,
-	override val desc: String? = null
-): AbstractFilterDto<ContactDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<ContactDto>

@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.AgendaLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.config.SdkVersionConfig
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.pagination.PaginationElement
@@ -24,20 +24,21 @@ open class AgendaLogicImpl(
 	private val sdkVersionConfig: SdkVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider, filters), AgendaLogic {
-
+	filters: Filters,
+) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider, filters),
+	AgendaLogic {
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(agendaDAO
-			.getAllPaginated(datastoreInformation, offset.limitIncludingKey(), Nothing::class.java)
-			.toPaginatedFlow<Agenda>(offset.limit)
+		emitAll(
+			agendaDAO
+				.getAllPaginated(datastoreInformation, offset.limitIncludingKey(), Nothing::class.java)
+				.toPaginatedFlow<Agenda>(offset.limit),
 		)
 	}
 
 	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
 		if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
-			require(fixedAgenda.userRights.isNotEmpty())  {
+			require(fixedAgenda.userRights.isNotEmpty()) {
 				"You cannot create an Agenda with empty userRights"
 			}
 		}
@@ -65,7 +66,5 @@ open class AgendaLogicImpl(
 		emitAll(agendaDAO.getReadableAgendaByUserLegacy(datastoreInformation, userId))
 	}
 
-	override fun getGenericDAO(): AgendaDAO {
-		return agendaDAO
-	}
+	override fun getGenericDAO(): AgendaDAO = agendaDAO
 }

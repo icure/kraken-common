@@ -32,5 +32,6 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ContactByHcPartyFilter(
 	override val hcpId: String,
-	override val desc: String? = null
-) : AbstractFilterDto<ContactDto>, FilterDto.ByHcpartyFilter<ContactDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<ContactDto>,
+	FilterDto.ByHcpartyFilter<ContactDto>

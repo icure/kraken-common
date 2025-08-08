@@ -13,5 +13,5 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DocumentGroup(
 	@param:ContentValue(ContentValues.UUID) val guid: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null
+	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null,
 ) : Serializable

@@ -32,5 +32,6 @@ class PopupMenuEditor(
 	val menuOptions: List<String>? = null,
 	override val displayValueDate: Boolean = false,
 	val displayAllAlways: Boolean = false,
-	val isFreeText: Boolean = false
-) : Editor(), ValueDateEditor
+	val isFreeText: Boolean = false,
+) : Editor(),
+	ValueDateEditor

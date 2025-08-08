@@ -31,11 +31,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementByHcPartyTagCodeFilter(
-    override val desc: String? = null,
-    val healthcarePartyId: String,
-    val codeType: String? = null,
-    val codeCode: String? = null,
-    val tagType: String? = null,
-    val tagCode: String? = null,
-    val status: Int? = null
+	override val desc: String? = null,
+	val healthcarePartyId: String,
+	val codeType: String? = null,
+	val codeCode: String? = null,
+	val tagType: String? = null,
+	val tagCode: String? = null,
+	val status: Int? = null,
 ) : AbstractFilterDto<HealthElementDto>

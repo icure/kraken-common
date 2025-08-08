@@ -3,9 +3,9 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.gui.type
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 /**
  * Created by aduchate on 19/11/13, 10:33
@@ -19,7 +19,8 @@ class Measure(
 	val minRef: Number? = null,
 	val maxRef: Number? = null,
 	val severity: Number = 0,
-) : Data(), Serializable {
+) : Data(),
+	Serializable {
 	fun checkValue(): Int {
 		if (severity != null && severity!!.toInt() > 0) {
 			return TOO_HIGHT
@@ -60,21 +61,24 @@ class Measure(
 	}
 
 	val restriction: String?
-		get() = if (minRef == null) {
-			if (maxRef == null) {
-				null
-			} else {
-				"<" + maxRef
-			}
-		} else {
-			if (maxRef == null) {
-				">" + minRef
-			} else {
-				if (minRef == maxRef) {
+		get() =
+			if (minRef == null) {
+				if (maxRef == null) {
 					null
-				} else "" + minRef + "-" + maxRef
+				} else {
+					"<" + maxRef
+				}
+			} else {
+				if (maxRef == null) {
+					">" + minRef
+				} else {
+					if (minRef == maxRef) {
+						null
+					} else {
+						"" + minRef + "-" + maxRef
+					}
+				}
 			}
-		}
 
 	companion object {
 		const val OK = 0

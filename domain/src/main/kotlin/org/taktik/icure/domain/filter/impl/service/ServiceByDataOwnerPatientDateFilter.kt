@@ -12,20 +12,24 @@ data class ServiceByDataOwnerPatientDateFilter(
 	override val startDate: Long? = null,
 	override val endDate: Long? = null,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<Service>, ServiceByDataOwnerPatientDateFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Service>,
+	ServiceByDataOwnerPatientDateFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		(item.withEncryptionMetadata()?.let {
-			searchKeyMatcher(dataOwnerId, it)
-				&& it.secretForeignKeys.intersect(secretForeignKeys).isNotEmpty()
-		} ?: false) && (item.valueDate ?: item.openingDate).let { date ->
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		item.withEncryptionMetadata()?.let {
+			searchKeyMatcher(dataOwnerId, it) &&
+				it.secretForeignKeys.intersect(secretForeignKeys).isNotEmpty()
+		} ?: false
+		) &&
+		(item.valueDate ?: item.openingDate).let { date ->
 			(date == null && startDate == null && endDate == null) ||
-				date != null && (startDate == null || date >= startDate) && (endDate == null || date <= endDate)
+				date != null &&
+				(startDate == null || date >= startDate) &&
+				(endDate == null || date <= endDate)
 		}
-
 }

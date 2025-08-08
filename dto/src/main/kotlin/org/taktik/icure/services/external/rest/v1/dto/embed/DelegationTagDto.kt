@@ -3,6 +3,7 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
+@Suppress("EnumEntryName")
 enum class DelegationTagDto {
 	all,
 	administrativeData,
@@ -23,5 +24,5 @@ enum class DelegationTagDto {
 	cdItemParameter,
 	cdItemMedication,
 	cdItemTreatment,
-	cdItemVaccine
+	cdItemVaccine,
 }

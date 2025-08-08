@@ -4,6 +4,10 @@
 
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
+@Suppress("EnumEntryName")
 enum class FlatRateTypeDto {
-	physician, physiotherapist, nurse, ptd
+	physician,
+	physiotherapist,
+	nurse,
+	ptd,
 }

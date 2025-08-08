@@ -37,22 +37,22 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 		DataAttachmentV2Mapper::class,
 		DeletedAttachmentV2Mapper::class,
 		DelegationV2Mapper::class,
-		SecurityMetadataV2Mapper::class
+		SecurityMetadataV2Mapper::class,
 	],
-	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface DocumentV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(documentDto: DocumentDto): Document
 
 	@Mappings(
 		Mapping(target = "encryptedAttachment", ignore = true),
-		Mapping(target = "decryptedAttachment", ignore = true)
+		Mapping(target = "decryptedAttachment", ignore = true),
 	)
 	fun map(document: Document): DocumentDto
 }

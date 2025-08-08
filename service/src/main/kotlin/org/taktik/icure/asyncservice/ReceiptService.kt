@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asyncservice
 
-import java.nio.ByteBuffer
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
@@ -14,6 +13,7 @@ import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import java.nio.ByteBuffer
 
 interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	suspend fun createReceipt(receipt: Receipt): Receipt?
@@ -58,27 +58,27 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 */
 	suspend fun deleteReceipt(id: String, rev: String?): Receipt
 
-    /**
-     * Deletes an entity.
-     * An entity deleted this way can't be restored.
-     * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
-     *
-     * @param id the id of the entity
-     * @param rev the latest known revision of the entity.
-     * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
-     * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
-     * @throws ConflictRequestException if the entity rev doesn't match.
-     */
-    suspend fun purgeReceipt(id: String, rev: String): DocIdentifier
+	/**
+	 * Deletes an entity.
+	 * An entity deleted this way can't be restored.
+	 * To delete an entity this way, the user needs purge permission in addition to write access to the entity.
+	 *
+	 * @param id the id of the entity
+	 * @param rev the latest known revision of the entity.
+	 * @throws AccessDeniedException if the current user doesn't have the permission to purge the entity.
+	 * @throws NotFoundRequestException if the entity with the specified [id] does not exist.
+	 * @throws ConflictRequestException if the entity rev doesn't match.
+	 */
+	suspend fun purgeReceipt(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteReceipt(id: String, rev: String): Receipt
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeleteReceipt(id: String, rev: String): Receipt
 
 	/**
 	 * Retrieve a [Receipt] by id.

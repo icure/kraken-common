@@ -12,16 +12,16 @@ import java.time.LocalTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class  EmbeddedTimeTableHour(
+data class EmbeddedTimeTableHour(
 	/**
 	 * The start of a time slot, as fuzzy time in 24-hour hhmmss format.
 	 */
-	val startHour: Int, //hhmmss
+	val startHour: Int, // hhmmss
 	/**
 	 * The end of a time slot, as fuzzy time in 24-hour hhmmss format.
 	 * The special value [END_OF_DAY] (23_59_60) can be used to indicate the end of the day.
 	 */
-	val endHour: Int, //hhmmss
+	val endHour: Int, // hhmmss
 ) : Serializable {
 	companion object {
 		const val END_OF_DAY = 23_59_60
@@ -29,6 +29,7 @@ data class  EmbeddedTimeTableHour(
 
 	@get:JsonIgnore
 	val startHourLocalTime: LocalTime get() = FuzzyDates.getFullLocalTime(startHour)!!
+
 	@get:JsonIgnore
 	val endHourLocalTime: LocalTime get() = if (endHour == END_OF_DAY) LocalTime.MIDNIGHT else FuzzyDates.getFullLocalTime(endHour)!!
 

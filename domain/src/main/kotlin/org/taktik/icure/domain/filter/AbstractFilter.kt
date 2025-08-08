@@ -9,7 +9,9 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import java.io.Serializable
 
-interface AbstractFilter<O : Identifiable<String>> : Filter<String, O>, Serializable {
+interface AbstractFilter<O : Identifiable<String>> :
+	Filter<String, O>,
+	Serializable {
 	val desc: String?
 
 	/**
@@ -46,15 +48,9 @@ interface AbstractFilter<O : Identifiable<String>> : Filter<String, O>, Serializ
 	 */
 	fun requestedDataOwnerIds(): Set<String>
 
-	override fun applyTo(items: Flow<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Flow<O> {
-		return items.filter { item -> this.matches(item, searchKeyMatcher) }
-	}
+	override fun applyTo(items: Flow<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Flow<O> = items.filter { item -> this.matches(item, searchKeyMatcher) }
 
-	override fun applyTo(items: List<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> {
-		return items.filter { item -> this.matches(item, searchKeyMatcher) }
-	}
+	override fun applyTo(items: List<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> = items.filter { item -> this.matches(item, searchKeyMatcher) }
 
-	override fun applyTo(items: Set<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Set<O> {
-		return items.filter { item -> this.matches(item, searchKeyMatcher) }.toSet()
-	}
+	override fun applyTo(items: Set<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Set<O> = items.filter { item -> this.matches(item, searchKeyMatcher) }.toSet()
 }

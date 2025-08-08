@@ -28,6 +28,7 @@ interface UserService : EntityWithConflictResolutionService {
 
 	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): User?
 	suspend fun getUserByEmail(email: String): User?
+
 	/**
 	 * Get a user matching the given identifier in the same group as the current user.
 	 * The generic identifier can be an id, login, email or phone number, and the search is done in this order.
@@ -129,14 +130,13 @@ interface UserService : EntityWithConflictResolutionService {
 	 */
 	suspend fun purgeUser(id: String, rev: String): DocIdentifier
 
-    /**
-     * Restores an entity marked as deleted.
-     * The user needs to have write access to the entity
-     * @param id the id of the entity marked to restore
-     * @param rev the revision of the entity after it was marked as deleted
-     * @return the restored entity
-     */
-    suspend fun undeleteUser(id: String, rev: String): User
+	/**
+	 * Restores an entity marked as deleted.
+	 * The user needs to have write access to the entity
+	 * @param id the id of the entity marked to restore
+	 * @param rev the revision of the entity after it was marked as deleted
+	 * @return the restored entity
+	 */
+	suspend fun undeleteUser(id: String, rev: String): User
 	// endregion
-
 }

@@ -7,16 +7,15 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AgendaWithPropertyFilter(
 	override val propertyId: String,
-	override val desc: String? = null
-) : AbstractFilter<Agenda>, AgendaWithPropertyFilter {
+	override val desc: String? = null,
+) : AbstractFilter<Agenda>,
+	AgendaWithPropertyFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: Agenda, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.properties.any {
-			it.id == propertyId
-		}
-
+	override fun matches(item: Agenda, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.properties.any {
+		it.id == propertyId
+	}
 }

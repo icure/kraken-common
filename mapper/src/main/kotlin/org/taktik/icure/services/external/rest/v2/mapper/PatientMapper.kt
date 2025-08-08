@@ -57,16 +57,16 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 		PartnershipV2Mapper::class,
 		PersonNameV2Mapper::class,
 		SecurityMetadataV2Mapper::class,
-		AnnotationV2Mapper::class
+		AnnotationV2Mapper::class,
 	],
-	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface PatientV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(patientDto: PatientDto): Patient
 	fun map(patient: Patient): PatientDto

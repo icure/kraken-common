@@ -9,7 +9,7 @@ import org.taktik.icure.entities.Message
  * As this filter explicitly specifies a data owner, it does not require any special permission to be used.
  */
 interface MessageByHcPartyTransportGuidReceivedFilter : Filter<String, Message> {
-    val healthcarePartyId: String
-    val transportGuid: String
-    val descending: Boolean?
+	val healthcarePartyId: String
+	val transportGuid: String
+	val descending: Boolean?
 }

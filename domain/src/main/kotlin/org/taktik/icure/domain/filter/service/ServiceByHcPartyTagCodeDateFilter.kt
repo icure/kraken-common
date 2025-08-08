@@ -24,6 +24,7 @@ import org.taktik.icure.entities.embed.Service
  */
 interface ServiceByHcPartyTagCodeDateFilter : Filter<String, Service> {
 	val healthcarePartyId: String?
+
 	@Deprecated("Use patientSecretForeignKeys instead")
 	val patientSecretForeignKey: String?
 	val patientSecretForeignKeys: List<String>?

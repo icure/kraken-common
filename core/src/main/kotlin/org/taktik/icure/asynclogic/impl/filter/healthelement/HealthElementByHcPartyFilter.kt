@@ -24,25 +24,25 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 
 @Service
 @Profile("app")
 class HealthElementByHcPartyFilter(
-    private val healthElementDAO: HealthElementDAO,
-    private val sessionInformationProvider: SessionInformationProvider
+	private val healthElementDAO: HealthElementDAO,
+	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, HealthElement, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, HealthElement>> {
 	override fun resolve(
-        filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, HealthElement>,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
-        mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.hcpId)) { key ->
-            healthElementDAO.listHealthElementIdsByHcParty(datastoreInformation, key)
-        }.let { emitAll(it) }
-    }
+		filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, HealthElement>,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
+		mergeUniqueIdsForSearchKeys(sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.hcpId)) { key ->
+			healthElementDAO.listHealthElementIdsByHcParty(datastoreInformation, key)
+		}.let { emitAll(it) }
+	}
 }

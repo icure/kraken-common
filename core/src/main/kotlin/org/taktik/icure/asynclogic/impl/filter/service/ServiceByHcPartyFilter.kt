@@ -22,25 +22,27 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.embed.Service
 
 @org.springframework.stereotype.Service
 @Profile("app")
 class ServiceByHcPartyFilter(
 	private val contactDAO: ContactDAO,
-	private val sessionInformationProvider: SessionInformationProvider
+	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Service, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Service>> {
 	override fun resolve(
-        filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Service>,
-        context: Filters,
-        datastoreInformation: IDatastoreInformation
-    ) = flow {
-		emitAll(contactDAO.listServiceIdsByHcParty(
-			datastoreInformation = datastoreInformation,
-			searchKeys = sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.hcpId)
-		))
+		filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Service>,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
+		emitAll(
+			contactDAO.listServiceIdsByHcParty(
+				datastoreInformation = datastoreInformation,
+				searchKeys = sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.hcpId),
+			),
+		)
 	}
 }

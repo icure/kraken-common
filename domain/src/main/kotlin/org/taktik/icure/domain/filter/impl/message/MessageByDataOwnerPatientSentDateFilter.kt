@@ -20,11 +20,12 @@ data class MessageByDataOwnerPatientSentDateFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
-	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		searchKeyMatcher(dataOwnerId, item)
-			&& item.secretForeignKeys.intersect(secretPatientKeys).isNotEmpty()
-			&& ((item.sent == null && startDate == null && endDate == null) ||
-				item.sent != null && (startDate == null || item.sent >= startDate.toEpochMilli()) && (endDate == null || item.sent <= endDate.toEpochMilli())
+	override fun matches(item: Message, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = searchKeyMatcher(dataOwnerId, item) &&
+		item.secretForeignKeys.intersect(secretPatientKeys).isNotEmpty() &&
+		(
+			(item.sent == null && startDate == null && endDate == null) ||
+				item.sent != null &&
+				(startDate == null || item.sent >= startDate.toEpochMilli()) &&
+				(endDate == null || item.sent <= endDate.toEpochMilli())
 			)
-
 }

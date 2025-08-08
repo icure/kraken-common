@@ -11,7 +11,7 @@ private const val TIME_STRING = "\${icure.objectstorage.storagetasks.rescheduleI
 @ExperimentalCoroutinesApi
 @Component
 class PeriodicStorageTasksRequest(
-	private val allObjectStorageLogic: List<IcureObjectStorage<*>>
+	private val allObjectStorageLogic: List<IcureObjectStorage<*>>,
 ) {
 	@Scheduled(initialDelayString = TIME_STRING, fixedDelayString = TIME_STRING)
 	fun handleIcureCloudAttachmentTasks() = runBlocking {

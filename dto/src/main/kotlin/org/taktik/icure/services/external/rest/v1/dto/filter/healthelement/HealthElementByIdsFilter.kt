@@ -32,5 +32,6 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementByIdsFilter(
 	override val ids: Set<String>,
-	override val desc: String? = null
-) : AbstractFilterDto<HealthElementDto>, FilterDto.IdsFilter<String, HealthElementDto>
+	override val desc: String? = null,
+) : AbstractFilterDto<HealthElementDto>,
+	FilterDto.IdsFilter<String, HealthElementDto>

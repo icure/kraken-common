@@ -18,5 +18,5 @@ import org.taktik.icure.services.external.rest.v1.dto.filter.AbstractFilterDto
 data class ServiceBySecretForeignKeys(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
-	val patientSecretForeignKeys: Set<String>
+	val patientSecretForeignKeys: Set<String>,
 ) : AbstractFilterDto<ServiceDto>

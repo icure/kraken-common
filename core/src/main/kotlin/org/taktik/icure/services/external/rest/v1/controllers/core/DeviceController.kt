@@ -49,74 +49,108 @@ class DeviceController(
 	private val filterChainMapper: FilterChainMapper,
 	private val filterMapper: FilterMapper,
 	private val docIdentifierMapper: DocIdentifierMapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
 	@GetMapping("/{deviceId}")
-	fun getDevice(@PathVariable deviceId: String) = mono {
+	fun getDevice(
+		@PathVariable deviceId: String,
+	) = mono {
 		deviceService.getDevice(deviceId)?.let(deviceMapper::map)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.")
+			?: throw ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
+			)
 	}
 
 	@Operation(summary = "Get devices by id", description = "It gets device administrative data.")
 	@PostMapping("/byIds")
-	fun getDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DeviceDto> =
-		deviceService.getDevices(deviceIds.ids)
-			.map { deviceMapper.map(it) }
-			.injectReactorContext()
+	fun getDevices(
+		@RequestBody deviceIds: ListOfIdsDto,
+	): Flux<DeviceDto> = deviceService
+		.getDevices(deviceIds.ids)
+		.map { deviceMapper.map(it) }
+		.injectReactorContext()
 
 	@Suppress("DEPRECATION")
-	@Operation(summary = "Get the HcParty encrypted AES keys indexed by owner", description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES key)", deprecated = true)
+	@Operation(
+		summary = "Get the HcParty encrypted AES keys indexed by owner",
+		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES key)",
+		deprecated = true,
+	)
 	@GetMapping("/{deviceId}/keys")
-	fun getDeviceHcPartyKeysForDelegate(@Parameter(description = "The deviceId Id for which information is shared") @PathVariable deviceId: String) = mono {
+	fun getDeviceHcPartyKeysForDelegate(
+		@Parameter(description = "The deviceId Id for which information is shared") @PathVariable deviceId: String,
+	) = mono {
 		deviceService.getHcPartyKeysForDelegate(deviceId)
 	}
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
-		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)"
+		description = "(key, value) of the map is as follows: (ID of the owner of the encrypted AES key, encrypted AES keys)",
 	)
 	@GetMapping("/{deviceId}/aesExchangeKeys")
-	fun getDeviceAesExchangeKeysForDelegate(@PathVariable deviceId: String) = mono {
+	fun getDeviceAesExchangeKeysForDelegate(
+		@PathVariable deviceId: String,
+	) = mono {
 		deviceService.getAesExchangeKeysForDelegate(deviceId)
 	}
 
-	@Operation(summary = "Create a device", description = "Name, last name, date of birth, and gender are required. After creation of the device and obtaining the ID, you need to create an initial delegation.")
+	@Operation(
+		summary = "Create a device",
+		description = "Name, last name, date of birth, and gender are required. After creation of the device and obtaining the ID, you need to create an initial delegation.",
+	)
 	@PostMapping
-	fun createDevice(@RequestBody p: DeviceDto) = mono {
+	fun createDevice(
+		@RequestBody p: DeviceDto,
+	) = mono {
 		deviceService.createDevice(deviceMapper.map(p))?.let(deviceMapper::map)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device creation failed.")
 	}
 
 	@Operation(summary = "Modify a device", description = "Returns the updated device")
 	@PutMapping
-	fun updateDevice(@RequestBody deviceDto: DeviceDto) = mono {
+	fun updateDevice(
+		@RequestBody deviceDto: DeviceDto,
+	) = mono {
 		deviceService.modifyDevice(deviceMapper.map(deviceDto))?.let(deviceMapper::map)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.").also { log.error(it.message) }
+			?: throw ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
+			).also {
+				log.error(it.message)
+			}
 	}
 
 	@Operation(summary = "Create devices in bulk", description = "Returns the id and _rev of created devices")
 	@PostMapping("/bulk", "/batch")
-	fun createDevices(@RequestBody deviceDtos: List<DeviceDto>) = mono {
+	fun createDevices(
+		@RequestBody deviceDtos: List<DeviceDto>,
+	) = mono {
 		val devices = deviceService.createDevices(deviceDtos.map(deviceMapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
 
 	@Operation(summary = "Modify devices in bulk", description = "Returns the id and _rev of modified devices")
 	@PutMapping("/bulk", "/batch")
-	fun updateDevices(@RequestBody deviceDtos: List<DeviceDto>) = mono {
+	fun updateDevices(
+		@RequestBody deviceDtos: List<DeviceDto>,
+	) = mono {
 		val devices = deviceService.modifyDevices(deviceDtos.map(deviceMapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
 
-	@Operation(summary = "Filter devices for the current user (HcParty) ", description = "Returns a list of devices along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter devices for the current user (HcParty) ",
+		description = "Returns a list of devices along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterDevicesBy(
 		@Parameter(description = "A device document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<DeviceDto>
+		@RequestBody filterChain: FilterChain<DeviceDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
@@ -128,22 +162,28 @@ class DeviceController(
 	@Operation(summary = "Get the ids of the Devices matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDevicesBy(
-		@RequestBody filter: AbstractFilterDto<DeviceDto>
-	) = deviceService.matchDevicesBy(
-		filter = filterMapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<DeviceDto>,
+	) = deviceService
+		.matchDevicesBy(
+			filter = filterMapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(summary = "Delete device.", description = "Response contains the id/rev of deleted device.")
 	@DeleteMapping("/{deviceId}")
-	fun deleteDevice(@PathVariable deviceId: String) = mono {
-		deviceService.deleteDevice(deviceId, null)
+	fun deleteDevice(
+		@PathVariable deviceId: String,
+	) = mono {
+		deviceService
+			.deleteDevice(deviceId, null)
 			.let { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
 	}
 
 	@Operation(summary = "Delete devices.", description = "Response is an array containing the id/rev of deleted devices.")
 	@PostMapping("/delete/batch")
-	fun deleteDevices(@RequestBody deviceIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		deviceService.deleteDevices(deviceIds.ids.toSet().map { IdAndRev(it, null) })
-			.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
-			.injectReactorContext()
+	fun deleteDevices(
+		@RequestBody deviceIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = deviceService
+		.deleteDevices(deviceIds.ids.toSet().map { IdAndRev(it, null) })
+		.map { docIdentifierMapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
 }

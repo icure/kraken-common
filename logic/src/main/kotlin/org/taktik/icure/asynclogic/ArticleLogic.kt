@@ -11,7 +11,9 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Article
 import org.taktik.icure.pagination.PaginationElement
 
-interface ArticleLogic : EntityPersister<Article>, EntityWithSecureDelegationsLogic<Article> {
+interface ArticleLogic :
+	EntityPersister<Article>,
+	EntityWithSecureDelegationsLogic<Article> {
 	suspend fun createArticle(article: Article): Article?
 	suspend fun getArticle(articleId: String): Article?
 	suspend fun modifyArticle(article: Article): Article?

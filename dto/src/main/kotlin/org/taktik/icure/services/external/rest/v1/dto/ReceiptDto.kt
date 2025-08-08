@@ -28,22 +28,26 @@ data class ReceiptDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-
 	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
-	val references: List<String> = emptyList(), //nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v1.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
-
-	//The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
+	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v1.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
+	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
 	val documentId: String? = null,
 	val category: String? = null,
 	val subCategory: String? = null,
-
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

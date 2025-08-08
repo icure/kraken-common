@@ -10,5 +10,12 @@ import org.taktik.icure.entities.base.EnumVersion
  */
 @EnumVersion(1L)
 enum class PaymentType {
-	cash, wired, insurance, creditcard, debitcard, paypal, bitcoin, other
+	cash,
+	wired,
+	insurance,
+	creditcard,
+	debitcard,
+	paypal,
+	bitcoin,
+	other,
 }

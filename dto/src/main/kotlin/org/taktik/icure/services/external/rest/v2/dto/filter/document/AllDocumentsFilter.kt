@@ -33,4 +33,5 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AllDocumentsFilter(
 	override val desc: String? = null,
-) : AbstractFilterDto<DocumentDto>, FilterDto.AllFilter<DocumentDto>
+) : AbstractFilterDto<DocumentDto>,
+	FilterDto.AllFilter<DocumentDto>

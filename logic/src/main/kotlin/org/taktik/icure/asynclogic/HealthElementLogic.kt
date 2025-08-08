@@ -14,7 +14,9 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 
-interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureDelegationsLogic<HealthElement> {
+interface HealthElementLogic :
+	EntityPersister<HealthElement>,
+	EntityWithSecureDelegationsLogic<HealthElement> {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
 
@@ -61,6 +63,6 @@ interface HealthElementLogic : EntityPersister<HealthElement>, EntityWithSecureD
 
 	fun filter(
 		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<HealthElement>
+		filter: FilterChain<HealthElement>,
 	): Flow<ViewQueryResultEvent>
 }

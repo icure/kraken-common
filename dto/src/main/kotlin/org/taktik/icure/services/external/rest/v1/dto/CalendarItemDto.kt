@@ -59,8 +59,15 @@ data class CalendarItemDto(
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: String? = null,
-	override val securityMetadata: SecurityMetadataDto? = null
-) : StoredDocumentDto, ICureDocumentDto<String>, HasEncryptionMetadataDto, EncryptableDto {
-	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	override val securityMetadata: SecurityMetadataDto? = null,
+) : StoredDocumentDto,
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
+	override fun withIdRev(
+		id: String?,
+		rev: String,
+	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

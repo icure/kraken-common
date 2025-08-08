@@ -16,18 +16,20 @@ import java.util.*
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TypedValue(
-    val type: TypedValuesType? = null,
-    val booleanValue: Boolean? = null,
-    val integerValue: Long? = null,
-    val doubleValue: Double? = null,
-    val stringValue: String? = null,
+	val type: TypedValuesType? = null,
+	val booleanValue: Boolean? = null,
+	val integerValue: Long? = null,
+	val doubleValue: Double? = null,
+	val stringValue: String? = null,
 
-    @JsonSerialize(using = InstantSerializer::class)
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
-    override val encryptedSelf: String? = null
-) : Comparable<TypedValue>, Encryptable, Serializable {
+	override val encryptedSelf: String? = null,
+) : Comparable<TypedValue>,
+	Encryptable,
+	Serializable {
 	companion object {
 		fun <T> withValue(value: T?): TypedValue? = value?.let {
 			withTypeAndValue(
@@ -40,7 +42,7 @@ data class TypedValue(
 					is Date -> TypedValuesType.DATE
 					else -> throw IllegalArgumentException("Unknown value type")
 				},
-				value
+				value,
 			)
 		}
 
@@ -48,7 +50,9 @@ data class TypedValue(
 			when (type) {
 				TypedValuesType.BOOLEAN -> if (value is Boolean) {
 					TypedValue(booleanValue = value, type = type)
-				} else throw IllegalArgumentException("Illegal boolean value")
+				} else {
+					throw IllegalArgumentException("Illegal boolean value")
+				}
 				TypedValuesType.INTEGER -> when (value) {
 					is Int -> TypedValue(integerValue = value.toLong(), type = type)
 					is Long -> TypedValue(integerValue = value, type = type)
@@ -56,15 +60,21 @@ data class TypedValue(
 				}
 				TypedValuesType.DOUBLE -> if (value is Double) {
 					TypedValue(doubleValue = value, type = type)
-				} else throw IllegalArgumentException("Illegal double value")
+				} else {
+					throw IllegalArgumentException("Illegal double value")
+				}
 				TypedValuesType.STRING, TypedValuesType.JSON, TypedValuesType.CLOB -> if (value is String) {
 					TypedValue(stringValue = value, type = type)
-				} else throw IllegalArgumentException("Illegal string value")
+				} else {
+					throw IllegalArgumentException("Illegal string value")
+				}
 				TypedValuesType.DATE -> if (value is Instant) {
 					TypedValue(dateValue = value, type = type)
 				} else if (value is Date) {
 					TypedValue(dateValue = (value as Date).toInstant(), type = type)
-				} else throw IllegalArgumentException("Illegal date value")
+				} else {
+					throw IllegalArgumentException("Illegal date value")
+				}
 			}
 		}
 	}

@@ -26,17 +26,19 @@ data class PatientByHcPartyAndAddressFilter(
 	override val searchString: String? = null,
 	override val healthcarePartyId: String? = null,
 	override val postalCode: String? = null,
-	override val houseNumber: String? = null
-) : AbstractFilter<Patient>, org.taktik.icure.domain.filter.patient.PatientByHcPartyAndAddressFilter {
+	override val houseNumber: String? = null,
+) : AbstractFilter<Patient>,
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyAndAddressFilter {
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
 	override fun matches(item: Patient, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item))
-				&& (searchString == null || item.addresses.any {adr -> adr.street?.contains(searchString)!! } ) //TODO: implement filter
-		//||  item.addresses.any {adr -> adr.telecoms?.any { tc -> tc.telecomNumber?.contains(searchString)!! } }
+		return (healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+			(searchString == null || item.addresses.any { adr -> adr.street?.contains(searchString)!! }) // TODO: implement filter
+		// ||  item.addresses.any {adr -> adr.telecoms?.any { tc -> tc.telecomNumber?.contains(searchString)!! } }
 	}
 }

@@ -5,4 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class RightDto(val names: Set<String> = emptySet(), val roles: Set<String> = emptySet())
+data class RightDto(
+	val names: Set<String> = emptySet(),
+	val roles: Set<String> = emptySet(),
+)

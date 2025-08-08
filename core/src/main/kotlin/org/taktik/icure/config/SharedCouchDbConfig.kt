@@ -17,14 +17,16 @@ import java.time.Duration
 
 @Configuration
 @Profile("app")
-class SharedCouchDbConfig(protected val couchDbProperties: CouchDbProperties) {
+class SharedCouchDbConfig(
+	protected val couchDbProperties: CouchDbProperties,
+) {
 	@Bean
-	fun connectionProvider(): ConnectionProvider {
-		return ConnectionProvider.builder("LARGE_POOL")
-			.let { builder -> couchDbProperties.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
-			.maxIdleTime(Duration.ofMillis(couchDbProperties.maxIdleTimeMs ?: 10_000))
-			.pendingAcquireMaxCount(couchDbProperties.maxPendingAcquire ?: -1).build()
-	}
+	fun connectionProvider(): ConnectionProvider = ConnectionProvider
+		.builder("LARGE_POOL")
+		.let { builder -> couchDbProperties.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
+		.maxIdleTime(Duration.ofMillis(couchDbProperties.maxIdleTimeMs ?: 10_000))
+		.pendingAcquireMaxCount(couchDbProperties.maxPendingAcquire ?: -1)
+		.build()
 
 	@Bean
 	fun reactorClientResourceFactory(connectionProvider: ConnectionProvider) = ReactorResourceFactory().apply {
@@ -34,11 +36,11 @@ class SharedCouchDbConfig(protected val couchDbProperties: CouchDbProperties) {
 
 	@Bean
 	fun baseEntityInfoDao(
-		@Qualifier("baseCouchDbDispatcher") baseCouchDbDispatcher: CouchDbDispatcher
+		@Qualifier("baseCouchDbDispatcher") baseCouchDbDispatcher: CouchDbDispatcher,
 	) = EntityInfoDAOImpl(baseCouchDbDispatcher)
 
 	@Bean
 	fun patientEntityInfoDao(
-		@Qualifier("patientCouchDbDispatcher") patientCouchDbDispatcher: CouchDbDispatcher
+		@Qualifier("patientCouchDbDispatcher") patientCouchDbDispatcher: CouchDbDispatcher,
 	) = EntityInfoDAOImpl(patientCouchDbDispatcher)
 }

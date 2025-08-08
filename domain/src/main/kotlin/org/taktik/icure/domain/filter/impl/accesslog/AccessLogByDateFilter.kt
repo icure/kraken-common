@@ -10,15 +10,13 @@ data class AccessLogByDateFilter(
 	override val startDate: Instant? = null,
 	override val endDate: Instant? = null,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<AccessLog>, IAccessLogByDateFilter {
+	override val desc: String? = null,
+) : AbstractFilter<AccessLog>,
+	IAccessLogByDateFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: AccessLog, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.date != null && (startDate == null || item.date >= startDate) && (endDate == null || item.date <= endDate)
-
-
+	override fun matches(item: AccessLog, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.date != null && (startDate == null || item.date >= startDate) && (endDate == null || item.date <= endDate)
 }

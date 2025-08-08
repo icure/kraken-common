@@ -41,5 +41,5 @@ data class FlowItem(
 	val patientLastName: String? = null,
 	val patientFirstName: String? = null,
 	val description: String? = null,
-	val interventionCode: String? = null
+	val interventionCode: String? = null,
 )

@@ -10,16 +10,15 @@ data class TimeTableByPeriodAndAgendaIdFilter(
 	override val startDate: Long? = null,
 	override val endDate: Long? = null,
 	override val descending: Boolean? = null,
-	override val desc: String? = null
-) : AbstractFilter<TimeTable>, TimeTableByPeriodAndAgendaIdFilter {
+	override val desc: String? = null,
+) : AbstractFilter<TimeTable>,
+	TimeTableByPeriodAndAgendaIdFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: TimeTable, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		item.agendaId == agendaId
-			&& (item.startTime?.let { it < (endDate ?: Long.MAX_VALUE) } ?: true)
-			&& (item.endTime?.let { it > (startDate ?: 0) } ?: true)
-
+	override fun matches(item: TimeTable, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.agendaId == agendaId &&
+		(item.startTime?.let { it < (endDate ?: Long.MAX_VALUE) } ?: true) &&
+		(item.endTime?.let { it > (startDate ?: 0) } ?: true)
 }

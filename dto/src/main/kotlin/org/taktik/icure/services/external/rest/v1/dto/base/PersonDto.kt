@@ -3,12 +3,14 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.base
 
-import java.io.Serializable
 import org.taktik.icure.services.external.rest.v1.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PersonNameDto
+import java.io.Serializable
 
-interface PersonDto : Serializable, IdentifiableDto<String> {
+interface PersonDto :
+	Serializable,
+	IdentifiableDto<String> {
 	val civility: String?
 	val gender: GenderDto?
 	val firstName: String?

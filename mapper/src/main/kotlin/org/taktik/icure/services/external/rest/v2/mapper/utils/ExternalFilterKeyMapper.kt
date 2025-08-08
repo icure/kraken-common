@@ -8,22 +8,22 @@ import org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto
 
 @Service
 class ExternalFilterKeyV2Mapper(
-	val objectMapper: ObjectMapper
+	val objectMapper: ObjectMapper,
 ) {
 
-	fun map(externalFilterKey: ExternalFilterKey): ExternalFilterKeyDto = when(externalFilterKey) {
+	fun map(externalFilterKey: ExternalFilterKey): ExternalFilterKeyDto = when (externalFilterKey) {
 		is ExternalFilterKey.ExternalFilterStringKey -> ExternalFilterKeyDto.ExternalFilterStringKeyDto(externalFilterKey.key)
 		is ExternalFilterKey.ExternalFilterLongKey -> ExternalFilterKeyDto.ExternalFilterLongKeyDto(externalFilterKey.key)
 		is ExternalFilterKey.ExternalFilterComplexKey -> ExternalFilterKeyDto.ExternalFilterComplexKeyDto(
-			objectMapper.valueToTree(externalFilterKey.key)
+			objectMapper.valueToTree(externalFilterKey.key),
 		)
 	}
 
-	fun map(externalFilterKeyDto: ExternalFilterKeyDto): ExternalFilterKey = when(externalFilterKeyDto) {
+	fun map(externalFilterKeyDto: ExternalFilterKeyDto): ExternalFilterKey = when (externalFilterKeyDto) {
 		is ExternalFilterKeyDto.ExternalFilterStringKeyDto -> ExternalFilterKey.ExternalFilterStringKey(externalFilterKeyDto.key)
 		is ExternalFilterKeyDto.ExternalFilterLongKeyDto -> ExternalFilterKey.ExternalFilterLongKey(externalFilterKeyDto.key)
 		is ExternalFilterKeyDto.ExternalFilterComplexKeyDto -> ExternalFilterKey.ExternalFilterComplexKey(
-			objectMapper.treeToValue(externalFilterKeyDto.key)
+			objectMapper.treeToValue(externalFilterKeyDto.key),
 		)
 	}
 }

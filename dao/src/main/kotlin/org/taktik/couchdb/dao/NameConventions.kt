@@ -18,6 +18,4 @@
 
 package org.taktik.couchdb.dao
 
-fun designDocName(name: String, secondaryPartition: String? = null): String {
-    return secondaryPartition?.let { "_design/$name-$it" } ?: "_design/$name"
-}
+fun designDocName(name: String, secondaryPartition: String? = null): String = secondaryPartition?.let { "_design/$name-$it" } ?: "_design/$name"

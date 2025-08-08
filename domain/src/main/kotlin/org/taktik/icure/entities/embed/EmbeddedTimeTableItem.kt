@@ -110,7 +110,7 @@ data class EmbeddedTimeTableItem(
 			val current = sortedHours[i]
 			val previous = sortedHours[i - 1]
 
-			require (current.startHour > previous.endHour) {
+			require(current.startHour > previous.endHour) {
 				"Time table item in published agenda can't have overlapping hours"
 			}
 		}

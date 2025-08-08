@@ -11,7 +11,6 @@ abstract class AbstractUserDetails : UserDetails {
 	abstract val principalPermissions: DynamicBitArray
 	protected abstract val authorities: Set<GrantedAuthority>
 
-
 	override fun getAuthorities(): Collection<GrantedAuthority> = authorities
 
 	override var isRealAuth = true
@@ -19,25 +18,15 @@ abstract class AbstractUserDetails : UserDetails {
 	override var logoutURL: String? = null
 	override fun getUsername(): String = userId
 
-	override fun getPassword(): String? {
-		return null
-	}
+	override fun getPassword(): String? = null
 
-	override fun isAccountNonExpired(): Boolean {
-		return true
-	}
+	override fun isAccountNonExpired(): Boolean = true
 
-	override fun isAccountNonLocked(): Boolean {
-		return true
-	}
+	override fun isAccountNonLocked(): Boolean = true
 
-	override fun isCredentialsNonExpired(): Boolean {
-		return true
-	}
+	override fun isCredentialsNonExpired(): Boolean = true
 
-	override fun isEnabled(): Boolean {
-		return true
-	}
+	override fun isEnabled(): Boolean = true
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true

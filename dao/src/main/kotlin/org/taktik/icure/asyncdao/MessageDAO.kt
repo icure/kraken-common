@@ -7,7 +7,7 @@ package org.taktik.icure.asyncdao
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Message
 
@@ -69,7 +69,7 @@ interface MessageDAO : GenericDAO<Message> {
 	fun findMessagesByHcPartySortedByReceived(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
-		paginationOffset: PaginationOffset<ComplexKey>
+		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<ViewQueryResultEvent>
 
 	/**
@@ -86,7 +86,7 @@ interface MessageDAO : GenericDAO<Message> {
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
 		transportGuid: String?,
-		paginationOffset: PaginationOffset<ComplexKey>
+		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<ViewQueryResultEvent>
 
 	/**
@@ -104,7 +104,7 @@ interface MessageDAO : GenericDAO<Message> {
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
 		transportGuid: String?,
-		paginationOffset: PaginationOffset<ComplexKey>
+		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<ViewQueryResultEvent>
 
 	/**
@@ -187,7 +187,7 @@ interface MessageDAO : GenericDAO<Message> {
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 		transportGuid: String,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 
 	/**
@@ -209,7 +209,7 @@ interface MessageDAO : GenericDAO<Message> {
 		transportGuid: String,
 		fromDate: Long?,
 		toDate: Long?,
-		descending: Boolean
+		descending: Boolean,
 	): Flow<String>
 
 	/**

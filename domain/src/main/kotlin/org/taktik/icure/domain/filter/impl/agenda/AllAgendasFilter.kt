@@ -7,7 +7,8 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AllAgendasFilter(
 	override val desc: String? = null,
-) : AbstractFilter<Agenda>, Filters.AllFilter<String, Agenda> {
+) : AbstractFilter<Agenda>,
+	Filters.AllFilter<String, Agenda> {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false

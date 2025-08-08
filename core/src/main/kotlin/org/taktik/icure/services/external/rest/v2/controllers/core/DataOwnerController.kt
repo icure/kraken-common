@@ -37,79 +37,100 @@ import reactor.core.publisher.Mono
 @RequestMapping("/rest/v2/dataowner")
 @Tag(name = "dataowner")
 class DataOwnerController(
-    private val dataOwnerService: DataOwnerService,
-    private val userLogic: UserLogic,
-    private val sessionLogic: SessionInformationProvider,
-    private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
-    private val cryptoActorStubMapper: CryptoActorStubV2Mapper
+	private val dataOwnerService: DataOwnerService,
+	private val userLogic: UserLogic,
+	private val sessionLogic: SessionInformationProvider,
+	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
+	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
 ) {
+	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
+	@GetMapping("/{dataOwnerId}")
+	fun getDataOwner(
+		@PathVariable dataOwnerId: String,
+	): Mono<DataOwnerWithTypeDto> = mono {
+		dataOwnerService.getDataOwner(dataOwnerId)?.let { dataOwnerWithTypeMapper.map(it) }
+			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
+	}
 
-    @Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
-    @GetMapping("/{dataOwnerId}")
-    fun getDataOwner(@PathVariable dataOwnerId: String): Mono<DataOwnerWithTypeDto> = mono {
-        dataOwnerService.getDataOwner(dataOwnerId)?.let { dataOwnerWithTypeMapper.map(it) }
-            ?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
-    }
+	@PostMapping("/byIds")
+	fun getDataOwners(
+		@RequestBody dataOwnerIds: ListOfIdsDto,
+	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map { dataOwnerWithTypeMapper.map(it) }.injectReactorContext()
 
-    @PostMapping("/byIds")
-    fun getDataOwners(@RequestBody dataOwnerIds: ListOfIdsDto): Flux<DataOwnerWithTypeDto> =
-        dataOwnerService.getDataOwners(dataOwnerIds.ids).map { dataOwnerWithTypeMapper.map(it) }.injectReactorContext()
+	@Operation(
+		summary = "Get a data owner stub by his ID",
+		description = "Key-related information about the data owner",
+	)
+	@GetMapping("/stub/{dataOwnerId}")
+	fun getDataOwnerStub(
+		@PathVariable dataOwnerId: String,
+	): Mono<CryptoActorStubWithTypeDto> = mono {
+		dataOwnerService.getCryptoActorStub(dataOwnerId)?.let { cryptoActorStubMapper.map(it) }
+			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
+	}
 
-    @Operation(
-        summary = "Get a data owner stub by his ID",
-        description = "Key-related information about the data owner"
-    )
-    @GetMapping("/stub/{dataOwnerId}")
-    fun getDataOwnerStub(@PathVariable dataOwnerId: String): Mono<CryptoActorStubWithTypeDto> = mono {
-        dataOwnerService.getCryptoActorStub(dataOwnerId)?.let { cryptoActorStubMapper.map(it) }
-            ?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
-    }
+	@PostMapping("/stub/byIds")
+	fun getDataOwnerStubs(
+		@RequestBody dataOwnerIds: ListOfIdsDto,
+	): Flux<CryptoActorStubWithTypeDto> = dataOwnerService.getCryptoActorStubs(dataOwnerIds.ids).map { cryptoActorStubMapper.map(it) }.injectReactorContext()
 
-    @PostMapping("/stub/byIds")
-    fun getDataOwnerStubs(@RequestBody dataOwnerIds: ListOfIdsDto): Flux<CryptoActorStubWithTypeDto> =
-        dataOwnerService.getCryptoActorStubs(dataOwnerIds.ids).map { cryptoActorStubMapper.map(it) }.injectReactorContext()
+	@Operation(
+		summary = "Update key-related information of a data owner",
+		description = "Updates information such as the public keys of a data owner or aes exchange keys",
+	)
+	@PutMapping("/stub")
+	fun modifyDataOwnerStub(
+		@RequestBody updated: CryptoActorStubWithTypeDto,
+	): Mono<CryptoActorStubWithTypeDto> = mono {
+		cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
+	}
 
-    @Operation(
-        summary = "Update key-related information of a data owner",
-        description = "Updates information such as the public keys of a data owner or aes exchange keys"
-    )
-    @PutMapping("/stub")
-    fun modifyDataOwnerStub(@RequestBody updated: CryptoActorStubWithTypeDto): Mono<CryptoActorStubWithTypeDto> = mono {
-        cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
-    }
+	private fun User.requireDataOwnerId(): String = healthcarePartyId ?: patientId ?: deviceId
+		?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
 
-    private fun User.requireDataOwnerId(): String =
-        healthcarePartyId ?: patientId ?: deviceId ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
+	private suspend fun requireCurrentUser(): User = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
+		?: throw ResponseStatusException(
+			HttpStatus.NOT_FOUND,
+			"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+		)
 
-    private suspend fun requireCurrentUser(): User =
-        userLogic.getUser(sessionLogic.getCurrentUserId(), false)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+	@Operation(
+		summary = "Get the data owner corresponding to the current user",
+		description = "General information about the current data owner",
+	)
+	@GetMapping("/current")
+	fun getCurrentDataOwner() = mono {
+		getDataOwner(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+	}
 
-    @Operation(summary = "Get the data owner corresponding to the current user", description = "General information about the current data owner")
-    @GetMapping("/current")
-    fun getCurrentDataOwner() = mono {
-        getDataOwner(requireCurrentUser().requireDataOwnerId()).awaitSingle()
-    }
+	@Operation(
+		summary = "Get the data owner stub corresponding to the current user",
+		description = "General information about the current data owner",
+	)
+	@GetMapping("/current/stub")
+	fun getCurrentDataOwnerStub() = mono {
+		getDataOwnerStub(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+	}
 
-    @Operation(summary = "Get the data owner stub corresponding to the current user", description = "General information about the current data owner")
-    @GetMapping("/current/stub")
-    fun getCurrentDataOwnerStub() = mono {
-        getDataOwnerStub(requireCurrentUser().requireDataOwnerId()).awaitSingle()
-    }
+	@Operation(
+		summary = "Get the data owner corresponding to the current user",
+		description = "General information about the current data owner",
+	)
+	@GetMapping("/current/hierarchy")
+	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
+		emitAll(dataOwnerService.getCryptoActorHierarchy(requireCurrentUser().requireDataOwnerId()))
+	}.map {
+		dataOwnerWithTypeMapper.map(it)
+	}.injectReactorContext()
 
-    @Operation(summary = "Get the data owner corresponding to the current user", description = "General information about the current data owner")
-    @GetMapping("/current/hierarchy")
-    fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
-        emitAll(dataOwnerService.getCryptoActorHierarchy(requireCurrentUser().requireDataOwnerId()))
-    }.map {
-        dataOwnerWithTypeMapper.map(it)
-    }.injectReactorContext()
-
-    @Operation(summary = "Get the data owner corresponding to the current user", description = "General information about the current data owner")
-    @GetMapping("/current/hierarchy/stub")
-    fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
-        emitAll(dataOwnerService.getCryptoActorHierarchyStub(requireCurrentUser().requireDataOwnerId()))
-    }.map {
-        cryptoActorStubMapper.map(it)
-    }.injectReactorContext()
+	@Operation(
+		summary = "Get the data owner corresponding to the current user",
+		description = "General information about the current data owner",
+	)
+	@GetMapping("/current/hierarchy/stub")
+	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
+		emitAll(dataOwnerService.getCryptoActorHierarchyStub(requireCurrentUser().requireDataOwnerId()))
+	}.map {
+		cryptoActorStubMapper.map(it)
+	}.injectReactorContext()
 }

@@ -34,7 +34,25 @@ class TextField(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -59,7 +77,25 @@ class MeasureField(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -84,7 +120,25 @@ class NumberField(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -109,7 +163,25 @@ class DatePicker(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -134,8 +206,25 @@ class TimePicker(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
-
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -160,8 +249,25 @@ class MultipleChoice(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
-
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -186,7 +292,25 @@ class DropdownField(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -211,7 +335,25 @@ class RadioButton(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -236,8 +378,25 @@ class CheckBox(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-): Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
-
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)
 
 @JsonPolymorphismRoot(Field::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -262,4 +421,22 @@ class DateTimePicker(
 	hideCondition: String? = null,
 	now: Boolean? = null,
 	translate: Boolean? = null,
-) : Field(field, shortLabel, rows, columns, grows, schema, tags, codifications, options, hideCondition, required, multiline, value, labels, unit, now, translate)
+) : Field(
+	field,
+	shortLabel,
+	rows,
+	columns,
+	grows,
+	schema,
+	tags,
+	codifications,
+	options,
+	hideCondition,
+	required,
+	multiline,
+	value,
+	labels,
+	unit,
+	now,
+	translate,
+)

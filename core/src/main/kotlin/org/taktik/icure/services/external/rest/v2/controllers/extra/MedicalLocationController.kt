@@ -50,29 +50,38 @@ class MedicalLocationController(
 	private val medicalLocationV2Mapper: MedicalLocationV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
-	private val paginationConfig: SharedPaginationConfig
+	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Creates a medical location")
 	@PostMapping
-	fun createMedicalLocation(@RequestBody medicalLocationDto: MedicalLocationDto) = mono {
+	fun createMedicalLocation(
+		@RequestBody medicalLocationDto: MedicalLocationDto,
+	) = mono {
 		medicalLocationService.createMedicalLocation(medicalLocationV2Mapper.map(medicalLocationDto))?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Medical location creation failed")
 	}
 
 	@Operation(summary = "Deletes medical locations")
 	@PostMapping("/delete/batch")
-	fun deleteMedicalLocations(@RequestBody locationIds: ListOfIdsDto): Flux<DocIdentifierDto> =
-		locationIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-			medicalLocationService.deleteMedicalLocations(ids.map { IdAndRev(it, null) })
-				.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-				.injectReactorContext()
-		} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also { logger.error(it.message) }
+	fun deleteMedicalLocations(
+		@RequestBody locationIds: ListOfIdsDto,
+	): Flux<DocIdentifierDto> = locationIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+		medicalLocationService
+			.deleteMedicalLocations(ids.map { IdAndRev(it, null) })
+			.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+			.injectReactorContext()
+	}
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
 
 	@Operation(summary = "Gets a medical location")
 	@GetMapping("/{locationId}")
-	fun getMedicalLocation(@PathVariable locationId: String) = mono {
+	fun getMedicalLocation(
+		@PathVariable locationId: String,
+	) = mono {
 		medicalLocationService.getMedicalLocation(locationId)?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location fetching failed")
 	}
@@ -81,7 +90,7 @@ class MedicalLocationController(
 	@GetMapping
 	fun getMedicalLocations(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<MedicalLocationDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return medicalLocationService
@@ -92,14 +101,18 @@ class MedicalLocationController(
 
 	@Operation(summary = "Modifies a medical location")
 	@PutMapping
-	fun modifyMedicalLocation(@RequestBody medicalLocationDto: MedicalLocationDto) = mono {
+	fun modifyMedicalLocation(
+		@RequestBody medicalLocationDto: MedicalLocationDto,
+	) = mono {
 		medicalLocationService.modifyMedicalLocation(medicalLocationV2Mapper.map(medicalLocationDto))?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location modification failed")
 	}
 
 	@Operation(summary = "Get MedicalLocation by ids")
 	@PostMapping("/byIds")
-	fun getMedicalLocationsByIds(@RequestBody accessLogIds: ListOfIdsDto): Flux<MedicalLocationDto> {
+	fun getMedicalLocationsByIds(
+		@RequestBody accessLogIds: ListOfIdsDto,
+	): Flux<MedicalLocationDto> {
 		require(accessLogIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return medicalLocationService
 			.getMedicalLocations(accessLogIds.ids)
@@ -111,7 +124,8 @@ class MedicalLocationController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMedicalLocationsBy(
 		@RequestBody filter: AbstractFilterDto<MedicalLocationDto>,
-	) = medicalLocationService.matchMedicalLocationsBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+	) = medicalLocationService
+		.matchMedicalLocationsBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

@@ -6,5 +6,5 @@ data class PaginatedList<T : Serializable?>(
 	val pageSize: Int = 0,
 	val totalSize: Int = 0,
 	val rows: List<T> = listOf(),
-	val nextKeyPair: PaginatedDocumentKeyIdPair<*>? = null
+	val nextKeyPair: PaginatedDocumentKeyIdPair<*>? = null,
 ) : Serializable

@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RemoteDto(
 	val url: String,
-	val auth: RemoteAuthenticationDto? = null
+	val auth: RemoteAuthenticationDto? = null,
 )

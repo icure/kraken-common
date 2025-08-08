@@ -21,25 +21,27 @@ import org.taktik.icure.utils.invoke
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Place(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	@param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
 	@param:ContentValue(ContentValues.NESTED_ENTITY) val address: Address? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument, Named {
+) : StoredDocument,
+	Named {
 	companion object : DynamicInitializer<Place>
 
 	fun merge(other: Place) = Place(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Place) = super.solveConflictsWith(other) + mapOf(
-		"name" to (this.name ?: other.name),
-		"address" to (this.address ?: other.address)
-	)
+	fun solveConflictsWith(other: Place) = super.solveConflictsWith(other) +
+		mapOf(
+			"name" to (this.name ?: other.name),
+			"address" to (this.address ?: other.address),
+		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

@@ -4,15 +4,16 @@ import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
-data class CodeIdsByTypeCodeVersionIntervalFilter (
+data class CodeIdsByTypeCodeVersionIntervalFilter(
 	override val desc: String?,
 	override val startType: String?,
 	override val startCode: String?,
 	override val startVersion: String?,
 	override val endType: String?,
 	override val endCode: String?,
-	override val endVersion: String?
-) : AbstractFilter<Code>, org.taktik.icure.domain.filter.code.CodeIdsByTypeCodeVersionIntervalFilter {
+	override val endVersion: String?,
+) : AbstractFilter<Code>,
+	org.taktik.icure.domain.filter.code.CodeIdsByTypeCodeVersionIntervalFilter {
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
@@ -28,6 +29,6 @@ data class CodeIdsByTypeCodeVersionIntervalFilter (
 		val versionCondition = item.version != null &&
 			(startVersion == null || item.version >= startVersion) &&
 			(endVersion == null || item.version <= endVersion)
-		return typeCondition && codeCondition && versionCondition;
+		return typeCondition && codeCondition && versionCondition
 	}
 }

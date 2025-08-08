@@ -48,8 +48,8 @@ data class ResourceGroupAllocationSchedule(
 // TODO later val slottingAlgorithm: TimeTableSlottingAlgorithm
 ) : Serializable {
 	init {
-		require(startDateTime == null || FuzzyDates.getFullLocalDateTime(startDateTime, false) != null ) { "startDateTime must be null or a valid fuzzyDateTime ($startDateTime)" }
-		require(endDateTime == null || FuzzyDates.getFullLocalDateTime(endDateTime, false) != null ) { "endDateTime must be null or a valid fuzzyDateTime ($endDateTime)" }
+		require(startDateTime == null || FuzzyDates.getFullLocalDateTime(startDateTime, false) != null) { "startDateTime must be null or a valid fuzzyDateTime ($startDateTime)" }
+		require(endDateTime == null || FuzzyDates.getFullLocalDateTime(endDateTime, false) != null) { "endDateTime must be null or a valid fuzzyDateTime ($endDateTime)" }
 		require(startDateTime == null || endDateTime == null || startDateTime < endDateTime) { "If both startTime and endTime are specified startTime must be <= endTime ($startDateTime > $endDateTime)" }
 		resourceGroup?.apply {
 			requireNormalized()

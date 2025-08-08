@@ -43,7 +43,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.InternalDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.utils.ViewQueries
@@ -58,10 +58,10 @@ open class InternalDAOImpl<T : StoredDocument>(
 	val couchDbDispatcher: CouchDbDispatcher,
 	val idGenerator: IDGenerator,
 	val datastoreInstanceProvider: DatastoreInstanceProvider,
-	val designDocumentProvider: DesignDocumentProvider
+	val designDocumentProvider: DesignDocumentProvider,
 ) : InternalDAO<T> {
 	private val log = LoggerFactory.getLogger(javaClass)
-	//private val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
+	// private val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 
 	@Suppress("UNCHECKED_CAST")
 	override fun getEntities(): Flow<T> = flow {
@@ -72,8 +72,10 @@ open class InternalDAOImpl<T : StoredDocument>(
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all")
 					.includeDocs(true),
-				String::class.java, String::class.java, entityClass
-			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull()
+				String::class.java,
+				String::class.java,
+				entityClass,
+			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull(),
 		)
 	}
 
@@ -87,22 +89,22 @@ open class InternalDAOImpl<T : StoredDocument>(
 				ViewQuery()
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all")
-					.includeDocs(false)
-			).map { it.id }.filterNotNull()
+					.includeDocs(false),
+			).map { it.id }.filterNotNull(),
 		)
 	}
 
 	override fun getEntityIdsPaginated(paginationOffset: PaginationOffset<Nothing>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		val viewQuery = designDocumentProvider.pagedViewQueryOfIds(
-				client = client,
-				metadataSource = this@InternalDAOImpl,
-				viewName = "all",
-				entityClass = entityClass,
-				startKey = null,
-				endKey = null,
-				pagination = paginationOffset
-			)
+			client = client,
+			metadataSource = this@InternalDAOImpl,
+			viewName = "all",
+			entityClass = entityClass,
+			startKey = null,
+			endKey = null,
+			pagination = paginationOffset,
+		)
 		emitAll(client.queryView(viewQuery, Any::class.java, String::class.java, Any::class.java))
 	}
 
@@ -155,14 +157,14 @@ open class InternalDAOImpl<T : StoredDocument>(
 			client.bulkUpdate(entitiesById.values, entityClass).map { updateResult ->
 				if (updateResult.ok == true) {
 					val updatedEntity = entitiesById.getValue(updateResult.id).withIdRev(
-						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
+						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" },
 					) as T
 					BulkSaveResult.Success(updatedEntity)
 				} else {
 					updateResult.toBulkSaveResultFailure()
 						?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 				}
-			}
+			},
 		)
 	}
 
@@ -207,8 +209,9 @@ open class InternalDAOImpl<T : StoredDocument>(
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".remove flow of entities ")
 		}
-		emitAll(client
-			.bulkUpdate(entities.map { it.withDeletionDate(System.currentTimeMillis()) as T }.toList(), entityClass)
+		emitAll(
+			client
+				.bulkUpdate(entities.map { it.withDeletionDate(System.currentTimeMillis()) as T }.toList(), entityClass),
 		)
 	}
 
@@ -228,25 +231,17 @@ open class InternalDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	protected suspend fun createQuery(viewName: String, secondaryPartition: String? = null): ViewQuery =
-		designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, secondaryPartition)
+	protected suspend fun createQuery(viewName: String, secondaryPartition: String? = null): ViewQuery = designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, viewName, entityClass, secondaryPartition)
 
-	protected suspend fun createQueries(vararg viewQueries: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, true, *viewQueries)
+	protected suspend fun createQueries(vararg viewQueries: Pair<String, String?>) = designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, entityClass, true, *viewQueries)
 
-	protected suspend fun createQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
-		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, true)
+	protected suspend fun createQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) = designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, true)
 
+	protected suspend fun <P> pagedViewQuery(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery = designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
 
-	protected suspend fun <P> pagedViewQuery(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
-		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
+	protected suspend fun <P> createPagedQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) = designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, true)
 
-	protected suspend fun <P> createPagedQueries(viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, true)
+	protected suspend fun <P> createPagedQueries(viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries = designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, entityClass, viewQueries, startKey, endKey, pagination, descending, true)
 
-	protected suspend fun <P> createPagedQueries(viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
-		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, entityClass, viewQueries, startKey, endKey, pagination, descending, true)
-
-	protected suspend fun <P> pagedViewQueryOfIds(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
-		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()),this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
+	protected suspend fun <P> pagedViewQueryOfIds(viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) = designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup()), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
 }

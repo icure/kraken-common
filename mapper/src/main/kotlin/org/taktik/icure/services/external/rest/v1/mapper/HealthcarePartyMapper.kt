@@ -25,7 +25,7 @@ interface HealthcarePartyMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
-		Mapping(target = "revisionsInfo", ignore = true)
+		Mapping(target = "revisionsInfo", ignore = true),
 	)
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
 	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto

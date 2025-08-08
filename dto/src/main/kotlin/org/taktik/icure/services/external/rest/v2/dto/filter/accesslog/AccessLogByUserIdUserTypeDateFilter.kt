@@ -18,5 +18,5 @@ data class AccessLogByUserIdUserTypeDateFilter(
 	val accessType: String?,
 	val startDate: Instant?,
 	val descending: Boolean?,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<AccessLogDto>

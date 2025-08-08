@@ -3,10 +3,8 @@
  */
 package org.taktik.icure.validation.aspect
 
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
 import kotlin.reflect.KClass
 
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Check(val groups: Array<KClass<*>> = [])

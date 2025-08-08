@@ -3,4 +3,6 @@
  */
 package org.taktik.icure.exceptions
 
-class NotFoundRequestException(msg: String) : IllegalArgumentException(msg)
+class NotFoundRequestException(
+	msg: String,
+) : IllegalArgumentException(msg)

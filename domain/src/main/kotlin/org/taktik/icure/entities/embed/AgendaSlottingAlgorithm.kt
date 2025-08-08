@@ -23,8 +23,9 @@ sealed interface AgendaSlottingAlgorithm {
 	 * The returned slots for that time table item are 10:10, 10:20, 10:30, 13:05, 13:15
 	 */
 	data class FixedIntervals(
-		val intervalMinutes: Int
-	) : AgendaSlottingAlgorithm, Serializable {
+		val intervalMinutes: Int,
+	) : AgendaSlottingAlgorithm,
+		Serializable {
 		init {
 			require(intervalMinutes > 0) { "AgendaSlottingAlgorithm.FixedIntervals.intervalMinutes must be greater than 0" }
 		}
@@ -93,7 +94,7 @@ sealed interface AgendaSlottingAlgorithm {
 	 *   - t3 returns [09:00, 09:30, 10:00, 10:30]
 	 * TODO?
 	 */
-//	data object MinimizeGaps : TimeTableSlottingAlgorithm
+// 	data object MinimizeGaps : TimeTableSlottingAlgorithm
 
 	/**
 	 * The time slots are calculated greedily based on:
@@ -140,8 +141,8 @@ sealed interface AgendaSlottingAlgorithm {
 	 *
 	 * TODO example 3
 	 */
-//	data object MaximizeAvailabilities : TimeTableSlottingAlgorithm
+// 	data object MaximizeAvailabilities : TimeTableSlottingAlgorithm
 
 	// TODO
-//	data object FixedSlotsByEachCalendarItemType : TimeTableSlottingAlgorithm
+// 	data object FixedSlotsByEachCalendarItemType : TimeTableSlottingAlgorithm
 }

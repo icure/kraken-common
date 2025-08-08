@@ -38,13 +38,14 @@ tailrec suspend fun <T, A> aggregateResults(
 		)
 
 	var acc = filteredOutAccumulator
-	val filteredEntities = entities + supplier(sortedIds.take(heuristicLimit)).filter { el ->
-		filter(el).also {
-			if (!it) {
-				acc = filteredOutElementsReducer(acc, el)
+	val filteredEntities = entities +
+		supplier(sortedIds.take(heuristicLimit)).filter { el ->
+			filter(el).also {
+				if (!it) {
+					acc = filteredOutElementsReducer(acc, el)
+				}
 			}
-		}
-	}.toList()
+		}.toList()
 	val remainingIds = sortedIds.drop(heuristicLimit)
 
 	if (remainingIds.isEmpty() || filteredEntities.count() >= limit) {
@@ -58,7 +59,7 @@ tailrec suspend fun <T, A> aggregateResults(
 		entities = filteredEntities,
 		filteredOutAccumulator = acc,
 		filteredOutElementsReducer = filteredOutElementsReducer,
-		heuristic = heuristic
+		heuristic = heuristic,
 	)
 }
 
@@ -88,10 +89,10 @@ fun <T> aggregateResultsAsFlow(
 						supplier = supplier,
 						filter = filter,
 						startDocumentId = startDocumentId.takeIf { emitted == 0 },
-						heuristic = heuristic
-					)
+						heuristic = heuristic,
+					),
 				)
 			}
-		}
+		},
 	)
 }

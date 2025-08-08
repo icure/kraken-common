@@ -22,12 +22,12 @@ data class PlanOfActionTemplateDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
-
-	//Usually one of the following is used (either valueDate or openingDate and closingDate)
+	// Usually one of the following is used (either valueDate or openingDate and closingDate)
 	override val name: String? = null,
 	val descr: String? = null,
 	val note: String? = null,
 	val relevant: Boolean = true,
-	@Schema(defaultValue = "0") val status: Int = 0, //bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	var forms: List<FormSkeletonDto> = emptyList()
-) : ICureDocumentDto<String>, NamedDto
+	@get:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	var forms: List<FormSkeletonDto> = emptyList(),
+) : ICureDocumentDto<String>,
+	NamedDto

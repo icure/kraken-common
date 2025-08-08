@@ -6,12 +6,16 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.form.template.StateT
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class State (
-    val name: String = "",
-    val stateToUpdate: StateToUpdate = StateToUpdate.VISIBLE,
-    val canLaunchLauncher: Boolean = false,
+class State(
+	val name: String = "",
+	val stateToUpdate: StateToUpdate = StateToUpdate.VISIBLE,
+	val canLaunchLauncher: Boolean = false,
 )
 
 enum class StateToUpdate {
-	VALUE, VISIBLE, READONLY, CLAZZ, REQUIRED
+	VALUE,
+	VISIBLE,
+	READONLY,
+	CLAZZ,
+	REQUIRED,
 }

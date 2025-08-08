@@ -16,5 +16,6 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.Editor
 @JsonIgnoreProperties(ignoreUnknown = true)
 class NumberEditor(
 	override val displayValueDate: Boolean = false,
-	val precision: Int = 0
-) : Editor(), ValueDateEditor
+	val precision: Int = 0,
+) : Editor(),
+	ValueDateEditor

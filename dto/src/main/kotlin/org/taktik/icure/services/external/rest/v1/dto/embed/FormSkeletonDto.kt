@@ -11,5 +11,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormSkeletonDto(
 	val descr: String? = null,
-	val formTemplateId: String? = null
+	val formTemplateId: String? = null,
 )

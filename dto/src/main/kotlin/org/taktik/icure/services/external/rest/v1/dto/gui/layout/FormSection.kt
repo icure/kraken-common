@@ -3,9 +3,9 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.gui.layout
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.io.Serializable
 
 /**
  * Created by aduchate on 07/02/13, 17:10

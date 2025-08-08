@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.MedicalLocationDAO
 import org.taktik.icure.asynclogic.MedicalLocationLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginationElement
@@ -22,20 +22,21 @@ open class MedicalLocationLogicImpl(
 	private val medicalLocationDAO: MedicalLocationDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<MedicalLocation, MedicalLocationDAO>(fixer, datastoreInstanceProvider, filters), MedicalLocationLogic {
-
+	filters: Filters,
+) : GenericLogicImpl<MedicalLocation, MedicalLocationDAO>(fixer, datastoreInstanceProvider, filters),
+	MedicalLocationLogic {
 	override suspend fun createMedicalLocation(medicalLocation: MedicalLocation) = fix(medicalLocation, isCreate = true) { fixedMedicalLocation ->
-		if(fixedMedicalLocation.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		if (fixedMedicalLocation.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		medicalLocationDAO.create(datastoreInformation, fixedMedicalLocation)
 	}
 
 	override fun getAllMedicalLocations(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(medicalLocationDAO
-			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
-			.toPaginatedFlow<MedicalLocation>(paginationOffset.limit)
+		emitAll(
+			medicalLocationDAO
+				.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
+				.toPaginatedFlow<MedicalLocation>(paginationOffset.limit),
 		)
 	}
 
@@ -54,7 +55,5 @@ open class MedicalLocationLogicImpl(
 		emitAll(medicalLocationDAO.byPostCode(datastoreInformation, postCode))
 	}
 
-	override fun getGenericDAO(): MedicalLocationDAO {
-		return medicalLocationDAO
-	}
+	override fun getGenericDAO(): MedicalLocationDAO = medicalLocationDAO
 }

@@ -16,10 +16,16 @@ import java.io.Serializable
 @JsonDeserialize(using = JacksonEditorV1Deserializer::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-abstract class Editor(val left: Double? = null, val top: Double? = null, val width: Double? = null, val height: Double? = null, val isMultiline: Boolean = false, val labelPosition: LabelPosition? = null, val isReadOnly: Boolean = false, val defaultValue: Data? = null) : Serializable {
-
+abstract class Editor(
+	val left: Double? = null,
+	val top: Double? = null,
+	val width: Double? = null,
+	val height: Double? = null,
+	val isMultiline: Boolean = false,
+	val labelPosition: LabelPosition? = null,
+	val isReadOnly: Boolean = false,
+	val defaultValue: Data? = null,
+) : Serializable {
 	@JsonProperty("key")
-	private fun includeDiscriminator(): String {
-		return this.javaClass.simpleName
-	}
+	private fun includeDiscriminator(): String = this.javaClass.simpleName
 }

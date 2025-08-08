@@ -4,5 +4,5 @@
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
 class PlannedSendingDto(
-	val cronExpression: String? = null
+	val cronExpression: String? = null,
 )

@@ -8,18 +8,15 @@ import java.time.Instant
 import java.util.*
 
 open class CommonFixedValueProvider(
-	private val dataOwnerProvider: DataOwnerProvider
+	private val dataOwnerProvider: DataOwnerProvider,
 ) : FixedValueProvider {
 
 	protected fun fuzzyNowFixedValue() = FuzzyValues.currentFuzzyDateTime
 	protected fun nowFixedValue() = Instant.now().toEpochMilli()
 	protected fun uuidFixedValue() = UUID.randomUUID().toString()
-	protected open suspend fun currentUserIdFixedValue(): String? =
-		if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentUserId() else null
-	protected open suspend fun currentDataOwnerIdFixedValue(): String? =
-		if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentDataOwnerId() else null
-	protected fun normalizedCodeFixedValue(value: Any?) =
-		(value as? CodeIdentification)?.normalizeIdentification() ?: value
+	protected open suspend fun currentUserIdFixedValue(): String? = if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentUserId() else null
+	protected open suspend fun currentDataOwnerIdFixedValue(): String? = if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentDataOwnerId() else null
+	protected fun normalizedCodeFixedValue(value: Any?) = (value as? CodeIdentification)?.normalizeIdentification() ?: value
 
 	protected suspend fun getFixedValue(autoFix: AutoFix, value: Any?): Any? = when (autoFix) {
 		AutoFix.FUZZYNOW -> fuzzyNowFixedValue()

@@ -30,7 +30,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Receipt(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -39,12 +39,12 @@ data class Receipt(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
-	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val references: List<String> = emptyList(), //nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
+	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
 
-	//The ICureDocument (Invoice, Contact, ...) this document is linked to
+	// The ICureDocument (Invoice, Contact, ...) this document is linked to
 	val documentId: String? = null,
 	@param:ContentValue(ContentValues.ANY_STRING) val category: String? = null,
 	val subCategory: String? = null,
@@ -55,32 +55,33 @@ data class Receipt(
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+) : StoredICureDocument,
+	HasEncryptionMetadata,
+	Encryptable {
 	companion object : DynamicInitializer<Receipt>
 
 	fun merge(other: Receipt) = Receipt(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Receipt) =
-		super<StoredICureDocument>.solveConflictsWith(other) +
-			super<HasEncryptionMetadata>.solveConflictsWith(other) + mapOf(
+	fun solveConflictsWith(other: Receipt) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		mapOf(
 			"attachmentIds" to (other.attachmentIds + this.attachmentIds),
 			"references" to mergeListsDistinct(this.references, other.references),
 			"documentId" to (this.documentId ?: other.documentId),
 			"category" to (this.category ?: other.category),
-			"subCategory" to (this.subCategory ?: other.subCategory)
+			"subCategory" to (this.subCategory ?: other.subCategory),
 		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
+	}
 }

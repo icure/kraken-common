@@ -13,7 +13,7 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
 
-@Mapper(componentModel = "spring", uses = [MeasureMapper::class, MedicationMapper::class, TimeSeriesMapper::class, IdentifierMapper::class, CodeStubMapper::class, DelegationMapper::class,  AnnotationMapper::class, SecurityMetadataMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [MeasureMapper::class, MedicationMapper::class, TimeSeriesMapper::class, IdentifierMapper::class, CodeStubMapper::class, DelegationMapper::class, AnnotationMapper::class, SecurityMetadataMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ServiceMapper {
 	fun map(serviceDto: ServiceDto): Service
 	fun map(service: Service): ServiceDto

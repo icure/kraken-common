@@ -16,7 +16,6 @@ import org.taktik.icure.security.database.ShaAndVerificationCodePasswordEncoder
 
 @Configuration
 class SharedSecurityConfig {
-
 	@Bean
 	fun httpFirewall() = StrictHttpFirewall().apply {
 		setAllowSemicolon(true)
@@ -32,7 +31,7 @@ class SharedSecurityConfig {
 				"sha256" to shaAndVerificationCodePasswordEncoder,
 				"bcrypt" to BCryptPasswordEncoder(12),
 				"pbkdf2" to Pbkdf2PasswordEncoder("", 8, 185000, SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256),
-			)
+			),
 		) {
 			override fun encode(rawPassword: CharSequence?): String {
 				// TODO later: remove this when we phase out older versions of kraken (from pre-split era)

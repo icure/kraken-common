@@ -10,5 +10,4 @@ interface ReplicationStatsMapper {
 
 	fun map(replicationStats: ReplicationStats): ReplicationStatsDto
 	fun map(replicationStatsDto: ReplicationStatsDto): ReplicationStats
-
 }

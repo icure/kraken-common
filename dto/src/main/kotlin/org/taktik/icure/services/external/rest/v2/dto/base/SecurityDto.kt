@@ -17,14 +17,14 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecurityDto(
-	@Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
-	@Schema(defaultValue = "RightDto()") val members: RightDto = RightDto()
+	@get:Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
+	@get:Schema(defaultValue = "RightDto()") val members: RightDto = RightDto(),
 ) : Serializable

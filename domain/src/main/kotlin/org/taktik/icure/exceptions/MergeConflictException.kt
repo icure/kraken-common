@@ -7,6 +7,6 @@ import java.lang.IllegalArgumentException
  * intervention.
  */
 class MergeConflictException(
-    message: String,
-    cause: Throwable? = null
+	message: String,
+	cause: Throwable? = null,
 ) : IllegalArgumentException(message, cause)

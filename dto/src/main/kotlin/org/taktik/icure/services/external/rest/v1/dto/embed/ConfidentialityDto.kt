@@ -3,6 +3,9 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.embed
 
+@Suppress("EnumEntryName")
 enum class ConfidentialityDto {
-	freeaccess, personal, secret
+	freeaccess,
+	personal,
+	secret,
 }

@@ -4,20 +4,20 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.UserDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.user.UsersByPatientIdFilter
 import org.taktik.icure.entities.User
 
 @Service
 @Profile("app")
 class UsersByPatientIdFilter(
-	private val userDAO: UserDAO
+	private val userDAO: UserDAO,
 ) : Filter<String, User, UsersByPatientIdFilter> {
 	override fun resolve(
 		filter: UsersByPatientIdFilter,
 		context: Filters,
-		datastoreInformation: IDatastoreInformation
+		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = userDAO.listUserIdsByPatientId(datastoreInformation, filter.patientId)
 }

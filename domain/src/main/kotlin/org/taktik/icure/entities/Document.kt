@@ -11,8 +11,8 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasDataAttachments
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.DeletedAttachment
@@ -71,7 +71,7 @@ import org.taktik.icure.validation.ValidCode
  */
 data class Document(
 	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
-	@JsonProperty("_rev") override val rev: String? = null,
+	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -80,7 +80,7 @@ data class Document(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
-	@JsonProperty("deleted") override val deletionDate: Long? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:ContentValue(ContentValues.ANY_LONG) val size: Long? = null,
 	val hash: String? = null,
 	val openingContactId: String? = null,
@@ -88,9 +88,9 @@ data class Document(
 	val documentType: DocumentType? = null,
 	val documentStatus: DocumentStatus? = null,
 	val externalUri: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING)  val name: String? = null,
+	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null,
 	val version: String? = null,
-	val storedICureDocumentId: String? = null, //The ICureDocument (Form, Contact, ...) that has been used to generate the document
+	val storedICureDocumentId: String? = null, // The ICureDocument (Form, Contact, ...) that has been used to generate the document
 	val externalUuid: String? = null,
 
 	val attachmentId: String? = null,
@@ -107,12 +107,15 @@ data class Document(
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
 
-	@JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
-	@JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
-	@JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@JsonProperty("rev_history") override val revHistory: Map<String, String>? = null
+	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
+	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
+	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument, HasEncryptionMetadata, HasDataAttachments<Document>, Encryptable {
+) : StoredICureDocument,
+	HasEncryptionMetadata,
+	HasDataAttachments<Document>,
+	Encryptable {
 	companion object : DynamicInitializer<Document> {
 		fun mainAttachmentKeyFromId(id: String) = id
 	}
@@ -122,14 +125,15 @@ data class Document(
 
 	@get:JsonIgnore
 	val mainAttachment: DataAttachment? by lazy {
-		if (attachmentId != null || objectStoreReference != null)
+		if (attachmentId != null || objectStoreReference != null) {
 			DataAttachment(
 				attachmentId,
 				objectStoreReference,
-				listOfNotNull(mainUti) + (mainUti?.let { otherUtis - it } ?: otherUtis)
+				listOfNotNull(mainUti) + (mainUti?.let { otherUtis - it } ?: otherUtis),
 			)
-		else
+		} else {
 			null
+		}
 	}
 
 	@get:JsonIgnore
@@ -137,74 +141,70 @@ data class Document(
 		mainAttachment?.let { secondaryAttachments + (mainAttachmentKey to it) } ?: secondaryAttachments
 	}
 
-	override fun withUpdatedDataAttachment(key: String, newValue: DataAttachment?): Document =
-		if (key == mainAttachmentKey) {
-			withUpdatedMainAttachment(newValue)
-		} else if (newValue != null) {
-			copy(secondaryAttachments = secondaryAttachments + (key to newValue))
-		} else {
-			copy(secondaryAttachments = secondaryAttachments - key)
-		}
+	override fun withUpdatedDataAttachment(key: String, newValue: DataAttachment?): Document = if (key == mainAttachmentKey) {
+		withUpdatedMainAttachment(newValue)
+	} else if (newValue != null) {
+		copy(secondaryAttachments = secondaryAttachments + (key to newValue))
+	} else {
+		copy(secondaryAttachments = secondaryAttachments - key)
+	}
 
 	override fun withDataAttachments(newDataAttachments: Map<String, DataAttachment>): Document = this
 		.copy(secondaryAttachments = newDataAttachments.filter { it.key != mainAttachmentKey })
 		.withUpdatedMainAttachment(newDataAttachments[mainAttachmentKey])
 
-	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): Document =
-		copy(deletedAttachments = newDeletedAttachments)
+	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): Document = copy(deletedAttachments = newDeletedAttachments)
 
 	fun merge(other: Document) = Document(args = this.solveConflictsWith(other))
 
-	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) + super<HasEncryptionMetadata>.solveConflictsWith(other) + super<Encryptable>.solveConflictsWith(other) + mapOf(
-		"size" to (this.size ?: other.size),
-		"hash" to (this.hash ?: other.hash),
-		"openingContactId" to (this.openingContactId ?: other.openingContactId),
-		"documentLocation" to (this.documentLocation ?: other.documentLocation),
-		"documentType" to (this.documentType ?: other.documentType),
-		"documentStatus" to (this.documentStatus ?: other.documentStatus),
-		"externalUri" to (this.externalUri ?: other.externalUri),
-		"name" to (this.name ?: other.name),
-		"version" to (this.version ?: other.version),
-		"storedICureDocumentId" to (this.storedICureDocumentId ?: other.storedICureDocumentId),
-		"externalUuid" to (this.externalUuid ?: other.externalUuid),
-		"deletedAttachments" to this.solveDeletedAttachmentsConflicts(other),
-	) + this.solveDataAttachmentsConflicts(other).let { allDataAttachments ->
-		allDataAttachments[this.mainAttachmentKey].let { mainAttachment ->
-			mapOf(
-				"attachmentId" to mainAttachment?.couchDbAttachmentId,
-				"objectStoreReference" to mainAttachment?.objectStoreAttachmentId,
-				"mainUti" to mainUtiOf(mainAttachment),
-				"otherUtis" to otherUtisOf(mainAttachment),
-				"secondaryAttachments" to (allDataAttachments - this.mainAttachmentKey)
-			)
+	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) +
+		super<HasEncryptionMetadata>.solveConflictsWith(other) +
+		super<Encryptable>.solveConflictsWith(other) +
+		mapOf(
+			"size" to (this.size ?: other.size),
+			"hash" to (this.hash ?: other.hash),
+			"openingContactId" to (this.openingContactId ?: other.openingContactId),
+			"documentLocation" to (this.documentLocation ?: other.documentLocation),
+			"documentType" to (this.documentType ?: other.documentType),
+			"documentStatus" to (this.documentStatus ?: other.documentStatus),
+			"externalUri" to (this.externalUri ?: other.externalUri),
+			"name" to (this.name ?: other.name),
+			"version" to (this.version ?: other.version),
+			"storedICureDocumentId" to (this.storedICureDocumentId ?: other.storedICureDocumentId),
+			"externalUuid" to (this.externalUuid ?: other.externalUuid),
+			"deletedAttachments" to this.solveDeletedAttachmentsConflicts(other),
+		) +
+		this.solveDataAttachmentsConflicts(other).let { allDataAttachments ->
+			allDataAttachments[this.mainAttachmentKey].let { mainAttachment ->
+				mapOf(
+					"attachmentId" to mainAttachment?.couchDbAttachmentId,
+					"objectStoreReference" to mainAttachment?.objectStoreAttachmentId,
+					"mainUti" to mainUtiOf(mainAttachment),
+					"otherUtis" to otherUtisOf(mainAttachment),
+					"secondaryAttachments" to (allDataAttachments - this.mainAttachmentKey),
+				)
+			}
 		}
+
+	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+
+	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+
+	override fun withTimestamps(created: Long?, modified: Long?) = when {
+		created != null && modified != null -> this.copy(created = created, modified = modified)
+		created != null -> this.copy(created = created)
+		modified != null -> this.copy(modified = modified)
+		else -> this
 	}
 
-	override fun withIdRev(id: String?, rev: String) =
-		if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
+	fun withUpdatedMainAttachment(newMainAttachment: DataAttachment?) = this.copy(
+		attachmentId = newMainAttachment?.couchDbAttachmentId,
+		objectStoreReference = newMainAttachment?.objectStoreAttachmentId,
+		mainUti = mainUtiOf(newMainAttachment),
+		otherUtis = otherUtisOf(newMainAttachment),
+	)
 
-	override fun withDeletionDate(deletionDate: Long?) =
-		this.copy(deletionDate = deletionDate)
+	private fun mainUtiOf(mainAttachment: DataAttachment?) = mainAttachment?.utis?.firstOrNull()
 
-	override fun withTimestamps(created: Long?, modified: Long?) =
-		when {
-			created != null && modified != null -> this.copy(created = created, modified = modified)
-			created != null -> this.copy(created = created)
-			modified != null -> this.copy(modified = modified)
-			else -> this
-		}
-
-	fun withUpdatedMainAttachment(newMainAttachment: DataAttachment?) =
-		this.copy(
-			attachmentId = newMainAttachment?.couchDbAttachmentId,
-			objectStoreReference = newMainAttachment?.objectStoreAttachmentId,
-			mainUti = mainUtiOf(newMainAttachment),
-			otherUtis = otherUtisOf(newMainAttachment),
-		)
-
-	private fun mainUtiOf(mainAttachment: DataAttachment?) =
-		mainAttachment?.utis?.firstOrNull()
-
-	private fun otherUtisOf(mainAttachment: DataAttachment?) =
-		mainAttachment?.utis?.drop(1)?.toSet() ?: emptySet()
+	private fun otherUtisOf(mainAttachment: DataAttachment?) = mainAttachment?.utis?.drop(1)?.toSet() ?: emptySet()
 }

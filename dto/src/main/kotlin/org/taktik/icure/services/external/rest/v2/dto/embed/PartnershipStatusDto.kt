@@ -18,5 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class PartnershipStatusDto {
-	active, complicated, past
+	active,
+	complicated,
+	past,
 }

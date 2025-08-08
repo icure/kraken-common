@@ -17,8 +17,8 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto.data
 
-import java.io.Serializable
 import org.taktik.icure.services.external.rest.v1.dto.CodeDto
+import java.io.Serializable
 
 /**
  * Created by aduchate on 01/02/13, 12:23
@@ -27,5 +27,6 @@ open class FormItem(
 	open val label: String? = null,
 	open val index: Int? = null,
 	open val guid: String? = null,
-	open val tags: List<CodeDto>? = null
-) : Serializable, IFormItem
+	open val tags: List<CodeDto>? = null,
+) : Serializable,
+	IFormItem

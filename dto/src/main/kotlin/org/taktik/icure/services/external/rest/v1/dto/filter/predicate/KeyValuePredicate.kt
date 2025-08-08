@@ -13,8 +13,14 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class KeyValuePredicate(val key: String? = null, val operator: Operator? = null, val value: Any? = null) : Predicate {
-	enum class Operator(val code: String) {
+data class KeyValuePredicate(
+	val key: String? = null,
+	val operator: Operator? = null,
+	val value: Any? = null,
+) : Predicate {
+	enum class Operator(
+		val code: String,
+	) {
 		EQUAL("=="),
 		NOTEQUAL("!="),
 		GREATERTHAN(">"),
@@ -22,9 +28,9 @@ data class KeyValuePredicate(val key: String? = null, val operator: Operator? = 
 		GREATERTHANOREQUAL(">="),
 		SMALLERTHANOREQUAL("<="),
 		LIKE("%="),
-		ILIKE("%%=");
-		override fun toString(): String {
-			return code
-		}
+		ILIKE("%%="),
+		;
+
+		override fun toString(): String = code
 	}
 }

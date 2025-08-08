@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BasicDto(
 	val username: String,
-	val password: String
+	val password: String,
 )

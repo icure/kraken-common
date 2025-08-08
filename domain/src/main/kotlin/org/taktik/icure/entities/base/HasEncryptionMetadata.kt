@@ -17,8 +17,9 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	val secretForeignKeys: Set<String>
 
-	//Used when we want to find the patient for this contact
-	//These keys are the public patient ids encrypted using the hcParty keys.
+	// Used when we want to find the patient for this contact
+	// These keys are the public patient ids encrypted using the hcParty keys.
+
 	/**
 	 * The secretForeignKeys are filled at the to many end of a one to many relationship (for example inside Contact for the Patient -> Contacts relationship).
 	 * Used when we want to find the patient for a specific contact. These keys are the encrypted id (using the hcParty key for the delegate) that can be found in clear inside the patient
@@ -28,9 +29,10 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	val cryptedForeignKeys: Map<String, Set<Delegation>>
 
-	//When a document is created, the responsible generates a cryptographically random master key (never to be used for something else than referencing from other entities)
-	//He/she encrypts it using his own AES exchange key and stores it as a delegation
-	//The responsible is thus always in the delegations as well
+	// When a document is created, the responsible generates a cryptographically random master key (never to be used for something else than referencing from other entities)
+	// He/she encrypts it using his own AES exchange key and stores it as a delegation
+	// The responsible is thus always in the delegations as well
+
 	/**
 	 * When a document is created, the responsible generates a cryptographically random master key (never to be used for something else than referencing from other entities).
 	 * He/she encrypts it using his own AES exchange key and stores it as a delegation. The responsible is thus always in the delegations as well.
@@ -39,8 +41,9 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	val delegations: Map<String, Set<Delegation>>
 
-	//When a document needs to be encrypted, the responsible generates a cryptographically random master key (different from the delegation key, never to appear in clear anywhere in the db)
-	//He/she encrypts it using his own AES exchange key and stores it as a delegation
+	// When a document needs to be encrypted, the responsible generates a cryptographically random master key (different from the delegation key, never to appear in clear anywhere in the db)
+	// He/she encrypts it using his own AES exchange key and stores it as a delegation
+
 	/**
 	 * When a document needs to be encrypted, the responsible generates a cryptographically random master key (different from the delegation key, never to appear
 	 * in clear anywhere in the db). He/she encrypts it using his own AES exchange key and stores it as a delegation.
@@ -49,19 +52,19 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	val encryptionKeys: Map<String, Set<Delegation>>
 
-	fun solveConflictsWith(other: HasEncryptionMetadata): Map<String, Any?> {
-		return mapOf(
-			"secretForeignKeys" to this.secretForeignKeys + other.secretForeignKeys,
-			"cryptedForeignKeys" to mergeMapsOfSets(this.cryptedForeignKeys, other.cryptedForeignKeys),
-			"delegations" to mergeMapsOfSets(this.delegations, other.delegations),
-			"encryptionKeys" to mergeMapsOfSets(this.encryptionKeys, other.encryptionKeys),
-			"securityMetadata" to (this.securityMetadata?.let { thisSecurityMetadata ->
+	fun solveConflictsWith(other: HasEncryptionMetadata): Map<String, Any?> = mapOf(
+		"secretForeignKeys" to this.secretForeignKeys + other.secretForeignKeys,
+		"cryptedForeignKeys" to mergeMapsOfSets(this.cryptedForeignKeys, other.cryptedForeignKeys),
+		"delegations" to mergeMapsOfSets(this.delegations, other.delegations),
+		"encryptionKeys" to mergeMapsOfSets(this.encryptionKeys, other.encryptionKeys),
+		"securityMetadata" to (
+			this.securityMetadata?.let { thisSecurityMetadata ->
 				other.securityMetadata?.let { otherSecurityMetadata ->
 					thisSecurityMetadata.mergeForDifferentVersionsOfEntity(otherSecurityMetadata)
 				} ?: thisSecurityMetadata
-			} ?: other.securityMetadata)
-		)
-	}
+			} ?: other.securityMetadata
+			),
+	)
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = super.dataOwnersWithExplicitAccess +
@@ -77,12 +80,12 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
  * @param dataOwnerIdOrDelegationKey the id of the data owner or a secure delegation key
  * @return if the provided data owner or delegation key is in this entity.
  */
-fun HasEncryptionMetadata.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean =
-	delegations.containsKey(dataOwnerIdOrDelegationKey) || securityMetadata?.let { metadata ->
+fun HasEncryptionMetadata.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey: String): Boolean = delegations.containsKey(dataOwnerIdOrDelegationKey) ||
+	securityMetadata?.let { metadata ->
 		metadata.secureDelegations.containsKey(dataOwnerIdOrDelegationKey) ||
-				metadata.secureDelegations.any { (_, delegation) ->
-					delegation.delegator == dataOwnerIdOrDelegationKey || delegation.delegate == dataOwnerIdOrDelegationKey
-				}
+			metadata.secureDelegations.any { (_, delegation) ->
+				delegation.delegator == dataOwnerIdOrDelegationKey || delegation.delegate == dataOwnerIdOrDelegationKey
+			}
 	} == true
 
 /**
@@ -96,10 +99,10 @@ fun HasEncryptionMetadata.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey
  * @return if the metadata of this and [other] are the same.
  */
 fun HasEncryptionMetadata.encryptableMetadataEquals(other: HasEncryptionMetadata): Boolean {
-	return this.securityMetadata == other.securityMetadata
-			&& this.secretForeignKeys == other.secretForeignKeys
-			&& this.cryptedForeignKeys == other.cryptedForeignKeys
-			&& this.delegations == other.delegations
-			&& this.encryptionKeys == other.encryptionKeys
+	return this.securityMetadata == other.securityMetadata &&
+		this.secretForeignKeys == other.secretForeignKeys &&
+		this.cryptedForeignKeys == other.cryptedForeignKeys &&
+		this.delegations == other.delegations &&
+		this.encryptionKeys == other.encryptionKeys
 	// encryptedSelf is not metadata
 }

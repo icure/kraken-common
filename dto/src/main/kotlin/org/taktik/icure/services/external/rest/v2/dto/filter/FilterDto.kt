@@ -29,9 +29,7 @@ interface AbstractFilterDto<O : IdentifiableDto<String>> : FilterDto<O> {
 	 * Ignore, used only for correct serialization of classes
 	 */
 	@JsonProperty("\$type") // Fix serialization from kotlin
-	fun includeDiscriminator(): String {
-		return this::class.simpleName!!
-	}
+	fun includeDiscriminator(): String = this::class.simpleName!!
 
 	val desc: String?
 }

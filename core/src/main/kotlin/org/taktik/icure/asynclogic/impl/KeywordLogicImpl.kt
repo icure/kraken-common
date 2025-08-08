@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.KeywordDAO
 import org.taktik.icure.asynclogic.KeywordLogic
-import org.taktik.icure.asynclogic.datastore.DatastoreInstanceProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
@@ -27,46 +27,44 @@ class KeywordLogicImpl(
 	private val keywordDAO: KeywordDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	filters: Filters
-) : GenericLogicImpl<Keyword, KeywordDAO>(fixer, datastoreInstanceProvider, filters), KeywordLogic{
+	filters: Filters,
+) : GenericLogicImpl<Keyword, KeywordDAO>(fixer, datastoreInstanceProvider, filters),
+	KeywordLogic {
 	private val log = LoggerFactory.getLogger(KeywordLogicImpl::class.java)
 
-	override fun getGenericDAO(): KeywordDAO {
-		return keywordDAO
-	}
+	override fun getGenericDAO(): KeywordDAO = keywordDAO
 
-	override suspend fun createKeyword(keyword: Keyword) =
-		fix(keyword, isCreate = true) { fixedKeyword ->
-			if(fixedKeyword.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-			val createdKeywords = try { // Setting Keyword attributes
+	override suspend fun createKeyword(keyword: Keyword) = fix(keyword, isCreate = true) { fixedKeyword ->
+		if (fixedKeyword.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		val createdKeywords =
+			try {
+				// Setting Keyword attributes
 				createEntities(setOf(fixedKeyword))
 			} catch (e: Exception) {
 				log.error("createKeyword: " + e.message)
 				throw IllegalArgumentException("Invalid Keyword", e)
 			}
-			createdKeywords.firstOrNull()
-		}
+		createdKeywords.firstOrNull()
+	}
 
 	override suspend fun getKeyword(keywordId: String): Keyword? {
 		val datastoreInformation = getInstanceAndGroup()
 		return keywordDAO.getKeyword(datastoreInformation, keywordId)
 	}
 
-	override suspend fun modifyKeyword(keyword: Keyword): Keyword? =
-		modifyEntities(setOf(keyword)).firstOrNull()
+	override suspend fun modifyKeyword(keyword: Keyword): Keyword? = modifyEntities(setOf(keyword)).firstOrNull()
 
-	override fun getKeywordsByUser(userId: String): Flow<Keyword> =
-		flow {
-			val datastoreInformation = getInstanceAndGroup()
-			emitAll(keywordDAO.getKeywordsByUserId(datastoreInformation, userId))
-		}
+	override fun getKeywordsByUser(userId: String): Flow<Keyword> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(keywordDAO.getKeywordsByUserId(datastoreInformation, userId))
+	}
 
 	override fun getAllKeywords(paginationOffset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(keywordDAO
-			.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
-			.toPaginatedFlow<Keyword>(paginationOffset.limit)
+		emitAll(
+			keywordDAO
+				.getAllPaginated(datastoreInformation, paginationOffset.limitIncludingKey(), Nothing::class.java)
+				.toPaginatedFlow<Keyword>(paginationOffset.limit),
 		)
 	}
-
 }

@@ -18,5 +18,9 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 enum class VisibilityDto {
-	maskedfromsummary, maskedfromexportedfile, proeminent, highlighted, visible
+	maskedfromsummary,
+	maskedfromexportedfile,
+	proeminent,
+	highlighted,
+	visible,
 }

@@ -16,8 +16,9 @@ data class ContactByHcPartyTagCodeDateFilter(
 	override val codeType: String? = null,
 	override val codeCode: String? = null,
 	override val startOfContactOpeningDate: Long? = null,
-	override val endOfContactOpeningDate: Long? = null
-) : AbstractFilter<Contact>, org.taktik.icure.domain.filter.contact.ContactByHcPartyTagCodeDateFilter {
+	override val endOfContactOpeningDate: Long? = null,
+) : AbstractFilter<Contact>,
+	org.taktik.icure.domain.filter.contact.ContactByHcPartyTagCodeDateFilter {
 	init {
 		if (tagCode != null) {
 			require(tagType != null) { "If you specify tagCode you must also specify tagType" }
@@ -28,19 +29,19 @@ data class ContactByHcPartyTagCodeDateFilter(
 	}
 
 	override val canBeUsedInWebsocket = true
+
 	// The HCP id is coalesced in the resolve
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
 
-	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		return (
-			(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
-					(tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
-					(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
-			item.services.any { svc -> // Search on service fields instead of contact fields is intentional
+	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		(healthcarePartyId == null || searchKeyMatcher(healthcarePartyId, item)) &&
+			(tagType == null || item.tags.containsStubWithTypeAndCode(tagType, tagCode)) &&
+			(codeType == null || item.codes.containsStubWithTypeAndCode(codeType, codeCode)) &&
+			item.services.any { svc ->
+				// Search on service fields instead of contact fields is intentional
 				(startOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate > startOfContactOpeningDate || svc.openingDate != null && svc.openingDate > startOfContactOpeningDate) &&
-				(endOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate < endOfContactOpeningDate || svc.openingDate != null && svc.openingDate < endOfContactOpeningDate)
+					(endOfContactOpeningDate == null || svc.valueDate != null && svc.valueDate < endOfContactOpeningDate || svc.openingDate != null && svc.openingDate < endOfContactOpeningDate)
 			}
 		)
-	}
 }

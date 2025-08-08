@@ -30,6 +30,7 @@ interface UserLogic : EntityPersister<User> {
 
 	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): EnhancedUser?
 	suspend fun getUserByEmail(email: String): EnhancedUser?
+
 	/**
 	 * Get a user matching the given identifier in the same group as the current user.
 	 * The generic identifier can be an id, login, email or phone number, and the search is done in this order.

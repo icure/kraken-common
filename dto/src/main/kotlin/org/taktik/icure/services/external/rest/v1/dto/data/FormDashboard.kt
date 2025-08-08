@@ -23,4 +23,8 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class FormDashboard(val dashboard: String? = null, val dashboardGuid: String? = null) : IFormItem, Serializable
+data class FormDashboard(
+	val dashboard: String? = null,
+	val dashboardGuid: String? = null,
+) : IFormItem,
+	Serializable

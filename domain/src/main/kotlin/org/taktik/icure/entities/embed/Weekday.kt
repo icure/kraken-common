@@ -4,10 +4,10 @@
 
 package org.taktik.icure.entities.embed
 
-import java.io.Serializable
 import org.taktik.icure.entities.base.CodeStub
+import java.io.Serializable
 
 data class Weekday(
-	val weekday: CodeStub? = null, //CD-WEEKDAY
-	val weekNumber: Int? = null //Can be null
+	val weekday: CodeStub? = null, // CD-WEEKDAY
+	val weekNumber: Int? = null, // Can be null
 ) : Serializable

@@ -17,14 +17,14 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DurationDto(
 	val value: Double? = null,
-	val unit: CodeStubDto? = null //CD-TIMEUNIT
+	val unit: CodeStubDto? = null, // CD-TIMEUNIT
 ) : Serializable

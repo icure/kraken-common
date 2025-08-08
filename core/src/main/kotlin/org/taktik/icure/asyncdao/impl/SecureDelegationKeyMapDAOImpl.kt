@@ -10,41 +10,50 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.SecureDelegationKeyMapDAO
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.SecureDelegationKeyMap
 
 @Repository("secureDelegationKeyMapDAO")
 @Profile("app")
-@View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(null, doc._id)}")
+@View(
+	name = "all",
+	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(null, doc._id)}",
+)
 class SecureDelegationKeyMapDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
-    daoConfig: DaoConfig
+	daoConfig: DaoConfig,
 ) : GenericDAOImpl<SecureDelegationKeyMap>(
-    SecureDelegationKeyMap::class.java,
-    couchDbDispatcher,
-    idGenerator,
-    entityCacheFactory.getConfiguredCache(),
-    designDocumentProvider,
-    daoConfig = daoConfig
-), SecureDelegationKeyMapDAO {
-
-    @View(name = "by_delegation_key", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(doc.delegationKey, null)}")
-    override suspend fun findByDelegationKeys(datastoreInformation: IDatastoreInformation, delegationKeys: List<String>) = flow {
-        val client = couchDbDispatcher.getClient(datastoreInformation)
-        val viewQuery = createQuery(datastoreInformation, "by_delegation_key")
-            .keys(delegationKeys)
-            .includeDocs(true)
-            .reduce(false)
-            .descending(false)
-        client.queryViewIncludeDocsNoValue<String, SecureDelegationKeyMap>(viewQuery).collect {
-            emit(it.doc)
-        }
-    }
-
+	SecureDelegationKeyMap::class.java,
+	couchDbDispatcher,
+	idGenerator,
+	entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider,
+	daoConfig = daoConfig,
+),
+	SecureDelegationKeyMapDAO {
+	@View(
+		name = "by_delegation_key",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(doc.delegationKey, null)}",
+	)
+	override suspend fun findByDelegationKeys(
+		datastoreInformation: IDatastoreInformation,
+		delegationKeys: List<String>,
+	) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val viewQuery =
+			createQuery(datastoreInformation, "by_delegation_key")
+				.keys(delegationKeys)
+				.includeDocs(true)
+				.reduce(false)
+				.descending(false)
+		client.queryViewIncludeDocsNoValue<String, SecureDelegationKeyMap>(viewQuery).collect {
+			emit(it.doc)
+		}
+	}
 }

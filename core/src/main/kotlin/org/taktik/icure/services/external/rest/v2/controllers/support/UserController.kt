@@ -71,9 +71,8 @@ class UserController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
-	private val objectMapper: ObjectMapper
+	private val objectMapper: ObjectMapper,
 ) {
-
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
@@ -83,8 +82,12 @@ class UserController(
 	fun getCurrentUser(
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
-		val user = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+		val user =
+			userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+				)
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
@@ -94,7 +97,7 @@ class UserController(
 		@Parameter(description = "An user email") @RequestParam(required = false) startKey: String?,
 		@Parameter(description = "An user document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@Parameter(description = "Filter out patient users") @RequestParam(required = false) skipPatients: Boolean?
+		@Parameter(description = "Filter out patient users") @RequestParam(required = false) skipPatients: Boolean?,
 	): PaginatedFlux<UserDto> {
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
@@ -103,11 +106,18 @@ class UserController(
 			.mapElements(userV2Mapper::mapOmittingSecrets)
 			.asPaginatedFlux()
 	}
-	@Operation(summary = "Create a user", description = "Create a user. HealthcareParty ID should be set. Email or Login have to be set. If login hasn't been set, Email will be used for Login instead.")
+
+	@Operation(
+		summary = "Create a user",
+		description = "Create a user. HealthcareParty ID should be set. Email or Login have to be set. If login hasn't been set, Email will be used for Login instead.",
+	)
 	@PostMapping
-	fun createUser(@RequestBody userDto: UserDto) = mono {
-		val user = userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User creation failed.")
+	fun createUser(
+		@RequestBody userDto: UserDto,
+	) = mono {
+		val user =
+			userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
+				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User creation failed.")
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
@@ -117,50 +127,70 @@ class UserController(
 		@PathVariable userId: String,
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
 	) = mono {
-		val user = userService.getUser(userId, includeMetadataFromGlobalUser)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+		val user =
+			userService.getUser(userId, includeMetadataFromGlobalUser)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+				)
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
 	@Operation(summary = "Get multiple users by their ids", description = "General information about the user")
 	@PostMapping("/byIds")
-	fun getUsers(@RequestBody userIds: ListOfIdsDto) =
-		userService.getUsers(userIds.ids).map { user ->
+	fun getUsers(
+		@RequestBody userIds: ListOfIdsDto,
+	) = userService
+		.getUsers(userIds.ids)
+		.map { user ->
 			userV2Mapper.mapOmittingSecrets(user)
 		}.injectReactorContext()
 
 	@Operation(summary = "Get a user by his Email/Login", description = "General information about the user")
 	@GetMapping("/byEmail/{email}")
-	fun getUserByEmail(@PathVariable email: String) = mono {
-		val user = userService.getUserByEmail(email)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+	fun getUserByEmail(
+		@PathVariable email: String,
+	) = mono {
+		val user =
+			userService.getUserByEmail(email)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+				)
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
 	@Operation(summary = "Get a user by his Phone Number/Login", description = "General information about the user")
 	@GetMapping("/byPhoneNumber/{phoneNumber}")
-	fun getUserByPhoneNumber(@PathVariable phoneNumber: String) = mono {
-		val user = userService.getUserByPhone(phoneNumber)
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.")
+	fun getUserByPhoneNumber(
+		@PathVariable phoneNumber: String,
+	) = mono {
+		val user =
+			userService.getUserByPhone(phoneNumber)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
+				)
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
 	@Operation(summary = "Get the list of User ids by healthcare party id")
 	@GetMapping("/byHealthcarePartyId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun findByHcpartyId(@PathVariable id: String) =
-		userService.listUserIdsByHcpartyId(id).injectReactorContext()
-
+	fun findByHcpartyId(
+		@PathVariable id: String,
+	) = userService.listUserIdsByHcpartyId(id).injectReactorContext()
 
 	@Operation(summary = "Get the list of User ids by patient id")
 	@GetMapping("/byPatientId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
-	fun findByPatientId(@PathVariable id: String) =
-		userService.findByPatientId(id).injectReactorContext()
+	fun findByPatientId(
+		@PathVariable id: String,
+	) = userService.findByPatientId(id).injectReactorContext()
 
 	@Operation(summary = "Deletes an User")
 	@DeleteMapping("/{userId}")
 	fun deleteUser(
 		@PathVariable userId: String,
-		@RequestParam(required = false) rev: String? = null
+		@RequestParam(required = false) rev: String? = null,
 	): Mono<DocIdentifierDto> = mono {
 		userService.deleteUser(userId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
@@ -170,7 +200,7 @@ class UserController(
 	@PostMapping("/undelete/{userId}")
 	fun undeleteUser(
 		@PathVariable userId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<UserDto> = mono {
 		userV2Mapper.mapOmittingSecrets(userService.undeleteUser(userId, rev))
 	}
@@ -178,17 +208,20 @@ class UserController(
 	@DeleteMapping("/purge/{userId}")
 	fun purgeUser(
 		@PathVariable userId: String,
-		@RequestParam(required=true) rev: String
+		@RequestParam(required = true) rev: String,
 	): Mono<DocIdentifierDto> = mono {
 		userService.purgeUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}
 
 	@Operation(summary = "Modify a user.", description = "No particular return value. It's just a message.")
 	@PutMapping
-	fun modifyUser(@RequestBody userDto: UserDto) = mono {
-		//Sanitize group
-		val modifiedUser = userService.modifyUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User modification failed.")
+	fun modifyUser(
+		@RequestBody userDto: UserDto,
+	) = mono {
+		// Sanitize group
+		val modifiedUser =
+			userService.modifyUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
+				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User modification failed.")
 
 		userV2Mapper.mapOmittingSecrets(modifiedUser)
 	}
@@ -204,19 +237,29 @@ class UserController(
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
 
 			userV2Mapper.mapOmittingSecrets(modifiedUser)
-		} ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Assigning healthcare party ID to the current user failed.").also { logger.error(it.message) }
+		}
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Assigning healthcare party ID to the current user failed.").also {
+				logger.error(it.message)
+			}
 	}
 
-	@Operation(summary = "Modify a User property", description = "Modify a User properties based on his/her ID. The return value is the modified user.")
+	@Operation(
+		summary = "Modify a User property",
+		description = "Modify a User properties based on his/her ID. The return value is the modified user.",
+	)
 	@PutMapping("/{userId}/properties")
-	fun modifyProperties(@PathVariable userId: String, @RequestBody properties: List<PropertyStubDto>?) = mono {
-		userService.setProperties(
-			userId,
-			properties?.map { p -> propertyStubV2Mapper.map(p) }
-				?: listOf()
-		)?.let(userV2Mapper::mapOmittingSecrets) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
+	fun modifyProperties(
+		@PathVariable userId: String,
+		@RequestBody properties: List<PropertyStubDto>?,
+	) = mono {
+		userService
+			.setProperties(
+				userId,
+				properties?.map { p -> propertyStubV2Mapper.map(p) }
+					?: listOf(),
+			)?.let(userV2Mapper::mapOmittingSecrets)
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
-
 
 	@Operation(summary = "Request a new temporary token for authentication")
 	@PostMapping("/token/{userId}/{key}")
@@ -230,17 +273,21 @@ class UserController(
 		@RequestParam(required = false)
 		tokenValidity: Long?,
 		@RequestHeader
-		token: String? = null
-	) = reactorCacheInjector.monoWithCachedContext(10) { // Highly sensitive -> better to cache to speed up access control
+		token: String? = null,
+	) = reactorCacheInjector.monoWithCachedContext(10) {
+		// Highly sensitive -> better to cache to speed up access control
 		userService.createOrUpdateToken(userId, key, tokenValidity ?: 3600, token)
 	}
 
-	@Operation(summary = "Filter users for the current user (HcParty)", description = "Returns a list of users along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.")
+	@Operation(
+		summary = "Filter users for the current user (HcParty)",
+		description = "Returns a list of users along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
 	@PostMapping("/filter")
 	fun filterUsersBy(
 		@Parameter(description = "A User document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<UserDto>
+		@RequestBody filterChain: FilterChain<UserDto>,
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -252,8 +299,9 @@ class UserController(
 	@Operation(summary = "Get the ids of the Users matching the provided filter.")
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(
-		@RequestBody filter: AbstractFilterDto<UserDto>
-	) = userService.matchUsersBy(
-		filter = filterV2Mapper.tryMap(filter).orThrow()
-	).injectReactorContext()
+		@RequestBody filter: AbstractFilterDto<UserDto>,
+	) = userService
+		.matchUsersBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 }

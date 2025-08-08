@@ -17,5 +17,5 @@ data class DocumentByTypeDataOwnerPatientFilter(
 	val dataOwnerId: String,
 	val documentType: DocumentTypeDto,
 	val secretPatientKeys: Set<String>,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<DocumentDto>

@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asyncdao
 
-import java.net.URI
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ReplicatorResponse
@@ -13,8 +12,9 @@ import org.taktik.couchdb.entity.DatabaseInfoWrapper
 import org.taktik.couchdb.entity.ReplicateCommand
 import org.taktik.couchdb.entity.ReplicatorDocument
 import org.taktik.couchdb.entity.Scheduler
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.embed.DatabaseSynchronization
+import java.net.URI
 
 interface ICureDAO {
 	suspend fun getIndexingStatus(datastoreInformation: IDatastoreInformation): Map<String, Int>

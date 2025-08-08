@@ -7,13 +7,12 @@ import org.slf4j.Logger
 import org.slf4j.Marker
 import org.springframework.beans.factory.annotation.Autowired
 
-
 interface LogMarker {
 	suspend fun getMarker(): Marker?
 }
 
 @Autowired
-private var logMarker : LogMarker? = null
+private var logMarker: LogMarker? = null
 
 suspend fun Logger.trace(msg: suspend () -> String) {
 	if (this.isTraceEnabled) {
@@ -55,7 +54,10 @@ suspend fun Logger.error(msg: suspend () -> String) {
 	}
 }
 
-suspend fun Logger.info(e: Throwable, msg: suspend () -> String?) {
+suspend fun Logger.info(
+	e: Throwable,
+	msg: suspend () -> String?,
+) {
 	if (this.isInfoEnabled) {
 		logMarker?.getMarker()?.let { marker ->
 			this.info(marker, msg() ?: e.message ?: e.localizedMessage, e)
@@ -63,7 +65,10 @@ suspend fun Logger.info(e: Throwable, msg: suspend () -> String?) {
 	}
 }
 
-suspend fun Logger.warn(e: Throwable, msg: suspend () -> String?) {
+suspend fun Logger.warn(
+	e: Throwable,
+	msg: suspend () -> String?,
+) {
 	if (this.isWarnEnabled) {
 		logMarker?.getMarker()?.let { marker ->
 			this.warn(marker, msg() ?: e.message ?: e.localizedMessage, e)
@@ -71,7 +76,10 @@ suspend fun Logger.warn(e: Throwable, msg: suspend () -> String?) {
 	}
 }
 
-suspend fun Logger.error(e: Throwable, msg: suspend () -> String?) {
+suspend fun Logger.error(
+	e: Throwable,
+	msg: suspend () -> String?,
+) {
 	if (this.isErrorEnabled) {
 		logMarker?.getMarker()?.let { marker ->
 			this.error(marker, msg() ?: e.message ?: e.localizedMessage, e)
