@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asyncdao.impl
 
-import io.netty.handler.codec.http.HttpHeaders.newEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -52,9 +51,9 @@ import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
-import org.taktik.icure.asynclogic.datastore.IDatastoreInformation
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.utils.ExternalFilterKey
