@@ -48,7 +48,6 @@ data class AgendaDto(
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,
-	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 	@get:Schema(description = "Associates a user id to the permission that user has on the entity.")
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),

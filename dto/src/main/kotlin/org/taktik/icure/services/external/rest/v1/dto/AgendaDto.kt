@@ -29,7 +29,6 @@ data class AgendaDto(
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,
-	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 ) : StoredDocumentDto,

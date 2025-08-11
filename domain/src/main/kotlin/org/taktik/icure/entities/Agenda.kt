@@ -266,14 +266,8 @@ data class Agenda(
 	 */
 	val properties: Set<PropertyStub> = emptySet(),
 	/**
-	 * If not null prevents unprivileged users from canceling or moving the calendar items linked to this agenda
-	 * item less than [lockCalendarItemsBeforeInMinutes] minutes before its scheduled time.
-	 */
-	val lockCalendarItemsBeforeInMinutes: Int? = null,
-	/**
 	 * An identifier for the zone of the agenda. Must be an id accepted by java's ZoneId.
 	 * Mandatory if the agenda specifies any time-based constraint:
-	 * - [lockCalendarItemsBeforeInMinutes]
 	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notAfterInMinutes]
 	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notBeforeInMinutes]
 	 */
@@ -398,7 +392,6 @@ data class Agenda(
 			"userRights" to (other.userRights + this.userRights),
 			"schedules" to this.schedules.ifEmpty { other.schedules },
 			"properties" to (other.properties + this.properties),
-			"lockCalendarItemsBeforeInMinutes" to (this.lockCalendarItemsBeforeInMinutes ?: other.lockCalendarItemsBeforeInMinutes),
 			"zoneId" to (this.zoneId ?: other.zoneId),
 			"daySplitHour" to (this.daySplitHour ?: other.daySplitHour),
 			"slottingAlgorithm" to (this.slottingAlgorithm ?: other.slottingAlgorithm),
