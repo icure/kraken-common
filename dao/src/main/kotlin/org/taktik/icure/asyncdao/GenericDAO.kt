@@ -52,20 +52,25 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 
 	/**
 	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
+	 * @throws IllegalStateException if [checkAllNodesUp] is true and not all nodes are up
 	 */
 	suspend fun getEntityWithFullQuorum(
 		datastoreInformation: IDatastoreInformation,
 		id: String,
 		timeout: Duration? = null,
+		checkAllNodesUp: Boolean = true,
 	): T?
 
 	/**
+	 * @param checkAllNodesUp if true and not all nodes are up before or after the request then the result's second value
+	 * will be set to false, regardless of the answer of the create.
 	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
 	 */
 	suspend fun saveEntityWithFullQuorum(
 		datastoreInformation: IDatastoreInformation,
 		entity: T,
 		timeout: Duration? = null,
+		checkAllNodesUp: Boolean = true,
 	): Pair<T, Boolean>
 
 	/**

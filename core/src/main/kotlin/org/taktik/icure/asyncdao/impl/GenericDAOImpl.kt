@@ -710,19 +710,25 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
 		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
 
+	private suspend fun Client.hasAllNodesUp() =
+		membership().let { it.allNodes.size == it.clusterNodes.size }
+
 	override suspend fun getEntityWithFullQuorum(
 		datastoreInformation: IDatastoreInformation,
 		id: String,
-		timeout: Duration?
+		timeout: Duration?,
+		checkAllNodesUp: Boolean,
 	): T? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val quorum = client.shards().shards.maxOf { it.value.size }
 
 		return try {
-				client.getWithQuorum(id, entityClass, quorum)?.let {
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
-					postLoad(datastoreInformation, it)
-				}
+			check (!checkAllNodesUp || client.hasAllNodesUp()) { "Not all nodes are up" }
+			client.getWithQuorum(id, entityClass, quorum)?.let {
+				cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
+				check (!checkAllNodesUp || client.hasAllNodesUp()) { "Not all nodes are up" }
+				postLoad(datastoreInformation, it)
+			}
 		} catch (_: DocumentNotFoundException) {
 			null
 		}
@@ -731,12 +737,14 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	override suspend fun saveEntityWithFullQuorum(
 		datastoreInformation: IDatastoreInformation,
 		entity: T,
-		timeout: Duration?
+		timeout: Duration?,
+		checkAllNodesUp: Boolean,
 	): Pair<T, Boolean> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val quorum = client.shards().shards.maxOf { it.value.size }
 
 		try {
+			val allNodesUpBeforeSave = client.hasAllNodesUp()
 			return beforeSave(datastoreInformation, entity).let { e ->
 				if (e.rev == null) {
 					client.createWithQuorum(e, entityClass, quorum, timeout)
@@ -744,7 +752,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 					client.updateWithQuorum(e, entityClass, quorum, timeout)
 				}.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.first.id), it.first)
-					Pair(afterSave(datastoreInformation, it.first, e), it.second)
+					Pair(
+						afterSave(datastoreInformation, it.first, e),
+						it.second && allNodesUpBeforeSave && client.hasAllNodesUp()
+					)
 				}
 			}
 		} catch (e: CouchDbException) {
