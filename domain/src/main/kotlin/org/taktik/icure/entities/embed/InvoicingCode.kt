@@ -70,6 +70,8 @@ data class InvoicingCode(
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
 	val codeLabel: String? = null,
+	val options: Map<String, String> = emptyMap(),
+
 	override val encryptedSelf: String? = null
 ) : Encryptable, Comparable<InvoicingCode?> {
 	companion object : DynamicInitializer<InvoicingCode> {
