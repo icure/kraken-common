@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RegistrationInformationDto(
+	val applicationId: String? = null,
 	val firstName: String? = null,
 	val lastName: String? = null,
 	val companyName: String? = null,
