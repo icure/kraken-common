@@ -17,7 +17,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -195,12 +197,15 @@ class CodeController(
 		@RequestParam region: String,
 		@RequestParam label: String,
 		@RequestParam type: String,
-		@RequestParam languages: String?
-	): Mono<CodeDto?> = mono {
+		@RequestParam languages: String?,
+	): Mono<ResponseEntity<CodeDto?>> = mono {
 		val code = languages?.let {
 			codeService.getCodeByLabel(region, label, type, it.split(","))
 		} ?: codeService.getCodeByLabel(region, label, type)
-		code?.let { codeV2Mapper.map(it) }
+		ResponseEntity
+			.ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(code?.let { codeV2Mapper.map(it) })
 	}
 
 	@Operation(summary = "Get a list of codes by ids")
