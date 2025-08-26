@@ -51,7 +51,10 @@ open class ExchangeDataMapLogicImpl(
     ): Flow<ExchangeDataMap> = flow {
         val filteredBatch = batch.filterValues { it.isNotEmpty() }
         if (filteredBatch.isNotEmpty()) {
-            val existingBatch = exchangeDataMapDAO.getEntities(datastoreInstance).toList().associateBy { it.id }
+			val existingBatch = exchangeDataMapDAO.getEntities(
+				datastoreInstance,
+				filteredBatch.map { it.key },
+			).toList().associateBy { it.id }
             val updatedBatch = filteredBatch.mapNotNull { (secDelKey, encryptedExchangeDataIds) ->
                 val originalXDM = existingBatch[secDelKey]
                 when {
