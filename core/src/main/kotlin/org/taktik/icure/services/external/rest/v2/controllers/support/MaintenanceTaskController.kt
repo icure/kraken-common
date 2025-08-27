@@ -34,6 +34,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -74,7 +75,7 @@ class MaintenanceTaskController(
 	@PostMapping
 	fun createMaintenanceTask(
 		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
-	) = mono {
+	): Mono<MaintenanceTaskDto> = mono {
 		maintenanceTaskService
 			.createMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
 			?.let {
@@ -133,7 +134,7 @@ class MaintenanceTaskController(
 	@GetMapping("/{maintenanceTaskId}")
 	fun getMaintenanceTask(
 		@PathVariable maintenanceTaskId: String,
-	) = mono {
+	): Mono<MaintenanceTaskDto> = mono {
 		maintenanceTaskService.getMaintenanceTask(maintenanceTaskId)?.let(maintenanceTaskV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MaintenanceTask not found")
 	}
@@ -142,7 +143,7 @@ class MaintenanceTaskController(
 	@PostMapping("/byIds")
 	fun getMaintenanceTasks(
 		@RequestBody ids: ListOfIdsDto,
-	) = maintenanceTaskService
+	): Flux<MaintenanceTaskDto> = maintenanceTaskService
 		.getMaintenanceTasks(ids.ids)
 		.map(maintenanceTaskV2Mapper::map)
 		.injectReactorContext()
@@ -151,7 +152,7 @@ class MaintenanceTaskController(
 	@PutMapping
 	fun modifyMaintenanceTask(
 		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
-	) = mono {
+	): Mono<MaintenanceTaskDto> = mono {
 		maintenanceTaskService
 			.modifyMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
 			?.let { maintenanceTaskV2Mapper.map(it) }
@@ -167,7 +168,7 @@ class MaintenanceTaskController(
 		@Parameter(description = "A maintenanceTask document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<MaintenanceTaskDto>,
-	) = mono {
+	): Mono<PaginatedList<MaintenanceTaskDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 

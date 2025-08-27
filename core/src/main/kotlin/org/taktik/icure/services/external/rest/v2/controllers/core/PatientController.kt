@@ -190,7 +190,7 @@ class PatientController(
 	@GetMapping("/merges/{date}")
 	fun listOfMergesAfter(
 		@PathVariable date: Long,
-	) = patientService.listOfMergesAfter(date).map { patientV2Mapper.map(it) }.injectReactorContext()
+	): Flux<PatientDto> = patientService.listOfMergesAfter(date).map { patientV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(
 		summary = "List patients that have been modified after the provided date",
@@ -235,13 +235,13 @@ class PatientController(
 		@Parameter(
 			description = "Optional value for providing a sorting direction ('asc', 'desc'). Set to 'asc' by default.",
 		) @RequestParam(required = false, defaultValue = "asc") sortDirection: SortDirectionDto,
-	) = findPatientsByHealthcareParty(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection)
+	): PaginatedFlux<PatientDto> = findPatientsByHealthcareParty(hcPartyId, sortField, startKey, startDocumentId, limit, sortDirection)
 
 	@Suppress("DEPRECATION")
 	@GetMapping("/{patientId}/keys")
 	fun getPatientHcPartyKeysForDelegate(
 		@Parameter(description = "The patient Id for which information is shared") @PathVariable patientId: String,
-	) = mono {
+	): Mono<Map<String, String>> = mono {
 		patientService.getHcPartyKeysForDelegate(patientId)
 	}
 
@@ -263,7 +263,7 @@ class PatientController(
 	@GetMapping("/hcParty/{hcPartyId}/count")
 	fun countOfPatients(
 		@Parameter(description = "Healthcare party id") @PathVariable hcPartyId: String,
-	) = mono {
+	): Mono<ContentDto> = mono {
 		ContentDto(numberValue = patientService.countByHcParty(hcPartyId).toDouble())
 	}
 
@@ -333,7 +333,7 @@ class PatientController(
 	fun getPatientByExternalId(
 		@PathVariable("externalId")
 		@Parameter(description = "A external ID", required = true) externalId: String,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		patientService.getByExternalId(externalId)?.let(patientV2Mapper::map)
 	}
 
@@ -403,7 +403,7 @@ class PatientController(
 		@Parameter(description = "Sort key") @RequestParam(required = false) sort: String?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 		@RequestBody filterChain: FilterChain<PatientDto>,
-	) = mono {
+	): Mono<PaginatedList<PatientDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val startKeyList =
 			startKey
@@ -435,7 +435,7 @@ class PatientController(
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchPatientsBy(
 		@RequestBody filter: AbstractFilterDto<PatientDto>,
-	) = patientService
+	): Flux<String> = patientService
 		.matchPatientsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
@@ -463,7 +463,7 @@ class PatientController(
 	@PostMapping
 	fun createPatient(
 		@RequestBody p: PatientDto,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		val patient = patientService.createPatient(patientV2Mapper.map(p))
 		patient?.let(patientV2Mapper::map) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
 	}
@@ -545,7 +545,7 @@ class PatientController(
 	fun listDeletedPatientsByName(
 		@Parameter(description = "First name prefix") @RequestParam(required = false) firstName: String?,
 		@Parameter(description = "Last name prefix") @RequestParam(required = false) lastName: String?,
-	) = patientService.listDeletedPatientsByNames(firstName, lastName).map { patientV2Mapper.map(it) }.injectReactorContext()
+	): Flux<PatientDto> = patientService.listDeletedPatientsByNames(firstName, lastName).map { patientV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "undelete previously deleted patients", description = "Response is an array containing the ID of undeleted patient..")
 	@PutMapping("/undelete/{patientIds}")
@@ -570,7 +570,7 @@ class PatientController(
 	@GetMapping("/{patientId}")
 	fun getPatient(
 		@PathVariable patientId: String,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		patientService.getPatient(patientId)?.let(patientV2Mapper::map)
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
@@ -587,7 +587,7 @@ class PatientController(
 		@PathVariable hcPartyId: String,
 		@PathVariable id: String,
 		@RequestParam(required = false) system: String?,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		when {
 			!system.isNullOrEmpty() -> {
 				val patient =
@@ -609,7 +609,7 @@ class PatientController(
 	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
 	fun createPatients(
 		@RequestBody patientDtos: List<PatientDto>,
-	) = createPatientsMinimal(patientDtos)
+	): Flux<IdWithRevDto> = createPatientsMinimal(patientDtos)
 
 	@Operation(summary = "Create patients in bulk", description = "Returns the id and _rev of created patients")
 	@PostMapping("/batch/minimal")
@@ -636,7 +636,7 @@ class PatientController(
 	@Deprecated("Ambiguous path use /batch/full or /batch/minimal instead")
 	fun modifyPatients(
 		@RequestBody patientDtos: List<PatientDto>,
-	) = flow {
+	): Flux<IdWithRevDto> = flow {
 		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
 		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
 	}.injectReactorContext()
@@ -665,7 +665,7 @@ class PatientController(
 	@PutMapping
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		patientService.modifyPatient(patientV2Mapper.map(patientDto))?.let(patientV2Mapper::map)
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
@@ -682,7 +682,7 @@ class PatientController(
 		@Parameter(description = "The referral id. Accepts 'none' for referral removal.") @PathVariable referralId: String,
 		@Parameter(description = "Optional value for start of referral") @RequestParam(required = false) start: Long?,
 		@Parameter(description = "Optional value for end of referral") @RequestParam(required = false) end: Long?,
-	) = mono {
+	): Mono<PatientDto> = mono {
 		patientService.getPatient(patientId)?.let {
 			patientService
 				.modifyPatientReferral(

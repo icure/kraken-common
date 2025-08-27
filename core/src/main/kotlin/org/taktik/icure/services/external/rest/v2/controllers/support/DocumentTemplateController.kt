@@ -47,6 +47,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.DocumentTemplateV2Mappe
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("documentTemplateControllerV2")
 @Profile("app")
@@ -65,7 +66,7 @@ class DocumentTemplateController(
 	@GetMapping("/{documentTemplateId}")
 	fun getDocumentTemplate(
 		@PathVariable documentTemplateId: String,
-	) = mono {
+	): Mono<DocumentTemplateDto> = mono {
 		val documentTemplate =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "DocumentTemplate fetching failed")
@@ -162,7 +163,7 @@ class DocumentTemplateController(
 	@PostMapping
 	fun createDocumentTemplate(
 		@RequestBody ft: DocumentTemplateDto,
-	) = mono {
+	): Mono<DocumentTemplateDto> = mono {
 		val documentTemplate = documentTemplateService.createDocumentTemplate(documentTemplateV2Mapper.map(ft))
 		documentTemplateV2Mapper.map(documentTemplate)
 	}
@@ -172,7 +173,7 @@ class DocumentTemplateController(
 	fun modifyDocumentTemplate(
 		@PathVariable documentTemplateId: String,
 		@RequestBody ft: DocumentTemplateDto,
-	) = mono {
+	): Mono<DocumentTemplateDto> = mono {
 		val template = documentTemplateV2Mapper.map(ft).copy(id = documentTemplateId)
 		val documentTemplate =
 			documentTemplateService.modifyDocumentTemplate(template)
@@ -195,7 +196,7 @@ class DocumentTemplateController(
 		@PathVariable documentTemplateId: String,
 		@PathVariable attachmentId: String,
 		response: ServerHttpResponse,
-	) = mono {
+	): Mono<ByteArray> = mono {
 		val document =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
@@ -232,7 +233,7 @@ class DocumentTemplateController(
 	fun setDocumentTemplateAttachment(
 		@PathVariable documentTemplateId: String,
 		@RequestBody payload: ByteArray,
-	) = mono {
+	): Mono<DocumentTemplateDto> = mono {
 		val documentTemplate =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")
@@ -244,7 +245,7 @@ class DocumentTemplateController(
 	fun setDocumentTemplateAttachmentJson(
 		@PathVariable documentTemplateId: String,
 		@RequestBody payload: ByteArrayDto,
-	) = mono {
+	): Mono<DocumentTemplateDto> = mono {
 		val documentTemplate =
 			documentTemplateService.getDocumentTemplate(documentTemplateId)
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document modification failed")

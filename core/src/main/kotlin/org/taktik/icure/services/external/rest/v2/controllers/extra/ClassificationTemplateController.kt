@@ -35,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.ClassificationTemplateV
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("classificationTemplateControllerV2")
 @Profile("app")
@@ -57,7 +58,7 @@ class ClassificationTemplateController(
 	@PostMapping
 	fun createClassificationTemplate(
 		@RequestBody c: ClassificationTemplateDto,
-	) = mono {
+	): Mono<ClassificationTemplateDto> = mono {
 		val element =
 			classificationTemplateService.createClassificationTemplate(classificationTemplateV2Mapper.map(c))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template creation failed.")
@@ -68,7 +69,7 @@ class ClassificationTemplateController(
 	@GetMapping("/{classificationTemplateId}")
 	fun getClassificationTemplate(
 		@PathVariable classificationTemplateId: String,
-	) = mono {
+	): Mono<ClassificationTemplateDto> = mono {
 		val element =
 			classificationTemplateService.getClassificationTemplate(classificationTemplateId)
 				?: throw ResponseStatusException(
@@ -108,7 +109,7 @@ class ClassificationTemplateController(
 	@DeleteMapping("/{classificationTemplateId}")
 	fun deleteClassificationTemplate(
 		@PathVariable classificationTemplateId: String,
-	) = mono {
+	): Mono<DocIdentifierDto> = mono {
 		classificationTemplateService
 			.deleteClassificationTemplate(classificationTemplateId)
 			.let {
@@ -120,7 +121,7 @@ class ClassificationTemplateController(
 	@PutMapping
 	fun modifyClassificationTemplate(
 		@RequestBody classificationTemplateDto: ClassificationTemplateDto,
-	) = mono {
+	): Mono<ClassificationTemplateDto> = mono {
 		// TODO Ne modifier que le label
 		classificationTemplateService.modifyClassificationTemplate(classificationTemplateV2Mapper.map(classificationTemplateDto))
 		val modifiedClassificationTemplate =

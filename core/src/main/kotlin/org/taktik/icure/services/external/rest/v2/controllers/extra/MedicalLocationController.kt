@@ -40,6 +40,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("medicalLocationControllerV2")
 @Profile("app")
@@ -58,7 +59,7 @@ class MedicalLocationController(
 	@PostMapping
 	fun createMedicalLocation(
 		@RequestBody medicalLocationDto: MedicalLocationDto,
-	) = mono {
+	): Mono<MedicalLocationDto> = mono {
 		medicalLocationService.createMedicalLocation(medicalLocationV2Mapper.map(medicalLocationDto))?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Medical location creation failed")
 	}
@@ -81,7 +82,7 @@ class MedicalLocationController(
 	@GetMapping("/{locationId}")
 	fun getMedicalLocation(
 		@PathVariable locationId: String,
-	) = mono {
+	): Mono<MedicalLocationDto> = mono {
 		medicalLocationService.getMedicalLocation(locationId)?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location fetching failed")
 	}
@@ -103,7 +104,7 @@ class MedicalLocationController(
 	@PutMapping
 	fun modifyMedicalLocation(
 		@RequestBody medicalLocationDto: MedicalLocationDto,
-	) = mono {
+	): Mono<MedicalLocationDto> = mono {
 		medicalLocationService.modifyMedicalLocation(medicalLocationV2Mapper.map(medicalLocationDto))?.let { medicalLocationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "medical location modification failed")
 	}
@@ -124,7 +125,7 @@ class MedicalLocationController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMedicalLocationsBy(
 		@RequestBody filter: AbstractFilterDto<MedicalLocationDto>,
-	) = medicalLocationService
+	): Flux<String> = medicalLocationService
 		.matchMedicalLocationsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

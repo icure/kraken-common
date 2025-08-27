@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.EntityReferenceService
 import org.taktik.icure.services.external.rest.v2.dto.EntityReferenceDto
 import org.taktik.icure.services.external.rest.v2.mapper.EntityReferenceV2Mapper
+import reactor.core.publisher.Mono
 
 @RestController("entityReferenceControllerV2")
 @Profile("app")
@@ -33,7 +34,7 @@ class EntityReferenceController(
 	@GetMapping("/latest/{prefix}")
 	fun getLatest(
 		@PathVariable prefix: String,
-	) = mono {
+	): Mono<EntityReferenceDto> = mono {
 		entityReferenceService.getLatest(prefix)?.let { entityReferenceV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to fetch Entity Reference")
 	}
@@ -42,7 +43,7 @@ class EntityReferenceController(
 	@PostMapping
 	fun createEntityReference(
 		@RequestBody er: EntityReferenceDto,
-	) = mono {
+	): Mono<EntityReferenceDto> = mono {
 		val created = entityReferenceService.createEntityReferences(listOf(entityReferenceV2Mapper.map(er)))
 		created.firstOrNull()?.let { entityReferenceV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Entity reference creation failed.")

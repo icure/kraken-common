@@ -36,6 +36,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("placeControllerV2")
 @Profile("app")
@@ -53,7 +54,7 @@ class PlaceController(
 	@PostMapping
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
-	) = mono {
+	): Mono<PlaceDto> = mono {
 		placeService.createPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
 	}
@@ -76,7 +77,7 @@ class PlaceController(
 	@GetMapping("/{placeId}")
 	fun getPlace(
 		@PathVariable placeId: String,
-	) = mono {
+	): Mono<PlaceDto> = mono {
 		placeService.getPlace(placeId)?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
@@ -98,7 +99,7 @@ class PlaceController(
 	@PutMapping
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
-	) = mono {
+	): Mono<PlaceDto> = mono {
 		placeService.modifyPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
 	}

@@ -33,6 +33,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("entityTemplateControllerV2")
 @Profile("app")
@@ -56,7 +57,7 @@ class EntityTemplateController(
 		@PathVariable type: String,
 		@RequestParam(required = false) searchString: String?,
 		@RequestParam(required = false) includeEntities: Boolean?,
-	) = entityTemplateService
+	): Flux<EntityTemplateDto> = entityTemplateService
 		.listEntityTemplatesBy(userId, type, searchString, includeEntities)
 		.map {
 			entityTemplateV2Mapper.map(it) // .apply { if (includeEntities == true) entity = it.entity }
@@ -71,7 +72,7 @@ class EntityTemplateController(
 		@PathVariable type: String,
 		@RequestParam(required = false) searchString: String?,
 		@RequestParam(required = false) includeEntities: Boolean?,
-	) = entityTemplateService
+	): Flux<EntityTemplateDto> = entityTemplateService
 		.listEntityTemplatesBy(type, searchString, includeEntities)
 		.map {
 			entityTemplateV2Mapper.map(it) // .apply { if (includeEntities == true) entity = it.entity }
@@ -87,7 +88,7 @@ class EntityTemplateController(
 		@PathVariable type: String,
 		@PathVariable keyword: String,
 		@RequestParam(required = false) includeEntities: Boolean?,
-	) = entityTemplateService
+	): Flux<EntityTemplateDto> = entityTemplateService
 		.listEntityTemplatesByKeyword(userId, type, keyword, includeEntities)
 		.map {
 			entityTemplateV2Mapper.map(it) // .apply { if (includeEntities == true) entity = it.entity }
@@ -102,7 +103,7 @@ class EntityTemplateController(
 		@PathVariable type: String,
 		@PathVariable keyword: String,
 		@RequestParam(required = false) includeEntities: Boolean?,
-	) = entityTemplateService
+	): Flux<EntityTemplateDto> = entityTemplateService
 		.listEntityTemplatesByKeyword(type, keyword, includeEntities)
 		.map {
 			entityTemplateV2Mapper.map(it) // .apply { if (includeEntities == true) entity = it.entity }
@@ -112,7 +113,7 @@ class EntityTemplateController(
 	@PostMapping
 	fun createEntityTemplate(
 		@RequestBody c: EntityTemplateDto,
-	) = mono {
+	): Mono<EntityTemplateDto> = mono {
 		val et = entityTemplateV2Mapper.map(c).copy(entity = c.entity)
 		val entityTemplate =
 			entityTemplateService.createEntityTemplate(et)
@@ -144,7 +145,7 @@ class EntityTemplateController(
 	@GetMapping("/{entityTemplateId}")
 	fun getEntityTemplate(
 		@Parameter(description = "EntityTemplate id", required = true) @PathVariable entityTemplateId: String,
-	) = mono {
+	): Mono<EntityTemplateDto> = mono {
 		val c =
 			entityTemplateService.getEntityTemplate(entityTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the entityTemplate. Read the app logs.")
@@ -158,7 +159,7 @@ class EntityTemplateController(
 	@PutMapping
 	fun modifyEntityTemplate(
 		@RequestBody entityTemplateDto: EntityTemplateDto,
-	) = mono {
+	): Mono<EntityTemplateDto> = mono {
 		val modifiedEntityTemplate =
 			try {
 				val et = entityTemplateV2Mapper.map(entityTemplateDto).copy(entity = entityTemplateDto.entity)

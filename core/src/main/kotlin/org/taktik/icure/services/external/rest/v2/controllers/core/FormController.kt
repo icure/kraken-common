@@ -91,7 +91,7 @@ class FormController(
 	@GetMapping("/{formId}")
 	fun getForm(
 		@PathVariable formId: String,
-	) = mono {
+	): Mono<FormDto> = mono {
 		val form =
 			formService.getForm(formId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form fetching failed")
@@ -111,7 +111,7 @@ class FormController(
 	@GetMapping("/logicalUuid/{logicalUuid}")
 	fun getFormByLogicalUuid(
 		@PathVariable logicalUuid: String,
-	) = mono {
+	): Mono<FormDto> = mono {
 		val form =
 			formService
 				.listFormsByLogicalUuid(logicalUuid, true)
@@ -124,7 +124,7 @@ class FormController(
 	@GetMapping("/all/logicalUuid/{logicalUuid}")
 	fun getFormsByLogicalUuid(
 		@PathVariable logicalUuid: String,
-	) = formService
+	): Flux<FormDto> = formService
 		.listFormsByLogicalUuid(logicalUuid, true)
 		.map { form -> formV2Mapper.map(form) }
 		.injectReactorContext()
@@ -133,7 +133,7 @@ class FormController(
 	@GetMapping("/all/uniqueId/{uniqueId}")
 	fun getFormsByUniqueId(
 		@PathVariable uniqueId: String,
-	) = formService
+	): Flux<FormDto> = formService
 		.listFormsByUniqueId(uniqueId, true)
 		.map { form -> formV2Mapper.map(form) }
 		.injectReactorContext()
@@ -142,7 +142,7 @@ class FormController(
 	@GetMapping("/uniqueId/{uniqueId}")
 	fun getFormByUniqueId(
 		@PathVariable uniqueId: String,
-	) = mono {
+	): Mono<FormDto> = mono {
 		val form =
 			formService
 				.listFormsByUniqueId(uniqueId, true)
@@ -165,7 +165,7 @@ class FormController(
 	@PostMapping
 	fun createForm(
 		@RequestBody ft: FormDto,
-	) = mono {
+	): Mono<FormDto> = mono {
 		val form =
 			try {
 				formService.createForm(formV2Mapper.map(ft))
@@ -181,7 +181,7 @@ class FormController(
 	@PutMapping
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
-	) = mono {
+	): Mono<FormDto> = mono {
 		val modifiedForm =
 			formService.modifyForm(formV2Mapper.map(formDto))
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form modification failed")
@@ -346,7 +346,7 @@ class FormController(
 	fun getFormTemplate(
 		@PathVariable formTemplateId: String,
 		@RequestParam(required = false) raw: Boolean?,
-	) = mono {
+	): Mono<FormTemplateDto> = mono {
 		val formTemplate =
 			formTemplateService.getFormTemplate(formTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate fetching failed")
@@ -401,7 +401,7 @@ class FormController(
 	@PostMapping("/template")
 	fun createFormTemplate(
 		@RequestBody ft: FormTemplateDto,
-	) = mono {
+	): Mono<FormTemplateDto> = mono {
 		val formTemplate = formTemplateService.createFormTemplate(formTemplateV2Mapper.map(ft))
 		formTemplateV2Mapper.map(formTemplate)
 	}
@@ -410,7 +410,7 @@ class FormController(
 	@DeleteMapping("/template/{formTemplateId}")
 	fun deleteFormTemplate(
 		@PathVariable formTemplateId: String,
-	) = mono {
+	): Mono<DocIdentifierDto> = mono {
 		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()?.let { DocIdentifierDto(it.id, it.rev) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form deletion failed")
 	}
@@ -420,7 +420,7 @@ class FormController(
 	fun updateFormTemplate(
 		@PathVariable formTemplateId: String,
 		@RequestBody ft: FormTemplateDto,
-	) = mono {
+	): Mono<FormTemplateDto> = mono {
 		val template = formTemplateV2Mapper.map(ft).copy(id = formTemplateId)
 		val formTemplate =
 			formTemplateService.modifyFormTemplate(template)
@@ -433,7 +433,7 @@ class FormController(
 	fun setTemplateAttachmentMulti(
 		@PathVariable formTemplateId: String,
 		@RequestPart("attachment") payload: Part,
-	) = mono {
+	): Mono<String> = mono {
 		val formTemplate =
 			formTemplateService.getFormTemplate(formTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
@@ -459,7 +459,7 @@ class FormController(
 	fun setTemplateAttachment(
 		@PathVariable formTemplateId: String,
 		@RequestBody payload: Flow<DataBuffer>,
-	) = mono {
+	): Mono<String> = mono {
 		val formTemplate =
 			formTemplateService.getFormTemplate(formTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
@@ -497,7 +497,7 @@ class FormController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchFormsBy(
 		@RequestBody filter: AbstractFilterDto<FormDto>,
-	) = formService
+	): Flux<String> = formService
 		.matchFormsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

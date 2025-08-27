@@ -28,6 +28,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.FrontEndMigrationV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("frontEndMigrationControllerV2")
 @Profile("app")
@@ -53,7 +54,7 @@ class FrontEndMigrationController(
 	@PostMapping
 	fun createFrontEndMigration(
 		@RequestBody frontEndMigrationDto: FrontEndMigrationDto,
-	) = mono {
+	): Mono<FrontEndMigrationDto> = mono {
 		val frontEndMigration =
 			frontEndMigrationService.createFrontEndMigration(frontEndMigrationV2Mapper.map(frontEndMigrationDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Frontend migration creation failed")
@@ -65,7 +66,7 @@ class FrontEndMigrationController(
 	@DeleteMapping("/{frontEndMigrationId}")
 	fun deleteFrontEndMigration(
 		@PathVariable frontEndMigrationId: String,
-	) = mono {
+	): Mono<DocIdentifierDto> = mono {
 		frontEndMigrationService.deleteFrontEndMigration(frontEndMigrationId)?.let { DocIdentifierDto(it.id, it.rev) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Frontend migration deletion failed")
 	}
@@ -74,7 +75,7 @@ class FrontEndMigrationController(
 	@GetMapping("/{frontEndMigrationId}")
 	fun getFrontEndMigration(
 		@PathVariable frontEndMigrationId: String,
-	) = mono {
+	): Mono<FrontEndMigrationDto> = mono {
 		val migration =
 			frontEndMigrationService.getFrontEndMigration(frontEndMigrationId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Frontend migration fetching failed")
@@ -99,7 +100,7 @@ class FrontEndMigrationController(
 	@PutMapping
 	fun modifyFrontEndMigration(
 		@RequestBody frontEndMigrationDto: FrontEndMigrationDto,
-	) = mono {
+	): Mono<FrontEndMigrationDto> = mono {
 		val migration =
 			frontEndMigrationService.modifyFrontEndMigration(frontEndMigrationV2Mapper.map(frontEndMigrationDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Front end migration modification failed")

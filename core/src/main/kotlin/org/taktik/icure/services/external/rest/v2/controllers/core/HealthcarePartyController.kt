@@ -41,6 +41,7 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -58,6 +59,7 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.lang.Exception
 
 @RestController("healthcarePartyControllerV2")
 @Profile("app")
@@ -83,7 +85,7 @@ class HealthcarePartyController(
 		description = "General information about the current healthcare Party",
 	)
 	@GetMapping("/current")
-	fun getCurrentHealthcareParty() = mono {
+	fun getCurrentHealthcareParty(): Mono<HealthcarePartyDto> = mono {
 		val healthcareParty =
 			healthcarePartyService.getHealthcareParty(sessionLogic.getCurrentHealthcarePartyId())
 				?: throw ResponseStatusException(
@@ -158,7 +160,7 @@ class HealthcarePartyController(
 	fun listHealthcarePartiesByName(
 		@Parameter(description = "The Last name search value")
 		@PathVariable name: String,
-	) = healthcarePartyService
+	): Flux<HealthcarePartyDto> = healthcarePartyService
 		.listHealthcarePartiesByName(name)
 		.map { healthcarePartyV2Mapper.map(it) }
 		.injectReactorContext()
@@ -192,7 +194,7 @@ class HealthcarePartyController(
 	@PostMapping
 	fun createHealthcareParty(
 		@RequestBody h: HealthcarePartyDto,
-	) = mono {
+	): Mono<HealthcarePartyDto> = mono {
 		val hcParty =
 			try {
 				healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
@@ -200,13 +202,7 @@ class HealthcarePartyController(
 				logger.warn(e.message, e)
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 			}
-
-		val succeed = hcParty != null
-		if (succeed) {
-			hcParty?.let { healthcarePartyV2Mapper.map(it) }
-		} else {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Healthcare party creation failed.")
-		}
+		healthcarePartyV2Mapper.map(hcParty!!)
 	}
 
 	@Operation(
@@ -227,7 +223,7 @@ class HealthcarePartyController(
 	@GetMapping("/{healthcarePartyId}")
 	fun getHealthcareParty(
 		@PathVariable healthcarePartyId: String,
-	) = mono {
+	): Mono<HealthcarePartyDto> = mono {
 		val healthcareParty =
 			healthcarePartyService.getHealthcareParty(healthcarePartyId)
 				?: throw ResponseStatusException(
@@ -244,7 +240,7 @@ class HealthcarePartyController(
 	@PostMapping("/byIds")
 	fun getHealthcareParties(
 		@RequestBody healthcarePartyIds: ListOfIdsDto,
-	) = healthcarePartyIds.ids
+	): Flux<HealthcarePartyDto> = healthcarePartyIds.ids
 		.takeIf { it.isNotEmpty() }
 		?.let { ids ->
 			try {
@@ -252,7 +248,7 @@ class HealthcarePartyController(
 					.getHealthcareParties(ids)
 					.map { healthcarePartyV2Mapper.map(it) }
 					.injectReactorContext()
-			} catch (e: java.lang.Exception) {
+			} catch (e: Exception) {
 				throw ResponseStatusException(
 					HttpStatus.INTERNAL_SERVER_ERROR,
 					e.message,
@@ -268,7 +264,7 @@ class HealthcarePartyController(
 	@GetMapping("/{parentId}/children")
 	fun listHealthcarePartiesByParentId(
 		@PathVariable parentId: String,
-	) = healthcarePartyService
+	): Flux<HealthcarePartyDto> = healthcarePartyService
 		.getHealthcarePartiesByParentId(parentId)
 		.map { healthcarePartyV2Mapper.map(it) }
 		.injectReactorContext()
@@ -280,7 +276,7 @@ class HealthcarePartyController(
 	@GetMapping("/{healthcarePartyId}/publicKey")
 	fun getPublicKey(
 		@PathVariable healthcarePartyId: String,
-	) = mono {
+	): Mono<PublicKeyDto> = mono {
 		val publicKey =
 			try {
 				healthcarePartyService.getPublicKey(healthcarePartyId)
@@ -343,7 +339,7 @@ class HealthcarePartyController(
 	@PutMapping
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
-	) = mono {
+	): Mono<HealthcarePartyDto> = mono {
 		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto))?.let {
 			healthcarePartyV2Mapper.map(it)
 		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
@@ -353,7 +349,7 @@ class HealthcarePartyController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthcarePartiesBy(
 		@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
-	) = healthcarePartyService
+	): Flux<String> = healthcarePartyService
 		.matchHealthcarePartiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
@@ -367,7 +363,7 @@ class HealthcarePartyController(
 		@Parameter(description = "A HealthcareParty document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<HealthcarePartyDto>,
-	) = mono {
+	): Mono<PaginatedList<HealthcarePartyDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val healthcareParties =

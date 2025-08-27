@@ -42,6 +42,7 @@ import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
 import org.taktik.icure.security.jwt.JwtUtils
 import org.taktik.icure.services.external.rest.v2.dto.LoginCredentials
+import org.taktik.icure.services.external.rest.v2.dto.security.jwt.JwtResponseDto
 import org.taktik.icure.services.external.rest.v2.mapper.JwtResponseV2Mapper
 import org.taktik.icure.spring.asynccache.AsyncCacheManager
 import reactor.core.publisher.Mono
@@ -80,7 +81,7 @@ class LoginController(
 		@Parameter(
 			description = "If not null the returned credentials will be valid only for access to groups where the application id matches this",
 		) @RequestParam(required = false) applicationId: String? = null,
-	) = mono {
+	): Mono<JwtResponseDto> = mono {
 		try {
 			val authentication =
 				sessionLogic.login(
@@ -130,7 +131,7 @@ class LoginController(
 	fun refresh(
 		@RequestHeader(name = "Refresh-Token") refreshToken: String,
 		@RequestParam(required = false) totp: String?,
-	) = mono {
+	): Mono<JwtResponse> = mono {
 		val token = refreshToken.replace("Bearer ", "")
 		val newJwtDetails = authenticationManager.regenerateAuthJwt(token, totpToken = totp)
 		JwtResponse(
@@ -161,7 +162,7 @@ class LoginController(
 	fun token(
 		@PathVariable method: String,
 		@PathVariable path: String,
-	) = mono {
+	): Mono<String> = mono {
 		val token = UUID.randomUUID().toString()
 		cache.put(token, SecurityToken(HttpMethod.valueOf(method), path, sessionLogic.getAuthentication()))
 		token
@@ -170,7 +171,7 @@ class LoginController(
 	@Operation(summary = "logout", description = "Logout")
 	@GetMapping("/logout")
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
-	fun logout() = mono {
+	fun logout(): Mono<JwtResponse> = mono {
 		sessionLogic.logout()
 		JwtResponse(successful = true)
 	}
@@ -178,11 +179,11 @@ class LoginController(
 	@Operation(summary = "logout", description = "Logout")
 	@PostMapping("/logout")
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
-	fun logoutPost() = mono {
+	fun logoutPost(): Mono<JwtResponse> = mono {
 		sessionLogic.logout()
 		JwtResponse(successful = true)
 	}
 
 	@GetMapping("/publicKey/authJwt")
-	fun getAuthJwtPublicKey() = jwtUtils.authPublicKeySpki
+	fun getAuthJwtPublicKey(): String = jwtUtils.authPublicKeySpki
 }

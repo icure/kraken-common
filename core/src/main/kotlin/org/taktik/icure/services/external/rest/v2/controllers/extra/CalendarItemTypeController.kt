@@ -91,7 +91,7 @@ class CalendarItemTypeController(
 	@PostMapping
 	fun createCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
-	) = mono {
+	): Mono<CalendarItemTypeDto> = mono {
 		calendarItemTypeService
 			.createCalendarItemType(
 				calendarItemTypeV2Mapper.map(calendarItemTypeDto),
@@ -125,7 +125,7 @@ class CalendarItemTypeController(
 	@GetMapping("/{calendarItemTypeId}")
 	fun getCalendarItemType(
 		@PathVariable calendarItemTypeId: String,
-	) = mono {
+	): Mono<CalendarItemTypeDto> = mono {
 		calendarItemTypeService.getCalendarItemType(calendarItemTypeId)?.let { calendarItemTypeV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItemType fetching failed")
 	}
@@ -134,7 +134,7 @@ class CalendarItemTypeController(
 	@PutMapping
 	fun modifyCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
-	) = mono {
+	): Mono<CalendarItemTypeDto> = mono {
 		calendarItemTypeService
 			.modifyCalendarItemType(
 				calendarItemTypeV2Mapper.map(calendarItemTypeDto),

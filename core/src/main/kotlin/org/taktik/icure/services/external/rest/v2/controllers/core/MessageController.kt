@@ -42,6 +42,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -89,7 +90,7 @@ class MessageController(
 	@PostMapping
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
-	) = mono {
+	): Mono<MessageDto> = mono {
 		messageService.createMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
 				.also { logger.error(it.message) }
@@ -146,7 +147,7 @@ class MessageController(
 	@GetMapping("/{messageId}")
 	fun getMessage(
 		@PathVariable messageId: String,
-	) = mono {
+	): Mono<MessageDto> = mono {
 		messageService.getMessage(messageId)?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found")
 				.also { logger.error(it.message) }
@@ -166,7 +167,7 @@ class MessageController(
 	fun listMessagesByTransportGuids(
 		@RequestParam("hcpId") hcpId: String,
 		@RequestBody transportGuids: ListOfIdsDto,
-	) = messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
@@ -235,13 +236,13 @@ class MessageController(
 	@GetMapping("/{messageId}/children")
 	fun getChildrenMessages(
 		@PathVariable messageId: String,
-	) = messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
 	fun getMessagesChildren(
 		@RequestBody parentIds: ListOfIdsDto,
-	) = messageService
+	): Flux<MessageDto> = messageService
 		.getMessagesChildren(parentIds.ids)
 		.map(messageV2Mapper::map)
 		.injectReactorContext()
@@ -250,7 +251,7 @@ class MessageController(
 	@PostMapping("/byInvoice")
 	fun listMessagesByInvoices(
 		@RequestBody ids: ListOfIdsDto,
-	) = messageService.listMessagesByInvoiceIds(ids.ids).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.listMessagesByInvoiceIds(ids.ids).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided transportGuid")
 	@GetMapping("/byTransportGuid")
@@ -331,7 +332,7 @@ class MessageController(
 	@PutMapping
 	fun modifyMessage(
 		@RequestBody messageDto: MessageDto,
-	) = mono {
+	): Mono<MessageDto> = mono {
 		messageService.modifyMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "New delegation for message failed")
 				.also { logger.error(it.message) }
@@ -342,13 +343,13 @@ class MessageController(
 	fun setMessagesStatusBits(
 		@PathVariable status: Int,
 		@RequestBody messageIds: ListOfIdsDto,
-	) = messageService.setStatus(messageIds.ids, status).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).map { messageV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(summary = "Set read status for given list of messages")
 	@PutMapping("/readstatus")
 	fun setMessagesReadStatus(
 		@RequestBody data: MessagesReadStatusUpdate,
-	) = flow {
+	): Flux<MessageDto> = flow {
 		data.ids?.takeIf { it.isNotEmpty() }?.let { ids ->
 			emitAll(
 				messageService
@@ -384,7 +385,7 @@ class MessageController(
 		@Parameter(description = "A Message document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<MessageDto>,
-	) = mono {
+	): Mono<PaginatedList<MessageDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -397,7 +398,7 @@ class MessageController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchMessagesBy(
 		@RequestBody filter: AbstractFilterDto<MessageDto>,
-	) = messageService
+	): Flux<String> = messageService
 		.matchMessagesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

@@ -230,7 +230,7 @@ class DocumentController(
 	@GetMapping("/{documentId}")
 	fun getDocument(
 		@PathVariable documentId: String,
-	) = mono {
+	): Mono<DocumentDto> = mono {
 		val document =
 			documentService.getDocument(documentId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
@@ -241,7 +241,7 @@ class DocumentController(
 	@GetMapping("/externaluuid/{externalUuid}")
 	fun getDocumentByExternalUuid(
 		@PathVariable externalUuid: String,
-	) = mono {
+	): Mono<DocumentDto> = mono {
 		val document =
 			documentService.getDocumentsByExternalUuid(externalUuid).firstOrNull()
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
@@ -252,7 +252,7 @@ class DocumentController(
 	@GetMapping("/externaluuid/{externalUuid}/all")
 	fun getDocumentsByExternalUuid(
 		@PathVariable externalUuid: String,
-	) = mono {
+	): Mono<List<DocumentDto>> = mono {
 		documentService.getDocumentsByExternalUuid(externalUuid).map { documentV2Mapper.map(it) }
 	}
 
@@ -575,7 +575,7 @@ class DocumentController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDocumentsBy(
 		@RequestBody filter: AbstractFilterDto<DocumentDto>,
-	) = documentService
+	): Flux<String> = documentService
 		.matchDocumentsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

@@ -35,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.KeywordV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("keywordControllerV2")
 @Profile("app")
@@ -52,7 +53,7 @@ class KeywordController(
 	@PostMapping
 	fun createKeyword(
 		@RequestBody c: KeywordDto,
-	) = mono {
+	): Mono<KeywordDto> = mono {
 		keywordService.createKeyword(keywordV2Mapper.map(c))?.let { keywordV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Keyword creation failed.")
 	}
@@ -61,7 +62,7 @@ class KeywordController(
 	@GetMapping("/{keywordId}")
 	fun getKeyword(
 		@PathVariable keywordId: String,
-	) = mono {
+	): Mono<KeywordDto> = mono {
 		keywordService.getKeyword(keywordId)?.let { keywordV2Mapper.map(it) }
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
@@ -73,7 +74,7 @@ class KeywordController(
 	@GetMapping("/byUser/{userId}")
 	fun getKeywordsByUser(
 		@PathVariable userId: String,
-	) = keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordV2Mapper.map(c) } }.injectReactorContext()
+	): Flux<KeywordDto> = keywordService.getKeywordsByUser(userId).let { it.map { c -> keywordV2Mapper.map(c) } }.injectReactorContext()
 
 	@Operation(summary = "Gets all keywords with pagination")
 	@GetMapping
@@ -103,7 +104,7 @@ class KeywordController(
 	@PutMapping
 	fun modifyKeyword(
 		@RequestBody keywordDto: KeywordDto,
-	) = mono {
+	): Mono<KeywordDto> = mono {
 		keywordService.modifyKeyword(keywordV2Mapper.map(keywordDto))?.let { keywordV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Keyword modification failed.")
 	}

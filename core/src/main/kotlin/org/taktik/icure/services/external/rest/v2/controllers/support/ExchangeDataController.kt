@@ -34,6 +34,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("exchangeDataControllerV2")
 @Profile("app")
@@ -49,7 +50,7 @@ class ExchangeDataController(
 	@PostMapping
 	fun createExchangeData(
 		@RequestBody exchangeData: ExchangeDataDto,
-	) = mono {
+	): Mono<ExchangeDataDto> = mono {
 		exchangeDataMapper.map(exchangeDataLogic.createExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 
@@ -57,7 +58,7 @@ class ExchangeDataController(
 	@PutMapping
 	fun modifyExchangeData(
 		@RequestBody exchangeData: ExchangeDataDto,
-	) = reactorCacheInjector.monoWithCachedContext(10) {
+	): Mono<ExchangeDataDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		exchangeDataMapper.map(exchangeDataLogic.modifyExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
 
@@ -65,7 +66,7 @@ class ExchangeDataController(
 	@GetMapping("/{exchangeDataId}")
 	fun getExchangeDataById(
 		@PathVariable exchangeDataId: String,
-	) = mono {
+	): Mono<ExchangeDataDto> = mono {
 		exchangeDataMapper.map(
 			exchangeDataLogic.getExchangeDataById(exchangeDataId)
 				?: throw NotFoundRequestException("Could not find exchange data with id $exchangeDataId"),
@@ -127,7 +128,7 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
 		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null,
-	) = getParticipantCounterpartsQuery(dataOwnerId, counterpartsTypes, ignoreOnEntryForFingerprint)
+	): Mono<List<String>> = getParticipantCounterpartsQuery(dataOwnerId, counterpartsTypes, ignoreOnEntryForFingerprint)
 
 	@Operation(
 		summary =
@@ -140,7 +141,7 @@ class ExchangeDataController(
 		@RequestParam(required = true) dataOwnerId: String,
 		@RequestParam(required = true) counterpartsTypes: String,
 		@RequestParam(required = false) ignoreOnEntryForFingerprint: String? = null,
-	) = mono {
+	): Mono<List<String>> = mono {
 		exchangeDataLogic
 			.getParticipantCounterparts(
 				dataOwnerId,

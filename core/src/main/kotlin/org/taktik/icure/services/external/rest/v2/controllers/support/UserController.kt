@@ -37,6 +37,7 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -81,7 +82,7 @@ class UserController(
 	@GetMapping(value = ["/current"])
 	fun getCurrentUser(
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val user =
 			userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 				?: throw ResponseStatusException(
@@ -114,7 +115,7 @@ class UserController(
 	@PostMapping
 	fun createUser(
 		@RequestBody userDto: UserDto,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val user =
 			userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User creation failed.")
@@ -126,7 +127,7 @@ class UserController(
 	fun getUser(
 		@PathVariable userId: String,
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val user =
 			userService.getUser(userId, includeMetadataFromGlobalUser)
 				?: throw ResponseStatusException(
@@ -140,7 +141,7 @@ class UserController(
 	@PostMapping("/byIds")
 	fun getUsers(
 		@RequestBody userIds: ListOfIdsDto,
-	) = userService
+	): Flux<UserDto> = userService
 		.getUsers(userIds.ids)
 		.map { user ->
 			userV2Mapper.mapOmittingSecrets(user)
@@ -150,7 +151,7 @@ class UserController(
 	@GetMapping("/byEmail/{email}")
 	fun getUserByEmail(
 		@PathVariable email: String,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val user =
 			userService.getUserByEmail(email)
 				?: throw ResponseStatusException(
@@ -164,7 +165,7 @@ class UserController(
 	@GetMapping("/byPhoneNumber/{phoneNumber}")
 	fun getUserByPhoneNumber(
 		@PathVariable phoneNumber: String,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val user =
 			userService.getUserByPhone(phoneNumber)
 				?: throw ResponseStatusException(
@@ -178,13 +179,13 @@ class UserController(
 	@GetMapping("/byHealthcarePartyId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun findByHcpartyId(
 		@PathVariable id: String,
-	) = userService.listUserIdsByHcpartyId(id).injectReactorContext()
+	): Flux<String> = userService.listUserIdsByHcpartyId(id).injectReactorContext()
 
 	@Operation(summary = "Get the list of User ids by patient id")
 	@GetMapping("/byPatientId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun findByPatientId(
 		@PathVariable id: String,
-	) = userService.findByPatientId(id).injectReactorContext()
+	): Flux<String> = userService.findByPatientId(id).injectReactorContext()
 
 	@Operation(summary = "Deletes an User")
 	@DeleteMapping("/{userId}")
@@ -217,7 +218,7 @@ class UserController(
 	@PutMapping
 	fun modifyUser(
 		@RequestBody userDto: UserDto,
-	) = mono {
+	): Mono<UserDto> = mono {
 		// Sanitize group
 		val modifiedUser =
 			userService.modifyUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
@@ -231,7 +232,7 @@ class UserController(
 	fun assignHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
-	) = mono {
+	): Mono<UserDto> = mono {
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
@@ -251,7 +252,7 @@ class UserController(
 	fun modifyProperties(
 		@PathVariable userId: String,
 		@RequestBody properties: List<PropertyStubDto>?,
-	) = mono {
+	): Mono<UserDto> = mono {
 		userService
 			.setProperties(
 				userId,
@@ -274,7 +275,7 @@ class UserController(
 		tokenValidity: Long?,
 		@RequestHeader
 		token: String? = null,
-	) = reactorCacheInjector.monoWithCachedContext(10) {
+	): Mono<String> = reactorCacheInjector.monoWithCachedContext(10) {
 		// Highly sensitive -> better to cache to speed up access control
 		userService.createOrUpdateToken(userId, key, tokenValidity ?: 3600, token)
 	}
@@ -288,7 +289,7 @@ class UserController(
 		@Parameter(description = "A User document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<UserDto>,
-	) = mono {
+	): Mono<PaginatedList<UserDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val users = userService.filterUsers(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
@@ -300,7 +301,7 @@ class UserController(
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchUsersBy(
 		@RequestBody filter: AbstractFilterDto<UserDto>,
-	) = userService
+	): Flux<String> = userService
 		.matchUsersBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

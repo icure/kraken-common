@@ -70,7 +70,7 @@ class ReceiptController(
 	@PostMapping
 	fun createReceipt(
 		@RequestBody receiptDto: ReceiptDto,
-	) = mono {
+	): Mono<ReceiptDto> = mono {
 		receiptService
 			.createReceipt(receiptV2Mapper.map(receiptDto))
 			?.let { receiptV2Mapper.map(it) }
@@ -137,7 +137,7 @@ class ReceiptController(
 	fun getReceiptAttachment(
 		@PathVariable receiptId: String,
 		@PathVariable attachmentId: String,
-	) = mono {
+	): Mono<ByteArray> = mono {
 		val attachment =
 			ByteArrayOutputStream().use {
 				receiptService.getAttachment(receiptId, attachmentId).writeTo(it)
@@ -161,7 +161,7 @@ class ReceiptController(
 		@RequestParam(required = true)
 		rev: String,
 		@Schema(type = "string", format = "binary") @RequestBody payload: ByteArray,
-	) = mono {
+	): Mono<ReceiptDto> = mono {
 		val receipt = receiptService.getReceipt(receiptId)
 		if (receipt != null) {
 			if (receipt.rev != rev) throw ResponseStatusException(HttpStatus.CONFLICT, "Current receipt revision does not match provided revision.")
@@ -175,7 +175,7 @@ class ReceiptController(
 	@GetMapping("/{receiptId}")
 	fun getReceipt(
 		@PathVariable receiptId: String,
-	) = mono {
+	): Mono<ReceiptDto> = mono {
 		receiptService.getReceipt(receiptId)?.let { receiptV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Receipt not found")
 	}
@@ -190,7 +190,7 @@ class ReceiptController(
 	@PutMapping
 	fun modifyReceipt(
 		@RequestBody receiptDto: ReceiptDto,
-	) = mono {
+	): Mono<ReceiptDto> = mono {
 		receiptService
 			.modifyReceipt(receiptV2Mapper.map(receiptDto))
 			.let { receiptV2Mapper.map(it) }

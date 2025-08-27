@@ -30,6 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -68,7 +69,7 @@ class DeviceController(
 	@GetMapping("/{deviceId}")
 	fun getDevice(
 		@PathVariable deviceId: String,
-	) = mono {
+	): Mono<DeviceDto> = mono {
 		deviceService.getDevice(deviceId)?.let(deviceV2Mapper::map)
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
@@ -92,7 +93,7 @@ class DeviceController(
 	@PostMapping
 	fun createDevice(
 		@RequestBody p: DeviceDto,
-	) = mono {
+	): Mono<DeviceDto> = mono {
 		deviceService.createDevice(deviceV2Mapper.map(p))?.let(deviceV2Mapper::map)
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device creation failed.")
 	}
@@ -101,7 +102,7 @@ class DeviceController(
 	@PutMapping
 	fun updateDevice(
 		@RequestBody deviceDto: DeviceDto,
-	) = mono {
+	): Mono<DeviceDto> = mono {
 		deviceService.modifyDevice(deviceV2Mapper.map(deviceDto))?.let(deviceV2Mapper::map)
 			?: throw DocumentNotFoundException(
 				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
@@ -114,7 +115,7 @@ class DeviceController(
 	@PostMapping("/bulk", "/batch")
 	fun createDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	) = mono {
+	): Mono<List<IdWithRevDto>> = mono {
 		val devices = deviceService.createDevices(deviceDtos.map(deviceV2Mapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
@@ -123,7 +124,7 @@ class DeviceController(
 	@PutMapping("/bulk", "/batch")
 	fun updateDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	) = mono {
+	): Mono<List<IdWithRevDto>> = mono {
 		val devices = deviceService.modifyDevices(deviceDtos.map(deviceV2Mapper::map).toList())
 		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
 	}
@@ -137,7 +138,7 @@ class DeviceController(
 		@Parameter(description = "A device document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<DeviceDto>,
-	) = mono {
+	): Mono<PaginatedList<DeviceDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		deviceService
@@ -160,7 +161,7 @@ class DeviceController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchDevicesBy(
 		@RequestBody filter: AbstractFilterDto<DeviceDto>,
-	) = deviceService
+	): Flux<String> = deviceService
 		.matchDevicesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

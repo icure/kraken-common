@@ -96,7 +96,7 @@ class InvoiceController(
 	@PostMapping
 	fun createInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		val invoice =
 			invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invoice creation failed")
@@ -154,7 +154,7 @@ class InvoiceController(
 	@GetMapping("/{invoiceId}")
 	fun getInvoice(
 		@PathVariable invoiceId: String,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		val invoice =
 			invoiceService.getInvoice(invoiceId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice fetching failed")
@@ -177,7 +177,7 @@ class InvoiceController(
 	@PutMapping
 	fun modifyInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		val invoice =
 			invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice modification failed")
@@ -189,7 +189,7 @@ class InvoiceController(
 	@PostMapping("/reassign")
 	fun reassignInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		val invoice = invoiceV2Mapper.map(invoiceDto).let { it.reassign(it.invoicingCodes, uuidGenerator) }
 
 		invoiceV2Mapper.map(invoice)
@@ -200,7 +200,7 @@ class InvoiceController(
 	fun mergeTo(
 		@PathVariable invoiceId: String,
 		@RequestBody ids: ListOfIdsDto,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		invoiceV2Mapper.map(
 			invoiceService.mergeInvoices(
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
@@ -216,7 +216,7 @@ class InvoiceController(
 		@PathVariable invoiceId: String,
 		@RequestParam scheme: String,
 		@RequestParam forcedValue: String,
-	) = mono {
+	): Mono<InvoiceDto> = mono {
 		invoiceService.getInvoice(invoiceId)?.let {
 			invoiceService
 				.validateInvoice(
@@ -433,7 +433,7 @@ class InvoiceController(
 	@PostMapping("/byContacts")
 	fun listInvoicesByContactIds(
 		@RequestBody contactIds: ListOfIdsDto,
-	) = flow {
+	): Flux<InvoiceDto> = flow {
 		emitAll(
 			invoiceService
 				.listInvoicesByHcPartyContacts(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, HashSet(contactIds.ids))
@@ -445,7 +445,7 @@ class InvoiceController(
 	@GetMapping("/to/{recipientIds}")
 	fun listInvoicesByRecipientsIds(
 		@PathVariable recipientIds: String,
-	) = flow {
+	): Flux<InvoiceDto> = flow {
 		emitAll(
 			invoiceService
 				.listInvoicesByHcPartyAndRecipientIds(
@@ -557,7 +557,7 @@ class InvoiceController(
 	@GetMapping("/codes/{minOccurrences}")
 	fun getTarificationsCodesOccurrences(
 		@PathVariable minOccurrences: Long,
-	) = mono {
+	): Mono<List<LabelledOccurenceDto>> = mono {
 		invoiceService.getTarificationsCodesOccurrences(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, minOccurrences).map {
 			LabelledOccurenceDto(it.label, it.occurence)
 		}
@@ -579,7 +579,7 @@ class InvoiceController(
 	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
 	fun matchInvoicesBy(
 		@RequestBody filter: AbstractFilterDto<InvoiceDto>,
-	) = invoiceService
+	): Flux<String> = invoiceService
 		.matchInvoicesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
