@@ -34,6 +34,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.InsuranceV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("insuranceControllerV2")
 @Profile("app")
@@ -62,7 +63,7 @@ class InsuranceController(
 	@PostMapping
 	fun createInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
-	) = mono {
+	): Mono<InsuranceDto> = mono {
 		val insurance =
 			insuranceService.createInsurance(insuranceV2Mapper.map(insuranceDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Insurance creation failed")
@@ -74,7 +75,7 @@ class InsuranceController(
 	@DeleteMapping("/{insuranceId}")
 	fun deleteInsurance(
 		@PathVariable insuranceId: String,
-	) = mono {
+	): Mono<DocIdentifierDto> = mono {
 		insuranceService.deleteInsurance(insuranceId, null).let {
 			DocIdentifierDto(it.id, it.rev)
 		}
@@ -84,7 +85,7 @@ class InsuranceController(
 	@GetMapping("/{insuranceId}")
 	fun getInsurance(
 		@PathVariable insuranceId: String,
-	) = mono {
+	): Mono<InsuranceDto> = mono {
 		val insurance =
 			insuranceService.getInsurance(insuranceId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Insurance fetching failed")
@@ -123,7 +124,7 @@ class InsuranceController(
 	@PutMapping
 	fun modifyInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
-	) = mono {
+	): Mono<InsuranceDto> = mono {
 		val insurance =
 			insuranceService.modifyInsurance(insuranceV2Mapper.map(insuranceDto))
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Insurance modification failed")

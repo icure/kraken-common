@@ -72,7 +72,7 @@ class ClassificationController(
 	@PostMapping
 	fun createClassification(
 		@RequestBody c: ClassificationDto,
-	) = mono {
+	): Mono<ClassificationDto> = mono {
 		val element =
 			classificationService.createClassification(classificationV2Mapper.map(c))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification creation failed.")
@@ -84,7 +84,7 @@ class ClassificationController(
 	@GetMapping("/{classificationId}")
 	fun getClassification(
 		@PathVariable classificationId: String,
-	) = mono {
+	): Mono<ClassificationDto> = mono {
 		val element =
 			classificationService.getClassification(classificationId)
 				?: throw ResponseStatusException(
@@ -194,7 +194,7 @@ class ClassificationController(
 	@PutMapping
 	fun modifyClassification(
 		@RequestBody classificationDto: ClassificationDto,
-	) = mono {
+	): Mono<ClassificationDto> = mono {
 		val classification =
 			classificationService.modifyClassification(classificationV2Mapper.map(classificationDto))
 				?: throw DocumentNotFoundException("Classification modification failed.")
@@ -227,7 +227,7 @@ class ClassificationController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchClassificationBy(
 		@RequestBody filter: AbstractFilterDto<ClassificationDto>,
-	) = classificationService
+	): Flux<String> = classificationService
 		.matchClassificationsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

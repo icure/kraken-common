@@ -60,7 +60,7 @@ class TimeTableController(
 	@PostMapping
 	fun createTimeTable(
 		@RequestBody timeTableDto: TimeTableDto,
-	) = mono {
+	): Mono<TimeTableDto> = mono {
 		timeTableService.createTimeTable(timeTableV2Mapper.map(timeTableDto))?.let { timeTableV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
 	}
@@ -116,7 +116,7 @@ class TimeTableController(
 	@GetMapping("/{timeTableId}")
 	fun getTimeTable(
 		@PathVariable timeTableId: String,
-	) = mono {
+	): Mono<TimeTableDto> = mono {
 		if (timeTableId.equals("new", ignoreCase = true)) {
 			// Create an hourItem
 			val timeTableHour =
@@ -163,7 +163,7 @@ class TimeTableController(
 	@PutMapping
 	fun modifyTimeTable(
 		@RequestBody timeTableDto: TimeTableDto,
-	) = mono {
+	): Mono<TimeTableDto> = mono {
 		timeTableService.modifyTimeTable(timeTableV2Mapper.map(timeTableDto)).let { timeTableV2Mapper.map(it) }
 	}
 
@@ -195,7 +195,7 @@ class TimeTableController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchTimeTablesBy(
 		@RequestBody filter: AbstractFilterDto<TimeTableDto>,
-	) = timeTableService
+	): Flux<String> = timeTableService
 		.matchTimeTablesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

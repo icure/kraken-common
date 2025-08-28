@@ -105,13 +105,13 @@ class ContactController(
 
 	@Operation(summary = "Get an empty content")
 	@GetMapping("/service/content/empty")
-	fun getEmptyContent() = ContentDto()
+	fun getEmptyContent(): ContentDto = ContentDto()
 
 	@Operation(summary = "Create a contact with the current user", description = "Returns an instance of created contact.")
 	@PostMapping
 	fun createContact(
 		@RequestBody c: ContactDto,
-	) = mono {
+	): Mono<ContactDto> = mono {
 		val contact =
 			try {
 				// handling services' indexes
@@ -147,7 +147,7 @@ class ContactController(
 	@GetMapping("/{contactId}")
 	fun getContact(
 		@PathVariable contactId: String,
-	) = mono {
+	): Mono<ContactDto> = mono {
 		val contact =
 			contactService.getContact(contactId)
 				?: throw ResponseStatusException(
@@ -176,7 +176,7 @@ class ContactController(
 	fun getServiceCodesOccurrences(
 		@PathVariable codeType: String,
 		@PathVariable minOccurrences: Long,
-	) = mono {
+	): Mono<List<LabelledOccurenceDto>> = mono {
 		contactService
 			.getServiceCodesOccurences(
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
@@ -191,7 +191,7 @@ class ContactController(
 	fun listContactByHCPartyServiceId(
 		@RequestParam hcPartyId: String,
 		@RequestParam serviceId: String,
-	) = contactService
+	): Flux<ContactDto> = contactService
 		.listContactsByHcPartyServiceId(hcPartyId, serviceId)
 		.map(contactV2Mapper::map)
 		.injectReactorContext()
@@ -440,7 +440,7 @@ class ContactController(
 	@PutMapping
 	fun modifyContact(
 		@RequestBody contactDto: ContactDto,
-	) = mono {
+	): Mono<ContactDto> = mono {
 		handleServiceIndexes(contactDto)
 
 		contactService.modifyContact(contactV2Mapper.map(contactDto))?.let {
@@ -475,7 +475,7 @@ class ContactController(
 		@Parameter(description = "A Contact document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<ContactDto>,
-	) = mono {
+	): Mono<PaginatedList<ContactDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -490,7 +490,7 @@ class ContactController(
 	fun matchContactsBy(
 		@RequestBody filter: AbstractFilterDto<ContactDto>,
 		@RequestParam(required = false) deduplicate: Boolean? = null,
-	) = contactService
+	): Flux<String> = contactService
 		.matchContactsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
@@ -499,7 +499,7 @@ class ContactController(
 	@GetMapping("/service/{serviceId}")
 	fun getService(
 		@Parameter(description = "The id of the service to retrieve") @PathVariable serviceId: String,
-	) = mono {
+	): Mono<ServiceDto> = mono {
 		contactService.getService(serviceId)?.let { serviceV2Mapper.map(it) }
 			?: throw DocumentNotFoundException("Service with id $serviceId not found.")
 	}
@@ -513,7 +513,7 @@ class ContactController(
 		@Parameter(description = "A Contact document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<ServiceDto>,
-	) = mono {
+	): Mono<PaginatedList<ServiceDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
@@ -539,7 +539,7 @@ class ContactController(
 	@PostMapping("/service/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchServicesBy(
 		@RequestBody filter: AbstractFilterDto<ServiceDto>,
-	) = contactService
+	): Flux<String> = contactService
 		.matchServicesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
@@ -548,20 +548,20 @@ class ContactController(
 	@PostMapping("/service")
 	fun getServices(
 		@RequestBody ids: ListOfIdsDto,
-	) = contactService.getServices(ids.ids).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
+	): Flux<ServiceDto> = contactService.getServices(ids.ids).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
 
 	@Operation(summary = "List services linked to provided ids ", description = "Returns a list of services")
 	@PostMapping("/service/linkedTo")
 	fun getServicesLinkedTo(
 		@Parameter(description = "The type of the link") @RequestParam(required = false) linkType: String?,
 		@RequestBody ids: ListOfIdsDto,
-	) = contactService.getServicesLinkedTo(ids.ids, linkType).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
+	): Flux<ServiceDto> = contactService.getServicesLinkedTo(ids.ids, linkType).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
 
 	@Operation(summary = "List services by related association id", description = "Returns a list of services")
 	@GetMapping("/service/associationId")
 	fun listServicesByAssociationId(
 		@RequestParam associationId: String,
-	) = contactService.listServicesByAssociationId(associationId).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
+	): Flux<ServiceDto> = contactService.listServicesByAssociationId(associationId).map { svc -> serviceV2Mapper.map(svc) }.injectReactorContext()
 
 	@Operation(
 		summary = "List services linked to a health element",
@@ -571,7 +571,7 @@ class ContactController(
 	fun listServicesByHealthElementId(
 		@PathVariable healthElementId: String,
 		@Parameter(description = "hcPartyId", required = true) @RequestParam hcPartyId: String,
-	) = contactService
+	): Flux<ServiceDto> = contactService
 		.listServicesByHcPartyAndHealthElementIds(hcPartyId, listOf(healthElementId))
 		.map { svc -> serviceV2Mapper.map(svc) }
 		.injectReactorContext()

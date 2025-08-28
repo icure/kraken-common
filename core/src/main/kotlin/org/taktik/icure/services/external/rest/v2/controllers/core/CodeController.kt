@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -37,11 +38,13 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.BooleanResponseDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.monoWrappingResponseToJson
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
@@ -155,7 +158,7 @@ class CodeController(
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
 		@Parameter(description = "Code code") @RequestParam(required = false) code: String?,
 		@Parameter(description = "Code version") @RequestParam(required = false) version: String?,
-	) = codeService
+	): Flux<CodeDto> = codeService
 		.findCodesBy(region, type, code, version)
 		.map { c -> codeV2Mapper.map(c) }
 		.injectReactorContext()
@@ -165,7 +168,7 @@ class CodeController(
 	fun listCodeTypesBy(
 		@Parameter(description = "Code region") @RequestParam(required = false) region: String?,
 		@Parameter(description = "Code type") @RequestParam(required = false) type: String?,
-	) = codeService.listCodeTypesBy(region, type).injectReactorContext()
+	): Flux<String> = codeService.listCodeTypesBy(region, type).injectReactorContext()
 
 	@Operation(summary = "Finding tag types.", description = "Returns a list of tag types matched with given input.")
 	@GetMapping("/tagtype/byRegionType", produces = [APPLICATION_JSON_VALUE])
@@ -184,9 +187,9 @@ class CodeController(
 	@PostMapping
 	fun createCode(
 		@RequestBody c: CodeDto,
-	) = mono {
-		val code = codeService.create(codeV2Mapper.map(c))
-		code?.let { codeV2Mapper.map(it) }
+	): Mono<CodeDto> = mono {
+		val code = codeService.create(codeV2Mapper.map(c))!!
+		codeV2Mapper.map(code)
 	}
 
 	@Operation(
@@ -196,7 +199,7 @@ class CodeController(
 	@PostMapping("/batch")
 	fun createCodes(
 		@RequestBody codeBatch: List<CodeDto>,
-	) = mono {
+	): Mono<List<CodeDto>> = mono {
 		val codes = codeBatch.map { codeV2Mapper.map(it) }
 		try {
 			codeService.create(codes)?.map { codeV2Mapper.map(it) }
@@ -211,7 +214,7 @@ class CodeController(
 		@RequestParam type: String,
 		@RequestParam code: String,
 		@RequestParam version: String?,
-	) = mono {
+	): Mono<BooleanResponseDto> = mono {
 		BooleanResponseDto(
 			response = codeService.isValid(type, code, version),
 		)
@@ -223,7 +226,7 @@ class CodeController(
 		@RequestParam label: String,
 		@RequestParam type: String,
 		@RequestParam languages: String?,
-	): Mono<CodeDto?> = mono {
+	): Mono<ResponseEntity<CodeDto?>> = monoWrappingResponseToJson {
 		val code =
 			languages?.let {
 				codeService.getCodeByLabel(region, label, type, it.split(","))
@@ -235,7 +238,7 @@ class CodeController(
 	@PostMapping("/byIds")
 	fun getCodes(
 		@RequestBody codeIds: ListOfIdsDto,
-	) = codeIds.ids
+	): Flux<CodeDto> = codeIds.ids
 		.takeIf { it.isNotEmpty() }
 		?.let { ids -> codeService.getCodes(ids).map { f -> codeV2Mapper.map(f) }.injectReactorContext() }
 		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
@@ -249,7 +252,7 @@ class CodeController(
 	@GetMapping("/{codeId}")
 	fun getCode(
 		@Parameter(description = "Code id") @PathVariable codeId: String,
-	) = mono {
+	): Mono<CodeDto> = mono {
 		val c =
 			codeService.get(codeId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code. Read the app logs.")
@@ -265,7 +268,7 @@ class CodeController(
 		@Parameter(description = "Code type") @PathVariable type: String,
 		@Parameter(description = "Code code") @PathVariable code: String,
 		@Parameter(description = "Code version") @PathVariable version: String,
-	) = mono {
+	): Mono<CodeDto> = mono {
 		val c =
 			codeService.get(type, code, version)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code with parts. Read the app logs.")
@@ -276,24 +279,24 @@ class CodeController(
 	@PutMapping
 	fun modifyCode(
 		@RequestBody codeDto: CodeDto,
-	) = mono {
+	): Mono<CodeDto> = mono {
 		val modifiedCode =
 			try {
-				codeService.modify(codeV2Mapper.map(codeDto))
+				codeService.modify(codeV2Mapper.map(codeDto))!!
 			} catch (e: Exception) {
 				throw ResponseStatusException(
 					HttpStatus.INTERNAL_SERVER_ERROR,
 					"A problem regarding modification of the code. Read the app logs: " + e.message,
 				)
 			}
-		modifiedCode?.let { codeV2Mapper.map(it) }
+		codeV2Mapper.map(modifiedCode)
 	}
 
 	@Operation(summary = "Modify a batch of codes", description = "Modification of (type, code, version) is not allowed.")
 	@PutMapping("/batch")
 	fun modifyCodes(
 		@RequestBody codeBatch: List<CodeDto>,
-	) = codeService
+	): Flux<CodeDto> = codeService
 		.modify(codeBatch.map { codeV2Mapper.map(it) })
 		.catch { e ->
 			if (e is IllegalStateException) {
@@ -320,7 +323,7 @@ class CodeController(
 		@Parameter(description = "Sort key") @RequestParam(required = false) sort: String?,
 		@Parameter(description = "Descending") @RequestParam(required = false) desc: Boolean?,
 		@RequestBody(required = false) filterChain: FilterChain<CodeDto>,
-	) = mono {
+	): Mono<PaginatedList<CodeDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val startKeyList = startKey?.split(',')?.filter { it.isNotBlank() }?.map { it.trim() } ?: listOf()
 
@@ -334,7 +337,7 @@ class CodeController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCodesBy(
 		@RequestBody filter: AbstractFilterDto<CodeDto>,
-	) = codeService
+	): Flux<String> = codeService
 		.matchCodesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
@@ -343,7 +346,7 @@ class CodeController(
 	@PostMapping("/{codeType}")
 	fun importCodes(
 		@PathVariable codeType: String,
-	) = mono {
+	): Mono<Unit> = mono {
 		val resolver = PathMatchingResourcePatternResolver(javaClass.classLoader)
 		resolver.getResources("classpath*:/org/taktik/icure/db/codes/$codeType.*.xml").forEach {
 			it.filename?.let { filename ->

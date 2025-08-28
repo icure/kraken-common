@@ -38,6 +38,7 @@ import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -86,7 +87,7 @@ class HealthElementController(
 	@PostMapping
 	fun createHealthElement(
 		@RequestBody c: HealthElementDto,
-	) = mono {
+	): Mono<HealthElementDto> = mono {
 		val element =
 			healthElementService.createHealthElement(healthElementV2Mapper.map(c))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
@@ -98,7 +99,7 @@ class HealthElementController(
 	@GetMapping("/{healthElementId}")
 	fun getHealthElement(
 		@PathVariable healthElementId: String,
-	) = mono {
+	): Mono<HealthElementDto> = mono {
 		val element =
 			healthElementService.getHealthElement(healthElementId)
 				?: throw ResponseStatusException(
@@ -264,7 +265,7 @@ class HealthElementController(
 	@PutMapping
 	fun modifyHealthElement(
 		@RequestBody healthElementDto: HealthElementDto,
-	) = mono {
+	): Mono<HealthElementDto> = mono {
 		val modifiedHealthElement =
 			healthElementService.modifyHealthElement(healthElementV2Mapper.map(healthElementDto))
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
@@ -304,7 +305,7 @@ class HealthElementController(
 		@Parameter(description = "A HealthElement document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 		@RequestBody filterChain: FilterChain<HealthElementDto>,
-	) = mono {
+	): Mono<PaginatedList<HealthElementDto>> = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
@@ -330,7 +331,7 @@ class HealthElementController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchHealthElementsBy(
 		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
-	) = healthElementService
+	): Flux<String> = healthElementService
 		.matchHealthElementsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

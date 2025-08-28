@@ -33,6 +33,7 @@ import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.utils.PaginatedList
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -94,7 +95,7 @@ class CalendarItemController(
 	@PostMapping
 	fun createCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
-	) = mono {
+	): Mono<CalendarItemDto> = mono {
 		val calendarItem =
 			calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItem creation failed")
@@ -153,7 +154,7 @@ class CalendarItemController(
 	@GetMapping("/{calendarItemId}")
 	fun getCalendarItem(
 		@PathVariable calendarItemId: String,
-	) = mono {
+	): Mono<CalendarItemDto> = mono {
 		val calendarItem =
 			calendarItemService.getCalendarItem(calendarItemId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItem fetching failed")
@@ -165,7 +166,7 @@ class CalendarItemController(
 	@PutMapping
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
-	) = mono {
+	): Mono<CalendarItemDto> = mono {
 		val calendarItem =
 			calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
 				?: throw DocumentNotFoundException("CalendarItem modification failed")
@@ -246,7 +247,7 @@ class CalendarItemController(
 		) @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
-	) = mono {
+	): Mono<PaginatedList<CalendarItemDto>> = mono {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<Any>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit + 1)
@@ -267,7 +268,7 @@ class CalendarItemController(
 		) @RequestParam(required = false) startKey: JsonString?,
 		@Parameter(description = "A patient document ID") @RequestParam(required = false) startDocumentId: String?,
 		@Parameter(description = "Number of rows") @PathVariable limit: Int,
-	) = mono {
+	): Mono<PaginatedList<CalendarItemDto>> = mono {
 		val startKeyElements = startKey?.let { objectMapper.readValue<List<Any>>(startKey) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit + 1)
 		val elementList = calendarItemService.findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys, paginationOffset)
@@ -336,7 +337,7 @@ class CalendarItemController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchCalendarItemsBy(
 		@RequestBody filter: AbstractFilterDto<CalendarItemDto>,
-	) = calendarItemService
+	): Flux<String> = calendarItemService
 		.matchCalendarItemsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

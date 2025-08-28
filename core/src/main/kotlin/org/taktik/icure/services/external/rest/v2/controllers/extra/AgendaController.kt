@@ -79,7 +79,7 @@ class AgendaController(
 	@PostMapping
 	fun createAgenda(
 		@RequestBody agendaDto: AgendaDto,
-	) = mono {
+	): Mono<AgendaDto> = mono {
 		val agenda =
 			agendaService.createAgenda(agendaV2Mapper.map(agendaDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda creation failed")
@@ -138,7 +138,7 @@ class AgendaController(
 	@GetMapping("/{agendaId}")
 	fun getAgenda(
 		@PathVariable agendaId: String,
-	) = mono {
+	): Mono<AgendaDto> = mono {
 		val agenda =
 			agendaService.getAgenda(agendaId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Agenda fetching failed")
@@ -149,7 +149,7 @@ class AgendaController(
 	@GetMapping("/byUser")
 	fun getAgendasForUser(
 		@RequestParam userId: String,
-	) = mono {
+	): Mono<AgendaDto> = mono {
 		agendaService.getAgendasByUser(userId).firstOrNull()?.let { agendaV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Agendas fetching failed")
 	}
@@ -168,7 +168,7 @@ class AgendaController(
 	@PutMapping
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
-	) = reactorCacheInjector.monoWithCachedContext(10) {
+	): Mono<AgendaDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val agenda =
 			agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
@@ -179,7 +179,7 @@ class AgendaController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchAgendasBy(
 		@RequestBody filter: AbstractFilterDto<AgendaDto>,
-	) = agendaService
+	): Flux<String> = agendaService
 		.matchAgendasBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

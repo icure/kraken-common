@@ -76,7 +76,7 @@ class AccessLogController(
 	@PostMapping
 	fun createAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
-	) = mono {
+	): Mono<AccessLogDto> = mono {
 		val accessLog =
 			accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
@@ -134,7 +134,7 @@ class AccessLogController(
 	@GetMapping("/{accessLogId}")
 	fun getAccessLog(
 		@PathVariable accessLogId: String,
-	) = mono {
+	): Mono<AccessLogDto> = mono {
 		val accessLog =
 			accessLogService.getAccessLog(accessLogId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
@@ -201,7 +201,7 @@ class AccessLogController(
 	fun listAccessLogsByHCPartyAndPatientForeignKeys(
 		@RequestParam("hcPartyId") hcPartyId: String,
 		@RequestParam("secretFKeys") secretFKeys: String,
-	) = flow {
+	): Flux<AccessLogDto> = flow {
 		val secretPatientKeys = HashSet(secretFKeys.split(",")).toList()
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
 	}.injectReactorContext()
@@ -242,7 +242,7 @@ class AccessLogController(
 	fun findAccessLogsByHCPartyPatientForeignKeys(
 		@RequestParam("hcPartyId") hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
-	) = flow {
+	): Flux<AccessLogDto> = flow {
 		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
 	}.injectReactorContext()
 
@@ -250,7 +250,7 @@ class AccessLogController(
 	@PutMapping
 	fun modifyAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
-	) = mono {
+	): Mono<AccessLogDto> = mono {
 		val accessLog =
 			accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
@@ -274,7 +274,7 @@ class AccessLogController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchAccessLogsBy(
 		@RequestBody filter: AbstractFilterDto<AccessLogDto>,
-	) = accessLogService
+	): Flux<String> = accessLogService
 		.matchAccessLogsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()

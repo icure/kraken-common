@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asyncservice.ExchangeDataMapService
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataMapCreationBatch
+import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataMapDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataMapV2Mapper
 import org.taktik.icure.utils.injectReactorContext
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("exchangeDataMapControllerV2")
 @Profile("app")
@@ -31,7 +34,7 @@ class ExchangeDataMapController(
 	@PutMapping("/batch")
 	fun createOrUpdateExchangeDataMapBatch(
 		@RequestBody batch: ExchangeDataMapCreationBatch,
-	) = mono {
+	): Mono<ResponseEntity<String>> = mono {
 		require(batch.batch.values.all { it.isNotEmpty() }) {
 			"Should not create exchange data map with no content"
 		}
@@ -46,7 +49,7 @@ class ExchangeDataMapController(
 	@PostMapping("/batch")
 	fun getExchangeDataMapBatch(
 		@RequestBody ids: ListOfIdsDto,
-	) = exchangeDataMapService
+	): Flux<ExchangeDataMapDto> = exchangeDataMapService
 		.getExchangeDataMapBatch(ids.ids)
 		.map(exchangeDataMapV2Mapper::map)
 		.injectReactorContext()

@@ -35,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.TarificationV2Mapper
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("tarificationControllerV2")
 @Profile("app")
@@ -118,7 +119,7 @@ class TarificationController(
 	@PostMapping
 	fun createTarification(
 		@RequestBody c: TarificationDto,
-	) = mono {
+	): Mono<TarificationDto> = mono {
 		tarificationService.createTarification(tarificationV2Mapper.map(c))?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tarification creation failed.")
 	}
@@ -127,7 +128,7 @@ class TarificationController(
 	@PostMapping("/byIds")
 	fun getTarifications(
 		@RequestBody tarificationIds: ListOfIdsDto,
-	) = tarificationService.getTarifications(tarificationIds.ids).map { f -> tarificationV2Mapper.map(f) }.injectReactorContext()
+	): Flux<TarificationDto> = tarificationService.getTarifications(tarificationIds.ids).map { f -> tarificationV2Mapper.map(f) }.injectReactorContext()
 
 	@Operation(
 		summary = "Get a tarification",
@@ -136,7 +137,7 @@ class TarificationController(
 	@GetMapping("/{tarificationId}")
 	fun getTarification(
 		@Parameter(description = "Tarification id") @PathVariable tarificationId: String,
-	) = mono {
+	): Mono<TarificationDto> = mono {
 		tarificationService.getTarification(tarificationId)?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the tarification. Read the app logs.")
 	}
@@ -150,7 +151,7 @@ class TarificationController(
 		@Parameter(description = "Tarification type", required = true) @PathVariable type: String,
 		@Parameter(description = "Tarification tarification", required = true) @PathVariable tarification: String,
 		@Parameter(description = "Tarification version", required = true) @PathVariable version: String,
-	) = mono {
+	): Mono<TarificationDto> = mono {
 		tarificationService.getTarification(type, tarification, version)?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the tarification. Read the app logs.")
 	}
@@ -159,7 +160,7 @@ class TarificationController(
 	@PutMapping
 	fun modifyTarification(
 		@RequestBody tarificationDto: TarificationDto,
-	) = mono {
+	): Mono<TarificationDto> = mono {
 		try {
 			tarificationService.modifyTarification(tarificationV2Mapper.map(tarificationDto))?.let { tarificationV2Mapper.map(it) }
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modification of the tarification failed. Read the server log.")

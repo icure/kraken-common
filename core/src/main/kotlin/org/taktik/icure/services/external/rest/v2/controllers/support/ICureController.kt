@@ -28,11 +28,14 @@ import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.asyncservice.PatientService
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
+import org.taktik.icure.services.external.rest.v2.dto.IndexingInfoDto
+import org.taktik.icure.services.external.rest.v2.dto.ReplicationInfoDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IndexingInfoV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.ReplicationInfoV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("iCureControllerV2")
 @Profile("app")
@@ -59,21 +62,21 @@ class ICureController(
 	fun getVersion(): String = iCureService.getVersion()
 
 	@GetMapping("/ok", produces = [MediaType.TEXT_PLAIN_VALUE])
-	fun isReady() = "true"
+	fun isReady(): String = "true"
 
 	@Operation(summary = "Get process info")
 	@GetMapping("/p", produces = [MediaType.TEXT_PLAIN_VALUE])
-	fun getProcessInfo() = mono { iCureService.getProcessInfo() }
+	fun getProcessInfo(): Mono<String> = mono { iCureService.getProcessInfo() }
 
 	@Operation(summary = "Get index info")
 	@GetMapping("/i")
-	fun getIndexingInfo() = mono {
+	fun getIndexingInfo(): Mono<IndexingInfoDto> = mono {
 		indexingInfoV2Mapper.map(iCureService.getIndexingStatus())
 	}
 
 	@Operation(summary = "Get replication info")
 	@GetMapping("/r")
-	fun getReplicationInfo() = mono {
+	fun getReplicationInfo(): Mono<ReplicationInfoDto> = mono {
 		iCureService.getReplicationInfo().let(replicationInfoV2Mapper::map)
 	}
 
@@ -82,7 +85,7 @@ class ICureController(
 	fun updateDesignDoc(
 		@PathVariable entityName: String,
 		@RequestParam(required = false) warmup: Boolean? = null,
-	) = mono {
+	): Mono<Boolean> = mono {
 		iCureService.updateDesignDocForCurrentUser(entityName, warmup ?: false)
 		true
 	}

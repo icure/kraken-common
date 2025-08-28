@@ -17,11 +17,14 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.SecureDelegationKeyMapDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
+import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.SecureDelegationKeyMapV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.SecureDelegationKeyMapBulkShareResultV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("secureDelegationKeyMapControllerV2")
 @Profile("app")
@@ -38,7 +41,7 @@ class SecureDelegationKeyMapController(
 	@PostMapping
 	fun createSecureDelegationKeyMap(
 		@RequestBody secureDelegationKeyMap: SecureDelegationKeyMapDto,
-	) = mono {
+	): Mono<SecureDelegationKeyMapDto> = mono {
 		secureDelegationKeyMapService
 			.createSecureDelegationKeyMap(
 				secureDelegationKeyMapV2Mapper.map(secureDelegationKeyMap),
@@ -49,7 +52,7 @@ class SecureDelegationKeyMapController(
 	@PostMapping("/bydelegationkeys")
 	fun findByDelegationKeys(
 		@RequestBody delegationKeys: ListOfIdsDto,
-	) = flow {
+	): Flux<SecureDelegationKeyMapDto> = flow {
 		emitAll(
 			secureDelegationKeyMapService
 				.findByDelegationKeys(delegationKeys.ids)
@@ -61,7 +64,7 @@ class SecureDelegationKeyMapController(
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
-	) = flow {
+	): Flux<EntityBulkShareResultDto<SecureDelegationKeyMapDto>> = flow {
 		emitAll(
 			secureDelegationKeyMapService
 				.bulkShareOrUpdateMetadata(

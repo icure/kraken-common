@@ -22,6 +22,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ApplicationSettingsDto
 import org.taktik.icure.services.external.rest.v2.mapper.ApplicationSettingsV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController("applicationSettingsControllerV2")
 @Profile("app")
@@ -42,7 +43,7 @@ class ApplicationSettingsController(
 	@PostMapping
 	fun createApplicationSettings(
 		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
-	) = mono {
+	): Mono<ApplicationSettingsDto> = mono {
 		val applicationSettings =
 			applicationSettingsService.createApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
@@ -53,7 +54,7 @@ class ApplicationSettingsController(
 	@PutMapping
 	fun updateApplicationSettings(
 		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
-	) = mono {
+	): Mono<ApplicationSettingsDto> = mono {
 		val applicationSettings =
 			applicationSettingsService.modifyApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto))
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings modification failed")
