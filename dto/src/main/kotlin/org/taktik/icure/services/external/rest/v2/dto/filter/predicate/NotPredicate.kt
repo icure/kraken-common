@@ -29,5 +29,5 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NotPredicate(
-	@get:Schema(required = true) val predicate: Predicate,
+	@param:Schema(required = true) val predicate: Predicate,
 ) : Predicate

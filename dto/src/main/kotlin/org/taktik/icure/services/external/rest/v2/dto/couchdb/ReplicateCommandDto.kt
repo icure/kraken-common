@@ -16,9 +16,9 @@ data class ReplicateCommandDto(
 	val cancel: Boolean? = null,
 	val filter: String? = null,
 	val selector: String? = null,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val source: RemoteDto,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val target: RemoteDto,
 ) : VersionableDto<String> {
 	override fun withIdRev(

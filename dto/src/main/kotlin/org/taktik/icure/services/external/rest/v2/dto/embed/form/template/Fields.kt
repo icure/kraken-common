@@ -18,7 +18,7 @@ sealed interface StructureElement
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("textfield")
 data class TextField(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -44,7 +44,7 @@ data class TextField(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("measure-field")
 data class MeasureField(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -70,7 +70,7 @@ data class MeasureField(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("number-field")
 data class NumberField(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -96,7 +96,7 @@ data class NumberField(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-picker")
 data class DatePicker(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -122,7 +122,7 @@ data class DatePicker(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("time-picker")
 data class TimePicker(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -148,7 +148,7 @@ data class TimePicker(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("multiple-choice")
 data class MultipleChoice(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -174,7 +174,7 @@ data class MultipleChoice(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("dropdown")
 data class DropdownField(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -200,7 +200,7 @@ data class DropdownField(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("radio-button")
 data class RadioButton(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -226,7 +226,7 @@ data class RadioButton(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("checkbox")
 data class CheckBox(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,
@@ -252,7 +252,7 @@ data class CheckBox(
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminated("date-time-picker")
 data class DateTimePicker(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val field: String,
 	override val shortLabel: String? = null,
 	override val rows: Int? = null,

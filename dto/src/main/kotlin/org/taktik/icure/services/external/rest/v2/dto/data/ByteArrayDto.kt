@@ -25,5 +25,5 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ByteArrayDto(
-	@get:Schema(required = true) val data: ByteArray,
+	@param:Schema(required = true) val data: ByteArray,
 ) : Serializable

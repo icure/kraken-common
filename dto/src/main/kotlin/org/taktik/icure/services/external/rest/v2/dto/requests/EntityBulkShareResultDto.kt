@@ -17,7 +17,7 @@ data class EntityBulkShareResultDto<T>(
 	/**
 	 * Id of the entity for which the update was requested.
 	 */
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val entityId: String,
 	/**
 	 * Last known revision of the entity before any update, non-null only if an entity matching the requests could be
@@ -39,7 +39,7 @@ data class EntityBulkShareResultDto<T>(
 		/**
 		 * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
 		 */
-		@get:Schema(required = true)
+		@param:Schema(required = true)
 		val code: Int,
 		/**
 		 * If true a new share request with the same content may succeed so the user is encouraged to retry. This could
@@ -51,7 +51,7 @@ data class EntityBulkShareResultDto<T>(
 		/**
 		 * Human-friendly message explaining the reason of the failure.
 		 */
-		@get:Schema(required = true)
+		@param:Schema(required = true)
 		val reason: String,
 	)
 

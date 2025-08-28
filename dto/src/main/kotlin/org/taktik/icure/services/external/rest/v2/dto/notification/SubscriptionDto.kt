@@ -10,9 +10,9 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessCont
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SubscriptionDto<O : IdentifiableDto<String>>(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val eventTypes: List<SubscriptionEventType>,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val entityClass: String,
 	val filter: FilterChain<O>?,
 	val accessControlKeys: List<AccessControlKeyHexStringDto>?,

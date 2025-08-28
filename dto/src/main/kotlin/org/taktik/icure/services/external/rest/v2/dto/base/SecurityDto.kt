@@ -25,6 +25,6 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecurityDto(
-	@get:Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
-	@get:Schema(defaultValue = "RightDto()") val members: RightDto = RightDto(),
+	@param:Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
+	@param:Schema(defaultValue = "RightDto()") val members: RightDto = RightDto(),
 ) : Serializable

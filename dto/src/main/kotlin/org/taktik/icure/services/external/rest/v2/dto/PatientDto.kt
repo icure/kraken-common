@@ -75,9 +75,9 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
 	],
 )
 data class PatientDto(
-	@get:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@param:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	val identifier: List<IdentifierDto> = emptyList(),
-	@get:Schema(description = "the revision of the patient in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	@param:Schema(description = "the revision of the patient in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
@@ -86,85 +86,85 @@ data class PatientDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@get:Schema(description = "the firstname (name) of the patient.") override val firstName: String? = null,
-	@get:Schema(
+	@param:Schema(description = "the firstname (name) of the patient.") override val firstName: String? = null,
+	@param:Schema(
 		description = "the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes.",
 	) override val lastName: String? = null, // Is usually either maidenName or spouseName,
-	@get:Schema(
+	@param:Schema(
 		description = "the list of all names of the patient, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the patient in the application",
 	) override val names: List<PersonNameDto> = emptyList(),
-	@get:Schema(description = "the name of the company this patient is member of.") override val companyName: String? = null,
-	@get:Schema(
+	@param:Schema(description = "the name of the company this patient is member of.") override val companyName: String? = null,
+	@param:Schema(
 		description = "the list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).",
 	) override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
-	@get:Schema(description = "the list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
-	@get:Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
-	@get:Schema(
+	@param:Schema(description = "the list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
+	@param:Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
+	@param:Schema(
 		description = "the gender of the patient: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown",
 		defaultValue = "GenderDto.unknown",
 	) override val gender: GenderDto? = GenderDto.unknown,
-	@get:Schema(
+	@param:Schema(
 		description = "the birth sex of the patient: male, female, indeterminate, unknown",
 		defaultValue = "GenderDto.unknown",
 	) val birthSex: GenderDto? = GenderDto.unknown,
-	@get:Schema(description = "The id of the patient this patient has been merged with.") val mergeToPatientId: String? = null,
-	@get:Schema(description = "The ids of the patients that have been merged inside this patient.") val mergedIds: Set<String> = emptySet(),
-	@get:Schema(description = "An alias of the person, nickname, ...") val alias: String? = null,
-	@get:Schema(description = "Is the patient active (boolean).", defaultValue = "true") val active: Boolean = true,
-	@get:Schema(description = "When not active, the reason for deactivation.", defaultValue = "DeactivationReason.none") val deactivationReason: DeactivationReasonDto = DeactivationReasonDto.none,
-	@get:Schema(description = "Deactivation date of the patient") val deactivationDate: Int? = null,
-	@get:Schema(description = "Social security inscription number.") val ssin: String? = null,
-	@get:Schema(
+	@param:Schema(description = "The id of the patient this patient has been merged with.") val mergeToPatientId: String? = null,
+	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") val mergedIds: Set<String> = emptySet(),
+	@param:Schema(description = "An alias of the person, nickname, ...") val alias: String? = null,
+	@param:Schema(description = "Is the patient active (boolean).", defaultValue = "true") val active: Boolean = true,
+	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "DeactivationReason.none") val deactivationReason: DeactivationReasonDto = DeactivationReasonDto.none,
+	@param:Schema(description = "Deactivation date of the patient") val deactivationDate: Int? = null,
+	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
+	@param:Schema(
 		description = "Lastname at birth (can be different of the current name), depending on the country, must be used to design the patient .",
 	) val maidenName: String? = null, // Never changes (nom de jeune fille),
-	@get:Schema(
+	@param:Schema(
 		description = "Lastname of the spouse for a married woman, depending on the country, can be used to design the patient.",
 	) val spouseName: String? = null, // Name of the spouse after marriage,
-	@get:Schema(description = "Lastname of the partner, should not be used to design the patient.") val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
-	@get:Schema(
+	@param:Schema(description = "Lastname of the partner, should not be used to design the patient.") val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
+	@param:Schema(
 		description = "any of `single`, `in_couple`, `married`, `separated`, `divorced`, `divorcing`, `widowed`, `widower`, `complicated`, `unknown`, `contract`, `other`.",
 		defaultValue = "PersonalStatusDto.unknown",
 	) val personalStatus: PersonalStatusDto? = PersonalStatusDto.unknown,
-	@get:Schema(
+	@param:Schema(
 		description = "The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
 	) val dateOfBirth: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
-	@get:Schema(
+	@param:Schema(
 		description = "The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
 	) val dateOfDeath: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
-	@get:Schema(description = "Timestamp of the latest validation of the eID of the person..") val timestampOfLatestEidReading: Long? = null,
-	@get:Schema(description = "The place of birth.") val placeOfBirth: String? = null,
-	@get:Schema(description = "The place of death.") val placeOfDeath: String? = null,
-	@get:Schema(description = "Is the patient deceased.") val deceased: Boolean? = null,
-	@get:Schema(description = "The level of education (college degree, undergraduate, phd).") val education: String? = null,
-	@get:Schema(description = "The current professional activity.") val profession: String? = null,
-	@get:Schema(description = "Localized text notes (can be confidential).") val notes: List<AnnotationDto> = emptyList(),
-	@get:Schema(description = "A text note (can be confidential, encrypted by default).", deprecated = true) val note: String? = null,
-	@get:Schema(description = "An administrative note, not confidential.", deprecated = true) val administrativeNote: String? = null,
-	@get:Schema(description = "The nationality of the patient.") val nationality: String? = null,
-	@get:Schema(description = "The race of the patient.") val race: String? = null,
-	@get:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
-	@get:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
-	@get:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
-	@get:Schema(
+	@param:Schema(description = "Timestamp of the latest validation of the eID of the person..") val timestampOfLatestEidReading: Long? = null,
+	@param:Schema(description = "The place of birth.") val placeOfBirth: String? = null,
+	@param:Schema(description = "The place of death.") val placeOfDeath: String? = null,
+	@param:Schema(description = "Is the patient deceased.") val deceased: Boolean? = null,
+	@param:Schema(description = "The level of education (college degree, undergraduate, phd).") val education: String? = null,
+	@param:Schema(description = "The current professional activity.") val profession: String? = null,
+	@param:Schema(description = "Localized text notes (can be confidential).") val notes: List<AnnotationDto> = emptyList(),
+	@param:Schema(description = "A text note (can be confidential, encrypted by default).", deprecated = true) val note: String? = null,
+	@param:Schema(description = "An administrative note, not confidential.", deprecated = true) val administrativeNote: String? = null,
+	@param:Schema(description = "The nationality of the patient.") val nationality: String? = null,
+	@param:Schema(description = "The race of the patient.") val race: String? = null,
+	@param:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
+	@param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
+	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
+	@param:Schema(
 		description = "An external (from another source) id with no guarantee or requirement for unicity .",
 	) val externalId: String? = null, // No guarantee of unicity
-	@get:Schema(description = "List of insurance coverages (of class Insurability, see below).") val insurabilities: List<InsurabilityDto> =
+	@param:Schema(description = "List of insurance coverages (of class Insurability, see below).") val insurabilities: List<InsurabilityDto> =
 		emptyList(),
-	@get:Schema(
+	@param:Schema(
 		description = "List of partners, or persons of contact (of class Partnership, see below).",
 	) val partnerships: List<PartnershipDto> =
 		emptyList(),
-	@get:Schema(
+	@param:Schema(
 		description = "Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty).",
 	) val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
-	@get:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
-	@get:Schema(
+	@param:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@param:Schema(
 		description = "Contracts between the patient and the healthcare entity.",
 	) val medicalHouseContracts: List<MedicalHouseContractDto> =
 		emptyList(),
-	@get:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
-	@get:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
-	@get:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
+	@param:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
+	@param:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
+	@param:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),

@@ -9,7 +9,7 @@ import org.taktik.icure.entities.utils.Sha256HexString
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """Holds information for user-based access control and encryption of entities.""")
 data class SecurityMetadataDto(
-	@get:Schema(
+	@param:Schema(
 		description = """This maps the hex-encoded sha256 hash of a key created by the client using a certain [ExchangeData.accessControlSecret] to the
 [SecureDelegation] for the corresponding delegate-delegator pair. This hash is used by the server to perform access control for
 anonymous data owners (see [DataOwnerAuthenticationDetails]) and in some cases also by the sdks to quickly find the appropriate

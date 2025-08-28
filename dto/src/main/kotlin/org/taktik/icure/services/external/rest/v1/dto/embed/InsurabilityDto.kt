@@ -16,15 +16,15 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
-	@get:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
-	@get:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
-	@get:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
-	@get:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
-	@get:Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
-	@get:Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
-	@get:Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
-	@get:Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
-	@get:Schema(
+	@param:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
+	@param:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
+	@param:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
+	@param:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
+	@param:Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
+	@param:Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
+	@param:Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
+	@param:Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
+	@param:Schema(
 		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
 	) val titularyId: String? = null,
 	override val encryptedSelf: String? = null,

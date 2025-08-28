@@ -32,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PatientByHcPartyDateOfBirthFilter(
 	override val desc: String? = null,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val dateOfBirth: Int,
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

@@ -10,7 +10,7 @@ data class RegistrationInformationDto(
 	val firstName: String? = null,
 	val lastName: String? = null,
 	val companyName: String? = null,
-	@get:Schema(required = true) val emailAddress: String,
+	@param:Schema(required = true) val emailAddress: String,
 	val userOptions: String? = null,
 	val userRoles: Set<String> = emptySet(),
 	val minimumKrakenVersion: String? = null,

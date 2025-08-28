@@ -24,10 +24,10 @@ import io.swagger.v3.oas.annotations.media.Schema
  * @author Bernard Paulus on 23/05/17.
  */
 class WsExceptionDto(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val level: String,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val error: String,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val translations: Map<String, String>,
 )

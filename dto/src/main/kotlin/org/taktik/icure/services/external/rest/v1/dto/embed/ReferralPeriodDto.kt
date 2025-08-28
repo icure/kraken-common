@@ -19,14 +19,14 @@ data class ReferralPeriodDto(
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	@get:Schema(description = "The date (unix epoch in ms) when the referral period initiated, will be filled instantaneously.") val startDate: Instant? = null,
+	@param:Schema(description = "The date (unix epoch in ms) when the referral period initiated, will be filled instantaneously.") val startDate: Instant? = null,
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	@get:Schema(
+	@param:Schema(
 		description = "The date (unix epoch in ms) the referral period ended, will be instantaneously filled.",
 	) val endDate: Instant? = null,
-	@get:Schema(description = "Comments made during the referral.") val comment: String? = null,
+	@param:Schema(description = "Comments made during the referral.") val comment: String? = null,
 ) : Serializable,
 	Comparable<ReferralPeriodDto> {
 	override fun compareTo(other: ReferralPeriodDto): Int = when {

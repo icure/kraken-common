@@ -33,7 +33,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents available contact details of a user, reachable by telecom methods""")
 data class TelecomDto(
-	@get:Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") val telecomType: TelecomTypeDto? = null,
+	@param:Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") val telecomType: TelecomTypeDto? = null,
 	val telecomNumber: String? = null,
 	val telecomDescription: String? = null,
 	override val encryptedSelf: Base64StringDto? = null,
