@@ -67,6 +67,7 @@ data class InvoicingCodeDto(
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
 	val codeLabel: String? = null,
+	val options: Map<String, String> = emptyMap(),
 	override val encryptedSelf: String? = null,
 ) : EncryptableDto,
 	Comparable<InvoicingCodeDto?> {
