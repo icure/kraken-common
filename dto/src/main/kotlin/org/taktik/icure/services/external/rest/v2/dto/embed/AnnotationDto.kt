@@ -15,19 +15,19 @@ import java.util.UUID
     |thermometer is faulty.""",
 )
 data class AnnotationDto(
-	@get:Schema(
+	@param:Schema(
 		description = "The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id.",
 	) override val id: String = UUID.randomUUID().toString(),
 	val author: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) of creation of this note, will be filled automatically if missing. Not enforced by the application server.",
 	) val created: Long? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) of the latest modification of this note, will be filled automatically if missing. Not enforced by the application server.",
 	) val modified: Long? = null,
-	@get:Schema(description = "Text contained in the note, written as markdown.", deprecated = true) val text: String? = null,
-	@get:Schema(description = "Localized text contained in the note, written as markdown. Keys should respect ISO 639-1") val markdown: Map<String, String> = emptyMap(),
-	@get:Schema(description = "Defines to which part of the corresponding information the note is related to.") val location: String? = null,
+	@param:Schema(description = "Text contained in the note, written as markdown.", deprecated = true) val text: String? = null,
+	@param:Schema(description = "Localized text contained in the note, written as markdown. Keys should respect ISO 639-1") val markdown: Map<String, String> = emptyMap(),
+	@param:Schema(description = "Defines to which part of the corresponding information the note is related to.") val location: String? = null,
 	val confidential: Boolean? = null,
 	val tags: Set<CodeStubDto> = emptySet(),
 	val encryptedSelf: String? = null,

@@ -11,7 +11,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PermissionDto(
-	@get:Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
-	@get:Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet(),
+	@param:Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
+	@param:Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet(),
 ) : Cloneable,
 	Serializable

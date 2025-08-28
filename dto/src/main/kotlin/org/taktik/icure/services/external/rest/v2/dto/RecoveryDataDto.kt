@@ -12,9 +12,9 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 data class RecoveryDataDto(
 	override val id: String,
 	override val rev: String? = null,
-	@get:Schema(required = true) val recipient: String,
-	@get:Schema(required = true) val encryptedSelf: Base64StringDto,
-	@get:Schema(required = true) val type: Type,
+	@param:Schema(required = true) val recipient: String,
+	@param:Schema(required = true) val encryptedSelf: Base64StringDto,
+	@param:Schema(required = true) val type: Type,
 	val expirationInstant: Long? = null,
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

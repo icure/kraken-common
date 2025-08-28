@@ -25,7 +25,7 @@ data class FrontEndMigrationDto(
 	val startKey: String? = null,
 	val startKeyDocId: String? = null,
 	val processCount: Long? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "Extra properties for the fem. Those properties are typed (see class Property)",
 	) val properties: Set<PropertyStubDto> =
 		emptySet(),

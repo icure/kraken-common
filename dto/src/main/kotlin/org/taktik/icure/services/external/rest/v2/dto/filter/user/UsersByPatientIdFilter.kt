@@ -14,7 +14,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class UsersByPatientIdFilter(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val patientId: String,
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

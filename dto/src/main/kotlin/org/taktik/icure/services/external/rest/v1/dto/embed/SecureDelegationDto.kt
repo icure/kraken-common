@@ -34,39 +34,39 @@ In general users will want to hide the delegator/delegate id for patient and med
 data confidentiality. For hcps instead the best choice depends is likely to change depending on the product.""",
 )
 data class SecureDelegationDto(
-	@get:Schema(
+	@param:Schema(
 		description = """Optionally the id of the delegator data owner for this [SecureDelegation]. May be null if this information must
 be hidden to prevent data leakages (see class documentation for more details).""",
 	)
 	val delegator: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = """Optionally the id of the delegate data owner for this [SecureDelegation]. May be null if this information must
 be hidden to prevent data leakages (see class documentation for more details).""",
 	)
 	val delegate: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = """Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
 `secretForeignKeys` field of children entities.""",
 	)
 	val secretIds: Set<Base64String> = emptySet(),
-	@get:Schema(description = """Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).""")
+	@param:Schema(description = """Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).""")
 	val encryptionKeys: Set<Base64String> = emptySet(),
-	@get:Schema(
+	@param:Schema(
 		description = """Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
 such as the id of the patient for a contact or healthcare element.""",
 	)
 	val owningEntityIds: Set<Base64String> = emptySet(),
-	@get:Schema(
+	@param:Schema(
 		description = """Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
 only [SecureDelegation] that they can directly access or any children delegations.""",
 	)
 	val parentDelegations: Set<Sha256HexString> = emptySet(),
-	@get:Schema(
+	@param:Schema(
 		description = """If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
 data used for the encryption of this delegation. Otherwise, this will be null.""",
 	)
 	val exchangeDataId: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = """Permissions of users with access to this [SecureDelegation] on the corresponding entity. Each entry represents
 a field or group of fields of the entity that the user can read and/or modify; any field not covered by this map
 will not be accessible to the users. Note that the same user may have access to multiple instances of [SecureDelegation]

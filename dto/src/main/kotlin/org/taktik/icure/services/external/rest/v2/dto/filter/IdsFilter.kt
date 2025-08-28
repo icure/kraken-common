@@ -32,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IdsFilter<O : IdentifiableDto<String>>(
 	override val desc: String? = null,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val ids: Set<String>,
 ) : AbstractFilterDto<O>,
 	FilterDto.IdsFilter<String, O>

@@ -32,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthcarePartyByIdsFilter(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val ids: Set<String>,
 	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>,

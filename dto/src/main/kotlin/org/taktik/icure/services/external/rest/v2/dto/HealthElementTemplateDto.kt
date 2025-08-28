@@ -41,8 +41,8 @@ data class HealthElementTemplateDto(
 	override val deletionDate: Long? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	@get:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	@get:Schema(defaultValue = "true") val relevant: Boolean = true,
+	@param:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@param:Schema(defaultValue = "true") val relevant: Boolean = true,
 	val plansOfAction: List<PlanOfActionTemplateDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String> {

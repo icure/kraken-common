@@ -5,6 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CryptoActorStubWithTypeDto(
-	@get:Schema(required = true) val type: DataOwnerTypeDto,
-	@get:Schema(required = true) val stub: CryptoActorStubDto,
+	@param:Schema(required = true) val type: DataOwnerTypeDto,
+	@param:Schema(required = true) val stub: CryptoActorStubDto,
 )

@@ -9,12 +9,12 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.AuthenticationClassD
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ExternalJwtConfigDto(
-	@get:Schema(description = "Specifies how the external jwt should be validated at login")
+	@param:Schema(description = "Specifies how the external jwt should be validated at login")
 	val validationMethod: ValidationMethodDto,
-	@get:Schema(description = "Specifies which field of the external jwt should be used to find the matching users")
+	@param:Schema(description = "Specifies which field of the external jwt should be used to find the matching users")
 	val fieldSelector: FieldSelectorDto,
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT)
-	@get:Schema(
+	@param:Schema(
 		description = "The authentication class assigned to the JWT of users that login using this configuration, default is AuthenticationClass.EXTERNAL_AUTHENTICATION",
 	)
 	val authenticationClass: AuthenticationClassDto = AuthenticationClassDto.EXTERNAL_AUTHENTICATION,

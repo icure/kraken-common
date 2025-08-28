@@ -40,8 +40,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 	description = """This entity is a root level object. It represents a Document. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
 data class DocumentDto(
-	@get:Schema(description = "The Id of the document. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@get:Schema(
+	@param:Schema(description = "The Id of the document. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@param:Schema(
 		description = "The revision of the document in the database, used for conflict management / optimistic locking.",
 	) override val rev: String? = null,
 	override val created: Long? = null,
@@ -53,32 +53,32 @@ data class DocumentDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@get:Schema(description = "Location of the document") val documentLocation: DocumentLocationDto? = null,
-	@get:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
-	@get:Schema(description = "The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc.") val documentStatus: DocumentStatusDto? = null,
-	@get:Schema(
+	@param:Schema(description = "Location of the document") val documentLocation: DocumentLocationDto? = null,
+	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
+	@param:Schema(description = "The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc.") val documentStatus: DocumentStatusDto? = null,
+	@param:Schema(
 		description = "When the document is stored in an external repository, this is the uri of the document in that repository",
 	) val externalUri: String? = null,
-	@get:Schema(description = "Name of the document") val name: String? = null,
-	@get:Schema(description = "The document version") val version: String? = null,
-	@get:Schema(description = "The ICureDocument (Form, Contact, ...) that has been used to generate the document") val storedICureDocumentId: String? = null, // The ICureDocumentDto (FormDto, ContactDto, ...) that has been used to generate the document
-	@get:Schema(description = "A unique external id (from another external source).") val externalUuid: String? = null,
-	@get:Schema(description = "Size of the document file") val size: Long? = null,
-	@get:Schema(description = "Hashed version of the document") val hash: String? = null,
-	@get:Schema(description = "Id of the contact during which the document was created") val openingContactId: String? = null,
-	@get:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment") val attachmentId: String? = null,
-	@get:Schema(
+	@param:Schema(description = "Name of the document") val name: String? = null,
+	@param:Schema(description = "The document version") val version: String? = null,
+	@param:Schema(description = "The ICureDocument (Form, Contact, ...) that has been used to generate the document") val storedICureDocumentId: String? = null, // The ICureDocumentDto (FormDto, ContactDto, ...) that has been used to generate the document
+	@param:Schema(description = "A unique external id (from another external source).") val externalUuid: String? = null,
+	@param:Schema(description = "Size of the document file") val size: Long? = null,
+	@param:Schema(description = "Hashed version of the document") val hash: String? = null,
+	@param:Schema(description = "Id of the contact during which the document was created") val openingContactId: String? = null,
+	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment") val attachmentId: String? = null,
+	@param:Schema(
 		description = "Id of the main attachment of this document, if stored using the object storage service",
 	) val objectStoreReference: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The main Uniform Type Identifier for the main attachment (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE)",
 	) val mainUti: String? = null,
-	@get:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
-	@get:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
-	@get:Schema(description = "Information on past attachments for this document") val deletedAttachments: List<DeletedAttachmentDto> =
+	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
+	@param:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
+	@param:Schema(description = "Information on past attachments for this document") val deletedAttachments: List<DeletedAttachmentDto> =
 		emptyList(),
-	@get:Schema(type = "string", format = "byte") val encryptedAttachment: ByteArray? = null,
-	@get:Schema(type = "string", format = "byte") val decryptedAttachment: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") val encryptedAttachment: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") val decryptedAttachment: ByteArray? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

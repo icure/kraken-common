@@ -14,7 +14,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFin
 data class ExchangeDataMapDto(
 	override val id: String,
 	override val rev: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = """
         A map where each key is the fingerprint of a public key and the value is an exchange data id, encrypted with the private key corresponding to that public key.
     """,

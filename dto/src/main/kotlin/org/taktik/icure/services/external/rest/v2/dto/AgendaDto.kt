@@ -49,7 +49,7 @@ data class AgendaDto(
 	val userId: String? = null,
 	val zoneId: String? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
-	@get:Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@param:Schema(description = "Associates a user id to the permission that user has on the entity.")
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
 	val publicBookingQuota: Int? = null,

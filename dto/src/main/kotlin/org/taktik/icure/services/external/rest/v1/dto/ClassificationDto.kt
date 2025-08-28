@@ -30,7 +30,7 @@ data class ClassificationDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val parentId: String?,
-	@get:Schema(defaultValue = "\"\"") val label: String = "",
+	@param:Schema(defaultValue = "\"\"") val label: String = "",
 	val templateId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

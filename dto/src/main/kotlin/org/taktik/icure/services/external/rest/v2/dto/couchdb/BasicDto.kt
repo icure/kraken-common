@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BasicDto(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val username: String,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val password: String,
 )

@@ -26,7 +26,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MimeAttachmentDto(
-	@get:Schema(type = "string", format = "byte") val data: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") val data: ByteArray? = null,
 	val fileName: String? = null,
 	val mimeType: String? = null,
 ) : Serializable

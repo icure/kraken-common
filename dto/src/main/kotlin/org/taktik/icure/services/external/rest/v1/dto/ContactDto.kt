@@ -30,8 +30,8 @@ The main sub-element of the contact is the service. Each atomic piece of informa
 """,
 )
 data class ContactDto(
-	@get:Schema(description = "the Id of the contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@get:Schema(description = "the revision of the contact in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	@param:Schema(description = "the Id of the contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@param:Schema(description = "the revision of the contact in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val author: String? = null,
@@ -39,24 +39,24 @@ data class ContactDto(
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
-	@get:Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
+	@param:Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "Separate contacts can merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId",
 	) val groupId: String? = null, // Several contacts can be combined in a logical contact if they share the same groupId
-	@get:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@get:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@get:Schema(description = "Description of the contact") val descr: String? = null,
-	@get:Schema(description = "Location where the contact was recorded.") val location: String? = null,
-	@get:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
-	@get:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
-	@get:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
-	@get:Schema(
+	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@param:Schema(description = "Description of the contact") val descr: String? = null,
+	@param:Schema(description = "Location where the contact was recorded.") val location: String? = null,
+	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
+	@param:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
+	@param:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
+	@param:Schema(
 		description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.",
 	) val subContacts: Set<SubContactDto> = emptySet(),
-	@get:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
-	@get:Schema(
+	@param:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
+	@param:Schema(
 		description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id",
 	) val participants: Map<ParticipantTypeDto, String> = emptyMap(),
 	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, // Redundant... Should be responsible

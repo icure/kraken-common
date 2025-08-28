@@ -35,7 +35,7 @@ data class SecureDelegationKeyMapDto(
 	/**
 	 * The secure delegation key this map refers to.
 	 */
-	@get:Schema(required = true) val delegationKey: String,
+	@param:Schema(required = true) val delegationKey: String,
 	/**
 	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
 	 * and if not encrypted.

@@ -28,8 +28,8 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 	description = """This entity is a root level object. It represents an Invoice. It is serialized in JSON and saved in the underlying iCure CouchDB database.""",
 )
 data class InvoiceDto(
-	@get:Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@get:Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	@param:Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	@param:Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	val identifier: List<IdentifierDto> = emptyList(),
 	override val created: Long? = null,
 	override val modified: Long? = null,
@@ -40,20 +40,20 @@ data class InvoiceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.",
 	) val invoiceDate: Long? = null, // yyyyMMdd
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.",
 	) val sentDate: Long? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.",
 	) val printedDate: Long? = null,
 	val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
-	@get:Schema(description = "") val receipts: Map<String, String> = emptyMap(),
-	@get:Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v1.dto.HealthcarePartyDto,
+	@param:Schema(description = "") val receipts: Map<String, String> = emptyMap(),
+	@param:Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v1.dto.HealthcarePartyDto,
 	// org.taktik.icure.services.external.rest.v1.dto.InsuranceDto, org.taktik.icure.services.external.rest.v1.dto.PatientDto
-	@get:Schema(
+	@param:Schema(
 		description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys",
 	) val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
 	val invoiceReference: String? = null,
@@ -62,13 +62,13 @@ data class InvoiceDto(
 	val thirdPartyPaymentJustification: String? = null,
 	val thirdPartyPaymentReason: String? = null,
 	val reason: String? = null,
-	@get:Schema(
+	@param:Schema(
 		description = "The format the invoice should follow based on the recipient which could be a patient, mutual fund or paying agency such as the CPAS",
 	) val invoiceType: InvoiceTypeDto? = null,
-	@get:Schema(description = "Medium of the invoice: CD ROM, Email, paper, etc.") val sentMediumType: MediumTypeDto? = null,
+	@param:Schema(description = "Medium of the invoice: CD ROM, Email, paper, etc.") val sentMediumType: MediumTypeDto? = null,
 	val interventionType: InvoiceInterventionTypeDto? = null,
 	val groupId: String? = null,
-	@get:Schema(description = "Type of payment, ex: cash, wired, insurance, debit card, etc.") val paymentType: PaymentTypeDto? = null,
+	@param:Schema(description = "Type of payment, ex: cash, wired, insurance, debit card, etc.") val paymentType: PaymentTypeDto? = null,
 	val paid: Double? = null,
 	val payments: List<PaymentDto>? = null,
 	val gnotionNihii: String? = null,

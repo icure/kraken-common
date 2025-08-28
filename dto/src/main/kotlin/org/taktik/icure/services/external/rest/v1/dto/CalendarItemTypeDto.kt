@@ -20,7 +20,7 @@ data class CalendarItemTypeDto(
 	val defaultCalendarItemType: Boolean = false,
 	val name: String? = null,
 	val color: String? = null, // "#123456"
-	@get:Schema(defaultValue = "0") val duration: Int = 0,
+	@param:Schema(defaultValue = "0") val duration: Int = 0,
 	val externalRef: String? = null,
 	val mikronoId: String? = null,
 	val docIds: Set<String> = emptySet(),

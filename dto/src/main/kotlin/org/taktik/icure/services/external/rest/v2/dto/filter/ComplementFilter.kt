@@ -32,9 +32,9 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ComplementFilter<O : IdentifiableDto<String>>(
 	override val desc: String? = null,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val superSet: AbstractFilterDto<O>,
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val subSet: AbstractFilterDto<O>,
 ) : AbstractFilterDto<O>,
 	FilterDto.ComplementFilter<O>

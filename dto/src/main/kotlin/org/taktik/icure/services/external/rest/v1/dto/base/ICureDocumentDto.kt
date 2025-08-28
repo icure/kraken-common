@@ -9,34 +9,34 @@ interface ICureDocumentDto<T> :
 	IdentifiableDto<T>,
 	HasTagsDto,
 	HasCodesDto {
-	@get:Schema(
+	@param:Schema(
 		description = "The timestamp (unix epoch in ms) of creation of this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
 	val created:
 		Long?
 
-	@get:Schema(
+	@param:Schema(
 		description = "The date (unix epoch in ms) of the latest modification of this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
 	val modified:
 		Long?
 
-	@get:Schema(
+	@param:Schema(
 		description = "The id of the User that has created this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
 	val author:
 		String?
 
-	@get:Schema(
+	@param:Schema(
 		description = "The id of the HealthcareParty that is responsible for this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
 	val responsible:
 		String?
 
-	@get:Schema(description = "The id of the medical location where this entity was created.")
+	@param:Schema(description = "The id of the medical location where this entity was created.")
 	val medicalLocationId: String?
 
-	@get:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.")
+	@param:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.")
 	val endOfLife: Long?
 
 	fun solveConflictsWith(other: ICureDocumentDto<T>): Map<String, Any?> = mapOf(

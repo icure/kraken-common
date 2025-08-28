@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormTemplateLayout(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	val form: String,
 	val actions: List<Action> = emptyList(),
 	val sections: List<Section> = emptyList(),

@@ -9,9 +9,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AlwaysPre
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonDiscriminated("AlwaysPermissionItemDto")
 data class AlwaysPermissionItemDto(
-	@get:Schema(required = true)
+	@param:Schema(required = true)
 	override val type: PermissionTypeDto,
 ) : PermissionItemDto {
-	@get:Schema(defaultValue = "AlwaysPredicate()")
+	@param:Schema(defaultValue = "AlwaysPredicate()")
 	override val predicate = AlwaysPredicate()
 }
