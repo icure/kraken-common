@@ -5,11 +5,8 @@
 package org.taktik.icure.utils
 
 import kotlinx.coroutines.delay
-import java.math.BigInteger
-import java.security.MessageDigest
 import java.time.Duration
 import java.util.UUID
-fun <K> retry(trials: Int, closure: () -> K): K = retry(trials, closure) { true }
 
 tailrec fun <K> retry(trials: Int, closure: () -> K, skipException: (e: Exception) -> Boolean): K {
 	try {
@@ -22,7 +19,10 @@ tailrec fun <K> retry(trials: Int, closure: () -> K, skipException: (e: Exceptio
 	return retry(trials - 1, closure, skipException)
 }
 
-inline fun <K> retryIf(trials: Int, condition: (Exception) -> Boolean, closure: () -> K): K {
+inline fun <K> retryIf(trials: Int, condition: (Exception) -> Boolean, closure: () -> K): K =
+	retry(trials, condition, {}, closure)
+
+inline fun <K> retry(trials: Int, condition: (Exception) -> Boolean = { true }, beforeRetry: () -> Unit = {}, closure: () -> K): K {
 	require(trials > 0) { "trials must be > 0" }
 	var remaining = trials
 	while (true) {
@@ -32,11 +32,15 @@ inline fun <K> retryIf(trials: Int, condition: (Exception) -> Boolean, closure: 
 			remaining -= 1
 			if (remaining <= 0 || !condition(e)) {
 				throw e
+			} else {
+				beforeRetry()
 			}
 		}
 	}
 }
-suspend inline fun <K, reified E> suspendRetryForSomeException(trials: Int, noinline closure: suspend () -> K): K = suspendRetry(trials, Duration.ZERO, closure) { it is E }
+
+suspend inline fun <K, reified E> suspendRetryForSomeException(trials: Int, noinline closure: suspend () -> K): K =
+	suspendRetry(trials, Duration.ZERO, closure) { it is E }
 
 suspend fun <K> suspendRetry(trials: Int, closure: suspend () -> K): K = suspendRetry(trials, Duration.ZERO, closure)
 

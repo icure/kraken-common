@@ -82,6 +82,11 @@ data class CalendarItem(
 	 * For agendas created through the restricted endpoints this will be set to null.
 	 */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
+	/**
+	 * A value used only internally by iCure in the tentative calendar items, to mark the time when they were created.
+	 * Used by the tentative calendar item cleanup process to chek if a calendar item should be cleaned up or not.
+	 */
+	val tentativeTimestamp: Long? = null,
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTag> = emptySet(),

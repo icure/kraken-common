@@ -5,7 +5,8 @@ springFramework = "6.2.8"
 springSession = "3.5.1"
 jackson = "2.19.1"
 caffeine = "3.2.1"
-kotlinx = "1.8.1"
+kotlinxCoroutines = "1.10.2"
+kotlinxSerialization = "1.9.0"
 kotest = "5.9.1"
 hibernateValidator = "8.0.1.Final"
 kmap = "0.1.84-g107c985e93"
@@ -27,7 +28,7 @@ apacheCommonsCompress = { group = "org.apache.commons", name = "commons-compress
 apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.16.0" }
 apacheCommonsMath3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 apacheCommonsText = { group = "org.apache.commons", name = "commons-text", version = "1.12.0" }
-asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.21-g0020856bdb" }
+asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.23-g050f3d219b" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 bouncyCastleBcmail = { group = "org.bouncycastle", name = "bcmail-jdk18on", version.ref = "bouncyCastle" }
 bouncyCastleBcprov = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
@@ -84,23 +85,25 @@ kotlinStandardLibrary = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib"
 kotlinStandardLibraryJdk7 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk7", version.ref = "kotlin" }
 kotlinStandardLibraryJdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinxCollectionsImmutableJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable-jvm", version = "0.3.8" }
-kotlinxCoroutinesBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx" }
-kotlinxCoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx" }
-kotlinxCoroutinesCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinx" }
-kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx" }
-kotlinxCoroutinesJdk8 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version.ref = "kotlinx" }
-kotlinxCoroutinesReactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactive", version.ref = "kotlinx" }
-kotlinxCoroutinesReactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "kotlinx" }
-kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx" }
+kotlinxCoroutinesBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesJdk8 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesReactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactive", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesReactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "kotlinxCoroutines" }
+kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinxIoCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version = "0.7.0" }
-kotlinxSerializationBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-bom", version.ref = "kotlinx" }
-kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx" }
-kotlinxSerializationCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core-jvm", version.ref = "kotlinx" }
-kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.6.2" }
-kotlinxSerializationJsonJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-jvm", version.ref = "kotlinx" }
-kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
+kotlinxSerializationBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-bom", version.ref = "kotlinxSerialization" }
+kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinxSerializationCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core-jvm", version.ref = "kotlinxSerialization" }
+kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinxSerializationJsonJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-jvm", version.ref = "kotlinxSerialization" }
+kotlinxSerializationJsonIo = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io", version.ref = "kotlinxSerialization" }
+kotlinxSerializationJsonIoJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io-jvm", version.ref = "kotlinxSerialization" }
+kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlinxSerialization" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.2" } # 2FA
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.64-g515cfc19e1" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.72-g2f3e2436e4" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }
 mockkJvm = { group = "io.mockk", name = "mockk-jvm", version = "1.13.8" }

@@ -48,15 +48,15 @@ data class AgendaDto(
 	val name: String? = null,
 	val userId: String? = null,
 	val zoneId: String? = null,
-	val lockCalendarItemsBeforeInMinutes: Int? = null,
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
 	@get:Schema(description = "Associates a user id to the permission that user has on the entity.")
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) val properties: Set<PropertyStubDto> = emptySet(),
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
-) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	val publicBookingQuota: Int? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
+) : StoredDocumentDto, ICureDocumentDto<String> {
+
 	override fun withIdRev(
 		id: String?,
 		rev: String,

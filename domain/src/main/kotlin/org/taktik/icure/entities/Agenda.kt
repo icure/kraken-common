@@ -266,14 +266,8 @@ data class Agenda(
 	 */
 	val properties: Set<PropertyStub> = emptySet(),
 	/**
-	 * If not null prevents unprivileged users from canceling or moving the calendar items linked to this agenda
-	 * item less than [lockCalendarItemsBeforeInMinutes] minutes before its scheduled time.
-	 */
-	val lockCalendarItemsBeforeInMinutes: Int? = null,
-	/**
 	 * An identifier for the zone of the agenda. Must be an id accepted by java's ZoneId.
 	 * Mandatory if the agenda specifies any time-based constraint:
-	 * - [lockCalendarItemsBeforeInMinutes]
 	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notAfterInMinutes]
 	 * - A nested timetable has an item with non-null [EmbeddedTimeTableItem.notBeforeInMinutes]
 	 */
@@ -330,6 +324,11 @@ data class Agenda(
 	 */
 	val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
+	/**
+	 * If not null limits the amount of appointments that each user without special privileges is allowed to take for
+	 * this agenda during each month.
+ 	 */
+	val publicBookingQuota: Int? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -393,7 +392,6 @@ data class Agenda(
 			"userRights" to (other.userRights + this.userRights),
 			"schedules" to this.schedules.ifEmpty { other.schedules },
 			"properties" to (other.properties + this.properties),
-			"lockCalendarItemsBeforeInMinutes" to (this.lockCalendarItemsBeforeInMinutes ?: other.lockCalendarItemsBeforeInMinutes),
 			"zoneId" to (this.zoneId ?: other.zoneId),
 			"daySplitHour" to (this.daySplitHour ?: other.daySplitHour),
 			"slottingAlgorithm" to (this.slottingAlgorithm ?: other.slottingAlgorithm),

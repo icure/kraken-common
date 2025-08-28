@@ -18,11 +18,11 @@ import java.lang.management.ManagementFactory
 import java.net.URI
 
 abstract class AbstractICureLogic(
-	couchDbProperties: CouchDbProperties,
-	private val iCureDAO: ICureDAO,
-	private val passwordEncoder: PasswordEncoder,
-	private val versionLogic: VersionLogic,
-	private val datastoreInstanceProvider: DatastoreInstanceProvider,
+	protected val couchDbProperties: CouchDbProperties,
+    private val iCureDAO: ICureDAO,
+    private val passwordEncoder: PasswordEncoder,
+    private val versionLogic: VersionLogic,
+    private val datastoreInstanceProvider: DatastoreInstanceProvider,
 ) : ICureLogic {
 	protected val dbInstanceUri = URI(couchDbProperties.url)
 

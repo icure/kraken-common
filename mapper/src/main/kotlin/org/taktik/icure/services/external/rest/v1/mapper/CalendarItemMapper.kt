@@ -28,6 +28,7 @@ abstract class CalendarItemMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "resourceGroup", ignore = true),
 		Mapping(target = "availabilitiesAssignmentStrategy", ignore = true),
+		Mapping(target = "tentativeTimestamp", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 

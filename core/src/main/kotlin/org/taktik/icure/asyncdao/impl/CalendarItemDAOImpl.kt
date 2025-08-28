@@ -105,16 +105,15 @@ class CalendarItemDAOImpl(
 				.limit(limit)
 
 		emitAll(
-			client
-				.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.AppointmentDetails?>(
-					viewQuery,
-				).map {
-					CalendarItemDAO.CalendarItemStub(
-						it.id,
-						it.key!!.components[1] as Long,
-						it.value,
-					)
-				},
+			client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.BookingDetails?>(
+				viewQuery
+			).map {
+				CalendarItemDAO.CalendarItemStub(
+					it.id,
+					it.key!!.components[1] as Long,
+					it.value
+				)
+			}
 		)
 	}
 
