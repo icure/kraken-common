@@ -232,10 +232,7 @@ class CodeController(
 			languages?.let {
 				codeService.getCodeByLabel(region, label, type, it.split(","))
 			} ?: codeService.getCodeByLabel(region, label, type)
-		ResponseEntity
-			.ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(code?.let { codeV2Mapper.map(it) })
+		code?.let { codeV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Get a list of codes by ids")
