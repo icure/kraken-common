@@ -12,6 +12,6 @@ data class AlwaysPermissionItemDto(
 	@param:Schema(required = true)
 	override val type: PermissionTypeDto,
 ) : PermissionItemDto {
-	@param:Schema(defaultValue = "AlwaysPredicate()")
+	@Schema(defaultValue = "AlwaysPredicate()")
 	override val predicate = AlwaysPredicate()
 }

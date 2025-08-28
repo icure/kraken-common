@@ -20,7 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import io.swagger.v3.oas.annotations.media.Schema
 
 interface StoredDocumentDto : VersionableDto<String> {
-	@param:Schema(description = "hard delete (unix epoch in ms) timestamp of the object. Filled automatically when deletePatient is called.")
+	@get:Schema(description = "hard delete (unix epoch in ms) timestamp of the object. Filled automatically when deletePatient is called.")
 	val deletionDate:
 		Long?
 
