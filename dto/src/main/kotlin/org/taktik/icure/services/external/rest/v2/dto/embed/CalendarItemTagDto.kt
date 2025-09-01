@@ -30,6 +30,6 @@ data class CalendarItemTagDto(
 	val date: Long? = null,
 	val userId: String? = null,
 	val userName: String? = null,
-	override val encryptedSelf: Base64StringDto?,
+	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,
 	EncryptableDto

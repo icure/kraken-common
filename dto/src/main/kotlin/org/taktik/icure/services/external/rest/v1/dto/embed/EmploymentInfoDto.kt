@@ -16,6 +16,6 @@ data class EmploymentInfoDto(
 	val endDate: Long? = null,
 	val professionType: CodeStubDto? = null,
 	val employer: EmployerDto? = null,
-	override val encryptedSelf: String?,
+	override val encryptedSelf: String? = null,
 ) : Serializable,
 	EncryptableDto

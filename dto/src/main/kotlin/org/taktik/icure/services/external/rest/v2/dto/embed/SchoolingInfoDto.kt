@@ -31,6 +31,6 @@ data class SchoolingInfoDto(
 	val endDate: Long? = null,
 	val school: String? = null,
 	val typeOfEducation: CodeStubDto? = null,
-	override val encryptedSelf: Base64StringDto?,
+	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,
 	EncryptableDto
