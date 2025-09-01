@@ -16,6 +16,6 @@ data class SchoolingInfo(
 	val endDate: Long? = null,
 	val school: String? = null,
 	val typeOfEducation: CodeStub? = null,
-	override val encryptedSelf: String?,
+	override val encryptedSelf: String? = null,
 ) : Serializable,
 	Encryptable
