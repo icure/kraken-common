@@ -24,12 +24,14 @@ import java.time.Duration
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
 const val MAURICE_PARTITION = "Maurice"
+const val BEPPE_PARTITION = "Beppe"
 
 enum class Partitions(val partitionName: String) {
 	All(""),
 	Main(""),
 	DataOwner(DATA_OWNER_PARTITION),
 	Maurice(MAURICE_PARTITION),
+	Beppe(BEPPE_PARTITION)
 	;
 
 	companion object {
