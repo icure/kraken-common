@@ -33,7 +33,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.handlers.JacksonComplexKeyDeserializer
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -65,7 +64,6 @@ import org.taktik.icure.utils.main
 import kotlin.String
 import kotlin.collections.map
 import kotlin.collections.set
-import kotlin.collections.toTypedArray
 
 @Repository("contactDAO")
 @Profile("app")
@@ -1002,7 +1000,7 @@ class ContactDAOImpl(
 	override fun listServiceIdsByDataOwnerPatientTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		patientSecretForeignKeys: List<String>,
+		patientSecretForeignKeys: Set<String>,
 		tagType: String,
 		tagCodePrefix: String,
 		startValueDate: Long?,
@@ -1023,7 +1021,7 @@ class ContactDAOImpl(
 	override fun listServiceIdsByDataOwnerPatientCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		patientSecretForeignKeys: List<String>,
+		patientSecretForeignKeys: Set<String>,
 		codeType: String,
 		codeCodePrefix: String,
 		startValueDate: Long?,
@@ -1043,7 +1041,7 @@ class ContactDAOImpl(
 	private fun listServiceIdsByDataOwnerPatientTagOrCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		patientSecretForeignKeys: List<String>,
+		patientSecretForeignKeys: Set<String>,
 		type: String,
 		codePrefix: String,
 		startValueDate: Long?,

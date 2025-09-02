@@ -383,7 +383,7 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listServiceIdsByDataOwnerPatientTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		patientSecretForeignKeys: List<String>,
+		patientSecretForeignKeys: Set<String>,
 		tagType: String,
 		tagCodePrefix: String,
 		startValueDate: Long?,
@@ -393,7 +393,7 @@ interface ContactDAO : GenericDAO<Contact> {
 	fun listServiceIdsByDataOwnerPatientCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		patientSecretForeignKeys: List<String>,
+		patientSecretForeignKeys: Set<String>,
 		codeType: String,
 		codeCodePrefix: String,
 		startValueDate: Long?,
