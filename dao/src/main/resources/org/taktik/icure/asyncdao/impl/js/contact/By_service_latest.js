@@ -3,7 +3,13 @@ function(doc) {
         doc.services.forEach(
             function (s) {
                 if (s._id != null) {
-                    const serviceTime = s.deleted && (s.modified == null || s.deleted > s.modified) ? s.deleted : s.modified
+                    let serviceTime = s.modified
+                    if (s.endOfLife != null && (serviceTime == null || s.endOfLife > serviceTime)) {
+                        serviceTime = s.endOfLife
+                    }
+                    if (s.created != null && (serviceTime == null || s.created > serviceTime)) {
+                        serviceTime = s.created
+                    }
                     emit(s._id, [serviceTime, doc.modified, doc._id]);
                 }
             }
