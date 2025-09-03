@@ -23,6 +23,7 @@ import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -185,5 +186,15 @@ class AgendaDAOImpl(
 				.includeDocs(false)
 
 		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinct())
+	}
+
+	override suspend fun warmupPartition(
+		datastoreInformation: IDatastoreInformation,
+		partition: Partitions
+	) {
+		when (partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "by_typed_property" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
 	}
 }

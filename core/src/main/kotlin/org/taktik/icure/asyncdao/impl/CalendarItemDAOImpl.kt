@@ -586,6 +586,7 @@ class CalendarItemDAOImpl(
 	) {
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION)
+			Partitions.Maurice -> warmup(datastoreInformation, "by_agenda_period" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
