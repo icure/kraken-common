@@ -1193,7 +1193,7 @@ class ContactDAOImpl(
 		allServiceIds.chunked(1000).forEach { chunk ->
 			val query = createQuery(datastoreInformation, "by_service_latest", BEPPE_PARTITION)
 				.reduce(true)
-				.groupLevel(1)
+				.group(true)
 				.keys(chunk)
 			client.queryView<String, ComplexKey>(query).collect {
 				latestContactForServices[it.key!!] = it.value!!.components[2] as String
