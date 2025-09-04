@@ -11,8 +11,10 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.ApplicationSettings
 import org.taktik.icure.services.external.rest.v1.dto.ApplicationSettingsDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.SecurityMetadataMapper
 
-@Mapper(componentModel = "spring", uses = [CodeStubMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [CodeStubMapper::class, DelegationMapper::class, SecurityMetadataMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ApplicationSettingsMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

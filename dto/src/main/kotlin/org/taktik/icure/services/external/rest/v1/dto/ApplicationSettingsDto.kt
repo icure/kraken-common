@@ -7,8 +7,12 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,8 +29,17 @@ data class ApplicationSettingsDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val settings: Map<String, String> = emptyMap(),
+	val encryptedSettings: Map<String, String> = emptyMap(),
+	override val secretForeignKeys: Set<String>,
+	override val cryptedForeignKeys: Map<String, Set<DelegationDto>>,
+	override val delegations: Map<String, Set<DelegationDto>>,
+	override val encryptionKeys: Map<String, Set<DelegationDto>>,
+	override val securityMetadata: SecurityMetadataDto?,
+	override val encryptedSelf: String?,
 ) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	ICureDocumentDto<String>,
+	HasEncryptionMetadataDto,
+	EncryptableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
