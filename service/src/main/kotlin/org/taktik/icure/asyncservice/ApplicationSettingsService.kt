@@ -5,9 +5,10 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.entities.ApplicationSettings
 
-interface ApplicationSettingsService {
+interface ApplicationSettingsService : EntityWithSecureDelegationsService<ApplicationSettings> {
 	suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
 	suspend fun modifyApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
 
