@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asynclogic.impl
 
+import kotlinx.coroutines.flow.first
 import org.taktik.icure.asyncdao.ApplicationSettingsDAO
 import org.taktik.icure.asynclogic.ApplicationSettingsLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -38,6 +39,7 @@ open class ApplicationSettingsLogicImpl(
 
 	override suspend fun modifyApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings? {
 		val datastoreInformation = getInstanceAndGroup()
+		checkValidEntityChange(applicationSettings, null)
 		return applicationSettingsDAO.save(datastoreInformation, applicationSettings)
 	}
 
