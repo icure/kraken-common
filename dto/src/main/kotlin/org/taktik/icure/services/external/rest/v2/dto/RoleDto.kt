@@ -31,6 +31,7 @@ data class RoleDto(
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
 	override val name: String? = null,
+	val inheritableUpTo: Int = -1,
 	val permissions: Set<String> = emptySet(),
 ) : StoredDocumentDto,
 	PrincipalDto,
