@@ -6,13 +6,9 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.EntityInfoDAO
 import org.taktik.icure.asyncdao.ExchangeDataDAO
 import org.taktik.icure.asynclogic.ExchangeDataLogic
-import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DataOwnerType
@@ -83,9 +79,6 @@ open class ExchangeDataLogicImpl(
 	}
 
 	override suspend fun createExchangeData(exchangeData: ExchangeData): ExchangeData {
-		require(dataOwnerProvider.getCurrentDataOwnerId() == exchangeData.delegator) {
-			"When creating new exchange data you are the delegator, but provided data has ${exchangeData.delegator} as delegator."
-		}
 		return checkNotNull(exchangeDataDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), exchangeData)) {
 			"Exchange data creation returned null."
 		}
