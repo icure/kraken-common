@@ -67,26 +67,38 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	abstract fun getJackson2JsonEncoder(): Jackson2JsonEncoder
+	// TODO update also in kraken-lite to use provided mapper instead of instantiating a new one
+	abstract fun getJackson2JsonEncoder(objectMapper: ObjectMapper): Jackson2JsonEncoder
 
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)
 
 		configurer.customCodecs().register(FluxStringJsonEncoder())
 
-		configurer.defaultCodecs().jackson2JsonEncoder(getJackson2JsonEncoder())
+		val encodingMapper = ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).registerModule(JacksonModules.strictFloatsModule).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_NULL)
+		}
+
+		val decodingMapper = ObjectMapper().registerModule(
+			KotlinModule
+				.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
+				.configure(KotlinFeature.StrictNullChecks, true)
+				.build(),
+		).registerModule(JacksonModules.strictFloatsModule)
+
+
+		configurer.defaultCodecs().jackson2JsonEncoder(
+			getJackson2JsonEncoder(encodingMapper)
+		)
 
 		configurer.defaultCodecs().jackson2JsonDecoder(
-			Jackson2JsonDecoder(
-				ObjectMapper().registerModule(
-					KotlinModule
-						.Builder()
-						.configure(KotlinFeature.NullIsSameAsDefault, true)
-						// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
-						.configure(KotlinFeature.StrictNullChecks, true)
-						.build(),
-				),
-			).apply { maxInMemorySize = 128 * 1024 * 1024 },
+			Jackson2JsonDecoder(decodingMapper).apply { maxInMemorySize = 128 * 1024 * 1024 },
 		)
 	}
 
