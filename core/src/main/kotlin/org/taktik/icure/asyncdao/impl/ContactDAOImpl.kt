@@ -4,6 +4,11 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.node.ArrayNode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -16,9 +21,11 @@ import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.Client
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
@@ -30,6 +37,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -45,6 +53,7 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.DeduplicationMode
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
@@ -52,6 +61,8 @@ import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
+import kotlin.String
+import kotlin.collections.map
 import kotlin.collections.set
 
 @Repository("contactDAO")
@@ -985,11 +996,239 @@ class ContactDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Contact>(viewQuery).map { it.doc })
 	}
 
+	@View(name = "service_by_data_owner_patient_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_patient_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerPatientTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		tagType: String,
+		tagCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?
+	): Flow<String> =
+		listServiceIdsByDataOwnerPatientTagOrCodeCodePrefix(
+			datastoreInformation,
+			searchKeys,
+			patientSecretForeignKeys,
+			tagType,
+			tagCodePrefix,
+			startValueDate,
+			endValueDate,
+			"service_by_data_owner_patient_tag_prefix"
+		)
+
+	@View(name = "service_by_data_owner_patient_code_prefix", map = "classpath:js/contact/Service_by_data_owner_patient_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerPatientCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		codeType: String,
+		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?
+	): Flow<String> =
+		listServiceIdsByDataOwnerPatientTagOrCodeCodePrefix(
+			datastoreInformation,
+			searchKeys,
+			patientSecretForeignKeys,
+			codeType,
+			codeCodePrefix,
+			startValueDate,
+			endValueDate,
+			"service_by_data_owner_patient_code_prefix"
+		)
+
+	private fun listServiceIdsByDataOwnerPatientTagOrCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		type: String,
+		codePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val allQueries = searchKeys.flatMap { dataOwnerSearchKey ->
+			patientSecretForeignKeys.map { patientSecretForeignKey ->
+				val from = ComplexKey.of(
+					dataOwnerSearchKey,
+					patientSecretForeignKey,
+					type,
+					codePrefix
+				)
+				val to = ComplexKey.of(
+					dataOwnerSearchKey,
+					patientSecretForeignKey,
+					type,
+					codePrefix + "\ufff0"
+				)
+				val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+					.startKey(from)
+					.endKey(to)
+					.includeDocs(false)
+				client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+					if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+				}.let { f ->
+					if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+				}.map {
+					ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+				}
+			}
+		}
+		emitAll(filterLatestServices(
+			client,
+			datastoreInformation,
+			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
+		))
+	}
+
+	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		tagType: String,
+		tagCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		tagType,
+		tagCodePrefix,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_tag_prefix",
+	)
+
+	@View(name = "service_by_data_owner_month_code_prefix", map = "classpath:js/contact/Service_by_data_owner_month_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		codeType: String,
+		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		codeType,
+		codeCodePrefix,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		type: String,
+		codePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		require((year == null) == (month == null)) { "Year and month must both be non-null or both null" }
+		if (startValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(startValueDate, false)?.first
+			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+		}
+		if (endValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(endValueDate, false)?.first
+			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+		}
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val allQueries = searchKeys.map { dataOwnerSearchKey ->
+			val from = ComplexKey.of(
+				year,
+				month,
+				dataOwnerSearchKey,
+				type,
+				codePrefix
+			)
+			val to = ComplexKey.of(
+				year,
+				month,
+				dataOwnerSearchKey,
+				type,
+				codePrefix + "\ufff0"
+			)
+			val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+				.startKey(from)
+				.endKey(to)
+				.includeDocs(false)
+			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+			}.let { f ->
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+			}.map {
+				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+			}
+		}
+		emitAll(filterLatestServices(
+			client,
+			datastoreInformation,
+			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
+		))
+	}
+
+	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
+	private fun filterLatestServices(
+		client: Client,
+		datastoreInformation: IDatastoreInformation,
+		services: Collection<ContactIdMandatoryServiceId>
+	): Flow<String> = flow {
+		val allServiceIds = services.mapTo(mutableSetOf()) { it.serviceId }
+		val latestContactForServices = mutableMapOf<String, String>()
+		allServiceIds.chunked(1000).forEach { chunk ->
+			val query = createQuery(datastoreInformation, "by_service_latest", BEPPE_PARTITION)
+				.reduce(true)
+				.group(true)
+				.keys(chunk)
+			client.queryView<String, ComplexKey>(query).collect {
+				latestContactForServices[it.key!!] = it.value!!.components[2] as String
+			}
+		}
+		services.forEach {
+			if (latestContactForServices[it.serviceId] == it.contactId) emit(it.serviceId)
+		}
+	}
+
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)
 			Partitions.Maurice -> warmup(datastoreInformation, "service_by_linked_id" to MAURICE_PARTITION)
+			Partitions.Beppe -> warmup(datastoreInformation, "by_service_latest" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
+
+	@JsonDeserialize(using = ServiceIdAndDateValue.Deserializer::class)
+	private data class ServiceIdAndDateValue(
+		val serviceId: String,
+		val date: Long? // value date with fallback to opening date
+	) {
+		object Deserializer : JsonDeserializer<ServiceIdAndDateValue>() {
+			override fun deserialize(
+				p: JsonParser,
+				ctxt: DeserializationContext
+			): ServiceIdAndDateValue {
+				val jsonList = p.readValueAsTree<ArrayNode>().map { it?.let { p.codec.treeToValue(it, Object::class.java) }}
+				check(jsonList.size >= 2) { "Expected at least 2 items" }
+				return ServiceIdAndDateValue(jsonList[0] as String, (jsonList[1] as Number?)?.toLong())
+			}
+		}
+	}
+
+	private data class ContactIdMandatoryServiceId(val contactId: String, val serviceId: String)
 }

@@ -379,5 +379,47 @@ interface ContactDAO : GenericDAO<Contact> {
 		endDate: Long?,
 		descending: Boolean,
 	): Flow<String>
+
+	fun listServiceIdsByDataOwnerPatientTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		tagType: String,
+		tagCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerPatientCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		codeType: String,
+		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		tagType: String,
+		tagCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerValueDateMonthCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		codeType: String,
+		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String>
 	// endregion
 }
