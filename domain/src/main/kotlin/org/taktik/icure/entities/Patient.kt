@@ -141,7 +141,7 @@ data class Patient(
 	val mergedIds: Set<String> = emptySet(),
 	val alias: String? = null,
 	val active: Boolean = true,
-	val deactivationReason: DeactivationReason = DeactivationReason.none,
+	val deactivationReason: String = "none",
 	val deactivationDate: Int? = null,
 	val ssin: String? = null,
 	val maidenName: String? = null, // Never changes (nom de jeune fille),

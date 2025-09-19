@@ -87,7 +87,7 @@ data class PatientDto(
 	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") val mergedIds: Set<String> = emptySet(),
 	@param:Schema(description = "An alias of the person, nickname, ...") val alias: String? = null,
 	@param:Schema(description = "Is the patient active (boolean).", defaultValue = "true") val active: Boolean = true,
-	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "DeactivationReason.none") val deactivationReason: DeactivationReasonDto = DeactivationReasonDto.none,
+	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "\"none\"") val deactivationReason: String = "none",
 	@param:Schema(description = "Deactivation date of the patient") val deactivationDate: Int? = null,
 	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
 	@param:Schema(
