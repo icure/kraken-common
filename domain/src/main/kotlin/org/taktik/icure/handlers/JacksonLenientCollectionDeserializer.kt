@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer
 import com.fasterxml.jackson.databind.node.ArrayNode
 
+/**
+ * De-serializer that ignores null values in lists
+ */
 class JacksonLenientCollectionDeserializer(
 	private val collectionType: JavaType? = null,
 	val elementType: JavaType? = null,
