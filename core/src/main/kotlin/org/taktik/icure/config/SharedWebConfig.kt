@@ -102,17 +102,4 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			Jackson2JsonDecoder(decodingMapper).apply { maxInMemorySize = 128 * 1024 * 1024 },
 		)
 	}
-
-	fun objectMapper(): ObjectMapper = ObjectMapper()
-		.registerModule(
-			KotlinModule
-				.Builder()
-				.withReflectionCacheSize(512)
-				.configure(KotlinFeature.NullIsSameAsDefault, true)
-				.configure(KotlinFeature.NullToEmptyCollection, true)
-				.configure(KotlinFeature.NullToEmptyMap, true)
-				.build(),
-		).apply {
-			setSerializationInclusion(JsonInclude.Include.NON_NULL)
-		}
 }
