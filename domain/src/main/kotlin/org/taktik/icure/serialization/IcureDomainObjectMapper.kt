@@ -14,7 +14,7 @@ object IcureDomainObjectMapper {
 	 * iCure entities.
 	 */
 	fun new(): ObjectMapper = JsonMapper.builder().configure(
-		MapperFeature.ALLOW_COERCION_OF_SCALARS, false
+		MapperFeature.ALLOW_COERCION_OF_SCALARS, true
 	).build().registerModule(
 		KotlinModule.Builder()
 			.configure(KotlinFeature.NullIsSameAsDefault, true)

@@ -79,7 +79,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		configurer.customCodecs().register(FluxStringJsonEncoder())
 
 		val encodingMapper: ObjectMapper = JsonMapper.builder().configure(
-			MapperFeature.ALLOW_COERCION_OF_SCALARS, false
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, true
 		).build().registerModule(
 			KotlinModule.Builder()
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
@@ -89,7 +89,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		}
 
 		val decodingMapper: ObjectMapper = JsonMapper.builder().configure(
-			MapperFeature.ALLOW_COERCION_OF_SCALARS, false
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, true
 		).build().registerModule(
 			KotlinModule
 				.Builder()
