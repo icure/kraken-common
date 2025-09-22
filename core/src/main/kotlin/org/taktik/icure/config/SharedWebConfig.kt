@@ -5,7 +5,9 @@
 package org.taktik.icure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
@@ -76,7 +78,9 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 
 		configurer.customCodecs().register(FluxStringJsonEncoder())
 
-		val encodingMapper = ObjectMapper().registerModule(
+		val encodingMapper: ObjectMapper = JsonMapper.builder().configure(
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, false
+		).build().registerModule(
 			KotlinModule.Builder()
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
 				.build()
@@ -84,7 +88,9 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			setSerializationInclusion(JsonInclude.Include.NON_NULL)
 		}
 
-		val decodingMapper = ObjectMapper().registerModule(
+		val decodingMapper: ObjectMapper = JsonMapper.builder().configure(
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, false
+		).build().registerModule(
 			KotlinModule
 				.Builder()
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
