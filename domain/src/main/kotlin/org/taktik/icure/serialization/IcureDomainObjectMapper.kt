@@ -17,6 +17,8 @@ object IcureDomainObjectMapper {
 			.configure(KotlinFeature.NullToEmptyMap, true)
 			.configure(KotlinFeature.NullToEmptyCollection, true)
 			.build(),
+	).registerModule(
+		JacksonModules.strictFloatsModule
 	).apply {
 		setSerializationInclusion(JsonInclude.Include.NON_NULL)
 		configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)

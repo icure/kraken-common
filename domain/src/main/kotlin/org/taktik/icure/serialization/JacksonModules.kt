@@ -1,4 +1,4 @@
-package org.taktik.icure.config
+package org.taktik.icure.serialization
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
