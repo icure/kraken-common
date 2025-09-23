@@ -267,7 +267,7 @@ object FuzzyDates {
 		dateTime: LocalDate,
 		precision: ChronoUnit,
 		encodePrecision: Boolean,
-	): Long {
+	): Int {
 		require(precision == ChronoUnit.YEARS || precision == ChronoUnit.MONTHS || precision == ChronoUnit.DAYS) {
 			"Unsupported precision for fuzzy date: $precision"
 		}
@@ -275,7 +275,7 @@ object FuzzyDates {
 			"Fuzzy date only allows years in the range 1000-9999"
 		}
 		return dateTime.year *
-			10000L +
+			10000 +
 			(
 				if (precision.ordinal <= ChronoUnit.MONTHS.ordinal) {
 					dateTime.monthValue * 100
