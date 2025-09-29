@@ -35,6 +35,7 @@ data class GroupDto(
 	) val sharedEntities: Map<String, String> = emptyMap(),
 	@param:Schema(description = "Minimum version of Kraken required to access API") val minimumKrakenVersion: String? = null,
 	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	val customEntityConfigVersion: CustomEntityConfiguration? = null,
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 	val superGroup: String? = null,
 	@param:Schema(
@@ -43,6 +44,11 @@ data class GroupDto(
 	val applicationId: String? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
+	data class CustomEntityConfiguration(
+		val sourceGroup: String,
+		val version: Int
+	)
+
 	override fun withIdRev(
 		id: String?,
 		rev: String,

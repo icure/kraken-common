@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -67,7 +68,12 @@ interface PatientV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapForStore(patientDto.extensions))"),
 	)
-	fun map(patientDto: PatientDto): Patient
-	fun map(patient: Patient): PatientDto
+	fun map(patientDto: PatientDto, mapForStore: (ObjectNode?) -> ObjectNode?): Patient
+
+	@Mappings(
+		Mapping(target = "extensions", expression = "kotlin(mapForRead(patient.extensions))"),
+	)
+	fun map(patient: Patient, mapForRead: (ObjectNode?) -> ObjectNode?): PatientDto
 }

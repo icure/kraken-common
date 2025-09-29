@@ -52,6 +52,7 @@ data class GroupDto(
 		JsonInclude.Include.NON_EMPTY,
 	)
 	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	val customEntityConfigVersion: CustomEntityConfiguration? = null,
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 	val superGroup: String? = null,
 	@param:Schema(
@@ -60,6 +61,11 @@ data class GroupDto(
 	val applicationId: String? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
+	data class CustomEntityConfiguration(
+		val sourceGroup: String,
+		val version: Int
+	)
+
 	override fun withIdRev(
 		id: String?,
 		rev: String,

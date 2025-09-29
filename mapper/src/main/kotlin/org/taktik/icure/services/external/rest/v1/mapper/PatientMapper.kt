@@ -8,7 +8,9 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.services.external.rest.v1.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v1.dto.PatientDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
@@ -47,13 +49,20 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.SecurityMetadataM
 	],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
-interface PatientMapper {
+abstract class PatientMapper{
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
 	)
-	fun map(patientDto: PatientDto): Patient
-	fun map(patient: Patient): PatientDto
+	abstract fun map(patientDto: PatientDto): Patient
+
+	fun map(patient: Patient): PatientDto {
+		require (patient.extensions == null)  { "Patient has extensions and can't be used with v1 endpoints" }
+		return doMap(patient)
+	}
+
+	protected abstract fun doMap(calendarItem: Patient): PatientDto
 }

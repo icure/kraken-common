@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.swagger.v3.oas.annotations.extensions.Extension
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty
 import io.swagger.v3.oas.annotations.media.Schema
@@ -191,6 +192,7 @@ data class PatientDto(
 	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
 	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	override val parentId: Nothing? = null,
+	val extensions: ObjectNode? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	PersonDto,
