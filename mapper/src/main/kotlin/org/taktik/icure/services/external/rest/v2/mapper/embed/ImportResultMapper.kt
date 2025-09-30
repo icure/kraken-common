@@ -24,7 +24,9 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.domain.result.ImportResult
 import org.taktik.icure.domain.result.MimeAttachment
+import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.ImportResultDto
+import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
@@ -33,14 +35,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 
-@Mapper(componentModel = "spring", uses = [DelegationV2Mapper::class, PatientV2Mapper::class, HealthElementV2Mapper::class, ContactV2Mapper::class, FormV2Mapper::class, HealthcarePartyV2Mapper::class, DocumentV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [DelegationV2Mapper::class, HealthElementV2Mapper::class, ContactV2Mapper::class, FormV2Mapper::class, HealthcarePartyV2Mapper::class, DocumentV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ImportResultV2Mapper {
 	@Mappings(
 		Mapping(target = "warning", ignore = true),
 		Mapping(target = "error", ignore = true),
+		Mapping(target = "patient", expression = "kotlin(importResultDto.patient?.let { mapPatientForStore(it) })"),
 	)
-	fun map(importResultDto: ImportResultDto): ImportResult
-	fun map(importResult: ImportResult): ImportResultDto
+	fun map(importResultDto: ImportResultDto, mapPatientForStore: (PatientDto) -> Patient): ImportResult
+	@Mappings(
+		Mapping(target = "patient", expression = "kotlin(importResult.patient?.let { mapPatientForRead(it) })"),
+	)
+	fun map(importResult: ImportResult, mapPatientForRead: (Patient) -> PatientDto): ImportResultDto
 	fun map(mimeAttachmentDto: MimeAttachmentDto): MimeAttachment
 	fun map(mimeAttachment: MimeAttachment): MimeAttachmentDto
 }

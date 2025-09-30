@@ -68,12 +68,12 @@ interface PatientV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "extensions", expression = "kotlin(mapForStore(patientDto.extensions))"),
+		Mapping(target = "extensions", expression = "lambda(mapExtensionsForStore)"),
 	)
-	fun map(patientDto: PatientDto, mapForStore: (ObjectNode?) -> ObjectNode?): Patient
+	fun map(patientDto: PatientDto, mapExtensionsForStore: (ObjectNode?) -> ObjectNode?): Patient
 
 	@Mappings(
-		Mapping(target = "extensions", expression = "kotlin(mapForRead(patient.extensions))"),
+		Mapping(target = "extensions", expression = "lambda(mapExtensionsForRead)"),
 	)
-	fun map(patient: Patient, mapForRead: (ObjectNode?) -> ObjectNode?): PatientDto
+	fun map(patient: Patient, mapExtensionsForRead: (ObjectNode?) -> ObjectNode?): PatientDto
 }
