@@ -54,6 +54,13 @@ interface ExchangeDataService {
 	suspend fun createExchangeData(exchangeData: ExchangeData): ExchangeData
 
 	/**
+	 * Creates new exchange datas.
+	 * @param exchangeDatas the exchange datas to create.
+	 * @return the created exchange datas, with updated revision number, errors have been filtered out.
+	 */
+	suspend fun createExchangeDatas(exchangeDatas: List<ExchangeData>): Flow<ExchangeData>
+
+	/**
 	 * Modifies existing exchange data.
 	 * @param exchangeData the updated exchange data.
 	 * @return the updated exchange data, with updated revision number.
