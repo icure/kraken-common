@@ -25,7 +25,7 @@ function(doc) {
       if (service.tags && service.tags.length && service._id != null) {
         service.tags.forEach(function (tag) {
           for (const delegate of delegates) {
-            emit([delegate, tag.type, tag.code], [service._id, d]);
+            emit([delegate, tag.type, tag.code], service._id);
           }
         });
       }

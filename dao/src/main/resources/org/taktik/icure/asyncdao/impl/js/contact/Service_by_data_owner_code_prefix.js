@@ -25,7 +25,7 @@ function(doc) {
       if (service.codes && service.codes.length && service._id != null) {
         service.codes.forEach(function (code) {
           for (const delegate of delegates) {
-            emit([delegate, code.type, code.code], [service._id, d]);
+            emit([delegate, code.type, code.code], service._id);
           }
         });
       }
