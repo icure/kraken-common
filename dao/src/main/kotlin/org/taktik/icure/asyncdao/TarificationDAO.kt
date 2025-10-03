@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
+import org.taktik.icure.entities.base.Code
 
 interface TarificationDAO : GenericDAO<Tarification> {
 	fun listTarificationsBy(datastoreInformation: IDatastoreInformation, type: String?, code: String?, version: String?): Flow<Tarification>
@@ -56,4 +57,5 @@ interface TarificationDAO : GenericDAO<Tarification> {
 	 */
 	fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, label: String?, pagination: PaginationOffset<ComplexKey>): Flow<ViewQueryResultEvent>
 	fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, type: String?, label: String?, pagination: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent>
+    fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Tarification>
 }

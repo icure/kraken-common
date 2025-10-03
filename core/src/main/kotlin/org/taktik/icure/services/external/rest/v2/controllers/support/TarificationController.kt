@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.icure.asyncservice.TarificationService
+import org.taktik.icure.asyncservice.PricingService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
@@ -42,7 +42,7 @@ import reactor.core.publisher.Mono
 @RequestMapping("/rest/v2/tarification")
 @Tag(name = "tarification")
 class TarificationController(
-	private val tarificationService: TarificationService,
+	private val pricingService: PricingService,
 	private val tarificationV2Mapper: TarificationV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig,
@@ -62,7 +62,7 @@ class TarificationController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<TarificationDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		return tarificationService
+		return pricingService
 			.findTarificationsOfTypesByLabel(
 				region,
 				language,
@@ -88,7 +88,7 @@ class TarificationController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<TarificationDto> {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
-		return tarificationService
+		return pricingService
 			.findTarificationsBy(
 				region,
 				type,
@@ -109,7 +109,7 @@ class TarificationController(
 		@Parameter(description = "Tarification type") @RequestParam(required = false) type: String?,
 		@Parameter(description = "Tarification tarification") @RequestParam(required = false) tarification: String?,
 		@Parameter(description = "Tarification version") @RequestParam(required = false) version: String?,
-	): Flux<TarificationDto> = tarificationService
+	): Flux<TarificationDto> = pricingService
 		.findTarificationsBy(region, type, tarification, version)
 		.map {
 			tarificationV2Mapper.map(it)
@@ -120,7 +120,7 @@ class TarificationController(
 	fun createTarification(
 		@RequestBody c: TarificationDto,
 	): Mono<TarificationDto> = mono {
-		tarificationService.createTarification(tarificationV2Mapper.map(c))?.let { tarificationV2Mapper.map(it) }
+		pricingService.createTarification(tarificationV2Mapper.map(c))?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tarification creation failed.")
 	}
 
@@ -128,7 +128,7 @@ class TarificationController(
 	@PostMapping("/byIds")
 	fun getTarifications(
 		@RequestBody tarificationIds: ListOfIdsDto,
-	): Flux<TarificationDto> = tarificationService.getTarifications(tarificationIds.ids).map { f -> tarificationV2Mapper.map(f) }.injectReactorContext()
+	): Flux<TarificationDto> = pricingService.getTarifications(tarificationIds.ids).map { f -> tarificationV2Mapper.map(f) }.injectReactorContext()
 
 	@Operation(
 		summary = "Get a tarification",
@@ -138,7 +138,7 @@ class TarificationController(
 	fun getTarification(
 		@Parameter(description = "Tarification id") @PathVariable tarificationId: String,
 	): Mono<TarificationDto> = mono {
-		tarificationService.getTarification(tarificationId)?.let { tarificationV2Mapper.map(it) }
+		pricingService.getTarification(tarificationId)?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the tarification. Read the app logs.")
 	}
 
@@ -152,7 +152,7 @@ class TarificationController(
 		@Parameter(description = "Tarification tarification", required = true) @PathVariable tarification: String,
 		@Parameter(description = "Tarification version", required = true) @PathVariable version: String,
 	): Mono<TarificationDto> = mono {
-		tarificationService.getTarification(type, tarification, version)?.let { tarificationV2Mapper.map(it) }
+		pricingService.getTarification(type, tarification, version)?.let { tarificationV2Mapper.map(it) }
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the tarification. Read the app logs.")
 	}
 
@@ -162,7 +162,7 @@ class TarificationController(
 		@RequestBody tarificationDto: TarificationDto,
 	): Mono<TarificationDto> = mono {
 		try {
-			tarificationService.modifyTarification(tarificationV2Mapper.map(tarificationDto))?.let { tarificationV2Mapper.map(it) }
+			pricingService.modifyTarification(tarificationV2Mapper.map(tarificationDto))?.let { tarificationV2Mapper.map(it) }
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modification of the tarification failed. Read the server log.")
 		} catch (e: Exception) {
 			throw ResponseStatusException(

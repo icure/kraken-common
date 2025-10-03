@@ -99,6 +99,12 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * Saves many entities and returns detailed information on which entities could be saved successfully and which
 	 * could not.
 	 */
+	fun createBulk(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
+
+	/**
+	 * Saves many entities and returns detailed information on which entities could be saved successfully and which
+	 * could not.
+	 */
 	fun saveBulk(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
 
 	/**

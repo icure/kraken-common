@@ -8,17 +8,25 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
 
-interface TarificationService {
+interface PricingService {
+
 	suspend fun getTarification(id: String): Tarification?
 	suspend fun getTarification(type: String, tarification: String, version: String): Tarification?
 	fun getTarifications(ids: List<String>): Flow<Tarification>
+	fun getTarifications(groupId: String, ids: List<String>): Flow<Tarification>
 	suspend fun createTarification(tarification: Tarification): Tarification?
 	suspend fun modifyTarification(tarification: Tarification): Tarification?
 	fun findTarificationsBy(type: String?, tarification: String?, version: String?): Flow<Tarification>
 	fun findTarificationsBy(region: String?, type: String?, tarification: String?, version: String?): Flow<Tarification>
+
+	fun create(groupId: String, batch: List<Tarification>): Flow<Tarification>
+	fun modify(groupId: String, batch: List<Tarification>): Flow<Tarification>
+
+	fun matchTarificationsBy(filter: AbstractFilter<Tarification>): Flow<String>
 
 	/**
 	 * Retrieves all the [Tarification]s where [Tarification.regions] contains [region], [Tarification.type] is [type],
@@ -64,4 +72,5 @@ interface TarificationService {
 	fun findTarificationsOfTypesByLabel(region: String?, language: String?, label: String?, types: Set<String>?, paginationOffset: PaginationOffset<ComplexKey>): Flow<PaginationElement>
 	fun findTarificationsByLabel(region: String?, language: String?, type: String?, label: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent>
 	suspend fun getOrCreateTarification(type: String, tarification: String): Tarification?
+	fun matchTarificationsInGroupBy(filter: AbstractFilter<Tarification>, groupId: String): Flow<String>
 }
