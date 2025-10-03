@@ -1083,6 +1083,68 @@ class ContactDAOImpl(
 		))
 	}
 
+	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCodePrefix: String,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
+		datastoreInformation,
+		searchKeys,
+		tagType,
+		tagCodePrefix,
+		"listServiceIdsByDataOwnerTagCodePrefix",
+	)
+
+	@View(name = "service_by_data_owner_code_prefix", map = "classpath:js/contact/Service_by_data_owner_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listServiceIdsByDataOwnerCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCodePrefix: String,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
+		datastoreInformation,
+		searchKeys,
+		codeType,
+		codeCodePrefix,
+		"service_by_data_owner_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerTagOrCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		type: String,
+		codePrefix: String,
+		view: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val allQueries = searchKeys.map { dataOwnerSearchKey ->
+			val from = ComplexKey.of(
+				dataOwnerSearchKey,
+				type,
+				codePrefix
+			)
+			val to = ComplexKey.of(
+				dataOwnerSearchKey,
+				type,
+				codePrefix + "\ufff0"
+			)
+			val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+				.startKey(from)
+				.endKey(to)
+				.includeDocs(false)
+			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).map {
+				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+			}
+		}
+		emitAll(filterLatestServices(
+			client,
+			datastoreInformation,
+			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
+		))
+	}
+
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
 	override fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,

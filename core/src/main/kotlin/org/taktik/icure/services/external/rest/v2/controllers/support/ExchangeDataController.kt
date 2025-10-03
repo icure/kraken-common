@@ -30,6 +30,7 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
+import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 import org.taktik.icure.utils.injectReactorContext
@@ -53,6 +54,20 @@ class ExchangeDataController(
 	): Mono<ExchangeDataDto> = mono {
 		exchangeDataMapper.map(exchangeDataLogic.createExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
+
+	@Operation(summary = "Creates new exchange data in bulk")
+	@PostMapping("/bulk")
+	fun createExchangeDataInBulk(
+		@RequestBody exchangeDatas: List<ExchangeDataDto>,
+	): Flux<IdWithRevDto> = flow {
+		emitAll(
+			exchangeDataLogic.createExchangeDatas(
+				exchangeDatas.map { exchangeDataMapper.map(it) },
+			).map {
+				IdWithRevDto(it.id, it.rev!!)
+			}
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Modifies existing exchange data")
 	@PutMapping
