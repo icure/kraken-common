@@ -20,20 +20,20 @@ package org.taktik.icure.asynclogic.impl.filter.pricing
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asyncdao.CodeDAO
+import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.entities.base.Code
+import org.taktik.icure.entities.Tarification
 
 @Service
 @Profile("app")
 class AllPricingFilter(
-	private val codeDAO: CodeDAO,
-) : Filter<String, Code, org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>> {
+	private val tarificationDAO: TarificationDAO,
+) : Filter<String, Tarification, org.taktik.icure.domain.filter.Filters.AllFilter<String, Tarification>> {
 	override fun resolve(
-		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>,
+		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Tarification>,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
-	) = codeDAO.getEntityIds(datastoreInformation)
+	) = tarificationDAO.getEntityIds(datastoreInformation)
 }
