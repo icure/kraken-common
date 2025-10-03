@@ -60,18 +60,18 @@ import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.PersistenceException
+import org.taktik.icure.security.error
 import org.taktik.icure.utils.ViewQueries
 import org.taktik.icure.utils.createPagedQueries
 import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
-import org.taktik.icure.security.error
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
 import java.time.Duration
-import java.util.*
+import java.util.LinkedList
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -448,6 +448,14 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			}
 		)
 	}
+
+	override fun createBulk(
+		datastoreInformation: IDatastoreInformation,
+		entities: Collection<T>
+	): Flow<BulkSaveResult<T>> = saveBulk(datastoreInformation,entities.also {
+		require(it.all { e -> e.rev == null }) { "All entities must have null rev for creation" }
+	})
+
 
 	@Suppress("UNCHECKED_CAST")
 	override fun saveBulk(

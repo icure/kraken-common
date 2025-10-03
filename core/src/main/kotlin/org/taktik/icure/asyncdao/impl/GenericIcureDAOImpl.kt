@@ -36,6 +36,13 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 		entity: T,
 	): T? = super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
 
+	override fun createBulk(
+		datastoreInformation: IDatastoreInformation,
+		entities: Collection<T>
+	): Flow<BulkSaveResult<T>> = saveBulk(datastoreInformation,entities.also {
+		require(it.all { e -> e.rev == null }) { "All entities must have null rev for creation" }
+	})
+
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,
 		entities: Collection<T>,

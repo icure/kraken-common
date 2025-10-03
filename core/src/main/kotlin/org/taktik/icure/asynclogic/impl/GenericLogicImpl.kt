@@ -37,7 +37,7 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
 	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
-		emitAll(getGenericDAO().create(getInstanceAndGroup(), entities.map { fix(it, isCreate = true) }))
+		emitAll(getGenericDAO().createBulk(getInstanceAndGroup(), entities.map { fix(it, isCreate = true) }).filterSuccessfulUpdates())
 	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {

@@ -15,16 +15,18 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Tarification
+import org.taktik.icure.entities.base.Code
 
 @Repository("tarificationDAO")
 @Profile("app")
@@ -211,4 +213,13 @@ class TarificationDAOImpl(
 		)
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, Integer::class.java, Tarification::class.java))
 	}
+
+	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Tarification' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
+		emitAll(client.queryViewIncludeDocsNoValue<String, Tarification>(viewQuery).map { it.doc })
+	}
+
 }

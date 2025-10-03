@@ -48,7 +48,7 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.io.InputStream
 import java.lang.reflect.InvocationTargetException
-import java.util.*
+import java.util.LinkedList
 import javax.xml.parsers.SAXParserFactory
 import kotlin.coroutines.coroutineContext
 
@@ -111,10 +111,9 @@ open class CodeLogicImpl(
 	}
 
 	protected fun validateForCreation(batch: List<Code>) = batch.fold(setOf<Code>()) { acc, code ->
-		// First, I check that all the codes are valid
-		code.code ?: error("Code field is null")
-		code.type ?: error("Type field is null")
-		code.version ?: error("Version field is null")
+		code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+		code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+		code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
 
 		if (acc.contains(code)) error("Batch contains duplicate elements. id: ${code.type}|${code.code}|${code.version}")
 
@@ -153,16 +152,15 @@ open class CodeLogicImpl(
 
 	protected fun validateForModification(batch: List<Code>) = batch
 		.fold(mapOf<String, Code>()) { acc, code ->
-			// First, I check that all the codes are valid
-			code.code ?: error("Code field is null")
-			code.type ?: error("Type field is null")
-			code.version ?: error("Version field is null")
-			code.rev ?: error("rev field is null")
+			code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+			code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+			code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+			code.rev ?: error("Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity")
 
 			if (code.id !=
 				"${code.type}|${code.code}|${code.version}"
 			) {
-				error("Code id does not match the code, type or version value")
+				error("Element with id ${code.id} has an id that does not match the code, type or version value: id must be equal to type|code|version")
 			}
 			if (acc.contains(code.id)) error("The batch contains a duplicate")
 
