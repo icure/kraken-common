@@ -214,7 +214,7 @@ class TarificationDAOImpl(
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, Integer::class.java, Tarification::class.java))
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Tarification' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
+	@View(name = "conflicts", map = "function(doc) { if ((doc.java_type === 'org.taktik.icure.entities.Tarification' || doc.java_type === 'org.taktik.icure.entities.Pricing') && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
