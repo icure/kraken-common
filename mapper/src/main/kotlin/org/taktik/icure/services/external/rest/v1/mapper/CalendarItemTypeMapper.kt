@@ -10,8 +10,9 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemTypeDto
+import org.taktik.icure.services.external.rest.v1.mapper.embed.DurationConfigMapper
 
-@Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [DurationConfigMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface CalendarItemTypeMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

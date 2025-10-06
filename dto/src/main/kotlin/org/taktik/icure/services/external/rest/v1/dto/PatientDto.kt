@@ -17,7 +17,6 @@ import org.taktik.icure.services.external.rest.v1.dto.base.PersonDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.AnnotationDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.DeactivationReasonDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EmploymentInfoDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto

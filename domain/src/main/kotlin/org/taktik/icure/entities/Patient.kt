@@ -20,7 +20,6 @@ import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
-import org.taktik.icure.entities.embed.DeactivationReason
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
 import org.taktik.icure.entities.embed.Encryptable
@@ -43,9 +42,6 @@ import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A patient
@@ -116,8 +112,10 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this patient.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Patient(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:ContentValue(ContentValues.UUID) @param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	val identifier: List<Identifier> = listOf(),
 	override val created: Long? = null,
@@ -163,7 +161,7 @@ data class Patient(
 	val ethnicity: String? = null,
 	val nationality: String? = null,
 	val preferredUserId: String? = null,
-	@JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
+	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val insurabilities: List<Insurability> = emptyList(),
 	val partnerships: List<Partnership> = emptyList(),
@@ -225,6 +223,8 @@ data class Patient(
 	companion object : DynamicInitializer<Patient>
 
 	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
+
+	@Suppress("DEPRECATION")
 	fun solveConflictsWith(other: Patient) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<Person>.solveConflictsWith(other) +
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +

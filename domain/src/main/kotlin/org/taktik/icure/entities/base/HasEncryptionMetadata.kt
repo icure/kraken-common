@@ -6,7 +6,6 @@ package org.taktik.icure.entities.base
 
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
 
 interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {

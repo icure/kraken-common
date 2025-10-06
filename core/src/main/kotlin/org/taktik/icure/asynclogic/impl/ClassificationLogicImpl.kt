@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.ClassificationDAO
 import org.taktik.icure.asynclogic.ClassificationLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
