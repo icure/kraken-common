@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.utils.FuzzyDates
-import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import java.io.Serializable

@@ -8,12 +8,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
-import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix

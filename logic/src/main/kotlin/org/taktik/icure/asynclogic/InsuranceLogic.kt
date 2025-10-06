@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.pagination.PaginationElement

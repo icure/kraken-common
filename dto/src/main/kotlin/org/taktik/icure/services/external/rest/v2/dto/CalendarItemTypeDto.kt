@@ -52,7 +52,7 @@ data class CalendarItemTypeDto(
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface DurationConfigDto {
-		data class DurationList(val durations: List<Int> = emptyList()): DurationConfigDto
-		data class DurationFormula(val min: Int, val max: Int, val step: Int): DurationConfigDto
+		data class Set(val durations: kotlin.collections.Set<Int> = emptySet()): DurationConfigDto
+		data class Formula(val min: Int, val max: Int, val step: Int): DurationConfigDto
 	}
 }

@@ -68,11 +68,11 @@ data class CalendarItemType(
 
 		fun canAccept(duration: Int): Boolean
 
-		data class DurationList(val durations: List<Int> = emptyList()): DurationConfig {
+		data class Set(val durations: kotlin.collections.Set<Int> = emptySet()): DurationConfig {
 			override fun canAccept(duration: Int) = duration in durations
 		}
 
-		data class DurationFormula(
+		data class Formula(
 			val min: Int,
 			val max: Int,
 			val step: Int,

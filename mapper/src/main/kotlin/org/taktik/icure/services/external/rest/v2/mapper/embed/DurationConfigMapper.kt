@@ -10,27 +10,27 @@ interface DurationConfigV2Mapper {
 	fun map(
 		durationConfig: CalendarItemType.DurationConfig
 	): CalendarItemTypeDto.DurationConfigDto = when (durationConfig) {
-		is CalendarItemType.DurationConfig.DurationFormula -> map(durationConfig)
-		is CalendarItemType.DurationConfig.DurationList -> map(durationConfig)
+		is CalendarItemType.DurationConfig.Formula -> map(durationConfig)
+		is CalendarItemType.DurationConfig.Set -> map(durationConfig)
 	}
 	fun map(
 		durationConfigDto: CalendarItemTypeDto.DurationConfigDto
 	): CalendarItemType.DurationConfig = when (durationConfigDto) {
-		is CalendarItemTypeDto.DurationConfigDto.DurationFormula -> map(durationConfigDto)
-		is CalendarItemTypeDto.DurationConfigDto.DurationList -> map(durationConfigDto)
+		is CalendarItemTypeDto.DurationConfigDto.Formula -> map(durationConfigDto)
+		is CalendarItemTypeDto.DurationConfigDto.Set -> map(durationConfigDto)
 	}
 
 	fun map(
-		durationConfig: CalendarItemType.DurationConfig.DurationList
-	): CalendarItemTypeDto.DurationConfigDto.DurationList
+		durationConfig: CalendarItemType.DurationConfig.Set
+	): CalendarItemTypeDto.DurationConfigDto.Set
 	fun map(
-		durationConfigDto: CalendarItemTypeDto.DurationConfigDto.DurationList
-	): CalendarItemType.DurationConfig.DurationList
+		durationConfigDto: CalendarItemTypeDto.DurationConfigDto.Set
+	): CalendarItemType.DurationConfig.Set
 
 	fun map(
-		durationConfig: CalendarItemType.DurationConfig.DurationFormula
-	): CalendarItemTypeDto.DurationConfigDto.DurationFormula
+		durationConfig: CalendarItemType.DurationConfig.Formula
+	): CalendarItemTypeDto.DurationConfigDto.Formula
 	fun map(
-		durationConfigDto: CalendarItemTypeDto.DurationConfigDto.DurationFormula
-	): CalendarItemType.DurationConfig.DurationFormula
+		durationConfigDto: CalendarItemTypeDto.DurationConfigDto.Formula
+	): CalendarItemType.DurationConfig.Formula
 }

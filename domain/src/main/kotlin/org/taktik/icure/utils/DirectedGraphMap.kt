@@ -1,7 +1,6 @@
 package org.taktik.icure.utils
 
 import java.util.ArrayDeque
-import java.util.LinkedList
 
 /**
  * Represent a directed graph as a map.
