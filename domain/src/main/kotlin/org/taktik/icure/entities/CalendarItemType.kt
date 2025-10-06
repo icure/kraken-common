@@ -62,6 +62,7 @@ data class CalendarItemType(
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+	fun canAccept(duration: Int): Boolean = extraDurationsConfig?.canAccept(duration) ?: (duration == this.duration)
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface DurationConfig {
