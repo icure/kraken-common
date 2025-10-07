@@ -10,6 +10,7 @@ import com.google.common.base.Splitter
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
@@ -44,10 +46,14 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
+import org.taktik.icure.domain.customentities.config.ExtensionConfiguration
+import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
-import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -64,15 +70,18 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDomainWithExtension
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapPaginationElementsWithExtensions
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.paginatedListWithExtensions
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PatientHealthCarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.requests.BulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.PatientBulkShareResultV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.FluxString
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
@@ -92,19 +101,86 @@ class PatientController(
 	private val accessLogService: AccessLogService,
 	private val patientService: PatientService,
 	private val healthcarePartyService: HealthcarePartyService,
-	private val patientV2Mapper: PatientV2Mapper,
+	private val patientMapper: PatientV2Mapper,
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val addressV2Mapper: AddressV2Mapper,
 	private val patientHealthCarePartyV2Mapper: PatientHealthCarePartyV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val bulkShareResultV2Mapper: PatientBulkShareResultV2Mapper,
+	private val bulkShareResultV2Mapper: BulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 ) {
+	private suspend fun PatientDto.toDomain(): Patient =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+			{ "Patient(${it.id})" }
+		)
+
+	private suspend fun Patient.toDto(): PatientDto =
+		mapFromDomainWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+		)
+
+	private suspend fun List<PatientDto>.toDomain(): List<Patient> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+			{ "Patient(${it.id})" }
+		)
+
+	private fun Flow<Patient>.toDto(): Flow<PatientDto> =
+		mapFromDomainWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+		)
+
+	private fun Flow<EntityBulkShareResult<Patient>>.toDtoUpdateResult(): Flow<EntityBulkShareResultDto<PatientDto>> =
+		mapFromDomainWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			bulkShareResultV2Mapper,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+		)
+	
+	private fun Flow<PaginationElement>.mapElements(): Flow<PaginationElement> =
+		mapPaginationElementsWithExtensions(
+			this,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+		)
+
+	private suspend fun Flow<ViewQueryResultEvent>.paginatedList(
+		realLimit: Int,
+		objectMapper: ObjectMapper,
+		predicate: Predicate? = null,
+	): PaginatedList<PatientDto> =
+		paginatedListWithExtensions(
+			this,
+			realLimit,
+			objectMapper,
+			predicate,
+			customEntitiesConfigurationProvider,
+			ExtensionConfiguration::patient,
+			patientMapper::map,
+		)
+
 	@Operation(
 		summary = "Find patients for the current healthcare party",
 		description =
@@ -144,7 +220,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientV2Mapper::map).asPaginatedFlux()
+	}.mapElements().asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients of a specific HcParty or of the current HcParty ",
@@ -179,7 +255,7 @@ class PatientController(
 				paginationOffset,
 				null,
 				Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name)),
-			).mapElements(patientV2Mapper::map)
+			).mapElements()
 			.asPaginatedFlux()
 	}
 
@@ -190,7 +266,7 @@ class PatientController(
 	@GetMapping("/merges/{date}")
 	fun listOfMergesAfter(
 		@PathVariable date: Long,
-	): Flux<PatientDto> = patientService.listOfMergesAfter(date).map { patientV2Mapper.map(it) }.injectReactorContext()
+	): Flux<PatientDto> = patientService.listOfMergesAfter(date).toDto().injectReactorContext()
 
 	@Operation(
 		summary = "List patients that have been modified after the provided date",
@@ -208,7 +284,7 @@ class PatientController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.listOfPatientsModifiedAfter(date, offset)
-			.mapElements(patientV2Mapper::map)
+			.mapElements()
 			.asPaginatedFlux()
 	}
 
@@ -306,7 +382,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientV2Mapper::map).asPaginatedFlux()
+	}.mapElements().asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients by pages for a specific HcParty",
@@ -334,7 +410,7 @@ class PatientController(
 		@PathVariable("externalId")
 		@Parameter(description = "A external ID", required = true) externalId: String,
 	): Mono<PatientDto> = mono {
-		patientService.getByExternalId(externalId)?.let(patientV2Mapper::map)
+		patientService.getByExternalId(externalId)?.toDto()
 	}
 
 	@Operation(summary = "Get Paginated List of Patients sorted by Access logs descending")
@@ -424,7 +500,7 @@ class PatientController(
 			val patients = patientService.listPatients(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
 			log.info("Filter patients in " + (System.currentTimeMillis() - System.currentTimeMillis()) + " ms.")
 
-			patients.paginatedList(patientV2Mapper::map, realLimit, objectMapper = objectMapper)
+			patients.paginatedList(realLimit, objectMapper = objectMapper)
 		} catch (e: LoginException) {
 			log.warn(e.message, e)
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
@@ -449,7 +525,7 @@ class PatientController(
 	): Flux<PatientDto> = try {
 		patientService
 			.fuzzySearchPatients(firstName, lastName, dateOfBirth)
-			.map { patientV2Mapper.map(it) }
+			.toDto()
 			.injectReactorContext()
 	} catch (e: Exception) {
 		log.warn(e.message, e)
@@ -464,8 +540,8 @@ class PatientController(
 	fun createPatient(
 		@RequestBody p: PatientDto,
 	): Mono<PatientDto> = mono {
-		val patient = patientService.createPatient(patientV2Mapper.map(p))
-		patient?.let(patientV2Mapper::map) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
+		val patient = patientService.createPatient(p.toDomain())
+		patient?.toDto() ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
 	}
 
 	@Operation(summary = "Deletes multiple Patients")
@@ -504,13 +580,13 @@ class PatientController(
 		@PathVariable patientId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<PatientDto> = mono {
-		patientV2Mapper.map(patientService.undeletePatient(patientId, rev))
+		patientService.undeletePatient(patientId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
 	fun undeletePatients(
 		@RequestBody ids: ListOfIdsAndRevDto,
-	): Flux<PatientDto> = patientService.undeletePatients(ids.ids.map(idWithRevV2Mapper::map)).map(patientV2Mapper::map).injectReactorContext()
+	): Flux<PatientDto> = patientService.undeletePatients(ids.ids.map(idWithRevV2Mapper::map)).toDto().injectReactorContext()
 
 	@DeleteMapping("/purge/{patientId}")
 	fun purgePatient(
@@ -536,7 +612,7 @@ class PatientController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.findDeletedPatientsByDeleteDate(startDate, endDate, desc ?: false, paginationOffset)
-			.mapElements(patientV2Mapper::map)
+			.mapElements()
 			.asPaginatedFlux()
 	}
 
@@ -545,7 +621,7 @@ class PatientController(
 	fun listDeletedPatientsByName(
 		@Parameter(description = "First name prefix") @RequestParam(required = false) firstName: String?,
 		@Parameter(description = "Last name prefix") @RequestParam(required = false) lastName: String?,
-	): Flux<PatientDto> = patientService.listDeletedPatientsByNames(firstName, lastName).map { patientV2Mapper.map(it) }.injectReactorContext()
+	): Flux<PatientDto> = patientService.listDeletedPatientsByNames(firstName, lastName).toDto().injectReactorContext()
 
 	@Operation(summary = "undelete previously deleted patients", description = "Response is an array containing the ID of undeleted patient..")
 	@PutMapping("/undelete/{patientIds}")
@@ -564,14 +640,14 @@ class PatientController(
 	@PostMapping("/byIds")
 	fun getPatients(
 		@RequestBody patientIds: ListOfIdsDto,
-	): Flux<PatientDto> = patientService.getPatients(patientIds.ids).map { patientV2Mapper.map(it) }.injectReactorContext()
+	): Flux<PatientDto> = patientService.getPatients(patientIds.ids).toDto().injectReactorContext()
 
 	@Operation(summary = "Get patient", description = "It gets patient administrative data.")
 	@GetMapping("/{patientId}")
 	fun getPatient(
 		@PathVariable patientId: String,
 	): Mono<PatientDto> = mono {
-		patientService.getPatient(patientId)?.let(patientV2Mapper::map)
+		patientService.getPatient(patientId)?.toDto()
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
 				"Getting patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
@@ -593,14 +669,14 @@ class PatientController(
 				val patient =
 					patientService
 						.findByHcPartyAndIdentifier(hcPartyId, system, id)
-						.map { patientV2Mapper.map(it) }
+						.toDto()
 
 				when (patient.count()) {
-					0 -> patientService.getPatient(id)?.let { patientV2Mapper.map(it) }
+					0 -> patientService.getPatient(id)?.toDto()
 					else -> patient.first()
 				}
 			}
-			else -> patientService.getPatient(id)?.let { patientV2Mapper.map(it) }
+			else -> patientService.getPatient(id)?.toDto()
 		}
 	}
 
@@ -615,20 +691,20 @@ class PatientController(
 	@PostMapping("/batch/minimal")
 	fun createPatientsMinimal(
 		@RequestBody patientDtos: List<PatientDto>,
-	): Flux<IdWithRevDto> = doCreatePatients(patientDtos) { IdWithRevDto(id = it.id, rev = it.rev) }
+	): Flux<IdWithRevDto> = doCreatePatients(patientDtos) { f -> f.map { IdWithRevDto(id = it.id, rev = it.rev) } }
 
 	@Operation(summary = "Create patients in bulk", description = "Returns the created patients")
 	@PostMapping("/batch/full")
 	fun createPatientsFull(
 		@RequestBody patientDtos: List<PatientDto>,
-	): Flux<PatientDto> = doCreatePatients(patientDtos, patientV2Mapper::map)
+	): Flux<PatientDto> = doCreatePatients(patientDtos) { it.toDto() }
 
 	private fun <T : Any> doCreatePatients(
 		patientDtos: List<PatientDto>,
-		mapResult: (Patient) -> T,
+		mapResult: (Flow<Patient>) -> Flow<T>,
 	): Flux<T> = flow {
-		val patients = patientService.createPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
-		emitAll(patients.map(mapResult))
+		val patients = patientService.createPatients(patientDtos.toDomain().toList())
+		emitAll(mapResult(patients))
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
@@ -637,7 +713,7 @@ class PatientController(
 	fun modifyPatients(
 		@RequestBody patientDtos: List<PatientDto>,
 	): Flux<IdWithRevDto> = flow {
-		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
+		val patients = patientService.modifyPatients(patientDtos.toDomain().toList())
 		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
 	}.injectReactorContext()
 
@@ -645,20 +721,20 @@ class PatientController(
 	@PutMapping("/batch/minimal")
 	fun modifyPatientsMinimal(
 		@RequestBody patientDtos: List<PatientDto>,
-	): Flux<IdWithRevDto> = doModifyPatients(patientDtos) { p -> IdWithRevDto(id = p.id, rev = p.rev) }
+	): Flux<IdWithRevDto> = doModifyPatients(patientDtos) { f -> f.map { IdWithRevDto(id = it.id, rev = it.rev) } }
 
 	@Operation(summary = "Modify patients in bulk", description = "Returns the modified patients")
 	@PutMapping("/batch/full")
 	fun modifyPatientsFull(
 		@RequestBody patientDtos: List<PatientDto>,
-	): Flux<PatientDto> = doModifyPatients(patientDtos, patientV2Mapper::map)
+	): Flux<PatientDto> = doModifyPatients(patientDtos) { it.toDto() }
 
 	private inline fun <T : Any> doModifyPatients(
 		patientDtos: List<PatientDto>,
-		crossinline mapResult: (Patient) -> T,
+		crossinline mapResult: (Flow<Patient>) -> Flow<T>,
 	) = flow {
-		val patients = patientService.modifyPatients(patientDtos.map { p -> patientV2Mapper.map(p) }.toList())
-		emitAll(patients.map(mapResult))
+		val patients = patientService.modifyPatients(patientDtos.toDomain().toList())
+		emitAll(mapResult(patients))
 	}.injectReactorContext()
 
 	@Operation(summary = "Modify a patient", description = "No particular return value. It's just a message.")
@@ -666,7 +742,7 @@ class PatientController(
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
 	): Mono<PatientDto> = mono {
-		patientService.modifyPatient(patientV2Mapper.map(patientDto))?.let(patientV2Mapper::map)
+		patientService.modifyPatient(patientDto.toDomain())?.toDto()
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
 				"Modifying patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
@@ -690,7 +766,7 @@ class PatientController(
 					if (referralId == "none") null else referralId,
 					if (start == null) null else Instant.ofEpochMilli(start),
 					if (end == null) null else Instant.ofEpochMilli(end),
-				)?.let(patientV2Mapper::map)
+				)?.toDto()
 		}
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find patient with ID $patientId in the database").also {
 				log.error(it.message)
@@ -710,7 +786,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsBySsin(hcPartyId, paginationOffset)
-			.mapElements(patientV2Mapper::map)
+			.mapElements()
 			.asPaginatedFlux()
 	}
 
@@ -727,7 +803,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsByName(hcPartyId, paginationOffset)
-			.mapElements(patientV2Mapper::map)
+			.mapElements()
 			.asPaginatedFlux()
 	}
 
@@ -740,7 +816,7 @@ class PatientController(
 			patientService
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
-				).map { bulkShareResultV2Mapper.map(it) },
+				).toDtoUpdateResult()
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
@@ -753,7 +829,7 @@ class PatientController(
 			patientService
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
-				).map { bulkShareResultV2Mapper.map(it).minimal() },
+				).map { bulkShareResultV2Mapper.mapMinimal(it) },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
@@ -788,14 +864,12 @@ class PatientController(
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
-		patientV2Mapper.map(
-			patientService.mergePatients(
-				fromId,
-				expectedFromRev,
-				patientV2Mapper.map(updatedInto),
-				omitEncryptionKeysOfFrom ?: true,
-			),
-		)
+		patientService.mergePatients(
+			fromId,
+			expectedFromRev,
+			updatedInto.toDomain(),
+			omitEncryptionKeysOfFrom ?: true,
+		).toDto()
 	}
 
 	companion object {

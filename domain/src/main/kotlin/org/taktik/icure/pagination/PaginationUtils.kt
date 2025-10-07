@@ -116,7 +116,7 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
  * @throws IllegalStateException if there is a [PaginationRowElement] that wraps an element which type is different
  * from [SRC].
  */
-@Suppress("UNCHECKED_CAST")
+//@Suppress("UNCHECKED_CAST")
 fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginationElement> = map {
 	when (it) {
 		is NextPageElement<*> -> it

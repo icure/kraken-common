@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,9 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asyncservice.DataOwnerService
+import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.entities.DataOwnerWithType
 import org.taktik.icure.entities.User
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
@@ -27,7 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.CryptoActorStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapper
-import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -41,21 +45,65 @@ class DataOwnerController(
 	private val userLogic: UserLogic,
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
+	private val patientMapper: PatientV2Mapper,
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 ) {
+	private suspend fun DataOwnerWithType.map(): DataOwnerWithTypeDto {
+		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val patientExtensions = config.extensions.patient
+		return dataOwnerWithTypeMapper.map(
+			this,
+			mapPatientForRead = if (patientExtensions != null) ({ p ->
+				patientMapper.map(p) {
+					if (it != null) patientExtensions.mapValueForRead(CustomEntityConfigResolutionContext.ofConfig(config), it) else null
+				}
+			}) else ({ p ->
+				patientMapper.map(p) { it }
+			})
+		)
+	}
+
+	private fun Flow<DataOwnerWithType>.map(): Flow<DataOwnerWithTypeDto> = flow {
+		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val patientExtensions = config.extensions.patient
+		if (patientExtensions != null) {
+			val context = CustomEntityConfigResolutionContext.ofConfig(config)
+			emitAll(map { dataOwner ->
+				dataOwnerWithTypeMapper.map(
+					dataOwner,
+					mapPatientForRead = { p ->
+						patientMapper.map(p) {
+							if (it != null) patientExtensions.mapValueForRead(context, it) else null
+						}
+					}
+				)
+			})
+		} else {
+			emitAll(map { dataOwner ->
+				dataOwnerWithTypeMapper.map(
+					dataOwner,
+					mapPatientForRead = { p ->
+						patientMapper.map(p) { it }
+					}
+				)
+			})
+		}
+	}
+
 	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
 	@GetMapping("/{dataOwnerId}")
 	fun getDataOwner(
 		@PathVariable dataOwnerId: String,
 	): Mono<DataOwnerWithTypeDto> = mono {
-		dataOwnerService.getDataOwner(dataOwnerId)?.let { dataOwnerWithTypeMapper.map(it) }
+		dataOwnerService.getDataOwner(dataOwnerId)?.map()
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@PostMapping("/byIds")
 	fun getDataOwners(
 		@RequestBody dataOwnerIds: ListOfIdsDto,
-	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map { dataOwnerWithTypeMapper.map(it) }.injectReactorContext()
+	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map().injectReactorContext()
 
 	@Operation(
 		summary = "Get a data owner stub by his ID",
@@ -119,9 +167,7 @@ class DataOwnerController(
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchy(requireCurrentUser().requireDataOwnerId()))
-	}.map {
-		dataOwnerWithTypeMapper.map(it)
-	}.injectReactorContext()
+	}.map().injectReactorContext()
 
 	@Operation(
 		summary = "Get the data owner corresponding to the current user",
