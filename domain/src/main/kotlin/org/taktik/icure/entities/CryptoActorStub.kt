@@ -3,9 +3,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.couchdb.entity.Versionable
-import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
-import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.PropertyStub
 
 /**

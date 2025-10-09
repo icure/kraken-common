@@ -26,7 +26,7 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	entityClass: Class<T>,
 	couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	cacheChainLink: EntityCacheChainLink<T>? = null,
+	cacheChainLink: EntityCacheChainLink<String, T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
 ) : GenericDAOImpl<T>(entityClass, couchDbDispatcher, idGenerator, cacheChainLink, designDocumentProvider, daoConfig = daoConfig) {
@@ -35,6 +35,13 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 		newEntity: Boolean?,
 		entity: T,
 	): T? = super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
+
+	override fun createBulk(
+		datastoreInformation: IDatastoreInformation,
+		entities: Collection<T>
+	): Flow<BulkSaveResult<T>> = saveBulk(datastoreInformation,entities.also {
+		require(it.all { e -> e.rev == null }) { "All entities must have null rev for creation" }
+	})
 
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,

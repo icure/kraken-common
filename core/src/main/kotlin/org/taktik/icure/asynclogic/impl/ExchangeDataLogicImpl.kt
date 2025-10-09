@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.taktik.icure.asyncdao.EntityInfoDAO
 import org.taktik.icure.asyncdao.ExchangeDataDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.ExchangeDataLogic
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
@@ -82,6 +83,17 @@ open class ExchangeDataLogicImpl(
 		return checkNotNull(exchangeDataDAO.create(datastoreInstanceProvider.getInstanceAndGroup(), exchangeData)) {
 			"Exchange data creation returned null."
 		}
+	}
+
+	override fun createExchangeDatas(exchangeDatas: List<ExchangeData>): Flow<ExchangeData> = flow {
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+
+		emitAll(
+			exchangeDataDAO.saveBulk(
+				datastoreInfo,
+				exchangeDatas,
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	protected suspend fun validateModifyExchangeData(updatedExchangeData: ExchangeData) {

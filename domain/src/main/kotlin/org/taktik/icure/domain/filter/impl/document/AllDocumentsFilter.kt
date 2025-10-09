@@ -21,7 +21,6 @@ package org.taktik.icure.domain.filter.impl.document
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.Document
-import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class AllDocumentsFilter(

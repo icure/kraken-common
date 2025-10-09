@@ -6,6 +6,7 @@ package org.taktik.icure.services.external.rest.v1.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 
@@ -21,6 +22,7 @@ data class CalendarItemTypeDto(
 	val name: String? = null,
 	val color: String? = null, // "#123456"
 	@param:Schema(defaultValue = "0") val duration: Int = 0,
+	val extraDurationsConfig: DurationConfigDto? = null,
 	val externalRef: String? = null,
 	val mikronoId: String? = null,
 	val docIds: Set<String> = emptySet(),
@@ -33,4 +35,10 @@ data class CalendarItemTypeDto(
 	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+
+	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
+	sealed interface DurationConfigDto {
+		data class Set(val durations: kotlin.collections.Set<Int> = emptySet()): DurationConfigDto
+		data class Formula(val min: Int, val max: Int, val step: Int): DurationConfigDto
+	}
 }

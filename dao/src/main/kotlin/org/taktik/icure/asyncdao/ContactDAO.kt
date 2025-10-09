@@ -421,5 +421,20 @@ interface ContactDAO : GenericDAO<Contact> {
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String>
+
+
+	fun listServiceIdsByDataOwnerTagCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCodePrefix: String,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerCodeCodePrefix(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCodePrefix: String,
+	): Flow<String>
 	// endregion
 }

@@ -7,6 +7,9 @@ package org.taktik.icure.services.external.rest.v1.controllers.support
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
@@ -26,8 +29,11 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
-import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
-import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
+import org.taktik.icure.services.external.rest.v1.dto.ExchangeDataDto
+import org.taktik.icure.services.external.rest.v1.dto.IdWithRevDto
+import org.taktik.icure.services.external.rest.v1.mapper.ExchangeDataMapper
+import org.taktik.icure.utils.injectReactorContext
+import reactor.core.publisher.Flux
 
 @RestController
 @Profile("app")
@@ -35,7 +41,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 @Tag(name = "exchangeData")
 class ExchangeDataController(
 	private val exchangeDataLogic: ExchangeDataService,
-	private val exchangeDataMapper: ExchangeDataV2Mapper,
+	private val exchangeDataMapper: ExchangeDataMapper,
 	private val paginationConfig: SharedPaginationConfig,
 ) {
 	@Operation(summary = "Creates new exchange data")
@@ -45,6 +51,20 @@ class ExchangeDataController(
 	) = mono {
 		exchangeDataMapper.map(exchangeDataLogic.createExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
+
+	@Operation(summary = "Creates new exchange data in bulk")
+	@PostMapping("/bulk")
+	fun createExchangeDataInBulk(
+		@RequestBody exchangeDatas: List<ExchangeDataDto>,
+	): Flux<IdWithRevDto> = flow {
+		emitAll(
+			exchangeDataLogic.createExchangeDatas(
+				exchangeDatas.map { exchangeDataMapper.map(it) },
+			).map {
+				IdWithRevDto(it.id, it.rev!!)
+			}
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Modifies existing exchange data")
 	@PutMapping

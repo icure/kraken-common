@@ -42,6 +42,7 @@ import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.Tarification
 import org.taktik.icure.entities.TimeTable
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
@@ -62,6 +63,7 @@ import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.MedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.TimeTableDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
@@ -157,8 +159,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyGenderEducationProfession
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.pricing.AllPricingFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.pricing.PricingByRegionTypesLanguageLabelFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByAssociationIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerPatientDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyCodePrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyHealthElementIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyIdentifiersFilter
@@ -167,6 +172,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyPatientCodePrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyPatientTagPrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodeDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagPrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByQualifiedLinkFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySecretForeignKeys
@@ -261,6 +267,16 @@ abstract class FilterV2Mapper {
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
+	abstract fun map(filterDto: AllPricingFilter): org.taktik.icure.domain.filter.impl.pricing.AllPricingFilter
+	abstract fun map(filterDto: PricingByRegionTypesLanguageLabelFilter): org.taktik.icure.domain.filter.impl.pricing.PricingByRegionTypesLanguageLabelFilter
+
+	@JvmName("tryMapPricingFilter")
+	fun tryMap(filterDto: AbstractFilterDto<TarificationDto>): AbstractFilter<Tarification>? = when (filterDto) {
+		is AllPricingFilter -> map(filterDto)
+		is PricingByRegionTypesLanguageLabelFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
 	abstract fun map(filterDto: ContactByHcPartyPatientTagCodeDateFilter): org.taktik.icure.domain.filter.impl.contact.ContactByHcPartyPatientTagCodeDateFilter
 	abstract fun map(filterDto: ContactByHcPartyTagCodeDateFilter): org.taktik.icure.domain.filter.impl.contact.ContactByHcPartyTagCodeDateFilter
 	abstract fun map(filterDto: ContactByServiceIdsFilter): org.taktik.icure.domain.filter.impl.contact.ContactByServiceIdsFilter
@@ -272,6 +288,7 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: ContactByDataOwnerOpeningDateFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerOpeningDateFilter
 	abstract fun map(filterDto: ContactByDataOwnerServiceTagFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerServiceTagFilter
 	abstract fun map(filterDto: ContactByDataOwnerServiceCodeFilter): org.taktik.icure.domain.filter.impl.contact.ContactByDataOwnerServiceCodeFilter
+
 
 	@JvmName("tryMapContactFilter")
 	fun tryMap(filterDto: AbstractFilterDto<ContactDto>): AbstractFilter<Contact>? = when (filterDto) {
@@ -421,6 +438,8 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: ServiceByHcPartyMonthTagPrefixFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyMonthTagPrefixFilter
 	abstract fun map(filterDto: ServiceByHcPartyPatientCodePrefixFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyPatientCodePrefixFilter
 	abstract fun map(filterDto: ServiceByHcPartyPatientTagPrefixFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyPatientTagPrefixFilter
+	abstract fun map(filterDto: ServiceByHcPartyCodePrefixFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyCodePrefixFilter
+	abstract fun map(filterDto: ServiceByHcPartyTagPrefixFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyTagPrefixFilter
 
 	@Suppress("DEPRECATION")
 	@JvmName("tryMapServiceFilter")
@@ -439,6 +458,8 @@ abstract class FilterV2Mapper {
 		is ServiceByHcPartyMonthTagPrefixFilter -> map(filterDto)
 		is ServiceByHcPartyPatientCodePrefixFilter -> map(filterDto)
 		is ServiceByHcPartyPatientTagPrefixFilter -> map(filterDto)
+		is ServiceByHcPartyTagPrefixFilter -> map(filterDto)
+		is ServiceByHcPartyCodePrefixFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
