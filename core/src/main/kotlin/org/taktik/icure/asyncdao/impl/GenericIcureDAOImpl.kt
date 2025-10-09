@@ -26,7 +26,7 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	entityClass: Class<T>,
 	couchDbDispatcher: CouchDbDispatcher,
 	idGenerator: IDGenerator,
-	cacheChainLink: EntityCacheChainLink<T>? = null,
+	cacheChainLink: EntityCacheChainLink<String, T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
 ) : GenericDAOImpl<T>(entityClass, couchDbDispatcher, idGenerator, cacheChainLink, designDocumentProvider, daoConfig = daoConfig) {

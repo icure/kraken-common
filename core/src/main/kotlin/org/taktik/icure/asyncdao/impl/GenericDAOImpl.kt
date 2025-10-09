@@ -77,7 +77,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
 	protected val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
-	protected val cacheChain: EntityCacheChainLink<T>? = null,
+	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
 	private val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig
 ) : GenericDAO<T> {
