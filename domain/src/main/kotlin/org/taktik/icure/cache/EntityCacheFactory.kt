@@ -1,6 +1,7 @@
 package org.taktik.icure.cache
 
 import org.taktik.icure.entities.base.StoredDocument
+import java.io.Serializable
 
 /**
  * This component can be used to instantiate cache chains for DAOs.
@@ -12,7 +13,7 @@ interface EntityCacheFactory {
 	 *
 	 * @param entityClass the java class of the type of entities to store in the cache.
 	 */
-	fun <T : StoredDocument> localOnlyCache(entityClass: Class<T>): EntityCacheChainLink<T>?
+	fun <K : Serializable, T : StoredDocument> localOnlyCache(entityClass: Class<T>): EntityCacheChainLink<K, T>?
 
 	/**
 	 * Instantiates a cache with two levels:
@@ -21,5 +22,5 @@ interface EntityCacheFactory {
 	 *
 	 * @param entityClass the java class of the type of entities to store in the cache.
 	 */
-	fun <T : StoredDocument> localAndDistributedCache(entityClass: Class<T>): EntityCacheChainLink<T>?
+	fun <K : Serializable, T : StoredDocument> localAndDistributedCache(entityClass: Class<T>): EntityCacheChainLink<K, T>?
 }
