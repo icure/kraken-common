@@ -65,4 +65,24 @@ interface DocumentDAO :
 	fun listDocumentIdsByDocumentTypeHcPartySecretMessageKeys(datastoreInformation: IDatastoreInformation, documentTypeCode: String, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<String>
 
 	suspend fun listDocumentsByExternalUuid(datastoreInformation: IDatastoreInformation, externalUuid: String): List<Document>
+
+	/**
+	 * Refer to [org.taktik.icure.domain.filter.document.DocumentByDataOwnerTagFilter]
+	 */
+	fun listDocumentIdsByDataOwnerTags(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCode: String?
+	): Flow<String>
+
+	/**
+	 * Refer to [org.taktik.icure.domain.filter.document.DocumentByDataOwnerCodeFilter]
+	 */
+	fun listDocumentIdsByDataOwnerCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCode: String?
+	): Flow<String>
 }

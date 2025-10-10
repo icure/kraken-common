@@ -20,8 +20,10 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.DocumentDAO
@@ -274,6 +276,60 @@ class DocumentDAOImpl(
 		return client.deleteAttachment(documentId, attachmentId, rev)
 	}
 
+	@View(
+		name = "by_data_owner_tag",
+		map = "classpath:js/document/By_data_owner_tag_map.js",
+		secondaryPartition = BEPPE_PARTITION,
+	)
+	override fun listDocumentIdsByDataOwnerTags(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCode: String?
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_data_owner_tag", BEPPE_PARTITION)
+			.keys(
+				if (tagCode != null) {
+					searchKeys.map { ComplexKey.of(it, tagType, tagCode) }
+				} else {
+					searchKeys.map { ComplexKey.of(it, tagType) }
+				},
+			)
+			.reduce(false)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+	}
+
+	@View(
+		name = "by_data_owner_code",
+		map = "classpath:js/document/By_data_owner_code_map.js",
+		secondaryPartition = BEPPE_PARTITION,
+	)
+	override fun listDocumentIdsByDataOwnerCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCode: String?
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val viewQuery = createQuery(datastoreInformation, "by_data_owner_code", BEPPE_PARTITION)
+			.keys(
+				if (codeCode != null) {
+					searchKeys.map { ComplexKey.of(it, codeType, codeCode) }
+				} else {
+					searchKeys.map { ComplexKey.of(it, codeType) }
+				},
+			)
+			.reduce(false)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+	}
+
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,
@@ -281,6 +337,7 @@ class DocumentDAOImpl(
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_message" to DATA_OWNER_PARTITION)
 			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_message_date" to MAURICE_PARTITION)
+			Partitions.Beppe -> warmup(datastoreInformation, "by_data_owner_tag" to BEPPE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
