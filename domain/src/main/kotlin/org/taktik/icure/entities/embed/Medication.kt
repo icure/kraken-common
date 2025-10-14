@@ -61,6 +61,7 @@ data class Medication(
 	val suspension: List<Suspension>? = null,
 	val prescriptionRID: String? = null,
 	val status: Int? = null,
+	val stockLocation: Address? = null,
 ) : Serializable {
 	override fun toString(): String {
 		var result = String.format(
