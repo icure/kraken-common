@@ -71,7 +71,7 @@ data class MedicationDto(
 	val suspension: List<SuspensionDto>? = null,
 	val prescriptionRID: String? = null,
 	val status: Int? = null,
-	val stockLocationDto: AddressDto? = null,
+	val stockLocation: AddressDto? = null,
 ) : Serializable {
 	companion object {
 		const val REIMBURSED = "REIMBURSED"
