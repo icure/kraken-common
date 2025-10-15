@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
+import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.utils.DynamicInitializer
@@ -34,6 +35,10 @@ data class CalendarItemType(
 	val docIds: Set<String> = emptySet(),
 	val otherInfos: Map<String, String> = emptyMap(),
 	val subjectByLanguage: Map<String, String> = emptyMap(),
+	/**
+	 * Public properties of public calendar items (i.e. calendar items available in public timetableitems) are exposed to anonymous endpoints.
+	 */
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStub>? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
