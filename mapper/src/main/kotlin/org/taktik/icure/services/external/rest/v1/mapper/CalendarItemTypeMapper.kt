@@ -19,6 +19,7 @@ interface CalendarItemTypeMapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "publicProperties", ignore = true),
 	)
 	fun map(calendarItemTypeDto: CalendarItemTypeDto): CalendarItemType
 	fun map(calendarItemType: CalendarItemType): CalendarItemTypeDto
