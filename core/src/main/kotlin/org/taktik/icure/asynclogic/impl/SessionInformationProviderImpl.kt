@@ -197,7 +197,7 @@ open class SessionInformationProviderImpl(
 			fun nullIfNotDataOwner(
 				dataOwner: DataOwnerAuthenticationDetails.DataOwnerDetails?,
 				accessControlKeys: List<ByteArray>,
-			): DataOwnerAuthenticationDetails? = if (dataOwner == null || accessControlKeys.isEmpty()) {
+			): DataOwnerAuthenticationDetails? = if (dataOwner == null && accessControlKeys.isEmpty()) {
 				null
 			} else {
 				DataOwnerAuthenticationDetailsImpl(
