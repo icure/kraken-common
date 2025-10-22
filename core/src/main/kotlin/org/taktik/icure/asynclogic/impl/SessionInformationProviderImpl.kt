@@ -62,13 +62,23 @@ open class SessionInformationProviderImpl(
 	}
 
 	override suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails = DataOwnerAuthenticationDetailsImpl(
+		getDataOwnerDetails(),
+		sessionAccessControlKeysProvider.getAccessControlKeys(),
+	)
+
+	override suspend fun getDataOwnerAuthenticationDetailsOrNull(): DataOwnerAuthenticationDetails? {
+		return DataOwnerAuthenticationDetailsImpl.nullIfNotDataOwner(
+			getDataOwnerDetails(),
+			sessionAccessControlKeysProvider.getAccessControlKeys(),
+		)
+	}
+
+	private suspend fun getDataOwnerDetails(): DataOwnerAuthenticationDetails.DataOwnerDetails? =
 		getCurrentSessionContext().let { sc ->
 			sc.getHealthcarePartyId()?.let { HcpDataOwnerDetails.fromHierarchy(it, sc.getHcpHierarchy()) }
 				?: sc.getPatientId()?.let { PatientDataOwnerDetails(it) }
 				?: sc.getDeviceId()?.let { DeviceDataOwnerDetails(it) }
-		},
-		sessionAccessControlKeysProvider.getAccessControlKeys(),
-	)
+		}
 
 	override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
 		?.context
@@ -163,7 +173,7 @@ open class SessionInformationProviderImpl(
 			?: throw AuthenticationServiceException("Failed extracting user details: ${authentication.principal}")
 	}
 
-	private class DataOwnerAuthenticationDetailsImpl(
+	private class DataOwnerAuthenticationDetailsImpl private constructor (
 		override val dataOwner: DataOwnerAuthenticationDetails.DataOwnerDetails?,
 		override val accessControlKeys: List<ByteArray>,
 	) : DataOwnerAuthenticationDetails {
@@ -171,6 +181,28 @@ open class SessionInformationProviderImpl(
 			if (dataOwner == null && accessControlKeys.isEmpty()) {
 				throw AuthenticationServiceException(
 					"Anonymous data owner must provide at least some secret exchange ids.",
+				)
+			}
+		}
+
+		companion object {
+			operator fun invoke(
+				dataOwner: DataOwnerAuthenticationDetails.DataOwnerDetails?,
+				accessControlKeys: List<ByteArray>,
+			): DataOwnerAuthenticationDetails = DataOwnerAuthenticationDetailsImpl(
+				dataOwner,
+				accessControlKeys,
+			)
+
+			fun nullIfNotDataOwner(
+				dataOwner: DataOwnerAuthenticationDetails.DataOwnerDetails?,
+				accessControlKeys: List<ByteArray>,
+			): DataOwnerAuthenticationDetails? = if (dataOwner == null || accessControlKeys.isEmpty()) {
+				null
+			} else {
+				DataOwnerAuthenticationDetailsImpl(
+					dataOwner,
+					accessControlKeys,
 				)
 			}
 		}
