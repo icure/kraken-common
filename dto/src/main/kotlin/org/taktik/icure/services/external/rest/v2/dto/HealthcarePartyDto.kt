@@ -121,6 +121,7 @@ data class HealthcarePartyDto(
 	val options: Map<String, String> = emptyMap(),
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),

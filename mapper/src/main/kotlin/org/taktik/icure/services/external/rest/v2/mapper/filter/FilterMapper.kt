@@ -110,7 +110,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.device.AllDevicesFi
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.AllDocumentsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerPatientDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByTypeDataOwnerPatientFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerParentIdFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerPatientOpeningDateFilter
@@ -309,12 +311,16 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: AllDocumentsFilter): org.taktik.icure.domain.filter.impl.document.AllDocumentsFilter
 	abstract fun map(filterDto: DocumentByDataOwnerPatientDateFilter): org.taktik.icure.domain.filter.impl.document.DocumentByDataOwnerPatientDateFilter
 	abstract fun map(filterDto: DocumentByTypeDataOwnerPatientFilter): org.taktik.icure.domain.filter.impl.document.DocumentByTypeDataOwnerPatientFilter
+	abstract fun map(filterDto: DocumentByDataOwnerTagFilter): org.taktik.icure.domain.filter.impl.document.DocumentByDataOwnerTagFilter
+	abstract fun map(filterDto: DocumentByDataOwnerCodeFilter): org.taktik.icure.domain.filter.impl.document.DocumentByDataOwnerCodeFilter
 
 	@JvmName("tryMapDocumentFilter")
 	fun tryMap(filterDto: AbstractFilterDto<DocumentDto>): AbstractFilter<Document>? = when (filterDto) {
 		is DocumentByDataOwnerPatientDateFilter -> map(filterDto)
 		is DocumentByTypeDataOwnerPatientFilter -> map(filterDto)
 		is AllDocumentsFilter -> map(filterDto)
+		is DocumentByDataOwnerTagFilter -> map(filterDto)
+		is DocumentByDataOwnerCodeFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

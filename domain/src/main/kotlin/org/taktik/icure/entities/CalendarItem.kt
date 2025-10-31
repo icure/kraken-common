@@ -28,7 +28,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CalendarItem(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -39,7 +39,7 @@ data class CalendarItem(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	@param:ContentValue(ContentValues.TIMESTAMP) override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) @NotNull val title: String? = null,
+	@field:NotNull val title: String? = null,
 	val calendarItemTypeId: String? = null,
 	val masterCalendarItemId: String? = null,
 	@Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,

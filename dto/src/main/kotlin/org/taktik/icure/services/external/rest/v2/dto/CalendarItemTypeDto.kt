@@ -42,6 +42,7 @@ data class CalendarItemTypeDto(
 	val docIds: Set<String> = emptySet(),
 	val otherInfos: Map<String, String> = emptyMap(),
 	val subjectByLanguage: Map<String, String> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(
 		id: String?,

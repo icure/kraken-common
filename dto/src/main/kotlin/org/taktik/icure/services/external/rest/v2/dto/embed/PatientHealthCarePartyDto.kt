@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
@@ -37,6 +38,7 @@ data class PatientHealthCarePartyDto(
 		emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
 	@param:Schema(description = "Time periods") val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
 	@get:Deprecated("Use type") @param:Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
+	val properties: Set<PropertyStubDto>? = null,
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

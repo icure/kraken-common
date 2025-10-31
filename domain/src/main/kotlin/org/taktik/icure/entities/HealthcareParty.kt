@@ -148,8 +148,13 @@ data class HealthcareParty(
 	/**
 	 * If set to true the healthcare party is considered public, and a stripped down version of the healthcare party
 	 * will be accessible through the anonymous endpoints.
+	 * TODO added for the future but currently unused
 	 */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
+	/**
+	 * Public properties are exposed to all users and anonymous endpoints.
+	 */
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStub>? = null,
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
 	// For a pair of HcParties, this key is called the AES exchange key
 	// Each HcParty always has one AES exchange key for himself

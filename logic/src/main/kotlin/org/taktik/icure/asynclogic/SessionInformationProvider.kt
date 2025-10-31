@@ -39,6 +39,8 @@ interface SessionInformationProvider : DataOwnerProvider {
 	// TODO probably this should be cached in the coroutine context to avoid calculating the hash every time
 	suspend fun getDataOwnerAuthenticationDetails(): DataOwnerAuthenticationDetails
 
+	suspend fun getDataOwnerAuthenticationDetailsOrNull(): DataOwnerAuthenticationDetails?
+
 	interface AsyncSessionContext : Serializable {
 
 		/**
