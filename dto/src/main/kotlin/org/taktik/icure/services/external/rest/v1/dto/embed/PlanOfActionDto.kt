@@ -48,7 +48,7 @@ data class PlanOfActionDto(
 		"Use services (one per care) linked to this healthcare approach",
 	)
 	@param:Schema(description = "The number of individual cares already performed in the course of this healthcare approach") val numberOfCares: Int? = null,
-	@param:Schema(description = "Members of the careteam involved in this approach") val careTeamMemberships: List<CareTeamMembershipDto?> =
+	@param:Schema(description = "Members of the careteam involved in this approach") val careTeamMemberships: List<CareTeamMembershipDto> =
 		emptyList(),
 	@get:Deprecated("Use status") @Schema(defaultValue = "true") val relevant: Boolean = true,
 	override val encryptedSelf: String? = null,
