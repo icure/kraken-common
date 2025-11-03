@@ -284,7 +284,7 @@ abstract class FilterV2Mapper {
 
 	abstract fun map(filterDto: AllInsurancesFilter): org.taktik.icure.domain.filter.impl.insurance.AllInsurancesFilter
 
-	@JvmName("tryMapPricingFilter")
+	@JvmName("tryMapInsuranceFilter")
 	fun tryMap(filterDto: AbstractFilterDto<InsuranceDto>): AbstractFilter<Insurance>? = when (filterDto) {
 		is AllInsurancesFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
