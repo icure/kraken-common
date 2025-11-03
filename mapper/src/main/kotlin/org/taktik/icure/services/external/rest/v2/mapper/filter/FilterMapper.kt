@@ -37,6 +37,7 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.Insurance
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.MedicalLocation
@@ -58,6 +59,7 @@ import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
+import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.MedicalLocationDto
@@ -132,6 +134,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.Healt
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.AllInsurancesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskAfterDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
@@ -276,6 +279,14 @@ abstract class FilterV2Mapper {
 	fun tryMap(filterDto: AbstractFilterDto<TarificationDto>): AbstractFilter<Tarification>? = when (filterDto) {
 		is AllPricingFilter -> map(filterDto)
 		is PricingByRegionTypesLanguageLabelFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: AllInsurancesFilter): org.taktik.icure.domain.filter.impl.insurance.AllInsurancesFilter
+
+	@JvmName("tryMapPricingFilter")
+	fun tryMap(filterDto: AbstractFilterDto<InsuranceDto>): AbstractFilter<Insurance>? = when (filterDto) {
+		is AllInsurancesFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
