@@ -33,6 +33,7 @@ import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
+import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -221,6 +222,7 @@ class CodeController(
 		)
 	}
 
+	@Deprecated("This method gives invalid json if no matching code is found, use byRegionLanguagesTypeLabelOr404")
 	@GetMapping("/byRegionLanguagesTypeLabel")
 	fun getCodeByRegionLanguageTypeLabel(
 		@RequestParam region: String,
@@ -233,6 +235,21 @@ class CodeController(
 				codeService.getCodeByLabel(region, label, type, it.split(","))
 			} ?: codeService.getCodeByLabel(region, label, type)
 		code?.let { codeV2Mapper.map(it) }
+	}
+
+	@GetMapping("/byRegionLanguagesTypeLabelOr404")
+	fun getCodeByRegionLanguageTypeLabelOr404(
+		@RequestParam region: String,
+		@RequestParam label: String,
+		@RequestParam type: String,
+		@RequestParam languages: String?,
+	): Mono<CodeDto> = mono {
+		codeV2Mapper.map(
+			languages?.let {
+				codeService.getCodeByLabel(region, label, type, it.split(","))
+			} ?: codeService.getCodeByLabel(region, label, type)
+			?: throw NotFoundRequestException("No code found for region=$region, label=$label, type=$type${if (languages != null) ", languages=$languages" else ""}")
+		)
 	}
 
 	@Operation(summary = "Get a list of codes by ids")
