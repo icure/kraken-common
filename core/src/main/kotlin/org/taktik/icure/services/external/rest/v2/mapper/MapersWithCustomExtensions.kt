@@ -34,7 +34,7 @@ object MappersWithCustomExtensions {
 		crossinline getPathRoot: (DTO) -> String
 	): OBJ {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			doMap(dto) {
@@ -56,7 +56,7 @@ object MappersWithCustomExtensions {
 		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): DTO {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			doMap(obj) {
@@ -78,7 +78,7 @@ object MappersWithCustomExtensions {
 		crossinline getPathRoot: (DTO) -> String
 	): List<OBJ> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			val path = ResolutionPath(ArrayList())
@@ -105,7 +105,7 @@ object MappersWithCustomExtensions {
 		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): List<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			objs.map { obj ->
@@ -129,7 +129,7 @@ object MappersWithCustomExtensions {
 		crossinline getPathRoot: (DTO) -> String
 	): Flow<OBJ> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			val path = ResolutionPath(ArrayList())
@@ -156,7 +156,7 @@ object MappersWithCustomExtensions {
 		crossinline doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<DTO> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getExtension()
+		val extension = config?.extensions?.getExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			emitAll(objs.map { obj ->
@@ -180,7 +180,7 @@ object MappersWithCustomExtensions {
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<EntityBulkShareResultDto<DTO>> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getEntityExtension()
+		val extension = config?.extensions?.getEntityExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
 			emitAll(shareResults.map { shareResult ->
@@ -212,22 +212,36 @@ object MappersWithCustomExtensions {
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<PaginationElement> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getEntityExtension()
-		val context = CustomEntityConfigResolutionContext.ofConfig(config)
-		emitAll(paginationElements.map { paginationElement ->
-			when (paginationElement) {
-				is NextPageElement<*> -> paginationElement
-				is PaginationRowElement<*, *> ->
-					PaginationRowElement(
-						element = doMapEntity(paginationElement.element as OBJ) {
-							if (extension != null && it != null) {
-								extension.mapValueForRead(context, it)
-							} else it
-						},
-						key = paginationElement.key,
-					)
-			}
-		})
+		val extension = config?.extensions?.getEntityExtension()
+		val context = config?.let { CustomEntityConfigResolutionContext.ofConfig(it) }
+		emitAll(
+			if (extension != null && context != null)
+				paginationElements.map { paginationElement ->
+					when (paginationElement) {
+						is NextPageElement<*> -> paginationElement
+						is PaginationRowElement<*, *> ->
+							PaginationRowElement(
+								element = doMapEntity(paginationElement.element as OBJ) {
+									if (it != null) {
+										extension.mapValueForRead(context, it)
+									} else it
+								},
+								key = paginationElement.key,
+							)
+					}
+				}
+			else
+				paginationElements.map { paginationElement ->
+					when (paginationElement) {
+						is NextPageElement<*> -> paginationElement
+						is PaginationRowElement<*, *> ->
+							PaginationRowElement(
+								element = doMapEntity(paginationElement.element as OBJ) { it },
+								key = paginationElement.key,
+							)
+					}
+				}
+		)
 	}
 
 	suspend inline fun <OBJ : Identifiable<String>, DTO : Serializable> paginatedListWithExtensions(
@@ -240,10 +254,10 @@ object MappersWithCustomExtensions {
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): PaginatedList<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config.extensions.getEntityExtension()
-		val context = CustomEntityConfigResolutionContext.ofConfig(config)
+		val extension = config?.extensions?.getEntityExtension()
+		val context = config?.let { CustomEntityConfigResolutionContext.ofConfig(it) }
 		return events.paginatedList<OBJ, DTO>(
-			mapper = if (extension != null) ({ obj ->
+			mapper = if (extension != null && context != null) ({ obj ->
 				doMapEntity(obj) { if (it != null) extension.mapValueForRead(context, it) else null }
 			}) else ({ obj ->
 				doMapEntity(obj) { it }
