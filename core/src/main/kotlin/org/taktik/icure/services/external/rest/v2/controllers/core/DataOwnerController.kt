@@ -50,7 +50,7 @@ class DataOwnerController(
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 ) {
 	private suspend fun DataOwnerWithType.map(): DataOwnerWithTypeDto {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val patientExtensions = config.extensions.patient
 		return dataOwnerWithTypeMapper.map(
 			this,
@@ -65,7 +65,7 @@ class DataOwnerController(
 	}
 
 	private fun Flow<DataOwnerWithType>.map(): Flow<DataOwnerWithTypeDto> = flow {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val patientExtensions = config.extensions.patient
 		if (patientExtensions != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)

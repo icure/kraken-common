@@ -33,7 +33,7 @@ object MappersWithCustomExtensions {
 		doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): OBJ {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -55,7 +55,7 @@ object MappersWithCustomExtensions {
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): DTO {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -77,7 +77,7 @@ object MappersWithCustomExtensions {
 		doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): List<OBJ> {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -104,7 +104,7 @@ object MappersWithCustomExtensions {
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): List<DTO> {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		return if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -128,7 +128,7 @@ object MappersWithCustomExtensions {
 		crossinline doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): Flow<OBJ> = flow {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -155,7 +155,7 @@ object MappersWithCustomExtensions {
 		crossinline getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		crossinline doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<DTO> = flow {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -179,7 +179,7 @@ object MappersWithCustomExtensions {
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<EntityBulkShareResultDto<DTO>> = flow {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getEntityExtension()
 		if (extension != null) {
 			val context = CustomEntityConfigResolutionContext.ofConfig(config)
@@ -211,7 +211,7 @@ object MappersWithCustomExtensions {
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): Flow<PaginationElement> = flow {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getEntityExtension()
 		val context = CustomEntityConfigResolutionContext.ofConfig(config)
 		emitAll(paginationElements.map { paginationElement ->
@@ -239,7 +239,7 @@ object MappersWithCustomExtensions {
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
 	): PaginatedList<DTO> {
-		val config = customEntitiesConfigurationProvider.getCurrentUserCustomConfig()
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config.extensions.getEntityExtension()
 		val context = CustomEntityConfigResolutionContext.ofConfig(config)
 		return events.paginatedList<OBJ, DTO>(
