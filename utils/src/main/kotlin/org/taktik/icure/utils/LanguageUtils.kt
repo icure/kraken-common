@@ -22,6 +22,9 @@ tailrec fun <K> retry(trials: Int, closure: () -> K, skipException: (e: Exceptio
 inline fun <K> retryIf(trials: Int, condition: (Exception) -> Boolean, closure: () -> K): K =
 	retry(trials, condition, {}, closure)
 
+// TODO should be safe to replace with
+//inline fun <K> retry(trials: Int, condition: (Throwable) -> Boolean = { true }, beforeRetry: () -> Unit = {}, closure: () -> K): K =
+//	retryWhen(trials, { it.isFailure && condition(it.exceptionOrNull()!!) }, beforeRetry, closure).getOrThrow()
 inline fun <K> retry(trials: Int, condition: (Exception) -> Boolean = { true }, beforeRetry: () -> Unit = {}, closure: () -> K): K {
 	require(trials > 0) { "trials must be > 0" }
 	var remaining = trials
@@ -37,6 +40,18 @@ inline fun <K> retry(trials: Int, condition: (Exception) -> Boolean = { true }, 
 			}
 		}
 	}
+}
+
+// Retries the closure until either shouldRetry of the closure result returns false, or the number of trials has been reached.
+// If the numbers of trials has been reached returns the latest result.
+inline fun <K> retryWhen(trials: Int, shouldRetry: (Result<K>) -> Boolean = { true }, beforeRetry: () -> Unit = {}, closure: () -> K): Result<K> {
+	require(trials > 0) { "trials must be > 0" }
+	repeat (trials - 1) {
+		val result = runCatching(closure)
+		if (!shouldRetry(result)) return result
+		beforeRetry()
+	}
+	return runCatching(closure)
 }
 
 suspend inline fun <K, reified E> suspendRetryForSomeException(trials: Int, noinline closure: suspend () -> K): K =
