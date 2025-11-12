@@ -19,5 +19,5 @@ data class ServiceByHcPartyCodePrefixFilter(
 	val healthcarePartyId: String,
 	val codeType: String,
 	val codeCodePrefix: String,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

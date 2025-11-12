@@ -22,5 +22,5 @@ data class ServiceByHcPartyPatientCodePrefixFilter(
 	val codeCodePrefix: String,
 	val startValueDate: Long? = null,
 	val endValueDate: Long? = null,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>
