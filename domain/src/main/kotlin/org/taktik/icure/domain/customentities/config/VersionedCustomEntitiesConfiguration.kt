@@ -1,10 +1,16 @@
 package org.taktik.icure.domain.customentities.config
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.domain.customentities.config.typing.EnumDefinition
 import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
+import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.embed.RevisionInfo
 
 data class VersionedCustomEntitiesConfiguration(
-	val id: String,
+	val rev: String? = null,
+	val owningGroup: String,
+	val version: Int,
 	val objects: Map<String, ObjectDefinition>,
 	val enums: Map<String, EnumDefinition>,
 	val extensions: ExtensionConfiguration,
