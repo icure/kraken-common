@@ -8,6 +8,5 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ContactParticipantDto(
 	val type: ParticipantTypeDto,
-	val practitionerId: String? = null,
-	val organizationId: String? = null,
+	val hcpId: String,
 )
