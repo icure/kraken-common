@@ -27,7 +27,7 @@ interface ContactMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "notes", ignore = true),
-		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
+		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
 	)
 	fun map(contactDto: ContactDto): Contact
 
@@ -37,3 +37,8 @@ interface ContactMapper {
 	)
 	fun map(contact: Contact): ContactDto
 }
+
+fun toEntity(contactDto: ContactDto, contactMapper: ContactMapper): Contact = Contact(
+	id = contactDto.id,
+	participants = (contactDto.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) }
+)

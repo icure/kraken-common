@@ -41,7 +41,7 @@ interface ContactV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
+		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
 	)
 	fun map(contactDto: ContactDto): Contact
 
