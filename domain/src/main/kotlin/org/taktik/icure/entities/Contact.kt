@@ -16,6 +16,7 @@ import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
+import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Identifier
@@ -103,7 +104,9 @@ data class Contact(
 	val encounterLocation: Address? = null,
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val subContacts: Set<SubContact> = emptySet(),
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val services: Set<Service> = emptySet(),
+	@Deprecated("Replaced by participantList", replaceWith = ReplaceWith("participantList"))
 	val participants: Map<ParticipantType, String> = emptyMap(),
+	val participantList: List<ContactParticipant> = emptyList(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),

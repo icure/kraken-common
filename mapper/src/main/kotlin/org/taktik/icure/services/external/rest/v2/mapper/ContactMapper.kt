@@ -28,12 +28,13 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AnnotationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.embed.ContactParticipantV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SubContactV2Mapper
 
-@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class, ContactParticipantV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ContactV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

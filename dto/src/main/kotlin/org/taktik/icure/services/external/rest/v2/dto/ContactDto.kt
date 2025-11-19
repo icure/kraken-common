@@ -28,6 +28,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
@@ -72,9 +73,10 @@ data class ContactDto(
 		description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.",
 	) val subContacts: Set<SubContactDto> = emptySet(),
 	@param:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
-	@param:Schema(
-		description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id",
-	) val participants: Map<ParticipantTypeDto, String> = emptyMap(),
+	@param:Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id")
+	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
+	val participants: Map<ParticipantTypeDto, String> = emptyMap(),
+	val participantList: List<ContactParticipantDto> = emptyList(),
 	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, // Redundant... Should be responsible
 	@get:Deprecated("Use groupId") val modifiedContactId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),

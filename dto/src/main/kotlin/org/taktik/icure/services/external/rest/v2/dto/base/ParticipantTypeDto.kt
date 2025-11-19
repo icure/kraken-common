@@ -56,11 +56,17 @@ enum class ParticipantTypeDto {
 	@JsonProperty("secondaryPerformer")
 	SecondaryPerformer,
 
+	@JsonProperty("secondaryPerformerOrganization")
+	SecondaryPerformerOrganization,
+
 	/**
 	 * The principal or primary performer of the act.
 	 */
 	@JsonProperty("primaryPerformer")
 	PrimaryPerformer,
+
+	@JsonProperty("primaryPerformerOrganization")
+	PrimaryPerformerOrganization,
 
 	/**
 	 * Indicates that the target of the participation is involved in some manner in the act, but does not qualify how.
@@ -85,4 +91,10 @@ enum class ParticipantTypeDto {
 	 */
 	@JsonProperty("location")
 	Location,
+
+	@JsonProperty("recorder")
+	Recorder,
+
+	@JsonProperty("recorderOrganization")
+	RecorderOrganization,
 }
