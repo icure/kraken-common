@@ -8,5 +8,6 @@ import org.taktik.icure.entities.base.ParticipantType
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ContactParticipant(
 	val type: ParticipantType,
-	val referenceId: String
+	val practitionerId: String? = null,
+	val organizationId: String? = null,
 )
