@@ -91,7 +91,6 @@ object JwtDecoder {
 	): Map<String, Any?> = try {
 		createPublicKeyDecoder(publicKey, validationSkewSeconds, signatureAlgorithm).decode(jwt).awaitSingle().claims
 	} catch (e: JwtException) {
-		e.printStackTrace()
 		throw InvalidJwtException("Jwt did not pass validation", e)
 	}
 
@@ -104,7 +103,6 @@ object JwtDecoder {
 		createPublicKeyDecoder(publicKey, validationSkewSeconds, signatureAlgorithm).decode(jwt).awaitSingle()
 		true
 	} catch (e: JwtException) {
-		e.printStackTrace()
 		false
 	}
 
