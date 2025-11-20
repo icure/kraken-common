@@ -4,6 +4,7 @@ import com.nimbusds.jwt.JWTParser
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
 import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator
 import org.springframework.security.oauth2.jwt.JwtValidators
@@ -29,9 +30,13 @@ object JwtDecoder {
 	private fun createPublicKeyDecoder(
 		publicKey: RSAPublicKey,
 		validationSkewSeconds: Long,
-	): NimbusReactiveJwtDecoder = NimbusReactiveJwtDecoder.withPublicKey(publicKey).build().also {
-		it.setJwtValidator(getValidators(validationSkewSeconds))
-	}
+		signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RS256
+	): NimbusReactiveJwtDecoder = NimbusReactiveJwtDecoder
+		.withPublicKey(publicKey)
+		.signatureAlgorithm(signatureAlgorithm)
+		.build().also {
+			it.setJwtValidator(getValidators(validationSkewSeconds))
+		}
 
 	private suspend fun getDecoder(
 		publicKey: RSAPublicKey,
@@ -78,6 +83,31 @@ object JwtDecoder {
 		false
 	}
 
+	suspend fun validateAndGetClaims(
+		jwt: String,
+		publicKey: RSAPublicKey,
+		validationSkewSeconds: Long,
+		signatureAlgorithm: SignatureAlgorithm
+	): Map<String, Any?> = try {
+		createPublicKeyDecoder(publicKey, validationSkewSeconds, signatureAlgorithm).decode(jwt).awaitSingle().claims
+	} catch (e: JwtException) {
+		e.printStackTrace()
+		throw InvalidJwtException("Jwt did not pass validation", e)
+	}
+
+	suspend fun isValid(
+		jwt: String,
+		publicKey: RSAPublicKey,
+		validationSkewSeconds: Long,
+		signatureAlgorithm: SignatureAlgorithm
+	): Boolean = try {
+		createPublicKeyDecoder(publicKey, validationSkewSeconds, signatureAlgorithm).decode(jwt).awaitSingle()
+		true
+	} catch (e: JwtException) {
+		e.printStackTrace()
+		false
+	}
+
 	private fun getDecoderFromOidcIssuer(
 		oidcIssuerLocation: String,
 		validationSkewSeconds: Long,
@@ -85,7 +115,7 @@ object JwtDecoder {
 		NimbusReactiveJwtDecoder.withIssuerLocation(oidcIssuerLocation).build().also {
 			it.setJwtValidator(getValidators(validationSkewSeconds))
 		}
-	}!!
+	}
 
 	/**
 	 * Validate a jwt using an oidc issuer making sure it is not expired, then returns the claims.

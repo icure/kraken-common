@@ -22,8 +22,10 @@ data class ExternalJwtConfigDto(
 ) {
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface ValidationMethodDto {
+		@JsonInclude(JsonInclude.Include.NON_NULL)
 		data class PublicKey(
 			val key: String,
+			@param:Schema(defaultValue = "null") val signatureAlgorithm: String? = null
 		) : ValidationMethodDto
 
 		data class Oidc(
