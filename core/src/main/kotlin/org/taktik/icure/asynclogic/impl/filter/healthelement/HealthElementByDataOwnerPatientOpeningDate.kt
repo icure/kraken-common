@@ -14,7 +14,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
 import org.taktik.icure.entities.HealthElement
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -29,7 +28,9 @@ class HealthElementByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
 		try {
-			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
+			val hcPartyId = requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+				"A HealthElementByDataOwnerPatientOpeningDate must either provide an explicit dataOwnerId or must be used by a data owner user"
+			}
 			emitAll(
 				healthElementDAO.listHealthElementIdsByDataOwnerPatientOpeningDate(
 					datastoreInformation = datastoreInformation,

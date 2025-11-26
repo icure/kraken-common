@@ -19,6 +19,7 @@ import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
+import java.lang.UnsupportedOperationException
 
 open class ClassificationLogicImpl(
 	private val classificationDAO: ClassificationDAO,
@@ -44,10 +45,11 @@ open class ClassificationLogicImpl(
 
 	override suspend fun createClassification(classification: Classification) = fix(classification, isCreate = true) { fixedClassification ->
 		try {
-			// Fetching the hcParty
 			if (fixedClassification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+			// TODO should be covered by autofix, unless we want to enforce the matching of author/responsible with the current user
+			if (sessionLogic.requestsAutofixAnonymity()) throw UnsupportedOperationException("Creating Classifications is not supported for users requesting anonymity")
 			val userId = sessionLogic.getCurrentUserId()
-			val healthcarePartyId = sessionLogic.getCurrentHealthcarePartyId()
+			val healthcarePartyId = sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
 			createEntities(
 				setOf(
 					fixedClassification.copy(

@@ -26,6 +26,7 @@ import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
+import java.lang.UnsupportedOperationException
 
 @Service
 @Profile("app")
@@ -41,10 +42,10 @@ class ClassificationTemplateLogicImpl(
 
 	override suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate) = fix(classificationTemplate, isCreate = true) { fixedClassificationTemplate ->
 		try {
-			// Fetching the hcParty
+			// TODO should be covered by autofix, unless we want to enforce the matching of author/responsible with the current user
+			if (sessionLogic.requestsAutofixAnonymity()) throw UnsupportedOperationException("Creating Classifications is not supported for users requesting anonymity")
 			val userId = sessionLogic.getCurrentUserId()
-			val healthcarePartyId = sessionLogic.getCurrentHealthcarePartyId()
-			// Setting Classification Template attributes
+			val healthcarePartyId = sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
 			createEntities(
 				setOf(
 					fixedClassificationTemplate.copy(

@@ -28,7 +28,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndAddressFilter
 import org.taktik.icure.entities.Patient
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import javax.security.auth.login.LoginException
 
@@ -44,7 +43,9 @@ class PatientByHcPartyAndAddressFilter(
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
 		try {
-			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic))
+			val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+				"A PatientByHcPartyAndAddressFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+			})
 			if (filter.postalCode.isNullOrEmpty() && filter.houseNumber.isNullOrEmpty()) {
 				mergeUniqueIdsForSearchKeys(searchKeys) { key ->
 					patientDAO.listPatientIdsByHcPartyAndAddress(

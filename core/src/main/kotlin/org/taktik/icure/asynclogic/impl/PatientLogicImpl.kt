@@ -623,7 +623,7 @@ open class PatientLogicImpl(
 		dateOfBirth: Int?,
 		healthcarePartyId: String?,
 	) = flow {
-		val currentHealthcarePartyId = healthcarePartyId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val currentHealthcarePartyId = healthcarePartyId ?: sessionLogic.getCurrentDataOwnerId()
 		checkCanUseViewByHcp(currentHealthcarePartyId)
 		if (dateOfBirth != null) { // Patients with the right date of birth
 			val combined: Flow<Flow<ViewQueryResultEvent>>

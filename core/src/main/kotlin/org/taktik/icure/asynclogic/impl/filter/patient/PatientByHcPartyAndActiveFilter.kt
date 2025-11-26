@@ -14,7 +14,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.entities.Patient
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -33,7 +32,9 @@ class PatientByHcPartyAndActiveFilter(
 				patientDAO.listPatientIdsByActive(
 					datastoreInformation = datastoreInformation,
 					active = filter.active,
-					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)),
+					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+						"A PatientByHcPartyAndActiveFilter must either provide an explicit dataOwnerId or must be used by a healthcare party user"
+					}),
 				),
 			)
 		} catch (e: LoginException) {
