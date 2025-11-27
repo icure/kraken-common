@@ -41,9 +41,9 @@ open class SessionInformationProviderImpl(
 	} ?: throw AuthenticationServiceException("Failed to extract current data owner id")
 
 	override suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean {
-		val authenticationDetails = getDataOwnerAuthenticationDetails()
+		val authenticationDetails = getDataOwnerAuthenticationDetailsOrNull()
 		return { hcpId, item ->
-			if (hcpId == authenticationDetails.dataOwner?.id) {
+			if (hcpId == authenticationDetails?.dataOwner?.id) {
 				item.hasDataOwnerOrDelegationKey(hcpId) ||
 					authenticationDetails.accessControlKeysHashes.any { item.hasDataOwnerOrDelegationKey(it) }
 			} else {
