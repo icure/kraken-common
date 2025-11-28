@@ -1,5 +1,6 @@
 package org.taktik.icure.spring.encoder
 
+import com.fasterxml.jackson.databind.node.TextNode
 import org.reactivestreams.Publisher
 import org.springframework.core.ResolvableType
 import org.springframework.core.codec.AbstractEncoder
@@ -47,12 +48,11 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 		val hintsToUse = if (contextView.isEmpty) hints else Hints.merge(hints, contextView.javaClass.name, contextView)
 		try {
 			val helper = StringArrayJoinHelper()
-
 			if (inputStream is Flux<*>) {
 				Flux
 					.from(inputStream)
 					.map {
-						bufferFactory.wrap("${helper.getPrefix()}\"$it\"".toByteArray())
+						bufferFactory.wrap("${helper.getPrefix()}${TextNode(it.toString())}".toByteArray())
 					}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
 					.concatWith(Mono.fromCallable { bufferFactory.wrap(FLUX_SUFFIX.toByteArray()) })
 					.doOnNext { dataBuffer ->
@@ -62,7 +62,7 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 				Flux
 					.from(inputStream)
 					.map {
-						bufferFactory.wrap(it.toByteArray())
+						bufferFactory.wrap(TextNode(it).toString().toByteArray())
 					}.doOnNext { dataBuffer ->
 						Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
 					}
