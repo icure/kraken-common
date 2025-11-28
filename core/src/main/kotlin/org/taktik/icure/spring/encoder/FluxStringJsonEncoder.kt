@@ -48,11 +48,11 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 		val hintsToUse = if (contextView.isEmpty) hints else Hints.merge(hints, contextView.javaClass.name, contextView)
 		try {
 			val helper = StringArrayJoinHelper()
-			if (inputStream is Flux<*>) {
+			if (inputStream is Flux<out String>) {
 				Flux
 					.from(inputStream)
 					.map {
-						bufferFactory.wrap("${helper.getPrefix()}${TextNode(it.toString())}".toByteArray())
+						bufferFactory.wrap("${helper.getPrefix()}${TextNode(it)}".toByteArray())
 					}.switchIfEmpty(Mono.fromCallable { bufferFactory.wrap(FLUX_PREFIX.toByteArray()) })
 					.concatWith(Mono.fromCallable { bufferFactory.wrap(FLUX_SUFFIX.toByteArray()) })
 					.doOnNext { dataBuffer ->
@@ -62,7 +62,10 @@ class FluxStringJsonEncoder : AbstractEncoder<String>(MediaType.APPLICATION_JSON
 				Flux
 					.from(inputStream)
 					.map {
-						bufferFactory.wrap(TextNode(it).toString().toByteArray())
+						//TODO
+						// should be escaped as JSON string, but first must check there is no problem with other methods from SDK side, like with user/token endpoint
+						// bufferFactory.wrap(TextNode(it).toString().toByteArray())
+						bufferFactory.wrap(it.toByteArray())
 					}.doOnNext { dataBuffer ->
 						Hints.touchDataBuffer(dataBuffer, hintsToUse, logger)
 					}
