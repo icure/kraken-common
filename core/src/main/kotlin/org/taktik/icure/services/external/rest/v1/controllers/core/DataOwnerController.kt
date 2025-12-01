@@ -72,13 +72,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		val user =
-			userLogic.getUser(sessionLogic.getCurrentUserId(), false)
-				?: throw ResponseStatusException(
-					HttpStatus.NOT_FOUND,
-					"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
-				)
-		(user.healthcarePartyId ?: user.patientId ?: user.deviceId)?.let { getDataOwner(it) }?.awaitSingle()
+		sessionLogic.getCurrentDataOwnerId()?.let { getDataOwner(it) }?.awaitSingle()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
 	}
 }

@@ -203,7 +203,7 @@ class MessageController(
 		@RequestParam(required = false) limit: Int?,
 		@RequestParam(required = false) hcpId: String?,
 	): PaginatedFlux<MessageDto> = flow {
-		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		if (received == true) {
@@ -228,7 +228,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		emitAll(
 			messageService.findMessagesByTransportGuidSentDate(
-				hcpId ?: sessionLogic.getCurrentHealthcarePartyId(),
+				hcpId ?: sessionLogic.getCurrentDataOwnerId(),
 				transportGuid,
 				from,
 				to,
@@ -249,8 +249,8 @@ class MessageController(
 	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
-		emitAll(messageService.findMessagesByToAddress(hcpIdOrCurrentHcpId, toAddress, paginationOffset, reverse ?: false))
+		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
+		emitAll(messageService.findMessagesByToAddress(hcpIdOrCurrentDataOwnerId, toAddress, paginationOffset, reverse ?: false))
 	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
@@ -264,8 +264,8 @@ class MessageController(
 	): PaginatedFlux<MessageDto> = flow {
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		val hcpIdOrCurrentHcpId = hcpId ?: sessionLogic.getCurrentHealthcarePartyId()
-		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentHcpId, fromAddress, paginationOffset))
+		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
+		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentDataOwnerId, fromAddress, paginationOffset))
 	}.mapElements(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Updates a message")

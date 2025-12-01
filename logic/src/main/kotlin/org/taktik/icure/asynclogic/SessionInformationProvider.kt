@@ -14,8 +14,6 @@ import java.io.Serializable
 interface SessionInformationProvider : DataOwnerProvider {
 	suspend fun getCurrentSessionContext(): AsyncSessionContext
 
-	suspend fun getCurrentHealthcarePartyId(): String
-
 	/**
 	 * @return a function that receives two parameter: a DataOwnerId and an [HasEncryptionMetadata] entity and returns true
 	 * if the data owner can access the entity and false otherwise.
@@ -41,6 +39,22 @@ interface SessionInformationProvider : DataOwnerProvider {
 
 	suspend fun getDataOwnerAuthenticationDetailsOrNull(): DataOwnerAuthenticationDetails?
 
+	/**
+	 * If the current user is not a data owner returns an empty list.
+	 * If the current user has no parent data owner returns a singleton list of the current data owner id.
+	 * If the data owner has a parent returns a list where the first element is the topmost ancestor in the hierarchy of
+	 * the logged data owner, the element before the last is the direct parent of the hcp, and the last is the current
+	 * data owner.
+	 */
+	suspend fun getDataOwnerHierarchyIncludingSelf(): List<String>
+
+	/**
+	 * If the current user is not a data owner or has no parent data owner returns an empty list.
+	 * If the data owner has a parent returns a list where the first element is the topmost ancestor in the hierarchy of
+	 * the logged data owner, while the last is the direct parent of the hcp.
+	 */
+	suspend fun getDataOwnerHierarchy(): List<String>
+
 	interface AsyncSessionContext : Serializable {
 
 		/**
@@ -58,15 +72,9 @@ interface SessionInformationProvider : DataOwnerProvider {
 		fun getDeviceId(): String?
 
 		/**
-		 * The data owner type of the current user, or null if the current user is not a data owner
+		 * The type of the current data owner (the data owner associated with the current user, or the data owner chosen
+		 * as scope), or null if the current user is not a data owner and is not acting in the scope of a data owner.
 		 */
 		fun getDataOwnerType(): DataOwnerType?
-
-		/**
-		 * If the data owner is a hcp returns a list where the first element is the topmost ancestor in the hierarchy
-		 * of the logged hcp, while the last is the direct parent of the hcp.
-		 * Always empty for non-hcp users
-		 */
-		fun getHcpHierarchy(): List<String>
 	}
 }

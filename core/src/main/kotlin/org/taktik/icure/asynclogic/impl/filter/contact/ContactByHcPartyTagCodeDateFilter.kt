@@ -16,7 +16,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.contact.ContactByHcPartyTagCodeDateFilter
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import javax.security.auth.login.LoginException
 
@@ -34,7 +33,9 @@ class ContactByHcPartyTagCodeDateFilter(
 		try {
 			val searchKeys =
 				sessionLogic.getAllSearchKeysIfCurrentDataOwner(
-					filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic),
+					requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+						"A ContactByHcPartyTagCodeDateFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+					},
 				)
 			val ids = mutableSetOf<String>()
 			if (filter.tagType != null && filter.tagCode != null) {

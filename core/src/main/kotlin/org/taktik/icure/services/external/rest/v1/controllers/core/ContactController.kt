@@ -160,6 +160,7 @@ class ContactController(
 	) = mono {
 		contactService
 			.getServiceCodesOccurences(
+				// TODO might need to be handled at service level by permission
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId() ?: throw AccessDeniedException("Current user is not an HCP"),
 				codeType,
 				minOccurrences,

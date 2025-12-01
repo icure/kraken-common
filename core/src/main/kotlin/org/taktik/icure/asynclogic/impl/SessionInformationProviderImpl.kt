@@ -27,18 +27,21 @@ import kotlin.coroutines.coroutineContext
 open class SessionInformationProviderImpl(
 	private val sessionAccessControlKeysProvider: SessionAccessControlKeysProvider,
 ) : SessionInformationProvider {
-	override suspend fun getCurrentSessionContext(): SessionInformationProvider.AsyncSessionContext = getCurrentAuthentication()?.let { SessionContextImpl(it) }
-		?: throw AuthenticationServiceException(
+	override suspend fun getCurrentSessionContext(): SessionInformationProvider.AsyncSessionContext =
+		doGetCurrentSessionContext()
+
+	protected open suspend fun doGetCurrentSessionContext() =
+		getCurrentAuthentication()?.let { SessionContextImpl(it) } ?: throw AuthenticationServiceException(
 			"getCurrentAuthentication() returned null, no SecurityContext in the coroutine context?",
 		)
 
 	override suspend fun getCurrentUserId(): String = getCurrentSessionContext().getUserId()
 
-	override suspend fun getCurrentHealthcarePartyId(): String = getCurrentSessionContext().getHealthcarePartyId() ?: throw AuthenticationServiceException("Invalid user")
+	override suspend fun getCurrentDataOwnerId(): String =
+		getCurrentDataOwnerIdOrNull() ?: throw AuthenticationServiceException("Failed to extract current data owner id")
 
-	override suspend fun getCurrentDataOwnerId(): String = getCurrentSessionContext().let {
-		it.getHealthcarePartyId() ?: it.getPatientId() ?: it.getDeviceId()
-	} ?: throw AuthenticationServiceException("Failed to extract current data owner id")
+	override suspend fun getCurrentDataOwnerIdOrNull(): String? =
+		doGetCurrentSessionContext().getDataOwnerId()
 
 	override suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean {
 		val authenticationDetails = getDataOwnerAuthenticationDetailsOrNull()
@@ -73,11 +76,22 @@ open class SessionInformationProviderImpl(
 	}
 
 	private suspend fun getDataOwnerDetails(): DataOwnerAuthenticationDetails.DataOwnerDetails? =
-		getCurrentSessionContext().let { sc ->
-			sc.getHealthcarePartyId()?.let { HcpDataOwnerDetails.fromHierarchy(it, sc.getHcpHierarchy()) }
-				?: sc.getPatientId()?.let { PatientDataOwnerDetails(it) }
-				?: sc.getDeviceId()?.let { DeviceDataOwnerDetails(it) }
+		doGetCurrentSessionContext().let { sc ->
+			when (sc.getDataOwnerType()) {
+				null -> null
+				DataOwnerType.HCP -> HcpDataOwnerDetails.fromHierarchy(sc.getDataOwnerId()!!, sc.getDataOwnerHierarchy())
+				DataOwnerType.PATIENT -> PatientDataOwnerDetails(sc.getDataOwnerId()!!)
+				DataOwnerType.DEVICE -> DeviceDataOwnerDetails(sc.getDataOwnerId()!!)
+			}
 		}
+
+	override suspend fun getDataOwnerHierarchyIncludingSelf(): List<String> =
+		doGetCurrentSessionContext().let {
+			it.getDataOwnerHierarchy() + it.getDataOwnerHierarchy()
+		}
+
+	override suspend fun getDataOwnerHierarchy(): List<String> =
+		doGetCurrentSessionContext().getDataOwnerHierarchy()
 
 	override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
 		?.context
@@ -118,31 +132,34 @@ open class SessionInformationProviderImpl(
 		protected val _authentication: Authentication,
 	) : SessionInformationProvider.AsyncSessionContext,
 		Serializable {
+
 		protected var _userDetails: UserDetails = extractUserDetails(_authentication)
 
 		override fun getUserId(): String = (_userDetails as JwtDetails).userId
 
 		override fun getPatientId(): String? = if ((_userDetails as JwtDetails).dataOwnerType == DataOwnerType.PATIENT) {
-			(_userDetails as JwtDetails).dataOwnerId
+			getDataOwnerId()
 		} else {
 			null
 		}
 
 		override fun getHealthcarePartyId(): String? = if ((_userDetails as JwtDetails).dataOwnerType == DataOwnerType.HCP) {
-			(_userDetails as JwtDetails).dataOwnerId
+			getDataOwnerId()
 		} else {
 			null
 		}
 
 		override fun getDeviceId(): String? = if ((_userDetails as JwtDetails).dataOwnerType == DataOwnerType.DEVICE) {
-			(_userDetails as JwtDetails).dataOwnerId
+			getDataOwnerId()
 		} else {
 			null
 		}
 
 		override fun getGlobalUserId(): String = getUserId()
 
-		override fun getHcpHierarchy(): List<String> = (_userDetails as JwtDetails).hcpHierarchy
+		open fun getDataOwnerId(): String? = (_userDetails as JwtDetails).dataOwnerId
+
+		fun getDataOwnerHierarchy(): List<String> = (_userDetails as JwtDetails).hcpHierarchy
 
 		override fun getDataOwnerType(): DataOwnerType? = (_userDetails as JwtDetails).dataOwnerType
 	}

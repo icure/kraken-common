@@ -5,14 +5,12 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.PatientDAO
-import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndIdentifiersFilter
 import org.taktik.icure.entities.Patient
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -30,7 +28,9 @@ class PatientByHcPartyAndIdentifiersFilter(
 			emitAll(
 				patientDAO.listPatientIdsByHcPartyAndIdentifiers(
 					datastoreInformation = datastoreInformation,
-					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)),
+					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+						"A PatientByHcPartyAndIdentifiersFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+					}),
 					identifiers = filter.identifiers,
 				),
 			)

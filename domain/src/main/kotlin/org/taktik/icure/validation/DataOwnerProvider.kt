@@ -2,6 +2,7 @@ package org.taktik.icure.validation
 
 interface DataOwnerProvider {
 	suspend fun getCurrentDataOwnerId(): String
+	suspend fun getCurrentDataOwnerIdOrNull(): String?
 	suspend fun getCurrentUserId(): String
 
 	/**

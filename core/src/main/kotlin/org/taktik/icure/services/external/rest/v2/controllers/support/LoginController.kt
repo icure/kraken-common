@@ -81,6 +81,9 @@ class LoginController(
 		@Parameter(
 			description = "If not null the returned credentials will be valid only for access to groups where the application id matches this",
 		) @RequestParam(required = false) applicationId: String? = null,
+		@Parameter(description = "If the credentials are valid for the provided data owner scope the token created will be already with that scope, without requiring a scoped call after") @RequestParam(
+			required = false
+		) scopeDataOwner: String? = null,
 	): Mono<JwtResponseDto> = mono {
 		try {
 			val authentication =
@@ -90,6 +93,7 @@ class LoginController(
 					if (sessionEnabled) session else null,
 					groupId,
 					applicationId,
+					scopeDataOwner,
 				)
 			if (authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)

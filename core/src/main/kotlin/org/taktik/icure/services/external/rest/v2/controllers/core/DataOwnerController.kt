@@ -38,7 +38,6 @@ import reactor.core.publisher.Mono
 @Tag(name = "dataowner")
 class DataOwnerController(
 	private val dataOwnerService: DataOwnerService,
-	private val userLogic: UserLogic,
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
@@ -85,22 +84,13 @@ class DataOwnerController(
 		cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
 	}
 
-	private fun User.requireDataOwnerId(): String = healthcarePartyId ?: patientId ?: deviceId
-		?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
-
-	private suspend fun requireCurrentUser(): User = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
-		?: throw ResponseStatusException(
-			HttpStatus.NOT_FOUND,
-			"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
-		)
-
 	@Operation(
 		summary = "Get the data owner corresponding to the current user",
 		description = "General information about the current data owner",
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		getDataOwner(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+		getDataOwner(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
 	}
 
 	@Operation(
@@ -109,7 +99,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/stub")
 	fun getCurrentDataOwnerStub() = mono {
-		getDataOwnerStub(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+		getDataOwnerStub(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
 	}
 
 	@Operation(
@@ -118,7 +108,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchy(requireCurrentUser().requireDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchy(sessionLogic.getCurrentDataOwnerId()))
 	}.map {
 		dataOwnerWithTypeMapper.map(it)
 	}.injectReactorContext()
@@ -129,7 +119,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchyStub(requireCurrentUser().requireDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchyStub(sessionLogic.getCurrentDataOwnerId()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()

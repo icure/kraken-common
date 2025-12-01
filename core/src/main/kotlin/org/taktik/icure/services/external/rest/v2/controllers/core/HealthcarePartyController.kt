@@ -87,7 +87,9 @@ class HealthcarePartyController(
 	@GetMapping("/current")
 	fun getCurrentHealthcareParty(): Mono<HealthcarePartyDto> = mono {
 		val healthcareParty =
-			healthcarePartyService.getHealthcareParty(sessionLogic.getCurrentHealthcarePartyId())
+			healthcarePartyService.getHealthcareParty(requireNotNull(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()) {
+				"Current user is not a healthcare party."
+			})
 				?: throw ResponseStatusException(
 					HttpStatus.NOT_FOUND,
 					"A problem regarding fetching the current healthcare party. Probable reasons: no healthcare party is logged in, or server error. Please try again or read the server log.",
