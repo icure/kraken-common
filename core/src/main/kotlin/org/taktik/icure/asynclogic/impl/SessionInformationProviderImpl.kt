@@ -28,9 +28,9 @@ open class SessionInformationProviderImpl(
 	private val sessionAccessControlKeysProvider: SessionAccessControlKeysProvider,
 ) : SessionInformationProvider {
 	override suspend fun getCurrentSessionContext(): SessionInformationProvider.AsyncSessionContext =
-		_getCurrentSessionContext()
+		doGetCurrentSessionContext()
 
-	private suspend fun _getCurrentSessionContext() =
+	protected open suspend fun doGetCurrentSessionContext() =
 		getCurrentAuthentication()?.let { SessionContextImpl(it) } ?: throw AuthenticationServiceException(
 			"getCurrentAuthentication() returned null, no SecurityContext in the coroutine context?",
 		)
@@ -41,7 +41,7 @@ open class SessionInformationProviderImpl(
 		getCurrentDataOwnerIdOrNull() ?: throw AuthenticationServiceException("Failed to extract current data owner id")
 
 	override suspend fun getCurrentDataOwnerIdOrNull(): String? =
-		_getCurrentSessionContext().getDataOwnerId()
+		doGetCurrentSessionContext().getDataOwnerId()
 
 	override suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean {
 		val authenticationDetails = getDataOwnerAuthenticationDetails()
@@ -76,7 +76,7 @@ open class SessionInformationProviderImpl(
 	}
 
 	private suspend fun getDataOwnerDetails(): DataOwnerAuthenticationDetails.DataOwnerDetails? =
-		_getCurrentSessionContext().let { sc ->
+		doGetCurrentSessionContext().let { sc ->
 			when (sc.getDataOwnerType()) {
 				null -> null
 				DataOwnerType.HCP -> HcpDataOwnerDetails.fromHierarchy(sc.getDataOwnerId()!!, sc.getDataOwnerHierarchy())
@@ -86,12 +86,12 @@ open class SessionInformationProviderImpl(
 		}
 
 	override suspend fun getDataOwnerHierarchyIncludingSelf(): List<String> =
-		_getCurrentSessionContext().let {
+		doGetCurrentSessionContext().let {
 			it.getDataOwnerHierarchy() + it.getDataOwnerHierarchy()
 		}
 
 	override suspend fun getDataOwnerHierarchy(): List<String> =
-		_getCurrentSessionContext().getDataOwnerHierarchy()
+		doGetCurrentSessionContext().getDataOwnerHierarchy()
 
 	override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
 		?.context
