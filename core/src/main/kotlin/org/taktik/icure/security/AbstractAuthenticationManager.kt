@@ -93,11 +93,11 @@ abstract class AbstractAuthenticationManager<
 		try {
 			(
 				if (authentication is UsernamePasswordAuthenticationToken) {
-					authenticateWithUsernameAndPassword(authentication, null, null)
+					authenticateWithUsernameAndPassword(authentication, null, null, null)
 				} else {
 					encodedJwtToAuthentication(authentication?.credentials as String)
 				}
-				).also { auth ->
+			).also { auth ->
 				loadSecurityContext()
 					?.awaitFirstOrNull()
 					?.also { ctx -> ctx.authentication = auth }

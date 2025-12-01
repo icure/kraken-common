@@ -12,5 +12,6 @@ interface CustomReactiveAuthenticationManager : ReactiveAuthenticationManager {
 		authentication: Authentication,
 		groupId: String?,
 		applicationId: String?,
+		scopeDataOwner: String?,
 	): JwtAuthentication
 }
