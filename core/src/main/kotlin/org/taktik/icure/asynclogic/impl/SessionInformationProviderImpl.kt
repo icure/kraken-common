@@ -44,9 +44,9 @@ open class SessionInformationProviderImpl(
 		doGetCurrentSessionContext().getDataOwnerId()
 
 	override suspend fun getSearchKeyMatcher(): (String, HasEncryptionMetadata) -> Boolean {
-		val authenticationDetails = getDataOwnerAuthenticationDetails()
+		val authenticationDetails = getDataOwnerAuthenticationDetailsOrNull()
 		return { hcpId, item ->
-			if (hcpId == authenticationDetails.dataOwner?.id) {
+			if (hcpId == authenticationDetails?.dataOwner?.id) {
 				item.hasDataOwnerOrDelegationKey(hcpId) ||
 					authenticationDetails.accessControlKeysHashes.any { item.hasDataOwnerOrDelegationKey(it) }
 			} else {
