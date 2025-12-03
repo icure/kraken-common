@@ -93,7 +93,13 @@ abstract class AbstractAuthenticationManager<
 		try {
 			(
 				if (authentication is UsernamePasswordAuthenticationToken) {
-					authenticateWithUsernameAndPassword(authentication, null, null, null)
+					authenticateWithUsernameAndPassword(
+						authentication = authentication,
+						groupId = null,
+						applicationId = null,
+						scopeDataOwner = null,
+						cacheJwtRefreshDetails = false
+					)
 				} else {
 					encodedJwtToAuthentication(authentication?.credentials as String)
 				}
