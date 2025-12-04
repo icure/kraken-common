@@ -72,7 +72,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		sessionLogic.getCurrentDataOwnerId()?.let { getDataOwner(it) }?.awaitSingle()
+		sessionLogic.getCurrentDataOwnerIdOrNull()?.let { getDataOwner(it) }?.awaitSingle()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
 	}
 }

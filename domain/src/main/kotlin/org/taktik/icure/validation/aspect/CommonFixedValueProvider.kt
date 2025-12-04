@@ -15,7 +15,7 @@ open class CommonFixedValueProvider(
 	protected fun nowFixedValue() = Instant.now().toEpochMilli()
 	protected fun uuidFixedValue() = UUID.randomUUID().toString()
 	protected open suspend fun currentUserIdFixedValue(): String? = if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentUserId() else null
-	protected open suspend fun currentDataOwnerIdFixedValue(): String? = if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentDataOwnerId() else null
+	protected open suspend fun currentDataOwnerIdFixedValue(): String? = if (!dataOwnerProvider.requestsAutofixAnonymity()) dataOwnerProvider.getCurrentDataOwnerIdOrNull() else null
 	protected fun normalizedCodeFixedValue(value: Any?) = (value as? CodeIdentification)?.normalizeIdentification() ?: value
 
 	protected suspend fun getFixedValue(autoFix: AutoFix, value: Any?): Any? = when (autoFix) {
