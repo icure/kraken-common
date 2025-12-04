@@ -28,12 +28,20 @@ jobs:
                 env:
                     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 run: |
-                    cd ${{ matrix.repo }}
-                    cd kraken-common
-                    pr_json=$(gh pr list --state merged --search "$(git rev-parse HEAD)" --json headRefName,number --limit 1)
-                    echo $pr_json
-                    pr_branch=$(echo $pr_json | jq -r '.[0].headRefName')
-                    if [ -n "$pr_branch" ] && [ "$pr_branch" != "null" ]; then
+                    # Find the PR associated with this commit using the commits API
+                    # github.sha is the merge commit on main, so we query for PRs that include this commit
+                    pr_branch=$(gh api repos/icure/kraken-common/commits/${{ github.sha }}/pulls --jq '.[0].head.ref // empty')
+                    echo "Found branch from commit: $pr_branch"
+                    
+                    # If not found, try to extract from the merge commit message (format: "Merge pull request #X from org/branch")
+                    if [ -z "$pr_branch" ]; then
+                        commit_msg=$(gh api repos/icure/kraken-common/commits/${{ github.sha }} --jq '.commit.message')
+                        echo "Commit message: $commit_msg"
+                        pr_branch=$(echo "$commit_msg" | grep -oP 'from icure/\K[^\s]+' | head -1 || true)
+                        echo "Found branch from merge message: $pr_branch"
+                    fi
+                    
+                    if [ -n "$pr_branch" ]; then
                         echo "BRANCH_NAME=$pr_branch" >> $GITHUB_ENV
                     else
                         echo "BRANCH_NAME=$(date +'%Y%m%d%H%M')-${{ github.sha }}" >> $GITHUB_ENV
