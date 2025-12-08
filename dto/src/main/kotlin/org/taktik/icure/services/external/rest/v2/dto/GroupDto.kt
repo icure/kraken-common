@@ -17,9 +17,11 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -57,6 +59,8 @@ data class GroupDto(
 	@param:Schema(
 		description = "A user-chosen identifier for the applications for which this group holds data. Helps to isolate environments when working with multi-group applications.",
 	)
+	@param:JsonAlias("projectId")
+	@SdkName("projectId")
 	val applicationId: String? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {

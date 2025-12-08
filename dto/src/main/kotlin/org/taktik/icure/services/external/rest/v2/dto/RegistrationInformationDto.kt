@@ -1,12 +1,16 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkName
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RegistrationInformationDto(
+	@param:JsonAlias("projectId")
+	@SdkName("projectId")
 	val applicationId: String? = null,
 	val firstName: String? = null,
 	val lastName: String? = null,
