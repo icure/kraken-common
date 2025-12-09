@@ -1,9 +1,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.security
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.embed.AuthenticationClassDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,11 +27,15 @@ data class ExternalJwtConfigDto(
 		@JsonInclude(JsonInclude.Include.NON_NULL)
 		data class PublicKey(
 			val key: String,
-			@param:Schema(defaultValue = "null") val signatureAlgorithm: String? = null
+			@param:Schema(defaultValue = "null") val signatureAlgorithm: String? = null,
+			val clientId: String? = null,
 		) : ValidationMethodDto
 
 		data class Oidc(
+			@SdkName("issuerLocation")
+			@param:JsonAlias("issuerLocation")
 			val issureLocation: String,
+			val clientId: String? = null,
 		) : ValidationMethodDto
 	}
 
