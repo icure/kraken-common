@@ -23,11 +23,13 @@ data class ExternalJwtConfigDto(
 	sealed interface ValidationMethodDto {
 		data class PublicKey(
 			val key: String,
-			@param:Schema(defaultValue = "null") val signatureAlgorithm: String? = null
+			@param:Schema(defaultValue = "null") val signatureAlgorithm: String? = null,
+			val clientId: String? = null,
 		) : ValidationMethodDto
 
 		data class Oidc(
 			val issureLocation: String,
+			val clientId: String? = null,
 		) : ValidationMethodDto
 	}
 
