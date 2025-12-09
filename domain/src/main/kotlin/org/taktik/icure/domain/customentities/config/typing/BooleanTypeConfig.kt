@@ -8,13 +8,13 @@ import com.fasterxml.jackson.databind.node.BooleanNode
  */
 data class BooleanTypeConfig(
 	val nullable: Boolean = false,
-) : org.taktik.icure.domain.customentities.config.typing.GenericTypeConfig {
+) : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
 		resolutionContext: org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext,
 		path: org.taktik.icure.domain.customentities.util.ResolutionPath,
 		value: JsonNode
 	): JsonNode =
-		_root_ide_package_.org.taktik.icure.domain.customentities.config.typing.validatingAndIgnoringNullForStore(
+		validatingAndIgnoringNullForStore(
 			path,
 			value,
 			nullable

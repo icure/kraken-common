@@ -1,5 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.JsonNode
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
@@ -19,6 +22,27 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
  *
  * Note: even if a configuration allows for null values, unless a default
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	property = "type",
+)
+@JsonSubTypes(
+	JsonSubTypes.Type(value = BooleanTypeConfig::class, name = "Boolean"),
+	JsonSubTypes.Type(value = EmailTypeConfig::class, name = "Email"),
+	JsonSubTypes.Type(value = EnumTypeConfig::class, name = "Enum"),
+	JsonSubTypes.Type(value = FloatTypeConfig::class, name = "Float"),
+	JsonSubTypes.Type(value = FuzzyDateTimeTypeConfig::class, name = "FuzzyDateTime"),
+	JsonSubTypes.Type(value = FuzzyDateTypeConfig::class, name = "FuzzyDate"),
+	JsonSubTypes.Type(value = FuzzyTimeTypeConfig::class, name = "FuzzyTime"),
+	JsonSubTypes.Type(value = IntTypeConfig::class, name = "Int"),
+	JsonSubTypes.Type(value = JsonTypeConfig::class, name = "Json"),
+	JsonSubTypes.Type(value = ListTypeConfig::class, name = "List"),
+	JsonSubTypes.Type(value = MapTypeConfig::class, name = "Map"),
+	JsonSubTypes.Type(value = ObjectTypeConfig::class, name = "Object"),
+	JsonSubTypes.Type(value = PhoneTypeConfig::class, name = "Phone"),
+	JsonSubTypes.Type(value = StringTypeConfig::class, name = "String"),
+	JsonSubTypes.Type(value = UuidTypeConfig::class, name = "Uuid"),
+)
 sealed interface GenericTypeConfig {
 	/**
 	 * Verifies that the configuration is valid.
@@ -61,5 +85,5 @@ sealed interface GenericTypeConfig {
 		value: JsonNode,
 	): JsonNode = value
 
-	val shouldMapForRead : Boolean get() = false
+	val shouldMapForRead : Boolean @JsonIgnore get() = false
 }

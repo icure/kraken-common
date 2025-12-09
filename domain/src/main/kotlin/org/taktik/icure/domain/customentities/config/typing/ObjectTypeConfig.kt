@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
@@ -45,5 +46,5 @@ class ObjectTypeConfig(
 			value
 		}
 
-	override val shouldMapForRead: Boolean get() = true
+	override val shouldMapForRead: Boolean @JsonIgnore get() = true
 }
