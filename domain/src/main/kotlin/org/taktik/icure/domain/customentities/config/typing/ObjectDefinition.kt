@@ -1,5 +1,7 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.IntNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
@@ -34,6 +36,17 @@ data class ObjectDefinition(
 		 * If a property defines a default value and is not explicitly provided in the object it is implied that it
 		 * should use the default value
 		 */
+		@JsonTypeInfo(
+			use = JsonTypeInfo.Id.NAME,
+			property = "type",
+		)
+		@JsonSubTypes(
+			JsonSubTypes.Type(value = DefaultValue.Constant::class, name = "Constant"),
+			JsonSubTypes.Type(value = DefaultValue.GenerateUuidV4::class, name = "GenerateUuidV4"),
+			JsonSubTypes.Type(value = DefaultValue.NowDateTime::class, name = "NowDateTime"),
+			JsonSubTypes.Type(value = DefaultValue.NowDate::class, name = "NowDate"),
+			JsonSubTypes.Type(value = DefaultValue.NowTime::class, name = "NowTime"),
+		)
 		sealed interface DefaultValue {
 			/**
 			 * Checks if this default value is valid for the configured property
