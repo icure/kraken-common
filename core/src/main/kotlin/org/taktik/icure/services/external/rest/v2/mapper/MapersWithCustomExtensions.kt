@@ -26,6 +26,13 @@ import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import java.io.Serializable
 
 object MappersWithCustomExtensions {
+	val mapFromDtoWithNoConfig = { it: ObjectNode? ->
+		if (it != null)
+			throw IllegalArgumentException("Can't use extension value when no extension is configured")
+		else
+			it
+	}
+
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
@@ -45,7 +52,7 @@ object MappersWithCustomExtensions {
 				) else null
 			}
 		} else {
-			doMap(dto) { it }
+			doMap(dto, mapFromDtoWithNoConfig)
 		}
 	}
 
@@ -66,7 +73,7 @@ object MappersWithCustomExtensions {
 				) else null
 			}
 		} else {
-			doMap(obj) { it }
+			doMap(obj) { null }
 		}
 	}
 
@@ -94,7 +101,7 @@ object MappersWithCustomExtensions {
 				}
 			}
 		} else {
-			dtos.map { dto -> doMap(dto) { it } }
+			dtos.map { dto -> doMap(dto, mapFromDtoWithNoConfig) }
 		}
 	}
 
@@ -117,7 +124,7 @@ object MappersWithCustomExtensions {
 				}
 			}
 		} else {
-			objs.map { obj -> doMap(obj) { it } }
+			objs.map { obj -> doMap(obj) { null } }
 		}
 	}
 
@@ -145,7 +152,7 @@ object MappersWithCustomExtensions {
 				}
 			})
 		} else {
-			emitAll(dtos.map { dto -> doMap(dto) { it } })
+			emitAll(dtos.map { dto -> doMap(dto, mapFromDtoWithNoConfig) })
 		}
 	}
 
@@ -168,7 +175,7 @@ object MappersWithCustomExtensions {
 				}
 			})
 		} else {
-			emitAll(objs.map { obj -> doMap(obj) { it } })
+			emitAll(objs.map { obj -> doMap(obj) { null } })
 		}
 	}
 
@@ -199,7 +206,9 @@ object MappersWithCustomExtensions {
 		} else {
 			emitAll(shareResults.map { shareResult ->
 				bulkShareResultV2Mapper.map(shareResult) { obj ->
-					if (obj != null) doMapEntity(obj) { it } else null
+					if (obj != null) {
+						doMapEntity(obj) { null }
+					} else null
 				}
 			})
 		}
@@ -236,7 +245,7 @@ object MappersWithCustomExtensions {
 						is NextPageElement<*> -> paginationElement
 						is PaginationRowElement<*, *> ->
 							PaginationRowElement(
-								element = doMapEntity(paginationElement.element as OBJ) { it },
+								element = doMapEntity(paginationElement.element as OBJ) { null },
 								key = paginationElement.key,
 							)
 					}
@@ -260,7 +269,7 @@ object MappersWithCustomExtensions {
 			mapper = if (extension != null && context != null) ({ obj ->
 				doMapEntity(obj) { if (it != null) extension.mapValueForRead(context, it) else null }
 			}) else ({ obj ->
-				doMapEntity(obj) { it }
+				doMapEntity(obj) { null }
 			}),
 			realLimit = realLimit,
 			objectMapper = objectMapper,
