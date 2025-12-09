@@ -120,7 +120,7 @@ class PatientController(
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val currentHcpId = healthcarePartyId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val currentHcpId = healthcarePartyId ?: sessionLogic.getCurrentDataOwnerId()
 		val hcp = healthcarePartyService.getHealthcareParty(currentHcpId)
 
 		emitAll(
@@ -301,7 +301,7 @@ class PatientController(
 		val sortFieldAsEnum = PatientSearchField.lenientValueOf(sortField)
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		val currentHcpId = hcPartyId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val currentHcpId = hcPartyId ?: sessionLogic.getCurrentDataOwnerId()
 		val hcp = healthcarePartyService.getHealthcareParty(currentHcpId)
 		emitAll(
 			(hcp?.parentId?.takeIf { it.isNotEmpty() } ?: hcp?.id)?.let { hcpId ->

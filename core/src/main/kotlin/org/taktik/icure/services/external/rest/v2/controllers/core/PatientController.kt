@@ -207,7 +207,9 @@ class PatientController(
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 
-		val currentHcpId = healthcarePartyId ?: sessionLogic.getCurrentHealthcarePartyId()
+		val currentHcpId = requireNotNull(healthcarePartyId ?: sessionLogic.getCurrentSessionContext().getHealthcarePartyId()) {
+			"Current user is not an hcp"
+		}
 		val hcp = healthcarePartyService.getHealthcareParty(currentHcpId)
 
 		emitAll(
@@ -370,8 +372,8 @@ class PatientController(
 		val sortFieldAsEnum = PatientSearchField.lenientValueOf(sortField)
 		val startKeyElements = startKey?.let { objectMapper.readValue<ComplexKey>(it) }
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		val currentHcpId = hcPartyId ?: sessionLogic.getCurrentHealthcarePartyId()
-		val hcp = healthcarePartyService.getHealthcareParty(currentHcpId)
+		val searchDataOwnerId = hcPartyId ?: sessionLogic.getCurrentDataOwnerId()
+		val hcp = healthcarePartyService.getHealthcareParty(searchDataOwnerId)
 		emitAll(
 			(hcp?.parentId?.takeIf { it.isNotEmpty() } ?: hcp?.id)?.let { hcpId ->
 				patientService.findByHcPartyAndSsinOrDateOfBirthOrNameContainsFuzzy(

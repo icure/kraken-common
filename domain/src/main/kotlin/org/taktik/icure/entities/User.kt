@@ -256,6 +256,13 @@ fun User.getDataOwnerTypeOrNull(): DataOwnerType? = when {
 	else -> null
 }
 
+fun User.getDataOwnerIdAndTypeOrNull(): Pair<String, DataOwnerType>? = when {
+	healthcarePartyId != null -> healthcarePartyId to DataOwnerType.HCP
+	patientId != null -> patientId to DataOwnerType.PATIENT
+	deviceId != null -> deviceId to DataOwnerType.DEVICE
+	else -> null
+}
+
 fun User.isSuperAdmin(): Boolean = checkNotNull(systemMetadata) {
 	"Checking if a user is admin but the system metadata was not filled from the global user"
 }.isAdmin

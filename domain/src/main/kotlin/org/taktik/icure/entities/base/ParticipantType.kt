@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  * Enum class representing the participant types for an encounter/contact
  *
- * Mostly based on HL7 FHIR R4
  */
 enum class ParticipantType {
 	/**
@@ -85,4 +84,7 @@ enum class ParticipantType {
 	 */
 	@JsonProperty("location")
 	Location,
+
+	@JsonProperty("recorder")
+	Recorder,
 }

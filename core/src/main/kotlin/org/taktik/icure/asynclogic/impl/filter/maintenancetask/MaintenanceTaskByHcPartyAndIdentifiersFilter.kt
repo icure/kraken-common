@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
 import org.taktik.icure.entities.MaintenanceTask
-import org.taktik.icure.utils.getLoggedDataOwnerId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -29,7 +28,11 @@ class MaintenanceTaskByHcPartyAndIdentifiersFilter(
 			emitAll(
 				maintenanceTaskDAO.listMaintenanceTaskIdsByHcPartyAndIdentifier(
 					datastoreInformation = datastoreInformation,
-					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId ?: getLoggedDataOwnerId(sessionLogic)),
+					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(
+						requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+							"A MaintenanceTaskByHcPartyAndIdentifiersFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+						}
+					),
 					identifiers = filter.identifiers,
 				),
 			)

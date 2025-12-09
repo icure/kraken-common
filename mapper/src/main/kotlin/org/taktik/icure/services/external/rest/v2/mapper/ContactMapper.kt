@@ -28,19 +28,26 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AnnotationV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.embed.ContactParticipantV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SubContactV2Mapper
 
-@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class, ContactParticipantV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ContactV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
 	)
 	fun map(contactDto: ContactDto): Contact
+
+	@Mappings(
+		Mapping(target = "participants", expression = """kotlin(contact.participants.associate { (type, hcpId) -> org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto.valueOf(type.name) to hcpId })"""),
+		Mapping(target = "participantList", expression = """kotlin(contact.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto.valueOf(it.type.name), it.hcpId) })"""),
+	)
 	fun map(contact: Contact): ContactDto
 }

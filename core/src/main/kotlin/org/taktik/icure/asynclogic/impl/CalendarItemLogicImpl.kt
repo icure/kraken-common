@@ -51,7 +51,7 @@ open class CalendarItemLogicImpl(
 				hcpId =
 				calendarItem.agendaId?.let {
 					agendaLogic.getAgenda(it)?.userId?.let { uId ->
-						userDAO.getUserOnUserDb(datastoreInformation, uId, false).healthcarePartyId
+						userDAO.getUserOnUserDb(datastoreInformation, uId, false).healthcarePartyId // TODO seems obsolete behaviour, will not work with scoped data owner
 					}
 				},
 			),

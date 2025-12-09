@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyIdentifiersFilter
 import org.taktik.icure.entities.HealthElement
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -26,11 +25,10 @@ class HealthElementByHcPartyIdentifiersFilter(
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
 		try {
-			val hcPartyId = filter.hcPartyId ?: getLoggedHealthCarePartyId(sessionLogic)
 			emitAll(
 				healthElementDAO.listHealthElementsIdsByHcPartyAndIdentifiers(
 					datastoreInformation = datastoreInformation,
-					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(hcPartyId),
+					searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.hcPartyId),
 					identifiers = filter.identifiers,
 				),
 			)

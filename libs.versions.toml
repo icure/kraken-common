@@ -87,7 +87,7 @@ kotlinReflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", versi
 kotlinStandardLibrary = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlinStandardLibraryJdk7 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk7", version.ref = "kotlin" }
 kotlinStandardLibraryJdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
-kotlinxCollectionsImmutableJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable-jvm", version = "0.3.8" }
+kotlinxCollectionsImmutableJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable-jvm", version = "0.4.0" }
 kotlinxCoroutinesBom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesCoreJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinxCoroutines" }
@@ -106,7 +106,7 @@ kotlinxSerializationJsonIo = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinxSerializationJsonIoJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io-jvm", version.ref = "kotlinxSerialization" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.2" } # 2FA
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.73-g21e6c259df" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.77-gc7905ae4a2" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }
 mockkJvm = { group = "io.mockk", name = "mockk-jvm", version = "1.13.8" }

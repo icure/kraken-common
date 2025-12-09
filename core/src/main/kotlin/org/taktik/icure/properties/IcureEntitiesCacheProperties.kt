@@ -46,9 +46,9 @@ private const val DEFAULT_USER_CACHE_TTL_SECONDS = 15 * 60
 @Profile("app")
 @ConfigurationProperties(prefix = "icure.entitiescache")
 final data class IcureEntitiesCacheProperties(
-	var code: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
-	var entityTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.GLOBAL),
-	var healthcareParty: EntityConfiguration = EntityConfiguration(DEFAULT_HCP_CACHE_TTL_SECONDS, CacheType.GLOBAL),
+	var code: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var entityTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var healthcareParty: EntityConfiguration = EntityConfiguration(DEFAULT_HCP_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var user: EntityConfiguration = EntityConfiguration(DEFAULT_USER_CACHE_TTL_SECONDS, CacheType.GLOBAL),
 	var accessLog: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var agenda: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),

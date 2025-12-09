@@ -4,6 +4,7 @@ import com.nimbusds.jwt.JWTParser
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
 import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator
 import org.springframework.security.oauth2.jwt.JwtValidators
@@ -14,6 +15,7 @@ import java.security.interfaces.RSAPublicKey
 import java.time.Duration
 import java.time.Instant
 import java.util.Date
+import org.springframework.security.oauth2.jwt.Jwt as SpringJwt
 
 object JwtDecoder {
 	private val oidcJwtDecoderCache =
@@ -29,9 +31,13 @@ object JwtDecoder {
 	private fun createPublicKeyDecoder(
 		publicKey: RSAPublicKey,
 		validationSkewSeconds: Long,
-	): NimbusReactiveJwtDecoder = NimbusReactiveJwtDecoder.withPublicKey(publicKey).build().also {
-		it.setJwtValidator(getValidators(validationSkewSeconds))
-	}
+		signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RS256
+	): NimbusReactiveJwtDecoder = NimbusReactiveJwtDecoder
+		.withPublicKey(publicKey)
+		.signatureAlgorithm(signatureAlgorithm)
+		.build().also {
+			it.setJwtValidator(getValidators(validationSkewSeconds))
+		}
 
 	private suspend fun getDecoder(
 		publicKey: RSAPublicKey,
@@ -78,6 +84,22 @@ object JwtDecoder {
 		false
 	}
 
+	suspend fun validateAndGetClaims(
+		jwt: String,
+		publicKey: RSAPublicKey,
+		validationSkewSeconds: Long,
+		signatureAlgorithm: SignatureAlgorithm,
+		expectedClientId: String?,
+	): Map<String, Any?> = try {
+		createPublicKeyDecoder(publicKey, validationSkewSeconds, signatureAlgorithm)
+			.decode(jwt)
+			.awaitSingle()
+			.validateExpectedClientId(expectedClientId)
+			.claims
+	} catch (e: JwtException) {
+		throw InvalidJwtException("Jwt did not pass validation", e)
+	}
+
 	private fun getDecoderFromOidcIssuer(
 		oidcIssuerLocation: String,
 		validationSkewSeconds: Long,
@@ -85,7 +107,7 @@ object JwtDecoder {
 		NimbusReactiveJwtDecoder.withIssuerLocation(oidcIssuerLocation).build().also {
 			it.setJwtValidator(getValidators(validationSkewSeconds))
 		}
-	}!!
+	}
 
 	/**
 	 * Validate a jwt using an oidc issuer making sure it is not expired, then returns the claims.
@@ -97,21 +119,31 @@ object JwtDecoder {
 		jwt: String,
 		oidcIssuerLocation: String,
 		validationSkewSeconds: Long,
+		expectedClientId: String?
 	): Map<String, Any?> = try {
-		getDecoderFromOidcIssuer(oidcIssuerLocation, validationSkewSeconds).decode(jwt).awaitSingle().claims
+		getDecoderFromOidcIssuer(oidcIssuerLocation, validationSkewSeconds)
+			.decode(jwt)
+			.awaitSingle()
+			.validateExpectedClientId(expectedClientId)
+			.claims
 	} catch (e: JwtException) {
 		throw InvalidJwtException("Jwt did not pass validation", e)
 	}
 
-	suspend fun isValidForOidcIssuer(
-		jwt: String,
-		oidcIssuerLocation: String,
-		validationSkewSeconds: Long,
-	): Boolean = try {
-		getDecoderFromOidcIssuer(oidcIssuerLocation, validationSkewSeconds).decode(jwt).awaitSingle()
-		true
-	} catch (e: JwtException) {
-		false
+	private fun SpringJwt.validateExpectedClientId(
+		expectedClientId: String?
+	): SpringJwt {
+		if (expectedClientId != null) {
+			val audience = audience ?: throw InvalidJwtException("Jwt does not contain an audience claim")
+			val azp = claims["azp"]
+			if (azp != null) {
+				if (azp !is String) throw InvalidJwtException("Jwt azp claim must be a string if present")
+				if (azp != expectedClientId) throw InvalidJwtException("Jwt azp claim  does not match expected client id")
+			} else {
+				if (expectedClientId !in audience) throw InvalidJwtException("Jwt audience claim doesn't contain expected client id")
+			}
+		}
+		return this
 	}
 
 	fun decodeWithoutValidation(jwt: String): Map<String, Any?> = JWTParser.parse(jwt).jwtClaimsSet.claims

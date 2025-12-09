@@ -84,7 +84,9 @@ class HealthcarePartyController(
 	fun getCurrentHealthcareParty() = mono {
 		// If the current user is not an HCP this method gives a 401. 400 or 404 would be more appropriate, however, some clients have business logic relying on this error, so it is better to not change this...
 		val healthcareParty =
-			healthcarePartyService.getHealthcareParty(sessionLogic.getCurrentHealthcarePartyId())
+			healthcarePartyService.getHealthcareParty(requireNotNull(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()) {
+				"Current user is not a healthcare party"
+			})
 				?: throw ResponseStatusException(
 					HttpStatus.NOT_FOUND,
 					"A problem regarding fetching the current healthcare party. Probable reasons: no healthcare party is logged in, or server error. Please try again or read the server log.",

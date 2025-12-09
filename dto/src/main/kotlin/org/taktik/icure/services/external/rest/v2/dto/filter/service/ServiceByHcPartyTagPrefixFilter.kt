@@ -19,5 +19,5 @@ data class ServiceByHcPartyTagPrefixFilter(
 	val healthcarePartyId: String,
 	val tagType: String,
 	val tagCodePrefix: String,
-	override val desc: String? = null
+	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

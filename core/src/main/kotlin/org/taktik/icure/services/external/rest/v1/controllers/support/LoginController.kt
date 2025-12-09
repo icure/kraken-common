@@ -110,7 +110,7 @@ class LoginController(
 		try {
 			val username = loginCredentials.username!!
 
-			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, null)
+			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, null, null)
 			produceAuthenticationResponse(authentication, username, duration, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")

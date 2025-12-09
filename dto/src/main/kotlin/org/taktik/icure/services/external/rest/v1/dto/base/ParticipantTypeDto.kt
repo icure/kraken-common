@@ -85,4 +85,7 @@ enum class ParticipantTypeDto {
 	 */
 	@JsonProperty("location")
 	Location,
+
+	@JsonProperty("recorder")
+	Recorder,
 }

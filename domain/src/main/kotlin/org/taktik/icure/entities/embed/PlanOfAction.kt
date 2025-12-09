@@ -6,10 +6,12 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -86,7 +88,8 @@ data class PlanOfAction(
 	val documentIds: Set<String> = emptySet(),
 	val prescriberId: String? = null, // healthcarePartyId
 	val numberOfCares: Int? = null,
-	val careTeamMemberships: List<CareTeamMembership?> = emptyList(),
+	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
+	val careTeamMemberships: List<CareTeamMembership> = emptyList(),
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	ICureDocument<String>,

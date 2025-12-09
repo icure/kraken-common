@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -17,14 +16,11 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asyncservice.DataOwnerService
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.entities.DataOwnerWithType
-import org.taktik.icure.entities.User
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
@@ -42,7 +38,6 @@ import reactor.core.publisher.Mono
 @Tag(name = "dataowner")
 class DataOwnerController(
 	private val dataOwnerService: DataOwnerService,
-	private val userLogic: UserLogic,
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
 	private val patientMapper: PatientV2Mapper,
@@ -133,22 +128,13 @@ class DataOwnerController(
 		cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
 	}
 
-	private fun User.requireDataOwnerId(): String = healthcarePartyId ?: patientId ?: deviceId
-		?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find any data owner associated to the current user.")
-
-	private suspend fun requireCurrentUser(): User = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
-		?: throw ResponseStatusException(
-			HttpStatus.NOT_FOUND,
-			"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
-		)
-
 	@Operation(
 		summary = "Get the data owner corresponding to the current user",
 		description = "General information about the current data owner",
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		getDataOwner(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+		getDataOwner(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
 	}
 
 	@Operation(
@@ -157,7 +143,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/stub")
 	fun getCurrentDataOwnerStub() = mono {
-		getDataOwnerStub(requireCurrentUser().requireDataOwnerId()).awaitSingle()
+		getDataOwnerStub(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
 	}
 
 	@Operation(
@@ -166,7 +152,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchy(requireCurrentUser().requireDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchy(sessionLogic.getCurrentDataOwnerId()))
 	}.map().injectReactorContext()
 
 	@Operation(
@@ -175,7 +161,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchyStub(requireCurrentUser().requireDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchyStub(sessionLogic.getCurrentDataOwnerId()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()

@@ -11,6 +11,7 @@ interface AsyncSessionLogic {
 		session: WebSession? = null,
 		groupId: String?,
 		applicationId: String?,
+		scopeDataOwner: String?,
 	): JwtAuthentication
 
 	suspend fun logout()

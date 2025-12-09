@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.device.DeviceByHcPartyFilter
 import org.taktik.icure.entities.Device
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -29,7 +28,8 @@ class DeviceByHcPartyFilter(
 			deviceDAO
 				.listDeviceIdsByResponsible(
 					datastoreInformation = datastoreInformation,
-					healthcarePartyId = filter.responsibleId ?: getLoggedHealthCarePartyId(sessionLogic),
+					healthcarePartyId = filter.responsibleId ?: sessionLogic.getCurrentDataOwnerIdOrNull()
+						?: throw IllegalArgumentException("A DeviceByHcPartyFilter must either provide an explicit responsibleId or must be used by a data owner user"),
 				).also { emitAll(it) }
 		} catch (e: LoginException) {
 			throw IllegalArgumentException(e)

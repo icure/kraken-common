@@ -12,7 +12,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.contact.ContactByHcPartyIdentifiersFilter
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.utils.getLoggedHealthCarePartyId
 import javax.security.auth.login.LoginException
 
 @Service
@@ -27,7 +26,9 @@ class ContactByHcPartyIdentifiersFilter(
 		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
 		try {
-			val hcPartyId = filter.healthcarePartyId ?: getLoggedHealthCarePartyId(sessionLogic)
+			val hcPartyId = requireNotNull(filter.healthcarePartyId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+				"A ContactByHcPartyIdentifiersFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+			}
 			emitAll(
 				contactDAO.listContactIdsByHcPartyAndIdentifiers(
 					datastoreInformation = datastoreInformation,
