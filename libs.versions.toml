@@ -28,6 +28,7 @@ apacheCommonsCompress = { group = "org.apache.commons", name = "commons-compress
 apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.16.0" }
 apacheCommonsMath3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 apacheCommonsText = { group = "org.apache.commons", name = "commons-text", version = "1.12.0" }
+apacheHttpComponents = { group = "org.apache.httpcomponents", name = "httpclient", version = "4.5.14" }
 asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.23-g050f3d219b" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 bouncyCastleBcmail = { group = "org.bouncycastle", name = "bcmail-jdk18on", version.ref = "bouncyCastle" }
