@@ -3,6 +3,8 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.DoubleNode
 import com.fasterxml.jackson.databind.node.FloatNode
+import com.fasterxml.jackson.databind.node.IntNode
+import com.fasterxml.jackson.databind.node.LongNode
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -33,7 +35,7 @@ data class FloatTypeConfig(
 		path: ResolutionPath,
 		value: JsonNode
 	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is DoubleNode || value is FloatNode) {
+		require(value is DoubleNode || value is FloatNode || value is IntNode || value is LongNode) {
 			"$path: invalid type, expected Float64"
 		}
 		val valueDouble = value.asDouble()
