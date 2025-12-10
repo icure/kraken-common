@@ -29,14 +29,14 @@ data class MapTypeConfig(
 			)
 		}
 		validation?.apply {
-			require (minSize != null || maxSize != null || keyValidationEnumReference != null) {
-				"$path: invalid map validation config, must specify a size limit or key values restriction"
-			}
 			require(minSize == null || minSize > 0) {
 				"$path: invalid minSize, should be greater than 0"
 			}
 			require(maxSize == null || maxSize > 0) {
 				"$path: invalid maxSize, should be greater than 0"
+			}
+			require(minSize == null || maxSize == null || maxSize >= minSize) {
+				"$path: invalid size bounds, maxSize should be greater than or equal to minSize"
 			}
 			if (keyValidationEnumReference != null) {
 				requireNotNull(resolutionContext.resolveEnumReference(keyValidationEnumReference)) {

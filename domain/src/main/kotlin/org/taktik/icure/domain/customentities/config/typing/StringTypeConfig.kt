@@ -19,8 +19,14 @@ class StringTypeConfig(
 		path: ResolutionPath
 	) {
 		validation?.apply {
-			require(minLength != null || maxLength != null) {
-				"$path: invalid string validation config, must specify a length range"
+			require(minLength == null || minLength > 0) {
+				"$path: invalid minLength, should be greater than 0"
+			}
+			require(maxLength == null || maxLength > 0) {
+				"$path: invalid maxLength, should be greater than 0"
+			}
+			require(minLength == null || maxLength == null || maxLength >= minLength) {
+				"$path: invalid length bounds, maxLength should be greater than or equal to minLength"
 			}
 		}
 	}

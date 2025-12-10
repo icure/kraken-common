@@ -2,6 +2,11 @@ package org.taktik.icure.domain.customentities.util
 
 @JvmInline
 value class ResolutionPath(val pathSegments: ArrayList<String>) {
+	companion object {
+		operator fun invoke(vararg pathSegments: String): ResolutionPath =
+			ResolutionPath(arrayListOf(*pathSegments))
+	}
+
 	override fun toString(): String = buildString { pathSegments.forEach { append(it) } }
 
 	inline fun <T> appending(toAppend: String, block: () -> T): T {

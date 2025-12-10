@@ -30,14 +30,14 @@ data class ListTypeConfig(
 			)
 		}
 		validation?.apply {
-			require (minLength != null || maxLength != null || uniqueValues) {
-				"$path: invalid list validation config, must specify a size limit or unique values restriction"
-			}
 			require(minLength == null || minLength > 0) {
 				"$path: invalid minLength, should be greater than 0"
 			}
 			require(maxLength == null || maxLength > 0) {
 				"$path: invalid maxLength, should be greater than 0"
+			}
+			require(minLength == null || maxLength == null || maxLength >= minLength) {
+				"$path: invalid length bounds, maxLength should be greater than or equal to minLength"
 			}
 			if (uniqueValues) {
 				require(

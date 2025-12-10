@@ -22,8 +22,8 @@ data class FloatTypeConfig(
 		path: ResolutionPath,
 	) {
 		validation?.apply {
-			require(min != null || max != null) {
-				"$path: invalid float validation config, must specify a lower and/or upper limit"
+			require((max ?: Double.MAX_VALUE) > (min ?: Double.MIN_VALUE)) {
+				"$path: invalid float validation config, value for `max` should be greater than value for `min`"
 			}
 		}
 	}

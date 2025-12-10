@@ -24,11 +24,13 @@ data class IntTypeConfig(
 
 	data class ValidationConfig(
 		/**
-		 * Minimum acceptable value for the , always inclusive
+		 * Minimum acceptable value, always inclusive.
+		 * If null, then it is considered as the MIN safe integer value representable by a 64-bit floating point number
 		 */
 		val min: Long? = null,
 		/**
-		 * Maximum acceptable value for the , always inclusive
+		 * Maximum acceptable value, always inclusive.
+		 * If null, then it is considered as the MAX safe integer value representable by a 64-bit floating point number
 		 */
 		val max: Long? = null,
 	)
@@ -38,16 +40,13 @@ data class IntTypeConfig(
 		path: ResolutionPath,
 	) {
 		validation?.apply {
-			require(min != null || max != null) {
-				"$path: invalid int validation config, must specify a lower and/or upper limit"
-			}
 			require(min == null || min in MIN_SAFE_LONG..MAX_SAFE_LONG) {
 				"$path: invalid int validation config, value for `min` is not within the safe range for JS integers"
 			}
 			require(max == null || max in MIN_SAFE_LONG..MAX_SAFE_LONG) {
 				"$path: invalid int validation config, value for `max` is not within the safe range for JS integers"
 			}
-			require(max == null || min == null || max > min) {
+			require((max ?: MAX_SAFE_LONG) > (min ?: MIN_SAFE_LONG)) {
 				"$path: invalid int validation config, value for `max` should be greater than value for `min`"
 			}
 		}
