@@ -289,9 +289,10 @@ data class ObjectDefinition(
 		JsonNodeFactory.instance,
 		properties.entries.mapNotNull { (propId, propConfig) ->
 			(
+				// A property with explicit null valur is actually going to be a NullNode, not an actual `null` -> will be mapped accordingly
 				value[propId]?.let {
 					if (propConfig.type.shouldMapForRead) {
-						propConfig.type.mapValueForRead(resolutionContext, value)
+						propConfig.type.mapValueForRead(resolutionContext, it)
 					} else {
 						it
 					}
