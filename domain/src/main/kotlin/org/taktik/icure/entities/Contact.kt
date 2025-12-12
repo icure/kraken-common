@@ -6,13 +6,13 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
@@ -26,7 +26,6 @@ import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.embed.ServiceLink
 import org.taktik.icure.entities.embed.SubContact
 import org.taktik.icure.entities.utils.MergeUtil.mergeSets
-import org.taktik.icure.serializers.ParticipantListSerializer
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -105,7 +104,8 @@ data class Contact(
 	val encounterLocation: Address? = null,
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val subContacts: Set<SubContact> = emptySet(),
 	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val services: Set<Service> = emptySet(),
-	@JsonDeserialize(using = ParticipantListSerializer::class) val participants: List<ContactParticipant> = emptyList(),
+	val participants: Map<ParticipantType, String> = emptyMap(),
+	val participantList: List<ContactParticipant> = emptyList(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),

@@ -23,6 +23,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
@@ -41,13 +42,27 @@ interface ContactV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
+		Mapping(target = "participants", expression = """kotlin(org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper.Companion.mapParticipants(contactDto))"""),
 	)
 	fun map(contactDto: ContactDto): Contact
 
-	@Mappings(
-		Mapping(target = "participants", expression = """kotlin(contact.participants.associate { (type, hcpId) -> org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto.valueOf(type.name) to hcpId })"""),
-		Mapping(target = "participantList", expression = """kotlin(contact.participants.map { org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto(org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto.valueOf(it.type.name), it.hcpId) })"""),
-	)
+	@Mappings()
 	fun map(contact: Contact): ContactDto
+
+	companion object {
+		fun mapParticipants(contactDto: ContactDto): Map<ParticipantType, String> {
+			return contactDto.participantList
+				.takeIf { participantList ->
+					contactDto.participants.isEmpty() && participantList.groupBy { entry -> entry.type }.all { entry -> entry.value.size == 1 }
+				}
+				?.let { participant ->
+					participant.associate { participantDto ->
+						ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
+					}
+				}
+				?: contactDto.participants.mapKeys { entry ->
+					ParticipantType.valueOf(entry.key.name)
+				}
+		}
+	}
 }
