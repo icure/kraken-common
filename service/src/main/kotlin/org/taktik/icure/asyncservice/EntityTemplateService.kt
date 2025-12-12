@@ -9,7 +9,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.entities.EntityTemplate
 
 interface EntityTemplateService {
-	suspend fun createEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate?
+	suspend fun createEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate
 
 	suspend fun modifyEntityTemplate(entityTemplate: EntityTemplate): EntityTemplate?
 

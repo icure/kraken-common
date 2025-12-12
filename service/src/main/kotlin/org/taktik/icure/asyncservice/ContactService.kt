@@ -65,7 +65,7 @@ interface ContactService :
 
 	suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
 
-	suspend fun createContact(contact: Contact): Contact?
+	suspend fun createContact(contact: Contact): Contact
 
 	/**
 	 * Marks a batch of entities as deleted.

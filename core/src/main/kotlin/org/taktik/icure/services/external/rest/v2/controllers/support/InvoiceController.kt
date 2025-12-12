@@ -97,9 +97,7 @@ class InvoiceController(
 	fun createInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice =
-			invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invoice creation failed")
+		val invoice = invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
 		invoiceV2Mapper.map(invoice)
 	}
 

@@ -71,10 +71,7 @@ class ReceiptController(
 	fun createReceipt(
 		@RequestBody receiptDto: ReceiptDto,
 	): Mono<ReceiptDto> = mono {
-		receiptService
-			.createReceipt(receiptV2Mapper.map(receiptDto))
-			?.let { receiptV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Receipt creation failed.")
+		receiptV2Mapper.map(receiptService.createReceipt(receiptV2Mapper.map(receiptDto)))
 	}
 
 	@Operation(summary = "Deletes multiple Receipts")

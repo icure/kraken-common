@@ -116,7 +116,7 @@ open class UserLogicImpl(
 			?.let { userEnhancer.enhance(it, false) }
 	}
 
-	override suspend fun createUser(user: User): EnhancedUser? {
+	override suspend fun createUser(user: User): EnhancedUser {
 		require(user.rev == null) { "New user should have null revision" }
 		return createOrModifyUser(user)
 	}
@@ -126,7 +126,7 @@ open class UserLogicImpl(
 		return createOrModifyUser(modifiedUser)
 	}
 
-	private suspend fun createOrModifyUser(user: User): EnhancedUser? {
+	private suspend fun createOrModifyUser(user: User): EnhancedUser {
 		val created: User =
 			doCreateOrModifyUsers(
 				getInstanceAndGroup(),

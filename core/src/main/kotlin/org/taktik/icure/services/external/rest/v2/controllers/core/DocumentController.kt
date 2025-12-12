@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
@@ -77,7 +76,7 @@ import reactor.core.publisher.Mono
 class DocumentController(
 	private val documentService: DocumentService,
 	private val documentV2Mapper: DocumentV2Mapper,
-	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	private val bulkShareResultV2Mapper: DocumentBulkShareResultV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
@@ -92,10 +91,7 @@ class DocumentController(
 		@RequestParam(required = false) strict: Boolean? = null,
 	): Mono<DocumentDto> = mono {
 		val document = documentV2Mapper.map(documentDto)
-		val createdDocument =
-			documentService.createDocument(document, strict ?: true)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document creation failed")
-		documentV2Mapper.map(createdDocument)
+		documentV2Mapper.map(documentService.createDocument(document, strict ?: true))
 	}
 
 	@Operation(summary = "Deletes multiple Documents")
@@ -519,18 +515,6 @@ class DocumentController(
 		metadata?.dataIsEncrypted ?: false,
 	)
 
-	private fun checkRevision(
-		rev: String,
-		document: Document,
-	) {
-		if (rev != document.rev) {
-			throw ResponseStatusException(
-				HttpStatus.CONFLICT,
-				"Obsolete document revision. The current revision is ${document.rev}",
-			)
-		}
-	}
-
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
 		documentId: String,
 		documentRev: String,
@@ -538,7 +522,7 @@ class DocumentController(
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? = try {
 		updateAttachments(documentId, documentRev, mainAttachmentChange, secondaryAttachmentsChanges)
-	} catch (e: ObjectStorageException) {
+	} catch (_: ObjectStorageException) {
 		throw ResponseStatusException(
 			HttpStatus.SERVICE_UNAVAILABLE,
 			"One or more attachments must be stored using the object storage service, but the service is currently unavailable.",

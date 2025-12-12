@@ -5,13 +5,12 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
 
 interface KeywordLogic : EntityPersister<Keyword> {
-	suspend fun createKeyword(keyword: Keyword): Keyword?
+	suspend fun createKeyword(keyword: Keyword): Keyword
 
 	suspend fun getKeyword(keywordId: String): Keyword?
 

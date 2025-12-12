@@ -101,9 +101,7 @@ class UserController(
 	fun createUser(
 		@RequestBody userDto: UserDto,
 	) = mono {
-		val user =
-			userService.createUser(userMapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User creation failed.")
+		val user = userService.createUser(userMapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
 		userMapper.mapOmittingSecrets(user)
 	}
 

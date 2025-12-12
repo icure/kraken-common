@@ -466,8 +466,7 @@ class PatientController(
 	fun createPatient(
 		@RequestBody p: PatientDto,
 	): Mono<PatientDto> = mono {
-		val patient = patientService.createPatient(patientV2Mapper.map(p))
-		patient?.let(patientV2Mapper::map) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
+		patientV2Mapper.map(patientService.createPatient(patientV2Mapper.map(p)))
 	}
 
 	@Operation(summary = "Deletes multiple Patients")

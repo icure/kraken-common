@@ -77,10 +77,7 @@ class AccessLogController(
 	fun createAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	): Mono<AccessLogDto> = mono {
-		val accessLog =
-			accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
-		accessLogV2Mapper.map(accessLog)
+		accessLogV2Mapper.map(accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto)))
 	}
 
 	@Operation(summary = "Deletes multiple access logs")

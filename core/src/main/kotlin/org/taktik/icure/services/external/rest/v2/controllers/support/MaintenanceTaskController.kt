@@ -76,11 +76,9 @@ class MaintenanceTaskController(
 	fun createMaintenanceTask(
 		@RequestBody maintenanceTaskDto: MaintenanceTaskDto,
 	): Mono<MaintenanceTaskDto> = mono {
-		maintenanceTaskService
-			.createMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
-			?.let {
-				maintenanceTaskV2Mapper.map(it)
-			} ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask creation failed.")
+		maintenanceTaskV2Mapper.map(
+			maintenanceTaskService.createMaintenanceTask(maintenanceTaskV2Mapper.map(maintenanceTaskDto))
+		)
 	}
 
 	@Operation(summary = "Deletes multiple MaintenanceTasks")

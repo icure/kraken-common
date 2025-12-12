@@ -16,7 +16,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface AgendaService {
-	suspend fun createAgenda(agenda: Agenda): Agenda?
+	suspend fun createAgenda(agenda: Agenda): Agenda
 
 	/**
 	 * Marks a batch of entities as deleted.

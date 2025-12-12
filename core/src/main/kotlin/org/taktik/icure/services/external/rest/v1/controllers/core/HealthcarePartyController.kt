@@ -187,13 +187,7 @@ class HealthcarePartyController(
 				log.warn(e) { e.message }
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 			}
-
-		val succeed = hcParty != null
-		if (succeed) {
-			hcParty?.let { healthcarePartyMapper.map(it) }
-		} else {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Healthcare party creation failed.")
-		}
+		healthcarePartyMapper.map(hcParty)
 	}
 
 	@Suppress("DEPRECATION")

@@ -1,13 +1,12 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 
 interface DeviceLogic : EntityPersister<Device> {
-	suspend fun createDevice(device: Device): Device?
+	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
 
 	suspend fun modifyDevice(device: Device): Device?

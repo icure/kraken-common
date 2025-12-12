@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -80,11 +78,7 @@ class AgendaController(
 	fun createAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = mono {
-		val agenda =
-			agendaService.createAgenda(agendaV2Mapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda creation failed")
-
-		agendaV2Mapper.map(agenda)
+		agendaV2Mapper.map(agendaService.createAgenda(agendaV2Mapper.map(agendaDto)))
 	}
 
 	@Operation(summary = "Deletes multiple Agendas")

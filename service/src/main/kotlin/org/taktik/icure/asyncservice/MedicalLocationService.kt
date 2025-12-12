@@ -13,7 +13,7 @@ import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginationElement
 
 interface MedicalLocationService {
-	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation?
+	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation
 
 	/**
 	 * Marks a batch of entities as deleted.

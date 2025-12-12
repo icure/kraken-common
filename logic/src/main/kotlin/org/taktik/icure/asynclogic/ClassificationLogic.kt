@@ -13,7 +13,7 @@ interface ClassificationLogic :
 	EntityPersister<Classification>,
 	EntityWithSecureDelegationsLogic<Classification> {
 
-	suspend fun createClassification(classification: Classification): Classification?
+	suspend fun createClassification(classification: Classification): Classification
 
 	suspend fun getClassification(classificationId: String): Classification?
 

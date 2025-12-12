@@ -20,7 +20,7 @@ import org.taktik.icure.pagination.PaginationElement
 interface UserService : EntityWithConflictResolutionService {
 	// region create
 
-	suspend fun createUser(user: User): User?
+	suspend fun createUser(user: User): User
 
 	// endregion
 

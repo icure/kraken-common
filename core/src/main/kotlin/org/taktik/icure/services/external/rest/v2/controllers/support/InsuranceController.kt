@@ -64,10 +64,7 @@ class InsuranceController(
 	fun createInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
 	): Mono<InsuranceDto> = mono {
-		val insurance =
-			insuranceService.createInsurance(insuranceV2Mapper.map(insuranceDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Insurance creation failed")
-
+		val insurance = insuranceService.createInsurance(insuranceV2Mapper.map(insuranceDto))
 		insuranceV2Mapper.map(insurance)
 	}
 

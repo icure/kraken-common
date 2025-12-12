@@ -29,7 +29,7 @@ interface DocumentLogic :
 	suspend fun createDocument(
 		document: Document,
 		strict: Boolean = false,
-	): Document?
+	): Document
 
 	suspend fun getDocument(documentId: String): Document?
 

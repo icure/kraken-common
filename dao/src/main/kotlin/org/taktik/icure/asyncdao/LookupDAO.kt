@@ -41,7 +41,7 @@ interface LookupDAO<T : Identifiable<String>> {
 	 * @param entity the entity to create.
 	 * @return the created entity or null.
 	 */
-	suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T?
+	suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T
 
 	/**
 	 * Updates an existing entity on the database. If the entity rev field is null, the entity will be created. If
@@ -51,5 +51,5 @@ interface LookupDAO<T : Identifiable<String>> {
 	 * @param entity the entity to create.
 	 * @return the updated entity or null.
 	 */
-	suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T?
+	suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T
 }

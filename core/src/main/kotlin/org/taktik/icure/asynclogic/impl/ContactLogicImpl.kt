@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
@@ -142,7 +141,7 @@ open class ContactLogicImpl(
 
 	override suspend fun createContact(contact: Contact) = fix(contact, isCreate = true) { fixedContact ->
 		if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		createEntities(setOf(fixedContact)).firstOrNull()
+		createEntity(contact)
 	}
 
 	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map { fix(it, isCreate = true) })

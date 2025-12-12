@@ -5,7 +5,6 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -23,7 +22,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 interface HealthElementService :
 	EntityWithSecureDelegationsService<HealthElement>,
 	EntityWithConflictResolutionService {
-	suspend fun createHealthElement(healthElement: HealthElement): HealthElement?
+	suspend fun createHealthElement(healthElement: HealthElement): HealthElement
 
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
@@ -137,6 +136,3 @@ interface HealthElementService :
 	fun modifyEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 	fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 }
-
-fun HealthElementService.modifyEntities(entities: Collection<HealthElement>): Flow<HealthElement> = this.modifyEntities(entities.asFlow())
-fun HealthElementService.createEntities(entities: Collection<HealthElement>): Flow<HealthElement> = this.createEntities(entities.asFlow())

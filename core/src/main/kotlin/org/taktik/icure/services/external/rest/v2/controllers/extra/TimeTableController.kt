@@ -43,7 +43,7 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.UUID
+import java.util.*
 
 @RestController("timeTableControllerV2")
 @Profile("app")
@@ -61,8 +61,7 @@ class TimeTableController(
 	fun createTimeTable(
 		@RequestBody timeTableDto: TimeTableDto,
 	): Mono<TimeTableDto> = mono {
-		timeTableService.createTimeTable(timeTableV2Mapper.map(timeTableDto))?.let { timeTableV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
+		timeTableV2Mapper.map(timeTableService.createTimeTable(timeTableV2Mapper.map(timeTableDto)))
 	}
 
 	@Operation(summary = "Deletes multiple TimeTables")

@@ -169,7 +169,6 @@ class FormController(
 		val form =
 			try {
 				formService.createForm(formV2Mapper.map(ft))
-					?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form creation failed")
 			} catch (e: MissingRequirementsException) {
 				logger.warn(e.message, e)
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)

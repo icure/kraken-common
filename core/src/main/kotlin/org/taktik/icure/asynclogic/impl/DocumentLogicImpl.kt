@@ -46,7 +46,7 @@ open class DocumentLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
-	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	fixer: Fixer,
 	filters: Filters,
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),

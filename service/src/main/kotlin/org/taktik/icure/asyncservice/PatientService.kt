@@ -97,8 +97,7 @@ interface PatientService :
 
 	suspend fun addDelegations(patientId: String, delegations: Collection<Delegation>): Patient?
 
-	@Throws(MissingRequirementsException::class)
-	suspend fun createPatient(patient: Patient): Patient?
+	suspend fun createPatient(patient: Patient): Patient
 	fun createPatients(patients: List<Patient>): Flow<Patient>
 
 	suspend fun modifyPatient(patient: Patient): Patient?

@@ -14,7 +14,7 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface TimeTableService {
-	suspend fun createTimeTable(timeTable: TimeTable): TimeTable?
+	suspend fun createTimeTable(timeTable: TimeTable): TimeTable
 
 	/**
 	 * Marks a batch of entities as deleted.

@@ -55,8 +55,7 @@ class PlaceController(
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeService.createPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
+		placeV2Mapper.map(placeService.createPlace(placeV2Mapper.map(placeDto)))
 	}
 
 	@Operation(summary = "Deletes places")

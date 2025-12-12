@@ -59,7 +59,6 @@ import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.lang.Exception
 
 @RestController("healthcarePartyControllerV2")
 @Profile("app")
@@ -204,7 +203,7 @@ class HealthcarePartyController(
 				logger.warn(e.message, e)
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 			}
-		healthcarePartyV2Mapper.map(hcParty!!)
+		healthcarePartyV2Mapper.map(hcParty)
 	}
 
 	@Operation(

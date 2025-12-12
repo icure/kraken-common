@@ -59,10 +59,9 @@ class ClassificationTemplateController(
 	fun createClassificationTemplate(
 		@RequestBody c: ClassificationTemplateDto,
 	): Mono<ClassificationTemplateDto> = mono {
-		val element =
+		classificationTemplateV2Mapper.map(
 			classificationTemplateService.createClassificationTemplate(classificationTemplateV2Mapper.map(c))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification Template creation failed.")
-		classificationTemplateV2Mapper.map(element)
+		)
 	}
 
 	@Operation(summary = "Get a classification Template")

@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
-import org.slf4j.LoggerFactory
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -80,7 +79,7 @@ open class HealthcarePartyLogicImpl(
 		}
 		if (fixedHealthcareParty.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		try {
-			createEntities(setOf(fixedHealthcareParty)).firstOrNull()
+			createEntity(fixedHealthcareParty)
 		} catch (e: Exception) {
 			throw IllegalArgumentException("Invalid healthcare party", e)
 		}

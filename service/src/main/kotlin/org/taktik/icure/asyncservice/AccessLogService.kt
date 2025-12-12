@@ -20,7 +20,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
-	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
+	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 
 	/**
 	 * Marks a batch of entities as deleted.

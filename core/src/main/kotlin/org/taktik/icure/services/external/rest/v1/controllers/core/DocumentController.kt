@@ -4,7 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.controllers.core
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -46,7 +45,6 @@ import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.asyncservice.DocumentService
-import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DocumentType
@@ -76,9 +74,7 @@ class DocumentController(
 	private val documentMapper: DocumentMapper,
 	private val delegationMapper: DelegationMapper,
 	private val stubMapper: StubMapper,
-	private val paginationConfig: SharedPaginationConfig,
-	private val objectMapper: ObjectMapper,
-	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 ) {
 	@Operation(summary = "Create a document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
@@ -87,10 +83,7 @@ class DocumentController(
 		@RequestParam(required = false) strict: Boolean = false,
 	): Mono<DocumentDto> = mono {
 		val document = documentMapper.map(documentDto)
-		val createdDocument =
-			documentService.createDocument(document, strict)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document creation failed")
-		documentMapper.map(createdDocument)
+		documentMapper.map(documentService.createDocument(document, strict))
 	}
 
 	@Operation(summary = "Delete a document", description = "Deletes a batch of documents and returns the list of deleted document ids")
@@ -722,7 +715,7 @@ class DocumentController(
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? = try {
 		updateAttachments(currentDocument.id, currentDocument.rev, mainAttachmentChange, secondaryAttachmentsChanges)
-	} catch (e: ObjectStorageException) {
+	} catch (_: ObjectStorageException) {
 		throw ResponseStatusException(
 			HttpStatus.SERVICE_UNAVAILABLE,
 			"One or more attachments must be stored using the object storage service, but the service is currently unavailable.",

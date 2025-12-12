@@ -13,7 +13,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeService {
-	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
 
 	/**
 	 * Deletes [CalendarItemType]s in batch.

@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -190,8 +189,7 @@ class CodeController(
 	fun createCode(
 		@RequestBody c: CodeDto,
 	): Mono<CodeDto> = mono {
-		val code = codeService.create(codeV2Mapper.map(c))!!
-		codeV2Mapper.map(code)
+		codeV2Mapper.map(codeService.create(codeV2Mapper.map(c)))
 	}
 
 	@Operation(

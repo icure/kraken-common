@@ -22,7 +22,7 @@ interface CodeService : EntityWithConflictResolutionService {
 
 	suspend fun get(type: String, code: String, version: String): Code?
 	fun getCodes(ids: List<String>): Flow<Code>
-	suspend fun create(code: Code): Code?
+	suspend fun create(code: Code): Code
 
 	suspend fun create(batch: List<Code>): List<Code>?
 

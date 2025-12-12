@@ -71,8 +71,7 @@ class MessageController(
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
 	) = mono {
-		messageService.createMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed").also { logger.error(it.message) }
+		messageMapper.map(messageService.createMessage(messageMapper.map(messageDto)))
 	}
 
 	@Operation(summary = "Deletes a message delegation")

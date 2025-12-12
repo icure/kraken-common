@@ -119,8 +119,7 @@ class TarificationController(
 	fun createTarification(
 		@RequestBody c: TarificationDto,
 	) = mono {
-		pricingService.createTarification(tarificationMapper.map(c))?.let { tarificationMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tarification creation failed.")
+		tarificationMapper.map(pricingService.createTarification(tarificationMapper.map(c)))
 	}
 
 	@Operation(summary = "Get a list of tarifications by ids", description = "Keys must be delimited by coma")
@@ -163,7 +162,7 @@ class TarificationController(
 		try {
 			pricingService.modifyTarification(tarificationMapper.map(tarificationDto))?.let { tarificationMapper.map(it) }
 				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modification of the tarification failed. Read the server log.")
-		} catch (e: Exception) {
+		} catch (_: Exception) {
 			throw ResponseStatusException(
 				HttpStatus.INTERNAL_SERVER_ERROR,
 				"A problem regarding modification of the tarification. Read the app logs: ",

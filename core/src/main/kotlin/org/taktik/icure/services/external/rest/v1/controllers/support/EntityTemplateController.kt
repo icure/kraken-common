@@ -104,10 +104,7 @@ class EntityTemplateController(
 		@RequestBody c: EntityTemplateDto,
 	) = mono {
 		val et = entityTemplateMapper.map(c).copy(entity = c.entity)
-		val entityTemplate =
-			entityTemplateService.createEntityTemplate(et)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "EntityTemplate creation failed.")
-
+		val entityTemplate = entityTemplateService.createEntityTemplate(et)
 		entityTemplateMapper.map(entityTemplate)
 	}
 
@@ -161,7 +158,7 @@ class EntityTemplateController(
 
 		val succeed = modifiedEntityTemplate != null
 		if (succeed) {
-			modifiedEntityTemplate?.let { entityTemplateMapper.map(it) }
+			entityTemplateMapper.map(modifiedEntityTemplate)
 		} else {
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modification of the entityTemplate failed. Read the server log.")
 		}
@@ -194,6 +191,6 @@ class EntityTemplateController(
 	@DeleteMapping("/{entityTemplateIds}")
 	@Operation(summary = "Delete entity templates")
 	fun deleteEntityTemplate(
-		@PathVariable("entityTemplateIds") entityTemplateIds: String,
+		@PathVariable entityTemplateIds: String,
 	) = entityTemplateService.deleteEntityTemplates(entityTemplateIds.split(",").toSet().map { IdAndRev(it, null) }).injectReactorContext()
 }

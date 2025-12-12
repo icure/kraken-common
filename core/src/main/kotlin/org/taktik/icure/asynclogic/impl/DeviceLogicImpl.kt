@@ -3,7 +3,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.take
@@ -28,9 +27,9 @@ open class DeviceLogicImpl(
 		private val log = LoggerFactory.getLogger(DeviceLogicImpl::class.java)
 	}
 
-	override suspend fun createDevice(device: Device): Device? = fix(device, isCreate = true) { fixedDevice ->
+	override suspend fun createDevice(device: Device) = fix(device, isCreate = true) { fixedDevice ->
 		if (fixedDevice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		createEntities(listOf(fixedDevice)).firstOrNull()
+		createEntity(fixedDevice)
 	}
 
 	override fun createDevices(devices: List<Device>): Flow<Device> = flow {

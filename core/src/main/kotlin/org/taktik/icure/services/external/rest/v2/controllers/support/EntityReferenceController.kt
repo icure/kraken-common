@@ -6,7 +6,6 @@ package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -44,8 +43,8 @@ class EntityReferenceController(
 	fun createEntityReference(
 		@RequestBody er: EntityReferenceDto,
 	): Mono<EntityReferenceDto> = mono {
-		val created = entityReferenceService.createEntityReferences(listOf(entityReferenceV2Mapper.map(er)))
-		created.firstOrNull()?.let { entityReferenceV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Entity reference creation failed.")
+		entityReferenceV2Mapper.map(
+			entityReferenceService.createEntityReference(entityReferenceV2Mapper.map(er))
+		)
 	}
 }

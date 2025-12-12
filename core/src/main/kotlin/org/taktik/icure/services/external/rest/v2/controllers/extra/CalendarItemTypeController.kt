@@ -92,11 +92,9 @@ class CalendarItemTypeController(
 	fun createCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
 	): Mono<CalendarItemTypeDto> = mono {
-		calendarItemTypeService
-			.createCalendarItemType(
-				calendarItemTypeV2Mapper.map(calendarItemTypeDto),
-			)?.let { calendarItemTypeV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItemType creation failed")
+		calendarItemTypeV2Mapper.map(
+			calendarItemTypeService.createCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))
+		)
 	}
 
 	@Operation(summary = "Deletes a batch of calendarItemTypes")

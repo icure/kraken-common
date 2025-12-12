@@ -408,7 +408,7 @@ open class PatientLogicImpl(
 	override suspend fun createPatient(patient: Patient) = fix(patient, isCreate = true) { fixedPatient ->
 		if (fixedPatient.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		checkRequirements(fixedPatient)
-		createEntities(setOf(fixedPatient)).singleOrNull()
+		createEntity(fixedPatient)
 	}
 
 	override fun createPatients(patients: List<Patient>): Flow<Patient> = flow {

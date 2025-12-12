@@ -25,7 +25,7 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty> {
 
 	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
 
-	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
+	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
 
 	/**
 	 * Retrieves all the healthcare parties in a group, sorted by [HealthcareParty.lastName], in a format for pagination.

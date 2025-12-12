@@ -122,7 +122,7 @@ open class FormLogicImpl(
 
 	override suspend fun createForm(form: Form) = fix(form, isCreate = true) { fixedForm ->
 		if (fixedForm.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		createEntities(setOf(fixedForm)).firstOrNull()
+		createEntity(fixedForm)
 	}
 
 	override suspend fun modifyForm(form: Form) = fix(form, isCreate = false) { fixedForm ->

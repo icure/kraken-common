@@ -14,7 +14,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface InsuranceService {
-	suspend fun createInsurance(insurance: Insurance): Insurance?
+	suspend fun createInsurance(insurance: Insurance): Insurance
 
 	/**
 //     * Marks a batch of entities as deleted.

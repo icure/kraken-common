@@ -36,7 +36,7 @@ interface DocumentService :
 	suspend fun createDocument(
 		document: Document,
 		strict: Boolean = false,
-	): Document?
+	): Document
 
 	suspend fun getMainAttachment(documentId: String): Flow<DataBuffer>
 

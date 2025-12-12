@@ -12,8 +12,9 @@ import org.taktik.icure.domain.filter.AbstractFilter
 
 interface EntityPersister<E : Identifiable<String>> {
 
-	fun createEntities(entities: Collection<E>): Flow<E>
+	suspend fun createEntity(entity: E): E
 
+	fun createEntities(entities: Collection<E>): Flow<E>
 	fun modifyEntities(entities: Collection<E>): Flow<E>
 
 	suspend fun deleteEntity(id: String, rev: String?): E

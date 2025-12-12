@@ -16,7 +16,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import java.nio.ByteBuffer
 
 interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
-	suspend fun createReceipt(receipt: Receipt): Receipt?
+	suspend fun createReceipt(receipt: Receipt): Receipt
 	suspend fun modifyReceipt(receipt: Receipt): Receipt
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>

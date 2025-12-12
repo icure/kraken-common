@@ -52,7 +52,7 @@ interface FormLogic :
 	fun listFormIdsByDataOwnerPatientOpeningDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	suspend fun addDelegation(formId: String, delegation: Delegation): Form?
 
-	suspend fun createForm(form: Form): Form?
+	suspend fun createForm(form: Form): Form
 
 	suspend fun modifyForm(form: Form): Form?
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>

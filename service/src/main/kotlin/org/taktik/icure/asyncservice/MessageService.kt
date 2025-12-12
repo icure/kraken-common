@@ -127,7 +127,7 @@ interface MessageService :
 
 	suspend fun addDelegation(messageId: String, delegation: Delegation): Message?
 
-	suspend fun createMessage(message: Message): Message?
+	suspend fun createMessage(message: Message): Message
 
 	fun createMessages(entities: Collection<Message>): Flow<Message>
 

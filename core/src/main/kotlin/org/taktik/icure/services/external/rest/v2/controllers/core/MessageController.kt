@@ -91,9 +91,7 @@ class MessageController(
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
 	): Mono<MessageDto> = mono {
-		messageService.createMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed")
-				.also { logger.error(it.message) }
+		messageV2Mapper.map(messageService.createMessage(messageV2Mapper.map(messageDto)))
 	}
 
 	@Operation(summary = "Deletes multiple Messages")

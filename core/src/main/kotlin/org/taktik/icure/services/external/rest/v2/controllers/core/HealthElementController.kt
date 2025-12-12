@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -29,8 +30,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
-import org.taktik.icure.asyncservice.createEntities
-import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -88,11 +87,7 @@ class HealthElementController(
 	fun createHealthElement(
 		@RequestBody c: HealthElementDto,
 	): Mono<HealthElementDto> = mono {
-		val element =
-			healthElementService.createHealthElement(healthElementV2Mapper.map(c))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
-
-		healthElementV2Mapper.map(element)
+		healthElementV2Mapper.map(healthElementService.createHealthElement(healthElementV2Mapper.map(c)))
 	}
 
 	@Operation(summary = "Get a health element")
@@ -277,7 +272,9 @@ class HealthElementController(
 	fun modifyHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.modifyEntities(healthElementDtos.map { f -> healthElementV2Mapper.map(f) })
+		val hes = healthElementService.modifyEntities(
+			healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
+		)
 		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
 	} catch (e: Exception) {
 		logger.warn(e.message, e)
@@ -289,7 +286,9 @@ class HealthElementController(
 	fun createHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.createEntities(healthElementDtos.map { f -> healthElementV2Mapper.map(f) })
+		val hes = healthElementService.createEntities(
+			healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
+		)
 		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
 	} catch (e: Exception) {
 		logger.warn(e.message, e)

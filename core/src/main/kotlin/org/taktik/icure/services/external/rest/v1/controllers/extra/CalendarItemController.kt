@@ -66,11 +66,7 @@ class CalendarItemController(
 	fun createCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	) = mono {
-		val calendarItem =
-			calendarItemService.createCalendarItem(calendarItemMapper.map(calendarItemDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItem creation failed")
-
-		calendarItemMapper.map(calendarItem)
+		calendarItemMapper.map(calendarItemService.createCalendarItem(calendarItemMapper.map(calendarItemDto)))
 	}
 
 	@Operation(summary = "Deletes calendarItems")

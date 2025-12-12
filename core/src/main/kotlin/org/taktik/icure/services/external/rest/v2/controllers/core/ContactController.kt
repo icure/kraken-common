@@ -116,7 +116,6 @@ class ContactController(
 			try {
 				// handling services' indexes
 				contactService.createContact(contactV2Mapper.map(handleServiceIndexes(c)))
-					?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Contact creation failed")
 			} catch (e: MissingRequirementsException) {
 				logger.warn(e.message, e)
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)

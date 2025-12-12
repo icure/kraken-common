@@ -180,8 +180,7 @@ class CodeController(
 	fun createCode(
 		@RequestBody c: CodeDto,
 	) = mono {
-		val code = codeService.create(codeMapper.map(c))
-		code?.let { codeMapper.map(it) }
+		codeMapper.map(codeService.create(codeMapper.map(c)))
 	}
 
 	@Operation(

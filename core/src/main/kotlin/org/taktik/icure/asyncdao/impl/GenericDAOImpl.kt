@@ -71,7 +71,7 @@ import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
 import java.time.Duration
-import java.util.LinkedList
+import java.util.*
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -211,11 +211,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		check(cached.isEmpty()) { "Should have consumed all cached entities" }
 	}
 
-	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? {
+	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T {
 		return save(datastoreInformation, true, entity)
 	}
 
-	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T? {
+	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T {
 		return save(datastoreInformation, null, entity)
 	}
 
@@ -228,7 +228,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity to create or update.
 	 * @return the updated entity or null.
 	 */
-	protected open suspend fun save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entity: T): T? {
+	protected open suspend fun save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save: " + entity.id + ":" + entity.rev)

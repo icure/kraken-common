@@ -94,8 +94,7 @@ class DeviceController(
 	fun createDevice(
 		@RequestBody p: DeviceDto,
 	): Mono<DeviceDto> = mono {
-		deviceService.createDevice(deviceV2Mapper.map(p))?.let(deviceV2Mapper::map)
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device creation failed.")
+		deviceV2Mapper.map(deviceService.createDevice(deviceV2Mapper.map(p)))
 	}
 
 	@Operation(summary = "Modify a device", description = "Returns the updated device")

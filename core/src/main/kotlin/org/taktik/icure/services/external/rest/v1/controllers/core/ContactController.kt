@@ -105,7 +105,6 @@ class ContactController(
 			try {
 				// handling services' indexes
 				contactService.createContact(contactMapper.map(handleServiceIndexes(c)))
-					?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Contact creation failed")
 			} catch (e: MissingRequirementsException) {
 				log.warn(e) { e.message }
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
@@ -449,7 +448,7 @@ class ContactController(
 
 		val succeed = contactWithDelegation?.delegations != null && contactWithDelegation.delegations.isNotEmpty()
 		if (succeed) {
-			contactWithDelegation?.let { contactMapper.map(it) }
+			contactMapper.map(contactWithDelegation)
 		} else {
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delegation creation for Contact failed.")
 		}

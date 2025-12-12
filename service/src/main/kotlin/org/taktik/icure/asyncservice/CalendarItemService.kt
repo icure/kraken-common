@@ -18,7 +18,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
-	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem?
+	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem
 
 	/**
 	 * Marks a batch of entities as deleted.

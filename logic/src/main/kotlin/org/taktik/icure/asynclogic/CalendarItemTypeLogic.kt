@@ -10,7 +10,7 @@ import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
-	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
 
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?
 	fun getCalendarItemTypes(calendarItemTypeIds: Collection<String>): Flow<CalendarItemType>

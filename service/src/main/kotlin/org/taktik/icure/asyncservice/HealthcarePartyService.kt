@@ -77,7 +77,7 @@ interface HealthcarePartyService {
 	 */
 	suspend fun undeleteHealthcareParty(id: String, rev: String): HealthcareParty
 
-	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
+	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
 
 	/**
 	 * Retrieves all the healthcare parties in a group, sorted by [HealthcareParty.lastName], in a format for pagination.

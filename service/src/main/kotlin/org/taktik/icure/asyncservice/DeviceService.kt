@@ -12,7 +12,7 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface DeviceService {
-	suspend fun createDevice(device: Device): Device?
+	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
 	suspend fun modifyDevice(device: Device): Device?
 	fun modifyDevices(devices: List<Device>): Flow<Device>

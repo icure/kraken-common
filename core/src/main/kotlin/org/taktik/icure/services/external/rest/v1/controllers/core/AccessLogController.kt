@@ -58,10 +58,7 @@ class AccessLogController(
 	fun createAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	) = mono {
-		val accessLog =
-			accessLogService.createAccessLog(accessLogMapper.map(accessLogDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
-		accessLogMapper.map(accessLog)
+		accessLogMapper.map(accessLogService.createAccessLog(accessLogMapper.map(accessLogDto)))
 	}
 
 	@Operation(summary = "Delete access logs by batch")

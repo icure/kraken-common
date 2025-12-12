@@ -15,7 +15,7 @@ import org.taktik.icure.pagination.PaginationElement
 interface AccessLogLogic :
 	EntityWithSecureDelegationsLogic<AccessLog>,
 	EntityPersister<AccessLog> {
-	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
+	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 
 	/**
 	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making

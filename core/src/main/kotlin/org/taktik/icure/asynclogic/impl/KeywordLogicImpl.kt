@@ -36,15 +36,12 @@ class KeywordLogicImpl(
 
 	override suspend fun createKeyword(keyword: Keyword) = fix(keyword, isCreate = true) { fixedKeyword ->
 		if (fixedKeyword.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		val createdKeywords =
-			try {
-				// Setting Keyword attributes
-				createEntities(setOf(fixedKeyword))
-			} catch (e: Exception) {
-				log.error("createKeyword: " + e.message)
-				throw IllegalArgumentException("Invalid Keyword", e)
-			}
-		createdKeywords.firstOrNull()
+		try {
+			createEntity(fixedKeyword)
+		} catch (e: Exception) {
+			log.error("createKeyword: " + e.message)
+			throw IllegalArgumentException("Invalid Keyword", e)
+		}
 	}
 
 	override suspend fun getKeyword(keywordId: String): Keyword? {

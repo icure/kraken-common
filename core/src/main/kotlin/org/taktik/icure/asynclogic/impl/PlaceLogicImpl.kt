@@ -29,7 +29,7 @@ class PlaceLogicImpl(
 	filters: Filters,
 ) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters),
 	PlaceLogic {
-	override suspend fun createPlace(place: Place): Place? = fix(place, isCreate = true) { fixedPlace ->
+	override suspend fun createPlace(place: Place) = fix(place, isCreate = true) { fixedPlace ->
 		if (fixedPlace.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		placeDAO.create(datastoreInformation, fixedPlace)

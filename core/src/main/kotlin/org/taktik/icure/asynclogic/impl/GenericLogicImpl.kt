@@ -24,8 +24,6 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.validation.aspect.Fixer
 
 abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
@@ -35,6 +33,8 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 ) : AutoFixableLogic<E>(fixer),
 	EntityPersister<E> {
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+
+	override suspend fun createEntity(entity: E): E = getGenericDAO().create(getInstanceAndGroup(), entity)
 
 	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
 		emitAll(getGenericDAO().createBulk(getInstanceAndGroup(), entities.map { fix(it, isCreate = true) }).filterSuccessfulUpdates())

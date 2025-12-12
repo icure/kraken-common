@@ -22,7 +22,7 @@ interface UserLogic : EntityPersister<User> {
 
 	// region create
 
-	suspend fun createUser(user: User): EnhancedUser?
+	suspend fun createUser(user: User): EnhancedUser
 
 	// endregion
 

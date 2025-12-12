@@ -18,7 +18,7 @@ interface AgendaLogic : EntityPersister<Agenda> {
 	 * @return a [Flow] of [PaginationElement] containing the [Agenda]s.
 	 */
 	fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
-	suspend fun createAgenda(agenda: Agenda): Agenda?
+	suspend fun createAgenda(agenda: Agenda): Agenda
 
 	suspend fun getAgenda(agenda: String): Agenda?
 	suspend fun modifyAgenda(agenda: Agenda): Agenda?

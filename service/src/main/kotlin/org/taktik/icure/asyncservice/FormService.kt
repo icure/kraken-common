@@ -62,7 +62,7 @@ interface FormService :
 
 	suspend fun addDelegation(formId: String, delegation: Delegation): Form?
 
-	suspend fun createForm(form: Form): Form?
+	suspend fun createForm(form: Form): Form
 
 	/**
 	 * Marks a batch of entities as deleted.
