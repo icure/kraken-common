@@ -24,6 +24,7 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.ParticipantType
+import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
@@ -43,6 +44,7 @@ interface ContactV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "participants", expression = """kotlin(org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper.Companion.mapParticipants(contactDto))"""),
+		Mapping(target = "participantList", expression = """kotlin(org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper.Companion.mapParticipantList(contactDto, this.contactParticipantV2Mapper))"""),
 	)
 	fun map(contactDto: ContactDto): Contact
 
@@ -51,18 +53,22 @@ interface ContactV2Mapper {
 
 	companion object {
 		fun mapParticipants(contactDto: ContactDto): Map<ParticipantType, String> {
-			return contactDto.participantList
-				.takeIf { participantList ->
-					contactDto.participants.isEmpty() && participantList.groupBy { entry -> entry.type }.all { entry -> entry.value.size == 1 }
-				}
-				?.let { participant ->
-					participant.associate { participantDto ->
-						ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
-					}
-				}
+			require(contactDto.participants.isEmpty() || contactDto.participantList.isEmpty()) {
+				"ContactDto cannot have both participants map and participantList populated"
+			}
+
+			return contactDto.participantList.associate { participantDto ->
+				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
+			}.takeIf { it.size == contactDto.participantList.size }
 				?: contactDto.participants.mapKeys { entry ->
 					ParticipantType.valueOf(entry.key.name)
 				}
+		}
+
+		fun mapParticipantList(contactDto: ContactDto, participantMapper: ContactParticipantV2Mapper): List<ContactParticipant> {
+			return contactDto.participantList.takeIf {
+				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 }
+			}.orEmpty().map { participantMapper.map(it) }
 		}
 	}
 }
