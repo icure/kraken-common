@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,18 +15,14 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asyncservice.DataOwnerService
-import org.taktik.icure.entities.User
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.CryptoActorStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapper
-import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -42,6 +37,9 @@ class DataOwnerController(
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
 ) {
+	private suspend fun currentDataOwnerOr404(): String =
+		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
+
 	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
 	@GetMapping("/{dataOwnerId}")
 	fun getDataOwner(
@@ -90,7 +88,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		getDataOwner(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
+		getDataOwner(currentDataOwnerOr404()).awaitSingle()
 	}
 
 	@Operation(
@@ -99,7 +97,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/stub")
 	fun getCurrentDataOwnerStub() = mono {
-		getDataOwnerStub(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
+		getDataOwnerStub(currentDataOwnerOr404()).awaitSingle()
 	}
 
 	@Operation(
@@ -108,7 +106,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchy(sessionLogic.getCurrentDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
 	}.map {
 		dataOwnerWithTypeMapper.map(it)
 	}.injectReactorContext()
@@ -119,7 +117,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchyStub(sessionLogic.getCurrentDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchyStub(currentDataOwnerOr404()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()
