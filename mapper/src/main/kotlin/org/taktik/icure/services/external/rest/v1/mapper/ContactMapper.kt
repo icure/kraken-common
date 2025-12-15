@@ -43,9 +43,9 @@ interface ContactMapper {
 				"ContactDto cannot have both participants map and participantList populated"
 			}
 
-			return contactDto.participantList.associate { participantDto ->
+			return contactDto.participantList.takeIf { it.isNotEmpty() }?.associate { participantDto ->
 				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
-			}.takeIf { it.size == contactDto.participantList.size }
+			}?.takeIf { it.size == contactDto.participantList.size }
 				?: contactDto.participants.mapKeys { entry ->
 					ParticipantType.valueOf(entry.key.name)
 				}
