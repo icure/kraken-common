@@ -9,6 +9,8 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.entities.base.ParticipantType
+import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.services.external.rest.v1.dto.ContactDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
@@ -27,18 +29,34 @@ interface ContactMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "notes", ignore = true),
-		Mapping(target = "participants", expression = """kotlin((contactDto.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) })"""),
+		Mapping(target = "participants", expression = """kotlin(org.taktik.icure.services.external.rest.v1.mapper.ContactMapper.Companion.mapParticipants(contactDto))"""),
+		Mapping(target = "participantList", expression = """kotlin(org.taktik.icure.services.external.rest.v1.mapper.ContactMapper.Companion.mapParticipantList(contactDto, this.contactParticipantMapper))"""),
 	)
 	fun map(contactDto: ContactDto): Contact
 
-	@Mappings(
-		Mapping(target = "participants", expression = """kotlin(contact.participants.associate { (type, hcpId) -> org.taktik.icure.services.external.rest.v1.dto.base.ParticipantTypeDto.valueOf(type.name) to hcpId })"""),
-		Mapping(target = "participantList", expression = """kotlin(contact.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(org.taktik.icure.services.external.rest.v1.dto.base.ParticipantTypeDto.valueOf(it.type.name), it.hcpId) })"""),
-	)
+	@Mappings()
 	fun map(contact: Contact): ContactDto
-}
 
-fun toEntity(contactDto: ContactDto, contactMapper: ContactMapper): Contact = Contact(
-	id = contactDto.id,
-	participants = (contactDto.participants.map { org.taktik.icure.services.external.rest.v1.dto.embed.ContactParticipantDto(it.key, it.value) } + contactDto.participantList).distinct().map { org.taktik.icure.entities.embed.ContactParticipant(org.taktik.icure.entities.base.ParticipantType.valueOf(it.type.name), it.hcpId) }
-)
+	companion object {
+		fun mapParticipants(contactDto: ContactDto): Map<ParticipantType, String> {
+			require(contactDto.participants.isEmpty() || contactDto.participantList.isEmpty()) {
+				"ContactDto cannot have both participants map and participantList populated"
+			}
+
+			return contactDto.participantList.takeIf { it.isNotEmpty() }?.associate { participantDto ->
+				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
+			}?.takeIf { it.size == contactDto.participantList.size }
+				?: contactDto.participants.mapKeys { entry ->
+					ParticipantType.valueOf(entry.key.name)
+				}
+		}
+
+		fun mapParticipantList(contactDto: ContactDto, participantMapper: ContactParticipantMapper): List<ContactParticipant> {
+			return contactDto.participantList.takeIf {
+				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 }
+			}.orEmpty().map { participantMapper.map(it) }
+		}
+	}
+
+	//TODO: Write a test
+}
