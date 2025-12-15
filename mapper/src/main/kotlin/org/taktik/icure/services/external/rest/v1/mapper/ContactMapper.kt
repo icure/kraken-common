@@ -12,6 +12,7 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.services.external.rest.v1.dto.ContactDto
+import org.taktik.icure.services.external.rest.v1.dto.base.ParticipantTypeDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.AddressMapper
@@ -45,7 +46,7 @@ interface ContactMapper {
 
 			return contactDto.participantList.takeIf { it.isNotEmpty() }?.associate { participantDto ->
 				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
-			}?.takeIf { it.size == contactDto.participantList.size }
+			}?.takeIf { it.size == contactDto.participantList.size && it.none { (type) -> type == ParticipantType.Recorder  } }
 				?: contactDto.participants.mapKeys { entry ->
 					ParticipantType.valueOf(entry.key.name)
 				}
@@ -53,7 +54,7 @@ interface ContactMapper {
 
 		fun mapParticipantList(contactDto: ContactDto, participantMapper: ContactParticipantMapper): List<ContactParticipant> {
 			return contactDto.participantList.takeIf {
-				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 }
+				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 } || it.any { (type) -> type == ParticipantTypeDto.Recorder  }
 			}.orEmpty().map { participantMapper.map(it) }
 		}
 	}

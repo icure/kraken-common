@@ -194,5 +194,45 @@ class ContactMapperTest : StringSpec({
 		)
 		participantList.shouldBeEmpty()
 	}
-})
 
+	"mapParticipants should handle Recorder type by using participantList" {
+		val contactDto = ContactDto(
+			id = "contact-1",
+			participants = emptyMap(),
+			participantList = listOf(
+				ContactParticipantDto(type = ParticipantTypeDto.Recorder, hcpId = "hcp-1"),
+				ContactParticipantDto(type = ParticipantTypeDto.Attender, hcpId = "hcp-2"),
+			),
+		)
+
+		val participants = ContactMapper.mapParticipants(contactDto)
+		val participantList = ContactMapper.mapParticipantList(contactDto, ContactParticipantMapperImpl())
+
+		participants.shouldBeEmpty()
+		participantList shouldContainExactlyInAnyOrder listOf(
+			ContactParticipant(type = ParticipantType.Recorder, hcpId = "hcp-1"),
+			ContactParticipant(type = ParticipantType.Attender, hcpId = "hcp-2"),
+		)
+	}
+
+	"mapParticipantList should return mapped list when Recorder type is present" {
+		val contactDto = ContactDto(
+			id = "contact-1",
+			participants = emptyMap(),
+			participantList = listOf(
+				ContactParticipantDto(type = ParticipantTypeDto.Recorder, hcpId = "hcp-1"),
+				ContactParticipantDto(type = ParticipantTypeDto.Admitter, hcpId = "hcp-2"),
+			),
+		)
+
+		val participants = ContactMapper.mapParticipants(contactDto)
+		val participantMapper = ContactParticipantMapperImpl()
+		val participantList = ContactMapper.mapParticipantList(contactDto, participantMapper)
+
+		participants.shouldBeEmpty()
+		participantList shouldContainExactlyInAnyOrder listOf(
+			ContactParticipant(type = ParticipantType.Recorder, hcpId = "hcp-1"),
+			ContactParticipant(type = ParticipantType.Admitter, hcpId = "hcp-2"),
+		)
+	}
+})
