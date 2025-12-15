@@ -57,6 +57,4 @@ interface ContactMapper {
 			}.orEmpty().map { participantMapper.map(it) }
 		}
 	}
-
-	//TODO: Write a test
 }
