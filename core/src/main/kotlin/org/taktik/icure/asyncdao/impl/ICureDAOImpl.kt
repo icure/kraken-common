@@ -31,7 +31,7 @@ import java.net.URI
 open class ICureDAOImpl(
 	private val httpClient: WebClient,
 	private val couchDbCredentialsProvider: CouchDbCredentialsProvider,
-	@Qualifier("baseCouchDbDispatcher") protected val couchDbDispatcher: CouchDbDispatcher,
+	@param:Qualifier("baseCouchDbDispatcher") protected val couchDbDispatcher: CouchDbDispatcher,
 	private val activeTasksProvider: ActiveTasksProvider,
 ) : ICureDAO {
 	override suspend fun getIndexingStatus(datastoreInformation: IDatastoreInformation): Map<String, Int> = activeTasksProvider.getActiveTasks(datastoreInformation).filterIsInstance<Indexer>().associate {

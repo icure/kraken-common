@@ -26,7 +26,6 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Tarification
-import org.taktik.icure.entities.base.Code
 
 @Repository("tarificationDAO")
 @Profile("app")
@@ -163,7 +162,7 @@ class TarificationDAOImpl(
 			pagination,
 			false,
 		)
-		emitAll(client.queryView(viewQuery, ComplexKey::class.java, Integer::class.java, Tarification::class.java))
+		emitAll(client.queryView(viewQuery, ComplexKey::class.java, Int::class.java, Tarification::class.java))
 	}
 
 	@View(name = "by_language_type_label", map = "classpath:js/tarif/By_language_label.js")
@@ -211,7 +210,7 @@ class TarificationDAOImpl(
 			pagination.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
 			false,
 		)
-		emitAll(client.queryView(viewQuery, Array<String>::class.java, Integer::class.java, Tarification::class.java))
+		emitAll(client.queryView(viewQuery, Array<String>::class.java, Int::class.java, Tarification::class.java))
 	}
 
 	@View(name = "conflicts", map = "function(doc) { if ((doc.java_type === 'org.taktik.icure.entities.Tarification' || doc.java_type === 'org.taktik.icure.entities.Pricing') && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
