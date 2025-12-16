@@ -1,8 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.IntNode
-import com.fasterxml.jackson.databind.node.LongNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -55,16 +53,15 @@ data class IntTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is IntNode || value is LongNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonInteger) {
 			"$path: invalid type, expected Int64"
 		}
-		val valueLong = value.asLong()
 		require (
-			valueLong >= (validation?.min ?: MIN_SAFE_LONG) && valueLong <= (validation?.max ?: MAX_SAFE_LONG)
+			value.value >= (validation?.min ?: MIN_SAFE_LONG) && value.value <= (validation?.max ?: MAX_SAFE_LONG)
 		) {
-			"$path: value $valueLong out of configured bounds"
+			"$path: value ${value.value} out of configured bounds"
 		}
 		value
 	}

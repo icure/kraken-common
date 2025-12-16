@@ -2,12 +2,7 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.IntNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.LongNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.utils.FuzzyDates
@@ -61,19 +56,19 @@ data class ObjectDefinition(
 			 * Get a value matching this default configuration; if not null the value must be stored in the DB.
 			 * May change at each invocation
 			 */
-			fun valueForStore(): JsonNode?
+			fun valueForStore(): RawJson?
 
 			/**
 			 * Get a value matching this default configuration; not null only for configurations where the value
 			 * should not be stored.
 			 */
-			fun valueForRead(): JsonNode?
+			fun valueForRead(): RawJson?
 
 
 			/**
 			 * If the provided value should be ignored according to this default configuration.
 			 */
-			fun shouldIgnoreForStore(value: JsonNode): Boolean
+			fun shouldIgnoreForStore(value: RawJson): Boolean
 
 			/**
 			 * Represents a constant default value.
@@ -87,7 +82,7 @@ data class ObjectDefinition(
 				/**
 				 * The default value
 				 */
-				val value: JsonNode,
+				val value: RawJson,
 			) : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
@@ -99,11 +94,11 @@ data class ObjectDefinition(
 					typeConfig.validateAndMapValueForStore(resolutionContext, resolutionPath, value)
 				}
 
-				override fun valueForStore(): JsonNode? = if (storeExplicitly) value else null
+				override fun valueForStore(): RawJson? = if (storeExplicitly) value else null
 
-				override fun valueForRead(): JsonNode? = if (storeExplicitly) null else value
+				override fun valueForRead(): RawJson? = if (storeExplicitly) null else value
 
-				override fun shouldIgnoreForStore(value: JsonNode): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					!storeExplicitly && this.value == value
 			}
 
@@ -120,12 +115,12 @@ data class ObjectDefinition(
 					}
 				}
 
-				override fun valueForStore(): JsonNode =
-					TextNode(UUID.randomUUID().toString())
+				override fun valueForStore(): RawJson =
+					RawJson.JsonString(UUID.randomUUID().toString())
 
 				override fun valueForRead(): Nothing? = null
 
-					override fun shouldIgnoreForStore(value: JsonNode): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
 
@@ -149,8 +144,8 @@ data class ObjectDefinition(
 					}
 				}
 
-				override fun valueForStore(): JsonNode =
-					LongNode(
+				override fun valueForStore(): RawJson =
+					RawJson.JsonInteger(
 						FuzzyDates.getFuzzyDateTime(
 							LocalDateTime.now(zoneId?.let { ZoneId.of(it) } ?: ZoneOffset.UTC),
 							ChronoUnit.SECONDS,
@@ -160,7 +155,7 @@ data class ObjectDefinition(
 
 				override fun valueForRead(): Nothing? = null
 
-				override fun shouldIgnoreForStore(value: JsonNode): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
 
@@ -184,18 +179,18 @@ data class ObjectDefinition(
 					}
 				}
 
-				override fun valueForStore(): JsonNode =
-					IntNode(
+				override fun valueForStore(): RawJson =
+					RawJson.JsonInteger(
 						FuzzyDates.getFuzzyDate(
 							LocalDate.now(zoneId?.let { ZoneId.of(it) } ?: ZoneOffset.UTC),
 							ChronoUnit.DAYS,
 							false
-						)
+						).toLong()
 					)
 
 				override fun valueForRead(): Nothing? = null
 
-				override fun shouldIgnoreForStore(value: JsonNode): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
 
@@ -219,16 +214,16 @@ data class ObjectDefinition(
 					}
 				}
 
-				override fun valueForStore(): JsonNode =
-					IntNode(
+				override fun valueForStore(): RawJson =
+					RawJson.JsonInteger(
 						FuzzyDates.getFuzzyTime(
 							LocalTime.now(zoneId?.let { ZoneId.of(it) } ?: ZoneOffset.UTC),
-						)
+						).toLong()
 					)
 
 				override fun valueForRead(): Nothing? = null
 
-				override fun shouldIgnoreForStore(value: JsonNode): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
 		}
@@ -251,18 +246,15 @@ data class ObjectDefinition(
 	fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: ObjectNode,
-	): ObjectNode {
-		val mappedObject: ObjectNode = JsonNodeFactory.instance.objectNode()
-		LinkedHashSet<String>(properties.size + value.size()).apply {
-			addAll(properties.keys)
-			value.fieldNames().forEach { add(it) }
-		}.forEach { propName ->
+		value: RawJson.JsonObject,
+	): RawJson.JsonObject {
+		val mappedObjectProperties = mutableMapOf<String, RawJson>()
+		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
 			requireNotNull(propConfig) {
 				"$path: unexpected property $propName"
 			}
-			val propValue: JsonNode? = value[propName]
+			val propValue: RawJson? = value.properties[propName]
 			val mappedValue = if (propValue == null) {
 				require (propConfig.defaultValue != null) {
 					"$path: missing required property $propName (no default)"
@@ -276,21 +268,20 @@ data class ObjectDefinition(
 				}
 			}
 			if (mappedValue != null) {
-				mappedObject.replace(propName, mappedValue)
+				mappedObjectProperties[propName] = mappedValue
 			}
 		}
-		return mappedObject
+		return RawJson.JsonObject(mappedObjectProperties)
 	}
 
 	fun mapValueForRead(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		value: ObjectNode,
-	): ObjectNode = ObjectNode(
-		JsonNodeFactory.instance,
+		value: RawJson.JsonObject,
+	): RawJson.JsonObject = RawJson.JsonObject(
 		properties.entries.mapNotNull { (propId, propConfig) ->
 			(
 				// A property with explicit null valur is actually going to be a NullNode, not an actual `null` -> will be mapped accordingly
-				value[propId]?.let {
+				value.properties[propId]?.let {
 					if (propConfig.type.shouldMapForRead) {
 						propConfig.type.mapValueForRead(resolutionContext, it)
 					} else {

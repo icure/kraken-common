@@ -3,7 +3,7 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.databind.JsonNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -69,8 +69,8 @@ sealed interface GenericTypeConfig {
 	fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode,
-	): JsonNode
+		value: RawJson,
+	): RawJson
 
 	/**
 	 * Transforms a json retrieved from the database before returning it to the user (to set implicit default values, or
@@ -82,8 +82,8 @@ sealed interface GenericTypeConfig {
 	 */
 	fun mapValueForRead(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		value: JsonNode,
-	): JsonNode = value
+		value: RawJson,
+	): RawJson = value
 
 	val shouldMapForRead : Boolean @JsonIgnore get() = false
 }

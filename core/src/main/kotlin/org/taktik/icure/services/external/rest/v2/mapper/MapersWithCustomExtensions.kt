@@ -1,13 +1,13 @@
 package org.taktik.icure.services.external.rest.v2.mapper
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.id.Identifiable
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.config.ExtensionConfiguration
 import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
@@ -26,7 +26,7 @@ import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import java.io.Serializable
 
 object MappersWithCustomExtensions {
-	val mapFromDtoWithNoConfig = { it: ObjectNode? ->
+	val mapFromDtoWithNoConfig = { it: RawJson.JsonObject? ->
 		if (it != null)
 			throw IllegalArgumentException("Can't use extension value when no extension is configured")
 		else
@@ -37,7 +37,7 @@ object MappersWithCustomExtensions {
 		dto: DTO,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
+		doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): OBJ {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -60,7 +60,7 @@ object MappersWithCustomExtensions {
 		obj: OBJ,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): DTO {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getExtension()
@@ -81,7 +81,7 @@ object MappersWithCustomExtensions {
 		dtos: List<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
+		doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): List<OBJ> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -109,7 +109,7 @@ object MappersWithCustomExtensions {
 		objs: List<OBJ>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): List<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getExtension()
@@ -132,7 +132,7 @@ object MappersWithCustomExtensions {
 		dtos: Flow<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		crossinline getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		crossinline doMap: (DTO, (ObjectNode?) -> ObjectNode?) -> OBJ,
+		crossinline doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): Flow<OBJ> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -160,7 +160,7 @@ object MappersWithCustomExtensions {
 		objs: Flow<OBJ>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		crossinline getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		crossinline doMap: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		crossinline doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<DTO> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getExtension()
@@ -184,7 +184,7 @@ object MappersWithCustomExtensions {
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		bulkShareResultV2Mapper: BulkShareResultV2Mapper,
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<EntityBulkShareResultDto<DTO>> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getEntityExtension()
@@ -218,7 +218,7 @@ object MappersWithCustomExtensions {
 		paginationElements: Flow<PaginationElement>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<PaginationElement> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getEntityExtension()
@@ -260,7 +260,7 @@ object MappersWithCustomExtensions {
 		predicate: Predicate? = null,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
-		crossinline doMapEntity: (OBJ, (ObjectNode?) -> ObjectNode?) -> DTO,
+		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): PaginatedList<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getEntityExtension()

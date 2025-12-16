@@ -1,7 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.IntNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.utils.FuzzyDates
@@ -17,12 +16,12 @@ data class FuzzyDateTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is IntNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonInteger) {
 			"$path: invalid type, expected Int (fuzzy date)"
 		}
-		val parsed = FuzzyDates.getLocalDateWithPrecision(value.asInt())
+		val parsed = value.asExactIntOrNull()?.let { FuzzyDates.getLocalDateWithPrecision(it) }
 		requireNotNull(parsed) {
 			"$path: invalid fuzzy date"
 		}

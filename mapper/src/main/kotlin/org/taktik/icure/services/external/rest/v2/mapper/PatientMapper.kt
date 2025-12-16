@@ -23,6 +23,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -70,10 +71,10 @@ interface PatientV2Mapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", expression = "lambda(mapExtensionsForStore)"),
 	)
-	fun map(patientDto: PatientDto, mapExtensionsForStore: (ObjectNode?) -> ObjectNode?): Patient
+	fun map(patientDto: PatientDto, mapExtensionsForStore: (RawJson.JsonObject?) -> RawJson.JsonObject?): Patient
 
 	@Mappings(
 		Mapping(target = "extensions", expression = "lambda(mapExtensionsForRead)"),
 	)
-	fun map(patient: Patient, mapExtensionsForRead: (ObjectNode?) -> ObjectNode?): PatientDto
+	fun map(patient: Patient, mapExtensionsForRead: (RawJson.JsonObject?) -> RawJson.JsonObject?): PatientDto
 }

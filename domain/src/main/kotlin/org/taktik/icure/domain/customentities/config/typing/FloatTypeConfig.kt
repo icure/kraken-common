@@ -1,13 +1,23 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.DoubleNode
-import com.fasterxml.jackson.databind.node.FloatNode
-import com.fasterxml.jackson.databind.node.IntNode
-import com.fasterxml.jackson.databind.node.LongNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
+/**
+ * Type for 64-bit floating point fields.
+ *
+ * The json value will be converted to a 64-bit floating point number before storage: this may lead to loss of precision
+ * for some numbers, and may change the representation of the content.
+ * Additionally, numbers that are too large and would be represented as Infinity, will be rejected.
+ * ```
+ * 0.12345678912345678 -> 0.12345678912345678 (same)
+ * 12345678912345678 -> 1.2345678912345678E16 (representation change, but equivalent value)
+ * 1.00 -> 1.0 (representation change, equivalent value but not acceptable under some conditions, e.g. FHIR)
+ * 0.123456789123456789 -> 0.12345678912345678 (precision loss)
+ * 1e400 -> REJECTED (too large, would be infinity)
+ * ```
+ */
 data class FloatTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -33,14 +43,13 @@ data class FloatTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is DoubleNode || value is FloatNode || value is IntNode || value is LongNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonNumber) {
 			"$path: invalid type, expected Float64"
 		}
-		val valueDouble = value.asDouble()
-		require (valueDouble.isFinite()) {
-			"$path: value $valueDouble out of bounds for Float64"
+		val valueDouble = requireNotNull(value.asDouble().takeIf { it.isFinite() }) {
+			"$path: value can't be represented using a finite 64-bit floating point number"
 		}
 		if (validation != null) {
 			require (
@@ -50,6 +59,6 @@ data class FloatTypeConfig(
 				"$path: value $valueDouble out of configured bounds"
 			}
 		}
-		value
+		RawJson.JsonDecimal(valueDouble.toString())
 	}
 }

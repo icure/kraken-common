@@ -2,6 +2,7 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.utils.Validation
@@ -16,12 +17,12 @@ data class PhoneTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is TextNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (phone)"
 		}
-		require(Validation.validPhone(value.asText())) {
+		require(Validation.validPhone(value.value)) {
 			"$path: invalid value for phone"
 		}
 		value

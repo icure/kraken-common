@@ -2,6 +2,7 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -19,12 +20,12 @@ data class UuidTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is TextNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (UUID)"
 		}
-		require(VALIDATION_REGEX.matches(value.asText())) {
+		require(VALIDATION_REGEX.matches(value.value)) {
 			"$path: invalid value for UUID"
 		}
 		value

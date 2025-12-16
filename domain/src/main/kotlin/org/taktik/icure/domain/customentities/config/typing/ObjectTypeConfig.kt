@@ -1,8 +1,7 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -24,9 +23,9 @@ class ObjectTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is ObjectNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonObject) {
 			"$path: invalid type, expected Object ($objectReference)"
 		}
 		resolutionContext.resolveObjectReference(objectReference)!!.validateAndMapValueForStore(
@@ -38,9 +37,9 @@ class ObjectTypeConfig(
 
 	override fun mapValueForRead(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		value: JsonNode
-	): JsonNode =
-		if (value is ObjectNode) {
+		value: RawJson
+	): RawJson =
+		if (value is RawJson.JsonObject) {
 			resolutionContext.resolveObjectReference(objectReference)!!.mapValueForRead(resolutionContext, value)
 		} else {
 			value

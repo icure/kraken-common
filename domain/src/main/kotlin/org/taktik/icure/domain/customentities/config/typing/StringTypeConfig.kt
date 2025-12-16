@@ -2,6 +2,7 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -34,15 +35,15 @@ class StringTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is TextNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (string)"
 		}
 		if (validation != null) {
 			require(
-				(validation.minLength == null || value.asText().length >= validation.minLength)
-					&& (validation.maxLength == null || value.asText().length <= validation.maxLength)
+				(validation.minLength == null || value.value.length >= validation.minLength)
+					&& (validation.maxLength == null || value.value.length <= validation.maxLength)
 			) {
 				"$path: string length out of bounds"
 			}

@@ -1,7 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.utils.Validation
 
 /**
@@ -9,16 +10,16 @@ import org.taktik.icure.utils.Validation
  */
 data class EmailTypeConfig(
 	val nullable: Boolean = false,
-) : org.taktik.icure.domain.customentities.config.typing.GenericTypeConfig {
+) : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
-		resolutionContext: org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext,
-		path: org.taktik.icure.domain.customentities.util.ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is TextNode) {
+		resolutionContext: CustomEntityConfigResolutionContext,
+		path: ResolutionPath,
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (email)"
 		}
-		require(Validation.validEmail(value.asText())) {
+		require(Validation.validEmail(value.value)) {
 			"$path: invalid value for email"
 		}
 		value

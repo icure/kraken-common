@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -54,12 +55,12 @@ data class ListTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode,
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is ArrayNode) {
+		value: RawJson,
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonArray) {
 			"$path: invalid type, expected Array"
 		}
-		val res = value.mapIndexed { index, element ->
+		val res = value.items.mapIndexed { index, element ->
 			path.appending("[$index]") {
 				elementType.validateAndMapValueForStore(
 					resolutionContext,
@@ -81,17 +82,16 @@ data class ListTypeConfig(
 				"$path: duplicate items in unique values array"
 			}
 		}
-		ArrayNode(JsonNodeFactory.instance, res)
+		RawJson.JsonArray(res)
 	}
 
 	override fun mapValueForRead(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		value: JsonNode
-	): JsonNode =
-		if (value is ArrayNode && elementType.shouldMapForRead) {
-			ArrayNode(
-				JsonNodeFactory.instance,
-				value.map { item ->
+		value: RawJson
+	): RawJson =
+		if (elementType.shouldMapForRead && value is RawJson.JsonArray) {
+			RawJson.JsonArray(
+				value.items.map { item ->
 					elementType.mapValueForRead(
 						resolutionContext,
 						item

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -49,20 +50,17 @@ data class MapTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is ObjectNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonObject) {
 			"$path: invalid type, expected Object (Map)"
 		}
-		val res = value.properties().associate {
-			path.appending("{", it.key, "}") {
-				Pair(
-					it.key,
-					valueType.validateAndMapValueForStore(
-						resolutionContext,
-						path,
-						it.value
-					)
+		val res = value.properties.mapValues { (k, v) ->
+			path.appending("{", k, "}") {
+				valueType.validateAndMapValueForStore(
+					resolutionContext,
+					path,
+					v
 				)
 			}
 		}
@@ -82,22 +80,18 @@ data class MapTypeConfig(
 				}
 			}
 		}
-		ObjectNode(JsonNodeFactory.instance, res)
+		RawJson.JsonObject(res)
 	}
 
 	override fun mapValueForRead(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		value: JsonNode
-	): JsonNode = if (value is ObjectNode && valueType.shouldMapForRead) {
-		ObjectNode(
-			JsonNodeFactory.instance,
-			value.properties().associate {
-				Pair(
-					it.key,
-					valueType.mapValueForRead(
-						resolutionContext,
-						it.value
-					)
+		value: RawJson
+	): RawJson = if (valueType.shouldMapForRead && value is RawJson.JsonObject) {
+		RawJson.JsonObject(
+			value.properties.mapValues { (_, v) ->
+				valueType.mapValueForRead(
+					resolutionContext,
+					v
 				)
 			}
 		)

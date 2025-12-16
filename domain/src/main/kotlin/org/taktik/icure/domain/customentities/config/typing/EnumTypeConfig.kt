@@ -1,7 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.TextNode
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
@@ -23,13 +22,13 @@ data class EnumTypeConfig(
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		path: ResolutionPath,
-		value: JsonNode
-	): JsonNode = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is TextNode) {
+		value: RawJson
+	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
+		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (enum)"
 		}
 		val enumDefinition = resolutionContext.resolveEnumReference(enumReference)!!
-		require(value.textValue() in enumDefinition.entries) {
+		require(value.value in enumDefinition.entries) {
 			"$path: invalid value for enum $enumReference"
 		}
 		value

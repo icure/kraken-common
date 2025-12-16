@@ -215,7 +215,7 @@ data class Patient(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-	val extensions: ObjectNode? = null,
+	val extensions: RawJson.JsonObject? = null,
 ) : StoredICureDocument,
 	Person,
 	HasEncryptionMetadata,
