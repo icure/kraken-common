@@ -28,7 +28,6 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
 )
 @JsonSubTypes(
 	JsonSubTypes.Type(value = BooleanTypeConfig::class, name = "Boolean"),
-	JsonSubTypes.Type(value = EmailTypeConfig::class, name = "Email"),
 	JsonSubTypes.Type(value = EnumTypeConfig::class, name = "Enum"),
 	JsonSubTypes.Type(value = FloatTypeConfig::class, name = "Float"),
 	JsonSubTypes.Type(value = FuzzyDateTimeTypeConfig::class, name = "FuzzyDateTime"),
@@ -39,7 +38,6 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
 	JsonSubTypes.Type(value = ListTypeConfig::class, name = "List"),
 	JsonSubTypes.Type(value = MapTypeConfig::class, name = "Map"),
 	JsonSubTypes.Type(value = ObjectTypeConfig::class, name = "Object"),
-	JsonSubTypes.Type(value = PhoneTypeConfig::class, name = "Phone"),
 	JsonSubTypes.Type(value = StringTypeConfig::class, name = "String"),
 	JsonSubTypes.Type(value = UuidTypeConfig::class, name = "Uuid"),
 )

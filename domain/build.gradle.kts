@@ -44,8 +44,6 @@ dependencies {
     implementation(coreLibs.caffeine)
 
     implementation(coreLibs.libRecur)
-    implementation(coreLibs.jmail)
-    implementation(coreLibs.libPhoneNumber)
 
     testImplementation(coreLibs.bundles.kotestLibs)
 }
