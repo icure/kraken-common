@@ -2,17 +2,16 @@ package org.taktik.icure.utils
 
 import com.google.i18n.phonenumbers.NumberParseException
 import com.google.i18n.phonenumbers.PhoneNumberUtil
-import org.apache.commons.validator.routines.EmailValidator
+import com.sanctionco.jmail.JMail
 import java.time.ZoneId
 
 
 object Validation {
-	private val emailValidator = EmailValidator.getInstance()
 	private val strictPhoneRegex = Regex("^\\+\\d+$")
 	private val phoneUtil = PhoneNumberUtil.getInstance()
 
 	fun validEmail(email: String): Boolean =
-		emailValidator.isValid(email)
+		JMail.isValid(email)
 
 	/**
 	 * Very strict phone validation.

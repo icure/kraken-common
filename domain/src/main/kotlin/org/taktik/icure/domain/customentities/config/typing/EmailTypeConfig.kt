@@ -6,7 +6,8 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.utils.Validation
 
 /**
- * Type for email fields.
+ * Type for email fields, checks that email addresses are valid, but does not verify that they are actually reachable.
+ * Supports internationalized email addresses.
  */
 data class EmailTypeConfig(
 	val nullable: Boolean = false,

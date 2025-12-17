@@ -44,7 +44,7 @@ dependencies {
     implementation(coreLibs.caffeine)
 
     implementation(coreLibs.libRecur)
-    implementation(coreLibs.apacheCommonsValidator)
+    implementation(coreLibs.jmail)
     implementation(coreLibs.libPhoneNumber)
 
     testImplementation(coreLibs.bundles.kotestLibs)
