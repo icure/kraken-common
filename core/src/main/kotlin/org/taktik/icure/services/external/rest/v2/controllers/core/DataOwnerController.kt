@@ -86,6 +86,9 @@ class DataOwnerController(
 		}
 	}
 
+	private suspend fun currentDataOwnerOr404(): String =
+		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
+
 	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
 	@GetMapping("/{dataOwnerId}")
 	fun getDataOwner(
@@ -134,7 +137,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current")
 	fun getCurrentDataOwner() = mono {
-		getDataOwner(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
+		getDataOwner(currentDataOwnerOr404()).awaitSingle()
 	}
 
 	@Operation(
@@ -143,7 +146,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/stub")
 	fun getCurrentDataOwnerStub() = mono {
-		getDataOwnerStub(sessionLogic.getCurrentDataOwnerId()).awaitSingle()
+		getDataOwnerStub(currentDataOwnerOr404()).awaitSingle()
 	}
 
 	@Operation(
@@ -152,7 +155,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchy(sessionLogic.getCurrentDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
 	}.map().injectReactorContext()
 
 	@Operation(
@@ -161,7 +164,7 @@ class DataOwnerController(
 	)
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
-		emitAll(dataOwnerService.getCryptoActorHierarchyStub(sessionLogic.getCurrentDataOwnerId()))
+		emitAll(dataOwnerService.getCryptoActorHierarchyStub(currentDataOwnerOr404()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()
