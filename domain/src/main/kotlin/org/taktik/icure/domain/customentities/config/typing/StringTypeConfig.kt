@@ -1,15 +1,16 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.TextNode
-import org.taktik.icure.entities.RawJson
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.entities.RawJson
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class StringTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,

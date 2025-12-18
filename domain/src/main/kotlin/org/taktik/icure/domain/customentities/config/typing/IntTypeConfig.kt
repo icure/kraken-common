@@ -1,10 +1,11 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
-
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class IntTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -20,6 +21,7 @@ data class IntTypeConfig(
 		private const val MIN_SAFE_LONG = -9007199254740991
 	}
 
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		/**
 		 * Minimum acceptable value, always inclusive.

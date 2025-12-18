@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.entities.RawJson
@@ -15,6 +16,7 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ObjectDefinition(
 	val properties: Map<String, PropertyConfiguration>
 ) {
@@ -22,7 +24,7 @@ data class ObjectDefinition(
 	 * - Ignore fields, list of fields that should be ignored (to support deletion)
 	 * - Field name aliases
 	 */
-
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class PropertyConfiguration(
 		val type: GenericTypeConfig,
 		val defaultValue: DefaultValue? = null
@@ -73,15 +75,17 @@ data class ObjectDefinition(
 			/**
 			 * Represents a constant default value.
 			 */
+			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 			data class Constant(
 				/**
 				 * If false, if a field's value matches the configured default, it is not saved in the database.
 				 * If true, a field's value is always stored, even if it matches the configured default.
 				 */
-				val storeExplicitly: Boolean,
+				val storeExplicitly: Boolean = false,
 				/**
 				 * The default value
 				 */
+				@param:JsonInclude(JsonInclude.Include.ALWAYS)
 				val value: RawJson,
 			) : DefaultValue {
 				override suspend fun validateFor(
@@ -124,6 +128,7 @@ data class ObjectDefinition(
 					false
 			}
 
+			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 			class NowDateTime(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -159,6 +164,7 @@ data class ObjectDefinition(
 					false
 			}
 
+			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 			class NowDate(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -194,6 +200,7 @@ data class ObjectDefinition(
 					false
 			}
 
+			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 			class NowTime(
 				val zoneId: String? = null
 			) : DefaultValue {

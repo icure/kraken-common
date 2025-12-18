@@ -1,6 +1,7 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
@@ -8,12 +9,13 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ListTypeConfig(
 	val elementType: GenericTypeConfig,
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
-
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,

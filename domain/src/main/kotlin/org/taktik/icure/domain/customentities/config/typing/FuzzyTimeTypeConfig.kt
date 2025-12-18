@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
@@ -9,6 +10,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Type for fuzzy time, with or without precision encoding.
  */
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class FuzzyTimeTypeConfig(
 	val nullable: Boolean = false,
 	val allowPrecisionEncoding: Boolean = false

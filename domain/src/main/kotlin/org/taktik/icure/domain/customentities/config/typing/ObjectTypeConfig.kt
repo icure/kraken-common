@@ -1,13 +1,15 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class ObjectTypeConfig(
 	val objectReference: String,
-	val nullable: Boolean
+	val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,

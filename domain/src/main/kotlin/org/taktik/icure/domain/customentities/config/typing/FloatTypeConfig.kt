@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
@@ -18,10 +19,12 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
  * 1e400 -> REJECTED (too large, would be infinity)
  * ```
  */
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class FloatTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val min: Double? = null,
 		val max: Double? = null,

@@ -1,18 +1,18 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class MapTypeConfig(
 	val valueType: GenericTypeConfig,
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val minSize: Int? = null,
 		val maxSize: Int? = null,
@@ -75,7 +75,7 @@ data class MapTypeConfig(
 				val enumDefinition = resolutionContext.resolveEnumReference(validation.keyValidationEnumReference)!!
 				res.keys.forEach {
 					require(it in enumDefinition.entries) {
-						"$path: invalid key value, expected entry of enum ${enumDefinition.name}"
+						"$path: invalid key value, expected entry of enum ${validation.keyValidationEnumReference}"
 					}
 				}
 			}

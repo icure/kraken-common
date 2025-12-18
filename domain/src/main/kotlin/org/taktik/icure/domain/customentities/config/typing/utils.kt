@@ -35,3 +35,22 @@ internal inline fun validatingAndIgnoringNullForRead(
 	} else {
 		block()
 	}
+
+private val UPPERCASE_LETTERS = 'A'..'Z'
+private val LOWERCASE_LETTERS = 'a'..'z'
+private val DIGITS = '0'..'9'
+private val IDENTIFIER_ALLOWED_LENGTH = 1..32 // Chosen arbitrarily, might be increased later if needed
+fun validateIdentifier(path: ResolutionPath, identifier: String) {
+	require(identifier.length in IDENTIFIER_ALLOWED_LENGTH) {
+		"${path}: invalid identifier `${
+			identifier.take(IDENTIFIER_ALLOWED_LENGTH.last)
+		}`${
+			if (identifier.length > IDENTIFIER_ALLOWED_LENGTH.last) "..." else ""
+		} length must be in ${IDENTIFIER_ALLOWED_LENGTH.first}-${IDENTIFIER_ALLOWED_LENGTH.last}"
+	}
+	require(identifier.all { c ->
+		c in UPPERCASE_LETTERS || c in LOWERCASE_LETTERS || c in DIGITS || c == '_'
+	}) {
+		"${path}: invalid identifier `$identifier`, can only contain alphanumeric characters or underscores"
+	}
+}
