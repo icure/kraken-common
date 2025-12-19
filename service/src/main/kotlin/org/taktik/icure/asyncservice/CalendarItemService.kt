@@ -19,6 +19,7 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem> {
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem
+	fun createCalendarItems(calendarItems: List<CalendarItem>): Flow<CalendarItem>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -91,7 +92,7 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	fun findCalendarItemIdsByDataOwnerPatientStartTime(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 
-	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem?
+	suspend fun modifyCalendarItem(calendarItem: CalendarItem): CalendarItem
 
 	/**
 	 * Retrieves all [CalendarItem]s in a group in a format for pagination.
@@ -143,7 +144,8 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 * @param entities a [Collection] of updated [CalendarItem].
 	 * @return a [Flow] containing all the [CalendarItem]s successfully updated.
 	 */
-	fun modifyEntities(entities: Collection<CalendarItem>): Flow<CalendarItem>
+	fun modifyCalendarItems(entities: Collection<CalendarItem>): Flow<CalendarItem>
+
 	fun findCalendarItemsByHCPartyAndSecretPatientKeys(
 		hcPartyId: String,
 		secretPatientKeys: List<String>,

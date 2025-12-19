@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -91,13 +90,21 @@ class CalendarItemController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Creates a calendarItem")
+	@Operation(summary = "Creates a CalendarItem")
 	@PostMapping
 	fun createCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
 		calendarItemV2Mapper.map(calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto)))
 	}
+
+	@Operation(summary = "Creates a batch of CalendarItems")
+	@PostMapping("/batch")
+	fun createCalendarItems(
+		@RequestBody calendarItemDtos: List<CalendarItemDto>,
+	): Flux<CalendarItemDto> = calendarItemService.createCalendarItems(
+		calendarItemDtos.map(calendarItemV2Mapper::map)
+	).map(calendarItemV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple CalendarItems")
 	@PostMapping("/delete/batch")
@@ -158,17 +165,22 @@ class CalendarItemController(
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies a calendarItem")
+	@Operation(summary = "Modifies a CalendarItem")
 	@PutMapping
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
-		val calendarItem =
-			calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-				?: throw DocumentNotFoundException("CalendarItem modification failed")
-
+		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
 		calendarItemV2Mapper.map(calendarItem)
 	}
+
+	@Operation(summary = "Modifies a batch of CalendarItems")
+	@PutMapping("/batch")
+	fun modifyCalendarItems(
+		@RequestBody calendarItemDtos: List<CalendarItemDto>,
+	): Flux<CalendarItemDto> = calendarItemService.modifyCalendarItems(
+		calendarItemDtos.map(calendarItemV2Mapper::map)
+	).map(calendarItemV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Get CalendarItems by Period and HcPartyId")
 	@PostMapping("/byPeriodAndHcPartyId")

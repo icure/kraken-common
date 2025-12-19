@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemDto
@@ -105,9 +104,7 @@ class CalendarItemController(
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	) = mono {
-		val calendarItem =
-			calendarItemService.modifyCalendarItem(calendarItemMapper.map(calendarItemDto))
-				?: throw DocumentNotFoundException("CalendarItem modification failed")
+		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemMapper.map(calendarItemDto))
 
 		calendarItemMapper.map(calendarItem)
 	}
@@ -246,7 +243,7 @@ class CalendarItemController(
 					)
 				} ?: ci
 			}
-		emitAll(calendarItemService.modifyEntities(calendarItems.toList()).map { calendarItemMapper.map(it) })
+		emitAll(calendarItemService.modifyCalendarItems(calendarItems.toList()).map { calendarItemMapper.map(it) })
 	}.injectReactorContext()
 
 	@Operation(summary = "Find CalendarItems by recurrenceId with pagination")
