@@ -285,15 +285,9 @@ class HealthElementController(
 	@PostMapping("/batch")
 	fun createHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
-	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.createEntities(
-			healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
-		)
-		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
-	} catch (e: Exception) {
-		logger.warn(e.message, e)
-		throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-	}
+	): Flux<HealthElementDto> = healthElementService.createEntities(
+		healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
+	).map { healthElementV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(
 		summary = "Filter health elements for the current user (HcParty)",

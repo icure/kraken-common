@@ -35,6 +35,8 @@ interface EntityPersister<E : Identifiable<String>> {
 
 	fun getEntities(identifiers: Flow<String>): Flow<E>
 	fun createEntities(entities: Flow<E>): Flow<E>
+
+	suspend fun modifyEntity(entity: E): E
 	fun modifyEntities(entities: Flow<E>): Flow<E>
 
 	/**

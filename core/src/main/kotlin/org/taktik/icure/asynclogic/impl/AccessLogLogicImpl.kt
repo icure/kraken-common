@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.PatientDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -63,6 +64,23 @@ class AccessLogLogicImpl(
 			} else {
 				fixedAccessLog.copy(user = sessionLogic.getCurrentUserId())
 			},
+		)
+	}
+
+	override fun createAccessLogs(accessLogs: List<AccessLog>): Flow<AccessLog> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			accessLogDAO.saveBulk(
+				datastoreInformation,
+				accessLogs.map {
+					val fixedAccessLog = fix(it, isCreate = true)
+					if (fixedAccessLog.date == null) {
+						fixedAccessLog.copy(user = sessionLogic.getCurrentUserId(), date = Instant.now())
+					} else {
+						fixedAccessLog.copy(user = sessionLogic.getCurrentUserId())
+					}
+				}
+			).filterSuccessfulUpdates()
 		)
 	}
 

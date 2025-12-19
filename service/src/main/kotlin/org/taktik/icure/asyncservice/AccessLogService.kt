@@ -22,6 +22,8 @@ import org.taktik.icure.pagination.PaginationElement
 interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 
+	fun createAccessLogs(accessLog: List<AccessLog>): Flow<AccessLog>
+
 	/**
 	 * Marks a batch of entities as deleted.
 	 * The data of the entities is preserved, but they won't appear in most queries.
@@ -118,7 +120,11 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @return a [Flow] of [PaginationElement]s
 	 */
 	fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginationElement>
-	suspend fun modifyAccessLog(accessLog: AccessLog): AccessLog?
+
+	suspend fun modifyAccessLog(accessLog: AccessLog): AccessLog
+
+	fun modifyAccessLogs(accessLogs: List<AccessLog>): Flow<AccessLog>
+
 	fun getGenericLogic(): AccessLogLogic
 	suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int): AggregatedAccessLogs
 
