@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.AgendaDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.config.SdkVersionConfig
@@ -44,6 +45,24 @@ open class AgendaLogicImpl(
 		}
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
+	}
+
+	override fun createAgendas(agendas: List<Agenda>) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			agendaDAO.createBulk(
+				datastoreInformation,
+				agendas.map {
+					fix(it, isCreate = true).also { fixedAgenda ->
+						if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
+							require(fixedAgenda.userRights.isNotEmpty()) {
+								"You cannot create an Agenda with empty userRights"
+							}
+						}
+					}
+				}
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	override suspend fun getAgenda(agenda: String): Agenda? {

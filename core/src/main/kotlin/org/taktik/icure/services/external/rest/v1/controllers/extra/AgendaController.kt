@@ -98,10 +98,7 @@ class AgendaController(
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	) = mono {
-		val agenda =
-			agendaService.modifyAgenda(agendaMapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
-
+		val agenda = agendaService.modifyAgenda(agendaMapper.map(agendaDto))
 		agendaMapper.map(agenda)
 	}
 }

@@ -17,6 +17,7 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface AgendaService {
 	suspend fun createAgenda(agenda: Agenda): Agenda
+	fun createAgendas(agendas: List<Agenda>): Flow<Agenda>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -67,7 +68,9 @@ interface AgendaService {
 	suspend fun undeleteAgenda(id: String, rev: String): Agenda
 	suspend fun getAgenda(agendaId: String): Agenda?
 	fun getAgendas(agendaIds: List<String>): Flow<Agenda>
-	suspend fun modifyAgenda(agenda: Agenda): Agenda?
+
+	suspend fun modifyAgenda(agenda: Agenda): Agenda
+	fun modifyAgendas(agendas: List<Agenda>): Flow<Agenda>
 
 	/**
 	 * Gets agenda where [Agenda.userId] matches the provided [userId]

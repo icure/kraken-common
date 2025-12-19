@@ -18,10 +18,12 @@ interface AgendaLogic : EntityPersister<Agenda> {
 	 * @return a [Flow] of [PaginationElement] containing the [Agenda]s.
 	 */
 	fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
+
 	suspend fun createAgenda(agenda: Agenda): Agenda
+	fun createAgendas(agendas: List<Agenda>): Flow<Agenda>
 
 	suspend fun getAgenda(agenda: String): Agenda?
-	suspend fun modifyAgenda(agenda: Agenda): Agenda?
+	suspend fun modifyAgenda(agenda: Agenda): Agenda
 	fun getAgendasByUser(userId: String): Flow<Agenda>
 	fun getReadableAgendaForUserLegacy(userId: String): Flow<Agenda>
 }

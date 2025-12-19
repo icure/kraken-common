@@ -157,9 +157,7 @@ class AccessLogController(
 	fun modifyAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	) = mono {
-		val accessLog =
-			accessLogService.modifyAccessLog(accessLogMapper.map(accessLogDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
+		val accessLog = accessLogService.modifyAccessLog(accessLogMapper.map(accessLogDto))
 		accessLogMapper.map(accessLog)
 	}
 }

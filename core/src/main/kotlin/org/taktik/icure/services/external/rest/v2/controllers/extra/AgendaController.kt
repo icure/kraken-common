@@ -81,6 +81,14 @@ class AgendaController(
 		agendaV2Mapper.map(agendaService.createAgenda(agendaV2Mapper.map(agendaDto)))
 	}
 
+	@Operation(summary = "Creates a batch of agendas")
+	@PostMapping("/batch")
+	fun createAgendas(
+		@RequestBody agendasDto: List<AgendaDto>,
+	): Flux<AgendaDto> = agendaService.createAgendas(
+		agendasDto.map(agendaV2Mapper::map)
+	).map(agendaV2Mapper::map).injectReactorContext()
+
 	@Operation(summary = "Deletes multiple Agendas")
 	@PostMapping("/delete/batch")
 	fun deleteAgendas(
@@ -163,11 +171,17 @@ class AgendaController(
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		val agenda =
-			agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
+		val agenda = agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
 		agendaV2Mapper.map(agenda)
 	}
+
+	@Operation(summary = "Modifies a batch of agendas")
+	@PutMapping("/batch")
+	fun modifyAgendas(
+		@RequestBody agendaDtos: List<AgendaDto>,
+	): Flux<AgendaDto> = agendaService.modifyAgendas(
+		agendaDtos.map(agendaV2Mapper::map)
+	).map(agendaV2Mapper::map).injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
