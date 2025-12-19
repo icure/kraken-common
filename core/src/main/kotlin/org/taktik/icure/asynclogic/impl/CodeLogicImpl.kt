@@ -10,12 +10,12 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.collect.ImmutableMap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.mapNotNull
@@ -31,8 +31,10 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -48,14 +50,13 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.io.InputStream
 import java.lang.reflect.InvocationTargetException
-import java.util.LinkedList
+import java.util.*
 import javax.xml.parsers.SAXParserFactory
-import kotlin.coroutines.coroutineContext
 
 open class CodeLogicImpl(
 	protected val codeDAO: CodeDAO,
 	filters: Filters,
-	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
 	CodeLogic {
@@ -99,9 +100,7 @@ open class CodeLogicImpl(
 
 	override suspend fun create(code: Code) = fix(code, isCreate = true) { fixedCode ->
 		if (fixedCode.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		fixedCode.code ?: error("Code field is null")
-		fixedCode.type ?: error("Type field is null")
-		fixedCode.version ?: error("Version field is null")
+		validateIdFields(code)
 
 		val datastoreInformation = getInstanceAndGroup()
 		codeDAO.create(
@@ -110,64 +109,57 @@ open class CodeLogicImpl(
 		)
 	}
 
-	protected fun validateForCreation(batch: List<Code>) = batch.fold(setOf<Code>()) { acc, code ->
-		code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-		code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-		code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
+	protected fun validateIdFields(code: Code) {
+		requireNotNull(code.code) {
+			"Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version"
+		}
+		requireNotNull(code.type) {
+			"Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version"
+		}
+		requireNotNull(code.version) {
+			"Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version"
+		}
+	}
 
-		if (acc.contains(code)) error("Batch contains duplicate elements. id: ${code.type}|${code.code}|${code.version}")
-
-		acc + code.copy(id = code.type + "|" + code.code + "|" + code.version)
+	protected fun validateForCreation(batch: List<Code>) = batch.onEach {
+		validateIdFields(it)
 	}
 
 	// Do we need fix? No annotations on code
-	override suspend fun create(batch: List<Code>) = validateForCreation(batch)
-		.also { codeList ->
-			this.getCodes(codeList.map { it.id }).firstOrNull()?.let { duplicatedCode ->
-				error("Code with id ${duplicatedCode.id} already exists")
-			}
-		}.let { codes ->
-			createEntities(codes)
-		}.toList()
+	override fun create(codes: List<Code>) = flow {
+		emitAll(
+			codeDAO.createBulk(
+				getInstanceAndGroup(),
+				codes,
+			).filterSuccessfulUpdates()
+		)
+	}
 
 	override suspend fun modify(code: Code) = fix(code, isCreate = false) { fixedCode ->
-		modifyEntities(setOf(fixedCode)).firstOrNull()
+		require(fixedCode.id == "${fixedCode.type}|${fixedCode.code}|${fixedCode.version}") {
+			"Element with id ${fixedCode.id} has an id that does not match the code, type or version value: id must be equal to type|code|version"
+		}
+		codeDAO.save(getInstanceAndGroup(), fixedCode)
 	}
 
 	// Do we need fix? No annotations on code
 	override fun modify(batch: List<Code>) = flow {
 		emitAll(
 			modifyEntities(
-				validateForModification(batch)
-					.also { codeList ->
-						if (getCodes(codeList.map { it.id }).count() !=
-							batch.size
-						) {
-							error("You are trying to modify a code that does not exists")
-						}
-					}.toSet(),
+				validateForModification(batch).toSet(),
 			),
 		)
 	}
 
-	protected fun validateForModification(batch: List<Code>) = batch
-		.fold(mapOf<String, Code>()) { acc, code ->
-			code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.rev ?: error("Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity")
-
-			if (code.id !=
-				"${code.type}|${code.code}|${code.version}"
-			) {
-				error("Element with id ${code.id} has an id that does not match the code, type or version value: id must be equal to type|code|version")
-			}
-			if (acc.contains(code.id)) error("The batch contains a duplicate")
-
-			acc + (code.id to code)
-		}.map {
-			it.value
+	protected fun validateForModification(batch: List<Code>) = batch.onEach { code ->
+		validateIdFields(code)
+		requireNotNull(code.rev) {
+			"Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity"
 		}
+		require(code.id == "${code.type}|${code.code}|${code.version}") {
+			"Element with id ${code.id} has an id that does not match the code, type or version value: id must be equal to type|code|version"
+		}
+	}
 
 	override fun listCodeTypesBy(
 		region: String?,
@@ -348,7 +340,7 @@ open class CodeLogicImpl(
 		val check = getCodes(listOf(Code.from("ICURE-SYSTEM", md5, version = "1").id)).toList()
 
 		if (check.isEmpty()) {
-			val coroutineScope = CoroutineScope(coroutineContext)
+			val coroutineScope = CoroutineScope(currentCoroutineContext())
 
 			val factory = SAXParserFactory.newInstance()
 			val saxParser = factory.newSAXParser()

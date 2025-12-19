@@ -199,14 +199,9 @@ class CodeController(
 	@PostMapping("/batch")
 	fun createCodes(
 		@RequestBody codeBatch: List<CodeDto>,
-	): Mono<List<CodeDto>> = mono {
-		val codes = codeBatch.map { codeV2Mapper.map(it) }
-		try {
-			codeService.create(codes)?.map { codeV2Mapper.map(it) }
-		} catch (e: IllegalStateException) {
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
-	}
+	): Flux<CodeDto> = codeService.create(
+		codeBatch.map(codeV2Mapper::map)
+	).map(codeV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Checks if a code is valid")
 	@GetMapping("/isValid")
@@ -262,7 +257,7 @@ class CodeController(
 		}
 
 	@Operation(
-		summary = "Get a code",
+		summary = "Get a Code",
 		description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.",
 	)
 	@GetMapping("/{codeId}")

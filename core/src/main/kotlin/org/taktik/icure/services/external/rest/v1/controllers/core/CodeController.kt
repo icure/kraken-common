@@ -193,7 +193,7 @@ class CodeController(
 	) = mono {
 		val codes = codeBatch.map { codeMapper.map(it) }
 		try {
-			codeService.create(codes)?.map { codeMapper.map(it) }
+			codeService.create(codes).map { codeMapper.map(it) }
 		} catch (e: IllegalStateException) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 		}

@@ -24,11 +24,9 @@ interface CodeService : EntityWithConflictResolutionService {
 	fun getCodes(ids: List<String>): Flow<Code>
 	suspend fun create(code: Code): Code
 
-	suspend fun create(batch: List<Code>): List<Code>?
+	fun create(codes: List<Code>): Flow<Code>
 
-	@Throws(Exception::class)
 	suspend fun modify(code: Code): Code?
-
 	fun modify(batch: List<Code>): Flow<Code>
 
 	/**

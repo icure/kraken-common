@@ -21,12 +21,11 @@ interface CodeLogic : EntityPersister<Code> {
 
 	suspend fun get(type: String, code: String, version: String): Code?
 	fun getCodes(ids: List<String>): Flow<Code>
+
 	suspend fun create(code: Code): Code
+	fun create(codes: List<Code>): Flow<Code>
 
-	suspend fun create(batch: List<Code>): List<Code>?
-
-	@Throws(Exception::class)
-	suspend fun modify(code: Code): Code?
+	suspend fun modify(code: Code): Code
 
 	fun modify(batch: List<Code>): Flow<Code>
 
