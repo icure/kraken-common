@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -87,7 +86,7 @@ class CalendarItemTypeController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Creates a calendarItemType")
+	@Operation(summary = "Creates a CalendarItemType")
 	@PostMapping
 	fun createCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
@@ -96,6 +95,14 @@ class CalendarItemTypeController(
 			calendarItemTypeService.createCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))
 		)
 	}
+
+	@Operation(summary = "Creates a batch of CalendarItemTypes")
+	@PostMapping("/batch")
+	fun createCalendarItemTypes(
+		@RequestBody calendarItemTypeDtos: List<CalendarItemTypeDto>
+	): Flux<CalendarItemTypeDto> = calendarItemTypeService.createCalendarItemTypes(
+		calendarItemTypeDtos.map(calendarItemTypeV2Mapper::map)
+	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes a batch of calendarItemTypes")
 	@PostMapping("/delete/batch")
@@ -119,7 +126,7 @@ class CalendarItemTypeController(
 		calendarItemTypeService.purgeCalendarItemType(calendarItemTypeId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Gets a calendarItemType")
+	@Operation(summary = "Gets a CalendarItemType")
 	@GetMapping("/{calendarItemTypeId}")
 	fun getCalendarItemType(
 		@PathVariable calendarItemTypeId: String,
@@ -128,15 +135,21 @@ class CalendarItemTypeController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItemType fetching failed")
 	}
 
-	@Operation(summary = "Modifies an calendarItemType")
+	@Operation(summary = "Modifies a CalendarItemType")
 	@PutMapping
 	fun modifyCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
 	): Mono<CalendarItemTypeDto> = mono {
 		calendarItemTypeService
-			.modifyCalendarItemType(
-				calendarItemTypeV2Mapper.map(calendarItemTypeDto),
-			)?.let { calendarItemTypeV2Mapper.map(it) }
-			?: throw DocumentNotFoundException("CalendarItemType modification failed")
+			.modifyCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))
+			.let { calendarItemTypeV2Mapper.map(it) }
 	}
+
+	@Operation(summary = "Modifies a batch of CalendarItemTypes")
+	@PutMapping("/batch")
+	fun modifyCalendarItemTypes(
+		@RequestBody calendarItemTypeDtos: List<CalendarItemTypeDto>,
+	): Flux<CalendarItemTypeDto> = calendarItemTypeService.modifyCalendarItemTypes(
+		calendarItemTypeDtos.map(calendarItemTypeV2Mapper::map)
+	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
 }

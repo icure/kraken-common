@@ -22,7 +22,7 @@ interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
 	 * @return a [Flow] of [PaginationElement]s containing the [CalendarItemType]s.
 	 */
 	fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
-	suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType): CalendarItemType
 
 	/**
 	 * Retrieves all the [CalendarItemType]s for a given [agendaId].

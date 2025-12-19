@@ -14,6 +14,7 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeService {
 	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
+	fun createCalendarItemTypes(calendarItemTypes: List<CalendarItemType>): Flow<CalendarItemType>
 
 	/**
 	 * Deletes [CalendarItemType]s in batch.
@@ -53,7 +54,9 @@ interface CalendarItemTypeService {
 	 * @return a [Flow] of [CalendarItemType]s.
 	 */
 	fun getAllCalendarItemTypes(): Flow<CalendarItemType>
-	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+
+	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
+	fun modifyCalendarItemTypes(calendarItemTypes: List<CalendarItemType>): Flow<CalendarItemType>
 
 	/**
 	 * Retrieves all the [CalendarItemType]s for a given [agendaId].

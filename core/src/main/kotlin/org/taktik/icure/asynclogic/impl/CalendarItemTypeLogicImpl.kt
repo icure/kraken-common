@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
@@ -22,9 +20,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class CalendarItemTypeLogicImpl(
+open class CalendarItemTypeLogicImpl(
 	private val calendarItemTypeDAO: CalendarItemTypeDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,

@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemTypeService
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.couchdb.DocIdentifierDto
@@ -98,7 +97,6 @@ class CalendarItemTypeController(
 	) = mono {
 		calendarItemTypeService
 			.modifyCalendarItemType(calendarItemTypeMapper.map(calendarItemTypeDto))
-			?.let { calendarItemTypeMapper.map(it) }
-			?: throw DocumentNotFoundException("CalendarItemType modification failed")
+			.let { calendarItemTypeMapper.map(it) }
 	}
 }
