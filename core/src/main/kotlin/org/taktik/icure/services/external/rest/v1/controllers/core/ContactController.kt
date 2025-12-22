@@ -104,31 +104,12 @@ class ContactController(
 		val contact =
 			try {
 				// handling services' indexes
-				contactService.createContact(contactMapper.map(handleServiceIndexes(c)))
+				contactService.createContact(contactMapper.map(c))
 			} catch (e: MissingRequirementsException) {
 				log.warn(e) { e.message }
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 			}
 		contactMapper.map(contact)
-	}
-
-	protected fun handleServiceIndexes(c: ContactDto) = if (c.services.any { it.index == null }) {
-		val maxIndex = c.services.maxByOrNull { it.index ?: 0 }?.index ?: 0
-		c.copy(
-			services =
-			c.services
-				.mapIndexed { idx, it ->
-					if (it.index == null) {
-						it.copy(
-							index = idx + maxIndex,
-						)
-					} else {
-						it
-					}
-				}.toSet(),
-		)
-	} else {
-		c
 	}
 
 	@Operation(summary = "Get a contact", description = "Gets a contact based on its id")
@@ -406,11 +387,9 @@ class ContactController(
 	fun modifyContact(
 		@RequestBody contactDto: ContactDto,
 	) = mono {
-		handleServiceIndexes(contactDto)
-
-		contactService.modifyContact(contactMapper.map(contactDto))?.let {
-			contactMapper.map(it)
-		} ?: throw DocumentNotFoundException("Contact modification failed.")
+		contactMapper.map(
+			contactService.modifyContact(contactMapper.map(contactDto))
+		)
 	}
 
 	@Operation(summary = "Modify a batch of contacts", description = "Returns the modified contacts.")
@@ -418,7 +397,9 @@ class ContactController(
 	fun modifyContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> = flow {
-		val contacts = contactService.modifyContacts(contactDtos.map { c -> handleServiceIndexes(c) }.map { f -> contactMapper.map(f) })
+		val contacts = contactService.modifyContacts(contactDtos.map { f ->
+			contactMapper.map(f)
+		})
 		emitAll(contacts.map { f -> contactMapper.map(f) })
 	}.injectReactorContext()
 
@@ -427,7 +408,7 @@ class ContactController(
 	fun createContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> = flow {
-		val contacts = contactService.createContacts(contactDtos.map { c -> handleServiceIndexes(c) }.map { f -> contactMapper.map(f) })
+		val contacts = contactService.createContacts(contactDtos.map { f -> contactMapper.map(f) })
 		emitAll(contacts.map { f -> contactMapper.map(f) })
 	}.injectReactorContext()
 

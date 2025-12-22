@@ -49,8 +49,8 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
 ) : GenericLogicImpl<E, D>(fixer, datastoreInstanceProvider, filters),
 	EntityWithSecureDelegationsLogic<E>
 	where
-	      E : HasEncryptionMetadata, E : Versionable<String>,
-	      D : GenericDAO<E> {
+		E : HasEncryptionMetadata, E : Versionable<String>,
+		D : GenericDAO<E> {
 	/**
 	 * Creates a copy of the entity with updated security metadata.
 	 */

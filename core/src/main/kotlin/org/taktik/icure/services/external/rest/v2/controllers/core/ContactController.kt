@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -40,7 +39,6 @@ import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -99,9 +97,6 @@ class ContactController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
 ) {
-	companion object {
-		private val logger = LoggerFactory.getLogger(this::class.java)
-	}
 
 	@Operation(summary = "Get an empty content")
 	@GetMapping("/service/content/empty")
@@ -112,34 +107,8 @@ class ContactController(
 	fun createContact(
 		@RequestBody c: ContactDto,
 	): Mono<ContactDto> = mono {
-		val contact =
-			try {
-				// handling services' indexes
-				contactService.createContact(contactV2Mapper.map(handleServiceIndexes(c)))
-			} catch (e: MissingRequirementsException) {
-				logger.warn(e.message, e)
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			}
+		val contact = contactService.createContact(contactV2Mapper.map(c))
 		contactV2Mapper.map(contact)
-	}
-
-	protected fun handleServiceIndexes(c: ContactDto) = if (c.services.any { it.index == null }) {
-		val maxIndex = c.services.maxByOrNull { it.index ?: 0 }?.index ?: 0
-		c.copy(
-			services =
-			c.services
-				.mapIndexed { idx, it ->
-					if (it.index == null) {
-						it.copy(
-							index = idx + maxIndex,
-						)
-					} else {
-						it
-					}
-				}.toSet(),
-		)
-	} else {
-		c
 	}
 
 	@Operation(summary = "Get a contact")
@@ -441,11 +410,9 @@ class ContactController(
 	fun modifyContact(
 		@RequestBody contactDto: ContactDto,
 	): Mono<ContactDto> = mono {
-		handleServiceIndexes(contactDto)
-
-		contactService.modifyContact(contactV2Mapper.map(contactDto))?.let {
+		contactService.modifyContact(contactV2Mapper.map(contactDto)).let {
 			contactV2Mapper.map(it)
-		} ?: throw DocumentNotFoundException("Contact modification failed.")
+		}
 	}
 
 	@Operation(summary = "Modify a batch of contacts", description = "Returns the modified contacts.")
@@ -453,7 +420,7 @@ class ContactController(
 	fun modifyContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> {
-		val contacts = contactService.modifyContacts(contactDtos.map { c -> handleServiceIndexes(c) }.map { f -> contactV2Mapper.map(f) })
+		val contacts = contactService.modifyContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
 		return contacts.map { f -> contactV2Mapper.map(f) }.injectReactorContext()
 	}
 
@@ -462,7 +429,7 @@ class ContactController(
 	fun createContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> {
-		val contacts = contactService.createContacts(contactDtos.map { c -> handleServiceIndexes(c) }.map { f -> contactV2Mapper.map(f) })
+		val contacts = contactService.createContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
 		return contacts.map { f -> contactV2Mapper.map(f) }.injectReactorContext()
 	}
 
@@ -495,7 +462,7 @@ class ContactController(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
-	@Operation(summary = "Get a service by id")
+	@Operation(summary = "Get a Service by id")
 	@GetMapping("/service/{serviceId}")
 	fun getService(
 		@Parameter(description = "The id of the service to retrieve") @PathVariable serviceId: String,
@@ -544,7 +511,7 @@ class ContactController(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
-	@Operation(summary = "List services with provided ids ", description = "Returns a list of services")
+	@Operation(summary = "List Services with provided ids", description = "Returns a list of services")
 	@PostMapping("/service")
 	fun getServices(
 		@RequestBody ids: ListOfIdsDto,

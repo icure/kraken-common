@@ -115,7 +115,7 @@ interface ContactService :
 	 */
 	suspend fun undeleteContact(id: String, rev: String): Contact
 
-	suspend fun modifyContact(contact: Contact): Contact?
+	suspend fun modifyContact(contact: Contact): Contact
 	suspend fun getService(serviceId: String): Service?
 	fun getServices(selectedServiceIds: Collection<String>): Flow<Service>
 	fun getServicesLinkedTo(ids: List<String>, linkType: String?): Flow<Service>

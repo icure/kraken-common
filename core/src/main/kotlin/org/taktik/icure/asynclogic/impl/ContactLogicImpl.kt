@@ -35,6 +35,7 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
@@ -139,16 +140,34 @@ open class ContactLogicImpl(
 		}
 	}
 
-	override suspend fun createContact(contact: Contact) = fix(contact, isCreate = true) { fixedContact ->
+	override suspend fun createContact(contact: Contact) = fix(contact.handleServiceIndexes(), isCreate = true) { fixedContact ->
 		if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntity(contact)
 	}
 
-	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = createEntities(contacts.map { fix(it, isCreate = true) })
+	override fun createContacts(contacts: Flow<Contact>): Flow<Contact> = 
+		createEntities(contacts.map { fix(it.handleServiceIndexes(), isCreate = true) })
+
+	override suspend fun modifyContact(contact: Contact): Contact =
+		modifyEntity(contact.handleServiceIndexes())
+
+	override fun modifyContacts(contacts: List<Contact>): Flow<Contact> =
+		modifyEntities(contacts.map { it.handleServiceIndexes() })
+
+	override fun getServices(selectedServiceIds: Collection<String>): Flow<Service> = flow {
+		emitAll(
+			doGetServices(
+				selectedServiceIds.toList(),
+				getInstanceAndGroup()
+			)
+		)
+	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
-	override fun getServices(selectedServiceIds: Collection<String>): Flow<org.taktik.icure.entities.embed.Service> = flow {
-		val datastoreInformation = getInstanceAndGroup()
+	protected fun doGetServices(
+		selectedServiceIds: List<String>,
+		datastoreInformation: IDatastoreInformation
+	): Flow<Service> = flow {
 		val orderedIds = selectedServiceIds.toCollection(LinkedHashSet())
 		val contactIds = contactDAO.listIdsByServices(datastoreInformation, orderedIds)
 
@@ -158,7 +177,7 @@ open class ContactLogicImpl(
 					20,
 					100,
 				) { p, n -> p.serviceId == null || n.serviceId == null || p.serviceId != n.serviceId }
-				.fold(mutableMapOf<String, org.taktik.icure.entities.embed.Service>()) { toEmit, chunkedCids ->
+				.fold(mutableMapOf<String, Service>()) { toEmit, chunkedCids ->
 					val sortedCids =
 						chunkedCids.sortedWith(compareBy({ it.serviceId }, { it.modified }, { it.contactId }))
 					val filteredCidSids =
@@ -189,7 +208,7 @@ open class ContactLogicImpl(
 	override fun getServicesLinkedTo(
 		ids: List<String>,
 		linkType: String?,
-	): Flow<org.taktik.icure.entities.embed.Service> = flow {
+	): Flow<Service> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			getServices(
@@ -198,7 +217,7 @@ open class ContactLogicImpl(
 		)
 	}
 
-	override fun listServicesByAssociationId(associationId: String): Flow<org.taktik.icure.entities.embed.Service> = flow {
+	override fun listServicesByAssociationId(associationId: String): Flow<Service> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(contactDAO.listServicesByAssociationId(datastoreInformation, associationId))
 	}
@@ -310,7 +329,7 @@ open class ContactLogicImpl(
 
 	override fun filterServices(
 		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<org.taktik.icure.entities.embed.Service>,
+		filter: FilterChain<Service>,
 	) = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(LinkedHashSet())
@@ -437,5 +456,5 @@ private fun <T> Flow<T>.bufferedChunksAtTransition(
 			}
 		}
 	}
-	if (buffer.size > 0) send(buffer.toList())
+	if (buffer.isNotEmpty()) send(buffer.toList())
 }.buffer(1)

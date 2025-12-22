@@ -157,6 +157,21 @@ data class Contact(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+
+	fun handleServiceIndexes(): Contact = if (services.any { it.index == null }) {
+		val maxIndex = services.maxByOrNull { it.index ?: 0 }?.index ?: 0
+		copy(
+			services = services.mapIndexed { idx, it ->
+				if (it.index == null) {
+					it.copy(index = idx + maxIndex)
+				} else {
+					it
+				}
+			}.toSet(),
+		)
+	} else {
+		this
+	}
 }
 
 /**
