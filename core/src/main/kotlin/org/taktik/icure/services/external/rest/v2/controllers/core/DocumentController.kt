@@ -63,6 +63,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.addAttachmentResponseHeader
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -84,7 +85,7 @@ class DocumentController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
-	@Operation(summary = "Create a document", description = "Creates a document and returns an instance of created document afterward")
+	@Operation(summary = "Create a Document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
 	fun createDocument(
 		@RequestBody documentDto: DocumentDto,
@@ -93,6 +94,14 @@ class DocumentController(
 		val document = documentV2Mapper.map(documentDto)
 		documentV2Mapper.map(documentService.createDocument(document, strict ?: true))
 	}
+
+	@Operation(summary = "Create a batch of Documents")
+	@PostMapping("/batch")
+	fun createDocument(
+		@RequestBody documentDtos: List<DocumentDto>,
+	): Flux<DocumentDto> = documentService.createDocuments(
+		documentDtos.map(documentV2Mapper::map),
+	).map(documentV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Documents")
 	@PostMapping("/delete/batch")
@@ -157,12 +166,8 @@ class DocumentController(
 		response: ServerHttpResponse,
 	): Mono<Void> = response.writeWith(
 		flow {
-			val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-			val attachment = documentService.getMainAttachment(documentId)
-
-			response.headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
-			response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
-
+			val (document, attachment) = documentService.getMainAttachment(documentId)
+			response.addAttachmentResponseHeader(document, fileName)
 			emitAll(attachment)
 		}.injectReactorContext(),
 	)
@@ -269,9 +274,8 @@ class DocumentController(
 	fun modifyDocument(
 		@RequestBody documentDto: DocumentDto,
 	): Mono<DocumentDto> = mono {
-		val prevDoc = documentService.getDocument(documentDto.id) ?: throw NotFoundRequestException("No document with id ${documentDto.id}")
 		val newDocument = documentV2Mapper.map(documentDto)
-		documentService.modifyDocument(newDocument, prevDoc, true).let { documentV2Mapper.map(it) }
+		documentService.modifyDocument(newDocument, true).let { documentV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Updates a batch of documents", description = "Returns the modified documents.")

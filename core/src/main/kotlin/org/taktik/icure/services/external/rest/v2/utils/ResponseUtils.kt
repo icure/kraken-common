@@ -4,6 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.http.server.reactive.ServerHttpResponse
+import org.taktik.icure.entities.Document
 import reactor.core.publisher.Mono
 
 /**
@@ -19,4 +21,9 @@ fun <T: Any> monoWrappingResponseToJson(
 		.ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(block())
+}
+
+fun ServerHttpResponse.addAttachmentResponseHeader(document: Document, fileName: String?) {
+	headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
+	headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
 }

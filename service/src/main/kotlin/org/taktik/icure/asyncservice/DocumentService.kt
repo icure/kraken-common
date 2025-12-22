@@ -37,8 +37,9 @@ interface DocumentService :
 		document: Document,
 		strict: Boolean = false,
 	): Document
+	fun createDocuments(documents: List<Document>): Flow<Document>
 
-	suspend fun getMainAttachment(documentId: String): Flow<DataBuffer>
+	suspend fun getMainAttachment(documentId: String): Pair<Document, Flow<DataBuffer>>
 
 	suspend fun getDocument(documentId: String): Document?
 
@@ -55,11 +56,10 @@ interface DocumentService :
 	 * It is never allowed to modify deleted attachments.
 	 *
 	 * @param updatedDocument the new version of the document
-	 * @param currentDocument the current document if already available, else null
 	 * @param strict specifies whether to behave in a strict or lenient way for the main attachment.
 	 * @return the updated document.
 	 */
-	suspend fun modifyDocument(updatedDocument: Document, currentDocument: Document, strict: Boolean = false): Document
+	suspend fun modifyDocument(updatedDocument: Document, strict: Boolean = false): Document
 
 	/**
 	 * Create or modify multiple documents at once.

@@ -363,7 +363,7 @@ class DocumentController(
 			if (prevDoc == null) {
 				documentService.createDocument(newDocument.copy(rev = null), false)
 			} else if (prevDoc.attachmentId != newDocument.attachmentId) {
-				documentService.modifyDocument(newDocument, prevDoc, false).let {
+				documentService.modifyDocument(newDocument, false).let {
 					documentService.updateAttachments(
 						it.id,
 						it.rev,
@@ -371,7 +371,7 @@ class DocumentController(
 					)
 				}
 			} else {
-				documentService.modifyDocument(newDocument, prevDoc, false)
+				documentService.modifyDocument(newDocument, false)
 			}
 			)?.let {
 			documentMapper.map(it)
