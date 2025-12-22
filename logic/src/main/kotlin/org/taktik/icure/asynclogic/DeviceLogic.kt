@@ -9,7 +9,7 @@ interface DeviceLogic : EntityPersister<Device> {
 	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
 
-	suspend fun modifyDevice(device: Device): Device?
+	suspend fun modifyDevice(device: Device): Device
 	fun modifyDevices(devices: List<Device>): Flow<Device>
 
 	suspend fun getDevice(deviceId: String): Device?

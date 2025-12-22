@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.take
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -43,8 +42,8 @@ open class DeviceLogicImpl(
 		}
 	}
 
-	override suspend fun modifyDevice(device: Device): Device? = fix(device, isCreate = false) {
-		modifyEntities(setOf(it)).singleOrNull()
+	override suspend fun modifyDevice(device: Device) = fix(device, isCreate = false) {
+		modifyEntity(it)
 	}
 
 	override fun modifyDevices(devices: List<Device>): Flow<Device> = flow {

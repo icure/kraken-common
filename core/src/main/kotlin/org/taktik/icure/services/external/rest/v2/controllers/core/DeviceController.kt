@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
@@ -61,9 +59,6 @@ class DeviceController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
 ) {
-	companion object {
-		private val log = LoggerFactory.getLogger(DeviceController::class.java)
-	}
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
 	@GetMapping("/{deviceId}")
@@ -102,12 +97,7 @@ class DeviceController(
 	fun updateDevice(
 		@RequestBody deviceDto: DeviceDto,
 	): Mono<DeviceDto> = mono {
-		deviceService.modifyDevice(deviceV2Mapper.map(deviceDto))?.let(deviceV2Mapper::map)
-			?: throw DocumentNotFoundException(
-				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		deviceService.modifyDevice(deviceV2Mapper.map(deviceDto)).let(deviceV2Mapper::map)
 	}
 
 	@Operation(summary = "Create devices in bulk", description = "Returns the id and _rev of created devices")

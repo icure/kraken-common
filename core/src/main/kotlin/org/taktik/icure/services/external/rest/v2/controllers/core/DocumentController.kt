@@ -155,7 +155,7 @@ class DocumentController(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) fileName: String?,
 		response: ServerHttpResponse,
-	) = response.writeWith(
+	): Mono<Void> = response.writeWith(
 		flow {
 			val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
 			val attachment = documentService.getMainAttachment(documentId)
@@ -398,7 +398,7 @@ class DocumentController(
 		@RequestParam(required = false)
 		fileName: String?,
 		response: ServerHttpResponse,
-	) = response.writeWith(
+	): Mono<Void> = response.writeWith(
 		flow {
 			val document =
 				documentService.getDocument(documentId)?.also {
