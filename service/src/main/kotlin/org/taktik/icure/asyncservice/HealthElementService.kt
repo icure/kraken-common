@@ -112,7 +112,7 @@ interface HealthElementService :
 	 */
 	suspend fun undeleteHealthElement(id: String, rev: String): HealthElement
 
-	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement?
+	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
 

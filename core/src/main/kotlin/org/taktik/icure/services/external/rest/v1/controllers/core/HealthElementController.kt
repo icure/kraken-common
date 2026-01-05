@@ -223,9 +223,7 @@ class HealthElementController(
 	fun modifyHealthElement(
 		@RequestBody healthElementDto: HealthElementDto,
 	) = mono {
-		val modifiedHealthElement =
-			healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
+		val modifiedHealthElement = healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
 		healthElementMapper.map(modifiedHealthElement)
 	}
 
