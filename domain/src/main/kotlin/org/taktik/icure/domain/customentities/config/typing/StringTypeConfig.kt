@@ -12,7 +12,18 @@ class StringTypeConfig(
 ) : GenericTypeConfig {
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
+		/**
+		 * Minimum length of the string (inclusive).
+		 * The length is the number of 16-bit Unicode characters needed to represent the string.
+		 * When using some special characters (like emojis), this might not correspond to the number of user-perceived
+		 * characters.
+		 * Most common characters (like latin letters) are represented as a single 16-bit Unicode character.
+		 */
 		val minLength: Int? = null,
+		/**
+		 * Maximum length of the string (inclusive).
+		 * Refer to [minLength] documentation for details about how length is computed.
+		 */
 		val maxLength: Int? = null,
 	)
 
