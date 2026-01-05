@@ -6,12 +6,12 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.HealthcarePartyLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
@@ -58,31 +58,46 @@ open class HealthcarePartyLogicImpl(
 		return healthcarePartyDAO.getAesExchangeKeysForDelegate(datastoreInformation, healthcarePartyId)
 	}
 
-	override suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = false) { fixedHealthcareParty ->
-		if (fixedHealthcareParty.nihii == null &&
-			fixedHealthcareParty.ssin == null &&
-			fixedHealthcareParty.name == null &&
-			fixedHealthcareParty.lastName == null
+	protected fun validateHealthcareParty(healthcareParty: HealthcareParty) {
+		if (healthcareParty.nihii == null &&
+			healthcareParty.ssin == null &&
+			healthcareParty.name == null &&
+			healthcareParty.lastName == null
 		) {
-			throw MissingRequirementsException("modifyHealthcareParty: one of Name or Last name, Nihii or  Ssin are required.")
+			throw MissingRequirementsException("One of Name or Last name, Nihii, and Public key are required.")
 		}
-		modifyEntities(setOf(fixedHealthcareParty)).firstOrNull()
+	}
+
+	protected fun validateHealthcareParties(healthcareParties: List<HealthcareParty>): List<HealthcareParty> =
+		healthcareParties.onEach { validateHealthcareParty(it) }
+
+	override suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = false) { fixedHealthcareParty ->
+		validateHealthcareParty(fixedHealthcareParty)
+		modifyEntity(fixedHealthcareParty)
+	}
+
+	override fun modifyHealthcareParties(healthcareParties: List<HealthcareParty>) = flow {
+		emitAll(
+			healthcarePartyDAO.saveBulk(
+				datastoreInformation = getInstanceAndGroup(),
+				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = false) }),
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = true) { fixedHealthcareParty ->
-		if (fixedHealthcareParty.nihii == null &&
-			fixedHealthcareParty.ssin == null &&
-			fixedHealthcareParty.name == null &&
-			fixedHealthcareParty.lastName == null
-		) {
-			throw MissingRequirementsException("createHealthcareParty: one of Name or Last name, Nihii, and Public key are required.")
-		}
-		if (fixedHealthcareParty.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		try {
-			createEntity(fixedHealthcareParty)
-		} catch (e: Exception) {
-			throw IllegalArgumentException("Invalid healthcare party", e)
-		}
+		validateHealthcareParty(fixedHealthcareParty)
+		if (healthcareParty.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		createEntity(fixedHealthcareParty)
+	}
+
+	override fun createHealthcareParties(healthcareParties: List<HealthcareParty>) = flow {
+		emitAll(
+			healthcarePartyDAO.saveBulk(
+				datastoreInformation = getInstanceAndGroup(),
+				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = true) }),
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	override fun findHealthcarePartiesBy(

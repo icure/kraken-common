@@ -5,7 +5,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
@@ -23,9 +22,11 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty> {
 
 	suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
 
-	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
+	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
+	fun modifyHealthcareParties(healthcareParties: List<HealthcareParty>): Flow<HealthcareParty>
 
 	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
+	fun createHealthcareParties(healthcareParties: List<HealthcareParty>): Flow<HealthcareParty>
 
 	/**
 	 * Retrieves all the healthcare parties in a group, sorted by [HealthcareParty.lastName], in a format for pagination.

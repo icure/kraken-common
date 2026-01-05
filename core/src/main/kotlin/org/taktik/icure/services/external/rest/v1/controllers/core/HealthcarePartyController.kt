@@ -285,9 +285,9 @@ class HealthcarePartyController(
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
 	) = mono {
-		healthcarePartyService.modifyHealthcareParty(healthcarePartyMapper.map(healthcarePartyDto))?.let {
+		healthcarePartyService.modifyHealthcareParty(healthcarePartyMapper.map(healthcarePartyDto)).let {
 			healthcarePartyMapper.map(it)
-		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
+		}
 	}
 
 	@Operation(

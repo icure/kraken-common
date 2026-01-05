@@ -34,7 +34,6 @@ import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.DocumentNotFoundException
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -189,22 +188,28 @@ class HealthcarePartyController(
 	}
 
 	@Operation(
-		summary = "Create a healthcare party",
+		summary = "Create a HealthcareParty",
 		description = "One of Name or Last name+First name, Nihii, and Public key are required.",
 	)
 	@PostMapping
 	fun createHealthcareParty(
 		@RequestBody h: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		val hcParty =
-			try {
-				healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
-			} catch (e: MissingRequirementsException) {
-				logger.warn(e.message, e)
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			}
+		val hcParty = healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
 		healthcarePartyV2Mapper.map(hcParty)
 	}
+
+	@Operation(
+		summary = "Create a batch of HealthcareParty",
+		description = "One of Name or Last name+First name, Nihii, and Public key are required for each HealthcareParty.",
+	)
+	@PostMapping("/batch")
+	fun createHealthcareParties(
+		@RequestBody healthcareParties: List<HealthcarePartyDto>,
+	): Flux<HealthcarePartyDto> =
+		healthcarePartyService.createHealthcareParties(
+			healthcareParties.map(healthcarePartyV2Mapper::map)
+		).map(healthcarePartyV2Mapper::map).injectReactorContext()
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
@@ -336,15 +341,24 @@ class HealthcarePartyController(
 		healthcarePartyService.purgeHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")
+	@Operation(summary = "Modify a HealthcareParty.", description = "No particular return value. It's just a message.")
 	@PutMapping
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto))?.let {
+		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto)).let {
 			healthcarePartyV2Mapper.map(it)
-		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
+		}
 	}
+
+	@Operation(summary = "Modify a batch of HealthcareParty.")
+	@PostMapping("/batch")
+	fun modifyHealthcareParties(
+		@RequestBody healthcareParties: List<HealthcarePartyDto>,
+	): Flux<HealthcarePartyDto> =
+		healthcarePartyService.modifyHealthcareParties(
+			healthcareParties.map(healthcarePartyV2Mapper::map)
+		).map(healthcarePartyV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])

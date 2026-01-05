@@ -33,9 +33,6 @@ import org.taktik.icure.validation.NotNull
 import java.io.Serializable
 import java.time.Instant
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-
 /**
  * A User
  * This entity is a root level object. It represents an user that can log in to the iCure platform. It is serialized in JSON and saved in the underlying icure-base CouchDB database.
@@ -62,16 +59,17 @@ import java.time.Instant
  * @property termsOfUseDate the timestamp (unix epoch in ms) of the latest validation of the terms of use of the application
  * @property email email address of the user.
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class User(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
 
 	val identifier: List<Identifier> = listOf(),
 
-	@param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
+	override val name: String? = null,
 	override val properties: Set<PropertyStub> = emptySet(),
 	/**
 	 * Local roles of the user. May not actually reflect the roles the user has in the cloud environment.
@@ -87,17 +85,17 @@ data class User(
 	override val passwordHash: String? = null,
 	val groupId: String? = null,
 	val healthcarePartyId: String? = null,
-	@param:ContentValue(ContentValues.UUID) val patientId: String? = null,
+	val patientId: String? = null,
 	val deviceId: String? = null,
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val createdDate: Instant? = null, // TODO remove if unused (use created insted)
 
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val termsOfUseDate: Instant? = null,
 
 	@param:ContentValue(ContentValues.EMAIL) val email: String? = null,
@@ -237,10 +235,6 @@ val User.globalId: String get() = this.groupId?.let { "$it:$id" }
 fun User.isHealthcareParty(): Boolean = healthcarePartyId != null
 fun User.isDevice(): Boolean = deviceId != null
 fun User.isPatient(): Boolean = patientId != null
-
-fun User.omittingSecrets(): User = TODO()
-
-fun User.withSecretsFilledFrom(currentUser: User): User = TODO()
 
 fun User.getUserType(): UserType = when {
 	healthcarePartyId != null -> UserType.HCP
