@@ -39,7 +39,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
@@ -166,13 +165,7 @@ class FormController(
 	fun createForm(
 		@RequestBody ft: FormDto,
 	): Mono<FormDto> = mono {
-		val form =
-			try {
-				formService.createForm(formV2Mapper.map(ft))
-			} catch (e: MissingRequirementsException) {
-				logger.warn(e.message, e)
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			}
+		val form = formService.createForm(formV2Mapper.map(ft))
 		formV2Mapper.map(form)
 	}
 
@@ -181,9 +174,7 @@ class FormController(
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
 	): Mono<FormDto> = mono {
-		val modifiedForm =
-			formService.modifyForm(formV2Mapper.map(formDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form modification failed")
+		val modifiedForm = formService.modifyForm(formV2Mapper.map(formDto))
 		formV2Mapper.map(modifiedForm)
 	}
 

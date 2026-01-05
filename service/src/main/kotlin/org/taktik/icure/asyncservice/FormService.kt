@@ -112,7 +112,7 @@ interface FormService :
 	 */
 	suspend fun undeleteForm(id: String, rev: String): Form
 
-	suspend fun modifyForm(form: Form): Form?
+	suspend fun modifyForm(form: Form): Form
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?

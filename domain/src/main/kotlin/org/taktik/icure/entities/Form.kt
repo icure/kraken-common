@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -62,7 +60,7 @@ import org.taktik.icure.validation.ValidCode
  */
 
 data class Form(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -76,9 +74,9 @@ data class Form(
 
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 
-	@param:ContentValue(ContentValues.UUID) val uniqueId: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val status: String? = null,
-	@param:ContentValue(ContentValues.ANY_INT) val version: Int? = null,
+	val uniqueId: String? = null,
+	val status: String? = null,
+	val version: Int? = null,
 	val logicalUuid: String? = null,
 	val descr: String? = null,
 	val formTemplateId: String? = null,

@@ -184,9 +184,7 @@ class FormController(
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
 	) = mono {
-		val modifiedForm =
-			formService.modifyForm(formMapper.map(formDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
+		val modifiedForm = formService.modifyForm(formMapper.map(formDto))
 		formMapper.map(modifiedForm)
 	}
 
