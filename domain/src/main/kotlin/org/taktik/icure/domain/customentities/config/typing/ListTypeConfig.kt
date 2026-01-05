@@ -19,6 +19,19 @@ data class ListTypeConfig(
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,
+		/**
+		 * Can only be true if the elementType is StringTypeConfig, IntTypeConfig or EnumTypeConfig.
+		 * If true, a list with duplicate values will be rejected.
+		 *
+		 * ## Still ordered
+		 *
+		 * Unlike a set, the order of elements is preserved and can be meaningful.
+		 *
+		 * If an object has an entry `"l"` for a list with unique values and default value `["a", "b"]` not stored
+		 * explicitly, then `{ "l": ["a", "b"] }` will be stored as `{}`, but `{ "l": ["b", "a"] }` will be stored as
+		 * is.
+		 *
+		 */
 		val uniqueValues: Boolean = false
 	)
 
