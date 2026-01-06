@@ -129,7 +129,7 @@ interface MessageService :
 
 	suspend fun createMessage(message: Message): Message
 
-	fun createMessages(entities: Collection<Message>): Flow<Message>
+	fun createMessages(entities: List<Message>): Flow<Message>
 
 	suspend fun getMessage(messageId: String): Message?
 
@@ -143,7 +143,8 @@ interface MessageService :
 	 */
 	fun getMessages(messageIds: List<String>): Flow<Message>
 
-	suspend fun modifyMessage(message: Message): Message?
+	suspend fun modifyMessage(message: Message): Message
+	fun modifyMessages(messages: List<Message>): Flow<Message>
 
 	/**
 	 * Returns all the [Message]s that the current healthcare party can access, given the [Message.secretForeignKeys].

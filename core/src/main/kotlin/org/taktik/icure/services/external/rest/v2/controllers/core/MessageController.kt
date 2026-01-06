@@ -86,13 +86,23 @@ class MessageController(
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
 
-	@Operation(summary = "Creates a message")
+	@Operation(summary = "Creates a Message")
 	@PostMapping
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
 	): Mono<MessageDto> = mono {
 		messageV2Mapper.map(messageService.createMessage(messageV2Mapper.map(messageDto)))
 	}
+
+	@Operation(summary = "Creates a batch of Message")
+	@PostMapping("/batch")
+	fun createMessages(
+		@RequestBody messageDtos: List<MessageDto>,
+	): Flux<MessageDto> = messageService
+		.createMessages(
+			messageDtos.map(messageV2Mapper::map)
+		).map(messageV2Mapper::map).injectReactorContext()
+
 
 	@Operation(summary = "Deletes multiple Messages")
 	@PostMapping("/delete/batch")
@@ -104,7 +114,7 @@ class MessageController(
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectReactorContext()
 
-	@Operation(summary = "Deletes a multiple Messages if they match the provided revs")
+	@Operation(summary = "Deletes multiple Messages if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteMessagesWithRev(
 		@RequestBody messageIds: ListOfIdsAndRevDto,
@@ -114,7 +124,7 @@ class MessageController(
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectReactorContext()
 
-	@Operation(summary = "Deletes an Message")
+	@Operation(summary = "Deletes a Message")
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(
 		@PathVariable messageId: String,
@@ -326,24 +336,31 @@ class MessageController(
 		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentDataOwnerId, fromAddress, paginationOffset))
 	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
 
-	@Operation(summary = "Updates a message")
+	@Operation(summary = "Updates a Message")
 	@PutMapping
 	fun modifyMessage(
 		@RequestBody messageDto: MessageDto,
 	): Mono<MessageDto> = mono {
-		messageService.modifyMessage(messageV2Mapper.map(messageDto))?.let { messageV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "New delegation for message failed")
-				.also { logger.error(it.message) }
+		messageService.modifyMessage(messageV2Mapper.map(messageDto)).let { messageV2Mapper.map(it) }
 	}
 
-	@Operation(summary = "Set status bits for given list of messages")
+	@Operation(summary = "Updates a batch of Messages")
+	@PutMapping("/batch")
+	fun modifyMessages(
+		@RequestBody messageDtos: List<MessageDto>,
+	): Flux<MessageDto> = messageService
+		.modifyMessages(messageDtos.map(messageV2Mapper::map))
+		.map(messageV2Mapper::map)
+		.injectReactorContext()
+
+	@Operation(summary = "Set status bits for given list of Messages")
 	@PutMapping("/status/{status}")
 	fun setMessagesStatusBits(
 		@PathVariable status: Int,
 		@RequestBody messageIds: ListOfIdsDto,
 	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).map { messageV2Mapper.map(it) }.injectReactorContext()
 
-	@Operation(summary = "Set read status for given list of messages")
+	@Operation(summary = "Set read status for given list of Messages")
 	@PutMapping("/readstatus")
 	fun setMessagesReadStatus(
 		@RequestBody data: MessagesReadStatusUpdate,
