@@ -81,7 +81,7 @@ open class InvoiceLogicImpl(
 
 	override fun getInvoices(ids: List<String>): Flow<Invoice> = getEntities(ids)
 
-	override suspend fun modifyInvoice(invoice: Invoice) = modifyEntities(listOf(invoice)).firstOrNull()
+	override suspend fun modifyInvoice(invoice: Invoice) = modifyEntity(invoice)
 
 	override suspend fun addDelegation(
 		invoiceId: String,
@@ -428,7 +428,7 @@ open class InvoiceLogicImpl(
 						unsentInvoice.copy(
 							invoicingCodes = unsentInvoice.invoicingCodes + listOf(invoicingCode),
 						),
-					)?.let {
+					).let {
 						modifiedInvoices.add(it)
 						emit(it)
 					}
@@ -497,7 +497,9 @@ open class InvoiceLogicImpl(
 					}
 				}
 				if (hasChanged) {
-					modifyInvoice(i.copy(invoicingCodes = l))?.let { emit(it) }
+					emit(
+						modifyInvoice(i.copy(invoicingCodes = l))
+					)
 				}
 			}
 		}

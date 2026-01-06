@@ -26,7 +26,7 @@ interface InvoiceLogic :
 	suspend fun getInvoice(invoiceId: String): Invoice?
 	fun getInvoices(ids: List<String>): Flow<Invoice>
 
-	suspend fun modifyInvoice(invoice: Invoice): Invoice?
+	suspend fun modifyInvoice(invoice: Invoice): Invoice
 
 	suspend fun addDelegation(invoiceId: String, delegation: Delegation): Invoice?
 

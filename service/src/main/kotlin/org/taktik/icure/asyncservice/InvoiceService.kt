@@ -32,7 +32,7 @@ interface InvoiceService :
 	suspend fun getInvoice(invoiceId: String): Invoice?
 	fun getInvoices(ids: List<String>): Flow<Invoice>
 
-	suspend fun modifyInvoice(invoice: Invoice): Invoice?
+	suspend fun modifyInvoice(invoice: Invoice): Invoice
 	fun modifyInvoices(invoices: List<Invoice>): Flow<Invoice>
 
 	suspend fun addDelegation(invoiceId: String, delegation: Delegation): Invoice?

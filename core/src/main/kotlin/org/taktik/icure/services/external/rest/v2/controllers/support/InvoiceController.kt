@@ -176,9 +176,7 @@ class InvoiceController(
 	fun modifyInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice =
-			invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice modification failed")
+		val invoice = invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
 
 		invoiceV2Mapper.map(invoice)
 	}
