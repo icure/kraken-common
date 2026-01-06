@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -29,7 +27,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Receipt(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -42,11 +40,12 @@ data class Receipt(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
-	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
+	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
+	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
 
 	// The ICureDocument (Invoice, Contact, ...) this document is linked to
 	val documentId: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val category: String? = null,
+	val category: String? = null,
 	val subCategory: String? = null,
 
 	override val secretForeignKeys: Set<String> = emptySet(),

@@ -66,13 +66,21 @@ class ReceiptController(
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@Operation(summary = "Creates a receipt")
+	@Operation(summary = "Creates a Receipt")
 	@PostMapping
 	fun createReceipt(
 		@RequestBody receiptDto: ReceiptDto,
 	): Mono<ReceiptDto> = mono {
 		receiptV2Mapper.map(receiptService.createReceipt(receiptV2Mapper.map(receiptDto)))
 	}
+
+	@Operation(summary = "Creates a batch of Receipts")
+	@PostMapping("/batch")
+	fun createReceipts(
+		@RequestBody receiptDtos: List<ReceiptDto>,
+	): Flux<ReceiptDto> = receiptService.createReceipts(
+		receiptDtos.map(receiptV2Mapper::map)
+	).map(receiptV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Receipts")
 	@PostMapping("/delete/batch")
@@ -168,7 +176,7 @@ class ReceiptController(
 		}
 	}
 
-	@Operation(summary = "Gets a receipt")
+	@Operation(summary = "Get a Receipt")
 	@GetMapping("/{receiptId}")
 	fun getReceipt(
 		@PathVariable receiptId: String,
@@ -177,13 +185,19 @@ class ReceiptController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Receipt not found")
 	}
 
-	@Operation(summary = "Gets a receipt")
+	@Operation(summary = "Get a batch of Receipts by ids")
+	@GetMapping("/byIds")
+	fun getReceipts(
+		@RequestBody receiptIds: ListOfIdsDto,
+	): Flux<ReceiptDto> = receiptService.getReceipts(receiptIds.ids).map(receiptV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Get a Receipt")
 	@GetMapping("/byRef/{ref}")
 	fun listByReference(
 		@PathVariable ref: String,
 	): Flux<ReceiptDto> = receiptService.listReceiptsByReference(ref).map { receiptV2Mapper.map(it) }.injectReactorContext()
 
-	@Operation(summary = "Updates a receipt")
+	@Operation(summary = "Update a Receipt")
 	@PutMapping
 	fun modifyReceipt(
 		@RequestBody receiptDto: ReceiptDto,
@@ -193,7 +207,7 @@ class ReceiptController(
 			.let { receiptV2Mapper.map(it) }
 	}
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more Receipts with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
