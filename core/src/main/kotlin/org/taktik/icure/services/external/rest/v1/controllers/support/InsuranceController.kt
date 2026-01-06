@@ -118,9 +118,7 @@ class InsuranceController(
 	fun modifyInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
 	) = mono {
-		val insurance =
-			insuranceService.modifyInsurance(insuranceMapper.map(insuranceDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Insurance modification failed")
+		val insurance = insuranceService.modifyInsurance(insuranceMapper.map(insuranceDto))
 
 		insuranceMapper.map(insurance)
 	}

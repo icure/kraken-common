@@ -15,6 +15,7 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface InsuranceService {
 	suspend fun createInsurance(insurance: Insurance): Insurance
+	fun createInsurances(insurances: List<Insurance>): Flow<Insurance>
 
 	/**
 //     * Marks a batch of entities as deleted.
@@ -67,7 +68,9 @@ interface InsuranceService {
 	fun listInsurancesByCode(code: String): Flow<Insurance>
 	fun listInsurancesByName(name: String): Flow<Insurance>
 
-	suspend fun modifyInsurance(insurance: Insurance): Insurance?
+	suspend fun modifyInsurance(insurance: Insurance): Insurance
+	fun modifyInsurances(insurances: List<Insurance>): Flow<Insurance>
+
 	fun getInsurances(ids: Set<String>): Flow<Insurance>
 
 	/**

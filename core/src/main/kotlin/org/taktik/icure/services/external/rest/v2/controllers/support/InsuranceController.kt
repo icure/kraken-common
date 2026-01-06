@@ -24,7 +24,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -59,7 +58,7 @@ class InsuranceController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Creates an insurance")
+	@Operation(summary = "Creates an Insurance")
 	@PostMapping
 	fun createInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
@@ -67,6 +66,14 @@ class InsuranceController(
 		val insurance = insuranceService.createInsurance(insuranceV2Mapper.map(insuranceDto))
 		insuranceV2Mapper.map(insurance)
 	}
+
+	@Operation(summary = "Creates a batch of Insurance")
+	@PostMapping("/batch")
+	fun createInsurances(
+		@RequestBody insuranceDtos: List<InsuranceDto>,
+	): Flux<InsuranceDto> = insuranceService.createInsurances(
+		insuranceDtos.map(insuranceV2Mapper::map)
+	).map(insuranceV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes an insurance")
 	@DeleteMapping("/{insuranceId}")
@@ -98,7 +105,7 @@ class InsuranceController(
 		return insurances.map { insuranceV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Gets an insurance")
+	@Operation(summary = "Gets an Insurance")
 	@GetMapping("/byCode/{insuranceCode}")
 	fun listInsurancesByCode(
 		@PathVariable insuranceCode: String,
@@ -107,7 +114,7 @@ class InsuranceController(
 		return insurances.map { insuranceV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Gets an insurance")
+	@Operation(summary = "Gets an Insurance")
 	@GetMapping("/byName/{insuranceName}")
 	fun listInsurancesByName(
 		@PathVariable insuranceName: String,
@@ -117,15 +124,20 @@ class InsuranceController(
 		return insurances.map { insuranceV2Mapper.map(it) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Modifies an insurance")
+	@Operation(summary = "Modifies an Insurance")
 	@PutMapping
 	fun modifyInsurance(
 		@RequestBody insuranceDto: InsuranceDto,
 	): Mono<InsuranceDto> = mono {
-		val insurance =
-			insuranceService.modifyInsurance(insuranceV2Mapper.map(insuranceDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Insurance modification failed")
-
+		val insurance = insuranceService.modifyInsurance(insuranceV2Mapper.map(insuranceDto))
 		insuranceV2Mapper.map(insurance)
 	}
+
+	@Operation(summary = "Modifies a batch of Insurance")
+	@PutMapping("/batch")
+	fun modifyInsurances(
+		@RequestBody insuranceDtos: List<InsuranceDto>,
+	): Flux<InsuranceDto> = insuranceService.modifyInsurances(
+		insuranceDtos.map(insuranceV2Mapper::map)
+	).map(insuranceV2Mapper::map).injectReactorContext()
 }

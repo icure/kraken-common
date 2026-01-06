@@ -16,7 +16,7 @@ interface InsuranceLogic : EntityPersister<Insurance> {
 	fun listInsurancesByCode(code: String): Flow<Insurance>
 	fun listInsurancesByName(name: String): Flow<Insurance>
 
-	suspend fun modifyInsurance(insurance: Insurance): Insurance?
+	suspend fun modifyInsurance(insurance: Insurance): Insurance
 	fun getInsurances(ids: Set<String>): Flow<Insurance>
 
 	/**
