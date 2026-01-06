@@ -9,14 +9,12 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -215,7 +213,7 @@ open class PatientLogicImpl(
 								bp?.let { ap?.compareTo(it) ?: 1 } ?: 0
 							}
 						}
-					} catch (e: Exception) {
+					} catch (_: Exception) {
 						0
 					}
 				}
@@ -416,11 +414,11 @@ open class PatientLogicImpl(
 		emitAll(createEntities(fixedPatients))
 	}
 
-	override suspend fun modifyPatient(patient: Patient): Patient? = fix(patient, isCreate = false) { fixedPatient ->
+	override suspend fun modifyPatient(patient: Patient) = fix(patient, isCreate = false) { fixedPatient ->
 		// access control already done by modify entities
 		log.debug("Modifying patient with id:" + fixedPatient.id)
 		checkRequirements(fixedPatient)
-		modifyEntities(listOf(fixedPatient)).firstOrNull()
+		modifyEntity(fixedPatient)
 	}
 
 	override fun modifyPatients(patients: Collection<Patient>): Flow<Patient> = flow {

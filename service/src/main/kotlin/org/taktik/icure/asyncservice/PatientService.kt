@@ -20,7 +20,6 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 import java.time.Instant
@@ -100,7 +99,7 @@ interface PatientService :
 	suspend fun createPatient(patient: Patient): Patient
 	fun createPatients(patients: List<Patient>): Flow<Patient>
 
-	suspend fun modifyPatient(patient: Patient): Patient?
+	suspend fun modifyPatient(patient: Patient): Patient
 	fun modifyPatients(patients: List<Patient>): Flow<Patient>
 
 	suspend fun modifyPatientReferral(patient: Patient, referralId: String?, start: Instant?, end: Instant?): Patient?

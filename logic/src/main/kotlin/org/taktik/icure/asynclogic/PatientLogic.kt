@@ -131,7 +131,7 @@ interface PatientLogic :
 	suspend fun createPatient(patient: Patient): Patient
 	fun createPatients(patients: List<Patient>): Flow<Patient>
 
-	suspend fun modifyPatient(patient: Patient): Patient?
+	suspend fun modifyPatient(patient: Patient): Patient
 	fun modifyPatients(patients: Collection<Patient>): Flow<Patient>
 
 	suspend fun modifyPatientReferral(patient: Patient, referralId: String?, start: Instant?, end: Instant?): Patient?

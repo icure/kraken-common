@@ -611,13 +611,7 @@ class PatientController(
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
 	) = mono {
-		patientService.modifyPatient(patientMapper.map(patientDto))?.let(patientMapper::map)
-			?: throw ResponseStatusException(
-				HttpStatus.INTERNAL_SERVER_ERROR,
-				"Getting patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		patientService.modifyPatient(patientMapper.map(patientDto)).let(patientMapper::map)
 	}
 
 	@Operation(summary = "Set a patient referral doctor")

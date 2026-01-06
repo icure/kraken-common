@@ -333,8 +333,7 @@ class PatientController(
 	@Operation(summary = "Get the patient having the provided externalId")
 	@GetMapping("/byExternalId/{externalId}")
 	fun getPatientByExternalId(
-		@PathVariable("externalId")
-		@Parameter(description = "A external ID", required = true) externalId: String,
+		@PathVariable @Parameter(description = "A external ID", required = true) externalId: String,
 	): Mono<PatientDto> = mono {
 		patientService.getByExternalId(externalId)?.let(patientV2Mapper::map)
 	}
@@ -667,13 +666,7 @@ class PatientController(
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
 	): Mono<PatientDto> = mono {
-		patientService.modifyPatient(patientV2Mapper.map(patientDto))?.let(patientV2Mapper::map)
-			?: throw ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Modifying patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		patientService.modifyPatient(patientV2Mapper.map(patientDto)).let(patientV2Mapper::map)
 	}
 
 	@Operation(summary = "Set a patient referral doctor")
