@@ -37,6 +37,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import kotlin.collections.map
 
 @RestController("placeControllerV2")
 @Profile("app")
@@ -50,7 +51,7 @@ class PlaceController(
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@Operation(summary = "Creates a place")
+	@Operation(summary = "Create a Place")
 	@PostMapping
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
@@ -58,7 +59,15 @@ class PlaceController(
 		placeV2Mapper.map(placeService.createPlace(placeV2Mapper.map(placeDto)))
 	}
 
-	@Operation(summary = "Deletes places")
+	@Operation(summary = "Create a batch of Place")
+	@PostMapping("/batch")
+	fun createPlaces(
+		@RequestBody placeDtos: List<PlaceDto>,
+	): Flux<PlaceDto> = placeService.createPlaces(
+		placeDtos.map(placeV2Mapper::map)
+	).map(placeV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Delete a batch of Places")
 	@PostMapping("/delete/batch")
 	fun deletePlaces(
 		@RequestBody placeIds: ListOfIdsDto,
@@ -72,7 +81,7 @@ class PlaceController(
 			logger.error(it.message)
 		}
 
-	@Operation(summary = "Gets a place")
+	@Operation(summary = "Get a Place by id")
 	@GetMapping("/{placeId}")
 	fun getPlace(
 		@PathVariable placeId: String,
@@ -81,7 +90,13 @@ class PlaceController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
 
-	@Operation(summary = "Gets all places with pagination")
+	@Operation(summary = "Get multiple Places by their id")
+	@PostMapping("/byIds")
+	fun getPlacesByIds(
+		@RequestBody placeIds: ListOfIdsDto,
+	): Flux<PlaceDto> = placeService.getPlaces(placeIds.ids).map(placeV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Get all Places with pagination")
 	@GetMapping
 	fun getPlaces(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
@@ -94,12 +109,20 @@ class PlaceController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Modifies an place")
+	@Operation(summary = "Modify a Place")
 	@PutMapping
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeService.modifyPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
+		placeService.modifyPlace(placeV2Mapper.map(placeDto)).let { placeV2Mapper.map(it) }
 	}
+
+	@Operation(summary = "Modify a batch of Places")
+	@PutMapping("/batch")
+	fun modifyPlaces(
+		@RequestBody placeDtos: List<PlaceDto>,
+	): Flux<PlaceDto> = placeService.modifyPlaces(
+		placeDtos.map(placeV2Mapper::map)
+	).map(placeV2Mapper::map).injectReactorContext()
+
 }

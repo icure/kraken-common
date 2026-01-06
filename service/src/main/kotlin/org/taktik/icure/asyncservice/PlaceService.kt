@@ -28,9 +28,15 @@ interface PlaceService {
 	 * @throws AccessDeniedException if the current user is not an admin or an healthcare party.
 	 */
 	fun getAllPlaces(): Flow<Place>
-	suspend fun createPlace(place: Place): Place
-	suspend fun deletePlace(id: String, rev: String?): Place
 	suspend fun getPlace(place: String): Place?
-	suspend fun modifyPlace(place: Place): Place?
+	fun getPlaces(placeIds: List<String>): Flow<Place>
+
+	suspend fun createPlace(place: Place): Place
+	fun createPlaces(places: List<Place>): Flow<Place>
+
+	suspend fun modifyPlace(place: Place): Place
+	fun modifyPlaces(places: List<Place>): Flow<Place>
+
+	suspend fun deletePlace(id: String, rev: String?): Place
 	fun deletePlaces(identifiers: List<IdAndRev>): Flow<Place>
 }
