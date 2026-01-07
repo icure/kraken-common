@@ -54,3 +54,11 @@ fun validateIdentifier(path: ResolutionPath, identifier: String) {
 		"${path}: invalid identifier `$identifier`, can only contain alphanumeric characters or underscores"
 	}
 }
+
+private const val MAX_LENGTH = 32
+fun truncateValueForErrorMessage(value: String): String =
+	if (value.length > MAX_LENGTH) {
+		value.take(MAX_LENGTH) + "..."
+	} else {
+		value
+	}

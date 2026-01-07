@@ -25,13 +25,10 @@ class StringTypeConfig(
 		 * Refer to [minLength] documentation for details about how length is computed.
 		 */
 		val maxLength: Int? = null,
-	)
-
-	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
 	) {
-		validation?.apply {
+		fun validateConfig(
+			path: ResolutionPath
+		) {
 			require(minLength == null || minLength > 0) {
 				"$path: invalid minLength, should be greater than 0"
 			}
@@ -42,6 +39,25 @@ class StringTypeConfig(
 				"$path: invalid length bounds, maxLength should be greater than or equal to minLength"
 			}
 		}
+
+		fun validateValue(
+			path: ResolutionPath,
+			value: String
+		) {
+			require(
+				(minLength == null || value.length >= minLength)
+					&& (maxLength == null || value.length <= maxLength)
+			) {
+				"$path: string length out of bounds"
+			}
+		}
+	}
+
+	override fun validateConfig(
+		resolutionContext: CustomEntityConfigResolutionContext,
+		path: ResolutionPath
+	) {
+		validation?.validateConfig(path)
 	}
 
 	override fun validateAndMapValueForStore(
@@ -52,14 +68,7 @@ class StringTypeConfig(
 		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (string)"
 		}
-		if (validation != null) {
-			require(
-				(validation.minLength == null || value.value.length >= validation.minLength)
-					&& (validation.maxLength == null || value.value.length <= validation.maxLength)
-			) {
-				"$path: string length out of bounds"
-			}
-		}
+		validation?.validateValue(path, value.value)
 		value
 	}
 }

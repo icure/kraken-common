@@ -2,6 +2,8 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
@@ -16,8 +18,36 @@ data class MapTypeConfig(
 	data class ValidationConfig(
 		val minSize: Int? = null,
 		val maxSize: Int? = null,
-		val keyValidationEnumReference: String? = null,
-	)
+		/**
+		 * If set specifies which keys are allowed in the map.
+		 * If null any string is allowed as key.
+		 */
+		val keyValidation: KeyValidation? = null,
+	) {
+		@JsonTypeInfo(
+			use = JsonTypeInfo.Id.NAME,
+			property = "type",
+		)
+		@JsonSubTypes(
+			JsonSubTypes.Type(value = KeyValidation.EnumKeyValidation::class, name = "Enum"),
+			JsonSubTypes.Type(value = KeyValidation.StringKeyValidation::class, name = "String"),
+		)
+		sealed interface KeyValidation {
+			/**
+			 * Each key must be an entry of the referenced enum
+			 */
+			data class EnumKeyValidation(
+				val reference: String
+			) : KeyValidation
+
+			/**
+			 * Each key must validate against the specified string validation configuration
+			 */
+			data class StringKeyValidation(
+				val validation: StringTypeConfig.ValidationConfig,
+			) : KeyValidation
+		}
+	}
 
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
@@ -39,9 +69,17 @@ data class MapTypeConfig(
 			require(minSize == null || maxSize == null || maxSize >= minSize) {
 				"$path: invalid size bounds, maxSize should be greater than or equal to minSize"
 			}
-			if (keyValidationEnumReference != null) {
-				requireNotNull(resolutionContext.resolveEnumReference(keyValidationEnumReference)) {
-					"$path: invalid enum reference"
+			when (keyValidation) {
+				null -> {} // nothing to do
+				is ValidationConfig.KeyValidation.StringKeyValidation -> {
+					path.appending(".keyValidation") {
+						keyValidation.validation.validateConfig(path)
+					}
+				}
+				is ValidationConfig.KeyValidation.EnumKeyValidation -> {
+					requireNotNull(resolutionContext.resolveEnumReference(keyValidation.reference)) {
+						"$path.keyValidation: invalid enum reference"
+					}
 				}
 			}
 		}
@@ -56,7 +94,7 @@ data class MapTypeConfig(
 			"$path: invalid type, expected Object (Map)"
 		}
 		val res = value.properties.mapValues { (k, v) ->
-			path.appending("{", k, "}") {
+			path.appending("{", truncateValueForErrorMessage(k), "}") {
 				valueType.validateAndMapValueForStore(
 					resolutionContext,
 					path,
@@ -71,13 +109,26 @@ data class MapTypeConfig(
 			) {
 				"$path: map size out of bounds"
 			}
-			if (validation.keyValidationEnumReference != null) {
-				val enumDefinition = resolutionContext.resolveEnumReference(validation.keyValidationEnumReference)!!
-				res.keys.forEach {
-					require(it in enumDefinition.entries) {
-						"$path: invalid key value, expected entry of enum ${validation.keyValidationEnumReference}"
+			when (val keyValidation = validation.keyValidation) {
+				is ValidationConfig.KeyValidation.StringKeyValidation -> {
+					res.keys.forEach { key ->
+						path.appending("{KEY \"", truncateValueForErrorMessage(key), "\"}") {
+							keyValidation.validation.validateValue(
+								path,
+								key
+							)
+						}
 					}
 				}
+				is ValidationConfig.KeyValidation.EnumKeyValidation -> {
+					val enumDefinition = resolutionContext.resolveEnumReference(keyValidation.reference)!!
+					res.keys.forEach {
+						require(it in enumDefinition.entries) {
+							"$path{KEY \"${truncateValueForErrorMessage(it)}\"}: expected entry of enum ${keyValidation.reference}"
+						}
+					}
+				}
+				null -> {} // nothing to do
 			}
 		}
 		RawJson.JsonObject(res)
