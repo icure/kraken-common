@@ -4,7 +4,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
@@ -65,7 +64,7 @@ interface UserLogic : EntityPersister<User> {
 
 	// region modify
 
-	suspend fun modifyUser(modifiedUser: User): EnhancedUser?
+	suspend fun modifyUser(modifiedUser: User): EnhancedUser
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?

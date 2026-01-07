@@ -121,7 +121,7 @@ open class UserLogicImpl(
 		return createOrModifyUser(user)
 	}
 
-	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? {
+	override suspend fun modifyUser(modifiedUser: User): EnhancedUser {
 		require(modifiedUser.rev != null) { "Modified user should have non-null revision" }
 		return createOrModifyUser(modifiedUser)
 	}
@@ -178,16 +178,16 @@ open class UserLogicImpl(
 		}
 	}
 
-	override suspend fun disableUser(userId: String): User? = getUser(userId, false)?.let {
+	override suspend fun disableUser(userId: String): User? = getUser(userId, false)?.let { user ->
 		val datastoreInformation = getInstanceAndGroup()
-		userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))?.also {
+		userDAO.save(datastoreInformation, user.copy(status = Users.Status.DISABLED)).also {
 			globalUserUpdater.tryUpdate(it)
 		}
 	}
 
-	override suspend fun enableUser(userId: String): User? = getUser(userId, false)?.let {
+	override suspend fun enableUser(userId: String): User? = getUser(userId, false)?.let { user ->
 		val datastoreInformation = getInstanceAndGroup()
-		userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))?.also { it ->
+		userDAO.save(datastoreInformation, user.copy(status = Users.Status.ACTIVE)).also {
 			globalUserUpdater.tryUpdate(it)
 		}
 	}
@@ -513,7 +513,7 @@ open class UserLogicImpl(
 								)
 							),
 				),
-			) ?: throw IllegalStateException("Cannot create token for user"),
+			),
 			authenticationToken,
 		)
 	}

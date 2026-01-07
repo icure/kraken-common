@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -107,7 +109,7 @@ class UserController(
 	}
 
 	@Operation(
-		summary = "Create a user",
+		summary = "Create a User",
 		description = "Create a user. HealthcareParty ID should be set. Email or Login have to be set. If login hasn't been set, Email will be used for Login instead.",
 	)
 	@PostMapping
@@ -117,6 +119,21 @@ class UserController(
 		val user = userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
 		userV2Mapper.mapOmittingSecrets(user)
 	}
+
+	@Operation(
+		summary = "Create a batch of User",
+		description = "Create a batch of Users. HealthcareParty ID should be set. Email or Login have to be set. If login hasn't been set, Email will be used for Login instead.",
+	)
+	@PostMapping("/batch")
+	fun createUsers(
+		@RequestBody userDtos: List<UserDto>,
+	): Flux<UserDto> = flow {
+		emitAll(
+			userService.createUsers(
+				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null)) }
+			).map(userV2Mapper::mapOmittingSecrets)
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Get a user by his ID", description = "General information about the user")
 	@GetMapping("/{userId}")
@@ -210,7 +227,7 @@ class UserController(
 		userService.purgeUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Modify a user.", description = "No particular return value. It's just a message.")
+	@Operation(summary = "Modify a User.", description = "No particular return value. It's just a message.")
 	@PutMapping
 	fun modifyUser(
 		@RequestBody userDto: UserDto,
@@ -218,10 +235,21 @@ class UserController(
 		// Sanitize group
 		val modifiedUser =
 			userService.modifyUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User modification failed.")
 
 		userV2Mapper.mapOmittingSecrets(modifiedUser)
 	}
+
+	@Operation(summary = "Modify a batch of Users.")
+	@PutMapping("/batch")
+	fun modifyUsers(
+		@RequestBody userDtos: List<UserDto>
+	): Flux<UserDto> = flow {
+		emitAll(
+			userService.modifyUsers(
+				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null)) }
+			).map(userV2Mapper::mapOmittingSecrets)
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Assign a healthcare party ID to current user", description = "UserDto gets returned.")
 	@PutMapping("/current/hcparty/{healthcarePartyId}")

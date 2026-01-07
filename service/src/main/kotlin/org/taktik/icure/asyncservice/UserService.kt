@@ -21,6 +21,7 @@ interface UserService : EntityWithConflictResolutionService {
 	// region create
 
 	suspend fun createUser(user: User): User
+	fun createUsers(users: List<User>): Flow<User>
 
 	// endregion
 
@@ -83,7 +84,9 @@ interface UserService : EntityWithConflictResolutionService {
 
 	// region modify
 
-	suspend fun modifyUser(modifiedUser: User): User?
+	suspend fun modifyUser(modifiedUser: User): User
+	fun modifyUsers(users: List<User>): Flow<User>
+
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?
