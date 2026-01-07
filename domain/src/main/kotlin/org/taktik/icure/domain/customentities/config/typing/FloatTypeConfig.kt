@@ -62,6 +62,6 @@ data class FloatTypeConfig(
 				"$path: value $valueDouble out of configured bounds"
 			}
 		}
-		RawJson.JsonDecimal(valueDouble.toString())
+		RawJson.JsonFloat(valueDouble)
 	}
 }

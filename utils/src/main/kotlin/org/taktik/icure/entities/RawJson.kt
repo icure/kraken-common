@@ -3,6 +3,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
+import com.fasterxml.jackson.core.exc.InputCoercionException
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -71,13 +72,19 @@ object RawJsonDeserializer : JsonDeserializer<RawJson>() {
 			}
 			JsonToken.VALUE_NUMBER_INT -> {
 				if (p.numberType == JsonParser.NumberType.BIG_INTEGER) {
-					RawJson.JsonBigInteger(p.text)
+					throw JsonMappingException.from(p, "Integer value out of range")
 				} else {
 					RawJson.JsonInteger(p.longValue)
 				}
 			}
 			JsonToken.VALUE_NUMBER_FLOAT -> {
-				RawJson.JsonDecimal(p.text)
+				try {
+					RawJson.JsonFloat(p.doubleValue)
+				} catch (e: InputCoercionException) {
+					throw JsonMappingException.from(p, "Float value out of range", e)
+				}.also {
+					if (!it.value.isFinite()) throw JsonMappingException.from(p, "Float value out of range")
+				}
 			}
 			JsonToken.VALUE_TRUE -> {
 				RawJson.JsonBoolean.True
@@ -89,7 +96,7 @@ object RawJsonDeserializer : JsonDeserializer<RawJson>() {
 				RawJson.JsonNull
 			}
 			else -> {
-				throw IllegalArgumentException("Unexpected token: ${p.currentToken()}")
+				throw JsonMappingException.from(p, "Unexpected token: ${p.currentToken()}")
 			}
 		}
 	}
@@ -156,22 +163,24 @@ sealed interface RawJson {
 			}
 	}
 
-	data class JsonBigInteger(val value: String) : JsonNumber {
+	// We don't want to support integers outside Long range.
+	// Since we don't support using the numeric value on the views they can be instead represented as strings.
+//	data class JsonBigInteger(val value: String) : JsonNumber {
+//		override fun writeTo(generator: JsonGenerator) {
+//			generator.writeNumber(value)
+//		}
+//
+//		override fun asDouble(): Double =
+//			value.toDoubleOrNull() ?: Double.NaN
+//	}
+
+	data class JsonFloat(val value: Double) : JsonNumber {
 		override fun writeTo(generator: JsonGenerator) {
 			generator.writeNumber(value)
 		}
 
 		override fun asDouble(): Double =
-			value.toDoubleOrNull() ?: Double.NaN
-	}
-
-	data class JsonDecimal(val value: String) : JsonNumber {
-		override fun writeTo(generator: JsonGenerator) {
-			generator.writeNumber(value)
-		}
-
-		override fun asDouble(): Double =
-			value.toDoubleOrNull() ?: Double.NaN
+			value
 	}
 
 	sealed interface JsonBoolean : RawJson {
