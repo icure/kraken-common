@@ -76,8 +76,9 @@ fun <T, S> aggregateResultsAsFlow(
 	supplier = supplier,
 	filter = filter,
 	startDocumentId = startDocumentId,
-	heuristic = 2,
+	heuristic = 2.0,
 )
+
 fun <T, S> aggregateResultsAsFlow(
 	ids: Collection<S>,
 	limit: Int,
