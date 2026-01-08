@@ -49,7 +49,7 @@ function(doc) {
         }
     }
 
-    if (doc.java_type === 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc.secretForeignKeys && doc.secretForeignKeys.length) {
+    if (doc.java_type === 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc.codes && doc.codes.length) {
         const date = doc.valueDate != undefined ? doc.valueDate : doc.openingDate
         const value = doc.healthElementId != undefined ? doc.healthElementId : null
         emit_for_delegates(doc, function (dataOwnerId, doc) {
