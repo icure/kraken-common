@@ -22,6 +22,7 @@ interface EntityPersister<E : Identifiable<String>> {
 	suspend fun undeleteEntity(id: String, rev: String?): E
 	fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<E>
 	suspend fun purgeEntity(id: String, rev: String): DocIdentifier
+	fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier>
 
 	fun getEntities(identifiers: Collection<String>): Flow<E>
 	fun getEntities(): Flow<E>

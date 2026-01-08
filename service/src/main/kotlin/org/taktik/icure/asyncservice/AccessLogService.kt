@@ -62,6 +62,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeAccessLog(id: String, rev: String): DocIdentifier
+	fun purgeAccessLogs(ids: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -71,6 +72,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteAccessLog(id: String, rev: String): AccessLog
+	fun undeleteAccessLogs(ids: List<IdAndRev>): Flow<AccessLog>
 
 	/**
 	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making

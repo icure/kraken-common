@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
@@ -58,14 +57,6 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		identifiers,
 	)
 
-	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
-		emitAll(
-			getGenericDAO()
-				.remove(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
-				.mapNotNull { it.entityOrNull() },
-		)
-	}
-
 	protected suspend fun getEntityWithExpectedRev(
 		id: String,
 		rev: String?,
@@ -74,15 +65,10 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	override suspend fun undeleteEntity(
 		id: String,
 		rev: String?,
-	): E = checkNotNull(
-		getGenericDAO()
-			.unRemove(
-				getInstanceAndGroup(),
-				listOf(getEntityWithExpectedRev(id, rev)),
-			).singleOrNull(),
-	) {
-		"Too many update result from undelete"
-	}.entityOrThrow()
+	): E = getGenericDAO().unRemove(
+		datastoreInformation = getInstanceAndGroup(),
+		entity = getEntityWithExpectedRev(id, rev)
+	)
 
 	override fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
 		emitAll(
@@ -97,28 +83,34 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	override suspend fun deleteEntity(
 		id: String,
 		rev: String?,
-	): E = checkNotNull(
-		getGenericDAO()
-			.remove(
-				getInstanceAndGroup(),
-				listOf(getEntityWithExpectedRev(id, rev)),
-			).singleOrNull(),
-	) {
-		"Too many update result from delete"
-	}.entityOrThrow()
+	): E = getGenericDAO().remove(
+		datastoreInformation = getInstanceAndGroup(),
+		entity = getEntityWithExpectedRev(id, rev)
+	)
+
+	override fun deleteEntities(identifiers: Collection<IdAndRev>): Flow<E> = flow {
+		emitAll(
+			getGenericDAO()
+				.remove(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
+				.mapNotNull { it.entityOrNull() },
+		)
+	}
 
 	override suspend fun purgeEntity(
 		id: String,
 		rev: String,
-	): DocIdentifier = checkNotNull(
-		getGenericDAO()
-			.purge(
-				getInstanceAndGroup(),
-				listOf(getEntityWithExpectedRev(id, rev)),
-			).singleOrNull(),
-	) {
-		"Too many update result from purge"
-	}.entityOrThrow()
+	): DocIdentifier = getGenericDAO().purge(
+		datastoreInformation = getInstanceAndGroup(),
+		entity = getEntityWithExpectedRev(id, rev),
+	)
+
+	override fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		emitAll(
+			getGenericDAO()
+				.purge(getInstanceAndGroup(), getEntitiesWithExpectedRev(identifiers))
+				.mapNotNull { it.entityOrNull() },
+		)
+	}
 
 	override fun getEntities(identifiers: Collection<String>): Flow<E> = flow {
 		emitAll(getGenericDAO().getEntities(getInstanceAndGroup(), identifiers))

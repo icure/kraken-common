@@ -96,7 +96,7 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Deletes multiple access log if they match the provided rev")
 	@PostMapping("/delete/batch/withrev")
@@ -106,14 +106,14 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Deletes an Access Log")
 	@DeleteMapping("/{accessLogId}")
 	fun deleteAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		accessLogService.deleteAccessLog(accessLogId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -123,17 +123,37 @@ class AccessLogController(
 	fun undeleteAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<AccessLogDto> = mono {
-		accessLogV2Mapper.map(accessLogService.undeleteAccessLog(accessLogId, rev))
+	): Mono<AccessLogDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		accessLogV2Mapper.map(
+			accessLogService.undeleteAccessLog(accessLogId, rev)
+		)
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteAccessLogs(
+		@RequestBody accessLogIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.undeleteAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@DeleteMapping("/purge/{accessLogId}")
 	fun purgeAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		accessLogService.purgeAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeAccessLogs(
+		@RequestBody accessLogIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.undeleteAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Gets an access log")
 	@GetMapping("/{accessLogId}")

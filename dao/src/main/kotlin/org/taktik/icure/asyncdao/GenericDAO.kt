@@ -166,18 +166,19 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param entities a [Collection] of entities to soft-delete.
-	 * @return a [Flow] of [DocIdentifier] related to the deleted entities.
+	 * @return a [Flow] containing the deleted entities.
 	 */
 	fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
 
 	/**
-	 * Hard-deletes an entity. If a cache is present, then the entity is removed from all the levels of the cache.
+	 * Soft-deletes an entity by setting its deletionDate field and saving it to the database. If a
+	 * cache is present, then the entity is removed from all the levels of the cache.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
-	 * @param entity the entity to delete.
-	 * @return a [DocIdentifier] related to the deleted entity.
+	 * @param entity the entity to soft-delete.
+	 * @return the deleted entity.
 	 */
-	fun purge(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>>
+	suspend fun remove(datastoreInformation: IDatastoreInformation, entity: T): T
 
 	/**
 	 * Reverts the soft-deleting of a collection of entities by setting their deletionDate field to null and saving
@@ -185,9 +186,37 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @param entities a [Collection] of entities to undelete.
-	 * @return a [Flow] of [DocIdentifier] related to the undeleted entities.
+	 * @return a [Flow] containing the undeleted entities.
 	 */
 	fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>>
+
+	/**
+	 * Reverts the soft-deleting of an entity by setting the deletionDate field to null and saving
+	 * it to the database. If a cache is present, then the entity is also removed form all the levels of the cache.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param entity the entity to undelete.
+	 * @return the undeleted entity.
+	 */
+	suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): T
+
+	/**
+	 * Hard-deletes multiple entities. If a cache is present, then the entities are removed from all the levels of the cache.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param entities the entities to purge.
+	 * @return a [Flow] of [DocIdentifier] of the purged entities.
+	 */
+	fun purge(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<DocIdentifier>>
+
+	/**
+	 * Hard-deletes an entity. If a cache is present, then the entity is removed from all the levels of the cache.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param entity the entity to purge.
+	 * @return the [DocIdentifier] of the purged entities.
+	 */
+	suspend fun purge(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier
 
 	/**
 	 * Creates or updates the view design documents for this entity type.
