@@ -70,7 +70,21 @@ fun <T, S> aggregateResultsAsFlow(
 	supplier: suspend (Collection<S>) -> Flow<T>,
 	filter: suspend (T) -> Boolean = { true },
 	startDocumentId: S? = null,
-	heuristic: Int = 2,
+) = aggregateResultsAsFlow(
+	ids = ids,
+	limit = limit,
+	supplier = supplier,
+	filter = filter,
+	startDocumentId = startDocumentId,
+	heuristic = 2,
+)
+fun <T, S> aggregateResultsAsFlow(
+	ids: Collection<S>,
+	limit: Int,
+	supplier: suspend (Collection<S>) -> Flow<T>,
+	filter: suspend (T) -> Boolean = { true },
+	startDocumentId: S? = null,
+	heuristic: Int ,
 ) = aggregateResultsAsFlow(
 	ids = ids,
 	limit = limit,
@@ -86,7 +100,7 @@ fun <T, S> aggregateResultsAsFlow(
 	supplier: suspend (Collection<S>) -> Flow<T>,
 	filter: suspend (T) -> Boolean = { true },
 	startDocumentId: S? = null,
-	heuristic: Double = 2.0,
+	heuristic: Double,
 ): Flow<T> = flow {
 	val heuristicLimit = ceil(limit * heuristic).toInt()
 	val sortedIds = startDocumentId?.let { ids.dropWhile { id -> it != id } } ?: ids
