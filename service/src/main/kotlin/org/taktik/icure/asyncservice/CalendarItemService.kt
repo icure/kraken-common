@@ -59,6 +59,7 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeCalendarItem(id: String, rev: String): DocIdentifier
+	fun purgeCalendarItems(ids: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -68,6 +69,8 @@ interface CalendarItemService : EntityWithSecureDelegationsService<CalendarItem>
 	 * @return the restored entity
 	 */
 	suspend fun undeleteCalendarItem(id: String, rev: String): CalendarItem
+	fun undeleteCalendarItems(ids: List<IdAndRev>): Flow<CalendarItem>
+
 	suspend fun getCalendarItem(calendarItemId: String): CalendarItem?
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
 	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<CalendarItem>
