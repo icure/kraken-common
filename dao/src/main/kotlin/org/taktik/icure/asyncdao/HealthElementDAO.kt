@@ -7,6 +7,7 @@ package org.taktik.icure.asyncdao
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
 
@@ -15,12 +16,32 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String>
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String): Flow<String>
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	fun listHealthElementIdsByHcPartyAndTags(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String): Flow<String>
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndStatusAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	fun listHealthElementIdsByHcPartyAndStatus(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?): Flow<String>
 
+	@Deprecated("""
+		Use listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	fun listHealthElementsIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String>
 
 	suspend fun getHealthElement(datastoreInformation: IDatastoreInformation, healthElementId: String): HealthElement?
@@ -49,4 +70,12 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<HealthElement>
 
 	fun findHealthElementsByIds(datastoreInformation: IDatastoreInformation, healthElementIds: Flow<String>): Flow<ViewQueryResultEvent>
+
+	fun listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeCode: String, startValueDate: Long?, endValueDate: Long?, filterVersion: VersionFiltering): Flow<String>
+
+	fun listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, tagType: String, tagCode: String, startValueDate: Long?, endValueDate: Long?, filterVersion: VersionFiltering): Flow<String>
+
+	fun listHealthElementIdsByHcPartyAndStatusAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?, filterVersion: VersionFiltering): Flow<String>
+
+	fun listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>, filterVersion: VersionFiltering): Flow<String>
 }
