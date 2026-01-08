@@ -63,12 +63,12 @@ tailrec suspend fun <T, A> aggregateResults(
 	)
 }
 
-fun <T> aggregateResultsAsFlow(
-	ids: Collection<String>,
+fun <T, S> aggregateResultsAsFlow(
+	ids: Collection<S>,
 	limit: Int,
-	supplier: suspend (Collection<String>) -> Flow<T>,
+	supplier: suspend (Collection<S>) -> Flow<T>,
 	filter: suspend (T) -> Boolean = { true },
-	startDocumentId: String? = null,
+	startDocumentId: S? = null,
 	heuristic: Int = 2,
 ): Flow<T> = flow {
 	val heuristicLimit = limit * heuristic
