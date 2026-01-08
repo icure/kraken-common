@@ -19,6 +19,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,11 +39,15 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.BooleanResponseDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.monoWrappingResponseToJson
@@ -63,7 +68,9 @@ class CodeController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -366,4 +373,55 @@ class CodeController(
 			} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong codeType provided.")
 		}
 	}
+
+	@DeleteMapping("/{codeId}")
+	fun deleteCode(
+		@PathVariable codeId: String,
+		@RequestParam rev: String,
+	): Mono<DocIdentifierDto> = mono {
+		codeService.deleteCode(codeId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/delete/batch")
+	fun deleteCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = codeService
+		.deleteCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
+
+	@PostMapping("/undelete/{codeId}")
+	fun undeleteCode(
+		@PathVariable codeId: String,
+		@RequestParam rev: String,
+	): Mono<CodeDto> = mono {
+		codeService.undeleteCode(codeId, rev).let(codeV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<CodeDto> = codeService
+		.undeleteCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(codeV2Mapper::map)
+		.injectReactorContext()
+
+	@DeleteMapping("/purge/{codeId}")
+	fun purgeCode(
+		@PathVariable codeId: String,
+		@RequestParam(required = true) rev: String,
+	): Mono<DocIdentifierDto> = mono {
+		codeService.purgeCode(codeId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/purge/batch")
+	fun purgeCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = codeService
+		.purgeCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
 }
