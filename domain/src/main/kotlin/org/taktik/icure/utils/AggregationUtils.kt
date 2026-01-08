@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlin.math.ceil
 
 suspend fun <T> aggregateResults(
 	ids: Collection<String>,
@@ -70,8 +71,24 @@ fun <T, S> aggregateResultsAsFlow(
 	filter: suspend (T) -> Boolean = { true },
 	startDocumentId: S? = null,
 	heuristic: Int = 2,
+) = aggregateResultsAsFlow(
+	ids = ids,
+	limit = limit,
+	supplier = supplier,
+	filter = filter,
+	startDocumentId = startDocumentId,
+	heuristic = heuristic.toDouble(),
+)
+
+fun <T, S> aggregateResultsAsFlow(
+	ids: Collection<S>,
+	limit: Int,
+	supplier: suspend (Collection<S>) -> Flow<T>,
+	filter: suspend (T) -> Boolean = { true },
+	startDocumentId: S? = null,
+	heuristic: Double = 2.0,
 ): Flow<T> = flow {
-	val heuristicLimit = limit * heuristic
+	val heuristicLimit = ceil(limit * heuristic).toInt()
 	val sortedIds = startDocumentId?.let { ids.dropWhile { id -> it != id } } ?: ids
 	var emitted = 0
 	emitAll(
