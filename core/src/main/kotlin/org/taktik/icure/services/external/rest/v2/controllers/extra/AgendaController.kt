@@ -99,7 +99,7 @@ class AgendaController(
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Agendas if they match the provided revs")
+	@Operation(summary = "Delete multiple Agendas if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteAgendasWithRev(
 		@RequestBody agendaIds: ListOfIdsAndRevDto,
@@ -128,6 +128,16 @@ class AgendaController(
 		agendaV2Mapper.map(agendaService.undeleteAgenda(agendaId, rev))
 	}
 
+	@Operation(summary = "Undelete multiple Agendas if they match the provided revs")
+	@PostMapping("/undelete/batch")
+	fun undeleteAgendas(
+		@RequestBody agendaIds: ListOfIdsAndRevDto,
+	): Flux<AgendaDto> = agendaService
+		.undeleteAgendas(
+			agendaIds.ids.map(idWithRevV2Mapper::map),
+		).map(agendaV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 	@DeleteMapping("/purge/{agendaId}")
 	fun purgeAgenda(
 		@PathVariable agendaId: String,
@@ -135,6 +145,16 @@ class AgendaController(
 	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		agendaService.purgeAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@Operation(summary = "Purge multiple Agendas if they match the provided revs")
+	@PostMapping("/purge/batch")
+	fun purgeAgendas(
+		@RequestBody agendaIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = agendaService
+		.purgeAgendas(
+			agendaIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets an agenda")
 	@GetMapping("/{agendaId}")

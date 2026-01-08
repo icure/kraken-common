@@ -96,7 +96,7 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectCachedReactorContext(reactorCacheInjector, 10)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes multiple access log if they match the provided rev")
 	@PostMapping("/delete/batch/withrev")
@@ -106,7 +106,7 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectCachedReactorContext(reactorCacheInjector, 10)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes an Access Log")
 	@DeleteMapping("/{accessLogId}")
@@ -136,7 +136,7 @@ class AccessLogController(
 		.undeleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectCachedReactorContext(reactorCacheInjector, 10)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{accessLogId}")
 	fun purgeAccessLog(
@@ -153,7 +153,7 @@ class AccessLogController(
 		.undeleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectCachedReactorContext(reactorCacheInjector, 10)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets an access log")
 	@GetMapping("/{accessLogId}")

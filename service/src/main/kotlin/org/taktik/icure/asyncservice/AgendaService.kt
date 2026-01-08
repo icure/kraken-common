@@ -57,6 +57,7 @@ interface AgendaService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeAgenda(id: String, rev: String): DocIdentifier
+	fun purgeAgendas(ids: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -66,6 +67,8 @@ interface AgendaService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteAgenda(id: String, rev: String): Agenda
+	fun undeleteAgendas(ids: List<IdAndRev>): Flow<Agenda>
+
 	suspend fun getAgenda(agendaId: String): Agenda?
 	fun getAgendas(agendaIds: List<String>): Flow<Agenda>
 
