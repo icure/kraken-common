@@ -476,9 +476,9 @@ class PatientController(
 		.deletePatients(
 			patientIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Patients if they match the provided revs")
+	@Operation(summary = "Delete multiple Patients if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deletePatientsWithRev(
 		@RequestBody patientIds: ListOfIdsAndRevDto,
@@ -486,14 +486,14 @@ class PatientController(
 		.deletePatients(
 			patientIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Patient")
+	@Operation(summary = "Delete a Patient")
 	@DeleteMapping("/{patientId}")
 	fun deletePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.deletePatient(patientId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -503,22 +503,34 @@ class PatientController(
 	fun undeletePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientV2Mapper.map(patientService.undeletePatient(patientId, rev))
 	}
 
 	@PostMapping("/undelete/batch")
 	fun undeletePatients(
 		@RequestBody ids: ListOfIdsAndRevDto,
-	): Flux<PatientDto> = patientService.undeletePatients(ids.ids.map(idWithRevV2Mapper::map)).map(patientV2Mapper::map).injectReactorContext()
+	): Flux<PatientDto> = patientService
+		.undeletePatients(ids.ids.map(idWithRevV2Mapper::map))
+		.map(patientV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{patientId}")
 	fun purgePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.purgePatient(patientId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgePatients(
+		@RequestBody patientIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = patientService
+		.purgePatients(
+			patientIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(
 		summary = "Find deleted patients",

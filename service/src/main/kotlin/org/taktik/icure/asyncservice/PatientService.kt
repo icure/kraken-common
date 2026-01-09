@@ -189,6 +189,7 @@ interface PatientService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgePatient(id: String, rev: String): DocIdentifier
+	fun purgePatients(patientId: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
