@@ -111,9 +111,9 @@ class DocumentController(
 		.deleteDocuments(
 			documentIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Documents if they match the provided revs")
+	@Operation(summary = "Delete  multiple Documents if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteDocumentsWithRev(
 		@RequestBody documentIds: ListOfIdsAndRevDto,
@@ -121,14 +121,14 @@ class DocumentController(
 		.deleteDocuments(
 			documentIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Document")
+	@Operation(summary = "Deletes a Document")
 	@DeleteMapping("/{documentId}")
 	fun deleteDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.deleteDocument(documentId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -138,20 +138,38 @@ class DocumentController(
 	fun undeleteDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentV2Mapper.map(documentService.undeleteDocument(documentId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteDocuments(
+		@RequestBody documentIds: ListOfIdsAndRevDto,
+	): Flux<DocumentDto> = documentService
+		.undeleteDocuments(
+			documentIds.ids.map(idWithRevV2Mapper::map),
+		).map(documentV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{documentId}")
 	fun purgeDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.purgeDocument(documentId, rev).let(docIdentifierV2Mapper::map)
 	}
 
+	@PostMapping("/purge/batch")
+	fun purgeDocuments(
+		@RequestBody documentIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = documentService
+		.purgeDocuments(
+			documentIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 	@Operation(
-		summary = "Load the main attachment of a document",
+		summary = "Load the main attachment of a Document",
 		responses = [
 			ApiResponse(
 				responseCode = "200",

@@ -175,6 +175,7 @@ interface DocumentService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeDocument(id: String, rev: String): DocIdentifier
+	fun purgeDocuments(documentIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -184,6 +185,7 @@ interface DocumentService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteDocument(id: String, rev: String): Document
+	fun undeleteDocuments(documentIds: List<IdAndRev>): Flow<Document>
 
 	/**
 	 * Modifies [Document]s in batch ensuring there is no change to deleted attachments and ids of attachments.
