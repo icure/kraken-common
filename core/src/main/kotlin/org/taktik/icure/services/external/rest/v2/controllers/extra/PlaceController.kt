@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,15 +30,16 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import kotlin.collections.map
 
 @RestController("placeControllerV2")
 @Profile("app")
@@ -47,6 +49,7 @@ class PlaceController(
 	private val placeService: PlaceService,
 	private val placeV2Mapper: PlaceV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
@@ -67,6 +70,14 @@ class PlaceController(
 		placeDtos.map(placeV2Mapper::map)
 	).map(placeV2Mapper::map).injectReactorContext()
 
+	@DeleteMapping("/{placeId}")
+	fun deletePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<DocIdentifierDto> = mono {
+		docIdentifierV2Mapper.map(placeService.deletePlace(placeId, rev))
+	}
+
 	@Operation(summary = "Delete a batch of Places")
 	@PostMapping("/delete/batch")
 	fun deletePlaces(
@@ -80,6 +91,46 @@ class PlaceController(
 		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
 			logger.error(it.message)
 		}
+
+	@PostMapping("/delete/batch/withRev")
+	fun deletePlacesWithRev(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = placeService
+		.deletePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
+
+	@PostMapping("/undelete/{placeId}")
+	fun undeletePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<PlaceDto> = mono {
+		placeV2Mapper.map(placeService.undeletePlace(placeId, rev))
+	}
+
+	@PostMapping("/undelete/batch")
+	fun undeletePlaces(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<PlaceDto> = placeService
+		.undeletePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map(placeV2Mapper::map)
+		.injectReactorContext()
+
+	@DeleteMapping("/purge/{placeId}")
+	fun purgePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<DocIdentifierDto> = mono {
+		docIdentifierV2Mapper.map(placeService.purgePlace(placeId, rev))
+	}
+
+	@PostMapping("/purge/batch")
+	fun purgePlaces(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = placeService
+		.purgePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Get a Place by id")
 	@GetMapping("/{placeId}")
