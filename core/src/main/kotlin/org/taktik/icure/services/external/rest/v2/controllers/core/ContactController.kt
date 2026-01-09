@@ -358,7 +358,7 @@ class ContactController(
 		return savedOrFailed.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
 	}
 
-	@Operation(summary = "Deletes multiple Contacts")
+	@Operation(summary = "Delete multiple Contacts")
 	@PostMapping("/delete/batch")
 	fun deleteContacts(
 		@RequestBody contactIds: ListOfIdsDto,
@@ -366,9 +366,9 @@ class ContactController(
 		.deleteContacts(
 			contactIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Contacts if they match the provided revs")
+	@Operation(summary = "Delete multiple Contacts if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteContactsWithRev(
 		@RequestBody contactIds: ListOfIdsAndRevDto,
@@ -376,14 +376,14 @@ class ContactController(
 		.deleteContacts(
 			contactIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Contact")
+	@Operation(summary = "Delete a Contact")
 	@DeleteMapping("/{contactId}")
 	fun deleteContact(
 		@PathVariable contactId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		contactService.deleteContact(contactId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -393,17 +393,36 @@ class ContactController(
 	fun undeleteContact(
 		@PathVariable contactId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<ContactDto> = mono {
+	): Mono<ContactDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		contactV2Mapper.map(contactService.undeleteContact(contactId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteContacts(
+		@RequestBody contactIds: ListOfIdsAndRevDto,
+	): Flux<ContactDto> = contactService
+		.undeleteContacts(
+			contactIds.ids.map(idWithRevV2Mapper::map),
+		).map(contactV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 
 	@DeleteMapping("/purge/{contactId}")
 	fun purgeContact(
 		@PathVariable contactId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		contactService.purgeContact(contactId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeContacts(
+		@RequestBody contactIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = contactService
+		.purgeContacts(
+			contactIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a contact", description = "Returns the modified contact.")
 	@PutMapping

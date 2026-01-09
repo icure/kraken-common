@@ -105,6 +105,7 @@ interface ContactService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeContact(id: String, rev: String): DocIdentifier
+	fun purgeContacts(contactIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -114,6 +115,7 @@ interface ContactService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteContact(id: String, rev: String): Contact
+	fun undeleteContacts(contactIds: List<IdAndRev>): Flow<Contact>
 
 	suspend fun modifyContact(contact: Contact): Contact
 	suspend fun getService(serviceId: String): Service?
