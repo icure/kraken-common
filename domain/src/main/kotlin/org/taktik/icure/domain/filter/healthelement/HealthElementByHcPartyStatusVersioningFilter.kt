@@ -19,15 +19,17 @@
 package org.taktik.icure.domain.filter.healthelement
 
 import org.taktik.icure.domain.filter.Filter
+import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.HealthElement
-import org.taktik.icure.entities.embed.Identifier
 
-@Deprecated("""
-	Use HealthElementByHcPartyIdentifiersVersioningFilter instead.
-	Equivalent if not specifying versionFiltering, or if using VersionFiltering.ANY, but uses new more efficient views.
-	This filter is currently kept to allow groups that do not yet have the updated views to continue to work.
-""")
-interface HealthElementByHcPartyIdentifiersFilter : Filter<String, HealthElement> {
+/**
+ * Retrieves all the [HealthElement]s with a delegation for [hcPartyId] and where [HealthElement.status] is equal to
+ * [status].
+ * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
+ * The optional [versionFiltering] specifies if matching health elements must be returned only if they are a specific version.
+ */
+interface HealthElementByHcPartyStatusVersioningFilter : Filter<String, HealthElement> {
 	val hcPartyId: String
-	val identifiers: List<Identifier>
+	val status: Int
+	val versionFiltering: VersionFiltering?
 }

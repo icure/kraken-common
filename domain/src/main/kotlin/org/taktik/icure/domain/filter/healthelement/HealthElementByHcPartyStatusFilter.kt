@@ -21,11 +21,11 @@ package org.taktik.icure.domain.filter.healthelement
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthElement
 
-/**
- * Retrieves all the [HealthElement]s with a delegation for [hcPartyId] and where [HealthElement.status] is equal to
- * [status].
- * This filter explicitly requires a [hcPartyId], so it does not require any security precondition.
- */
+@Deprecated("""
+	Use HealthElementByHcPartyStatusVersioningFilter instead.
+	Equivalent if not specifying versionFiltering, or if using VersionFiltering.ANY, but uses new more efficient views.
+	This filter is currently kept to allow groups that do not yet have the updated views to continue to work.
+""")
 interface HealthElementByHcPartyStatusFilter : Filter<String, HealthElement> {
 	val hcPartyId: String
 	val status: Int
