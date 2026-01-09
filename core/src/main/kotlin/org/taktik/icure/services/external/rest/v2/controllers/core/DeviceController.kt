@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.DeviceService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
@@ -40,6 +41,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
@@ -58,6 +60,7 @@ class DeviceController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
@@ -163,7 +166,7 @@ class DeviceController(
 		.deleteDevices(
 			deviceIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes a multiple Devices if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
@@ -173,14 +176,14 @@ class DeviceController(
 		.deleteDevices(
 			deviceIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Device")
+	@Operation(summary = "Delete a Device")
 	@DeleteMapping("/{deviceId}")
 	fun deleteDevice(
 		@PathVariable deviceId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		deviceService.deleteDevice(deviceId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -190,15 +193,33 @@ class DeviceController(
 	fun undeleteDevice(
 		@PathVariable deviceId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DeviceDto> = mono {
+	): Mono<DeviceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		deviceV2Mapper.map(deviceService.undeleteDevice(deviceId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteDevices(
+		@RequestBody deviceIds: ListOfIdsAndRevDto,
+	): Flux<DeviceDto> = deviceService
+		.undeleteDevices(
+			deviceIds.ids.map(idWithRevV2Mapper::map),
+		).map(deviceV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{deviceId}")
 	fun purgeDevice(
 		@PathVariable deviceId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		deviceService.purgeDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch/")
+	fun purgeDevices(
+		@RequestBody deviceIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = deviceService
+		.purgeDevices(
+			deviceIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

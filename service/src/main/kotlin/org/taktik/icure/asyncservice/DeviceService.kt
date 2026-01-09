@@ -61,6 +61,7 @@ interface DeviceService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeDevice(id: String, rev: String): DocIdentifier
+	fun purgeDevices(deviceIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -70,6 +71,8 @@ interface DeviceService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteDevice(id: String, rev: String): Device
+	fun undeleteDevices(deviceIds: List<IdAndRev>): Flow<Device>
+
 	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 	fun getEntityIds(): Flow<String>
 
