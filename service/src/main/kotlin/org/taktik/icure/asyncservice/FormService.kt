@@ -102,6 +102,7 @@ interface FormService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeForm(id: String, rev: String): DocIdentifier
+	fun purgeForms(formIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -111,6 +112,7 @@ interface FormService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteForm(id: String, rev: String): Form
+	fun undeleteForms(formIds: List<IdAndRev>): Flow<Form>
 
 	suspend fun modifyForm(form: Form): Form
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
