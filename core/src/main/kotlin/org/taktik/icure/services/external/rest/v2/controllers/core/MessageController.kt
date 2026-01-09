@@ -112,7 +112,7 @@ class MessageController(
 		.deleteMessages(
 			messageIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes multiple Messages if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
@@ -122,14 +122,14 @@ class MessageController(
 		.deleteMessages(
 			messageIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes a Message")
 	@DeleteMapping("/{messageId}")
 	fun deleteMessage(
 		@PathVariable messageId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		messageService.deleteMessage(messageId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -139,17 +139,35 @@ class MessageController(
 	fun undeleteMessage(
 		@PathVariable messageId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<MessageDto> = mono {
+	): Mono<MessageDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		messageV2Mapper.map(messageService.undeleteMessage(messageId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteMessages(
+		@RequestBody messageIds: ListOfIdsAndRevDto,
+	): Flux<MessageDto> = messageService
+		.undeleteMessages(
+			messageIds.ids.map(idWithRevV2Mapper::map),
+		).map(messageV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{messageId}")
 	fun purgeMessage(
 		@PathVariable messageId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		messageService.purgeMessage(messageId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeMessages(
+		@RequestBody messageIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = messageService
+		.purgeMessages(
+			messageIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets a message")
 	@GetMapping("/{messageId}")

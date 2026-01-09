@@ -240,6 +240,7 @@ interface MessageService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeMessage(id: String, rev: String): DocIdentifier
+	fun purgeMessages(messageIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -249,6 +250,7 @@ interface MessageService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteMessage(id: String, rev: String): Message
+	fun undeleteMessages(messageIds: List<IdAndRev>): Flow<Message>
 
 	/**
 	 * Retrieves the ids of the [Message]s matching the provided [filter].
