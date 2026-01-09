@@ -7,13 +7,11 @@ package org.taktik.icure.domain.filter.healthelement
 import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.HealthElement
 
-/**
- * Retrieves all the [HealthElement]s with a delegation for [healthcarePartyId], and that have a [HealthElement.tags] a
- * code stub with type [tagType] and code [tagCode] and/or a stub with type [codeType] and code [codeCode]
- * in [HealthElement.tags].
- * As this filter explicitly requires a data owner id, it does not need a security precondition.
- * If the status is not null, only the [HealthElement]s with the given [HealthElement.status] will be returned.
- */
+@Deprecated("""
+	Use HealthElementByHcPartyCodeFilter, HealthElementByHcPartyTagFilter, or HealthElementByHcPartyStatusVersioningFilter instead.
+	Equivalent if not specifying versionFiltering, or if using VersionFiltering.ANY, but uses new more efficient views.
+	This filter is currently kept to allow groups that do not yet have the updated views to continue to work.
+""")
 interface HealthElementByHcPartyTagCodeFilter : Filter<String, HealthElement> {
 	val healthcarePartyId: String
 	val codeType: String?

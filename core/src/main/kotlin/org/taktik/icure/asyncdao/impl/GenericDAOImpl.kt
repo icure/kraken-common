@@ -81,6 +81,15 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	private val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig
 ) : GenericDAO<T> {
+	companion object {
+		// Maximum number of items we are willing to filter kraken-side
+		// To use when it is not possible to get items already sorted from views
+		protected const val MAX_SORTABLE_ITEMS = 10_000
+		// Maximum number of items we are willing to filter kraken-side
+		// To use when it is not possible to get items already filtered from views
+		protected const val MAX_FILTERABLE_ITEMS = 20_000
+	}
+
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
 	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {

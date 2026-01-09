@@ -129,10 +129,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcareP
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTypeSpecialtyPostCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersVersioningFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyStatusVersioningFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.AllInsurancesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
@@ -351,6 +355,10 @@ abstract class FilterV2Mapper {
 
 	abstract fun map(filterDto: HealthElementByHcPartyTagCodeFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyTagCodeFilter
 	abstract fun map(filterDto: HealthElementByHcPartyIdentifiersFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyIdentifiersFilter
+	abstract fun map(filterDto: HealthElementByHcPartyIdentifiersVersioningFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyIdentifiersVersioningFilter
+	abstract fun map(filterDto: HealthElementByHcPartyStatusVersioningFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyStatusVersioningFilter
+	abstract fun map(filterDto: HealthElementByHcPartyTagFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyTagFilter
+	abstract fun map(filterDto: HealthElementByHcPartyCodeFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyCodeFilter
 	abstract fun map(filterDto: HealthElementByDataOwnerPatientOpeningDate): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByDataOwnerPatientOpeningDate
 	abstract fun map(filterDto: HealthElementByHcPartySecretForeignKeysFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByDataOwnerPatientOpeningDate
 	abstract fun map(filterDto: HealthElementByHcPartyFilter): org.taktik.icure.domain.filter.impl.healthelement.HealthElementByHcPartyFilter
@@ -360,6 +368,10 @@ abstract class FilterV2Mapper {
 	fun tryMap(filterDto: AbstractFilterDto<HealthElementDto>): AbstractFilter<HealthElement>? = when (filterDto) {
 		is HealthElementByHcPartyTagCodeFilter -> map(filterDto)
 		is HealthElementByHcPartyIdentifiersFilter -> map(filterDto)
+		is HealthElementByHcPartyIdentifiersVersioningFilter -> map(filterDto)
+		is HealthElementByHcPartyStatusVersioningFilter -> map(filterDto)
+		is HealthElementByHcPartyTagFilter -> map(filterDto)
+		is HealthElementByHcPartyCodeFilter -> map(filterDto)
 		is HealthElementByDataOwnerPatientOpeningDate -> map(filterDto)
 		is HealthElementByHcPartySecretForeignKeysFilter -> map(filterDto)
 		is HealthElementByHcPartyFilter -> map(filterDto)
