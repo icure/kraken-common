@@ -31,6 +31,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.DocumentNotFoundException
@@ -54,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Map
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
@@ -73,6 +75,7 @@ class HealthcarePartyController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 	companion object {
 		private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -294,7 +297,7 @@ class HealthcarePartyController(
 		PublicKeyDto(healthcarePartyId, publicKey)
 	}
 
-	@Operation(summary = "Deletes multiple HealthcarePartys")
+	@Operation(summary = "Deletes multiple HealthcareParties")
 	@PostMapping("/delete/batch")
 	fun deleteHealthcareParties(
 		@RequestBody healthcarePartyIds: ListOfIdsDto,
@@ -302,9 +305,9 @@ class HealthcarePartyController(
 		.deleteHealthcareParties(
 			healthcarePartyIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple HealthcarePartys if they match the provided revs")
+	@Operation(summary = "Deletes multiple HealthcareParties if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteHealthcarePartiesWithRev(
 		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
@@ -312,14 +315,14 @@ class HealthcarePartyController(
 		.deleteHealthcareParties(
 			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes an HealthcareParty")
 	@DeleteMapping("/{healthcarePartyId}")
 	fun deleteHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyService.deleteHealthcareParty(healthcarePartyId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -329,17 +332,36 @@ class HealthcarePartyController(
 	fun undeleteHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<HealthcarePartyDto> = mono {
+	): Mono<HealthcarePartyDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyV2Mapper.map(healthcarePartyService.undeleteHealthcareParty(healthcarePartyId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteHealthcareParties(
+		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
+	): Flux<HealthcarePartyDto> = healthcarePartyService
+		.undeleteHealthcareParties(
+			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
+		).map(healthcarePartyV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 
 	@DeleteMapping("/purge/{healthcarePartyId}")
 	fun purgeHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyService.purgeHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeHealthcareParties(
+		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = healthcarePartyService
+		.purgeHealthcareParties(
+			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a HealthcareParty.", description = "No particular return value. It's just a message.")
 	@PutMapping

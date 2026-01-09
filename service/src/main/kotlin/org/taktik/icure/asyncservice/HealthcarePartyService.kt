@@ -68,6 +68,7 @@ interface HealthcarePartyService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeHealthcareParty(id: String, rev: String): DocIdentifier
+	fun purgeHealthcareParties(healthcarePartyIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -77,6 +78,7 @@ interface HealthcarePartyService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteHealthcareParty(id: String, rev: String): HealthcareParty
+	fun undeleteHealthcareParties(healthcarePartyIds: List<IdAndRev>): Flow<HealthcareParty>
 
 	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
 	fun createHealthcareParties(healthcareParties: List<HealthcareParty>): Flow<HealthcareParty>
