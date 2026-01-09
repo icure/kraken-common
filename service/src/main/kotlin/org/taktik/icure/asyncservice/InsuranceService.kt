@@ -7,6 +7,7 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -42,6 +43,13 @@ interface InsuranceService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun deleteInsurance(insuranceId: String, rev: String?): Insurance
+	fun deleteInsurances(insuranceIds: List<IdAndRev>): Flow<DocIdentifier>
+
+	suspend fun undeleteInsurance(insuranceId: String, rev: String): Insurance
+	fun undeleteInsurances(insuranceIds: List<IdAndRev>): Flow<Insurance>
+
+	suspend fun purgeInsurance(insuranceId: String, rev: String): DocIdentifier
+	fun purgeInsurances(insuranceIds: List<IdAndRev>): Flow<DocIdentifier>
 
 //    /**
 //     * Deletes an entity.
