@@ -102,6 +102,7 @@ interface HealthElementService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeHealthElement(id: String, rev: String): DocIdentifier
+	fun purgeHealthElements(healthElementIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -111,6 +112,7 @@ interface HealthElementService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteHealthElement(id: String, rev: String): HealthElement
+	fun undeleteHealthElements(healthElementIds: List<IdAndRev>): Flow<HealthElement>
 
 	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement
 

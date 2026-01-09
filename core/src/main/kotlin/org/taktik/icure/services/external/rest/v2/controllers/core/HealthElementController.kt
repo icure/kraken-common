@@ -217,9 +217,9 @@ class HealthElementController(
 		.deleteHealthElements(
 			healthElementIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple HealthElements if they match the provided revs")
+	@Operation(summary = "Deletes multiple HealthElements if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteHealthElementsWithRev(
 		@RequestBody healthElementIds: ListOfIdsAndRevDto,
@@ -227,14 +227,14 @@ class HealthElementController(
 		.deleteHealthElements(
 			healthElementIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an HealthElement")
+	@Operation(summary = "Deletes a HealthElement")
 	@DeleteMapping("/{healthElementId}")
 	fun deleteHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthElementService.deleteHealthElement(healthElementId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -244,17 +244,36 @@ class HealthElementController(
 	fun undeleteHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<HealthElementDto> = mono {
+	): Mono<HealthElementDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthElementV2Mapper.map(healthElementService.undeleteHealthElement(healthElementId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteHealthElements(
+		@RequestBody healthElementIds: ListOfIdsAndRevDto,
+	): Flux<HealthElementDto> = healthElementService
+		.undeleteHealthElements(
+			healthElementIds.ids.map(idWithRevV2Mapper::map),
+		).map(healthElementV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{healthElementId}")
 	fun purgeHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
-		healthElementService.purgeHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		healthElementService.purgeHealthElement(healthElementId, rev)
+			.let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeHealthElements(
+		@RequestBody healthElementIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = healthElementService
+		.purgeHealthElements(
+			healthElementIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a health element", description = "Returns the modified health element.")
 	@PutMapping
