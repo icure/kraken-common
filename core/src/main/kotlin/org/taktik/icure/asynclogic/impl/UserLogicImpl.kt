@@ -538,4 +538,13 @@ open class UserLogicImpl(
 	): DocIdentifier = super.purgeEntity(id, rev).also {
 		globalUserUpdater.tryPurge(localId = id, localRev = rev)
 	}
+
+	override fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		super.purgeEntities(identifiers).also { users ->
+			globalUserUpdater.tryPurge(
+				users.mapNotNull { if (it.id != null) IdAndRev(it.id!!, it.rev) else null }.toList()
+			)
+			emitAll(users)
+		}
+	}
 }

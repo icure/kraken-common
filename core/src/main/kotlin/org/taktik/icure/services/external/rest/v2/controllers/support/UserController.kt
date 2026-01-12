@@ -36,6 +36,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
@@ -43,12 +44,14 @@ import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
@@ -72,6 +75,7 @@ class UserController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
 ) {
 	companion object {
@@ -200,32 +204,56 @@ class UserController(
 		@PathVariable id: String,
 	): Flux<String> = userService.findByPatientId(id).injectReactorContext()
 
-	@Operation(summary = "Deletes an User")
+	@Operation(summary = "Delete a User")
 	@DeleteMapping("/{userId}")
 	fun deleteUser(
 		@PathVariable userId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userService.deleteUser(userId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
 	}
 
+	@PostMapping("/delete/batch")
+	fun deleteUsers(
+		@RequestBody userIds: ListOfIdsAndRevDto
+	): Flux<DocIdentifierDto> = userService.deleteUsers(
+			userIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 	@PostMapping("/undelete/{userId}")
 	fun undeleteUser(
 		@PathVariable userId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userV2Mapper.mapOmittingSecrets(userService.undeleteUser(userId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteUsers(
+		@RequestBody userIds: ListOfIdsAndRevDto
+	): Flux<UserDto> = userService.undeleteUsers(
+			userIds.ids.map(idWithRevV2Mapper::map)
+		).map(userV2Mapper::mapOmittingSecrets)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{userId}")
 	fun purgeUser(
 		@PathVariable userId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userService.purgeUser(userId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeUsers(
+		@RequestBody userIds: ListOfIdsAndRevDto
+	): Flux<DocIdentifierDto> = userService.purgeUsers(
+			userIds.ids.map(idWithRevV2Mapper::map)
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a User.", description = "No particular return value. It's just a message.")
 	@PutMapping

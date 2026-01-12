@@ -1,6 +1,7 @@
 package org.taktik.icure.security.user
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.entities.User
 
 interface GlobalUserUpdater {
@@ -22,4 +23,6 @@ interface GlobalUserUpdater {
 		localId: String,
 		localRev: String,
 	)
+
+	suspend fun tryPurge(userIds: List<IdAndRev>)
 }

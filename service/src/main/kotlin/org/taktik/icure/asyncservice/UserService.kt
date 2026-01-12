@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -119,6 +120,7 @@ interface UserService : EntityWithConflictResolutionService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun deleteUser(id: String, rev: String?): User
+	fun deleteUsers(userIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Deletes an entity.
@@ -132,6 +134,7 @@ interface UserService : EntityWithConflictResolutionService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeUser(id: String, rev: String): DocIdentifier
+	fun purgeUsers(userIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -141,5 +144,6 @@ interface UserService : EntityWithConflictResolutionService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteUser(id: String, rev: String): User
+	fun undeleteUsers(userIds: List<IdAndRev>): Flow<User>
 	// endregion
 }

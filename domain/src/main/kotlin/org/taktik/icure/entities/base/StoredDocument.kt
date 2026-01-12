@@ -24,7 +24,6 @@ interface StoredDocument : Versionable<String> {
 		}
 	}
 
-	@Suppress("PropertyName")
 	@JsonProperty("java_type")
 	fun getJavaType(): String = this::class.qualifiedName!!
 
