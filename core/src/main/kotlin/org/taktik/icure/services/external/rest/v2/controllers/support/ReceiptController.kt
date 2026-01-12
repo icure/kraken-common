@@ -90,9 +90,9 @@ class ReceiptController(
 		.deleteReceipts(
 			receiptIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Receipts if they match the provided revs")
+	@Operation(summary = "Delete multiple Receipts if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteReceiptsWithRev(
 		@RequestBody receiptIds: ListOfIdsAndRevDto,
@@ -100,14 +100,14 @@ class ReceiptController(
 		.deleteReceipts(
 			receiptIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Receipt")
+	@Operation(summary = "Delete a Receipt")
 	@DeleteMapping("/{receiptId}")
 	fun deleteReceipt(
 		@PathVariable receiptId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		receiptService.deleteReceipt(receiptId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -117,17 +117,35 @@ class ReceiptController(
 	fun undeleteReceipt(
 		@PathVariable receiptId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<ReceiptDto> = mono {
+	): Mono<ReceiptDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		receiptV2Mapper.map(receiptService.undeleteReceipt(receiptId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteReceipts(
+		@RequestBody receiptIds: ListOfIdsAndRevDto,
+	): Flux<ReceiptDto> = receiptService
+		.undeleteReceipts(
+			receiptIds.ids.map(idWithRevV2Mapper::map),
+		).map(receiptV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{receiptId}")
 	fun purgeReceipt(
 		@PathVariable receiptId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		receiptService.purgeReceipt(receiptId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeReceipts(
+		@RequestBody receiptIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = receiptService
+		.purgeReceipts(
+			receiptIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(
 		summary = "Get an attachment",

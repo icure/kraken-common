@@ -72,6 +72,7 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeReceipt(id: String, rev: String): DocIdentifier
+	fun purgeReceipts(receiptIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -81,6 +82,7 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteReceipt(id: String, rev: String): Receipt
+	fun undeleteReceipts(receiptIds: List<IdAndRev>): Flow<Receipt>
 
 	/**
 	 * Retrieve a [Receipt] by id.
