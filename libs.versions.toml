@@ -15,7 +15,7 @@ jwt = "0.11.5"
 kotlin = "2.2.0"
 ksp = "2.2.0-2.0.2"
 reactorNettyVersion = "1.2.7"
-nettyVersion = "4.1.122.Final"
+nettyVersion = "4.1.124.Final"
 jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
@@ -35,9 +35,10 @@ bouncyCastleBcprov = { group = "org.bouncycastle", name = "bcprov-jdk18on", vers
 byteBuddy = { group = "net.bytebuddy", name = "byte-buddy", version = "1.10.22" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 checkerFramework = { group = "org.checkerframework", name = "checker-qual", version = "3.49.0" }
-commonsBeanUtils = { group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4" }
+commonsBeanUtils = { group = "commons-beanutils", name = "commons-beanutils", version = "1.11.0" }
 commonsCodec = { group = "commons-codec", name = "commons-codec", version = "1.17.1" }
 commonsIO = { group = "commons-io", name = "commons-io", version = "2.16.1" }
+commonsLogging = { group = "commons-logging", name = "commons-logging", version = "1.3.5" }
 gcpAuthProvider = { group = "com.icure", name = "icure-gcp_auth_provider", version = "1.0.13-gb7ba77828a" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version = "2.8.0" }
 googleErrorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version = "2.38.0" }
@@ -46,8 +47,8 @@ googleHttpClient = { group = "com.google.http-client", name = "google-http-clien
 googleHttpClientGson = { group = "com.google.http-client", name = "google-http-client-gson", version = "1.47.1" }
 googleOAuthLibraryCredential = { group = "com.google.auth", name = "google-auth-library-credentials", version = "1.37.1" }
 googleOAuthLibraryHttp = { group = "com.google.auth", name = "google-auth-library-oauth2-http", version = "1.37.1" }
-grpcApi = { group = "io.grpc", name = "grpc-api", version = "1.71.0" }
-grpcContext = { group = "io.grpc", name = "grpc-context", version = "1.71.0" }
+grpcApi = { group = "io.grpc", name = "grpc-api", version = "1.75.0" }
+grpcContext = { group = "io.grpc", name = "grpc-context", version = "1.75.0" }
 guava = { group = "com.google.guava", name = "guava", version = "33.4.8-jre" }
 guavaFailureAccess = { group = "com.google.guava", name = "failureaccess", version = "1.0.3" }
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
@@ -111,6 +112,8 @@ nettyBuffer = { group = "io.netty", name = "netty-buffer", version.ref = "nettyV
 nettyCodec = { group = "io.netty", name = "netty-codec", version.ref = "nettyVersion" }
 nettyCommon = { group = "io.netty", name = "netty-common", version.ref = "nettyVersion" }
 nettyHandler = { group = "io.netty", name = "netty-handler", version.ref = "nettyVersion" }
+nettyResolver = { group = "io.netty", name = "netty-resolver", version.ref = "nettyVersion" }
+nettyTransportNativeUnixCommon = { group = "io.netty", name = "netty-transport-native-unix-common", version.ref = "nettyVersion" }
 nettyTransport = { group = "io.netty", name = "netty-transport", version.ref = "nettyVersion" }
 reactiveStreams = { group = "org.reactivestreams", name = "reactive-streams", version = "1.0.4" }
 reactorCore = { group = "io.projectreactor", name = "reactor-core", version = "3.7.7" }
