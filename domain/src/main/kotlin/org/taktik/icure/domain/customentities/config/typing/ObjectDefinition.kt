@@ -242,6 +242,7 @@ data class ObjectDefinition(
 	) {
 		properties.forEach { (propName, propConfig) ->
 			path.appending(".", propName) {
+				validateIdentifier(path, propName)
 				propConfig.type.validateConfig(resolutionContext, path)
 				path.appending("<DEFAULT>.") {
 					propConfig.defaultValue?.validateFor(propConfig.type, resolutionContext, path)

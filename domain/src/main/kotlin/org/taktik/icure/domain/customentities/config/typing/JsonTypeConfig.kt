@@ -10,7 +10,8 @@ import org.taktik.icure.domain.customentities.util.ResolutionPath
  * This type configuration, however, has stricter limitations for json numbers:
  * - Integer numbers that are too large to be represented as a 64-bit signed integer will be rejected.
  * - Floating point numbers that are too large to be represented as a finite 64-bit floating point number will be rejected.
- * - Floating point numbers within the limit of 64-bit floating point representation will be accepted, but may lose precision or change representation when stored.
+ * - Floating point numbers within the limit of 64-bit floating point representation will be accepted, but may lose
+ * precision or change representation when stored, as described in [FloatTypeConfig].
  */
 data object JsonTypeConfig : GenericTypeConfig {
 	override fun validateAndMapValueForStore(

@@ -36,6 +36,9 @@ internal inline fun validatingAndIgnoringNullForRead(
 		block()
 	}
 
+// Purpose on identifiers validation:
+// - helps make sure that they can be used in the generated SDK Should probably also block all keywords of langauges we generate SDKs for.
+// - size limit helps to reduce impact that cache has on memory consumption
 private val UPPERCASE_LETTERS = 'A'..'Z'
 private val LOWERCASE_LETTERS = 'a'..'z'
 private val DIGITS = '0'..'9'
@@ -44,14 +47,14 @@ fun validateIdentifier(path: ResolutionPath, identifier: String) {
 	require(identifier.length in IDENTIFIER_ALLOWED_LENGTH) {
 		"${path}: invalid identifier `${
 			identifier.take(IDENTIFIER_ALLOWED_LENGTH.last)
-		}`${
+		}${
 			if (identifier.length > IDENTIFIER_ALLOWED_LENGTH.last) "..." else ""
-		} length must be in ${IDENTIFIER_ALLOWED_LENGTH.first}-${IDENTIFIER_ALLOWED_LENGTH.last}"
+		}` length must be in ${IDENTIFIER_ALLOWED_LENGTH.first}-${IDENTIFIER_ALLOWED_LENGTH.last}"
 	}
 	require(identifier.all { c ->
 		c in UPPERCASE_LETTERS || c in LOWERCASE_LETTERS || c in DIGITS || c == '_'
-	}) {
-		"${path}: invalid identifier `$identifier`, can only contain alphanumeric characters or underscores"
+	} && (identifier.first() !in DIGITS)) {
+		"${path}: invalid identifier `$identifier`, can only contain alphanumeric characters or underscores, and can't start with a digit"
 	}
 }
 
