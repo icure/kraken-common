@@ -33,6 +33,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Message
+import org.taktik.icure.utils.buildComparator
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
@@ -84,7 +85,8 @@ open class MessageDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String, Message>(
 				viewQueries,
-				compareBy(
+				buildComparator(
+					reverse,
 					{ it.components[0] as? String },
 					{ it.components[1] as? String },
 					{ (it.components[2] as? Number)?.toLong() },
@@ -153,7 +155,10 @@ open class MessageDAOImpl(
 			reverse,
 		)
 		emitAll(
-			client.interleave<ComplexKey, String, Message>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() })),
+			client.interleave<ComplexKey, String, Message>(
+				viewQueries,
+				buildComparator(reverse, { it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() })
+			),
 		)
 	}
 
@@ -268,8 +273,10 @@ open class MessageDAOImpl(
 
 		emitAll(
 			client
-				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() }))
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
+				.interleave<ComplexKey, String>(
+					viewQueries,
+					buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() })
+				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id },
 		)
 	}
@@ -321,7 +328,10 @@ open class MessageDAOImpl(
 
 		emitAll(
 			client
-				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() }))
+				.interleave<ComplexKey, String>(
+					viewQueries,
+					buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String }, { (it.components[2] as? Number)?.toLong() })
+				)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id },
 		)

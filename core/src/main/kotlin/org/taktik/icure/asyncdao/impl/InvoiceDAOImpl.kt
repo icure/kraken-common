@@ -39,6 +39,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
+import org.taktik.icure.utils.buildComparator
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
@@ -225,7 +226,10 @@ class InvoiceDAOImpl(
 				.includeDocs()
 		emitAll(
 			client
-				.interleave<ComplexKey, String, Invoice>(viewQueries, compareBy({ it.components[0] as? String }, { it.components[1] as? String }))
+				.interleave<ComplexKey, String, Invoice>(
+					viewQueries,
+					buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String })
+				)
 				.filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>()
 				.map { it.doc },
 		)

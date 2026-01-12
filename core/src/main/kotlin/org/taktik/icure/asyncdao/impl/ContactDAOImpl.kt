@@ -55,15 +55,13 @@ import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.DeduplicationMode
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.NoDocViewQueries
+import org.taktik.icure.utils.buildComparator
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
-import kotlin.String
-import kotlin.collections.map
-import kotlin.collections.set
 
 @Repository("contactDAO")
 @Profile("app")
@@ -141,7 +139,10 @@ class ContactDAOImpl(
 			.doNotIncludeDocs()
 		emitAll(
 			client
-				.interleave<ComplexKey, String>(viewQueries, compareBy({ it.components[0] as String }, { (it.components[1] as? Number)?.toLong() }))
+				.interleave<ComplexKey, String>(
+					viewQueries,
+					buildComparator(descending, { it.components[0] as String }, { (it.components[1] as? Number)?.toLong() })
+				)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id },
 		)
@@ -479,7 +480,8 @@ class ContactDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String>(
 				viewQueries,
-				compareBy(
+				buildComparator(
+					descending,
 					{ it.components[0] as? String },
 					{ it.components[1] as? String },
 					{ it.components[2] as? String },
@@ -557,7 +559,8 @@ class ContactDAOImpl(
 			idFlows.add(
 				client.interleave<ComplexKey, String>(
 					viewQueries,
-					compareBy(
+					buildComparator(
+						descending,
 						{ it.components[0] as? String },
 						{ it.components[1] as? String },
 						{ it.components[2] as? String },
@@ -593,7 +596,8 @@ class ContactDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String>(
 				viewQueries,
-				compareBy(
+				buildComparator(
+					descending,
 					{ it.components[0] as? String },
 					{ it.components[1] as? String },
 					{ it.components[2] as? String },
@@ -844,7 +848,8 @@ class ContactDAOImpl(
 			idFlows.add(
 				client.interleave<ComplexKey, String>(
 					viewQueries,
-					compareBy(
+					buildComparator(
+						descending,
 						{ it.components[0] as? String },
 						{ it.components[1] as? String },
 						{ it.components[2] as? String },
