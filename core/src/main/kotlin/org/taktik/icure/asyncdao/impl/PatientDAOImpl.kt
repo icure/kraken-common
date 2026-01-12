@@ -48,6 +48,7 @@ import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.DeduplicationMode
+import org.taktik.icure.utils.buildComparator
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
@@ -185,7 +186,7 @@ class PatientDAOImpl(
 					?: 0
 				) +
 				(client.queryView<Array<String>, Int>(viewQuery).first().value ?: 0)
-		} catch (e: NoSuchElementException) {
+		} catch (_: NoSuchElementException) {
 			return 0
 		}
 	}
@@ -197,7 +198,7 @@ class PatientDAOImpl(
 			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())).includeDocs(false)
 		return try {
 			client.queryView<Array<String>, Int>(viewQuery).first().value ?: 0
-		} catch (e: NoSuchElementException) {
+		} catch (_: NoSuchElementException) {
 			return 0
 		}
 	}
@@ -760,7 +761,7 @@ class PatientDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String, Patient>(
 				viewQueries,
-				compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
+				buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String }),
 			),
 		)
 	}
@@ -794,7 +795,7 @@ class PatientDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String, Patient>(
 				viewQueries,
-				compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
+				buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String }),
 			),
 		)
 	}
@@ -829,7 +830,7 @@ class PatientDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String, Patient>(
 				viewQueries,
-				compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
+				buildComparator(descending, { it.components[0] as? String }, { it.components[1] as? String }),
 			),
 		)
 	}
@@ -858,7 +859,7 @@ class PatientDAOImpl(
 		emitAll(
 			client.interleave<ComplexKey, String, Patient>(
 				viewQueries,
-				compareBy({ it.components[0] as? String }, { (it.components[1] as? Number)?.toLong() }),
+				buildComparator(descending, { it.components[0] as? String }, { (it.components[1] as? Number)?.toLong() }),
 			),
 		)
 	}
