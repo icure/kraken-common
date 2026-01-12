@@ -4,15 +4,19 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
+import org.taktik.couchdb.Client
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
@@ -21,7 +25,9 @@ import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.HealthElementDAO
@@ -31,12 +37,17 @@ import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
+import org.taktik.icure.exceptions.TooManyResultsException
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
+import java.io.Serializable
+import kotlin.collections.chunked
+import kotlin.collections.forEach
 
 @Repository("healthElementDAO")
 @Profile("app")
@@ -342,7 +353,258 @@ internal class HealthElementDAOImpl(
 		when (partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_and_identifiers" to MAURICE_PARTITION)
+			Partitions.Beppe -> warmup(datastoreInformation, "by_health_element_id_latest" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
+
+	@Views(
+		View(name = "by_all_delegates_code_date_map", map = "classpath:js/healthelement/By_all_delegates_code_date_map.js", secondaryPartition = BEPPE_PARTITION),
+		View(name = "by_all_delegates_code_map", map = "classpath:js/healthelement/By_all_delegates_code_map.js", secondaryPartition = BEPPE_PARTITION)
+	)
+
+	override fun listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCode: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		filterVersion: VersionFiltering
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitFilteringVersions(
+			client,
+			datastoreInformation,
+			queryByHcPartyTagOrCodeDateSortedQuery(
+				datastoreInformation = datastoreInformation,
+				client = client,
+				dateInKeyViewName = "by_all_delegates_code_date_map",
+				dateInValueViewName = "by_all_delegates_code_map",
+				searchKeys = searchKeys,
+				type = codeType,
+				code = codeCode,
+				startDate = startValueDate,
+				endDate = endValueDate,
+				descending = false,
+			),
+			filterVersion
+		)
+	}
+
+	@Views(
+		View(name = "by_all_delegates_tag_date_map", map = "classpath:js/healthelement/By_all_delegates_tag_date_map.js", secondaryPartition = BEPPE_PARTITION),
+		View(name = "by_all_delegates_tag_map", map = "classpath:js/healthelement/By_all_delegates_tag_map.js", secondaryPartition = BEPPE_PARTITION)
+	)
+	override fun listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCode: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		filterVersion: VersionFiltering
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitFilteringVersions(
+			client,
+			datastoreInformation,
+			queryByHcPartyTagOrCodeDateSortedQuery(
+				datastoreInformation = datastoreInformation,
+				client = client,
+				dateInKeyViewName = "by_all_delegates_tag_date_map",
+				dateInValueViewName = "by_all_delegates_tag_map",
+				searchKeys = searchKeys,
+				type = tagType,
+				code = tagCode,
+				startDate = startValueDate,
+				endDate = endValueDate,
+				descending = false,
+			),
+			filterVersion
+		)
+	}
+
+	private data class ByTagViewValue(
+		@param:JsonProperty("d") val valueDate: Long? = null,
+		@param:JsonProperty("h") val healthElementId: String? = null,
+	) : Serializable
+
+	private suspend fun queryByHcPartyTagOrCodeDateSortedQuery(
+		datastoreInformation: IDatastoreInformation,
+		client: Client,
+		dateInKeyViewName: String,
+		dateInValueViewName: String,
+		searchKeys: Set<String>,
+		type: String,
+		code: String,
+		startDate: Long?,
+		endDate: Long?,
+		descending: Boolean,
+	): List<DocumentIdHealthElementId> = if (searchKeys.size == 1) {
+		val from = ComplexKey.of(
+			searchKeys.first(),
+			type,
+			code,
+			startDate,
+		)
+		val to = ComplexKey.of(
+			searchKeys.first(),
+			type,
+			code,
+			endDate ?: ComplexKey.emptyObject(),
+		)
+		val query = createQuery(
+			datastoreInformation,
+			dateInKeyViewName,
+			BEPPE_PARTITION
+		)
+			.startKey(if (descending) to else from)
+			.endKey(if (descending) from else to)
+			.descending(descending)
+			.reduce(false)
+			.includeDocs(false)
+		client.queryView<ComplexKey, String>(
+			query
+		).map {
+			DocumentIdHealthElementId(
+				documentId = it.id,
+				healthElementId = it.value
+			)
+		}.toList()
+	} else {
+		val keys = searchKeys.map {
+			ComplexKey.of(
+				it,
+				type,
+				code,
+			)
+		}
+		val query = createQuery(
+			datastoreInformation,
+			dateInValueViewName,
+			BEPPE_PARTITION
+		)
+			.keys(keys)
+			.descending(descending)
+			.reduce(false)
+			.includeDocs(false)
+			.limit(MAX_FILTERABLE_ITEMS + 1)
+		client.queryView<ComplexKey, ByTagViewValue>(
+			query
+		).toList().also {
+			if (it.size > MAX_FILTERABLE_ITEMS) {
+				throw TooManyResultsException("Too many results, query can't be satisfied for the current user.")
+			}
+		}.let { entries ->
+			if (startDate == null && endDate == null) entries else entries.filter { viewRow ->
+				viewRow.value?.valueDate?.let {
+					(startDate == null || it >= startDate) && (endDate == null || it <= endDate)
+				} == true
+			}
+		}.also {
+			if (it.size > MAX_SORTABLE_ITEMS) {
+				throw TooManyResultsException("Too many results, please restrict your query.")
+			}
+		}.sortedBy {
+			it.value?.valueDate ?: 0
+		}.map {
+			DocumentIdHealthElementId(
+				documentId = it.id,
+				healthElementId = it.value?.healthElementId
+			)
+		}
+	}
+
+	@View(name = "by_all_delegates_status", map = "classpath:js/healthelement/By_all_delegates_status_map.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listHealthElementIdsByHcPartyAndStatusAndVersioning(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		status: Int?,
+		filterVersion: VersionFiltering
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitFilteringVersions(
+			client,
+			datastoreInformation,
+			client.queryView<ComplexKey, String>(
+				createQuery(datastoreInformation, "by_all_delegates_status", BEPPE_PARTITION)
+					.includeDocs(false)
+					.keys(searchKeys.map { ComplexKey.of(it, status) })
+			).map {
+				DocumentIdHealthElementId(
+					documentId = it.id,
+					healthElementId = it.value
+				)
+			}.toList(),
+			filterVersion
+		)
+	}
+
+	@View(name = "by_all_delegates_identifiers", map = "classpath:js/healthelement/By_all_delegates_identifiers_map.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		identifiers: List<Identifier>,
+		filterVersion: VersionFiltering
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitFilteringVersions(
+			client,
+			datastoreInformation,
+			client.queryView<ComplexKey, String>(
+				createQuery(datastoreInformation, "by_all_delegates_identifiers", BEPPE_PARTITION)
+					.includeDocs(false)
+					.keys(
+						identifiers.flatMap {
+							searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
+						},
+					)
+			).map {
+				DocumentIdHealthElementId(
+					documentId = it.id,
+					healthElementId = it.value
+				)
+			}.toList(),
+			filterVersion
+		)
+	}
+
+	private suspend fun FlowCollector<String>.emitFilteringVersions(
+		client: Client,
+		datastoreInformation: IDatastoreInformation,
+		healthElements: Collection<DocumentIdHealthElementId>,
+		filterVersion: VersionFiltering
+	): Unit = when (filterVersion) {
+		VersionFiltering.LATEST -> emitLatestHealthElements(client, datastoreInformation, healthElements)
+		VersionFiltering.ANY -> healthElements.forEach { emit(it.documentId) }
+	}
+
+	@View(name = "by_health_element_id_latest", map = "classpath:js/healthelement/By_health_element_id_latest_map.js", reduce = "classpath:js/healthelement/By_health_element_id_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
+	private suspend fun FlowCollector<String>.emitLatestHealthElements(
+		client: Client,
+		datastoreInformation: IDatastoreInformation,
+		healthElements: Collection<DocumentIdHealthElementId>
+	) {
+		val allHealthElementIds = healthElements.mapNotNullTo(mutableSetOf()) { it.healthElementId }
+		val latestDocForHealthElement = mutableMapOf<String, String>()
+		allHealthElementIds.chunked(1000).takeIf { it.isNotEmpty() }?.forEach { chunk ->
+			val query = createQuery(datastoreInformation, "by_health_element_id_latest", BEPPE_PARTITION)
+				.reduce(true)
+				.group(true)
+				.keys(chunk)
+			client.queryView<String, ComplexKey>(query).collect {
+				latestDocForHealthElement[it.key!!] = it.value!!.components[1] as String
+			}
+		}
+		healthElements.forEach {
+			// Emit the documentId if it's the latest for its healthElementId, or if it has no healthElementId (single version -> latest by default)
+			if (it.healthElementId == null || latestDocForHealthElement[it.healthElementId] == it.documentId) emit(it.documentId)
+		}
+	}
+
+	private data class DocumentIdHealthElementId(
+		val documentId: String,
+		val healthElementId: String?,
+	)
 }
