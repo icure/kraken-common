@@ -38,11 +38,14 @@ data class ReceiptDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
 	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to

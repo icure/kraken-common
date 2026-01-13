@@ -29,7 +29,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import java.util.UUID
+import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,57 +39,52 @@ Services include subjective information provided by the patient, such as complai
 Any action performed by the healthcare party which is relevant for the healthcare element of a patient is considered a service. The services can be linked to healthcare elements or other structuring elements of the medical record""",
 )
 data class ServiceDto(
-	@param:Schema(
-		description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.",
-	) override val id: String = UUID.randomUUID().toString(),
-	@param:Schema(
-		description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service",
-	) val transactionId: String? = null,
+	@param:Schema(description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.")
+	override val id: String = UUID.randomUUID().toString(),
+	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
+	val transactionId: String? = null,
 	val identifier: List<IdentifierDto> = emptyList(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Id of the contact during which the service is provided") val contactId: String? = null,
-	@param:Schema(
-		description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",
-	) val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(
-		description = "List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact",
-	) val plansOfActionIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(
-		description = "List of IDs of all healthcare elements for which the service is provided. Only used when the Service is emitted outside of its contact",
-	) val healthElementsIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(
-		description = "List of Ids of all forms linked to the Service. Only used when the Service is emitted outside of its contact.",
-	) val formIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
+	val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact")
+	val plansOfActionIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "List of IDs of all healthcare elements for which the service is provided. Only used when the Service is emitted outside of its contact")
+	val healthElementsIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "List of Ids of all forms linked to the Service. Only used when the Service is emitted outside of its contact.")
+	val formIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(
 		description = "The secret patient key, encrypted in the patient document, in clear here.",
-		defaultValue = "emptySet()",
-	) val secretForeignKeys: Set<String>? = emptySet(), // Only used when the ServiceDto is emitted outside of its contact
+		defaultValue = "emptySet()"
+	)
+	val secretForeignKeys: Set<String>? = emptySet(), // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "The delegations giving access to connected healthcare information.") val delegations: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(
-		description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.",
-	) val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(
-		description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...",
-	) val label: String? = null,
-	@param:Schema(
-		description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)",
-	) val index: Long? = null, // Used for sorting
+	@param:Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.")
+	val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...")
+	val label: String? = null,
+	@param:Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)")
+	val index: Long? = null, // Used for sorting
 	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
 	@get:Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
 	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
-	@param:Schema(
-		description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date",
-	) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	@param:Schema(description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date") val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the Service") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the Service") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
-	@param:Schema(description = "Id of the form used during the Service") val formId: String? = null, // Used to group logically related services
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "Id of the form used during the Service")
+	val formId: String? = null, // Used to group logically related services
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	override val endOfLife: Long? = null,
 	override val author: String? = null, // userId
 	override val responsible: String? = null, // healthcarePartyId
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	@param:Schema(description = "Text, comments on the Service provided") val comment: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val status: Int? = null, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
 	@param:Schema(description = "List of invoicing codes") val invoicingCodes: Set<String> = emptySet(),
 	@param:Schema(description = "Comments - Notes recorded by a HCP about this service") val notes: List<AnnotationDto> = emptyList(),

@@ -20,9 +20,9 @@ data class Content(
 	@param:JsonProperty("n") val numberValue: Double? = null,
 	@param:JsonProperty("b") val booleanValue: Boolean? = null,
 	@param:JsonProperty("i")
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
 	@param:JsonProperty("dt") val fuzzyDateValue: Long? = null,
 	@param:JsonProperty("x") val binaryValue: ByteArray? = null,

@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -18,18 +16,18 @@ import org.taktik.icure.utils.invoke
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Insurance(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val name: Map<String, String> = emptyMap(),
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val privateInsurance: Boolean = false,
+	val privateInsurance: Boolean = false,
 	val hospitalisationInsurance: Boolean = false,
 	val ambulatoryInsurance: Boolean = false,
 	val code: String? = null,
 	val agreementNumber: String? = null,
 	val parent: String? = null, // ID of the parent
-	@param:ContentValue(ContentValues.NESTED_ENTITY) val address: Address = Address(),
+	val address: Address = Address(),
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

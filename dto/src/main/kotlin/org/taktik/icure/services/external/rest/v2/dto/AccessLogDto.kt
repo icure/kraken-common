@@ -46,19 +46,22 @@ data class AccessLogDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "Id of the object that is being requested.") val objectId: String? = null,
 	@param:Schema(description = "The type of access") val accessType: String? = null,
 	@param:Schema(description = "Id of the user making the requests") val user: String? = null,
 	@param:Schema(description = "Further details about the access") val detail: String? = null,
-	@JsonSerialize(
+	@param:JsonSerialize(
 		using = InstantSerializer::class,
 		include = JsonSerialize.Inclusion.NON_NULL,
-	) @JsonDeserialize(using = InstantDeserializer::class)
+	)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
 	@get:Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),

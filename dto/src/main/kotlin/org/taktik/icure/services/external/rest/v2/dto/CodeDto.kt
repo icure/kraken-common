@@ -39,13 +39,18 @@ data class CodeDto(
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	val author: String? = null,
 	val regions: Set<String> = emptySet(), // ex: be,fr
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val periodicity: Set<PeriodicityDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val level: Int? = null, // ex: 0 = System, not to be modified by userDto, 1 = optional, created or modified by userDto
 	val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val flags: Set<CodeFlagDto> = emptySet(), // flags (like female only) for the code
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val data: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val appendices: Map<AppendixTypeDto, String> = emptyMap(),
 	@param:Schema(defaultValue = "false") val disabled: Boolean = false,
 ) : StoredDocumentDto,

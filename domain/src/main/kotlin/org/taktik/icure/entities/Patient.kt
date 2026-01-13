@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
@@ -115,7 +113,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Patient(
-	@param:ContentValue(ContentValues.UUID) @param:JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	val identifier: List<Identifier> = listOf(),
 	override val created: Long? = null,
@@ -126,11 +124,11 @@ data class Patient(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) override val firstName: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) override val lastName: String? = null, // Is usually either maidenName or spouseName,
+	override val firstName: String? = null,
+	override val lastName: String? = null, // Is usually either maidenName or spouseName,
 	override val companyName: String? = null,
 	override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST)override val addresses: List<Address> = emptyList(),
+	override val addresses: List<Address> = emptyList(),
 	override val civility: String? = null,
 	override val gender: Gender? = Gender.unknown,
 	override val names: List<PersonName> = emptyList(),
@@ -147,7 +145,7 @@ data class Patient(
 	val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
 	val personalStatus: PersonalStatus? = PersonalStatus.unknown,
 	val dateOfBirth: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val deceased: Boolean? = null,
+	val deceased: Boolean? = null,
 	val dateOfDeath: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
 	val timestampOfLatestEidReading: Long? = null,
 	val placeOfBirth: String? = null,
@@ -163,7 +161,7 @@ data class Patient(
 	val preferredUserId: String? = null,
 	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val insurabilities: List<Insurability> = emptyList(),
+	val insurabilities: List<Insurability> = emptyList(),
 	val partnerships: List<Partnership> = emptyList(),
 	val patientHealthCareParties: List<PatientHealthCareParty> = emptyList(),
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),

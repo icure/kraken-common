@@ -66,6 +66,7 @@ data class ContactDto(
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	@param:Schema(description = "Description of the contact") val descr: String? = null,
 	@param:Schema(description = "Location where the contact was recorded.") val location: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
 	@param:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
 	@param:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
