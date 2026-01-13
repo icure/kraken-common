@@ -422,3 +422,14 @@ suspend fun <P> DesignDocumentProvider.pagedViewQueryOfIds(client: Client, metad
 
 	return viewQuery
 }
+
+fun <T> buildComparator(descending: Boolean, vararg selectors: (T) -> Comparable<*>?): Comparator<T> {
+	require(selectors.isNotEmpty())
+	return if(descending) {
+		selectors.drop(1).fold(compareByDescending(selectors.first())) { acc, it ->
+			acc.thenByDescending(it)
+		}
+	} else {
+		compareBy(*selectors)
+	}
+}
