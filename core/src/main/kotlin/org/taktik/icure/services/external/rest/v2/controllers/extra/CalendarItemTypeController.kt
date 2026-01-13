@@ -130,7 +130,7 @@ class CalendarItemTypeController(
 		@RequestBody calendarItemTypeIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = calendarItemTypeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
 		calendarItemTypeService
-			.deleteCalendarItemTypes(ids.map(idWithRevV2Mapper::map))
+			.deleteCalendarItemTypesWithRev(ids.map(idWithRevV2Mapper::map))
 			.map(docIdentifierV2Mapper::map)
 			.injectCachedReactorContext(reactorCacheInjector, 100)
 	}
@@ -174,7 +174,7 @@ class CalendarItemTypeController(
 	fun purgeCalendarItemTypesWithRev(
 		@RequestBody calendarItemTypeIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = calendarItemTypeService
-		.deleteCalendarItemTypes(calendarItemTypeIds.ids.map(idWithRevV2Mapper::map))
+		.purgeCalendarItemTypes(calendarItemTypeIds.ids.map(idWithRevV2Mapper::map))
 		.map(docIdentifierV2Mapper::map)
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 

@@ -374,7 +374,7 @@ class HealthcarePartyController(
 	}
 
 	@Operation(summary = "Modify a batch of HealthcareParty.")
-	@PostMapping("/batch")
+	@PutMapping("/batch")
 	fun modifyHealthcareParties(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
 	): Flux<HealthcarePartyDto> =

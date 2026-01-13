@@ -34,7 +34,7 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 		datastoreInformation: IDatastoreInformation,
 		newEntity: Boolean?,
 		entity: T,
-	): T? = super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
+	): T = super.save(datastoreInformation, newEntity, entity.apply { setTimestamps(this) })
 
 	override fun createBulk(
 		datastoreInformation: IDatastoreInformation,

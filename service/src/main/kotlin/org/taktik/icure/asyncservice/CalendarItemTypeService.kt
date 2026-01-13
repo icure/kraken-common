@@ -27,7 +27,7 @@ interface CalendarItemTypeService {
 	 * @return a [Flow] containing the deleted [CalendarItemType]s.
 	 */
 	fun deleteCalendarItemTypes(ids: List<String>): Flow<CalendarItemType>
-	fun deleteCalendarItemTypes(calendarItemTypeIds: List<IdAndRev>): Flow<DocIdentifier>
+	fun deleteCalendarItemTypesWithRev(calendarItemTypeIds: List<IdAndRev>): Flow<DocIdentifier>
 	suspend fun deleteCalendarItemType(id: String, rev: String): DocIdentifier
 
 	fun undeleteCalendarItemTypes(calendarItemTypeIds: List<IdAndRev>): Flow<CalendarItemType>

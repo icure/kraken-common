@@ -56,7 +56,7 @@ import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-@RestController("accesslLogControllerV2")
+@RestController("accessLogControllerV2")
 @Profile("app")
 @RequestMapping("/rest/v2/accesslog")
 @Tag(name = "accessLog")
