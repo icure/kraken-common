@@ -126,7 +126,7 @@ class CalendarItemController(
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a CalendarItem")
+	@Operation(summary = "Delete a CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
