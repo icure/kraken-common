@@ -69,6 +69,13 @@ class CalendarItemTypeController(
 			.asPaginatedFlux()
 	}
 
+	@PostMapping("/byIds")
+	fun createCalendarItemTypesByIds(
+		@RequestBody calendarItemTypeIds: ListOfIdsDto,
+	): Flux<CalendarItemTypeDto> = calendarItemTypeService.getCalendarItemTypes(
+		calendarItemTypeIds.ids
+	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
+
 	@Operation(summary = "Gets calendarItemTypes for agendaId")
 	@GetMapping("/byAgenda/{agendaId}")
 	fun listCalendarItemTypesByAgendaId(
