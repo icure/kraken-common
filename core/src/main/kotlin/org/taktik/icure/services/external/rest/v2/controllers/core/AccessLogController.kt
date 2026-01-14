@@ -150,7 +150,7 @@ class AccessLogController(
 	fun purgeAccessLogs(
 		@RequestBody accessLogIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = accessLogService
-		.undeleteAccessLogs(
+		.purgeAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectCachedReactorContext(reactorCacheInjector, 100)
