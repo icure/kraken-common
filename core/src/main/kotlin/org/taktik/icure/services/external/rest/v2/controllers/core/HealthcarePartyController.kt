@@ -252,17 +252,10 @@ class HealthcarePartyController(
 	): Flux<HealthcarePartyDto> = healthcarePartyIds.ids
 		.takeIf { it.isNotEmpty() }
 		?.let { ids ->
-			try {
-				healthcarePartyService
-					.getHealthcareParties(ids)
-					.map { healthcarePartyV2Mapper.map(it) }
-					.injectReactorContext()
-			} catch (e: Exception) {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					e.message,
-				).also { logger.error(it.message) }
-			}
+			healthcarePartyService
+				.getHealthcareParties(ids)
+				.map { healthcarePartyV2Mapper.map(it) }
+				.injectReactorContext()
 		}
 		?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
