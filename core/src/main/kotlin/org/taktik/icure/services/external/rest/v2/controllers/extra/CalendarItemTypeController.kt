@@ -132,7 +132,7 @@ class CalendarItemTypeController(
 		}
 
 	@Operation(summary = "Deletes a batch of CalendarItemTypes if the current version matches the provided revs")
-	@PostMapping("/delete/batch/withRev")
+	@PostMapping("/delete/batch/withrev")
 	fun deleteCalendarItemTypesWithRev(
 		@RequestBody calendarItemTypeIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = calendarItemTypeIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
