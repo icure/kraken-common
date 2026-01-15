@@ -184,7 +184,7 @@ open class DocumentLogicImpl(
 						}
 					}.getOrNull()
 				}.let {
-					super.filterValidEntityChanges(it)
+					super.filterValidEntityChanges(datastoreInformation, it)
 				}.let {
 					documentDAO.saveBulk(datastoreInformation, it.toList())
 				}.map {
@@ -222,7 +222,7 @@ open class DocumentLogicImpl(
 						}
 					}.getOrNull()
 				}.let {
-					super.filterValidEntityChanges(it)
+					super.filterValidEntityChanges(datastoreInformation, it)
 				}.toList()
 
 		emitAll(documentDAO.create(datastoreInformation, fixedDocumentsToCreate))
