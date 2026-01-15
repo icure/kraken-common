@@ -214,7 +214,7 @@ class DeviceController(
 		deviceService.purgeDevice(deviceId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@PostMapping("/purge/batch/")
+	@PostMapping("/purge/batch")
 	fun purgeDevices(
 		@RequestBody deviceIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = deviceService
