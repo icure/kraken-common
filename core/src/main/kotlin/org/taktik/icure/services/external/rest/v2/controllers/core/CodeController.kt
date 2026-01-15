@@ -9,7 +9,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -271,8 +270,7 @@ class CodeController(
 	fun getCode(
 		@Parameter(description = "Code id") @PathVariable codeId: String,
 	): Mono<CodeDto> = mono {
-		val c =
-			codeService.get(codeId)
+		val c = codeService.get(codeId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code. Read the app logs.")
 		codeV2Mapper.map(c)
 	}
@@ -298,15 +296,7 @@ class CodeController(
 	fun modifyCode(
 		@RequestBody codeDto: CodeDto,
 	): Mono<CodeDto> = mono {
-		val modifiedCode =
-			try {
-				codeService.modify(codeV2Mapper.map(codeDto))!!
-			} catch (e: Exception) {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
+		val modifiedCode = codeService.modify(codeV2Mapper.map(codeDto))
 		codeV2Mapper.map(modifiedCode)
 	}
 
@@ -316,16 +306,7 @@ class CodeController(
 		@RequestBody codeBatch: List<CodeDto>,
 	): Flux<CodeDto> = codeService
 		.modify(codeBatch.map { codeV2Mapper.map(it) })
-		.catch { e ->
-			if (e is IllegalStateException) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			} else {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
-		}.map { codeV2Mapper.map(it) }
+		.map { codeV2Mapper.map(it) }
 		.injectReactorContext()
 
 	@Operation(

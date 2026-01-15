@@ -28,7 +28,7 @@ interface CodeService : EntityWithConflictResolutionService {
 
 	fun create(codes: List<Code>): Flow<Code>
 
-	suspend fun modify(code: Code): Code?
+	suspend fun modify(code: Code): Code
 	fun modify(batch: List<Code>): Flow<Code>
 
 	suspend fun deleteCode(codeId: String, rev: String): DocIdentifier

@@ -130,7 +130,7 @@ open class CodeLogicImpl(
 		emitAll(
 			codeDAO.createBulk(
 				getInstanceAndGroup(),
-				codes,
+				validateForCreation(codes.map { fix(it, isCreate = true) }),
 			).filterSuccessfulUpdates()
 		)
 	}
@@ -783,7 +783,7 @@ open class CodeLogicImpl(
 				}
 				batchSave(null, true)
 				create(Code.from("ICURE-SYSTEM", md5, "1"))
-			} catch (e: IllegalArgumentException) {
+			} catch (_: IllegalArgumentException) {
 				// Skip
 			} finally {
 				stream.close()
@@ -849,11 +849,11 @@ open class CodeLogicImpl(
 								null
 							}
 						}.toList()
-						.sortedBy { it ->
+						.sortedBy {
 							val itCode = it.doc as Code
 							try {
 								pub.getProperty(itCode, sort) as? String
-							} catch (e: Exception) {
+							} catch (_: Exception) {
 								""
 							} ?: ""
 						}
