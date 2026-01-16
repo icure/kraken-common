@@ -76,7 +76,7 @@ data class ContactDto(
 	@param:Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id")
 	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
 	val participants: Map<ParticipantTypeDto, String> = emptyMap(),
-	val participantList: List<ContactParticipantDto> = emptyList(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val participantList: List<ContactParticipantDto> = emptyList(),
 	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, // Redundant... Should be responsible
 	@get:Deprecated("Use groupId") val modifiedContactId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
