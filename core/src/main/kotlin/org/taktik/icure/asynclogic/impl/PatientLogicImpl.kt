@@ -423,7 +423,9 @@ open class PatientLogicImpl(
 
 	override fun modifyPatients(patients: Collection<Patient>): Flow<Patient> = flow {
 		// access control already done by modify entities
-		val fixedPatients = patients.map { fix(it, isCreate = false) }
+		val fixedPatients = patients.map { fix(it, isCreate = false) }.onEach {
+			checkRequirements(it)
+		}
 		emitAll(modifyEntities(fixedPatients))
 	}
 
@@ -437,7 +439,7 @@ open class PatientLogicImpl(
 		emitAll(super.modifyEntities(entities))
 	}
 
-	private fun checkRequirements(patient: Patient) {
+	protected fun checkRequirements(patient: Patient) {
 		if (!patient.isValidForStore()) {
 			throw MissingRequirementsException("modifyPatient: Name, Last name  are required.")
 		}
