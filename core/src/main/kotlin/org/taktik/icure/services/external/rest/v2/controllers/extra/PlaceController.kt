@@ -92,7 +92,7 @@ class PlaceController(
 			logger.error(it.message)
 		}
 
-	@PostMapping("/delete/batch/withRev")
+	@PostMapping("/delete/batch/withrev")
 	fun deletePlacesWithRev(
 		@RequestBody placeIds: ListOfIdsAndRevDto,
 	): Flux<DocIdentifierDto> = placeService
