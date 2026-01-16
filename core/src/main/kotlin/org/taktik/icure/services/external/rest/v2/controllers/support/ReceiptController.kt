@@ -204,7 +204,7 @@ class ReceiptController(
 	}
 
 	@Operation(summary = "Get a batch of Receipts by ids")
-	@GetMapping("/byIds")
+	@PostMapping("/byIds")
 	fun getReceipts(
 		@RequestBody receiptIds: ListOfIdsDto,
 	): Flux<ReceiptDto> = receiptService.getReceipts(receiptIds.ids).map(receiptV2Mapper::map).injectReactorContext()
@@ -224,6 +224,15 @@ class ReceiptController(
 			.modifyReceipt(receiptV2Mapper.map(receiptDto))
 			.let { receiptV2Mapper.map(it) }
 	}
+
+	@PutMapping("/batch")
+	fun modifyReceipts(
+		@RequestBody receiptDtos: List<ReceiptDto>,
+	): Flux<ReceiptDto> = receiptService
+		.modifyReceipts(
+			receiptDtos.map(receiptV2Mapper::map),
+		).map(receiptV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(description = "Shares one or more Receipts with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
