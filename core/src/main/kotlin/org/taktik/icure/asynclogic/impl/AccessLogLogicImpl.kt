@@ -55,7 +55,7 @@ class AccessLogLogicImpl(
 ),
 	AccessLogLogic {
 	override suspend fun createAccessLog(accessLog: AccessLog) = fix(accessLog, isCreate = true) { fixedAccessLog ->
-		if (fixedAccessLog.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedAccessLog)
 		val datastoreInformation = getInstanceAndGroup()
 		accessLogDAO.create(
 			datastoreInformation,
@@ -72,7 +72,9 @@ class AccessLogLogicImpl(
 		emitAll(
 			accessLogDAO.saveBulk(
 				datastoreInformation,
-				accessLogs.map {
+				accessLogs.onEach {
+					checkValidityForCreation(it)
+				}.map {
 					val fixedAccessLog = fix(it, isCreate = true)
 					if (fixedAccessLog.date == null) {
 						fixedAccessLog.copy(user = sessionLogic.getCurrentUserId(), date = Instant.now())

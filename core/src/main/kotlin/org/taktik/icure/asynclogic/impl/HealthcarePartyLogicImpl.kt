@@ -72,6 +72,7 @@ open class HealthcarePartyLogicImpl(
 		healthcareParties.onEach { validateHealthcareParty(it) }
 
 	override suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = false) { fixedHealthcareParty ->
+		checkValidityForModification(fixedHealthcareParty)
 		validateHealthcareParty(fixedHealthcareParty)
 		modifyEntity(fixedHealthcareParty)
 	}
@@ -80,14 +81,14 @@ open class HealthcarePartyLogicImpl(
 		emitAll(
 			healthcarePartyDAO.saveBulk(
 				datastoreInformation = getInstanceAndGroup(),
-				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = false) }),
+				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = false) }.onEach { checkValidityForModification(it) }),
 			).filterSuccessfulUpdates()
 		)
 	}
 
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = true) { fixedHealthcareParty ->
+		checkValidityForCreation(fixedHealthcareParty)
 		validateHealthcareParty(fixedHealthcareParty)
-		if (healthcareParty.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntity(fixedHealthcareParty)
 	}
 
@@ -95,7 +96,7 @@ open class HealthcarePartyLogicImpl(
 		emitAll(
 			healthcarePartyDAO.saveBulk(
 				datastoreInformation = getInstanceAndGroup(),
-				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = true) }),
+				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = true) }.onEach { checkValidityForCreation(it) }),
 			).filterSuccessfulUpdates()
 		)
 	}

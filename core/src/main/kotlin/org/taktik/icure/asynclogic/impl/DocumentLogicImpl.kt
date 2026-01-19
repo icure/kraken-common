@@ -55,7 +55,6 @@ open class DocumentLogicImpl(
 		document: Document,
 		strict: Boolean,
 	) = fix(document, isCreate = true) { fixedDocument ->
-		if (fixedDocument.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		documentDAO.save(datastoreInformation, checkNewDocument(fixedDocument, strict))
 	}
@@ -112,11 +111,12 @@ open class DocumentLogicImpl(
 			documentDAO
 				.saveBulk(
 					datastoreInformation,
-					entities.filter { it.rev === null }.mapNotNull {
-						kotlin
-							.runCatching {
-								checkNewDocument(fix(it, isCreate = true), true)
-							}.getOrNull()
+					entities.onEach {
+						checkValidityForCreation(it)
+					}.mapNotNull {
+						runCatching {
+							checkNewDocument(fix(it, isCreate = true), true)
+						}.getOrNull()
 					},
 				).filterSuccessfulUpdates(),
 		)
@@ -128,6 +128,7 @@ open class DocumentLogicImpl(
 
 	override fun modifyEntities(entities: Collection<Document>): Flow<Document> = flow {
 		val datastoreInformation = getInstanceAndGroup()
+		entities.onEach { checkValidityForCreation(it) }
 		emitAll(
 			doModifyDocuments(
 				entities.toList(),
@@ -153,10 +154,10 @@ open class DocumentLogicImpl(
 		strict: Boolean,
 	): Document = fix(updatedDocument, isCreate = false) { newDoc ->
 		val datastoreInformation = getInstanceAndGroup()
-		val baseline =
-			requireNotNull(documentDAO.get(datastoreInformation, newDoc.id)) {
-				"Attempting to modify a non-existing document ${newDoc.id}."
-			}
+		checkValidityForModification(newDoc)
+		val baseline = requireNotNull(documentDAO.get(datastoreInformation, newDoc.id)) {
+			"Attempting to modify a non-existing document ${newDoc.id}."
+		}
 		require(newDoc.rev == baseline.rev) { "Updated document has an older revision ${newDoc.rev} -> ${baseline.rev}" }
 		val validatedEntityForAttachments = ensureValidAttachmentChanges(updatedDocument, baseline, strict)
 		checkValidEntityChange(validatedEntityForAttachments, baseline)
@@ -203,10 +204,9 @@ open class DocumentLogicImpl(
 
 		val fixedDocumentsToCreate =
 			documentToCreate.mapNotNull {
-				kotlin
-					.runCatching {
-						checkNewDocument(fix(it.newDocument, isCreate = true), strict)
-					}.getOrNull()
+				runCatching {
+					checkNewDocument(fix(it.newDocument, isCreate = true), strict)
+				}.getOrNull()
 			}
 
 		val fixedDocumentsToUpdate =
@@ -374,6 +374,7 @@ open class DocumentLogicImpl(
 		document: Document,
 		strict: Boolean,
 	): Document {
+		checkValidityForCreation(document)
 		require(document.secondaryAttachments.isEmpty()) {
 			"New document can't provide any secondary attachments information."
 		}

@@ -292,7 +292,6 @@ open class MessageLogicImpl(
 	}
 
 	override suspend fun createMessage(message: Message) = fix(message, isCreate = true) { fixedMessage ->
-		if (fixedMessage.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
 			?: throw NotFoundRequestException("Current user not found")
 		createEntity(fixedMessage.withAddressAndHealthcarePartyId(loggedUser))

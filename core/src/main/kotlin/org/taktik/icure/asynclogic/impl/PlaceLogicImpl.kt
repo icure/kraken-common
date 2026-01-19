@@ -37,6 +37,7 @@ open class PlaceLogicImpl(
 	}
 
 	override suspend fun modifyPlace(place: Place): Place = fix(place, isCreate = false) { fixedPlace ->
+		checkValidityForModification(fixedPlace)
 		val datastoreInformation = getInstanceAndGroup()
 		placeDAO.save(datastoreInformation, fixedPlace)
 	}

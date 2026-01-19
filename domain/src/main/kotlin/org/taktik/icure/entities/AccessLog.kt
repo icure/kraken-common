@@ -9,8 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
@@ -30,7 +28,7 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessLog(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -39,13 +37,14 @@ data class AccessLog(
 	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	@param:ContentValue(ContentValues.TIMESTAMP) override val endOfLife: Long? = null,
+	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	val objectId: String? = null,
 	val accessType: String? = null,
 	val user: String? = null, // TODO what is this used for?
-	@param:ContentValue(ContentValues.ANY_STRING) val detail: String? = null,
-	@param:JsonSerialize(using = InstantSerializer::class) @JsonDeserialize(using = InstantDeserializer::class)
+	val detail: String? = null,
+	@param:JsonSerialize(using = InstantSerializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val date: Instant? = null,
 	@Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),

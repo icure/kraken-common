@@ -23,7 +23,6 @@ open class DeviceLogicImpl(
 	DeviceLogic {
 
 	override suspend fun createDevice(device: Device) = fix(device, isCreate = true) { fixedDevice ->
-		if (fixedDevice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntity(fixedDevice)
 	}
 

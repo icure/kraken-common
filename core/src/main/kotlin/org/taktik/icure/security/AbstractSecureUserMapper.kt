@@ -16,7 +16,14 @@ interface SecureUserMapper<UserDto> {
 	 * @throws NotFoundRequestException if [userDto] represents an existing user that does not exist
 	 * @throws ConflictRequestException if [userDto] represents an existing user but the revision is outdated
 	 */
-	suspend fun mapFillingOmittedSecrets(userDto: UserDto): User
+	suspend fun mapFillingOmittedSecrets(userDto: UserDto, isCreate: Boolean = false): User
+
+	/**
+	 * Maps a user entity to a user DTO, omitting any secret data.
+	 * Differently from [mapOmittingSecrets] this operation will return null if the user is not found on the db and
+	 * will not check that the revision of the user on the db matches the one on [userDto].
+	 */
+	suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean = false): User?
 
 	/**
 	 * Maps a user entity to a user DTO, omitting any secret data.
@@ -28,27 +35,46 @@ interface SecureUserMapper<UserDto> {
 abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 	private val userLogic: UserLogic,
 ) : SecureUserMapper<UserDto> {
-	override suspend fun mapFillingOmittedSecrets(userDto: UserDto): User = mapFillingOmittedSecrets(userDto) { userLogic.getUser(it, false) }
+	override suspend fun mapFillingOmittedSecrets(userDto: UserDto, isCreate: Boolean): User =
+		mapFillingOmittedSecrets(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }
+
+	override suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean): User? =
+		mapFillingOmittedSecretsOrNull(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }
 
 	protected suspend fun mapFillingOmittedSecrets(
 		userDto: UserDto,
+		isCreate: Boolean,
 		getExistingUser: suspend (id: String) -> User?,
-	): User {
+	): User = checkNotNull(mapFillingOmittedSecretsOrNull(userDto, getExistingUser, failOnMissingUser = true, failOnMismatchedRev = true, isCreate = isCreate)) {
+		"Mapping returned null when failure was expected"
+	}
+
+	protected suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		isCreate: Boolean,
+		getExistingUser: suspend (id: String) -> User?,
+	): User? = mapFillingOmittedSecretsOrNull(userDto, getExistingUser, failOnMissingUser = false, failOnMismatchedRev = false, isCreate = isCreate)
+
+	protected suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		getExistingUser: suspend (id: String) -> User?,
+		failOnMissingUser: Boolean,
+		failOnMismatchedRev: Boolean,
+		isCreate: Boolean
+	): User? {
 		val modifiedUser = unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto)
-		return if (modifiedUser.rev != null) {
-			val existingUser =
-				getExistingUser(modifiedUser.id)
-					?: throw NotFoundRequestException("User ${modifiedUser.id} does not exist")
-			if (existingUser.rev != modifiedUser.rev) throw ConflictRequestException("Outdated revision for user ${modifiedUser.id}")
+		return if (modifiedUser.rev != null && !isCreate) {
+			val existingUser = getExistingUser(modifiedUser.id)
+				?: if (failOnMissingUser) throw NotFoundRequestException("User ${modifiedUser.id} does not exist") else return null
+			if (existingUser.rev != modifiedUser.rev && failOnMismatchedRev) {
+				throw ConflictRequestException("Outdated revision for user ${modifiedUser.id}")
+			}
 			val filledPassword = if (modifiedUser.passwordHash == "*") existingUser.passwordHash else modifiedUser.passwordHash
-			val filledSecret =
-				if (modifiedUser.use2fa == true) {
-					requireNotNull(modifiedUser.secret ?: existingUser.secret) {
-						"Secret is required when 2FA is enabled"
-					}
-				} else {
-					null
+			if (modifiedUser.use2fa == true) {
+				requireNotNull(modifiedUser.secret ?: existingUser.secret) {
+					"Secret is required when 2FA is enabled"
 				}
+			}
 			val filledApplicationTokens =
 				existingUser.applicationTokens?.let {
 					it + (modifiedUser.applicationTokens ?: emptyMap())

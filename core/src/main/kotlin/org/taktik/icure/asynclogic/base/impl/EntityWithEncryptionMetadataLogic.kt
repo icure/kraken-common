@@ -80,7 +80,7 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
 					entities =
 					helper
 						.filterValidEntityChanges(
-							entities.map { fix(it, isCreate = false) },
+							entities.onEach { checkValidityForModification(it) }.map { fix(it, isCreate = false) },
 							dao.getEntities(datastoreInfo, entities.map { it.id }),
 						).toList(),
 				).filterSuccessfulUpdates(),

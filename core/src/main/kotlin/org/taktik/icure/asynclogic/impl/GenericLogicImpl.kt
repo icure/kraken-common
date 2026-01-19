@@ -33,21 +33,47 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	EntityPersister<E> {
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
-	override suspend fun createEntity(entity: E): E = getGenericDAO().create(getInstanceAndGroup(), entity)
-
-	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
-		emitAll(getGenericDAO().createBulk(getInstanceAndGroup(), entities.map { fix(it, isCreate = true) }).filterSuccessfulUpdates())
+	protected fun checkValidityForCreation(entity: E) {
+		if (entity.rev != null) {
+			throw IllegalArgumentException("An entity with a non-null revision is not valid for creation")
+		}
 	}
 
-	override suspend fun modifyEntity(entity: E): E =
-		getGenericDAO().save(getInstanceAndGroup(), entity)
+	override suspend fun createEntity(entity: E): E {
+		checkValidityForCreation(entity)
+		return getGenericDAO().create(getInstanceAndGroup(), entity)
+	}
+
+	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
+		emitAll(
+			getGenericDAO().createBulk(
+				getInstanceAndGroup(),
+				entities.onEach { checkValidityForCreation(it) }.map { fix(it, isCreate = true) }
+			).filterSuccessfulUpdates())
+	}
+
+	protected fun checkValidityForModification(entity: E) {
+		if (entity.rev == null) {
+			throw IllegalArgumentException("An entity with a null revision is not valid for modification")
+		}
+	}
+
+
+	override suspend fun modifyEntity(entity: E): E {
+		checkValidityForModification(entity)
+		return getGenericDAO().save(getInstanceAndGroup(), entity)
+	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
 		emitAll(
 			getGenericDAO()
 				.saveBulk(
 					datastoreInformation = getInstanceAndGroup(),
-					entities = entities.map { fix(it, isCreate = false) },
+					entities = entities.onEach {
+						checkValidityForModification(it)
+					}.map {
+						fix(it, isCreate = false)
+					},
 				).filterSuccessfulUpdates(),
 		)
 	}

@@ -37,12 +37,17 @@ open class AgendaLogicImpl(
 		)
 	}
 
-	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
+	protected suspend fun validateAgendaForCreation(agenda: Agenda) {
+		checkValidityForCreation(agenda)
 		if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
-			require(fixedAgenda.userRights.isNotEmpty()) {
+			require(agenda.userRights.isNotEmpty()) {
 				"You cannot create an Agenda with empty userRights"
 			}
 		}
+	}
+
+	override suspend fun createAgenda(agenda: Agenda) = fix(agenda, isCreate = true) { fixedAgenda ->
+		validateAgendaForCreation(agenda)
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.create(datastoreInformation, fixedAgenda)
 	}
@@ -54,11 +59,7 @@ open class AgendaLogicImpl(
 				datastoreInformation,
 				agendas.map {
 					fix(it, isCreate = true).also { fixedAgenda ->
-						if (sdkVersionConfig.hasAtLeastFeatureLevelOf(SdkVersionConfig.FeatureLevel.AccessLogUserRights)) {
-							require(fixedAgenda.userRights.isNotEmpty()) {
-								"You cannot create an Agenda with empty userRights"
-							}
-						}
+						validateAgendaForCreation(fixedAgenda)
 					}
 				}
 			).filterSuccessfulUpdates()
@@ -71,6 +72,7 @@ open class AgendaLogicImpl(
 	}
 
 	override suspend fun modifyAgenda(agenda: Agenda) = fix(agenda, isCreate = false) { fixedAgenda ->
+		checkValidityForModification(fixedAgenda)
 		val datastoreInformation = getInstanceAndGroup()
 		agendaDAO.save(datastoreInformation, fixedAgenda)
 	}

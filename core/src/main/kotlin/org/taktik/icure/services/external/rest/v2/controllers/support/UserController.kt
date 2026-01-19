@@ -120,7 +120,7 @@ class UserController(
 	fun createUser(
 		@RequestBody userDto: UserDto,
 	): Mono<UserDto> = mono {
-		val user = userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
+		val user = userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null), isCreate = true))
 		userV2Mapper.mapOmittingSecrets(user)
 	}
 
@@ -134,7 +134,7 @@ class UserController(
 	): Flux<UserDto> = flow {
 		emitAll(
 			userService.createUsers(
-				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null)) }
+				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null), isCreate = true) }
 			).map(userV2Mapper::mapOmittingSecrets)
 		)
 	}.injectReactorContext()
@@ -262,7 +262,10 @@ class UserController(
 	): Mono<UserDto> = mono {
 		// Sanitize group
 		val modifiedUser =
-			userService.modifyUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null)))
+			userService.modifyUser(
+				userV2Mapper.mapFillingOmittedSecretsOrNull(userDto.copy(groupId = null))
+					?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User ${userDto.id} not found")
+			)
 
 		userV2Mapper.mapOmittingSecrets(modifiedUser)
 	}
@@ -274,7 +277,7 @@ class UserController(
 	): Flux<UserDto> = flow {
 		emitAll(
 			userService.modifyUsers(
-				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null)) }
+				userDtos.mapNotNull { userV2Mapper.mapFillingOmittedSecretsOrNull(it.copy(groupId = null)) }
 			).map(userV2Mapper::mapOmittingSecrets)
 		)
 	}.injectReactorContext()
@@ -288,7 +291,6 @@ class UserController(
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
-
 			userV2Mapper.mapOmittingSecrets(modifiedUser)
 		}
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Assigning healthcare party ID to the current user failed.").also {

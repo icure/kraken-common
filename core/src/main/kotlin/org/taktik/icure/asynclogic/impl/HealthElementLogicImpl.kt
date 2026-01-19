@@ -58,11 +58,7 @@ open class HealthElementLogicImpl(
 	override fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement> = super.createEntities(
 		entities
 			.map { healthElement ->
-				fix(healthElement, isCreate = true).also { fixedHealElement ->
-					if (fixedHealElement.rev != null) {
-						throw IllegalArgumentException("A new entity should not have a rev")
-					}
-				}
+				fix(healthElement, isCreate = true)
 			},
 	)
 

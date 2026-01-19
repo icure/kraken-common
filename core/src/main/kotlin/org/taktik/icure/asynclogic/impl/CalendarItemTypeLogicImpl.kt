@@ -37,7 +37,7 @@ open class CalendarItemTypeLogicImpl(
 	}
 
 	override suspend fun createCalendarItemType(calendarItemType: CalendarItemType) = fix(calendarItemType, isCreate = true) { fixedCalendarItemType ->
-		if (fixedCalendarItemType.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedCalendarItemType)
 		val datastoreInformation = getInstanceAndGroup()
 		calendarItemTypeDAO.create(datastoreInformation, fixedCalendarItemType)
 	}
@@ -54,6 +54,7 @@ open class CalendarItemTypeLogicImpl(
 
 	override suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType) = fix(calendarItemType, isCreate = false) { fixedCalendarItemType ->
 		val datastoreInformation = getInstanceAndGroup()
+		checkValidityForModification(fixedCalendarItemType)
 		calendarItemTypeDAO.save(datastoreInformation, fixedCalendarItemType)
 	}
 

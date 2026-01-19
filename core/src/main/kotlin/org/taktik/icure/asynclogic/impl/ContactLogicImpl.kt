@@ -141,7 +141,6 @@ open class ContactLogicImpl(
 	}
 
 	override suspend fun createContact(contact: Contact) = fix(contact.handleServiceIndexes(), isCreate = true) { fixedContact ->
-		if (fixedContact.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		createEntity(contact)
 	}
 

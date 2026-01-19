@@ -32,10 +32,7 @@ open class ReceiptLogicImpl(
 	filters: Filters,
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ReceiptLogic {
-	override suspend fun createReceipt(receipt: Receipt): Receipt {
-		if (receipt.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		return createEntity(receipt)
-	}
+	override suspend fun createReceipt(receipt: Receipt) = createEntity(receipt)
 
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: Receipt,

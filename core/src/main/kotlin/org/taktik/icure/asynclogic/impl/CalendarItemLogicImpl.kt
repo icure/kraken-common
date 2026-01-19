@@ -60,7 +60,7 @@ open class CalendarItemLogicImpl(
 		)
 
 	override suspend fun createCalendarItem(calendarItem: CalendarItem) = fix(calendarItem, isCreate = true) { fixedCalendarItem ->
-		if (fixedCalendarItem.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedCalendarItem)
 		val datastoreInformation = getInstanceAndGroup()
 		calendarItemDAO.create(
 			datastoreInformation,
@@ -75,6 +75,7 @@ open class CalendarItemLogicImpl(
 				datastoreInformation,
 				calendarItems.map { calendarItem ->
 					val fixedCalendarItem = fix(calendarItem, isCreate = true)
+					checkValidityForCreation(fixedCalendarItem)
 					fixHcpIdIfNecessary(datastoreInformation, fixedCalendarItem, calendarItem.agendaId)
 				}
 			).filterSuccessfulUpdates()

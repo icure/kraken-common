@@ -99,8 +99,7 @@ open class CodeLogicImpl(
 	}
 
 	override suspend fun create(code: Code) = fix(code, isCreate = true) { fixedCode ->
-		if (fixedCode.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		validateIdFields(code)
+		validateForCreation(listOf(fixedCode))
 
 		val datastoreInformation = getInstanceAndGroup()
 		codeDAO.create(
@@ -122,6 +121,7 @@ open class CodeLogicImpl(
 	}
 
 	protected fun validateForCreation(batch: List<Code>) = batch.onEach {
+		checkValidityForCreation(it)
 		validateIdFields(it)
 	}
 
@@ -130,15 +130,13 @@ open class CodeLogicImpl(
 		emitAll(
 			codeDAO.createBulk(
 				getInstanceAndGroup(),
-				validateForCreation(codes.map { fix(it, isCreate = true) }),
+				validateForCreation(codes.onEach { checkValidityForCreation(it) }.map { fix(it, isCreate = true) }),
 			).filterSuccessfulUpdates()
 		)
 	}
 
 	override suspend fun modify(code: Code) = fix(code, isCreate = false) { fixedCode ->
-		require(fixedCode.id == "${fixedCode.type}|${fixedCode.code}|${fixedCode.version}") {
-			"Element with id ${fixedCode.id} has an id that does not match the code, type or version value: id must be equal to type|code|version"
-		}
+		validateForModification(listOf(fixedCode))
 		codeDAO.save(getInstanceAndGroup(), fixedCode)
 	}
 
@@ -147,15 +145,13 @@ open class CodeLogicImpl(
 		emitAll(
 			modifyEntities(
 				validateForModification(batch).toSet(),
-			),
+			)
 		)
 	}
 
 	protected fun validateForModification(batch: List<Code>) = batch.onEach { code ->
+		checkValidityForModification(code)
 		validateIdFields(code)
-		requireNotNull(code.rev) {
-			"Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity"
-		}
 		require(code.id == "${code.type}|${code.code}|${code.version}") {
 			"Element with id ${code.id} has an id that does not match the code, type or version value: id must be equal to type|code|version"
 		}
