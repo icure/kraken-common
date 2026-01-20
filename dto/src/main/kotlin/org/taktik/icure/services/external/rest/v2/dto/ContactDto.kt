@@ -78,8 +78,8 @@ data class ContactDto(
 	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
 	val participants: Map<ParticipantTypeDto, String> = emptyMap(),
 	val participantList: List<ContactParticipantDto> = emptyList(),
-	@get:Deprecated("Use responsible") val healthcarePartyId: String? = null, // Redundant... Should be responsible
-	@get:Deprecated("Use groupId") val modifiedContactId: String? = null,
+	@Deprecated("Use responsible") val healthcarePartyId: String? = null, // Redundant... Should be responsible
+	@Deprecated("Use groupId") val modifiedContactId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

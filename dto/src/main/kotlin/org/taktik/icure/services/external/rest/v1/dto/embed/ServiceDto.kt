@@ -54,10 +54,10 @@ data class ServiceDto(
 	@param:Schema(
 		description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...",
 	) val label: String? = null,
-	@get:Deprecated("Deleted in next version") val dataClassName: String? = null,
+	@Deprecated("Deleted in next version") val dataClassName: String? = null,
 	@param:Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)") val index: Long? = null, // Used for sorting
 	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
-	@get:Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
+	@Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
 	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
 	@param:Schema(
 		description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date",

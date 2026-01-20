@@ -67,7 +67,7 @@ data class UserDto(
 	) val termsOfUseDate: Instant? = null,
 	@param:Schema(description = "email address of the user (used for token exchange or password recovery).") val email: String? = null,
 	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).") val mobilePhone: String? = null,
-	@get:Deprecated("Do not use - Use authenticationTokens instead") val applicationTokens: Map<String, String> = emptyMap(),
+	@Deprecated("Do not use - Use authenticationTokens instead") val applicationTokens: Map<String, String> = emptyMap(),
 	@param:Schema(
 		description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication",
 	) val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),

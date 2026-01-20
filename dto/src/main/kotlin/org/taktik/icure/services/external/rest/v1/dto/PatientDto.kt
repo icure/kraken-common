@@ -153,17 +153,17 @@ data class PatientDto(
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val medicalLocationId: String? = null,
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
-	@get:Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
-	@get:Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
-	@get:Deprecated("Use note or administrativeNote") val comment: String? = null,
-	@get:Deprecated("Use note or administrativeNote") val warning: String? = null,
-	@get:Deprecated("Use properties instead") val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
-	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
+	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
+	@Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
+	@Deprecated("Use note or administrativeNote") val comment: String? = null,
+	@Deprecated("Use note or administrativeNote") val warning: String? = null,
+	@Deprecated("Use properties instead") val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
+	@Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	override val parentId: Nothing? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

@@ -51,7 +51,7 @@ data class CalendarItemDto(
 	val title: String? = null,
 	val calendarItemTypeId: String? = null,
 	val masterCalendarItemId: String? = null,
-	@get:Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
+	@Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
 	val important: Boolean? = null,
 	val homeVisit: Boolean? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")

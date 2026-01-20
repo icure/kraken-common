@@ -57,12 +57,12 @@ data class PlanOfActionDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present", defaultValue = "0")
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	@get:Deprecated("Use services linked to this healthcare approach") val documentIds: Set<String> = emptySet(),
-	@get:Deprecated("Use services (one per care) linked to this healthcare approach")
+	@Deprecated("Use services linked to this healthcare approach") val documentIds: Set<String> = emptySet(),
+	@Deprecated("Use services (one per care) linked to this healthcare approach")
 	@param:Schema(description = "The number of individual cares already performed in the course of this healthcare approach") val numberOfCares: Int? = null,
 	@param:Schema(description = "Members of the careteam involved in this approach")
 	val careTeamMemberships: List<CareTeamMembershipDto> = emptyList(),
-	@get:Deprecated("Use status")
+	@Deprecated("Use status")
 	@param:Schema(defaultValue = "true")
 	val relevant: Boolean = true,
 	override val encryptedSelf: Base64StringDto? = null,

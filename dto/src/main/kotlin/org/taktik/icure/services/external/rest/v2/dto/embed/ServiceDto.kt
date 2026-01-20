@@ -68,7 +68,7 @@ data class ServiceDto(
 	@param:Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)")
 	val index: Long? = null, // Used for sorting
 	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
-	@get:Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
+	@Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
 	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date") val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the Service") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
