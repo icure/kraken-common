@@ -128,7 +128,7 @@ open class DocumentLogicImpl(
 
 	override fun modifyEntities(entities: Collection<Document>): Flow<Document> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		entities.onEach { checkValidityForCreation(it) }
+		entities.onEach { checkValidityForModification(it) }
 		emitAll(
 			doModifyDocuments(
 				entities.toList(),
