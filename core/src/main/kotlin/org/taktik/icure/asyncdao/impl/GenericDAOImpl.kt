@@ -71,7 +71,7 @@ import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.suspendRetryForSomeException
 import java.time.Duration
-import java.util.LinkedList
+import java.util.*
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
@@ -220,11 +220,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		check(cached.isEmpty()) { "Should have consumed all cached entities" }
 	}
 
-	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T? {
+	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T {
 		return save(datastoreInformation, true, entity)
 	}
 
-	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T? {
+	override suspend fun save(datastoreInformation: IDatastoreInformation, entity: T): T {
 		return save(datastoreInformation, null, entity)
 	}
 
@@ -237,7 +237,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param entity the entity to create or update.
 	 * @return the updated entity or null.
 	 */
-	protected open suspend fun save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entity: T): T? {
+	protected open suspend fun save(datastoreInformation: IDatastoreInformation, newEntity: Boolean?, entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save: " + entity.id + ":" + entity.rev)
@@ -360,6 +360,17 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		purged.forEach { emit(it) }
 	}
 
+	override suspend fun purge(datastoreInformation: IDatastoreInformation, entity: T): DocIdentifier {
+		val removed = internalRemove(datastoreInformation, entity)
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		if (log.isDebugEnabled) {
+			log.debug(entityClass.simpleName + ".purge: " + entity)
+		}
+		return client.delete(removed).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
+		}
+	}
+
 	protected fun <T> Flow<BulkUpdateResult>.toSaveResult(
 		mapSuccess: suspend (id: String, rev: String) -> T
 	): Flow<BulkSaveResult<T>> =
@@ -370,8 +381,25 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				?: throw IllegalStateException("Received an unsuccessful bulk update result without error from couchdb")
 		}
 
+	override suspend fun remove(datastoreInformation: IDatastoreInformation, entity: T) =
+		internalRemove(datastoreInformation, entity)
+
 	override fun remove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> =
 		internalRemove(datastoreInformation, entities)
+
+	private suspend fun internalRemove(datastoreInformation: IDatastoreInformation, entity: T): T {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		if (log.isDebugEnabled) {
+			log.debug("Deleting $entity")
+		}
+		val entityToBeDeleted = beforeDelete(datastoreInformation, entity).let {
+			it.withDeletionDate(System.currentTimeMillis()) as T
+		}
+		return client.update(entityToBeDeleted, entityClass).let {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+			afterDelete(datastoreInformation, it)
+		}
+	}
 
 	private fun internalRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -380,21 +408,32 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		val toBeDeletedEntities = entities.map { entity ->
 			beforeDelete(datastoreInformation, entity).let {
-				@Suppress("UNCHECKED_CAST")
 				it.withDeletionDate(System.currentTimeMillis()) as T
 			}
 		}
 		val bulkUpdateResults = client.bulkUpdate(toBeDeletedEntities, entityClass).toSaveResult { id, rev ->
 			toBeDeletedEntities.first { e -> id == e.id }.let {
 				cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
-				@Suppress("UNCHECKED_CAST")
 				afterDelete(datastoreInformation, it.withIdRev(rev = rev) as T)
 			}
 		}
 		emitAll(bulkUpdateResults)
 	}
 
-	@Suppress("UNCHECKED_CAST")
+	override suspend fun unRemove(datastoreInformation: IDatastoreInformation, entity: T): T {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		if (log.isDebugEnabled) {
+			log.debug("Undeleting $entity")
+		}
+		val entityToBeDeleted = beforeUnDelete(datastoreInformation, entity).let {
+			it.withDeletionDate(null) as T
+		}
+		return client.update(entityToBeDeleted, entityClass).let {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
+			afterUnDelete(datastoreInformation, it)
+		}
+	}
+
 	override fun unRemove(datastoreInformation: IDatastoreInformation, entities: Collection<T>): Flow<BulkSaveResult<T>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -423,7 +462,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	@Suppress("UNCHECKED_CAST")
 	override fun <K : Collection<T>> create(datastoreInformation: IDatastoreInformation, entities: K): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
@@ -466,7 +504,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	})
 
 
-	@Suppress("UNCHECKED_CAST")
 	override fun saveBulk(
 		datastoreInformation: IDatastoreInformation,
 		entities: Collection<T>

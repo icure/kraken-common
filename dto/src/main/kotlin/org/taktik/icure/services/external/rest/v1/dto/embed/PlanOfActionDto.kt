@@ -43,14 +43,12 @@ data class PlanOfActionDto(
 		description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present",
 		defaultValue = "0",
 	) val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	@get:Deprecated("Use services linked to this healthcare approach") val documentIds: Set<String> = emptySet(),
-	@get:Deprecated(
-		"Use services (one per care) linked to this healthcare approach",
-	)
+	@Deprecated("Use services linked to this healthcare approach") val documentIds: Set<String> = emptySet(),
+	@Deprecated("Use services (one per care) linked to this healthcare approach")
 	@param:Schema(description = "The number of individual cares already performed in the course of this healthcare approach") val numberOfCares: Int? = null,
 	@param:Schema(description = "Members of the careteam involved in this approach") val careTeamMemberships: List<CareTeamMembershipDto> =
 		emptyList(),
-	@get:Deprecated("Use status") @Schema(defaultValue = "true") val relevant: Boolean = true,
+	@Deprecated("Use status") @param:Schema(defaultValue = "true") val relevant: Boolean = true,
 	override val encryptedSelf: String? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,

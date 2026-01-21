@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -59,11 +58,7 @@ open class HealthElementLogicImpl(
 	override fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement> = super.createEntities(
 		entities
 			.map { healthElement ->
-				fix(healthElement, isCreate = true).also { fixedHealElement ->
-					if (fixedHealElement.rev != null) {
-						throw IllegalArgumentException("A new entity should not have a rev")
-					}
-				}
+				fix(healthElement, isCreate = true)
 			},
 	)
 
@@ -129,8 +124,8 @@ open class HealthElementLogicImpl(
 			}
 	}
 
-	override suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement? = fix(healthElement, isCreate = false) { fixedHealthElement ->
-		modifyEntities(setOf(fixedHealthElement)).firstOrNull()
+	override suspend fun modifyHealthElement(healthElement: HealthElement) = fix(healthElement, isCreate = false) { fixedHealthElement ->
+		modifyEntity(fixedHealthElement)
 	}
 
 	override fun modifyEntities(entities: Collection<HealthElement>): Flow<HealthElement> = flow {

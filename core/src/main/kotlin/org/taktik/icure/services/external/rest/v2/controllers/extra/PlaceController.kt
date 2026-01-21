@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,9 +30,11 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
@@ -46,20 +49,36 @@ class PlaceController(
 	private val placeService: PlaceService,
 	private val placeV2Mapper: PlaceV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
-	@Operation(summary = "Creates a place")
+	@Operation(summary = "Create a Place")
 	@PostMapping
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeService.createPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
+		placeV2Mapper.map(placeService.createPlace(placeV2Mapper.map(placeDto)))
 	}
 
-	@Operation(summary = "Deletes places")
+	@Operation(summary = "Create a batch of Place")
+	@PostMapping("/batch")
+	fun createPlaces(
+		@RequestBody placeDtos: List<PlaceDto>,
+	): Flux<PlaceDto> = placeService.createPlaces(
+		placeDtos.map(placeV2Mapper::map)
+	).map(placeV2Mapper::map).injectReactorContext()
+
+	@DeleteMapping("/{placeId}")
+	fun deletePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<DocIdentifierDto> = mono {
+		docIdentifierV2Mapper.map(placeService.deletePlace(placeId, rev))
+	}
+
+	@Operation(summary = "Delete a batch of Places")
 	@PostMapping("/delete/batch")
 	fun deletePlaces(
 		@RequestBody placeIds: ListOfIdsDto,
@@ -73,7 +92,47 @@ class PlaceController(
 			logger.error(it.message)
 		}
 
-	@Operation(summary = "Gets a place")
+	@PostMapping("/delete/batch/withrev")
+	fun deletePlacesWithRev(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = placeService
+		.deletePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectReactorContext()
+
+	@PostMapping("/undelete/{placeId}")
+	fun undeletePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<PlaceDto> = mono {
+		placeV2Mapper.map(placeService.undeletePlace(placeId, rev))
+	}
+
+	@PostMapping("/undelete/batch")
+	fun undeletePlaces(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<PlaceDto> = placeService
+		.undeletePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map(placeV2Mapper::map)
+		.injectReactorContext()
+
+	@DeleteMapping("/purge/{placeId}")
+	fun purgePlace(
+		@PathVariable placeId: String,
+		@RequestParam rev: String
+	): Mono<DocIdentifierDto> = mono {
+		docIdentifierV2Mapper.map(placeService.purgePlace(placeId, rev))
+	}
+
+	@PostMapping("/purge/batch")
+	fun purgePlaces(
+		@RequestBody placeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = placeService
+		.purgePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
+		.map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
+
+	@Operation(summary = "Get a Place by id")
 	@GetMapping("/{placeId}")
 	fun getPlace(
 		@PathVariable placeId: String,
@@ -82,7 +141,13 @@ class PlaceController(
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
 
-	@Operation(summary = "Gets all places with pagination")
+	@Operation(summary = "Get multiple Places by their id")
+	@PostMapping("/byIds")
+	fun getPlacesByIds(
+		@RequestBody placeIds: ListOfIdsDto,
+	): Flux<PlaceDto> = placeService.getPlaces(placeIds.ids).map(placeV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Get all Places with pagination")
 	@GetMapping
 	fun getPlaces(
 		@Parameter(description = "A MedicalLocation document ID") @RequestParam(required = false) startDocumentId: String?,
@@ -95,12 +160,20 @@ class PlaceController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Modifies an place")
+	@Operation(summary = "Modify a Place")
 	@PutMapping
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeService.modifyPlace(placeV2Mapper.map(placeDto))?.let { placeV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
+		placeService.modifyPlace(placeV2Mapper.map(placeDto)).let { placeV2Mapper.map(it) }
 	}
+
+	@Operation(summary = "Modify a batch of Places")
+	@PutMapping("/batch")
+	fun modifyPlaces(
+		@RequestBody placeDtos: List<PlaceDto>,
+	): Flux<PlaceDto> = placeService.modifyPlaces(
+		placeDtos.map(placeV2Mapper::map)
+	).map(placeV2Mapper::map).injectReactorContext()
+
 }

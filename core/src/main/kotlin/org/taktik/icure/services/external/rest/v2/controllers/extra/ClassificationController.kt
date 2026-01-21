@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -73,11 +72,9 @@ class ClassificationController(
 	fun createClassification(
 		@RequestBody c: ClassificationDto,
 	): Mono<ClassificationDto> = mono {
-		val element =
+		classificationV2Mapper.map(
 			classificationService.createClassification(classificationV2Mapper.map(c))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Classification creation failed.")
-
-		classificationV2Mapper.map(element)
+		)
 	}
 
 	@Operation(summary = "Get a classification Template")

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asyncdao.UserDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.CalendarItemLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -15,6 +16,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -40,21 +42,43 @@ open class CalendarItemLogicImpl(
 	datastoreInstanceProvider,
 	exchangeDataMapLogic,
 	filters,
-),
-	CalendarItemLogic {
+), CalendarItemLogic {
+
+	// TODO seems obsolete behaviour, will not work with scoped data owner
+	protected suspend fun fixHcpIdIfNecessary(
+		datastoreInformation: IDatastoreInformation,
+		fixedCalendarItem: CalendarItem,
+		agendaId: String?
+	): CalendarItem =
+		fixedCalendarItem.takeIf { it.hcpId != null } ?: fixedCalendarItem.copy(
+			hcpId =
+				agendaId?.let {
+					agendaLogic.getAgenda(it)?.userId?.let { uId ->
+						userDAO.getUserOnUserDb(datastoreInformation, uId, false).healthcarePartyId
+					}
+				},
+		)
+
 	override suspend fun createCalendarItem(calendarItem: CalendarItem) = fix(calendarItem, isCreate = true) { fixedCalendarItem ->
-		if (fixedCalendarItem.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedCalendarItem)
 		val datastoreInformation = getInstanceAndGroup()
 		calendarItemDAO.create(
 			datastoreInformation,
-			fixedCalendarItem.takeIf { it.hcpId != null } ?: fixedCalendarItem.copy(
-				hcpId =
-				calendarItem.agendaId?.let {
-					agendaLogic.getAgenda(it)?.userId?.let { uId ->
-						userDAO.getUserOnUserDb(datastoreInformation, uId, false).healthcarePartyId // TODO seems obsolete behaviour, will not work with scoped data owner
-					}
-				},
-			),
+			fixHcpIdIfNecessary(datastoreInformation, fixedCalendarItem, calendarItem.agendaId)
+		)
+	}
+
+	override fun createCalendarItems(calendarItems: List<CalendarItem>) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			calendarItemDAO.saveBulk(
+				datastoreInformation,
+				calendarItems.map { calendarItem ->
+					val fixedCalendarItem = fix(calendarItem, isCreate = true)
+					checkValidityForCreation(fixedCalendarItem)
+					fixHcpIdIfNecessary(datastoreInformation, fixedCalendarItem, calendarItem.agendaId)
+				}
+			).filterSuccessfulUpdates()
 		)
 	}
 

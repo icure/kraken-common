@@ -10,10 +10,10 @@ import org.taktik.icure.entities.Place
 import org.taktik.icure.pagination.PaginationElement
 
 interface PlaceLogic : EntityPersister<Place> {
-	suspend fun createPlace(place: Place): Place?
+	suspend fun createPlace(place: Place): Place
 
 	suspend fun getPlace(place: String): Place?
-	suspend fun modifyPlace(place: Place): Place?
+	suspend fun modifyPlace(place: Place): Place
 
 	/**
 	 * Retrieves all the [Place]s in a group in a format for pagination.

@@ -51,8 +51,7 @@ class TimeTableController(
 	fun createTimeTable(
 		@RequestBody timeTableDto: TimeTableDto,
 	) = mono {
-		timeTableService.createTimeTable(timeTableMapper.map(timeTableDto))?.let { timeTableMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "TimeTable creation failed")
+		timeTableMapper.map(timeTableService.createTimeTable(timeTableMapper.map(timeTableDto)))
 	}
 
 	@Operation(summary = "Deletes a timeTable")

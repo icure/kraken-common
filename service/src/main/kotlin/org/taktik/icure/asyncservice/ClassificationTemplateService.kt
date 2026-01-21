@@ -12,7 +12,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface ClassificationTemplateService {
-	suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate): ClassificationTemplate?
+	suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate): ClassificationTemplate
 
 	suspend fun getClassificationTemplate(classificationTemplateId: String): ClassificationTemplate?
 

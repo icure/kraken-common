@@ -11,7 +11,7 @@ import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.pagination.PaginationElement
 
 interface ClassificationTemplateLogic : EntityPersister<ClassificationTemplate> {
-	suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate): ClassificationTemplate?
+	suspend fun createClassificationTemplate(classificationTemplate: ClassificationTemplate): ClassificationTemplate
 
 	suspend fun getClassificationTemplate(classificationTemplateId: String): ClassificationTemplate?
 	fun getClassificationTemplates(ids: Collection<String>): Flow<ClassificationTemplate>

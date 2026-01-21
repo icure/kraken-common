@@ -16,7 +16,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface AgendaService {
-	suspend fun createAgenda(agenda: Agenda): Agenda?
+	suspend fun createAgenda(agenda: Agenda): Agenda
+	fun createAgendas(agendas: List<Agenda>): Flow<Agenda>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -56,6 +57,7 @@ interface AgendaService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeAgenda(id: String, rev: String): DocIdentifier
+	fun purgeAgendas(ids: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -65,9 +67,13 @@ interface AgendaService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteAgenda(id: String, rev: String): Agenda
+	fun undeleteAgendas(ids: List<IdAndRev>): Flow<Agenda>
+
 	suspend fun getAgenda(agendaId: String): Agenda?
 	fun getAgendas(agendaIds: List<String>): Flow<Agenda>
-	suspend fun modifyAgenda(agenda: Agenda): Agenda?
+
+	suspend fun modifyAgenda(agenda: Agenda): Agenda
+	fun modifyAgendas(agendas: List<Agenda>): Flow<Agenda>
 
 	/**
 	 * Gets agenda where [Agenda.userId] matches the provided [userId]

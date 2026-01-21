@@ -37,7 +37,7 @@ data class PatientHealthCarePartyDto(
 	@param:Schema(description = "Preferred format of exchange for diverse means of communication") val sendFormats: Map<TelecomTypeDto, String> =
 		emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
 	@param:Schema(description = "Time periods") val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
-	@get:Deprecated("Use type") @param:Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
+	@Deprecated("Use type") @param:Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
 	val properties: Set<PropertyStubDto>? = null,
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,

@@ -52,7 +52,7 @@ interface HealthElementLogic :
 	@Deprecated("This method is inefficient for high volumes of keys, use listHealthElementIdsByDataOwnerPatientOpeningDate instead")
 	suspend fun listLatestHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): List<HealthElement>
 
-	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement?
+	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement
 
 	suspend fun addDelegation(healthElementId: String, delegation: Delegation): HealthElement?
 

@@ -4,7 +4,6 @@
 
 package org.taktik.icure.asynclogic.impl
 
-import kotlinx.coroutines.flow.first
 import org.taktik.icure.asyncdao.ApplicationSettingsDAO
 import org.taktik.icure.asynclogic.ApplicationSettingsLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -32,7 +31,7 @@ open class ApplicationSettingsLogicImpl(
 ), ApplicationSettingsLogic {
 	override fun getGenericDAO(): ApplicationSettingsDAO = applicationSettingsDAO
 
-	override suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings? {
+	override suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings {
 		val datastoreInformation = getInstanceAndGroup()
 		return applicationSettingsDAO.create(datastoreInformation, applicationSettings)
 	}

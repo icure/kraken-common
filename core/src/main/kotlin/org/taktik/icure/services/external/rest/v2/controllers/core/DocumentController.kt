@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
@@ -64,6 +63,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.addAttachmentResponseHeader
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -77,7 +77,7 @@ import reactor.core.publisher.Mono
 class DocumentController(
 	private val documentService: DocumentService,
 	private val documentV2Mapper: DocumentV2Mapper,
-	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	private val bulkShareResultV2Mapper: DocumentBulkShareResultV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
@@ -85,18 +85,23 @@ class DocumentController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
-	@Operation(summary = "Create a document", description = "Creates a document and returns an instance of created document afterward")
+	@Operation(summary = "Create a Document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
 	fun createDocument(
 		@RequestBody documentDto: DocumentDto,
 		@RequestParam(required = false) strict: Boolean? = null,
 	): Mono<DocumentDto> = mono {
 		val document = documentV2Mapper.map(documentDto)
-		val createdDocument =
-			documentService.createDocument(document, strict ?: true)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document creation failed")
-		documentV2Mapper.map(createdDocument)
+		documentV2Mapper.map(documentService.createDocument(document, strict ?: true))
 	}
+
+	@Operation(summary = "Create a batch of Documents")
+	@PostMapping("/batch")
+	fun createDocuments(
+		@RequestBody documentDtos: List<DocumentDto>,
+	): Flux<DocumentDto> = documentService.createDocuments(
+		documentDtos.map(documentV2Mapper::map),
+	).map(documentV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Documents")
 	@PostMapping("/delete/batch")
@@ -106,9 +111,9 @@ class DocumentController(
 		.deleteDocuments(
 			documentIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Documents if they match the provided revs")
+	@Operation(summary = "Delete  multiple Documents if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteDocumentsWithRev(
 		@RequestBody documentIds: ListOfIdsAndRevDto,
@@ -116,14 +121,14 @@ class DocumentController(
 		.deleteDocuments(
 			documentIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Document")
+	@Operation(summary = "Deletes a Document")
 	@DeleteMapping("/{documentId}")
 	fun deleteDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.deleteDocument(documentId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -133,20 +138,38 @@ class DocumentController(
 	fun undeleteDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentV2Mapper.map(documentService.undeleteDocument(documentId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteDocuments(
+		@RequestBody documentIds: ListOfIdsAndRevDto,
+	): Flux<DocumentDto> = documentService
+		.undeleteDocuments(
+			documentIds.ids.map(idWithRevV2Mapper::map),
+		).map(documentV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{documentId}")
 	fun purgeDocument(
 		@PathVariable documentId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		documentService.purgeDocument(documentId, rev).let(docIdentifierV2Mapper::map)
 	}
 
+	@PostMapping("/purge/batch")
+	fun purgeDocuments(
+		@RequestBody documentIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = documentService
+		.purgeDocuments(
+			documentIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 	@Operation(
-		summary = "Load the main attachment of a document",
+		summary = "Load the main attachment of a Document",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
@@ -159,14 +182,10 @@ class DocumentController(
 		@PathVariable documentId: String,
 		@RequestParam(required = false) fileName: String?,
 		response: ServerHttpResponse,
-	) = response.writeWith(
+	): Mono<Void> = response.writeWith(
 		flow {
-			val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("No document with id $documentId")
-			val attachment = documentService.getMainAttachment(documentId)
-
-			response.headers["Content-Type"] = document.mainAttachment?.mimeType ?: "application/octet-stream"
-			response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: document.name}\""
-
+			val (document, attachment) = documentService.getMainAttachment(documentId)
+			response.addAttachmentResponseHeader(document, fileName)
 			emitAll(attachment)
 		}.injectReactorContext(),
 	)
@@ -273,9 +292,8 @@ class DocumentController(
 	fun modifyDocument(
 		@RequestBody documentDto: DocumentDto,
 	): Mono<DocumentDto> = mono {
-		val prevDoc = documentService.getDocument(documentDto.id) ?: throw NotFoundRequestException("No document with id ${documentDto.id}")
 		val newDocument = documentV2Mapper.map(documentDto)
-		documentService.modifyDocument(newDocument, prevDoc, true).let { documentV2Mapper.map(it) }
+		documentService.modifyDocument(newDocument, true).let { documentV2Mapper.map(it) }
 	}
 
 	@Operation(summary = "Updates a batch of documents", description = "Returns the modified documents.")
@@ -402,7 +420,7 @@ class DocumentController(
 		@RequestParam(required = false)
 		fileName: String?,
 		response: ServerHttpResponse,
-	) = response.writeWith(
+	): Mono<Void> = response.writeWith(
 		flow {
 			val document =
 				documentService.getDocument(documentId)?.also {
@@ -519,18 +537,6 @@ class DocumentController(
 		metadata?.dataIsEncrypted ?: false,
 	)
 
-	private fun checkRevision(
-		rev: String,
-		document: Document,
-	) {
-		if (rev != document.rev) {
-			throw ResponseStatusException(
-				HttpStatus.CONFLICT,
-				"Obsolete document revision. The current revision is ${document.rev}",
-			)
-		}
-	}
-
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
 		documentId: String,
 		documentRev: String,
@@ -538,7 +544,7 @@ class DocumentController(
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange> = emptyMap(),
 	): Document? = try {
 		updateAttachments(documentId, documentRev, mainAttachmentChange, secondaryAttachmentsChanges)
-	} catch (e: ObjectStorageException) {
+	} catch (_: ObjectStorageException) {
 		throw ResponseStatusException(
 			HttpStatus.SERVICE_UNAVAILABLE,
 			"One or more attachments must be stored using the object storage service, but the service is currently unavailable.",

@@ -4,7 +4,11 @@
 
 package org.taktik.icure.asynclogic.impl
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.codec.digest.DigestUtils
 import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -28,10 +32,7 @@ open class ReceiptLogicImpl(
 	filters: Filters,
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ReceiptLogic {
-	override suspend fun createReceipt(receipt: Receipt): Receipt? {
-		if (receipt.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		return this.createEntities(listOf(receipt)).firstOrNull()
-	}
+	override suspend fun createReceipt(receipt: Receipt) = createEntity(receipt)
 
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: Receipt,

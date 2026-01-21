@@ -474,8 +474,7 @@ class PatientController(
 	fun createPatient(
 		@RequestBody p: PatientDto,
 	) = mono {
-		val patient = patientService.createPatient(patientMapper.map(p))
-		patient?.let(patientMapper::map) ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
+		patientMapper.map(patientService.createPatient(patientMapper.map(p)))
 	}
 
 	@Operation(summary = "Delete patients.", description = "Response is an array containing the ID of deleted patient..")
@@ -612,13 +611,7 @@ class PatientController(
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
 	) = mono {
-		patientService.modifyPatient(patientMapper.map(patientDto))?.let(patientMapper::map)
-			?: throw ResponseStatusException(
-				HttpStatus.INTERNAL_SERVER_ERROR,
-				"Getting patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		patientService.modifyPatient(patientMapper.map(patientDto)).let(patientMapper::map)
 	}
 
 	@Operation(summary = "Set a patient referral doctor")

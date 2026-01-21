@@ -187,13 +187,7 @@ class HealthcarePartyController(
 				log.warn(e) { e.message }
 				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 			}
-
-		val succeed = hcParty != null
-		if (succeed) {
-			hcParty?.let { healthcarePartyMapper.map(it) }
-		} else {
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Healthcare party creation failed.")
-		}
+		healthcarePartyMapper.map(hcParty)
 	}
 
 	@Suppress("DEPRECATION")
@@ -291,9 +285,9 @@ class HealthcarePartyController(
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
 	) = mono {
-		healthcarePartyService.modifyHealthcareParty(healthcarePartyMapper.map(healthcarePartyDto))?.let {
+		healthcarePartyService.modifyHealthcareParty(healthcarePartyMapper.map(healthcarePartyDto)).let {
 			healthcarePartyMapper.map(it)
-		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
+		}
 	}
 
 	@Operation(

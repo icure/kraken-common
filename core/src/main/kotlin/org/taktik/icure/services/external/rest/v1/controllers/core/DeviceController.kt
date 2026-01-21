@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -51,7 +50,6 @@ class DeviceController(
 	private val docIdentifierMapper: DocIdentifierMapper,
 	private val paginationConfig: SharedPaginationConfig,
 ) {
-	private val log = LoggerFactory.getLogger(javaClass)
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
 	@GetMapping("/{deviceId}")
@@ -106,8 +104,7 @@ class DeviceController(
 	fun createDevice(
 		@RequestBody p: DeviceDto,
 	) = mono {
-		deviceService.createDevice(deviceMapper.map(p))?.let(deviceMapper::map)
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device creation failed.")
+		deviceMapper.map(deviceService.createDevice(deviceMapper.map(p)))
 	}
 
 	@Operation(summary = "Modify a device", description = "Returns the updated device")
@@ -115,13 +112,7 @@ class DeviceController(
 	fun updateDevice(
 		@RequestBody deviceDto: DeviceDto,
 	) = mono {
-		deviceService.modifyDevice(deviceMapper.map(deviceDto))?.let(deviceMapper::map)
-			?: throw ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		deviceService.modifyDevice(deviceMapper.map(deviceDto)).let(deviceMapper::map)
 	}
 
 	@Operation(summary = "Create devices in bulk", description = "Returns the id and _rev of created devices")

@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Service
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
@@ -22,9 +20,7 @@ import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 
-@Service
-@Profile("app")
-class CalendarItemTypeLogicImpl(
+open class CalendarItemTypeLogicImpl(
 	private val calendarItemTypeDAO: CalendarItemTypeDAO,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
@@ -41,7 +37,7 @@ class CalendarItemTypeLogicImpl(
 	}
 
 	override suspend fun createCalendarItemType(calendarItemType: CalendarItemType) = fix(calendarItemType, isCreate = true) { fixedCalendarItemType ->
-		if (fixedCalendarItemType.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedCalendarItemType)
 		val datastoreInformation = getInstanceAndGroup()
 		calendarItemTypeDAO.create(datastoreInformation, fixedCalendarItemType)
 	}
@@ -58,6 +54,7 @@ class CalendarItemTypeLogicImpl(
 
 	override suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType) = fix(calendarItemType, isCreate = false) { fixedCalendarItemType ->
 		val datastoreInformation = getInstanceAndGroup()
+		checkValidityForModification(fixedCalendarItemType)
 		calendarItemTypeDAO.save(datastoreInformation, fixedCalendarItemType)
 	}
 

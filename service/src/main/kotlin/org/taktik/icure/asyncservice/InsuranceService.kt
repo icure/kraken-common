@@ -7,6 +7,7 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -14,7 +15,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface InsuranceService {
-	suspend fun createInsurance(insurance: Insurance): Insurance?
+	suspend fun createInsurance(insurance: Insurance): Insurance
+	fun createInsurances(insurances: List<Insurance>): Flow<Insurance>
 
 	/**
 //     * Marks a batch of entities as deleted.
@@ -41,6 +43,13 @@ interface InsuranceService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun deleteInsurance(insuranceId: String, rev: String?): Insurance
+	fun deleteInsurances(insuranceIds: List<IdAndRev>): Flow<DocIdentifier>
+
+	suspend fun undeleteInsurance(insuranceId: String, rev: String): Insurance
+	fun undeleteInsurances(insuranceIds: List<IdAndRev>): Flow<Insurance>
+
+	suspend fun purgeInsurance(insuranceId: String, rev: String): DocIdentifier
+	fun purgeInsurances(insuranceIds: List<IdAndRev>): Flow<DocIdentifier>
 
 //    /**
 //     * Deletes an entity.
@@ -67,7 +76,9 @@ interface InsuranceService {
 	fun listInsurancesByCode(code: String): Flow<Insurance>
 	fun listInsurancesByName(name: String): Flow<Insurance>
 
-	suspend fun modifyInsurance(insurance: Insurance): Insurance?
+	suspend fun modifyInsurance(insurance: Insurance): Insurance
+	fun modifyInsurances(insurances: List<Insurance>): Flow<Insurance>
+
 	fun getInsurances(ids: Set<String>): Flow<Insurance>
 
 	/**

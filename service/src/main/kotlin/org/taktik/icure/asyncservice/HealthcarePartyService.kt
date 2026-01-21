@@ -27,7 +27,8 @@ interface HealthcarePartyService {
 
 	suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
 
-	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
+	suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
+	fun modifyHealthcareParty(healthcareParties: List<HealthcareParty>): Flow<HealthcareParty>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -67,6 +68,7 @@ interface HealthcarePartyService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeHealthcareParty(id: String, rev: String): DocIdentifier
+	fun purgeHealthcareParties(healthcarePartyIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -76,8 +78,10 @@ interface HealthcarePartyService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteHealthcareParty(id: String, rev: String): HealthcareParty
+	fun undeleteHealthcareParties(healthcarePartyIds: List<IdAndRev>): Flow<HealthcareParty>
 
-	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty?
+	suspend fun createHealthcareParty(healthcareParty: HealthcareParty): HealthcareParty
+	fun createHealthcareParties(healthcareParties: List<HealthcareParty>): Flow<HealthcareParty>
 
 	/**
 	 * Retrieves all the healthcare parties in a group, sorted by [HealthcareParty.lastName], in a format for pagination.

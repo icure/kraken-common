@@ -17,4 +17,6 @@ interface EntityReferenceService {
 	 * @return a [Flow] containing all the [EntityReference]s that were successfully created.
 	 */
 	fun createEntityReferences(entities: Collection<EntityReference>): Flow<EntityReference>
+
+	suspend fun createEntityReference(entity: EntityReference): EntityReference
 }

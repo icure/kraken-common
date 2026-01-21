@@ -57,7 +57,6 @@ class FrontEndMigrationController(
 	): Mono<FrontEndMigrationDto> = mono {
 		val frontEndMigration =
 			frontEndMigrationService.createFrontEndMigration(frontEndMigrationV2Mapper.map(frontEndMigrationDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Frontend migration creation failed")
 
 		frontEndMigrationV2Mapper.map(frontEndMigration)
 	}

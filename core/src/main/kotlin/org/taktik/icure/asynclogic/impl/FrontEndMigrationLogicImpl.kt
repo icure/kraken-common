@@ -24,7 +24,7 @@ class FrontEndMigrationLogicImpl(
 	filters: Filters,
 ) : GenericLogicImpl<FrontEndMigration, FrontEndMigrationDAO>(fixer, datastoreInstanceProvider, filters),
 	FrontEndMigrationLogic {
-	override suspend fun createFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration? {
+	override suspend fun createFrontEndMigration(frontEndMigration: FrontEndMigration): FrontEndMigration {
 		val datastoreInformation = getInstanceAndGroup()
 		return frontEndMigrationDAO.create(datastoreInformation, frontEndMigration)
 	}

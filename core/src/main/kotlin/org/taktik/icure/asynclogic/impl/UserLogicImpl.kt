@@ -41,6 +41,7 @@ import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.security.credentials.SecretValidator
 import org.taktik.icure.security.user.GlobalUserUpdater
 import org.taktik.icure.security.user.UserEnhancer
+import org.taktik.icure.utils.bufferedChunks
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.time.Instant
@@ -116,17 +117,17 @@ open class UserLogicImpl(
 			?.let { userEnhancer.enhance(it, false) }
 	}
 
-	override suspend fun createUser(user: User): EnhancedUser? {
-		require(user.rev == null) { "New user should have null revision" }
+	override suspend fun createUser(user: User): EnhancedUser {
+		checkValidityForCreation(user)
 		return createOrModifyUser(user)
 	}
 
-	override suspend fun modifyUser(modifiedUser: User): EnhancedUser? {
-		require(modifiedUser.rev != null) { "Modified user should have non-null revision" }
+	override suspend fun modifyUser(modifiedUser: User): EnhancedUser {
+		checkValidityForModification(modifiedUser)
 		return createOrModifyUser(modifiedUser)
 	}
 
-	private suspend fun createOrModifyUser(user: User): EnhancedUser? {
+	private suspend fun createOrModifyUser(user: User): EnhancedUser {
 		val created: User =
 			doCreateOrModifyUsers(
 				getInstanceAndGroup(),
@@ -137,16 +138,41 @@ open class UserLogicImpl(
 	}
 
 	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> {
-		entities.forEach { require(it.rev == null) { "New user should have null revision" } }
+		entities.forEach { checkValidityForCreation(it) }
 		return createOrModifyEntities(entities)
 	}
 
+	protected fun ensureContactsAreUnique(users: Collection<User>) {
+		val logins = mutableSetOf<String>()
+		users.forEach { user ->
+			user.login?.also {
+				if (logins.contains(it)) {
+					throw IllegalArgumentException("User login $it is duplicated in the batch")
+				}
+			}
+			user.email?.also {
+				if (logins.contains(it)) {
+					throw IllegalArgumentException("User email $it is duplicated in the batch")
+				}
+			}
+			user.mobilePhone?.also {
+				if (logins.contains(it)) {
+					throw IllegalArgumentException("User mobile phone $it is duplicated in the batch")
+				}
+			}
+			user.login?.also { logins.add(it) }
+			user.email?.also { logins.add(it) }
+			user.mobilePhone?.also { logins.add(it) }
+		}
+	}
+
 	override fun modifyEntities(entities: Collection<User>): Flow<User> {
-		entities.forEach { require(it.rev != null) { "Updated user should have non-null revision" } }
+		entities.forEach { checkValidityForModification(it) }
 		return createOrModifyEntities(entities)
 	}
 
 	private fun createOrModifyEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
+		ensureContactsAreUnique(entities)
 		emitAll(
 			userEnhancer.enhanceFlow(
 				globalUserUpdater.tryingUpdates(
@@ -156,7 +182,7 @@ open class UserLogicImpl(
 						false,
 					).filterSuccessfulUpdates(),
 				),
-				false,
+				includeMetadataFromGlobalUser = false,
 			),
 		)
 	}
@@ -178,16 +204,16 @@ open class UserLogicImpl(
 		}
 	}
 
-	override suspend fun disableUser(userId: String): User? = getUser(userId, false)?.let {
+	override suspend fun disableUser(userId: String): User? = getUser(userId, false)?.let { user ->
 		val datastoreInformation = getInstanceAndGroup()
-		userDAO.save(datastoreInformation, it.copy(status = Users.Status.DISABLED))?.also {
+		userDAO.save(datastoreInformation, user.copy(status = Users.Status.DISABLED)).also {
 			globalUserUpdater.tryUpdate(it)
 		}
 	}
 
-	override suspend fun enableUser(userId: String): User? = getUser(userId, false)?.let {
+	override suspend fun enableUser(userId: String): User? = getUser(userId, false)?.let { user ->
 		val datastoreInformation = getInstanceAndGroup()
-		userDAO.save(datastoreInformation, it.copy(status = Users.Status.ACTIVE))?.also { it ->
+		userDAO.save(datastoreInformation, user.copy(status = Users.Status.ACTIVE)).also {
 			globalUserUpdater.tryUpdate(it)
 		}
 	}
@@ -513,7 +539,7 @@ open class UserLogicImpl(
 								)
 							),
 				),
-			) ?: throw IllegalStateException("Cannot create token for user"),
+			),
 			authenticationToken,
 		)
 	}
@@ -537,5 +563,14 @@ open class UserLogicImpl(
 		rev: String,
 	): DocIdentifier = super.purgeEntity(id, rev).also {
 		globalUserUpdater.tryPurge(localId = id, localRev = rev)
+	}
+
+	override fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		super.purgeEntities(identifiers).bufferedChunks(20, 200).collect { users ->
+			globalUserUpdater.tryPurge(
+				users.mapNotNull { if (it.id != null) IdAndRev(it.id!!, it.rev) else null }
+			)
+			emitAll(users.asFlow())
+		}
 	}
 }

@@ -5,6 +5,7 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
@@ -28,9 +29,21 @@ interface PlaceService {
 	 * @throws AccessDeniedException if the current user is not an admin or an healthcare party.
 	 */
 	fun getAllPlaces(): Flow<Place>
-	suspend fun createPlace(place: Place): Place?
-	suspend fun deletePlace(id: String, rev: String?): Place
 	suspend fun getPlace(place: String): Place?
-	suspend fun modifyPlace(place: Place): Place?
-	fun deletePlaces(identifiers: List<IdAndRev>): Flow<Place>
+	fun getPlaces(placeIds: List<String>): Flow<Place>
+
+	suspend fun createPlace(place: Place): Place
+	fun createPlaces(places: List<Place>): Flow<Place>
+
+	suspend fun modifyPlace(place: Place): Place
+	fun modifyPlaces(places: List<Place>): Flow<Place>
+
+	suspend fun deletePlace(placeId: String, rev: String): DocIdentifier
+	fun deletePlaces(placeIds: List<IdAndRev>): Flow<Place>
+
+	suspend fun undeletePlace(placeId: String, rev: String): Place
+	fun undeletePlaces(placeIds: List<IdAndRev>): Flow<Place>
+
+	suspend fun purgePlace(placeId: String, rev: String): DocIdentifier
+	fun purgePlaces(placeIds: List<IdAndRev>): Flow<DocIdentifier>
 }

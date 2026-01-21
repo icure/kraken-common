@@ -83,19 +83,17 @@ data class PatientDto(
 	override val responsible: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "the firstname (name) of the patient.") override val firstName: String? = null,
-	@param:Schema(
-		description = "the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes.",
-	) override val lastName: String? = null, // Is usually either maidenName or spouseName,
-	@param:Schema(
-		description = "the list of all names of the patient, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the patient in the application",
-	) override val names: List<PersonNameDto> = emptyList(),
+	@param:Schema(description = "the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes.")
+	override val lastName: String? = null, // Is usually either maidenName or spouseName,
+	@param:Schema(description = "the list of all names of the patient, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the patient in the application")
+	override val names: List<PersonNameDto> = emptyList(),
 	@param:Schema(description = "the name of the company this patient is member of.") override val companyName: String? = null,
-	@param:Schema(
-		description = "the list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).",
-	) override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
+	@param:Schema(description = "the list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).")
+	override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
 	@param:Schema(description = "the list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
 	@param:Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
 	@param:Schema(
@@ -143,24 +141,21 @@ data class PatientDto(
 	@param:Schema(description = "The race of the patient.") val race: String? = null,
 	@param:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
 	@param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
-	@param:Schema(
-		description = "An external (from another source) id with no guarantee or requirement for unicity .",
-	) val externalId: String? = null, // No guarantee of unicity
-	@param:Schema(description = "List of insurance coverages (of class Insurability, see below).") val insurabilities: List<InsurabilityDto> =
-		emptyList(),
-	@param:Schema(
-		description = "List of partners, or persons of contact (of class Partnership, see below).",
-	) val partnerships: List<PartnershipDto> =
-		emptyList(),
-	@param:Schema(
-		description = "Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty).",
-	) val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
-	@param:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
-	@param:Schema(
-		description = "Contracts between the patient and the healthcare entity.",
-	) val medicalHouseContracts: List<MedicalHouseContractDto> =
-		emptyList(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity .")
+	val externalId: String? = null, // No guarantee of unicity
+	@param:Schema(description = "List of insurance coverages (of class Insurability, see below).")
+	val insurabilities: List<InsurabilityDto> = emptyList(),
+	@param:Schema(description = "List of partners, or persons of contact (of class Partnership, see below)")
+	val partnerships: List<PartnershipDto> = emptyList(),
+	@param:Schema(description = "Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty)")
+	val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
+	@param:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.")
+	val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@param:Schema(description = "Contracts between the patient and the healthcare entity")
+	val medicalHouseContracts: List<MedicalHouseContractDto> = emptyList(),
 	@param:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
 	@param:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
 	@param:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
@@ -177,18 +172,19 @@ data class PatientDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
 	@AlwaysDecrypted override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
-	@get:Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
-	@get:Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
-	@get:Deprecated("Use note or administrativeNote") val comment: String? = null,
-	@get:Deprecated("Use note or administrativeNote") val warning: String? = null,
-	@get:Deprecated("Use properties instead") val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
-	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
-	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
+	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
+	@Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
+	@Deprecated("Use note or administrativeNote") val comment: String? = null,
+	@Deprecated("Use note or administrativeNote") val warning: String? = null,
+	@Deprecated("Use properties instead") val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
+	@Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	override val parentId: Nothing? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

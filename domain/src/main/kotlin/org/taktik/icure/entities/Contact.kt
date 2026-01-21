@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.ParticipantType
@@ -77,16 +75,16 @@ import org.taktik.icure.validation.ValidCode
  */
 
 data class Contact(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
-	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
-	@param:ContentValue(ContentValues.TIMESTAMP) @field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val identifier: List<Identifier> = emptyList(),
+	val identifier: List<Identifier> = emptyList(),
 	override val endOfLife: Long? = null,
 	@field:JsonProperty("deleted") override val deletionDate: Long? = null,
 
@@ -95,15 +93,15 @@ data class Contact(
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 
-	@param:ContentValue(ContentValues.ANY_STRING) val descr: String? = null,
+	val descr: String? = null,
 	val location: String? = null,
 	@Deprecated("Replaced by responsible") val healthcarePartyId: String? = null, // Redundant and obsolete... Should be responsible
 	val externalId: String? = null,
 	@Deprecated("Contacts should be linked together using formId in subcontact") val modifiedContactId: String? = null,
 	val encounterType: CodeStub? = null,
 	val encounterLocation: Address? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val subContacts: Set<SubContact> = emptySet(),
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) @field:Valid val services: Set<Service> = emptySet(),
+	@field:Valid val subContacts: Set<SubContact> = emptySet(),
+	@field:Valid val services: Set<Service> = emptySet(),
 	val participants: Map<ParticipantType, String> = emptyMap(),
 	val participantList: List<ContactParticipant> = emptyList(),
 
@@ -158,6 +156,21 @@ data class Contact(
 		created != null -> this.copy(created = created)
 		modified != null -> this.copy(modified = modified)
 		else -> this
+	}
+
+	fun handleServiceIndexes(): Contact = if (services.any { it.index == null }) {
+		val maxIndex = services.maxByOrNull { it.index ?: 0 }?.index ?: 0
+		copy(
+			services = services.mapIndexed { idx, it ->
+				if (it.index == null) {
+					it.copy(index = idx + maxIndex)
+				} else {
+					it
+				}
+			}.toSet(),
+		)
+	} else {
+		this
 	}
 }
 

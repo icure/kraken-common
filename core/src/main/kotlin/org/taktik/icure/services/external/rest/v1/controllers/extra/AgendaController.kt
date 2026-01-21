@@ -52,11 +52,7 @@ class AgendaController(
 	fun createAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	) = mono {
-		val agenda =
-			agendaService.createAgenda(agendaMapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda creation failed")
-
-		agendaMapper.map(agenda)
+		agendaMapper.map(agendaService.createAgenda(agendaMapper.map(agendaDto)))
 	}
 
 	@Operation(summary = "Delete agendas by id")
@@ -102,10 +98,7 @@ class AgendaController(
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	) = mono {
-		val agenda =
-			agendaService.modifyAgenda(agendaMapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
-
+		val agenda = agendaService.modifyAgenda(agendaMapper.map(agendaDto))
 		agendaMapper.map(agenda)
 	}
 }

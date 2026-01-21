@@ -38,8 +38,9 @@ class MedicalLocationController(
 	fun createMedicalLocation(
 		@RequestBody medicalLocationDto: MedicalLocationDto,
 	) = mono {
-		medicalLocationService.createMedicalLocation(medicalLocationMapper.map(medicalLocationDto))?.let { medicalLocationMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Medical location creation failed")
+		medicalLocationMapper.map(
+			medicalLocationService.createMedicalLocation(medicalLocationMapper.map(medicalLocationDto))
+		)
 	}
 
 	@Operation(summary = "Deletes a medical location")

@@ -41,17 +41,20 @@ data class CalendarItemDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val title: String? = null,
 	val calendarItemTypeId: String? = null,
 	val masterCalendarItemId: String? = null,
-	@get:Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
+	@Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
 	val important: Boolean? = null,
 	val homeVisit: Boolean? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val phoneNumber: String? = null,
 	val placeId: String? = null,
 	val address: AddressDto? = null,
@@ -73,9 +76,11 @@ data class CalendarItemDto(
 	val agendaId: String? = null,
 	val resourceGroup: CodeStubDto? = null,
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val hcpId: String? = null,
 	val recurrenceId: String? = null,
 	val meetingTags: Set<CalendarItemTagDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val flowItem: FlowItemDto? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

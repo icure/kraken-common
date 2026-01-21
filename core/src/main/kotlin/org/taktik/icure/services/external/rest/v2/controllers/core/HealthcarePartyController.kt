@@ -31,10 +31,10 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.DocumentNotFoundException
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -55,11 +55,11 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Map
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.JsonString
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.lang.Exception
 
 @RestController("healthcarePartyControllerV2")
 @Profile("app")
@@ -75,6 +75,7 @@ class HealthcarePartyController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 	companion object {
 		private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -190,22 +191,28 @@ class HealthcarePartyController(
 	}
 
 	@Operation(
-		summary = "Create a healthcare party",
+		summary = "Create a HealthcareParty",
 		description = "One of Name or Last name+First name, Nihii, and Public key are required.",
 	)
 	@PostMapping
 	fun createHealthcareParty(
 		@RequestBody h: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		val hcParty =
-			try {
-				healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
-			} catch (e: MissingRequirementsException) {
-				logger.warn(e.message, e)
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			}
-		healthcarePartyV2Mapper.map(hcParty!!)
+		val hcParty = healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
+		healthcarePartyV2Mapper.map(hcParty)
 	}
+
+	@Operation(
+		summary = "Create a batch of HealthcareParty",
+		description = "One of Name or Last name+First name, Nihii, and Public key are required for each HealthcareParty.",
+	)
+	@PostMapping("/batch")
+	fun createHealthcareParties(
+		@RequestBody healthcareParties: List<HealthcarePartyDto>,
+	): Flux<HealthcarePartyDto> =
+		healthcarePartyService.createHealthcareParties(
+			healthcareParties.map(healthcarePartyV2Mapper::map)
+		).map(healthcarePartyV2Mapper::map).injectReactorContext()
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
@@ -245,17 +252,10 @@ class HealthcarePartyController(
 	): Flux<HealthcarePartyDto> = healthcarePartyIds.ids
 		.takeIf { it.isNotEmpty() }
 		?.let { ids ->
-			try {
-				healthcarePartyService
-					.getHealthcareParties(ids)
-					.map { healthcarePartyV2Mapper.map(it) }
-					.injectReactorContext()
-			} catch (e: Exception) {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					e.message,
-				).also { logger.error(it.message) }
-			}
+			healthcarePartyService
+				.getHealthcareParties(ids)
+				.map { healthcarePartyV2Mapper.map(it) }
+				.injectReactorContext()
 		}
 		?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
@@ -290,7 +290,7 @@ class HealthcarePartyController(
 		PublicKeyDto(healthcarePartyId, publicKey)
 	}
 
-	@Operation(summary = "Deletes multiple HealthcarePartys")
+	@Operation(summary = "Deletes multiple HealthcareParties")
 	@PostMapping("/delete/batch")
 	fun deleteHealthcareParties(
 		@RequestBody healthcarePartyIds: ListOfIdsDto,
@@ -298,9 +298,9 @@ class HealthcarePartyController(
 		.deleteHealthcareParties(
 			healthcarePartyIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple HealthcarePartys if they match the provided revs")
+	@Operation(summary = "Deletes multiple HealthcareParties if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteHealthcarePartiesWithRev(
 		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
@@ -308,14 +308,14 @@ class HealthcarePartyController(
 		.deleteHealthcareParties(
 			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes an HealthcareParty")
 	@DeleteMapping("/{healthcarePartyId}")
 	fun deleteHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyService.deleteHealthcareParty(healthcarePartyId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -325,27 +325,55 @@ class HealthcarePartyController(
 	fun undeleteHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<HealthcarePartyDto> = mono {
+	): Mono<HealthcarePartyDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyV2Mapper.map(healthcarePartyService.undeleteHealthcareParty(healthcarePartyId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteHealthcareParties(
+		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
+	): Flux<HealthcarePartyDto> = healthcarePartyService
+		.undeleteHealthcareParties(
+			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
+		).map(healthcarePartyV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 
 	@DeleteMapping("/purge/{healthcarePartyId}")
 	fun purgeHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyService.purgeHealthcareParty(healthcarePartyId, rev).let(docIdentifierV2Mapper::map)
 	}
 
-	@Operation(summary = "Modify a Healthcare Party.", description = "No particular return value. It's just a message.")
+	@PostMapping("/purge/batch")
+	fun purgeHealthcareParties(
+		@RequestBody healthcarePartyIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = healthcarePartyService
+		.purgeHealthcareParties(
+			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
+	@Operation(summary = "Modify a HealthcareParty.", description = "No particular return value. It's just a message.")
 	@PutMapping
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto))?.let {
+		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto)).let {
 			healthcarePartyV2Mapper.map(it)
-		} ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot find Healthcare Party.")
+		}
 	}
+
+	@Operation(summary = "Modify a batch of HealthcareParty.")
+	@PutMapping("/batch")
+	fun modifyHealthcareParties(
+		@RequestBody healthcareParties: List<HealthcarePartyDto>,
+	): Flux<HealthcarePartyDto> =
+		healthcarePartyService.modifyHealthcareParties(
+			healthcareParties.map(healthcarePartyV2Mapper::map)
+		).map(healthcarePartyV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])

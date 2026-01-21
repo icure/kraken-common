@@ -22,13 +22,10 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.ApplicationSettingsService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.services.external.rest.v2.dto.ApplicationSettingsDto
-import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.ApplicationSettingsV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ApplicationSettingsBulkShareResultV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.ClassificationBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -58,10 +55,9 @@ class ApplicationSettingsController(
 	fun createApplicationSettings(
 		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
 	): Mono<ApplicationSettingsDto> = mono {
-		val applicationSettings =
+		applicationSettingsV2Mapper.map(
 			applicationSettingsService.createApplicationSettings(applicationSettingsV2Mapper.map(applicationSettingsDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
-		applicationSettingsV2Mapper.map(applicationSettings)
+		)
 	}
 
 	@Operation(summary = "Update application settings")

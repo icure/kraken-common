@@ -7,6 +7,7 @@ package org.taktik.icure.services.external.rest.v1.controllers.core
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -28,8 +29,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
-import org.taktik.icure.asyncservice.createEntities
-import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.security.warn
@@ -75,11 +74,7 @@ class HealthElementController(
 	fun createHealthElement(
 		@RequestBody c: HealthElementDto,
 	) = mono {
-		val element =
-			healthElementService.createHealthElement(healthElementMapper.map(c))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
-
-		healthElementMapper.map(element)
+		healthElementMapper.map(healthElementService.createHealthElement(healthElementMapper.map(c)))
 	}
 
 	@Operation(summary = "Get a healthcare element")
@@ -228,9 +223,7 @@ class HealthElementController(
 	fun modifyHealthElement(
 		@RequestBody healthElementDto: HealthElementDto,
 	) = mono {
-		val modifiedHealthElement =
-			healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
+		val modifiedHealthElement = healthElementService.modifyHealthElement(healthElementMapper.map(healthElementDto))
 		healthElementMapper.map(modifiedHealthElement)
 	}
 
@@ -240,7 +233,9 @@ class HealthElementController(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = flow {
 		try {
-			val hes = healthElementService.modifyEntities(healthElementDtos.map { f -> healthElementMapper.map(f) })
+			val hes = healthElementService.modifyEntities(
+				healthElementDtos.map { f -> healthElementMapper.map(f) }.asFlow()
+			)
 			emitAll(hes.map { healthElementMapper.map(it) })
 		} catch (e: Exception) {
 			logger.warn(e) { e.message }
@@ -254,7 +249,9 @@ class HealthElementController(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = flow {
 		try {
-			val hes = healthElementService.createEntities(healthElementDtos.map { f -> healthElementMapper.map(f) })
+			val hes = healthElementService.createEntities(
+				healthElementDtos.map { f -> healthElementMapper.map(f) }.asFlow()
+			)
 			emitAll(hes.map { healthElementMapper.map(it) })
 		} catch (e: Exception) {
 			logger.warn(e) { e.message }
@@ -276,7 +273,7 @@ class HealthElementController(
 
 		val succeed = healthElementWithDelegation?.delegations != null && healthElementWithDelegation.delegations.isNotEmpty()
 		if (succeed) {
-			healthElementWithDelegation?.let { healthElementMapper.map(it) }
+			healthElementMapper.map(healthElementWithDelegation)
 		} else {
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delegation creation for healthcare element failed.")
 		}

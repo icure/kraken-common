@@ -43,10 +43,9 @@ class ApplicationSettingsController(
 	fun createApplicationSettings(
 		@RequestBody applicationSettingsDto: ApplicationSettingsDto,
 	) = mono {
-		val applicationSettings =
+		applicationSettingsMapper.map(
 			applicationSettingsService.createApplicationSettings(applicationSettingsMapper.map(applicationSettingsDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ApplicationSettings creation failed")
-		applicationSettingsMapper.map(applicationSettings)
+		)
 	}
 
 	@Operation(summary = "Update application settings")

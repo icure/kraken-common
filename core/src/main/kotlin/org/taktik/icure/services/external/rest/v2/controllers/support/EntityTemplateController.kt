@@ -115,10 +115,7 @@ class EntityTemplateController(
 		@RequestBody c: EntityTemplateDto,
 	): Mono<EntityTemplateDto> = mono {
 		val et = entityTemplateV2Mapper.map(c).copy(entity = c.entity)
-		val entityTemplate =
-			entityTemplateService.createEntityTemplate(et)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "EntityTemplate creation failed.")
-
+		val entityTemplate = entityTemplateService.createEntityTemplate(et)
 		entityTemplateV2Mapper.map(entityTemplate)
 	}
 
@@ -173,7 +170,7 @@ class EntityTemplateController(
 
 		val succeed = modifiedEntityTemplate != null
 		if (succeed) {
-			modifiedEntityTemplate?.let { entityTemplateV2Mapper.map(it) }
+			entityTemplateV2Mapper.map(modifiedEntityTemplate)
 		} else {
 			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modification of the entityTemplate failed. Read the server log.")
 		}

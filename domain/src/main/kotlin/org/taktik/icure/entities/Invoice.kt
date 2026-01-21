@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.id.UUIDGenerator
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -35,7 +33,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Invoice(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -49,10 +47,10 @@ data class Invoice(
 
 	val identifier: List<Identifier> = listOf(),
 
-	@param:ContentValue(ContentValues.FUZZY_DATE) val invoiceDate: Long? = null, // yyyyMMdd
+	val invoiceDate: Long? = null, // yyyyMMdd
 	val sentDate: Long? = null,
 	val printedDate: Long? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val invoicingCodes: List<InvoicingCode> = emptyList(),
+	val invoicingCodes: List<InvoicingCode> = emptyList(),
 	val receipts: Map<String, String> = emptyMap(),
 	val recipientType: String? = null, // org.taktik.icure.entities.HealthcareParty,
 
@@ -63,7 +61,7 @@ data class Invoice(
 	val thirdPartyReference: String? = null,
 	val thirdPartyPaymentJustification: String? = null,
 	val thirdPartyPaymentReason: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val reason: String? = null,
+	val reason: String? = null,
 	val invoiceType: InvoiceType? = null,
 	val sentMediumType: MediumType? = null,
 	val interventionType: InvoiceInterventionType? = null,

@@ -97,13 +97,11 @@ class InvoiceController(
 	fun createInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice =
-			invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invoice creation failed")
+		val invoice = invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
 		invoiceV2Mapper.map(invoice)
 	}
 
-	@Operation(summary = "Deletes multiple Invoices")
+	@Operation(summary = "Delete multiple Invoices")
 	@PostMapping("/delete/batch")
 	fun deleteInvoices(
 		@RequestBody invoiceIds: ListOfIdsDto,
@@ -111,9 +109,9 @@ class InvoiceController(
 		.deleteInvoices(
 			invoiceIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Invoices if they match the provided revs")
+	@Operation(summary = "Delete multiple Invoices if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteInvoicesWithRev(
 		@RequestBody invoiceIds: ListOfIdsAndRevDto,
@@ -121,14 +119,14 @@ class InvoiceController(
 		.deleteInvoices(
 			invoiceIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes an Invoice")
 	@DeleteMapping("/{invoiceId}")
 	fun deleteInvoice(
 		@PathVariable invoiceId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceService.deleteInvoice(invoiceId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -138,17 +136,35 @@ class InvoiceController(
 	fun undeleteInvoice(
 		@PathVariable invoiceId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<InvoiceDto> = mono {
+	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceV2Mapper.map(invoiceService.undeleteInvoice(invoiceId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteInvoices(
+		@RequestBody invoiceIds: ListOfIdsAndRevDto,
+	): Flux<InvoiceDto> = invoiceService
+		.undeleteInvoices(
+			invoiceIds.ids.map(idWithRevV2Mapper::map),
+		).map(invoiceV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{invoiceId}")
 	fun purgeInvoice(
 		@PathVariable invoiceId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceService.purgeInvoice(invoiceId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeInvoices(
+		@RequestBody invoiceIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = invoiceService
+		.purgeInvoices(
+			invoiceIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets an invoice")
 	@GetMapping("/{invoiceId}")
@@ -178,9 +194,7 @@ class InvoiceController(
 	fun modifyInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice =
-			invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice modification failed")
+		val invoice = invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
 
 		invoiceV2Mapper.map(invoice)
 	}

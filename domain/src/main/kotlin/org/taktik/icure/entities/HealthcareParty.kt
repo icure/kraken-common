@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
@@ -90,7 +88,7 @@ import org.taktik.icure.validation.ValidCode
  */
 
 data class HealthcareParty(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
@@ -101,8 +99,8 @@ data class HealthcareParty(
 	val identifier: List<Identifier> = emptyList(),
 
 	override val name: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) override val lastName: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) override val firstName: String? = null,
+	override val lastName: String? = null,
+	override val firstName: String? = null,
 	override val gender: Gender? = null,
 	override val civility: String? = null,
 	override val companyName: String? = null,
@@ -121,14 +119,15 @@ data class HealthcareParty(
 	val nihii: String? = null, // institution, person
 	val nihiiSpecCode: String? = null, // don't show field in the GUI
 	val ssin: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) override val addresses: List<Address> = emptyList(),
+	override val addresses: List<Address> = emptyList(),
 	override val languages: List<String> = emptyList(),
 	val picture: ByteArray? = null,
 	val statuses: Set<HealthcarePartyStatus> = emptySet(),
 	val statusHistory: List<HealthcarePartyHistoryStatus> = emptyList(),
 	val descr: Map<String, String>? = emptyMap(),
-	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) @JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val specialityCodes: Set<CodeStub> = emptySet(), // Speciality codes, default is first
-
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
+	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
+	val specialityCodes: Set<CodeStub> = emptySet(), // Speciality codes, default is first
 	val sendFormats: Map<TelecomType, String> = emptyMap(),
 	val notes: String? = null,
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -29,8 +30,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.HealthElementService
-import org.taktik.icure.asyncservice.createEntities
-import org.taktik.icure.asyncservice.modifyEntities
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
@@ -88,11 +87,7 @@ class HealthElementController(
 	fun createHealthElement(
 		@RequestBody c: HealthElementDto,
 	): Mono<HealthElementDto> = mono {
-		val element =
-			healthElementService.createHealthElement(healthElementV2Mapper.map(c))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Health element creation failed.")
-
-		healthElementV2Mapper.map(element)
+		healthElementV2Mapper.map(healthElementService.createHealthElement(healthElementV2Mapper.map(c)))
 	}
 
 	@Operation(summary = "Get a health element")
@@ -222,9 +217,9 @@ class HealthElementController(
 		.deleteHealthElements(
 			healthElementIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple HealthElements if they match the provided revs")
+	@Operation(summary = "Deletes multiple HealthElements if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteHealthElementsWithRev(
 		@RequestBody healthElementIds: ListOfIdsAndRevDto,
@@ -232,14 +227,14 @@ class HealthElementController(
 		.deleteHealthElements(
 			healthElementIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an HealthElement")
+	@Operation(summary = "Deletes a HealthElement")
 	@DeleteMapping("/{healthElementId}")
 	fun deleteHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthElementService.deleteHealthElement(healthElementId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -249,17 +244,36 @@ class HealthElementController(
 	fun undeleteHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<HealthElementDto> = mono {
+	): Mono<HealthElementDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthElementV2Mapper.map(healthElementService.undeleteHealthElement(healthElementId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteHealthElements(
+		@RequestBody healthElementIds: ListOfIdsAndRevDto,
+	): Flux<HealthElementDto> = healthElementService
+		.undeleteHealthElements(
+			healthElementIds.ids.map(idWithRevV2Mapper::map),
+		).map(healthElementV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{healthElementId}")
 	fun purgeHealthElement(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
-		healthElementService.purgeHealthElement(healthElementId, rev).let(docIdentifierV2Mapper::map)
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		healthElementService.purgeHealthElement(healthElementId, rev)
+			.let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeHealthElements(
+		@RequestBody healthElementIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = healthElementService
+		.purgeHealthElements(
+			healthElementIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a health element", description = "Returns the modified health element.")
 	@PutMapping
@@ -268,7 +282,6 @@ class HealthElementController(
 	): Mono<HealthElementDto> = mono {
 		val modifiedHealthElement =
 			healthElementService.modifyHealthElement(healthElementV2Mapper.map(healthElementDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Health element modification failed.")
 		healthElementV2Mapper.map(modifiedHealthElement)
 	}
 
@@ -277,7 +290,9 @@ class HealthElementController(
 	fun modifyHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.modifyEntities(healthElementDtos.map { f -> healthElementV2Mapper.map(f) })
+		val hes = healthElementService.modifyEntities(
+			healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
+		)
 		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
 	} catch (e: Exception) {
 		logger.warn(e.message, e)
@@ -288,13 +303,9 @@ class HealthElementController(
 	@PostMapping("/batch")
 	fun createHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
-	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.createEntities(healthElementDtos.map { f -> healthElementV2Mapper.map(f) })
-		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
-	} catch (e: Exception) {
-		logger.warn(e.message, e)
-		throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-	}
+	): Flux<HealthElementDto> = healthElementService.createEntities(
+		healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
+	).map { healthElementV2Mapper.map(it) }.injectReactorContext()
 
 	@Operation(
 		summary = "Filter health elements for the current user (HcParty)",

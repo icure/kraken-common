@@ -27,12 +27,12 @@ import org.taktik.icure.pagination.PaginationElement
 interface InvoiceService :
 	EntityWithSecureDelegationsService<Invoice>,
 	EntityWithConflictResolutionService {
-	suspend fun createInvoice(invoice: Invoice): Invoice?
+	suspend fun createInvoice(invoice: Invoice): Invoice
 
 	suspend fun getInvoice(invoiceId: String): Invoice?
 	fun getInvoices(ids: List<String>): Flow<Invoice>
 
-	suspend fun modifyInvoice(invoice: Invoice): Invoice?
+	suspend fun modifyInvoice(invoice: Invoice): Invoice
 	fun modifyInvoices(invoices: List<Invoice>): Flow<Invoice>
 
 	suspend fun addDelegation(invoiceId: String, delegation: Delegation): Invoice?
@@ -204,6 +204,7 @@ interface InvoiceService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeInvoice(id: String, rev: String): DocIdentifier
+	fun purgeInvoices(invoiceIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -213,4 +214,5 @@ interface InvoiceService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteInvoice(id: String, rev: String): Invoice
+	fun undeleteInvoices(invoiceIds: List<IdAndRev>): Flow<Invoice>
 }

@@ -16,6 +16,7 @@ import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.impl.GenericLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
@@ -49,8 +50,8 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
 ) : GenericLogicImpl<E, D>(fixer, datastoreInstanceProvider, filters),
 	EntityWithSecureDelegationsLogic<E>
 	where
-	      E : HasEncryptionMetadata, E : Versionable<String>,
-	      D : GenericDAO<E> {
+		E : HasEncryptionMetadata, E : Versionable<String>,
+		D : GenericDAO<E> {
 	/**
 	 * Creates a copy of the entity with updated security metadata.
 	 */
@@ -79,7 +80,7 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
 					entities =
 					helper
 						.filterValidEntityChanges(
-							entities.map { fix(it, isCreate = false) },
+							entities.onEach { checkValidityForModification(it) }.map { fix(it, isCreate = false) },
 							dao.getEntities(datastoreInfo, entities.map { it.id }),
 						).toList(),
 				).filterSuccessfulUpdates(),
@@ -121,11 +122,11 @@ abstract class EntityWithEncryptionMetadataLogic<E, D>(
 		)
 	}
 
-	protected fun filterValidEntityChanges(updatedEntities: Collection<E>): Flow<E> = flow {
+	protected fun filterValidEntityChanges(datastoreInformation: IDatastoreInformation, updatedEntities: Collection<E>): Flow<E> = flow {
 		emitAll(
 			helper.filterValidEntityChanges(
 				updatedEntities.map { fix(it, isCreate = false) },
-				getGenericDAO().getEntities(datastoreInstanceProvider.getInstanceAndGroup(), updatedEntities.map { it.id }),
+				getGenericDAO().getEntities(datastoreInformation, updatedEntities.map { it.id }),
 			),
 		)
 	}
