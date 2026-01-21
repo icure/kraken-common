@@ -59,7 +59,7 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 
-	override suspend fun modifyEntity(entity: E): E = fix(entity, isCreate = true) { fixedEntity ->
+	override suspend fun modifyEntity(entity: E): E = fix(entity, isCreate = false) { fixedEntity ->
 		checkValidityForModification(fixedEntity)
 		getGenericDAO().save(getInstanceAndGroup(), fixedEntity)
 	}

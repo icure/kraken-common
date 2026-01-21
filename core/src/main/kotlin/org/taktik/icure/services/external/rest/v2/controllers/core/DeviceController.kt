@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -26,7 +25,6 @@ import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
-import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
@@ -107,19 +105,19 @@ class DeviceController(
 	@PostMapping("/bulk", "/batch")
 	fun createDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	): Mono<List<IdWithRevDto>> = mono {
-		val devices = deviceService.createDevices(deviceDtos.map(deviceV2Mapper::map).toList())
-		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
-	}
+	): Flux<DeviceDto> = deviceService
+		.createDevices(deviceDtos.map(deviceV2Mapper::map))
+		.map(deviceV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(summary = "Modify devices in bulk", description = "Returns the id and _rev of modified devices")
 	@PutMapping("/bulk", "/batch")
 	fun updateDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	): Mono<List<IdWithRevDto>> = mono {
-		val devices = deviceService.modifyDevices(deviceDtos.map(deviceV2Mapper::map).toList())
-		devices.map { p -> IdWithRevDto(id = p.id, rev = p.rev) }.toList()
-	}
+	): Flux<DeviceDto> = deviceService
+		.modifyDevices(deviceDtos.map(deviceV2Mapper::map))
+		.map(deviceV2Mapper::map)
+		.injectReactorContext()
 
 	@Operation(
 		summary = "Filter devices for the current user (HcParty) ",

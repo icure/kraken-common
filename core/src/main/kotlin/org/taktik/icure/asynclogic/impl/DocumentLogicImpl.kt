@@ -159,8 +159,8 @@ open class DocumentLogicImpl(
 			"Attempting to modify a non-existing document ${newDoc.id}."
 		}
 		require(newDoc.rev == baseline.rev) { "Updated document has an older revision ${newDoc.rev} -> ${baseline.rev}" }
-		val validatedEntityForAttachments = ensureValidAttachmentChanges(updatedDocument, baseline, strict)
-		checkValidEntityChange(validatedEntityForAttachments, baseline)
+		val validatedEntityForAttachments = ensureValidAttachmentChanges(updatedDocument = newDoc, baseline, strict)
+		checkValidEntityChange(validatedEntityForAttachments, currentEntity = baseline)
 		documentDAO.save(datastoreInformation, validatedEntityForAttachments)
 	}
 

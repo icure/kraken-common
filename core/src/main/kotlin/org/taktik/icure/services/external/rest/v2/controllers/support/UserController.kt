@@ -263,8 +263,7 @@ class UserController(
 		// Sanitize group
 		val modifiedUser =
 			userService.modifyUser(
-				userV2Mapper.mapFillingOmittedSecretsOrNull(userDto.copy(groupId = null))
-					?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User ${userDto.id} not found")
+				userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null))
 			)
 
 		userV2Mapper.mapOmittingSecrets(modifiedUser)

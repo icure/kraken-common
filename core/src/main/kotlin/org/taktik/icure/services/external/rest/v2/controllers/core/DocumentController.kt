@@ -97,7 +97,7 @@ class DocumentController(
 
 	@Operation(summary = "Create a batch of Documents")
 	@PostMapping("/batch")
-	fun createDocument(
+	fun createDocuments(
 		@RequestBody documentDtos: List<DocumentDto>,
 	): Flux<DocumentDto> = documentService.createDocuments(
 		documentDtos.map(documentV2Mapper::map),
