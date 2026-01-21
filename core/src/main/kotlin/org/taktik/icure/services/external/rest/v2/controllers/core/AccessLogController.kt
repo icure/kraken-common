@@ -132,10 +132,10 @@ class AccessLogController(
 	@PostMapping("/undelete/batch")
 	fun undeleteAccessLogs(
 		@RequestBody accessLogIds: ListOfIdsAndRevDto,
-	): Flux<DocIdentifierDto> = accessLogService
+	): Flux<AccessLogDto> = accessLogService
 		.undeleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
-		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		).map(accessLogV2Mapper::map)
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{accessLogId}")
