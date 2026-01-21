@@ -28,7 +28,10 @@ open class DeviceLogicImpl(
 
 	override fun createDevices(devices: List<Device>): Flow<Device> = flow {
 		emitAll(
-			createEntities(devices.map { device -> fix(device, isCreate = true) }),
+			createEntities(
+				devices.map { device -> fix(device, isCreate = true) }
+				
+			),
 		)
 	}
 

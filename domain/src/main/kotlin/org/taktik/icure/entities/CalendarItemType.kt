@@ -20,10 +20,10 @@ import org.taktik.icure.utils.invoke
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CalendarItemType(
-	@param:ContentValue(ContentValues.UUID) @param:JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val name: String? = null,
+	val name: String? = null,
 	val healthcarePartyId: String? = null,
 	val agendaId: String? = null,
 	val defaultCalendarItemType: Boolean = false,

@@ -68,6 +68,8 @@ abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 				?: if (failOnMissingUser) throw NotFoundRequestException("User ${modifiedUser.id} does not exist") else return null
 			if (existingUser.rev != modifiedUser.rev && failOnMismatchedRev) {
 				throw ConflictRequestException("Outdated revision for user ${modifiedUser.id}")
+			} else if (existingUser.rev != modifiedUser.rev) {
+				return null
 			}
 			val filledPassword = if (modifiedUser.passwordHash == "*") existingUser.passwordHash else modifiedUser.passwordHash
 			if (modifiedUser.use2fa == true) {

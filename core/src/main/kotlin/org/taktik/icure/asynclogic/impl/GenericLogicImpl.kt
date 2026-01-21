@@ -39,9 +39,9 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 		}
 	}
 
-	override suspend fun createEntity(entity: E): E {
-		checkValidityForCreation(entity)
-		return getGenericDAO().create(getInstanceAndGroup(), entity)
+	override suspend fun createEntity(entity: E): E = fix(entity, isCreate = true) { fixedEntity ->
+		checkValidityForCreation(fixedEntity)
+		getGenericDAO().create(getInstanceAndGroup(), fixedEntity)
 	}
 
 	override fun createEntities(entities: Collection<E>): Flow<E> = flow {
@@ -59,9 +59,9 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	}
 
 
-	override suspend fun modifyEntity(entity: E): E {
-		checkValidityForModification(entity)
-		return getGenericDAO().save(getInstanceAndGroup(), entity)
+	override suspend fun modifyEntity(entity: E): E = fix(entity, isCreate = true) { fixedEntity ->
+		checkValidityForModification(fixedEntity)
+		getGenericDAO().save(getInstanceAndGroup(), fixedEntity)
 	}
 
 	override fun modifyEntities(entities: Collection<E>): Flow<E> = flow {
