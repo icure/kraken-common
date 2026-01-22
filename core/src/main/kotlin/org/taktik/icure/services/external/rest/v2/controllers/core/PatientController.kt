@@ -46,7 +46,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
-import org.taktik.icure.domain.customentities.config.ExtensionConfiguration
+import org.taktik.icure.domain.customentities.config.ExtensionsConfiguration
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.Patient
@@ -119,7 +119,7 @@ class PatientController(
 		mapFromDtoWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 			{ "Patient(${it.id})" }
 		)
@@ -128,7 +128,7 @@ class PatientController(
 		mapFromDomainWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 		)
 
@@ -136,7 +136,7 @@ class PatientController(
 		mapFromDtoWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 			{ "Patient(${it.id})" }
 		)
@@ -145,7 +145,7 @@ class PatientController(
 		mapFromDomainWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 		)
 
@@ -154,7 +154,7 @@ class PatientController(
 			this,
 			customEntitiesConfigurationProvider,
 			bulkShareResultV2Mapper,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 		)
 	
@@ -162,7 +162,7 @@ class PatientController(
 		mapPaginationElementsWithExtensions(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 		)
 
@@ -177,7 +177,7 @@ class PatientController(
 			objectMapper,
 			predicate,
 			customEntitiesConfigurationProvider,
-			ExtensionConfiguration::patient,
+			ExtensionsConfiguration::patient,
 			patientMapper::map,
 		)
 

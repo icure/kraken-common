@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.config.ExtensionConfiguration
+import org.taktik.icure.domain.customentities.config.ExtensionsConfiguration
 import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
@@ -36,7 +36,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): OBJ {
@@ -59,7 +59,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDomainWithExtension(
 		obj: OBJ,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): DTO {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -80,7 +80,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): List<OBJ> {
@@ -108,7 +108,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDomainWithExtension(
 		objs: List<OBJ>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): List<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -131,7 +131,7 @@ object MappersWithCustomExtensions {
 	inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dtos: Flow<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		crossinline getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		crossinline doMap: (DTO, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> OBJ,
 		crossinline getPathRoot: (DTO) -> String
 	): Flow<OBJ> = flow {
@@ -159,7 +159,7 @@ object MappersWithCustomExtensions {
 	inline fun <DTO, OBJ> mapFromDomainWithExtension(
 		objs: Flow<OBJ>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		crossinline getExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		crossinline doMap: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<DTO> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -183,7 +183,7 @@ object MappersWithCustomExtensions {
 		shareResults: Flow<EntityBulkShareResult<OBJ>>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		bulkShareResultV2Mapper: BulkShareResultV2Mapper,
-		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		crossinline getEntityExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<EntityBulkShareResultDto<DTO>> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -217,7 +217,7 @@ object MappersWithCustomExtensions {
 	inline fun <reified OBJ : Identifiable<String>, reified DTO> mapPaginationElementsWithExtensions(
 		paginationElements: Flow<PaginationElement>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		crossinline getEntityExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): Flow<PaginationElement> = flow {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -259,7 +259,7 @@ object MappersWithCustomExtensions {
 		objectMapper: ObjectMapper,
 		predicate: Predicate? = null,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getEntityExtension: ExtensionConfiguration.() -> ObjectDefinition?,
+		crossinline getEntityExtension: ExtensionsConfiguration.() -> ObjectDefinition?,
 		crossinline doMapEntity: (OBJ, (RawJson.JsonObject?) -> RawJson.JsonObject?) -> DTO,
 	): PaginatedList<DTO> {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()

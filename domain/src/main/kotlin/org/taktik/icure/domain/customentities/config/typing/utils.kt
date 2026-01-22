@@ -58,10 +58,9 @@ fun validateIdentifier(path: ResolutionPath, identifier: String) {
 	}
 }
 
-private const val MAX_LENGTH = 32
-fun truncateValueForErrorMessage(value: String): String =
-	if (value.length > MAX_LENGTH) {
-		value.take(MAX_LENGTH) + "..."
+fun truncateValueForErrorMessage(value: String, maxLength: Int = 32): String =
+	if (value.length > maxLength) {
+		value.take(maxLength) + "..."
 	} else {
 		value
 	}

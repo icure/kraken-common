@@ -7,6 +7,15 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
 
+//TODO
+// - add BuiltInTypeConfig to allow referencing built-in embedded complex types (like Address, CodeStub, ...)?
+//   - Could be convenient
+//   - Not necessary (people can make the custom type themselves)
+//   - Must also allow extensions on them, defined at the level of the VersionedCustomEntitiesConfiguration
+//   - Could be adding complexity to the getting into cardinal, the custom entities configuration could become too overwhelming
+//   - have to think how to efficiently handle validation and DTO<->Stored entity mapping
+// - add TypeAliasTypeConfig to allow reusing type configurations with specific validation, and have them mapped on the SDK side with a type specialization
+// - Allow custom validators that only apply on client side?
 /**
  * Common supertype for strong validation configurations of a custom entity content or custom extensions on an entity.
  *
