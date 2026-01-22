@@ -47,17 +47,14 @@ interface ICureDocumentDto<T> :
 	val responsible:
 		String?
 
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@get:Schema(description = "The id of the medical location where this entity was created.")
 	val medicalLocationId: String?
-
-	@get:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.")
-	val endOfLife: Long?
 
 	fun solveConflictsWith(other: ICureDocumentDto<T>): Map<String, Any?> = mapOf(
 		"id" to this.id,
 		"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
 		"modified" to (this.modified?.coerceAtLeast(other.modified ?: 0L) ?: other.modified),
-		"endOfLife" to (this.endOfLife?.coerceAtMost(other.endOfLife ?: Long.MAX_VALUE) ?: other.endOfLife),
 		"author" to (this.author ?: other.author),
 		"responsible" to (this.responsible ?: other.responsible),
 		"medicalLocationId" to (this.medicalLocationId ?: other.medicalLocationId),

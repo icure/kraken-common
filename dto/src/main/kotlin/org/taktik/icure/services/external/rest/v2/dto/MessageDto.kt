@@ -50,7 +50,7 @@ data class MessageDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
 	@param:Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
