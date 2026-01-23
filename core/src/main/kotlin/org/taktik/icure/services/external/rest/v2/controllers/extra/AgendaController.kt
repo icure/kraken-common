@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -80,12 +78,16 @@ class AgendaController(
 	fun createAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = mono {
-		val agenda =
-			agendaService.createAgenda(agendaV2Mapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda creation failed")
-
-		agendaV2Mapper.map(agenda)
+		agendaV2Mapper.map(agendaService.createAgenda(agendaV2Mapper.map(agendaDto)))
 	}
+
+	@Operation(summary = "Creates a batch of agendas")
+	@PostMapping("/batch")
+	fun createAgendas(
+		@RequestBody agendasDto: List<AgendaDto>,
+	): Flux<AgendaDto> = agendaService.createAgendas(
+		agendasDto.map(agendaV2Mapper::map)
+	).map(agendaV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Agendas")
 	@PostMapping("/delete/batch")
@@ -97,7 +99,7 @@ class AgendaController(
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Agendas if they match the provided revs")
+	@Operation(summary = "Delete multiple Agendas if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteAgendasWithRev(
 		@RequestBody agendaIds: ListOfIdsAndRevDto,
@@ -126,6 +128,16 @@ class AgendaController(
 		agendaV2Mapper.map(agendaService.undeleteAgenda(agendaId, rev))
 	}
 
+	@Operation(summary = "Undelete multiple Agendas if they match the provided revs")
+	@PostMapping("/undelete/batch")
+	fun undeleteAgendas(
+		@RequestBody agendaIds: ListOfIdsAndRevDto,
+	): Flux<AgendaDto> = agendaService
+		.undeleteAgendas(
+			agendaIds.ids.map(idWithRevV2Mapper::map),
+		).map(agendaV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
 	@DeleteMapping("/purge/{agendaId}")
 	fun purgeAgenda(
 		@PathVariable agendaId: String,
@@ -133,6 +145,16 @@ class AgendaController(
 	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		agendaService.purgeAgenda(agendaId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@Operation(summary = "Purge multiple Agendas if they match the provided revs")
+	@PostMapping("/purge/batch")
+	fun purgeAgendas(
+		@RequestBody agendaIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = agendaService
+		.purgeAgendas(
+			agendaIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets an agenda")
 	@GetMapping("/{agendaId}")
@@ -169,11 +191,17 @@ class AgendaController(
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		val agenda =
-			agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Agenda modification failed")
+		val agenda = agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
 		agendaV2Mapper.map(agenda)
 	}
+
+	@Operation(summary = "Modifies a batch of agendas")
+	@PutMapping("/batch")
+	fun modifyAgendas(
+		@RequestBody agendaDtos: List<AgendaDto>,
+	): Flux<AgendaDto> = agendaService.modifyAgendas(
+		agendaDtos.map(agendaV2Mapper::map)
+	).map(agendaV2Mapper::map).injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])

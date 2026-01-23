@@ -10,7 +10,7 @@ import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginationElement
 
 interface KeywordService {
-	suspend fun createKeyword(keyword: Keyword): Keyword?
+	suspend fun createKeyword(keyword: Keyword): Keyword
 
 	/**
 	 * Returns all the [Keyword]s in a group in a format for pagination.

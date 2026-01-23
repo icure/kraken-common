@@ -47,7 +47,7 @@ data class AccessLogDto(
 	)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
-	@get:Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
+	@Deprecated("Use cryptedForeignKeys instead") val patientId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

@@ -5,7 +5,9 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -22,14 +24,21 @@ interface CodeService : EntityWithConflictResolutionService {
 
 	suspend fun get(type: String, code: String, version: String): Code?
 	fun getCodes(ids: List<String>): Flow<Code>
-	suspend fun create(code: Code): Code?
+	suspend fun create(code: Code): Code
 
-	suspend fun create(batch: List<Code>): List<Code>?
+	fun create(codes: List<Code>): Flow<Code>
 
-	@Throws(Exception::class)
-	suspend fun modify(code: Code): Code?
-
+	suspend fun modify(code: Code): Code
 	fun modify(batch: List<Code>): Flow<Code>
+
+	suspend fun deleteCode(codeId: String, rev: String): DocIdentifier
+	fun deleteCodes(codeIds: List<IdAndRev>): Flow<DocIdentifier>
+
+	suspend fun undeleteCode(codeId: String, rev: String): Code
+	fun undeleteCodes(codeIds: List<IdAndRev>): Flow<Code>
+
+	suspend fun purgeCode(codeId: String, rev: String): DocIdentifier
+	fun purgeCodes(codeIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Retrieves all the types of the code in the db for the specified region and code.
@@ -91,7 +100,7 @@ interface CodeService : EntityWithConflictResolutionService {
 	 *
 	 * @param region the region of the code to match.
 	 * @param language the language of the label to search.
-	 * @param types a [Set] of [Code.type]s. Only the codes of those types will be returned. Important: if between 2 different calls (for pages) the order of types changes behaviour is undefined
+	 * @param types a [Set] of [Code.type]s. Only the codes of those types will be returned. Important: if between 2 different calls (for pages) the order of types changes behavior is undefined
 	 * @param label a label or a prefix to search.
 	 * @param version the version of the code. It may be null (all the versions will be returned), a specific version or
 	 * the string "latest", that will get the latest version of each code.

@@ -9,7 +9,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -180,8 +179,7 @@ class CodeController(
 	fun createCode(
 		@RequestBody c: CodeDto,
 	) = mono {
-		val code = codeService.create(codeMapper.map(c))
-		code?.let { codeMapper.map(it) }
+		codeMapper.map(codeService.create(codeMapper.map(c)))
 	}
 
 	@Operation(
@@ -194,7 +192,7 @@ class CodeController(
 	) = mono {
 		val codes = codeBatch.map { codeMapper.map(it) }
 		try {
-			codeService.create(codes)?.map { codeMapper.map(it) }
+			codeService.create(codes).map { codeMapper.map(it) }
 		} catch (e: IllegalStateException) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
 		}
@@ -269,16 +267,8 @@ class CodeController(
 	fun modifyCode(
 		@RequestBody codeDto: CodeDto,
 	) = mono {
-		val modifiedCode =
-			try {
-				codeService.modify(codeMapper.map(codeDto))
-			} catch (e: Exception) {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
-		modifiedCode?.let { codeMapper.map(it) }
+		val modifiedCode = codeService.modify(codeMapper.map(codeDto))
+		modifiedCode.let { codeMapper.map(it) }
 	}
 
 	@Operation(summary = "Modify a batch of codes", description = "Modification of (type, code, version) is not allowed.")
@@ -287,16 +277,7 @@ class CodeController(
 		@RequestBody codeBatch: List<CodeDto>,
 	) = codeService
 		.modify(codeBatch.map { codeMapper.map(it) })
-		.catch { e ->
-			if (e is IllegalStateException) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			} else {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
-		}.map { codeMapper.map(it) }
+		.map { codeMapper.map(it) }
 		.injectReactorContext()
 
 	@Operation(

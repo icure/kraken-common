@@ -48,7 +48,9 @@ data class TopicDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val activeParticipants: Map<String, TopicRoleDto> = emptyMap(),

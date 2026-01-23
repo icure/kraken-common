@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asynclogic.SessionInformationProvider
-import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asyncservice.DataOwnerService
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v1.dto.CryptoActorStubWithTypeDto
@@ -29,7 +28,6 @@ import reactor.core.publisher.Mono
 @Tag(name = "dataowner")
 class DataOwnerController(
 	private val dataOwnerService: DataOwnerService,
-	private val userLogic: UserLogic,
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeMapper,
 	private val cryptoActorStubMapper: CryptoActorStubMapper,

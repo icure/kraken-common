@@ -19,7 +19,6 @@ data class ContactByHcPartyPatientTagCodeDateFilter(
 	override val desc: String? = null,
 	val healthcarePartyId: String? = null,
 	@Deprecated("Use patientSecretForeignKeys instead")
-	@get:Deprecated("Use patientSecretForeignKeys instead")
 	val patientSecretForeignKey: String? = null,
 	val patientSecretForeignKeys: List<String>? = null,
 	val tagType: String? = null,

@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -33,6 +34,7 @@ data class InvoicingCodeDto(
 	val userId: String? = null,
 	val contactId: String? = null,
 	val serviceId: String? = null,
+	@SdkName("pricingId")
 	val tarificationId: String? = null,
 	// For obsolete codes or codes not linked to a tarification
 	val code: String? = null,

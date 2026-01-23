@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.apache.commons.lang3.StringUtils
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import java.io.Serializable
 
@@ -52,9 +50,9 @@ data class Medication(
 	val timestampOnSafe: Long? = null, // transaction date+time
 	val changeValidated: Boolean? = null, // accept change on safe
 	val newSafeMedication: Boolean? = null, // new medication on safe
-	@param:ContentValue(ContentValues.ANY_STRING) val medicationUse: String? = null, // free text
-	@param:ContentValue(ContentValues.ANY_STRING) val beginCondition: String? = null, // free text
-	@param:ContentValue(ContentValues.ANY_STRING) val endCondition: String? = null, // free text
+	val medicationUse: String? = null, // free text
+	val beginCondition: String? = null, // free text
+	val endCondition: String? = null, // free text
 	val origin: String? = null, // regularprocess, recorded
 	val medicationChanged: Boolean? = null,
 	val posologyChanged: Boolean? = null,

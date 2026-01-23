@@ -48,8 +48,11 @@ data class DeviceDto(
 	override val responsible: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val externalId: String? = null,
 	override val name: String? = null,
 	val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
@@ -57,6 +60,7 @@ data class DeviceDto(
 	val model: String? = null,
 	val serialNumber: String? = null,
 	override val parentId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val picture: ByteArray? = null,
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),

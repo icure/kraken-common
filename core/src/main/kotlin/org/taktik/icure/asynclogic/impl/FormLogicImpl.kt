@@ -7,12 +7,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
-import org.slf4j.LoggerFactory
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.FormDAO
@@ -121,11 +119,12 @@ open class FormLogicImpl(
 	}
 
 	override suspend fun createForm(form: Form) = fix(form, isCreate = true) { fixedForm ->
-		if (fixedForm.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		createEntities(setOf(fixedForm)).firstOrNull()
+		checkValidityForCreation(fixedForm)
+		createEntity(fixedForm)
 	}
 
 	override suspend fun modifyForm(form: Form) = fix(form, isCreate = false) { fixedForm ->
+		checkValidityForModification(fixedForm)
 		val datastoreInformation = getInstanceAndGroup()
 		formDAO.save(datastoreInformation, if (fixedForm.created == null) fixedForm.copy(created = form.created) else fixedForm)
 	}
@@ -207,9 +206,5 @@ open class FormLogicImpl(
 						}
 					}
 			}.collect { emit(IdAndRev(it.id, it.rev)) }
-	}
-
-	companion object {
-		private val logger = LoggerFactory.getLogger(FormLogicImpl::class.java)
 	}
 }

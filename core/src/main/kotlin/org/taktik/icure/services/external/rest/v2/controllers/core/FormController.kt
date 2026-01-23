@@ -39,7 +39,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
-import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
@@ -70,7 +69,7 @@ import reactor.core.publisher.Mono
 @Profile("app")
 @RequestMapping("/rest/v2/form")
 @Tag(name = "form")
-class FormController(
+class  FormController(
 	private val formTemplateService: FormTemplateService,
 	private val formService: FormService,
 	private val sessionLogic: SessionInformationProvider,
@@ -166,14 +165,7 @@ class FormController(
 	fun createForm(
 		@RequestBody ft: FormDto,
 	): Mono<FormDto> = mono {
-		val form =
-			try {
-				formService.createForm(formV2Mapper.map(ft))
-					?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form creation failed")
-			} catch (e: MissingRequirementsException) {
-				logger.warn(e.message, e)
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			}
+		val form = formService.createForm(formV2Mapper.map(ft))
 		formV2Mapper.map(form)
 	}
 
@@ -182,9 +174,7 @@ class FormController(
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
 	): Mono<FormDto> = mono {
-		val modifiedForm =
-			formService.modifyForm(formV2Mapper.map(formDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form modification failed")
+		val modifiedForm = formService.modifyForm(formV2Mapper.map(formDto))
 		formV2Mapper.map(modifiedForm)
 	}
 
@@ -196,9 +186,9 @@ class FormController(
 		.deleteForms(
 			formIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Forms if they match the provided revs")
+	@Operation(summary = "Deletes multiple Forms if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteFormsWithRev(
 		@RequestBody formIds: ListOfIdsAndRevDto,
@@ -206,14 +196,14 @@ class FormController(
 		.deleteForms(
 			formIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Form")
+	@Operation(summary = "Deletes a Form")
 	@DeleteMapping("/{formId}")
 	fun deleteForm(
 		@PathVariable formId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		formService.deleteForm(formId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -223,17 +213,35 @@ class FormController(
 	fun undeleteForm(
 		@PathVariable formId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<FormDto> = mono {
+	): Mono<FormDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		formV2Mapper.map(formService.undeleteForm(formId, rev))
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteForms(
+		@RequestBody formIds: ListOfIdsAndRevDto,
+	): Flux<FormDto> = formService
+		.undeleteForms(
+			formIds.ids.map(idWithRevV2Mapper::map),
+		).map(formV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{formId}")
 	fun purgeForm(
 		@PathVariable formId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		formService.purgeForm(formId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeForms(
+		@RequestBody formIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = formService
+		.purgeForms(
+			formIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a batch of forms", description = "Returns the modified forms.")
 	@PutMapping("/batch")

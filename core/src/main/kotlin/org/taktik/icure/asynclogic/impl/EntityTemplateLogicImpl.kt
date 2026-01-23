@@ -26,13 +26,11 @@ class EntityTemplateLogicImpl(
 ) : GenericLogicImpl<EntityTemplate, EntityTemplateDAO>(fixer, datastoreInstanceProvider, filters),
 	EntityTemplateLogic {
 	override suspend fun createEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate, isCreate = true) { fixedEntityTemplate ->
-		val createdEntityTemplates =
-			try {
-				createEntities(setOf(fixedEntityTemplate))
-			} catch (e: Exception) {
-				throw IllegalArgumentException("Invalid template", e)
-			}
-		createdEntityTemplates.firstOrNull()
+		try {
+			createEntity(fixedEntityTemplate)
+		} catch (e: Exception) {
+			throw IllegalArgumentException("Invalid template", e)
+		}
 	}
 
 	override suspend fun modifyEntityTemplate(entityTemplate: EntityTemplate) = fix(entityTemplate, isCreate = false) { fixedEntityTemplate ->

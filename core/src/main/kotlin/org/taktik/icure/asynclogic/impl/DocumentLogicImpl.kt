@@ -46,7 +46,7 @@ open class DocumentLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	private val attachmentModificationLogic: DocumentDataAttachmentModificationLogic,
-	@Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
+	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	fixer: Fixer,
 	filters: Filters,
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
@@ -55,9 +55,20 @@ open class DocumentLogicImpl(
 		document: Document,
 		strict: Boolean,
 	) = fix(document, isCreate = true) { fixedDocument ->
-		if (fixedDocument.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
 		val datastoreInformation = getInstanceAndGroup()
 		documentDAO.save(datastoreInformation, checkNewDocument(fixedDocument, strict))
+	}
+
+	override fun createDocuments(documents: List<Document>): Flow<Document> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			documentDAO.saveBulk(
+				datastoreInformation,
+				documents.map {
+					checkNewDocument(fix(it, isCreate = true), strict = true)
+				}
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	override suspend fun getDocument(documentId: String): Document? = getEntity(documentId)
@@ -100,11 +111,12 @@ open class DocumentLogicImpl(
 			documentDAO
 				.saveBulk(
 					datastoreInformation,
-					entities.filter { it.rev === null }.mapNotNull {
-						kotlin
-							.runCatching {
-								checkNewDocument(fix(it, isCreate = true), true)
-							}.getOrNull()
+					entities.onEach {
+						checkValidityForCreation(it)
+					}.mapNotNull {
+						runCatching {
+							checkNewDocument(fix(it, isCreate = true), true)
+						}.getOrNull()
 					},
 				).filterSuccessfulUpdates(),
 		)
@@ -116,33 +128,16 @@ open class DocumentLogicImpl(
 
 	override fun modifyEntities(entities: Collection<Document>): Flow<Document> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-
-		val originalDocumentsById = documentDAO.getEntities(datastoreInformation, entities.map { it.id }).toList().associateBy { it.id }
-		val modifiedDocumentPairedWithOriginal = entities.mapNotNull { mDoc -> originalDocumentsById[mDoc.id]?.let { mDoc to it } }
-
+		entities.onEach { checkValidityForModification(it) }
 		emitAll(
-			modifiedDocumentPairedWithOriginal
-				.mapNotNull { (newDoc, prevDoc) ->
-					runCatching {
-						fix(newDoc, isCreate = false).copy(attachments = prevDoc.attachments).let {
-							attachmentModificationLogic.ensureValidAttachmentChanges(
-								prevDoc,
-								it,
-								emptySet(),
-							)
-						}
-					}.getOrNull()
-				}.let {
-					super.filterValidEntityChanges(it)
-				}.let {
-					documentDAO.saveBulk(datastoreInformation, it.toList())
-				}.map {
-					it.entityOrThrow()
-				},
+			doModifyDocuments(
+				entities.toList(),
+				datastoreInformation,
+			) { fix(it, isCreate = false) }
 		)
 	}
 
-	private fun ensureValidAttachmentChanges(
+	protected fun ensureValidAttachmentChanges(
 		updatedDocument: Document,
 		baseline: Document,
 		strict: Boolean,
@@ -157,16 +152,46 @@ open class DocumentLogicImpl(
 	override suspend fun modifyDocument(
 		updatedDocument: Document,
 		strict: Boolean,
-	): Document? = fix(updatedDocument, isCreate = false) { newDoc ->
+	): Document = fix(updatedDocument, isCreate = false) { newDoc ->
 		val datastoreInformation = getInstanceAndGroup()
-		val baseline =
-			requireNotNull(documentDAO.get(datastoreInformation, newDoc.id)) {
-				"Attempting to modify a non-existing document ${newDoc.id}."
-			}
+		checkValidityForModification(newDoc)
+		val baseline = requireNotNull(documentDAO.get(datastoreInformation, newDoc.id)) {
+			"Attempting to modify a non-existing document ${newDoc.id}."
+		}
 		require(newDoc.rev == baseline.rev) { "Updated document has an older revision ${newDoc.rev} -> ${baseline.rev}" }
-		val validatedEntityForAttachments = ensureValidAttachmentChanges(updatedDocument, baseline, strict)
-		checkValidEntityChange(validatedEntityForAttachments, baseline)
+		val validatedEntityForAttachments = ensureValidAttachmentChanges(updatedDocument = newDoc, baseline, strict)
+		checkValidEntityChange(validatedEntityForAttachments, currentEntity = baseline)
 		documentDAO.save(datastoreInformation, validatedEntityForAttachments)
+	}
+
+	protected fun doModifyDocuments(
+		documents: List<Document>,
+		datastoreInformation: IDatastoreInformation,
+		doFix: suspend (document: Document) -> Document
+	): Flow<Document>  = flow {
+		val originalDocumentsById = documentDAO.getEntities(datastoreInformation, documents.map { it.id }).toList().associateBy { it.id }
+		val modifiedDocumentPairedWithOriginal = documents.mapNotNull { mDoc -> originalDocumentsById[mDoc.id]?.let { mDoc to it } }
+
+		emitAll(
+			modifiedDocumentPairedWithOriginal
+				.mapNotNull { (newDoc, prevDoc) ->
+					runCatching {
+						doFix(newDoc).copy(attachments = prevDoc.attachments).let {
+							attachmentModificationLogic.ensureValidAttachmentChanges(
+								prevDoc,
+								it,
+								emptySet(),
+							)
+						}
+					}.getOrNull()
+				}.let {
+					super.filterValidEntityChanges(datastoreInformation, it)
+				}.let {
+					documentDAO.saveBulk(datastoreInformation, it.toList())
+				}.map {
+					it.entityOrThrow()
+				},
+		)
 	}
 
 	override fun createOrModifyDocuments(
@@ -179,10 +204,9 @@ open class DocumentLogicImpl(
 
 		val fixedDocumentsToCreate =
 			documentToCreate.mapNotNull {
-				kotlin
-					.runCatching {
-						checkNewDocument(fix(it.newDocument, isCreate = true), strict)
-					}.getOrNull()
+				runCatching {
+					checkNewDocument(fix(it.newDocument, isCreate = true), strict)
+				}.getOrNull()
 			}
 
 		val fixedDocumentsToUpdate =
@@ -198,7 +222,7 @@ open class DocumentLogicImpl(
 						}
 					}.getOrNull()
 				}.let {
-					super.filterValidEntityChanges(it)
+					super.filterValidEntityChanges(datastoreInformation, it)
 				}.toList()
 
 		emitAll(documentDAO.create(datastoreInformation, fixedDocumentsToCreate))
@@ -346,10 +370,11 @@ open class DocumentLogicImpl(
 
 	override fun getGenericDAO() = documentDAO
 
-	private fun checkNewDocument(
+	protected fun checkNewDocument(
 		document: Document,
 		strict: Boolean,
 	): Document {
+		checkValidityForCreation(document)
 		require(document.secondaryAttachments.isEmpty()) {
 			"New document can't provide any secondary attachments information."
 		}

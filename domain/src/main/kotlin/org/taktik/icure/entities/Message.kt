@@ -74,7 +74,7 @@ import org.taktik.icure.validation.ValidCode
  *
  */
 data class Message(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -86,15 +86,15 @@ data class Message(
 	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	@param:ContentValue(ContentValues.ANY_STRING) val fromAddress: String? = null,
+	val fromAddress: String? = null,
 	val fromHealthcarePartyId: String? = null,
 	@Deprecated("Never used") val formId: String? = null,
 	val status: Int? = null,
 	val recipientsType: String? = null,
 	val recipients: Set<String> = emptySet(), // The id of the hcp whose the message is addressed to
 	val toAddresses: Set<String> = emptySet(), // The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)
-	@param:ContentValue(ContentValues.ANY_LONG) val received: Long? = null,
-	@param:ContentValue(ContentValues.ANY_LONG) val sent: Long? = null,
+	val received: Long? = null,
+	val sent: Long? = null,
 	val metas: Map<String, String> = emptyMap(),
 	val readStatus: Map<String, MessageReadStatus> = emptyMap(),
 	val messageAttachments: List<MessageAttachment> = emptyList(),

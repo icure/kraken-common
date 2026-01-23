@@ -16,7 +16,7 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface ClassificationService : EntityWithSecureDelegationsService<Classification> {
-	suspend fun createClassification(classification: Classification): Classification?
+	suspend fun createClassification(classification: Classification): Classification
 
 	suspend fun getClassification(classificationId: String): Classification?
 

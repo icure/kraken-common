@@ -48,20 +48,25 @@ data class DocumentDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Location of the document") val documentLocation: DocumentLocationDto? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
 	@param:Schema(description = "The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc.") val documentStatus: DocumentStatusDto? = null,
-	@param:Schema(
-		description = "When the document is stored in an external repository, this is the uri of the document in that repository",
-	) val externalUri: String? = null,
+	@param:Schema(description = "When the document is stored in an external repository, this is the uri of the document in that repository") val externalUri: String? = null,
 	@param:Schema(description = "Name of the document") val name: String? = null,
 	@param:Schema(description = "The document version") val version: String? = null,
-	@param:Schema(description = "The ICureDocument (Form, Contact, ...) that has been used to generate the document") val storedICureDocumentId: String? = null, // The ICureDocumentDto (FormDto, ContactDto, ...) that has been used to generate the document
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "The ICureDocument (Form, Contact, ...) that has been used to generate the document")
+	val storedICureDocumentId: String? = null, // The ICureDocumentDto (FormDto, ContactDto, ...) that has been used to generate the document
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A unique external id (from another external source).") val externalUuid: String? = null,
 	@param:Schema(description = "Size of the document file") val size: Long? = null,
 	@param:Schema(description = "Hashed version of the document") val hash: String? = null,
@@ -75,10 +80,13 @@ data class DocumentDto(
 	) val mainUti: String? = null,
 	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
 	@param:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
-	@param:Schema(description = "Information on past attachments for this document") val deletedAttachments: List<DeletedAttachmentDto> =
-		emptyList(),
-	@param:Schema(type = "string", format = "byte") val encryptedAttachment: ByteArray? = null,
-	@param:Schema(type = "string", format = "byte") val decryptedAttachment: ByteArray? = null,
+	@param:Schema(description = "Information on past attachments for this document") val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(type = "string", format = "byte")
+	val encryptedAttachment: ByteArray? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(type = "string", format = "byte")
+	val decryptedAttachment: ByteArray? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

@@ -66,7 +66,7 @@ interface MaintenanceTaskService : EntityWithSecureDelegationsService<Maintenanc
 	 */
 	suspend fun undeleteMaintenanceTask(id: String, rev: String): MaintenanceTask
 	suspend fun modifyMaintenanceTask(entity: MaintenanceTask): MaintenanceTask?
-	suspend fun createMaintenanceTask(entity: MaintenanceTask): MaintenanceTask?
+	suspend fun createMaintenanceTask(entity: MaintenanceTask): MaintenanceTask
 	fun modifyMaintenanceTasks(entities: Collection<MaintenanceTask>): Flow<MaintenanceTask>
 
 	/**

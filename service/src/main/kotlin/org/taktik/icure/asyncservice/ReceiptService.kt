@@ -16,8 +16,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import java.nio.ByteBuffer
 
 interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
-	suspend fun createReceipt(receipt: Receipt): Receipt?
 	suspend fun modifyReceipt(receipt: Receipt): Receipt
+	fun modifyReceipts(receipts: List<Receipt>): Flow<Receipt>
+
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>
 
@@ -31,6 +32,7 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * @throws [AccessDeniedException] if the user does not have the permissions to create [Receipt]s.
 	 */
 	fun createReceipts(receipts: Collection<Receipt>): Flow<Receipt>
+	suspend fun createReceipt(receipt: Receipt): Receipt
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -70,6 +72,7 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeReceipt(id: String, rev: String): DocIdentifier
+	fun purgeReceipts(receiptIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -79,6 +82,7 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteReceipt(id: String, rev: String): Receipt
+	fun undeleteReceipts(receiptIds: List<IdAndRev>): Flow<Receipt>
 
 	/**
 	 * Retrieve a [Receipt] by id.
@@ -89,4 +93,5 @@ interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
 	 * it does not have the permissions to access that [Receipt]
 	 */
 	suspend fun getReceipt(id: String): Receipt?
+	fun getReceipts(receiptIds: List<String>): Flow<Receipt>
 }

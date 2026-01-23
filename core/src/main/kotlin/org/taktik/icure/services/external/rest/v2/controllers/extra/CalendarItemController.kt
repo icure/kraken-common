@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
@@ -91,17 +90,21 @@ class CalendarItemController(
 			.asPaginatedFlux()
 	}
 
-	@Operation(summary = "Creates a calendarItem")
+	@Operation(summary = "Creates a CalendarItem")
 	@PostMapping
 	fun createCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
-		val calendarItem =
-			calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "CalendarItem creation failed")
-
-		calendarItemV2Mapper.map(calendarItem)
+		calendarItemV2Mapper.map(calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto)))
 	}
+
+	@Operation(summary = "Creates a batch of CalendarItems")
+	@PostMapping("/batch")
+	fun createCalendarItems(
+		@RequestBody calendarItemDtos: List<CalendarItemDto>,
+	): Flux<CalendarItemDto> = calendarItemService.createCalendarItems(
+		calendarItemDtos.map(calendarItemV2Mapper::map)
+	).map(calendarItemV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple CalendarItems")
 	@PostMapping("/delete/batch")
@@ -111,9 +114,9 @@ class CalendarItemController(
 		.deleteCalendarItems(
 			calendarItemIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple CalendarItems if they match the provided revs")
+	@Operation(summary = "Delete multiple CalendarItems if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deleteCalendarItemsWithRev(
 		@RequestBody calendarItemIds: ListOfIdsAndRevDto,
@@ -121,14 +124,14 @@ class CalendarItemController(
 		.deleteCalendarItems(
 			calendarItemIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a CalendarItem")
+	@Operation(summary = "Delete a CalendarItem")
 	@DeleteMapping("/{calendarItemId}")
 	fun deleteCalendarItem(
 		@PathVariable calendarItemId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		calendarItemService.deleteCalendarItem(calendarItemId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -138,17 +141,37 @@ class CalendarItemController(
 	fun undeleteCalendarItem(
 		@PathVariable calendarItemId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<CalendarItemDto> = mono {
+	): Mono<CalendarItemDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		calendarItemV2Mapper.map(calendarItemService.undeleteCalendarItem(calendarItemId, rev))
 	}
+
+	@Operation(summary = "Undelete multiple CalendarItems if they match the provided revs")
+	@PostMapping("/undelete/batch")
+	fun undeleteCalendarItems(
+		@RequestBody calendarItemIds: ListOfIdsAndRevDto,
+	): Flux<CalendarItemDto> = calendarItemService
+		.undeleteCalendarItems(
+			calendarItemIds.ids.map(idWithRevV2Mapper::map),
+		).map { calendarItemV2Mapper.map(it) }
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{calendarItemId}")
 	fun purgeCalendarItem(
 		@PathVariable calendarItemId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		calendarItemService.purgeCalendarItem(calendarItemId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@Operation(summary = "Purge multiple CalendarItems if they match the provided revs")
+	@PostMapping("/purge/batch")
+	fun purgeCalendarItems(
+		@RequestBody calendarItemIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = calendarItemService
+		.purgeCalendarItems(
+			calendarItemIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(it) }
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets a calendarItem")
 	@GetMapping("/{calendarItemId}")
@@ -162,17 +185,22 @@ class CalendarItemController(
 		calendarItemV2Mapper.map(calendarItem)
 	}
 
-	@Operation(summary = "Modifies a calendarItem")
+	@Operation(summary = "Modifies a CalendarItem")
 	@PutMapping
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
-		val calendarItem =
-			calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-				?: throw DocumentNotFoundException("CalendarItem modification failed")
-
+		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
 		calendarItemV2Mapper.map(calendarItem)
 	}
+
+	@Operation(summary = "Modifies a batch of CalendarItems")
+	@PutMapping("/batch")
+	fun modifyCalendarItems(
+		@RequestBody calendarItemDtos: List<CalendarItemDto>,
+	): Flux<CalendarItemDto> = calendarItemService.modifyCalendarItems(
+		calendarItemDtos.map(calendarItemV2Mapper::map)
+	).map(calendarItemV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Get CalendarItems by Period and HcPartyId")
 	@PostMapping("/byPeriodAndHcPartyId")

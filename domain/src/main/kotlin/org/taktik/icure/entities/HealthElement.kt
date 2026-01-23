@@ -84,9 +84,9 @@ import org.taktik.icure.validation.ValidCode
  */
 
 data class HealthElement(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val identifiers: List<Identifier> = emptyList(),
+	val identifiers: List<Identifier> = emptyList(),
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -102,7 +102,7 @@ data class HealthElement(
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@param:ContentValue(ContentValues.ANY_STRING) val descr: String? = null,
+	val descr: String? = null,
 	val note: String? = null,
 	val notes: List<Annotation> = emptyList(),
 	val relevant: Boolean = true,

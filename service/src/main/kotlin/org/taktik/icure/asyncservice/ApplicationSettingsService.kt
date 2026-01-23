@@ -9,7 +9,7 @@ import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.entities.ApplicationSettings
 
 interface ApplicationSettingsService : EntityWithSecureDelegationsService<ApplicationSettings> {
-	suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
+	suspend fun createApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings
 	suspend fun modifyApplicationSettings(applicationSettings: ApplicationSettings): ApplicationSettings?
 
 	/**

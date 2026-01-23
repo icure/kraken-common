@@ -26,7 +26,7 @@ open class InsuranceLogicImpl(
 	override suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 
 	override suspend fun createInsurance(insurance: Insurance) = fix(insurance, isCreate = true) { fixedInsurance ->
-		if (fixedInsurance.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedInsurance)
 		val datastoreInformation = getInstanceAndGroup()
 		insuranceDAO.create(datastoreInformation, fixedInsurance)
 	}
@@ -47,6 +47,7 @@ open class InsuranceLogicImpl(
 	}
 
 	override suspend fun modifyInsurance(insurance: Insurance) = fix(insurance, isCreate = false) { fixedInsurance ->
+		checkValidityForModification(fixedInsurance)
 		val datastoreInformation = getInstanceAndGroup()
 		insuranceDAO.save(datastoreInformation, fixedInsurance)
 	}

@@ -29,8 +29,8 @@ data class PartnershipDto(
 	@param:Schema(description = "Type of relationship.") val type: PartnershipTypeDto? = null, // codes are from CD-CONTACT-PERSON
 	@param:Schema(description = "Status of the relationship.") val status: PartnershipStatusDto? = null,
 	@param:Schema(description = "UUID of the contact person or patient in this relationship.") val partnerId: String? = null, // PersonDto: can either be a patient or a hcp
-	@get:Deprecated("use type instead")
+	@Deprecated("use type instead")
 	val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
-	@get:Deprecated("use type instead")
+	@Deprecated("use type instead")
 	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
 ) : Serializable

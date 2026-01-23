@@ -10,7 +10,7 @@ import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
-	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
 
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?
 	fun getCalendarItemTypes(calendarItemTypeIds: Collection<String>): Flow<CalendarItemType>
@@ -22,7 +22,7 @@ interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
 	 * @return a [Flow] of [PaginationElement]s containing the [CalendarItemType]s.
 	 */
 	fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement>
-	suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun modifyCalendarTypeItem(calendarItemType: CalendarItemType): CalendarItemType
 
 	/**
 	 * Retrieves all the [CalendarItemType]s for a given [agendaId].

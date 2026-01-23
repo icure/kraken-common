@@ -40,31 +40,25 @@ open class TarificationLogicImpl(
 ) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters),
 	TarificationLogic {
 
+	private fun validateIdFields(code: Tarification) {
+		requireNotNull(code.code) { "Element with id ${code.id} has a null code field." }
+		requireNotNull(code.type) { "Element with id ${code.id} has a null type field." }
+		requireNotNull(code.version) { "Element with id ${code.id} has a null version field." }
+	}
+
 	protected fun validateForCreation(batch: List<Tarification>) = batch.fold(setOf<Tarification>()) { acc, code ->
-		// First, I check that all the codes are valid
-		code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-		code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-		code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-
-		if (acc.contains(code)) error("Batch contains duplicate elements. id: ${code.type}|${code.code}|${code.version}")
-
+		validateIdFields(code)
 		acc + code.copy(id = code.type + "|" + code.code + "|" + code.version)
 	}
 
 	protected fun validateForModification(batch: List<Tarification>) = batch
 		.fold(mapOf<String, Tarification>()) { acc, code ->
-			// First, I check that all the codes are valid
-			code.code ?: error("Element with id ${code.id} has a null code field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.type ?: error("Element with id ${code.id} has a null type field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.version ?: error("Element with id ${code.id} has a null version field. Type, code and version fields must be non-null and id must be equal to type|code|version")
-			code.rev ?: error("Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity")
+			validateIdFields(code)
+			requireNotNull(code.rev) { "Element with id ${code.id} has a null rev field. Rev must be non-null when modifying an entity" }
 
-			if (code.id !=
-				"${code.type}|${code.code}|${code.version}"
-			) {
+			require(code.id == "${code.type}|${code.code}|${code.version}") {
 				error("Element with id ${code.id} has an id that does not match the code, type or version value: id must be equal to type|code|version")
 			}
-			if (acc.contains(code.id)) error("The batch contains a duplicate with id ${code.id}")
 
 			acc + (code.id to code)
 		}.map {
@@ -92,9 +86,7 @@ open class TarificationLogicImpl(
 
 	override suspend fun createTarification(tarification: Tarification) = fix(tarification, isCreate = true) { fixedTarification ->
 		if (fixedTarification.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		fixedTarification.code ?: error("Code field is null")
-		fixedTarification.type ?: error("Type field is null")
-		fixedTarification.version ?: error("Version field is null")
+		validateIdFields(fixedTarification)
 
 		val datastoreInformation = getInstanceAndGroup()
 		// assigning Tarification id type|tarification|version

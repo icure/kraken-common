@@ -17,6 +17,12 @@ fun sanitizeString(key: String?): String? = if (key == null) {
 	removeDiacriticalMarks(key).replace("\\s".toRegex(), "").replace("\\W".toRegex(), "").lowercase()
 }
 
+fun sanitizeForSorting(key: String?): String? = if (key == null) {
+	null
+} else {
+	removeDiacriticalMarks(key).lowercase().replace("[^a-z0-9]".toRegex(), "")
+}
+
 private fun removeDiacriticalMarks(key: String): String {
 	try {
 		return Normalizer.normalize(key.replace("ø".toRegex(), "o").replace("æ".toRegex(), "ae").replace("Æ".toRegex(), "AE").replace("Œ".toRegex(), "oe").replace("œ".toRegex(), "oe"), Normalizer.Form.NFD)

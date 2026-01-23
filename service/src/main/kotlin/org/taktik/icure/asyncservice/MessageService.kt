@@ -127,9 +127,9 @@ interface MessageService :
 
 	suspend fun addDelegation(messageId: String, delegation: Delegation): Message?
 
-	suspend fun createMessage(message: Message): Message?
+	suspend fun createMessage(message: Message): Message
 
-	fun createMessages(entities: Collection<Message>): Flow<Message>
+	fun createMessages(entities: List<Message>): Flow<Message>
 
 	suspend fun getMessage(messageId: String): Message?
 
@@ -143,7 +143,8 @@ interface MessageService :
 	 */
 	fun getMessages(messageIds: List<String>): Flow<Message>
 
-	suspend fun modifyMessage(message: Message): Message?
+	suspend fun modifyMessage(message: Message): Message
+	fun modifyMessages(messages: List<Message>): Flow<Message>
 
 	/**
 	 * Returns all the [Message]s that the current healthcare party can access, given the [Message.secretForeignKeys].
@@ -239,6 +240,7 @@ interface MessageService :
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeMessage(id: String, rev: String): DocIdentifier
+	fun purgeMessages(messageIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -248,6 +250,7 @@ interface MessageService :
 	 * @return the restored entity
 	 */
 	suspend fun undeleteMessage(id: String, rev: String): Message
+	fun undeleteMessages(messageIds: List<IdAndRev>): Flow<Message>
 
 	/**
 	 * Retrieves the ids of the [Message]s matching the provided [filter].

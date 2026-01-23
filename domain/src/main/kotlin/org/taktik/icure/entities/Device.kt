@@ -21,8 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
@@ -37,9 +35,6 @@ import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A Device
@@ -79,9 +74,10 @@ import org.taktik.icure.validation.ValidCode
  * @property properties List of typed properties related to the device. Could be its version, specific device information, ...
  * @property identifiers The device's identifiers. Those identifiers are the ones identifying the device for the client.
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Device(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
@@ -98,10 +94,10 @@ data class Device(
 	val identifiers: List<Identifier> = emptyList(),
 
 	override val name: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val type: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val brand: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val model: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val serialNumber: String? = null,
+	val type: String? = null,
+	val brand: String? = null,
+	val model: String? = null,
+	val serialNumber: String? = null,
 
 	override val parentId: String? = null,
 	val picture: ByteArray? = null,

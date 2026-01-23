@@ -11,7 +11,7 @@ import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginationElement
 
 interface MedicalLocationLogic : EntityPersister<MedicalLocation> {
-	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation?
+	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation
 	suspend fun getMedicalLocation(medicalLocation: String): MedicalLocation?
 	suspend fun modifyMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation?
 	fun findMedicalLocationByPostCode(postCode: String): Flow<MedicalLocation>

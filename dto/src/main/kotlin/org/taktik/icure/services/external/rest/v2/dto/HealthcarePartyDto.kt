@@ -48,10 +48,10 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
 	description = """This entity is a root level object. It represents a healthcare party. It is serialized in JSON and saved in the underlying icure-healthdata CouchDB database.""",
 )
 data class HealthcarePartyDto(
-	@param:Schema(description = "the Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	@param:Schema(
-		description = "the revision of the healthcare party in the database, used for conflict management / optimistic locking.",
-	) override val rev: String? = null,
+	@param:Schema(description = "the Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id.")
+	override val id: String,
+	@param:Schema(description = "the revision of the healthcare party in the database, used for conflict management / optimistic locking.")
+	override val rev: String? = null,
 	@param:Schema(description = "creation timestamp of the object.") val created: Long? = null,
 	@param:Schema(description = "last modification timestamp of the object.") val modified: Long? = null,
 	@param:Schema(description = "hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
@@ -78,44 +78,60 @@ data class HealthcarePartyDto(
 	@param:Schema(
 		description = "Bank Account identifier of the healhtcare party, IBAN, deprecated, use financial institutions instead",
 	) val bankAccount: String? = null,
-	@param:Schema(
-		description = "Bank Identifier Code, the SWIFT Address assigned to the bank, use financial institutions instead",
-	) val bic: String? =
-		null,
+	@param:Schema(description = "Bank Identifier Code, the SWIFT Address assigned to the bank, use financial institutions instead")
+	val bic: String? = null,
 	val proxyBankAccount: String? = null,
 	val proxyBic: String? = null,
 	@param:Schema(description = "All details included in the invoice header") val invoiceHeader: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") val cbe: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
 	override val parentId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val convention: Int? = null, // 0,1,2,9
-	@param:Schema(
-		description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).",
-	) val nihii: String? = null, // institution, person
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).")
+	val nihii: String? = null, // institution, person
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val nihiiSpecCode: String? = null, // don't show field in the GUI
 	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
 	@param:Schema(description = "The list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
-	@param:Schema(
-		description = "The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).",
-	) override val languages: List<String> = emptyList(),
-	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
-	@param:Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'") val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
-	@param:Schema(description = "The healthcare party's status history") val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
+	@param:Schema(description = "The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).")
+	override val languages: List<String> = emptyList(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte")
+	val picture: ByteArray? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'")
+	val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "The healthcare party's status history")
+	val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
 	@param:Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") val specialityCodes: Set<CodeStubDto> = emptySet(), // Speciality codes, default is first
-	@param:Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.") val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.")
+	val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
 	@param:Schema(description = "Text notes.") val notes: String? = null,
 	@param:Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
 	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()") val descr: Map<String, String>? = emptyMap(),
 	// Medical houses
-	@param:Schema(
-		description = "The invoicing scheme this healthcare party adheres to : 'service fee' or 'flat rate'",
-	) var billingType: String? = null, // "serviceFee" (à l'acte) or "flatRate" (forfait)
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@param:Schema(description = "The invoicing scheme this healthcare party adheres to : 'service fee' or 'flat rate'")
+	var billingType: String? = null, // "serviceFee" (à l'acte) or "flatRate" (forfait)
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val contactPerson: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val contactPersonHcpId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val supervisorId: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val flatRateTarifications: List<FlatRateTarificationDto> = emptyList(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val importedData: Map<String, String> = emptyMap(),
 	@Deprecated("Use properties instead")
 	val options: Map<String, String> = emptyMap(),

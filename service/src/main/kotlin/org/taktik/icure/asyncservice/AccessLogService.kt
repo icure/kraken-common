@@ -20,7 +20,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
-	suspend fun createAccessLog(accessLog: AccessLog): AccessLog?
+	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
+
+	fun createAccessLogs(accessLog: List<AccessLog>): Flow<AccessLog>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -60,6 +62,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeAccessLog(id: String, rev: String): DocIdentifier
+	fun purgeAccessLogs(ids: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -69,6 +72,7 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteAccessLog(id: String, rev: String): AccessLog
+	fun undeleteAccessLogs(ids: List<IdAndRev>): Flow<AccessLog>
 
 	/**
 	 * Retrieves the all the [AccessLog]s given the [hcPartyId] (and its access keys if it is the current user making
@@ -118,7 +122,11 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog> {
 	 * @return a [Flow] of [PaginationElement]s
 	 */
 	fun findAccessLogsByUserAfterDate(userId: String, accessType: String?, startDate: Long?, pagination: PaginationOffset<ComplexKey>, descending: Boolean): Flow<PaginationElement>
-	suspend fun modifyAccessLog(accessLog: AccessLog): AccessLog?
+
+	suspend fun modifyAccessLog(accessLog: AccessLog): AccessLog
+
+	fun modifyAccessLogs(accessLogs: List<AccessLog>): Flow<AccessLog>
+
 	fun getGenericLogic(): AccessLogLogic
 	suspend fun aggregatePatientByAccessLogs(userId: String, accessType: String?, startDate: Long?, startKey: String?, startDocumentId: String?, limit: Int): AggregatedAccessLogs
 

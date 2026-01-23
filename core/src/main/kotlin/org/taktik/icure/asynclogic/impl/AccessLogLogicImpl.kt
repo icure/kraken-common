@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.PatientDAO
+import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -54,7 +55,7 @@ class AccessLogLogicImpl(
 ),
 	AccessLogLogic {
 	override suspend fun createAccessLog(accessLog: AccessLog) = fix(accessLog, isCreate = true) { fixedAccessLog ->
-		if (fixedAccessLog.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedAccessLog)
 		val datastoreInformation = getInstanceAndGroup()
 		accessLogDAO.create(
 			datastoreInformation,
@@ -63,6 +64,25 @@ class AccessLogLogicImpl(
 			} else {
 				fixedAccessLog.copy(user = sessionLogic.getCurrentUserId())
 			},
+		)
+	}
+
+	override fun createAccessLogs(accessLogs: List<AccessLog>): Flow<AccessLog> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(
+			accessLogDAO.saveBulk(
+				datastoreInformation,
+				accessLogs.onEach {
+					checkValidityForCreation(it)
+				}.map {
+					val fixedAccessLog = fix(it, isCreate = true)
+					if (fixedAccessLog.date == null) {
+						fixedAccessLog.copy(user = sessionLogic.getCurrentUserId(), date = Instant.now())
+					} else {
+						fixedAccessLog.copy(user = sessionLogic.getCurrentUserId())
+					}
+				}
+			).filterSuccessfulUpdates()
 		)
 	}
 

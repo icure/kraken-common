@@ -71,8 +71,7 @@ class MessageController(
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
 	) = mono {
-		messageService.createMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Message creation failed").also { logger.error(it.message) }
+		messageMapper.map(messageService.createMessage(messageMapper.map(messageDto)))
 	}
 
 	@Operation(summary = "Deletes a message delegation")
@@ -87,11 +86,7 @@ class MessageController(
 
 		messageService
 			.modifyMessage(message.copy(delegations = message.delegations - delegateId))
-			?.let(messageMapper::map)
-			?: throw ResponseStatusException(
-				HttpStatus.INTERNAL_SERVER_ERROR,
-				"Message delegation deletion failed",
-			).also { logger.error(it.message) }
+			.let(messageMapper::map)
 	}
 
 	@Operation(summary = "Deletes multiple messages")
@@ -273,9 +268,7 @@ class MessageController(
 	fun modifyMessage(
 		@RequestBody messageDto: MessageDto,
 	) = mono {
-		messageService.modifyMessage(messageMapper.map(messageDto))?.let { messageMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "New delegation for message failed")
-				.also { logger.error(it.message) }
+		messageService.modifyMessage(messageMapper.map(messageDto)).let { messageMapper.map(it) }
 	}
 
 	@Operation(summary = "Set status bits for given list of messages")

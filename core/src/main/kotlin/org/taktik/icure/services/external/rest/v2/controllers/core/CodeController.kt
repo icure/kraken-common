@@ -9,7 +9,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -17,9 +16,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -39,11 +38,15 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.BooleanResponseDto
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
+import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.monoWrappingResponseToJson
@@ -64,7 +67,9 @@ class CodeController(
 	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val paginationConfig: SharedPaginationConfig,
+	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
+	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val paginationConfig: SharedPaginationConfig
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -190,8 +195,7 @@ class CodeController(
 	fun createCode(
 		@RequestBody c: CodeDto,
 	): Mono<CodeDto> = mono {
-		val code = codeService.create(codeV2Mapper.map(c))!!
-		codeV2Mapper.map(code)
+		codeV2Mapper.map(codeService.create(codeV2Mapper.map(c)))
 	}
 
 	@Operation(
@@ -201,14 +205,9 @@ class CodeController(
 	@PostMapping("/batch")
 	fun createCodes(
 		@RequestBody codeBatch: List<CodeDto>,
-	): Mono<List<CodeDto>> = mono {
-		val codes = codeBatch.map { codeV2Mapper.map(it) }
-		try {
-			codeService.create(codes)?.map { codeV2Mapper.map(it) }
-		} catch (e: IllegalStateException) {
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
-	}
+	): Flux<CodeDto> = codeService.create(
+		codeBatch.map(codeV2Mapper::map)
+	).map(codeV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Checks if a code is valid")
 	@GetMapping("/isValid")
@@ -264,15 +263,14 @@ class CodeController(
 		}
 
 	@Operation(
-		summary = "Get a code",
+		summary = "Get a Code",
 		description = "Get a code based on ID or (code,type,version) as query strings. (code,type,version) is unique.",
 	)
 	@GetMapping("/{codeId}")
 	fun getCode(
 		@Parameter(description = "Code id") @PathVariable codeId: String,
 	): Mono<CodeDto> = mono {
-		val c =
-			codeService.get(codeId)
+		val c = codeService.get(codeId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "A problem regarding fetching the code. Read the app logs.")
 		codeV2Mapper.map(c)
 	}
@@ -298,15 +296,7 @@ class CodeController(
 	fun modifyCode(
 		@RequestBody codeDto: CodeDto,
 	): Mono<CodeDto> = mono {
-		val modifiedCode =
-			try {
-				codeService.modify(codeV2Mapper.map(codeDto))!!
-			} catch (e: Exception) {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
+		val modifiedCode = codeService.modify(codeV2Mapper.map(codeDto))
 		codeV2Mapper.map(modifiedCode)
 	}
 
@@ -316,16 +306,7 @@ class CodeController(
 		@RequestBody codeBatch: List<CodeDto>,
 	): Flux<CodeDto> = codeService
 		.modify(codeBatch.map { codeV2Mapper.map(it) })
-		.catch { e ->
-			if (e is IllegalStateException) {
-				throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-			} else {
-				throw ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					"A problem regarding modification of the code. Read the app logs: " + e.message,
-				)
-			}
-		}.map { codeV2Mapper.map(it) }
+		.map { codeV2Mapper.map(it) }
 		.injectReactorContext()
 
 	@Operation(
@@ -373,4 +354,55 @@ class CodeController(
 			} ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong codeType provided.")
 		}
 	}
+
+	@DeleteMapping("/{codeId}")
+	fun deleteCode(
+		@PathVariable codeId: String,
+		@RequestParam rev: String,
+	): Mono<DocIdentifierDto> = mono {
+		codeService.deleteCode(codeId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/delete/batch")
+	fun deleteCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = codeService
+		.deleteCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
+
+	@PostMapping("/undelete/{codeId}")
+	fun undeleteCode(
+		@PathVariable codeId: String,
+		@RequestParam rev: String,
+	): Mono<CodeDto> = mono {
+		codeService.undeleteCode(codeId, rev).let(codeV2Mapper::map)
+	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<CodeDto> = codeService
+		.undeleteCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(codeV2Mapper::map)
+		.injectReactorContext()
+
+	@DeleteMapping("/purge/{codeId}")
+	fun purgeCode(
+		@PathVariable codeId: String,
+		@RequestParam(required = true) rev: String,
+	): Mono<DocIdentifierDto> = mono {
+		codeService.purgeCode(codeId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@PostMapping("/purge/batch")
+	fun purgeCodes(
+		@RequestBody codeIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = codeService
+		.purgeCodes(
+			codeIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectReactorContext()
 }

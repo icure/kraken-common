@@ -54,8 +54,7 @@ class KeywordController(
 	fun createKeyword(
 		@RequestBody c: KeywordDto,
 	): Mono<KeywordDto> = mono {
-		keywordService.createKeyword(keywordV2Mapper.map(c))?.let { keywordV2Mapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Keyword creation failed.")
+		keywordV2Mapper.map(keywordService.createKeyword(keywordV2Mapper.map(c)))
 	}
 
 	@Operation(summary = "Get a keyword")

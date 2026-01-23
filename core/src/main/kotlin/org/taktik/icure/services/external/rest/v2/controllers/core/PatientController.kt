@@ -141,7 +141,7 @@ class PatientController(
 
 	private fun Flow<EntityBulkShareResult<Patient>>.toDtoUpdateResult(): Flow<EntityBulkShareResultDto<PatientDto>> =
 		map { bulkShareResultV2Mapper.map(it) }
-	
+
 	@Operation(
 		summary = "Find patients for the current healthcare party",
 		description =
@@ -370,8 +370,7 @@ class PatientController(
 	@Operation(summary = "Get the patient having the provided externalId")
 	@GetMapping("/byExternalId/{externalId}")
 	fun getPatientByExternalId(
-		@PathVariable("externalId")
-		@Parameter(description = "A external ID", required = true) externalId: String,
+		@PathVariable @Parameter(description = "A external ID", required = true) externalId: String,
 	): Mono<PatientDto> = mono {
 		patientService.getByExternalId(externalId)?.toDto()
 	}
@@ -503,8 +502,7 @@ class PatientController(
 	fun createPatient(
 		@RequestBody p: PatientDto,
 	): Mono<PatientDto> = mono {
-		val patient = patientService.createPatient(p.toDomain())
-		patient?.toDto() ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Patient creation failed.")
+		patientService.createPatient(p.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Deletes multiple Patients")
@@ -515,9 +513,9 @@ class PatientController(
 		.deletePatients(
 			patientIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes a multiple Patients if they match the provided revs")
+	@Operation(summary = "Delete multiple Patients if they match the provided revs")
 	@PostMapping("/delete/batch/withrev")
 	fun deletePatientsWithRev(
 		@RequestBody patientIds: ListOfIdsAndRevDto,
@@ -525,14 +523,14 @@ class PatientController(
 		.deletePatients(
 			patientIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
-	@Operation(summary = "Deletes an Patient")
+	@Operation(summary = "Delete a Patient")
 	@DeleteMapping("/{patientId}")
 	fun deletePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.deletePatient(patientId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -542,22 +540,34 @@ class PatientController(
 	fun undeletePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.undeletePatient(patientId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
 	fun undeletePatients(
 		@RequestBody ids: ListOfIdsAndRevDto,
-	): Flux<PatientDto> = patientService.undeletePatients(ids.ids.map(idWithRevV2Mapper::map)).toDto().injectReactorContext()
+	): Flux<PatientDto> = patientService
+		.undeletePatients(ids.ids.map(idWithRevV2Mapper::map))
+		.toDto()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{patientId}")
 	fun purgePatient(
 		@PathVariable patientId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.purgePatient(patientId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgePatients(
+		@RequestBody patientIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = patientService
+		.purgePatients(
+			patientIds.ids.map(idWithRevV2Mapper::map),
+		).map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(
 		summary = "Find deleted patients",
@@ -705,13 +715,7 @@ class PatientController(
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
 	): Mono<PatientDto> = mono {
-		patientService.modifyPatient(patientDto.toDomain())?.toDto()
-			?: throw ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Modifying patient failed. Possible reasons: no such patient exists, or server error. Please try again or read the server log.",
-			).also {
-				log.error(it.message)
-			}
+		patientService.modifyPatient(patientDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Set a patient referral doctor")

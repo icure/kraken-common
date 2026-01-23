@@ -56,7 +56,7 @@ import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-@RestController("accesslLogControllerV2")
+@RestController("accessLogControllerV2")
 @Profile("app")
 @RequestMapping("/rest/v2/accesslog")
 @Tag(name = "accessLog")
@@ -77,11 +77,16 @@ class AccessLogController(
 	fun createAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	): Mono<AccessLogDto> = mono {
-		val accessLog =
-			accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto))
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AccessLog creation failed")
-		accessLogV2Mapper.map(accessLog)
+		accessLogV2Mapper.map(accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto)))
 	}
+
+	@Operation(summary = "Create a batch of access logs", description = "Returns the created access logs.")
+	@PostMapping("/batch")
+	fun createAccessLogs(
+		@RequestBody accessLogDtos: List<AccessLogDto>,
+	): Flux<AccessLogDto> = accessLogService.createAccessLogs(
+		accessLogDtos.map(accessLogV2Mapper::map)
+	).map(accessLogV2Mapper::map).injectReactorContext()
 
 	@Operation(summary = "Deletes multiple access logs")
 	@PostMapping("/delete/batch")
@@ -91,7 +96,7 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map { IdAndRev(it, null) },
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes multiple access log if they match the provided rev")
 	@PostMapping("/delete/batch/withrev")
@@ -101,14 +106,14 @@ class AccessLogController(
 		.deleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
 		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Deletes an Access Log")
 	@DeleteMapping("/{accessLogId}")
 	fun deleteAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = false) rev: String? = null,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		accessLogService.deleteAccessLog(accessLogId, rev).let {
 			docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev))
 		}
@@ -118,17 +123,37 @@ class AccessLogController(
 	fun undeleteAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<AccessLogDto> = mono {
-		accessLogV2Mapper.map(accessLogService.undeleteAccessLog(accessLogId, rev))
+	): Mono<AccessLogDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		accessLogV2Mapper.map(
+			accessLogService.undeleteAccessLog(accessLogId, rev)
+		)
 	}
+
+	@PostMapping("/undelete/batch")
+	fun undeleteAccessLogs(
+		@RequestBody accessLogIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.undeleteAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{accessLogId}")
 	fun purgeAccessLog(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = true) rev: String,
-	): Mono<DocIdentifierDto> = mono {
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		accessLogService.purgeAccessLog(accessLogId, rev).let(docIdentifierV2Mapper::map)
 	}
+
+	@PostMapping("/purge/batch")
+	fun purgeAccessLogs(
+		@RequestBody accessLogIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = accessLogService
+		.purgeAccessLogs(
+			accessLogIds.ids.map(idWithRevV2Mapper::map),
+		).map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Gets an access log")
 	@GetMapping("/{accessLogId}")
@@ -251,11 +276,17 @@ class AccessLogController(
 	fun modifyAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	): Mono<AccessLogDto> = mono {
-		val accessLog =
-			accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
-				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog modification failed")
+		val accessLog = accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
 		accessLogV2Mapper.map(accessLog)
 	}
+
+	@Operation(summary = "Modifies a batch of access logs", description = "Returns the modified access logs.")
+	@PutMapping("/batch")
+	fun modifyAccessLogs(
+		@RequestBody accessLogDtos: List<AccessLogDto>,
+	): Flux<AccessLogDto> = accessLogService.modifyAccessLogs(
+		accessLogDtos.map(accessLogV2Mapper::map)
+	).map(accessLogV2Mapper::map).injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")

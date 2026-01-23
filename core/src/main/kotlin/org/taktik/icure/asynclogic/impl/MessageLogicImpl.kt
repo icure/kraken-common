@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
@@ -27,17 +26,16 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.exceptions.CreationException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
-import javax.security.auth.login.LoginException
 
 open class MessageLogicImpl(
 	private val messageDAO: MessageDAO,
@@ -282,31 +280,32 @@ open class MessageLogicImpl(
 	}
 
 	override fun createMessages(entities: Collection<Message>) = flow {
-		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false) ?: throw NotFoundRequestException("Current user not found")
-
+		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
+			?: throw NotFoundRequestException("Current user not found")
 		emitAll(
 			super.createEntities(
 				entities
 					.map { fix(it, isCreate = true) }
-					.map {
-						if (it.fromAddress == null || it.fromHealthcarePartyId == null) {
-							it.copy(
-								fromAddress = it.fromAddress ?: loggedUser.email,
-								fromHealthcarePartyId = it.fromHealthcarePartyId ?: loggedUser.healthcarePartyId,
-							)
-						} else {
-							it
-						}
-					},
+					.map { it.withAddressAndHealthcarePartyId(loggedUser)},
 			),
 		)
 	}
 
-	@Throws(CreationException::class, LoginException::class)
 	override suspend fun createMessage(message: Message) = fix(message, isCreate = true) { fixedMessage ->
-		if (fixedMessage.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
-		createMessages(setOf(fixedMessage)).firstOrNull()
+		val loggedUser = userLogic.getUser(sessionLogic.getCurrentUserId(), false)
+			?: throw NotFoundRequestException("Current user not found")
+		createEntity(fixedMessage.withAddressAndHealthcarePartyId(loggedUser))
 	}
+
+	private fun Message.withAddressAndHealthcarePartyId(loggedUser: EnhancedUser): Message =
+		if (fromAddress == null || fromHealthcarePartyId == null) {
+			copy(
+				fromAddress = fromAddress ?: loggedUser.email,
+				fromHealthcarePartyId = fromHealthcarePartyId ?: loggedUser.healthcarePartyId,
+			)
+		} else {
+			this
+		}
 
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
 

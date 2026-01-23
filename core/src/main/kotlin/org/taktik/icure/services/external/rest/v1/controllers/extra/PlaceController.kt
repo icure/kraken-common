@@ -5,7 +5,6 @@
 package org.taktik.icure.services.external.rest.v1.controllers.extra
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.entity.IdAndRev
@@ -40,8 +38,7 @@ class PlaceController(
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
 	) = mono {
-		placeService.createPlace(placeMapper.map(placeDto))?.let { placeMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Place creation failed")
+		placeMapper.map(placeService.createPlace(placeMapper.map(placeDto)))
 	}
 
 	@Operation(summary = "Deletes a place")
@@ -68,7 +65,6 @@ class PlaceController(
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
 	) = mono {
-		placeService.modifyPlace(placeMapper.map(placeDto))?.let { placeMapper.map(it) }
-			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place modification failed")
+		placeService.modifyPlace(placeMapper.map(placeDto)).let { placeMapper.map(it) }
 	}
 }

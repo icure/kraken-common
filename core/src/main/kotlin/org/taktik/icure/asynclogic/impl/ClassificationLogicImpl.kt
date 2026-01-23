@@ -5,7 +5,6 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import org.slf4j.LoggerFactory
 import org.taktik.icure.asyncdao.ClassificationDAO
@@ -19,7 +18,6 @@ import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.validation.aspect.Fixer
-import java.lang.UnsupportedOperationException
 
 open class ClassificationLogicImpl(
 	private val classificationDAO: ClassificationDAO,
@@ -50,14 +48,12 @@ open class ClassificationLogicImpl(
 			if (sessionLogic.requestsAutofixAnonymity()) throw UnsupportedOperationException("Creating Classifications is not supported for users requesting anonymity")
 			val userId = sessionLogic.getCurrentUserId()
 			val healthcarePartyId = sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
-			createEntities(
-				setOf(
-					fixedClassification.copy(
-						author = userId,
-						responsible = healthcarePartyId,
-					),
-				),
-			).firstOrNull()
+			createEntity(
+				fixedClassification.copy(
+					author = userId,
+					responsible = healthcarePartyId,
+				)
+			)
 		} catch (e: Exception) {
 			log.error("createClassification: " + e.message)
 			throw IllegalArgumentException("Invalid Classification", e)

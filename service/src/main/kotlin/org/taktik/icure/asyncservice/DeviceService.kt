@@ -12,9 +12,9 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface DeviceService {
-	suspend fun createDevice(device: Device): Device?
+	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
-	suspend fun modifyDevice(device: Device): Device?
+	suspend fun modifyDevice(device: Device): Device
 	fun modifyDevices(devices: List<Device>): Flow<Device>
 	suspend fun getDevice(deviceId: String): Device?
 	fun getDevices(deviceIds: List<String>): Flow<Device>
@@ -61,6 +61,7 @@ interface DeviceService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeDevice(id: String, rev: String): DocIdentifier
+	fun purgeDevices(deviceIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Restores an entity marked as deleted.
@@ -70,6 +71,8 @@ interface DeviceService {
 	 * @return the restored entity
 	 */
 	suspend fun undeleteDevice(id: String, rev: String): Device
+	fun undeleteDevices(deviceIds: List<IdAndRev>): Flow<Device>
+
 	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 	fun getEntityIds(): Flow<String>
 

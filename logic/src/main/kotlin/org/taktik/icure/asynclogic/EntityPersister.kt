@@ -12,8 +12,9 @@ import org.taktik.icure.domain.filter.AbstractFilter
 
 interface EntityPersister<E : Identifiable<String>> {
 
-	fun createEntities(entities: Collection<E>): Flow<E>
+	suspend fun createEntity(entity: E): E
 
+	fun createEntities(entities: Collection<E>): Flow<E>
 	fun modifyEntities(entities: Collection<E>): Flow<E>
 
 	suspend fun deleteEntity(id: String, rev: String?): E
@@ -21,6 +22,7 @@ interface EntityPersister<E : Identifiable<String>> {
 	suspend fun undeleteEntity(id: String, rev: String?): E
 	fun undeleteEntities(identifiers: Collection<IdAndRev>): Flow<E>
 	suspend fun purgeEntity(id: String, rev: String): DocIdentifier
+	fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier>
 
 	fun getEntities(identifiers: Collection<String>): Flow<E>
 	fun getEntities(): Flow<E>
@@ -34,6 +36,8 @@ interface EntityPersister<E : Identifiable<String>> {
 
 	fun getEntities(identifiers: Flow<String>): Flow<E>
 	fun createEntities(entities: Flow<E>): Flow<E>
+
+	suspend fun modifyEntity(entity: E): E
 	fun modifyEntities(entities: Flow<E>): Flow<E>
 
 	/**

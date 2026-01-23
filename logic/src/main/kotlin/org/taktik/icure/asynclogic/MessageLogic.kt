@@ -100,7 +100,7 @@ interface MessageLogic :
 
 	fun createMessages(entities: Collection<Message>): Flow<Message>
 
-	suspend fun createMessage(message: Message): Message?
+	suspend fun createMessage(message: Message): Message
 
 	suspend fun getMessage(messageId: String): Message?
 

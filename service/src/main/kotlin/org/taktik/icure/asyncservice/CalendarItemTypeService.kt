@@ -6,6 +6,7 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -13,7 +14,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemTypeService {
-	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
+	fun createCalendarItemTypes(calendarItemTypes: List<CalendarItemType>): Flow<CalendarItemType>
 
 	/**
 	 * Deletes [CalendarItemType]s in batch.
@@ -25,6 +27,12 @@ interface CalendarItemTypeService {
 	 * @return a [Flow] containing the deleted [CalendarItemType]s.
 	 */
 	fun deleteCalendarItemTypes(ids: List<String>): Flow<CalendarItemType>
+	fun deleteCalendarItemTypesWithRev(calendarItemTypeIds: List<IdAndRev>): Flow<DocIdentifier>
+	suspend fun deleteCalendarItemType(id: String, rev: String): DocIdentifier
+
+	fun undeleteCalendarItemTypes(calendarItemTypeIds: List<IdAndRev>): Flow<CalendarItemType>
+	suspend fun undeleteCalendarItemType(id: String, rev: String): CalendarItemType
+
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?
 	fun getCalendarItemTypes(calendarItemTypeIds: Collection<String>): Flow<CalendarItemType>
 
@@ -38,6 +46,7 @@ interface CalendarItemTypeService {
 	 * @throws ConflictRequestException if the entity rev doesn't match.
 	 */
 	suspend fun purgeCalendarItemType(id: String, rev: String): DocIdentifier
+	fun purgeCalendarItemTypes(calendarItemTypeIds: List<IdAndRev>): Flow<DocIdentifier>
 
 	/**
 	 * Retrieves all the [CalendarItemType]s in a group in a format for pagination.
@@ -53,7 +62,9 @@ interface CalendarItemTypeService {
 	 * @return a [Flow] of [CalendarItemType]s.
 	 */
 	fun getAllCalendarItemTypes(): Flow<CalendarItemType>
-	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType?
+
+	suspend fun modifyCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
+	fun modifyCalendarItemTypes(calendarItemTypes: List<CalendarItemType>): Flow<CalendarItemType>
 
 	/**
 	 * Retrieves all the [CalendarItemType]s for a given [agendaId].

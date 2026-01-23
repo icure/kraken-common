@@ -56,7 +56,10 @@ interface ContactLogic :
 
 	suspend fun addDelegation(contactId: String, delegation: Delegation): Contact?
 
-	suspend fun createContact(contact: Contact): Contact?
+	suspend fun createContact(contact: Contact): Contact
+
+	suspend fun modifyContact(contact: Contact): Contact
+	fun modifyContacts(contacts: List<Contact>): Flow<Contact>
 
 	fun getServices(selectedServiceIds: Collection<String>): Flow<Service>
 	fun getServicesLinkedTo(ids: List<String>, linkType: String?): Flow<Service>
