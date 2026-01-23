@@ -99,23 +99,4 @@ data class ListTypeConfig(
 		}
 		RawJson.JsonArray(res)
 	}
-
-	override fun mapValueForRead(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		value: RawJson
-	): RawJson =
-		if (elementType.shouldMapForRead && value is RawJson.JsonArray) {
-			RawJson.JsonArray(
-				value.items.map { item ->
-					elementType.mapValueForRead(
-						resolutionContext,
-						item
-					)
-				}
-			)
-		} else {
-			value
-		}
-
-	override val shouldMapForRead: Boolean @JsonIgnore get() = true
 }

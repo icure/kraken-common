@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class ObjectTypeConfig(
@@ -30,22 +31,10 @@ class ObjectTypeConfig(
 		require(value is RawJson.JsonObject) {
 			"$path: invalid type, expected Object ($objectReference)"
 		}
-		resolutionContext.resolveObjectReference(objectReference)!!.validateAndMapValueForStore(
+		resolutionContext.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
 			resolutionContext,
 			path,
 			value
 		)
 	}
-
-	override fun mapValueForRead(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		value: RawJson
-	): RawJson =
-		if (value is RawJson.JsonObject) {
-			resolutionContext.resolveObjectReference(objectReference)!!.mapValueForRead(resolutionContext, value)
-		} else {
-			value
-		}
-
-	override val shouldMapForRead: Boolean @JsonIgnore get() = true
 }

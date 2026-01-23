@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DataOwnerService
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.entities.DataOwnerWithType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
@@ -44,48 +42,6 @@ class DataOwnerController(
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 ) {
-	private suspend fun DataOwnerWithType.map(): DataOwnerWithTypeDto {
-		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val patientExtensions = config?.extensions?.patient
-		return dataOwnerWithTypeMapper.map(
-			this,
-			mapPatientForRead = if (patientExtensions != null) ({ p ->
-				patientMapper.map(p) {
-					if (it != null) patientExtensions.mapValueForRead(CustomEntityConfigResolutionContext.ofConfig(config), it) else null
-				}
-			}) else ({ p ->
-				patientMapper.map(p) { it }
-			})
-		)
-	}
-
-	private fun Flow<DataOwnerWithType>.map(): Flow<DataOwnerWithTypeDto> = flow {
-		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val patientExtensions = config?.extensions?.patient
-		if (patientExtensions != null) {
-			val context = CustomEntityConfigResolutionContext.ofConfig(config)
-			emitAll(map { dataOwner ->
-				dataOwnerWithTypeMapper.map(
-					dataOwner,
-					mapPatientForRead = { p ->
-						patientMapper.map(p) {
-							if (it != null) patientExtensions.mapValueForRead(context, it) else null
-						}
-					}
-				)
-			})
-		} else {
-			emitAll(map { dataOwner ->
-				dataOwnerWithTypeMapper.map(
-					dataOwner,
-					mapPatientForRead = { p ->
-						patientMapper.map(p) { it }
-					}
-				)
-			})
-		}
-	}
-
 	private suspend fun currentDataOwnerOr404(): String =
 		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
 
@@ -94,14 +50,14 @@ class DataOwnerController(
 	fun getDataOwner(
 		@PathVariable dataOwnerId: String,
 	): Mono<DataOwnerWithTypeDto> = mono {
-		dataOwnerService.getDataOwner(dataOwnerId)?.map()
+		dataOwnerService.getDataOwner(dataOwnerId)?.let(dataOwnerWithTypeMapper::map)
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@PostMapping("/byIds")
 	fun getDataOwners(
 		@RequestBody dataOwnerIds: ListOfIdsDto,
-	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map().injectReactorContext()
+	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map(dataOwnerWithTypeMapper::map).injectReactorContext()
 
 	@Operation(
 		summary = "Get a data owner stub by his ID",
@@ -156,7 +112,7 @@ class DataOwnerController(
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
-	}.map().injectReactorContext()
+	}.map(dataOwnerWithTypeMapper::map).injectReactorContext()
 
 	@Operation(
 		summary = "Get the data owner corresponding to the current user",

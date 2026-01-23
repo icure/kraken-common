@@ -18,12 +18,24 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper.embed
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.taktik.icure.entities.embed.Employer
 import org.taktik.icure.services.external.rest.v2.dto.embed.EmployerDto
 
-@Mapper(componentModel = "spring", uses = [AddressV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [AddressV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface EmployerV2Mapper {
 	fun map(employerDto: EmployerDto): Employer
 	fun map(employer: Employer): EmployerDto

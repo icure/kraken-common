@@ -23,6 +23,8 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.PassOnParameter
+import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
@@ -69,12 +71,8 @@ interface PatientV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "extensions", expression = "lambda(mapExtensionsForStore)"),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapRootExtensionsForStore(patientDto))"),
 	)
-	fun map(patientDto: PatientDto, mapExtensionsForStore: (RawJson.JsonObject?) -> RawJson.JsonObject?): Patient
-
-	@Mappings(
-		Mapping(target = "extensions", expression = "lambda(mapExtensionsForRead)"),
-	)
-	fun map(patient: Patient, mapExtensionsForRead: (RawJson.JsonObject?) -> RawJson.JsonObject?): PatientDto
+	fun map(patientDto: PatientDto, @PassOnParameter mapperExtensionsValidationContext: MapperExtensionsValidationContext): Patient
+	fun map(patient: Patient): PatientDto
 }

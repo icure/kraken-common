@@ -3,6 +3,7 @@ package org.taktik.icure.domain.customentities.util
 import org.taktik.icure.domain.customentities.config.VersionedCustomEntitiesConfiguration
 import org.taktik.icure.domain.customentities.config.typing.EnumDefinition
 import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
+import org.taktik.icure.exceptions.IllegalEntityException
 
 interface CustomEntityConfigResolutionContext {
 	fun resolveObjectReference(reference: String): ObjectDefinition?
@@ -41,3 +42,25 @@ private class CustomEntityConfigResolutionContextImpl(
 	override fun resolveEnumReference(reference: String): EnumDefinition? =
 		enums[reference]
 }
+
+/**
+ * Only to use when using a validated configuration, in case of illegal manipulation of the configuration that causes
+ * a mandatory reference to be missing throws an IllegalEntityException.
+ * No need to have a ResolutionPath for proper error messages as this should never happen if the configuration was
+ * always changed through the appropriate endpoints.
+ */
+fun CustomEntityConfigResolutionContext.resolveRequiredObjectReference(
+	reference: String
+): ObjectDefinition = resolveObjectReference(reference)
+	?: throw IllegalEntityException("Object definition for reference `$reference` not found")
+
+/**
+ * Only to use when using a validated configuration, in case of illegal manipulation of the configuration that causes
+ * a mandatory reference to be missing throws an IllegalEntityException.
+ * No need to have a ResolutionPath for proper error messages as this should never happen if the configuration was
+ * always changed through the appropriate endpoints.
+ */
+fun CustomEntityConfigResolutionContext.resolveRequiredEnumReference(
+	reference: String
+): EnumDefinition = resolveEnumReference(reference)
+	?: throw IllegalEntityException("Object definition for reference `$reference` not found")

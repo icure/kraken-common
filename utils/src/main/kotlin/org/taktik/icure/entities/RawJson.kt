@@ -119,6 +119,10 @@ sealed interface RawJson {
 			}
 			generator.writeEndObject()
 		}
+
+		companion object {
+			val empty = JsonObject(emptyMap())
+		}
 	}
 
 	data class JsonArray(val items: List<RawJson>) : RawJson {

@@ -54,6 +54,7 @@ import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -70,23 +71,22 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDomainWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
-import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapPaginationElementsWithExtensions
-import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.paginatedListWithExtensions
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PatientHealthCarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.requests.BulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.requests.PatientBulkShareResultV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.FluxString
 import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
+import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
@@ -107,7 +107,7 @@ class PatientController(
 	private val addressV2Mapper: AddressV2Mapper,
 	private val patientHealthCarePartyV2Mapper: PatientHealthCarePartyV2Mapper,
 	private val objectMapper: ObjectMapper,
-	private val bulkShareResultV2Mapper: BulkShareResultV2Mapper,
+	private val bulkShareResultV2Mapper: PatientBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
@@ -125,12 +125,7 @@ class PatientController(
 		)
 
 	private suspend fun Patient.toDto(): PatientDto =
-		mapFromDomainWithExtension(
-			this,
-			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
-			patientMapper::map,
-		)
+		patientMapper.map(this)
 
 	private suspend fun List<PatientDto>.toDomain(): List<Patient> =
 		mapFromDtoWithExtension(
@@ -142,45 +137,11 @@ class PatientController(
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =
-		mapFromDomainWithExtension(
-			this,
-			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
-			patientMapper::map,
-		)
+		map { patientMapper.map(it) }
 
 	private fun Flow<EntityBulkShareResult<Patient>>.toDtoUpdateResult(): Flow<EntityBulkShareResultDto<PatientDto>> =
-		mapFromDomainWithExtension(
-			this,
-			customEntitiesConfigurationProvider,
-			bulkShareResultV2Mapper,
-			ExtensionsConfiguration::patient,
-			patientMapper::map,
-		)
+		map { bulkShareResultV2Mapper.map(it) }
 	
-	private fun Flow<PaginationElement>.mapElements(): Flow<PaginationElement> =
-		mapPaginationElementsWithExtensions(
-			this,
-			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
-			patientMapper::map,
-		)
-
-	private suspend fun Flow<ViewQueryResultEvent>.paginatedList(
-		realLimit: Int,
-		objectMapper: ObjectMapper,
-		predicate: Predicate? = null,
-	): PaginatedList<PatientDto> =
-		paginatedListWithExtensions(
-			this,
-			realLimit,
-			objectMapper,
-			predicate,
-			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
-			patientMapper::map,
-		)
-
 	@Operation(
 		summary = "Find patients for the current healthcare party",
 		description =
@@ -222,7 +183,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements().asPaginatedFlux()
+	}.mapElements(patientMapper::map).asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients of a specific HcParty or of the current HcParty ",
@@ -257,7 +218,7 @@ class PatientController(
 				paginationOffset,
 				null,
 				Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name)),
-			).mapElements()
+			).mapElements(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -286,7 +247,7 @@ class PatientController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.listOfPatientsModifiedAfter(date, offset)
-			.mapElements()
+			.mapElements(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -384,7 +345,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements().asPaginatedFlux()
+	}.mapElements(patientMapper::map).asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients by pages for a specific HcParty",
@@ -502,7 +463,7 @@ class PatientController(
 			val patients = patientService.listPatients(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
 			log.info("Filter patients in " + (System.currentTimeMillis() - System.currentTimeMillis()) + " ms.")
 
-			patients.paginatedList(realLimit, objectMapper = objectMapper)
+			patients.paginatedList(patientMapper::map, realLimit, objectMapper = objectMapper)
 		} catch (e: LoginException) {
 			log.warn(e.message, e)
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
@@ -614,7 +575,7 @@ class PatientController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.findDeletedPatientsByDeleteDate(startDate, endDate, desc ?: false, paginationOffset)
-			.mapElements()
+			.mapElements(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -788,7 +749,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsBySsin(hcPartyId, paginationOffset)
-			.mapElements()
+			.mapElements(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -805,7 +766,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsByName(hcPartyId, paginationOffset)
-			.mapElements()
+			.mapElements(patientMapper::map)
 			.asPaginatedFlux()
 	}
 

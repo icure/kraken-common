@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasTags
@@ -41,15 +42,21 @@ data class Address(
 	val notes: List<Annotation> = emptyList(),
 	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	Serializable,
 	Comparable<Address>,
 	HasTags,
-	HasCodes {
-	companion object : DynamicInitializer<Address>
+	HasCodes,
+	Extendable {
+	companion object : DynamicInitializer<Address> {
+		const val QUALIFIED_NAME = "org.taktik.icure.entities.embed.Address"
+	}
 
 	fun merge(other: Address) = Address(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Address) = super.solveConflictsWith(other) +
+	fun solveConflictsWith(other: Address) =
+		super<Encryptable>.solveConflictsWith(other) +
+		super<Extendable>.solveConflictsWith(other) +
 		mapOf(
 			"addressType" to (this.addressType ?: other.addressType),
 			"descr" to (this.descr ?: other.descr),

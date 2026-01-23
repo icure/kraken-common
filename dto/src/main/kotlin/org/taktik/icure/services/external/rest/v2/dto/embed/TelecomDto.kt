@@ -42,14 +42,5 @@ data class TelecomDto(
 	Comparable<TelecomDto> {
 	companion object : DynamicInitializer<TelecomDto>
 
-	fun merge(other: TelecomDto) = TelecomDto(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: TelecomDto) = super.solveConflictsWith(other) +
-		mapOf(
-			"telecomType" to (this.telecomType ?: other.telecomType),
-			"telecomNumber" to (this.telecomNumber ?: other.telecomNumber),
-			"telecomDescription" to (this.telecomDescription ?: other.telecomDescription),
-		)
-
 	override fun compareTo(other: TelecomDto): Int = telecomType?.compareTo(other.telecomType ?: TelecomTypeDto.other) ?: 0
 }

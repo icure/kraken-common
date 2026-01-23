@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -33,7 +34,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.FlatRateTarificat
 import org.taktik.icure.services.external.rest.v2.mapper.embed.HealthcarePartyHistoryStatusV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PersonNameV2Mapper
 
-@Mapper(componentModel = "spring", uses = [IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface HealthcarePartyV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

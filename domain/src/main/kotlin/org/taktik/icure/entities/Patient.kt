@@ -24,6 +24,8 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.embed.Extendable
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
@@ -215,13 +217,15 @@ data class Patient(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-	val extensions: RawJson.JsonObject? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	Person,
 	HasEncryptionMetadata,
 	CryptoActor,
 	DataOwner,
-	Encryptable {
+	Encryptable,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Patient>
 
 	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
@@ -232,6 +236,7 @@ data class Patient(
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +
 		super<CryptoActor>.solveConflictsWith(other) +
 		super<DataOwner>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"encryptionKeys" to this.encryptionKeys, // Only keep this ones
 			"identifier" to mergeListsDistinct(

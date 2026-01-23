@@ -61,13 +61,6 @@ data class ObjectDefinition(
 			fun valueForStore(): RawJson?
 
 			/**
-			 * Get a value matching this default configuration; not null only for configurations where the value
-			 * should not be stored.
-			 */
-			fun valueForRead(): RawJson?
-
-
-			/**
 			 * If the provided value should be ignored according to this default configuration.
 			 */
 			fun shouldIgnoreForStore(value: RawJson): Boolean
@@ -100,8 +93,6 @@ data class ObjectDefinition(
 
 				override fun valueForStore(): RawJson? = if (storeExplicitly) value else null
 
-				override fun valueForRead(): RawJson? = if (storeExplicitly) null else value
-
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					!storeExplicitly && this.value == value
 			}
@@ -121,8 +112,6 @@ data class ObjectDefinition(
 
 				override fun valueForStore(): RawJson =
 					RawJson.JsonString(UUID.randomUUID().toString())
-
-				override fun valueForRead(): Nothing? = null
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
@@ -158,8 +147,6 @@ data class ObjectDefinition(
 						)
 					)
 
-				override fun valueForRead(): Nothing? = null
-
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
@@ -194,8 +181,6 @@ data class ObjectDefinition(
 						).toLong()
 					)
 
-				override fun valueForRead(): Nothing? = null
-
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 			}
@@ -227,8 +212,6 @@ data class ObjectDefinition(
 							LocalTime.now(zoneId?.let { ZoneId.of(it) } ?: ZoneOffset.UTC),
 						).toLong()
 					)
-
-				override fun valueForRead(): Nothing? = null
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
@@ -281,24 +264,4 @@ data class ObjectDefinition(
 		}
 		return RawJson.JsonObject(mappedObjectProperties)
 	}
-
-	fun mapValueForRead(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		value: RawJson.JsonObject,
-	): RawJson.JsonObject = RawJson.JsonObject(
-		properties.entries.mapNotNull { (propId, propConfig) ->
-			(
-				// A property with explicit null valur is actually going to be a NullNode, not an actual `null` -> will be mapped accordingly
-				value.properties[propId]?.let {
-					if (propConfig.type.shouldMapForRead) {
-						propConfig.type.mapValueForRead(resolutionContext, it)
-					} else {
-						it
-					}
-				} ?: propConfig.defaultValue?.valueForRead()
-			)?.let {
-				Pair(propId, it)
-			}
-		}.toMap()
-	)
 }

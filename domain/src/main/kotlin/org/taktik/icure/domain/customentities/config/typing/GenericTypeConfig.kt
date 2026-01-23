@@ -78,19 +78,4 @@ sealed interface GenericTypeConfig {
 		path: ResolutionPath,
 		value: RawJson,
 	): RawJson
-
-	/**
-	 * Transforms a json retrieved from the database before returning it to the user (to set implicit default values, or
-	 * update renamed parameters).
-	 * There is no validation done by this method; invalid types or values are ignored.
-	 * @param resolutionContext allows retrieving custom types definitions needed to validate the value
-	 * @param value a value that should be of this type, or null if there is no value set.
-	 * @return the transformed json value
-	 */
-	fun mapValueForRead(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		value: RawJson,
-	): RawJson = value
-
-	val shouldMapForRead : Boolean @JsonIgnore get() = false
 }

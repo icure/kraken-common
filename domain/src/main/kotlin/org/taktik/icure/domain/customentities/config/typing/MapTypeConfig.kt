@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class MapTypeConfig(
@@ -121,7 +122,7 @@ data class MapTypeConfig(
 					}
 				}
 				is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-					val enumDefinition = resolutionContext.resolveEnumReference(keyValidation.reference)!!
+					val enumDefinition = resolutionContext.resolveRequiredEnumReference(keyValidation.reference)
 					res.keys.forEach {
 						require(it in enumDefinition.entries) {
 							"$path{KEY \"${truncateValueForErrorMessage(it)}\"}: expected entry of enum ${keyValidation.reference}"
@@ -133,22 +134,4 @@ data class MapTypeConfig(
 		}
 		RawJson.JsonObject(res)
 	}
-
-	override fun mapValueForRead(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		value: RawJson
-	): RawJson = if (valueType.shouldMapForRead && value is RawJson.JsonObject) {
-		RawJson.JsonObject(
-			value.properties.mapValues { (_, v) ->
-				valueType.mapValueForRead(
-					resolutionContext,
-					v
-				)
-			}
-		)
-	} else {
-		value
-	}
-
-	override val shouldMapForRead: Boolean @JsonIgnore get() = true
 }

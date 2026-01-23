@@ -12,6 +12,9 @@ import java.util.regex.Pattern
  * Type for a UUID string (not necessarily v4 UUID).
  * You can specify the expected format using [format], default (if left null) is [Format.LOWER_DASHED].
  */
+//TODO
+// uuid should be independent of representation. Should maybe not allow to specify format, and enforce one of our chosing (maybe even Base64),
+// Could be annoying for debug and could prohibit certain queries by range if we use a base64 though.
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class UuidTypeConfig(
 	val nullable: Boolean = false,

@@ -39,14 +39,4 @@ data class CareTeamMemberDto(
 	Serializable,
 	IdentifiableDto<String> {
 	companion object : DynamicInitializer<CareTeamMemberDto>
-
-	fun merge(other: CareTeamMemberDto) = CareTeamMemberDto(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: CareTeamMemberDto) = super.solveConflictsWith(other) +
-		mapOf(
-			"id" to (this.id),
-			"careTeamMemberType" to (this.careTeamMemberType ?: other.careTeamMemberType),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"quality" to (this.quality ?: other.quality),
-		)
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumTypeConfig(
@@ -29,7 +30,7 @@ data class EnumTypeConfig(
 		require(value is RawJson.JsonString) {
 			"$path: invalid type, expected Text (enum)"
 		}
-		val enumDefinition = resolutionContext.resolveEnumReference(enumReference)!!
+		val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
 		require(value.value in enumDefinition.entries) {
 			"$path: invalid value for enum $enumReference"
 		}

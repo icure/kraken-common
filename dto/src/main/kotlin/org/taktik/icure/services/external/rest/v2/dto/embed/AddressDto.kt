@@ -24,6 +24,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
@@ -51,10 +52,12 @@ data class AddressDto(
 	@param:Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
 	@param:Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	Serializable,
 	Comparable<AddressDto>,
 	HasTagsDto,
-	HasCodesDto {
+	HasCodesDto,
+	ExtendableDto {
 	override fun compareTo(other: AddressDto): Int = addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
 }

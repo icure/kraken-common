@@ -37,6 +37,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EmploymentInfoDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InsurabilityDto
@@ -192,13 +194,16 @@ data class PatientDto(
 	@get:Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
 	@get:Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	override val parentId: Nothing? = null,
-	val extensions: RawJson.JsonObject? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	PersonDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	CryptoActorDto {
+	CryptoActorDto,
+	ExtendableRootDto
+	{
 	override fun withIdRev(
 		id: String?,
 		rev: String,
