@@ -1,12 +1,9 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.TextNode
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
-import java.util.regex.Pattern
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * Type for a UUID string (not necessarily v4 UUID).
@@ -68,14 +65,15 @@ data class UuidTypeConfig(
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonString) {
-			"$path: invalid type, expected Text (UUID)"
-		}
-		require((format ?: Format.LOWER_DASHED).validate(value.value)) {
-			"$path: value is not a UUID respecting the format ${format?.name ?: Format.LOWER_DASHED.name}"
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonString) {
+			validationContext.addError("Invalid type, expected Text (UUID)")
+		} else {
+			if (!(format ?: Format.LOWER_DASHED).validate(value.value)) {
+				validationContext.addError("Value is not a UUID respecting the format ${format?.name ?: Format.LOWER_DASHED.name}")
+			}
 		}
 		value
 	}

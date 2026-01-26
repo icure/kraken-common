@@ -2,8 +2,8 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class StringTypeConfig(
@@ -27,48 +27,49 @@ class StringTypeConfig(
 		val maxLength: Int? = null,
 	) {
 		fun validateConfig(
-			path: ResolutionPath
+			context: ScopedErrorCollector
 		) {
-			require(minLength == null || minLength > 0) {
-				"$path: invalid minLength, should be greater than 0"
+			if (minLength != null && minLength <= 0) {
+				context.addError("Invalid minLength, should be greater than 0")
 			}
-			require(maxLength == null || maxLength > 0) {
-				"$path: invalid maxLength, should be greater than 0"
+			if (maxLength != null && maxLength <= 0) {
+				context.addError("Invalid maxLength, should be greater than 0")
 			}
-			require(minLength == null || maxLength == null || maxLength >= minLength) {
-				"$path: invalid length bounds, maxLength should be greater than or equal to minLength"
+			if (minLength != null && maxLength != null && maxLength < minLength) {
+				context.addError("Invalid length bounds, maxLength should be greater than or equal to minLength")
 			}
 		}
 
 		fun validateValue(
-			path: ResolutionPath,
+			context: ScopedErrorCollector,
 			value: String
 		) {
-			require(
-				(minLength == null || value.length >= minLength)
-					&& (maxLength == null || value.length <= maxLength)
+			if (
+				(minLength != null && value.length < minLength)
+				|| (maxLength != null && value.length > maxLength)
 			) {
-				"$path: string length out of bounds"
+				context.addError("String length out of bounds")
 			}
 		}
 	}
 
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		validationContext: ScopedErrorCollector
 	) {
-		validation?.validateConfig(path)
+		validation?.validateConfig(validationContext)
 	}
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonString) {
-			"$path: invalid type, expected Text (string)"
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonString) {
+			validationContext.addError("Invalid type, expected Text (string)")
+		} else {
+			validation?.validateValue(validationContext, value.value)
 		}
-		validation?.validateValue(path, value.value)
 		value
 	}
 }

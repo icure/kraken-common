@@ -5,7 +5,10 @@ import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.config.typing.truncateValueForErrorMessage
 import org.taktik.icure.domain.customentities.config.typing.validateIdentifier
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.errorreporting.ErrorCollector
+import org.taktik.icure.errorreporting.ScopePath
+import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.appending
 
 data class VersionedCustomEntitiesConfiguration(
 	val rev: String? = null,
@@ -24,32 +27,33 @@ data class VersionedCustomEntitiesConfiguration(
 	// - Errors should be data classes with constant code, and parameters like path, input, ..., to allow for multilingual message later
 
 	suspend fun validateDefinition() {
-		val path = ResolutionPath()
-		val context = CustomEntityConfigResolutionContext.ofConfig(this)
-		path.appending("objects") {
+		val collector = ErrorCollector.Collecting()
+		val validationContext = ScopedErrorCollector(collector, ScopePath())
+		val resolutionContext = CustomEntityConfigResolutionContext.ofConfig(this)
+		validationContext.appending("objects") {
 			objects.forEach { (name, objDef) ->
-				validateIdentifier(path, name)
-				path.appending(".", name) {
-					objDef.validateDefinition(context, path)
+				validateIdentifier(validationContext, name)
+				validationContext.appending(".", name) {
+					objDef.validateDefinition(resolutionContext, validationContext)
 				}
 			}
 		}
-		path.appending("enums") {
+		validationContext.appending("enums") {
 			enums.forEach { (name, objDef) ->
-				validateIdentifier(path, name)
-				path.appending(".", name) {
-					objDef.validateDefinition(path)
+				validateIdentifier(validationContext, name)
+				validationContext.appending(".", name) {
+					objDef.validateDefinition(validationContext)
 				}
 			}
 		}
 		extensions.allDefined.forEach { (krakenName, config) ->
-			path.appending("extensions.", krakenName) {
-				require(config.objectDefinitionReference in objects) {
-					"$path: invalid root extension, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found"
+			validationContext.appending("extensions.", krakenName) {
+				if (config.objectDefinitionReference !in objects) {
+					validationContext.addError("Invalid root extension, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found")
 				}
 				config.embeddedEntitiesConfigs.forEach { (className, objDefRef) ->
-					require(objDefRef in objects) {
-						"$path: invalid extension for ${className.take(128)}, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found"
+					if (objDefRef !in objects) {
+						validationContext.addError("Invalid extension for ${className.take(128)}, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found")
 					}
 					// TODO validate that className is actually embedded in the entity or in custom extensions definitions with BuiltinTypeConfig.
 				}

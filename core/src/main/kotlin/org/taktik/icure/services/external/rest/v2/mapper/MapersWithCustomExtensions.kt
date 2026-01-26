@@ -9,9 +9,10 @@ import org.taktik.icure.domain.customentities.config.StandardRootEntityExtension
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ErrorCollector
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 
@@ -31,7 +32,10 @@ object MappersWithCustomExtensions {
 				.resolveRequiredObjectReference(extensionConfig.objectDefinitionReference)
 				.validateAndMapValueForStore(
 					customEntityConfigResolutionContext,
-					ResolutionPath(arrayListOf("?.")), // TODO context from mapper
+					ScopedErrorCollector(
+						ErrorCollector.Throwing,
+						null, // TODO take this context from the mapper
+					),
 					entity.extensions ?: RawJson.JsonObject.empty
 				)
 		}
@@ -48,7 +52,10 @@ object MappersWithCustomExtensions {
 					.resolveRequiredObjectReference(config)
 					.validateAndMapValueForStore(
 						customEntityConfigResolutionContext,
-						ResolutionPath(arrayListOf("?.")), // TODO context from mapper
+						ScopedErrorCollector(
+							ErrorCollector.Throwing,
+							null, // TODO take this context from the mapper
+						),
 						entity.extensions ?: RawJson.JsonObject.empty
 					)
 			}

@@ -1,13 +1,13 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class MapTypeConfig(
@@ -52,34 +52,35 @@ data class MapTypeConfig(
 
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		validationContext: ScopedErrorCollector
 	) {
-		path.appending("{x}") {
+		validationContext.appending("{*}") {
 			valueType.validateConfig(
 				resolutionContext,
-				path
+				validationContext
 			)
 		}
 		validation?.apply {
-			require(minSize == null || minSize > 0) {
-				"$path: invalid minSize, should be greater than 0"
+			if (minSize != null && minSize <= 0) {
+				validationContext.addError("Invalid minSize, should be greater than 0")
 			}
-			require(maxSize == null || maxSize > 0) {
-				"$path: invalid maxSize, should be greater than 0"
+			if (maxSize != null && maxSize <= 0) {
+				validationContext.addError("Invalid maxSize, should be greater than 0")
 			}
-			require(minSize == null || maxSize == null || maxSize >= minSize) {
-				"$path: invalid size bounds, maxSize should be greater than or equal to minSize"
+			if (minSize != null && maxSize != null && maxSize < minSize) {
+				validationContext.addError("Invalid size bounds, maxSize should be greater than or equal to minSize")
 			}
-			when (keyValidation) {
-				null -> {} // nothing to do
-				is ValidationConfig.KeyValidation.StringKeyValidation -> {
-					path.appending(".keyValidation") {
-						keyValidation.validation.validateConfig(path)
-					}
-				}
-				is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-					requireNotNull(resolutionContext.resolveEnumReference(keyValidation.reference)) {
-						"$path.keyValidation: invalid enum reference"
+			if (keyValidation != null) {
+				validationContext.appending(".keyValidation") {
+					when (keyValidation) {
+						is ValidationConfig.KeyValidation.StringKeyValidation -> {
+							keyValidation.validation.validateConfig(validationContext)
+						}
+						is ValidationConfig.KeyValidation.EnumKeyValidation -> {
+							if (resolutionContext.resolveEnumReference(keyValidation.reference) == null) {
+								validationContext.addError("Invalid enum reference")
+							}
+						}
 					}
 				}
 			}
@@ -88,50 +89,60 @@ data class MapTypeConfig(
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonObject) {
-			"$path: invalid type, expected Object (Map)"
-		}
-		val res = value.properties.mapValues { (k, v) ->
-			path.appending("{", truncateValueForErrorMessage(k), "}") {
-				valueType.validateAndMapValueForStore(
-					resolutionContext,
-					path,
-					v
-				)
-			}
-		}
-		if (validation != null) {
-			require(
-				(validation.minSize == null || res.size >= validation.minSize)
-					&& (validation.maxSize == null || res.size <= validation.maxSize)
-			) {
-				"$path: map size out of bounds"
-			}
-			when (val keyValidation = validation.keyValidation) {
-				is ValidationConfig.KeyValidation.StringKeyValidation -> {
-					res.keys.forEach { key ->
-						path.appending("{KEY \"", truncateValueForErrorMessage(key), "\"}") {
-							keyValidation.validation.validateValue(
-								path,
-								key
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonObject) {
+			validationContext.addError("Invalid type, expected Object (Map)")
+			value
+		} else {
+			val res =
+				validationContext.appending("{") {
+					value.properties.mapValues { (k, v) ->
+						validationContext.appending(truncateValueForErrorMessage(k), "}") {
+							valueType.validateAndMapValueForStore(
+								resolutionContext,
+								validationContext,
+								v
 							)
 						}
 					}
 				}
-				is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-					val enumDefinition = resolutionContext.resolveRequiredEnumReference(keyValidation.reference)
-					res.keys.forEach {
-						require(it in enumDefinition.entries) {
-							"$path{KEY \"${truncateValueForErrorMessage(it)}\"}: expected entry of enum ${keyValidation.reference}"
+			if (validation != null) {
+				if (
+					(validation.minSize != null && res.size < validation.minSize)
+						&& (validation.maxSize != null && res.size > validation.maxSize)
+				) {
+					validationContext.addError("Map size out of bounds")
+				}
+				if (validation.keyValidation != null) {
+					validationContext.appending("{KEY \"") {
+						when (validation.keyValidation) {
+							is ValidationConfig.KeyValidation.StringKeyValidation -> {
+								res.keys.forEach { key ->
+									validationContext.appending(truncateValueForErrorMessage(key), "\"}") {
+										validation.keyValidation.validation.validateValue(
+											validationContext,
+											key
+										)
+									}
+								}
+							}
+							is ValidationConfig.KeyValidation.EnumKeyValidation -> {
+								val enumDefinition = resolutionContext.resolveRequiredEnumReference(validation.keyValidation.reference)
+								res.keys.forEach {
+									if (it !in enumDefinition.entries) {
+										validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
+											validationContext.addError("Invalid enum value, expected entry of enum ${validation.keyValidation.reference}")
+										}
+									}
+								}
+							}
 						}
 					}
 				}
-				null -> {} // nothing to do
 			}
+			RawJson.JsonObject(res)
 		}
-		RawJson.JsonObject(res)
 	}
 }

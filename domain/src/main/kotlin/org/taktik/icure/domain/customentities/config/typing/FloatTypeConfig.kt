@@ -3,7 +3,7 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * Type for 64-bit floating point fields.
@@ -34,34 +34,35 @@ data class FloatTypeConfig(
 
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 	) {
 		validation?.apply {
-			require((max ?: Double.MAX_VALUE) > (min ?: Double.MIN_VALUE)) {
-				"$path: invalid float validation config, value for `max` should be greater than value for `min`"
-			}
+			if ((max ?: Double.MAX_VALUE) <= (min ?: Double.MIN_VALUE)) validationContext.addError(
+				"Invalid float validation config, value for `max` should be greater than value for `min`"
+			)
 		}
 	}
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonNumber) {
-			"$path: invalid type, expected Float64"
-		}
-		val valueDouble = requireNotNull(value.asDouble().takeIf { it.isFinite() }) {
-			"$path: value can't be represented using a finite 64-bit floating point number"
-		}
-		if (validation != null) {
-			require (
-				validation.min?.let { min -> if (validation.exclusiveMin) valueDouble > min else valueDouble >= min } ?: true
-					&& validation.max?.let { max -> if (validation.exclusiveMax) valueDouble < max else valueDouble <= max } ?: true
-			) {
-				"$path: value $valueDouble out of configured bounds"
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonNumber) {
+			validationContext.addError("Invalid type, expected Float64")
+			value
+		} else {
+			val valueDouble = value.asDouble()
+			if (!valueDouble.isFinite()) validationContext.addError(
+				"Value can't be represented using a finite 64-bit floating point number"
+			)
+			if (validation != null) {
+				if (
+					validation.min?.let { min -> if (validation.exclusiveMin) valueDouble <= min else valueDouble < min } ?: false
+					|| validation.max?.let { max -> if (validation.exclusiveMax) valueDouble >= max else valueDouble > max } ?: false
+				) validationContext.addError("Value $valueDouble out of configured bounds")
 			}
+			RawJson.JsonFloat(valueDouble)
 		}
-		RawJson.JsonFloat(valueDouble)
 	}
 }

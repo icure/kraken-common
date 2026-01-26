@@ -1,13 +1,10 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ListTypeConfig(
@@ -37,31 +34,31 @@ data class ListTypeConfig(
 
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		validationContext: ScopedErrorCollector,
 	) {
-		path.appending("[x]") {
+		validationContext.appending("[*]") {
 			elementType.validateConfig(
 				resolutionContext,
-				path
+				validationContext
 			)
 		}
 		validation?.apply {
-			require(minLength == null || minLength > 0) {
-				"$path: invalid minLength, should be greater than 0"
+			if (minLength != null && minLength <= 0) {
+				validationContext.addError("Invalid minLength, should be greater than 0")
 			}
-			require(maxLength == null || maxLength > 0) {
-				"$path: invalid maxLength, should be greater than 0"
+			if (maxLength != null && maxLength <= 0) {
+				validationContext.addError("Invalid maxLength, should be greater than 0")
 			}
-			require(minLength == null || maxLength == null || maxLength >= minLength) {
-				"$path: invalid length bounds, maxLength should be greater than or equal to minLength"
+			if (minLength != null && maxLength != null && maxLength < minLength) {
+				validationContext.addError("Invalid length bounds, maxLength should be greater than or equal to minLength")
 			}
 			if (uniqueValues) {
-				require(
-					elementType is StringTypeConfig
-						|| elementType is IntTypeConfig
-						|| elementType is EnumTypeConfig
+				if (
+					elementType !is StringTypeConfig
+						&& elementType !is IntTypeConfig
+						&& elementType !is EnumTypeConfig
 				) {
-					"$path: unsupported element type for unique list"
+					validationContext.addError("Unsupported element type for unique list")
 				}
 			}
 		}
@@ -69,34 +66,39 @@ data class ListTypeConfig(
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson,
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonArray) {
-			"$path: invalid type, expected Array"
-		}
-		val res = value.items.mapIndexed { index, element ->
-			path.appending("[$index]") {
-				elementType.validateAndMapValueForStore(
-					resolutionContext,
-					path,
-					element
-				)
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonArray) {
+			validationContext.addError("Invalid type, expected Array")
+			value
+		} else {
+			val res =
+				validationContext.appending("[") {
+					value.items.mapIndexed { index, element ->
+						validationContext.appending(index, "]") {
+							elementType.validateAndMapValueForStore(
+								resolutionContext,
+								validationContext,
+								element
+							)
+						}
+					}
+				}
+			if (validation != null) {
+				if (
+					(validation.minLength != null && res.size < validation.minLength)
+					|| (validation.maxLength != null && res.size > validation.maxLength)
+				) {
+					validationContext.addError("Array length out of bounds")
+				}
+				if(
+					validation.uniqueValues && res.toSet().size != res.size
+				) {
+					validationContext.addError("Duplicate items in unique values array")
+				}
 			}
+			RawJson.JsonArray(res)
 		}
-		if (validation != null) {
-			require(
-				(validation.minLength == null || res.size >= validation.minLength)
-					&& (validation.maxLength == null || res.size <= validation.maxLength)
-			) {
-				"$path: array length out of bounds"
-			}
-			require(
-				!validation.uniqueValues || res.toSet().size == res.size
-			) {
-				"$path: duplicate items in unique values array"
-			}
-		}
-		RawJson.JsonArray(res)
 	}
 }

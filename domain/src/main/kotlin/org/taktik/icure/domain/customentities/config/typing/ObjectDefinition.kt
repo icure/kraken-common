@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.appending
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.Validation
 import java.time.LocalDate
@@ -51,7 +52,7 @@ data class ObjectDefinition(
 			suspend fun validateFor(
 				typeConfig: GenericTypeConfig,
 				resolutionContext: CustomEntityConfigResolutionContext,
-				resolutionPath: ResolutionPath
+				context: ScopedErrorCollector
 			)
 
 			/**
@@ -84,11 +85,11 @@ data class ObjectDefinition(
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
 					resolutionContext: CustomEntityConfigResolutionContext,
-					resolutionPath: ResolutionPath
+					context: ScopedErrorCollector,
 				) {
 					// Technically supported on all types even though doesn't really make sense to have a "constant" id or date
 					// For simplicity will probably just hide it on the frontend
-					typeConfig.validateAndMapValueForStore(resolutionContext, resolutionPath, value)
+					typeConfig.validateAndMapValueForStore(resolutionContext, context, value)
 				}
 
 				override fun valueForStore(): RawJson? = if (storeExplicitly) value else null
@@ -101,12 +102,12 @@ data class ObjectDefinition(
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
 					resolutionContext: CustomEntityConfigResolutionContext,
-					resolutionPath: ResolutionPath
+					context: ScopedErrorCollector,
 				) {
-					require(
-						typeConfig is UuidTypeConfig
+					if (
+						typeConfig !is UuidTypeConfig
 					) {
-						"$resolutionPath: GenerateUuidV4 default value can only be applied to UUID type."
+						context.addError("GenerateUuidV4 default value can only be applied to UUID type.")
 					}
 				}
 
@@ -124,16 +125,16 @@ data class ObjectDefinition(
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
 					resolutionContext: CustomEntityConfigResolutionContext,
-					resolutionPath: ResolutionPath
+					context: ScopedErrorCollector,
 				) {
-					require(
-						typeConfig is FuzzyDateTimeTypeConfig
+					if (
+						typeConfig !is FuzzyDateTimeTypeConfig
 					) {
-						"$resolutionPath: NowDateTime default value can only be applied to fuzzy date time type."
+						context.addError("NowDateTime default value can only be applied to fuzzy date time type.")
 					}
 					zoneId?.let {
-						require(Validation.validZoneId(it)) {
-							"$resolutionPath: invalid zone id"
+						if (!Validation.validZoneId(it)) {
+							context.addError("Invalid zone id")
 						}
 					}
 				}
@@ -158,16 +159,16 @@ data class ObjectDefinition(
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
 					resolutionContext: CustomEntityConfigResolutionContext,
-					resolutionPath: ResolutionPath
+					context: ScopedErrorCollector,
 				) {
-					require(
-						typeConfig is FuzzyDateTypeConfig
+					if (
+						typeConfig !is FuzzyDateTypeConfig
 					) {
-						"$resolutionPath: NowDate default value can only be applied to fuzzy date type."
+						context.addError("NowDate default value can only be applied to fuzzy date type.")
 					}
 					zoneId?.let {
-						require(Validation.validZoneId(it)) {
-							"$resolutionPath: invalid zone id"
+						if (!Validation.validZoneId(it)) {
+							context.addError("Invalid zone id")
 						}
 					}
 				}
@@ -192,16 +193,16 @@ data class ObjectDefinition(
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
 					resolutionContext: CustomEntityConfigResolutionContext,
-					resolutionPath: ResolutionPath
+					context: ScopedErrorCollector,
 				) {
-					require(
-						typeConfig is FuzzyTimeTypeConfig
+					if (
+						typeConfig !is FuzzyTimeTypeConfig
 					) {
-						"$resolutionPath: NowTime default value can only be applied to fuzzy time type."
+						context.addError("NowTime default value can only be applied to fuzzy time type.")
 					}
 					zoneId?.let {
-						require(Validation.validZoneId(it)) {
-							"$resolutionPath: invalid zone id"
+						if (!Validation.validZoneId(it)) {
+							context.addError("Invalid zone id")
 						}
 					}
 				}
@@ -221,14 +222,16 @@ data class ObjectDefinition(
 
 	suspend fun validateDefinition(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		context: ScopedErrorCollector
 	) {
-		properties.forEach { (propName, propConfig) ->
-			path.appending(".", propName) {
-				validateIdentifier(path, propName)
-				propConfig.type.validateConfig(resolutionContext, path)
-				path.appending("<DEFAULT>.") {
-					propConfig.defaultValue?.validateFor(propConfig.type, resolutionContext, path)
+		context.appending(".") {
+			properties.forEach { (propName, propConfig) ->
+				context.appending(propName) {
+					validateIdentifier(context, propName)
+					propConfig.type.validateConfig(resolutionContext, context)
+					context.appending("<DEFAULT>") {
+						propConfig.defaultValue?.validateFor(propConfig.type, resolutionContext, context)
+					}
 				}
 			}
 		}
@@ -236,30 +239,33 @@ data class ObjectDefinition(
 
 	fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		context: ScopedErrorCollector,
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
 		val mappedObjectProperties = mutableMapOf<String, RawJson>()
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
-			requireNotNull(propConfig) {
-				"$path: unexpected property $propName"
-			}
-			val propValue: RawJson? = value.properties[propName]
-			val mappedValue = if (propValue == null) {
-				require (propConfig.defaultValue != null) {
-					"$path: missing required property $propName (no default)"
-				}
-				propConfig.defaultValue.valueForStore()
-			} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
-				null
+			if (propConfig == null) {
+				context.addError("Unexpected property $propName")
 			} else {
-				path.appending(".", propName) {
-					propConfig.type.validateAndMapValueForStore(resolutionContext, path, propValue)
+				val propValue: RawJson? = value.properties[propName]
+				val mappedValue = if (propValue == null) {
+					if (propConfig.defaultValue == null) {
+						context.addError("Missing required property $propName (no default)")
+						null
+					} else {
+						propConfig.defaultValue.valueForStore()
+					}
+				} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
+					null
+				} else {
+					context.appending(".", propName) {
+						propConfig.type.validateAndMapValueForStore(resolutionContext, context, propValue)
+					}
 				}
-			}
-			if (mappedValue != null) {
-				mappedObjectProperties[propName] = mappedValue
+				if (mappedValue != null) {
+					mappedObjectProperties[propName] = mappedValue
+				}
 			}
 		}
 		return RawJson.JsonObject(mappedObjectProperties)

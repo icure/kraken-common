@@ -3,7 +3,7 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * Represents a configuration for a boolean type.
@@ -14,17 +14,15 @@ data class BooleanTypeConfig(
 ) : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
 	): RawJson =
 		validatingAndIgnoringNullForStore(
-			path,
+			validationContext,
 			value,
 			nullable
 		) {
-			require(value is RawJson.JsonBoolean) {
-				"$path: invalid type, expected Boolean"
-			}
+			if (value !is RawJson.JsonBoolean) validationContext.addError("Invalid type, expected Boolean")
 			value
 		}
 }

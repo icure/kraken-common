@@ -3,8 +3,8 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumTypeConfig(
@@ -13,26 +13,25 @@ data class EnumTypeConfig(
 ) : GenericTypeConfig {
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		validationContext: ScopedErrorCollector,
 	) {
 		val definition = resolutionContext.resolveEnumReference(enumReference)
-		requireNotNull(definition) {
-			"$path: enum definition for reference `$enumReference` not found"
-		}
+		if (definition == null) validationContext.addError(
+			"Enum definition for reference `$enumReference` not found"
+		)
 		// definition should have already been validated
 	}
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
+		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonString) {
-			"$path: invalid type, expected Text (enum)"
-		}
-		val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
-		require(value.value in enumDefinition.entries) {
-			"$path: invalid value for enum $enumReference"
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonString) {
+			validationContext.addError("Invalid type, expected Text (enum)")
+		} else {
+			val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
+			if (value.value !in enumDefinition.entries) validationContext.addError("Invalid value for enum $enumReference")
 		}
 		value
 	}

@@ -1,11 +1,10 @@
 package org.taktik.icure.domain.customentities.config.typing
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.ResolutionPath
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class ObjectTypeConfig(
@@ -14,27 +13,29 @@ class ObjectTypeConfig(
 ) : GenericTypeConfig {
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath
+		validationContext: ScopedErrorCollector,
 	) {
 		val definition = resolutionContext.resolveObjectReference(objectReference)
-		requireNotNull(definition) {
-			"$path: object definition for reference `$objectReference` not found"
+		if (definition == null) {
+			validationContext.addError("Object definition for reference `$objectReference` not found")
 		}
 		// definition should have already been validated
 	}
 
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
-		path: ResolutionPath,
-		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(path, value, nullable) {
-		require(value is RawJson.JsonObject) {
-			"$path: invalid type, expected Object ($objectReference)"
-		}
-		resolutionContext.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
-			resolutionContext,
-			path,
+		validationContext: ScopedErrorCollector,
+		value: RawJson,
+	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+		if (value !is RawJson.JsonObject) {
+			validationContext.addError("Invalid type, expected Object ($objectReference)")
 			value
-		)
+		} else {
+			resolutionContext.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
+				resolutionContext,
+				validationContext,
+				value
+			)
+		}
 	}
 }
