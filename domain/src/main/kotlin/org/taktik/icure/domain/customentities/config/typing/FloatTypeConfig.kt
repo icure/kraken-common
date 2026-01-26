@@ -37,7 +37,16 @@ data class FloatTypeConfig(
 		validationContext: ScopedErrorCollector,
 	) {
 		validation?.apply {
-			if ((max ?: Double.MAX_VALUE) <= (min ?: Double.MIN_VALUE)) validationContext.addError(
+			if ((max ?: Double.MAX_VALUE) <= (min ?: Double.MIN_VALUE)) {
+				validationContext.addError("Invalid float validation config, value for `min` must be a finite float")
+			}
+			if (validation.max != null && !validation.max.isFinite()) {
+				validationContext.addError("Invalid float validation config, value for `max` must be a finite float")
+			}
+			if (validation.min != null && validation.max != null && validation.min >= validation.max) {
+				validationContext.addError("Invalid float validation config, value for `min` must be less than value for `max`")
+			}
+			if ((max ?: Double.MAX_VALUE) <= (min ?: -Double.MAX_VALUE)) validationContext.addError(
 				"Invalid float validation config, value for `max` should be greater than value for `min`"
 			)
 		}

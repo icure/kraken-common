@@ -5,6 +5,7 @@ import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.config.typing.truncateValueForErrorMessage
 import org.taktik.icure.domain.customentities.config.typing.validateIdentifier
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.errorreporting.CollectedErrors
 import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopePath
 import org.taktik.icure.errorreporting.ScopedErrorCollector
@@ -26,7 +27,7 @@ data class VersionedCustomEntitiesConfiguration(
 	// - Other implementation just collects everything
 	// - Errors should be data classes with constant code, and parameters like path, input, ..., to allow for multilingual message later
 
-	suspend fun validateDefinition() {
+	suspend fun validateDefinition(): CollectedErrors {
 		val collector = ErrorCollector.Collecting()
 		val validationContext = ScopedErrorCollector(collector, ScopePath())
 		val resolutionContext = CustomEntityConfigResolutionContext.ofConfig(this)
@@ -53,11 +54,12 @@ data class VersionedCustomEntitiesConfiguration(
 				}
 				config.embeddedEntitiesConfigs.forEach { (className, objDefRef) ->
 					if (objDefRef !in objects) {
-						validationContext.addError("Invalid extension for ${className.take(128)}, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found")
+						validationContext.addError("Invalid extension for ${className.take(128)}, object definition `${truncateValueForErrorMessage(objDefRef)}` not found")
 					}
 					// TODO validate that className is actually embedded in the entity or in custom extensions definitions with BuiltinTypeConfig.
 				}
 			}
 		}
+		return collector.collectedErrors
 	}
 }

@@ -27,7 +27,7 @@ data class FuzzyTimeTypeConfig(
 			if (parsed == null) {
 				validationContext.addError("Invalid fuzzy time")
 			} else if (!allowPrecisionEncoding) {
-				require(parsed.second == ChronoUnit.SECONDS) {
+				if (parsed.second != ChronoUnit.SECONDS) {
 					validationContext.addError("Precision encoding is not allowed")
 				}
 			}

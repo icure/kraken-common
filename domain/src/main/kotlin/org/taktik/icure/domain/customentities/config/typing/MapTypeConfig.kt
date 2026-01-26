@@ -111,7 +111,7 @@ data class MapTypeConfig(
 			if (validation != null) {
 				if (
 					(validation.minSize != null && res.size < validation.minSize)
-						&& (validation.maxSize != null && res.size > validation.maxSize)
+						|| (validation.maxSize != null && res.size > validation.maxSize)
 				) {
 					validationContext.addError("Map size out of bounds")
 				}

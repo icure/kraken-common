@@ -63,7 +63,7 @@ data class IntTypeConfig(
 			if (
 				value.value < (validation?.min ?: MIN_SAFE_LONG) || value.value > (validation?.max ?: MAX_SAFE_LONG)
 			) {
-				"Value ${value.value} out of configured bounds"
+				validationContext.addError("Value ${value.value} out of configured bounds")
 			}
 		}
 		value
