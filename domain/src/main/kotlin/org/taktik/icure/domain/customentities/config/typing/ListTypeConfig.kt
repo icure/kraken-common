@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -43,14 +44,16 @@ data class ListTypeConfig(
 			)
 		}
 		validation?.apply {
-			if (minLength != null && minLength <= 0) {
-				validationContext.addError("Invalid minLength, should be greater than 0")
+			if (minLength != null && minLength < 0) {
+				validationContext.addError("GE-LIST-MIN", emptyMap())
 			}
-			if (maxLength != null && maxLength <= 0) {
-				validationContext.addError("Invalid maxLength, should be greater than 0")
+			if (maxLength != null && maxLength < 0) {
+				validationContext.addError("GE-LIST-MAX", emptyMap())
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				validationContext.addError("Invalid length bounds, maxLength should be greater than or equal to minLength")
+				validationContext.addError("GE-LIST-NORANGE", emptyMap())
+			} else if (maxLength == 0) {
+				validationContext.addWarning("GE-LIST-WEMPTY", emptyMap())
 			}
 			if (uniqueValues) {
 				if (
@@ -58,8 +61,11 @@ data class ListTypeConfig(
 						&& elementType !is IntTypeConfig
 						&& elementType !is EnumTypeConfig
 				) {
-					validationContext.addError("Unsupported element type for unique list")
+					validationContext.addError("GE-LIST-UNIQUETYPE", emptyMap())
 				}
+			}
+			if (minLength == 0) {
+				validationContext.addWarning("GE-LIST-WMIN", emptyMap())
 			}
 		}
 	}
@@ -70,7 +76,7 @@ data class ListTypeConfig(
 		value: RawJson,
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonArray) {
-			validationContext.addError("Invalid type, expected Array")
+			validationContext.addError("GE-LIST-JSON", emptyMap())
 			value
 		} else {
 			val res =
@@ -90,12 +96,17 @@ data class ListTypeConfig(
 					(validation.minLength != null && res.size < validation.minLength)
 					|| (validation.maxLength != null && res.size > validation.maxLength)
 				) {
-					validationContext.addError("Array length out of bounds")
+					validationContext.addError(
+						"GE-LIST-OUTRANGE",
+						"length" to res.size.toString(),
+						"min" to (validation.minLength?.toString() ?: "0"),
+						"max" to (validation.maxLength?.toString() ?: "*"),
+					)
 				}
 				if(
 					validation.uniqueValues && res.toSet().size != res.size
 				) {
-					validationContext.addError("Duplicate items in unique values array")
+					validationContext.addError("GE-LIST-DUPLICATES", emptyMap())
 				}
 			}
 			RawJson.JsonArray(res)

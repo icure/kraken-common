@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.errorreporting.addWarning
 
 /**
  * Type for 64-bit floating point fields.
@@ -38,21 +40,30 @@ data class FloatTypeConfig(
 	) {
 		validation?.apply {
 			if (validation.min != null && !validation.min.isFinite()) {
-				validationContext.addError("Invalid float validation config, value for `min` must be a finite float")
+				validationContext.addError("GE-FLOAT-MIN", emptyMap())
 			}
 			if (validation.max != null && !validation.max.isFinite()) {
-				validationContext.addError("Invalid float validation config, value for `max` must be a finite float")
+				validationContext.addError("GE-FLOAT-MAX", emptyMap())
 			}
-			if (validation.min != null && validation.max != null) {
-				if (validation.min > validation.max || (validation.min == validation.max && (validation.exclusiveMin || validation.exclusiveMax))) {
-					validationContext.addError("Invalid float validation config, range has no valid values")
+			val minOrDefault = validation.min ?: -Double.MAX_VALUE
+			val maxOrDefault = validation.max ?: Double.MAX_VALUE
+			if (minOrDefault > maxOrDefault) {
+				validationContext.addError("GE-FLOAT-NORANGE", emptyMap())
+			} else if (minOrDefault == maxOrDefault) {
+				if (exclusiveMin || exclusiveMax) {
+					validationContext.addError("GE-FLOAT-NORANGE", emptyMap())
+				} else {
+					validationContext.addWarning(
+						"GE-FLOAT-WONE",
+						"value" to minOrDefault.toString()
+					)
 				}
 			}
-			if (validation.min == -Double.MAX_VALUE && !validation.exclusiveMin) {
-				validationContext.addWarning("Redundant float validation config, inclusive `min` matches the minimum allowed value")
+			if (validation.min == -Double.MAX_VALUE && !validation.exclusiveMin) { // do not use minOrDefault here
+				validationContext.addWarning("GE-FLOAT-WMIN", emptyMap())
 			}
-			if (validation.max == Double.MAX_VALUE && !validation.exclusiveMax) {
-				validationContext.addWarning("Redundant float validation config, inclusive `max` matches the maximum allowed value")
+			if (validation.max == Double.MAX_VALUE && !validation.exclusiveMax) { // do not use maxOrDefault here
+				validationContext.addWarning("GE-FLOAT-WMAX", emptyMap())
 			}
 		}
 	}
@@ -63,18 +74,23 @@ data class FloatTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonNumber) {
-			validationContext.addError("Invalid type, expected Float64")
+			validationContext.addError("GE-FLOAT-JSON", emptyMap())
 			value
 		} else {
 			val valueDouble = value.asDouble()
-			if (!valueDouble.isFinite()) validationContext.addError(
-				"Value can't be represented using a finite 64-bit floating point number"
-			)
+			if (!valueDouble.isFinite()) {
+				validationContext.addError("GE-FLOAT-INFINITE", emptyMap())
+			}
 			if (validation != null) {
 				if (
 					validation.min?.let { min -> if (validation.exclusiveMin) valueDouble <= min else valueDouble < min } ?: false
 					|| validation.max?.let { max -> if (validation.exclusiveMax) valueDouble >= max else valueDouble > max } ?: false
-				) validationContext.addError("Value $valueDouble out of configured bounds")
+				) {
+					validationContext.addError(
+						"GE-FLOAT-OUTRANGE",
+						"value" to valueDouble.toString(),
+					)
+				}
 			}
 			RawJson.JsonFloat(valueDouble)
 		}

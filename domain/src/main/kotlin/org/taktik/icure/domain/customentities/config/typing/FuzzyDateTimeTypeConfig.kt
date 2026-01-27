@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.utils.FuzzyDates
 import java.time.temporal.ChronoUnit
 
@@ -21,14 +22,19 @@ data class FuzzyDateTimeTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("Invalid type, expected Int64 (fuzzy date time)")
+			validationContext.addError("GE-FUZZYDATETIME-JSON", emptyMap())
 		} else {
 			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(value.value, false)
 			if (parsed == null) {
-				validationContext.addError("Invalid fuzzy date time")
+				validationContext.addError(
+					"GE-FUZZYDATETIME-PARSE",
+					"value" to value.value.toString()
+				)
 			} else if (!allowPrecisionEncoding) {
 				if (parsed.second != ChronoUnit.SECONDS) validationContext.addError(
-					"Precision encoding is not allowed"
+					"GE-FUZZYDATETIME-PRECISION",
+					"value" to value.value.toString(),
+					"precision" to parsed.second.name
 				)
 			}
 		}

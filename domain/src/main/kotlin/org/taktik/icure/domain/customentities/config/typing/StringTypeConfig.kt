@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.errorreporting.addWarning
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class StringTypeConfig(
@@ -29,14 +31,20 @@ class StringTypeConfig(
 		fun validateConfig(
 			context: ScopedErrorCollector
 		) {
-			if (minLength != null && minLength <= 0) {
-				context.addError("Invalid minLength, should be greater than 0")
+			if (minLength != null && minLength < 0) {
+				context.addError("GE-STRING-MIN", emptyMap())
 			}
-			if (maxLength != null && maxLength <= 0) {
-				context.addError("Invalid maxLength, should be greater than 0")
+			if (maxLength != null && maxLength < 0) {
+				context.addError("GE-STRING-MAX", emptyMap())
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				context.addError("Invalid length bounds, maxLength should be greater than or equal to minLength")
+				context.addError("GE-STRING-NORANGE", emptyMap())
+			}
+			if (maxLength == 0) {
+				context.addWarning("GE-STRING-WEMPTY", emptyMap())
+			}
+			if (minLength == 0) {
+				context.addWarning("GE-STRING-WMIN", emptyMap())
 			}
 		}
 
@@ -48,7 +56,12 @@ class StringTypeConfig(
 				(minLength != null && value.length < minLength)
 				|| (maxLength != null && value.length > maxLength)
 			) {
-				context.addError("String length out of bounds")
+				context.addError(
+					"GE-STRING-OUTRANGE",
+					"length" to value.length.toString(),
+					"min" to (minLength?.toString() ?: "0"),
+					"max" to (maxLength?.toString() ?: "*"),
+				)
 			}
 		}
 	}
@@ -66,7 +79,7 @@ class StringTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("Invalid type, expected Text (string)")
+			validationContext.addError("GE-STRING-JSON", emptyMap())
 		} else {
 			validation?.validateValue(validationContext, value.value)
 		}

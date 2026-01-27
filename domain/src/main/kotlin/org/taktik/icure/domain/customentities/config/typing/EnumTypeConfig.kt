@@ -5,6 +5,7 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumTypeConfig(
@@ -16,9 +17,12 @@ data class EnumTypeConfig(
 		validationContext: ScopedErrorCollector,
 	) {
 		val definition = resolutionContext.resolveEnumReference(enumReference)
-		if (definition == null) validationContext.addError(
-			"Enum definition for reference `$enumReference` not found"
-		)
+		if (definition == null) {
+			validationContext.addError(
+				"GE-ENUM-MISSINGREF",
+				"ref" to enumReference
+			)
+		}
 		// definition should have already been validated
 	}
 
@@ -28,10 +32,16 @@ data class EnumTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("Invalid type, expected Text (enum)")
+			validationContext.addError("GE-ENUM-JSON", emptyMap())
 		} else {
 			val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
-			if (value.value !in enumDefinition.entries) validationContext.addError("Invalid value for enum $enumReference")
+			if (value.value !in enumDefinition.entries) {
+				validationContext.addError(
+					"GE-ENUM-VALUE",
+					"value" to truncateValueForErrorMessage(value.value),
+					"ref" to truncateValueForErrorMessage(enumReference),
+				)
+			}
 		}
 		value
 	}

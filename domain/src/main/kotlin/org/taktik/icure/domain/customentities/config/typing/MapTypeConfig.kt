@@ -61,14 +61,19 @@ data class MapTypeConfig(
 			)
 		}
 		validation?.apply {
-			if (minSize != null && minSize <= 0) {
-				validationContext.addError("Invalid minSize, should be greater than 0")
+			if (minSize != null && minSize < 0) {
+				validationContext.addError("GE-MAP-MIN", emptyMap())
 			}
-			if (maxSize != null && maxSize <= 0) {
-				validationContext.addError("Invalid maxSize, should be greater than 0")
+			if (maxSize != null && maxSize < 0) {
+				validationContext.addError("GE-MAP-MAX", emptyMap())
 			}
 			if (minSize != null && maxSize != null && maxSize < minSize) {
-				validationContext.addError("Invalid size bounds, maxSize should be greater than or equal to minSize")
+				validationContext.addError("GE-MAP-NORANGE", emptyMap())
+			} else if (maxSize == 0) {
+				validationContext.addWarning("GE-MAP-WEMPTY", emptyMap())
+			}
+			if (minSize == 0) {
+				validationContext.addWarning("GE-MAP-WMIN", emptyMap())
 			}
 			if (keyValidation != null) {
 				validationContext.appending(".keyValidation") {
@@ -78,7 +83,7 @@ data class MapTypeConfig(
 						}
 						is ValidationConfig.KeyValidation.EnumKeyValidation -> {
 							if (resolutionContext.resolveEnumReference(keyValidation.reference) == null) {
-								validationContext.addError("Invalid enum reference")
+								validationContext.addError("GE-MAP-KEYENUM-REF", mapOf("ref" to keyValidation.reference))
 							}
 						}
 					}
@@ -93,7 +98,7 @@ data class MapTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonObject) {
-			validationContext.addError("Invalid type, expected Object (Map)")
+			validationContext.addError("GE-MAP-JSON", emptyMap())
 			value
 		} else {
 			val res =
@@ -113,7 +118,14 @@ data class MapTypeConfig(
 					(validation.minSize != null && res.size < validation.minSize)
 						|| (validation.maxSize != null && res.size > validation.maxSize)
 				) {
-					validationContext.addError("Map size out of bounds")
+					validationContext.addError(
+						"GE-MAP-OUTRANGE",
+						mapOf(
+							"size" to res.size.toString(),
+							"min" to (validation.minSize?.toString() ?: "0"),
+							"max" to (validation.maxSize?.toString() ?: "*"),
+						)
+					)
 				}
 				if (validation.keyValidation != null) {
 					validationContext.appending("{KEY \"") {
@@ -133,7 +145,13 @@ data class MapTypeConfig(
 								res.keys.forEach {
 									if (it !in enumDefinition.entries) {
 										validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
-											validationContext.addError("Invalid enum value, expected entry of enum ${validation.keyValidation.reference}")
+											validationContext.addError(
+												"GE-MAP-KEYENUM-VALUE",
+												mapOf(
+													"key" to it,
+													"ref" to validation.keyValidation.reference
+												)
+											)
 										}
 									}
 								}

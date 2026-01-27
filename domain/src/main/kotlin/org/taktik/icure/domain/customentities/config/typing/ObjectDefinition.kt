@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.Validation
@@ -107,7 +109,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is UuidTypeConfig
 					) {
-						context.addError("GenerateUuidV4 default value can only be applied to UUID type.")
+						context.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE", emptyMap())
 					}
 				}
 
@@ -130,11 +132,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTimeTypeConfig
 					) {
-						context.addError("NowDateTime default value can only be applied to fuzzy date time type.")
+						context.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE", emptyMap())
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("Invalid zone id")
+							context.addError("GE-ZONEID",  "value" to it)
 						}
 					}
 				}
@@ -164,11 +166,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTypeConfig
 					) {
-						context.addError("NowDate default value can only be applied to fuzzy date type.")
+						context.addError("GE-OBJECT-DEFAULT-NOWDATETYPE", emptyMap())
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("Invalid zone id")
+							context.addError("GE-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -198,11 +200,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyTimeTypeConfig
 					) {
-						context.addError("NowTime default value can only be applied to fuzzy time type.")
+						context.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE", emptyMap())
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("Invalid zone id")
+							context.addError("GE-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -224,6 +226,9 @@ data class ObjectDefinition(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		context: ScopedErrorCollector
 	) {
+		if (properties.isEmpty()) {
+			context.addWarning("GE-OBJECT-WEMPTY", emptyMap())
+		}
 		context.appending(".") {
 			properties.forEach { (propName, propConfig) ->
 				context.appending(propName) {
@@ -246,12 +251,12 @@ data class ObjectDefinition(
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
 			if (propConfig == null) {
-				context.addError("Unexpected property $propName")
+				context.addError("GE-OBJECT-UNKNOWNPROP", mapOf("prop" to propName))
 			} else {
 				val propValue: RawJson? = value.properties[propName]
 				val mappedValue = if (propValue == null) {
 					if (propConfig.defaultValue == null) {
-						context.addError("Missing required property $propName (no default)")
+						context.addError("GE-OBJECT-MISSINGPROP", mapOf("prop" to propName))
 						null
 					} else {
 						propConfig.defaultValue.valueForStore()

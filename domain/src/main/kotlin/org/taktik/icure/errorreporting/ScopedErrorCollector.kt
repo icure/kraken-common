@@ -14,24 +14,16 @@ class ScopedErrorCollector(
 		private const val NO_PATH_VALUE = "<unknown path>"
 	}
 
-	override fun addWarning(errorMessage: String) {
-		errorCollector.addWarning("${pathCollector?.toString() ?: NO_PATH_VALUE}: $errorMessage")
+	private fun paramsWithPath(params: Map<String, String>): Map<String, String> =
+		params + (PATH_PARAM_NAME to (pathCollector?.toString() ?: NO_PATH_VALUE))
+
+	override fun addWarning(code: String, params: Map<String, String>) {
+		errorCollector.addWarning(code, paramsWithPath(params))
 	}
 
-	override fun addError(errorMessage: String) {
-		errorCollector.addError("${pathCollector?.toString() ?: NO_PATH_VALUE}: $errorMessage")
+	override fun addError(code: String, params: Map<String, String>) {
+		errorCollector.addError(code, paramsWithPath(params))
 	}
-
-//	private fun paramsWithPath(params: Map<String, String>): Map<String, String> =
-//		params + (PATH_PARAM_NAME to (pathCollector?.toString() ?: NO_PATH_VALUE))
-
-//	override fun addWarning(code: String, params: Map<String, String>) {
-//		errorCollector.addWarning(code, paramsWithPath(params))
-//	}
-//
-//	override fun addError(code: String, params: Map<String, String>) {
-//		errorCollector.addError(code, paramsWithPath(params))
-//	}
 
 	override fun enterScope(scope: Any) {
 		pathCollector?.enterScope(scope)

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 
 /**
  * Type for a UUID string (not necessarily v4 UUID).
@@ -69,10 +70,15 @@ data class UuidTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("Invalid type, expected Text (UUID)")
+			validationContext.addError("GE-UUID-JSON", emptyMap())
 		} else {
-			if (!(format ?: Format.LOWER_DASHED).validate(value.value)) {
-				validationContext.addError("Value is not a UUID respecting the format ${format?.name ?: Format.LOWER_DASHED.name}")
+			val formatOrDefault = format ?: Format.LOWER_DASHED
+			if (!formatOrDefault.validate(value.value)) {
+				validationContext.addError(
+					"GE-UUID-FORMAT",
+					"format" to formatOrDefault.name,
+					"value" to truncateValueForErrorMessage(value.value)
+				)
 			}
 		}
 		value

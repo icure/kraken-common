@@ -9,6 +9,7 @@ import org.taktik.icure.errorreporting.CollectedErrors
 import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopePath
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
 data class VersionedCustomEntitiesConfiguration(
@@ -50,11 +51,18 @@ data class VersionedCustomEntitiesConfiguration(
 		extensions.allDefined.forEach { (krakenName, config) ->
 			validationContext.appending("extensions.", krakenName) {
 				if (config.objectDefinitionReference !in objects) {
-					validationContext.addError("Invalid root extension, object definition `${truncateValueForErrorMessage(config.objectDefinitionReference)}` not found")
+					validationContext.addError(
+						"GE-CONFIG-EXT-ROOT",
+						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference)
+					)
 				}
 				config.embeddedEntitiesConfigs.forEach { (className, objDefRef) ->
 					if (objDefRef !in objects) {
-						validationContext.addError("Invalid extension for ${className.take(128)}, object definition `${truncateValueForErrorMessage(objDefRef)}` not found")
+						validationContext.addError(
+							"GE-CONFIG-EXT-EMBEDDED",
+							"ref" to truncateValueForErrorMessage(objDefRef),
+							"className" to truncateValueForErrorMessage(className, 128)
+						)
 					}
 					// TODO validate that className is actually embedded in the entity or in custom extensions definitions with BuiltinTypeConfig.
 				}

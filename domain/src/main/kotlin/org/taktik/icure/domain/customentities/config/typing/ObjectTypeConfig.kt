@@ -5,6 +5,7 @@ import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionC
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 class ObjectTypeConfig(
@@ -17,7 +18,7 @@ class ObjectTypeConfig(
 	) {
 		val definition = resolutionContext.resolveObjectReference(objectReference)
 		if (definition == null) {
-			validationContext.addError("Object definition for reference `$objectReference` not found")
+			validationContext.addError("GE-OBJECT-MISSINGREF", "ref" to truncateValueForErrorMessage(objectReference))
 		}
 		// definition should have already been validated
 	}
@@ -28,7 +29,7 @@ class ObjectTypeConfig(
 		value: RawJson,
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonObject) {
-			validationContext.addError("Invalid type, expected Object ($objectReference)")
+			validationContext.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
 		} else {
 			resolutionContext.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
