@@ -5,12 +5,19 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.entities.FormTemplate
 
 interface FormTemplateService {
-	fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>): Flow<FormTemplate>
 	suspend fun createFormTemplate(entity: FormTemplate): FormTemplate
 	suspend fun getFormTemplate(formTemplateId: String): FormTemplate?
+	suspend fun modifyFormTemplate(formTemplate: FormTemplate): FormTemplate
+
+	// Batch methods - standard (non-conflicting with base interface)
+	fun createFormTemplates(entities: Collection<FormTemplate>, createdEntities: Collection<FormTemplate>): Flow<FormTemplate>
+	fun modifyFormTemplates(formTemplates: List<FormTemplate>): Flow<FormTemplate>
+	fun getFormTemplates(formTemplateIds: List<String>): Flow<FormTemplate>
 
 	/**
 	 * If there is any form template with author=[userId] and guid=[formTemplateGuid] returns them, regardless of
@@ -22,7 +29,6 @@ interface FormTemplateService {
 	fun getFormTemplatesByGuid(userId: String, specialityCode: String, formTemplateGuid: String): Flow<FormTemplate>
 	fun getFormTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<FormTemplate>
 	fun getFormTemplatesByUser(userId: String, loadLayout: Boolean): Flow<FormTemplate>
-	suspend fun modifyFormTemplate(formTemplate: FormTemplate): FormTemplate?
 
 	/**
 	 * Deletes [FormTemplate]s in batch.
@@ -30,5 +36,13 @@ interface FormTemplateService {
 	 * @param ids a [Set] containing the ids of the [FormTemplate]s to delete.
 	 * @return a [Flow] containing the deleted [FormTemplate]s.
 	 */
-	fun deleteFormTemplates(ids: Set<String>): Flow<FormTemplate>
+
+	suspend fun undeleteFormTemplate(formTemplateId: String, rev: String): FormTemplate
+	suspend fun deleteFormTemplate(id: String, rev: String?): DocIdentifier
+	fun deleteFormTemplates(ids: List<String>): Flow<FormTemplate>
+	fun deleteFormTemplatesWithRev(formTemplateIds: List<IdAndRev>): Flow<DocIdentifier>
+	fun undeleteFormTemplates(formTemplateIds: List<IdAndRev>): Flow<FormTemplate>
+	suspend fun purgeFormTemplate(id: String, rev: String): DocIdentifier
+	fun purgeFormTemplates(formTemplateIds: List<IdAndRev>): Flow<DocIdentifier>
+
 }

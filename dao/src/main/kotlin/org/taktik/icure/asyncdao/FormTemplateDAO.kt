@@ -16,6 +16,4 @@ interface FormTemplateDAO :
 	fun listFormsByGuid(datastoreInformation: IDatastoreInformation, guid: String, loadLayout: Boolean): Flow<FormTemplate>
 
 	fun listFormsBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, specialityCode: String, guid: String?, loadLayout: Boolean): Flow<FormTemplate>
-
-	suspend fun createFormTemplate(datastoreInformation: IDatastoreInformation, entity: FormTemplate): FormTemplate
 }
