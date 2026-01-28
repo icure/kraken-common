@@ -425,6 +425,18 @@ class  FormController(
 		formTemplateV2Mapper.map(formTemplate)
 	}
 
+	@Deprecated("Use modifyFormTemplate instead")
+	@PutMapping("/template/{formTemplateId}", consumes = [APPLICATION_JSON_VALUE])
+	fun modifyFormTemplateLegacy(
+		@RequestBody ft: FormTemplateDto,
+		@PathVariable formTemplateId: String,
+	): Mono<FormTemplateDto> = mono {
+		val template = formTemplateV2Mapper.map(ft)
+		val formTemplate = formTemplateService.modifyFormTemplate(template.copy(id = formTemplateId))
+
+		formTemplateV2Mapper.map(formTemplate)
+	}
+
 	@Operation(summary = "Get form templates by their ids")
 	@PostMapping("/template/byIds")
 	fun getFormTemplates(
