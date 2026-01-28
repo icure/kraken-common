@@ -22,7 +22,6 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import org.mapstruct.PassOnParameter
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
@@ -34,6 +33,6 @@ interface AddressV2Mapper {
 	@Mappings(
 		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapEmbeddedExtensionsForStore(addressDto, \"${Address.QUALIFIED_NAME}\"))"),
 	)
-	fun map(addressDto: AddressDto, @PassOnParameter mapperExtensionsValidationContext: MapperExtensionsValidationContext): Address
+	fun map(addressDto: AddressDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Address
 	fun map(address: Address): AddressDto
 }

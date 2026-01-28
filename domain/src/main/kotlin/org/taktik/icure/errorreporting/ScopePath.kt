@@ -57,6 +57,17 @@ inline fun <T> ScopePath.appending(toAppend: Any, block: () -> T): T {
 	}
 }
 
+// Prefer duplicating implementation rather than reusing non-null version to avoid inlining block twice
+@JvmName("appendingNullable")
+inline fun <T> ScopePath?.appending(toAppend: Any, block: () -> T): T {
+	this?.enterScope(toAppend)
+	return try {
+		block()
+	} finally {
+		this?.exitScope()
+	}
+}
+
 /**
  * Appends the given strings to the scope path for the duration of the [block], then removes it.
  */
@@ -66,5 +77,16 @@ inline fun <T> ScopePath.appending(vararg toAppend: Any, block: () -> T): T {
 		block()
 	} finally {
 		exitScopes(toAppend.size)
+	}
+}
+
+// Prefer duplicating implementation rather than reusing non-null version to avoid inlining block twice
+@JvmName("appendingNullable")
+inline fun <T> ScopePath?.appending(vararg toAppend: Any, block: () -> T): T {
+	this?.enterScope(*toAppend)
+	return try {
+		block()
+	} finally {
+		this?.exitScopes(toAppend.size)
 	}
 }

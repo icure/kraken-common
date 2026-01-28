@@ -18,14 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import org.mapstruct.PassOnParameter
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
-import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -73,6 +70,9 @@ interface PatientV2Mapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapRootExtensionsForStore(patientDto))"),
 	)
-	fun map(patientDto: PatientDto, @PassOnParameter mapperExtensionsValidationContext: MapperExtensionsValidationContext): Patient
+	fun map(
+		patientDto: PatientDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): Patient
 	fun map(patient: Patient): PatientDto
 }

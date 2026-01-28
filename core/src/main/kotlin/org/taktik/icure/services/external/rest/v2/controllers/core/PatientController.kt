@@ -51,6 +51,8 @@ import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigura
 import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
+import org.taktik.icure.errorreporting.ScopePath
+import org.taktik.icure.errorreporting.ScopePath.Companion.invoke
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -121,7 +123,7 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			ExtensionsConfiguration::patient,
 			patientMapper::map,
-			{ "Patient(${it.id})" }
+			ScopePath("Patient") // TODO this or null depending on spring property
 		)
 
 	private suspend fun Patient.toDto(): PatientDto =
@@ -133,7 +135,7 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			ExtensionsConfiguration::patient,
 			patientMapper::map,
-			{ "Patient(${it.id})" }
+			ScopePath("Patient") // TODO this or null depending on spring property
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =
