@@ -109,7 +109,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is UuidTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE", emptyMap())
+						context.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE")
 					}
 				}
 
@@ -132,7 +132,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTimeTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE", emptyMap())
+						context.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
@@ -166,7 +166,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWDATETYPE", emptyMap())
+						context.addError("GE-OBJECT-DEFAULT-NOWDATETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
@@ -200,7 +200,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyTimeTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE", emptyMap())
+						context.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
@@ -227,7 +227,7 @@ data class ObjectDefinition(
 		context: ScopedErrorCollector
 	) {
 		if (properties.isEmpty()) {
-			context.addWarning("GE-OBJECT-WEMPTY", emptyMap())
+			context.addWarning("GE-OBJECT-WEMPTY")
 		}
 		context.appending(".") {
 			properties.forEach { (propName, propConfig) ->
@@ -251,12 +251,12 @@ data class ObjectDefinition(
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
 			if (propConfig == null) {
-				context.addError("GE-OBJECT-UNKNOWNPROP", mapOf("prop" to propName))
+				context.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
 			} else {
 				val propValue: RawJson? = value.properties[propName]
 				val mappedValue = if (propValue == null) {
 					if (propConfig.defaultValue == null) {
-						context.addError("GE-OBJECT-MISSINGPROP", mapOf("prop" to propName))
+						context.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
 						null
 					} else {
 						propConfig.defaultValue.valueForStore()

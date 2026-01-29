@@ -43,26 +43,26 @@ data class IntTypeConfig(
 	) {
 		validation?.apply {
 			if (min != null && min !in MIN_SAFE_LONG..MAX_SAFE_LONG) {
-				validationContext.addError("GE-INT-MIN", emptyMap())
+				validationContext.addError("GE-INT-MIN")
 			}
 			if (max != null && max !in MIN_SAFE_LONG..MAX_SAFE_LONG) {
-				validationContext.addError("GE-INT-MAX", emptyMap())
+				validationContext.addError("GE-INT-MAX")
 			}
 			val minOrDefault = min ?: MIN_SAFE_LONG
 			val maxOrDefault = max ?: MAX_SAFE_LONG
 			if (maxOrDefault < minOrDefault) {
-				validationContext.addError("GE-INT-NORANGE", emptyMap())
+				validationContext.addError("GE-INT-NORANGE")
 			} else if (minOrDefault == maxOrDefault) {
 				validationContext.addWarning(
 					"GE-INT-WONE",
-					"value" to minOrDefault.toString()
+					"value" to minOrDefault
 				)
 			}
 			if (min == MIN_SAFE_LONG) { // do not use minOrDefault here
-				validationContext.addWarning("GE-INT-WMIN", emptyMap())
+				validationContext.addWarning("GE-INT-WMIN")
 			}
 			if (max == MAX_SAFE_LONG) { // do not use maxOrDefault here
-				validationContext.addWarning("GE-INT-WMAX", emptyMap())
+				validationContext.addWarning("GE-INT-WMAX")
 			}
 		}
 	}
@@ -73,16 +73,16 @@ data class IntTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("GE-INT-JSON", emptyMap())
+			validationContext.addError("GE-INT-JSON")
 		} else {
 			if (
 				value.value < (validation?.min ?: MIN_SAFE_LONG) || value.value > (validation?.max ?: MAX_SAFE_LONG)
 			) {
 				validationContext.addError(
 					"GE-INT-OUTRANGE",
-					"value" to value.value.toString(),
-					"min" to (validation?.min?.toString() ?: MIN_SAFE_LONG.toString()),
-					"max" to (validation?.max?.toString() ?: MAX_SAFE_LONG.toString()),
+					"value" to value.value,
+					"min" to (validation?.min ?: MIN_SAFE_LONG),
+					"max" to (validation?.max ?: MAX_SAFE_LONG),
 				)
 			}
 		}

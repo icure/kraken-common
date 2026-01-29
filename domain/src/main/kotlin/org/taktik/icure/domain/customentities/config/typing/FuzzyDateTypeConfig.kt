@@ -22,19 +22,19 @@ data class FuzzyDateTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("GE-FUZZYDATE-JSON", emptyMap())
+			validationContext.addError("GE-FUZZYDATE-JSON")
 		} else {
 			val parsed = value.asExactIntOrNull()?.let { FuzzyDates.getLocalDateWithPrecision(it) }
 			if (parsed == null) {
 				validationContext.addError(
 					"GE-FUZZYDATE-PARSE",
-					"value" to value.value.toString()
+					"value" to value.value,
 				)
 			} else if (!allowPrecisionEncoding) {
 				if (parsed.second != ChronoUnit.DAYS) {
 					validationContext.addError(
 						"GE-FUZZYDATE-PRECISION",
-						"value" to value.value.toString(),
+						"value" to value.value,
 						"precision" to parsed.second.name
 					)
 				}

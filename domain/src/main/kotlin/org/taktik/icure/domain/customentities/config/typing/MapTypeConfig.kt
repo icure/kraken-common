@@ -7,6 +7,7 @@ import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionC
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -62,18 +63,18 @@ data class MapTypeConfig(
 		}
 		validation?.apply {
 			if (minSize != null && minSize < 0) {
-				validationContext.addError("GE-MAP-MIN", emptyMap())
+				validationContext.addError("GE-MAP-MIN")
 			}
 			if (maxSize != null && maxSize < 0) {
-				validationContext.addError("GE-MAP-MAX", emptyMap())
+				validationContext.addError("GE-MAP-MAX")
 			}
 			if (minSize != null && maxSize != null && maxSize < minSize) {
-				validationContext.addError("GE-MAP-NORANGE", emptyMap())
+				validationContext.addError("GE-MAP-NORANGE")
 			} else if (maxSize == 0) {
-				validationContext.addWarning("GE-MAP-WEMPTY", emptyMap())
+				validationContext.addWarning("GE-MAP-WEMPTY")
 			}
 			if (minSize == 0) {
-				validationContext.addWarning("GE-MAP-WMIN", emptyMap())
+				validationContext.addWarning("GE-MAP-WMIN")
 			}
 			if (keyValidation != null) {
 				validationContext.appending(".keyValidation") {
@@ -83,7 +84,10 @@ data class MapTypeConfig(
 						}
 						is ValidationConfig.KeyValidation.EnumKeyValidation -> {
 							if (resolutionContext.resolveEnumReference(keyValidation.reference) == null) {
-								validationContext.addError("GE-MAP-KEYENUM-REF", mapOf("ref" to keyValidation.reference))
+								validationContext.addError(
+									"GE-MAP-KEYENUM-REF",
+									"ref" to keyValidation.reference
+								)
 							}
 						}
 					}
@@ -98,7 +102,7 @@ data class MapTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonObject) {
-			validationContext.addError("GE-MAP-JSON", emptyMap())
+			validationContext.addError("GE-MAP-JSON")
 			value
 		} else {
 			val res =
@@ -120,11 +124,9 @@ data class MapTypeConfig(
 				) {
 					validationContext.addError(
 						"GE-MAP-OUTRANGE",
-						mapOf(
-							"size" to res.size.toString(),
-							"min" to (validation.minSize?.toString() ?: "0"),
-							"max" to (validation.maxSize?.toString() ?: "*"),
-						)
+						"size" to res.size,
+						"min" to (validation.minSize ?: "0"),
+						"max" to (validation.maxSize ?: "*"),
 					)
 				}
 				if (validation.keyValidation != null) {
@@ -147,10 +149,8 @@ data class MapTypeConfig(
 										validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
 											validationContext.addError(
 												"GE-MAP-KEYENUM-VALUE",
-												mapOf(
-													"key" to it,
-													"ref" to validation.keyValidation.reference
-												)
+												"key" to it,
+												"ref" to validation.keyValidation.reference
 											)
 										}
 									}

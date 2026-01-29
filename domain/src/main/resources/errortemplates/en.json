@@ -71,5 +71,6 @@
   "GE-UUID-JSON": "{{path}}: Invalid type, expected Text (UUID)",
   "GE-UUID-FORMAT": "{{path}}: Value `{{value}}` is not a UUID respecting the format {{format}}",
   "GE-CONFIG-EXT-ROOT": "{{path}}: Invalid root extension, object definition `{{ref}}` not found",
-  "GE-CONFIG-EXT-EMBEDDED": "{{path}}: Invalid extension for {{className}}, object definition `{{ref}}` not found"
+  "GE-CONFIG-EXT-EMBEDDED": "{{path}}: Invalid extension for {{className}}, object definition `{{ref}}` not found",
+  "GE-CONFIG-DUPID": "{{path}}: Duplicate type identifier `{{id}}` found in configuration (used {{count}} times)"
 }

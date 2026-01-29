@@ -22,7 +22,7 @@ data class BooleanTypeConfig(
 			value,
 			nullable
 		) {
-			if (value !is RawJson.JsonBoolean) validationContext.addError("GE-BOOL-JSON", emptyMap())
+			if (value !is RawJson.JsonBoolean) validationContext.addError("GE-BOOL-JSON")
 			value
 		}
 }

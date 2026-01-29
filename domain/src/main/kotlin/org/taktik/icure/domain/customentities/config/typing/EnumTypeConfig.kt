@@ -32,7 +32,7 @@ data class EnumTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-ENUM-JSON", emptyMap())
+			validationContext.addError("GE-ENUM-JSON")
 		} else {
 			val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
 			if (value.value !in enumDefinition.entries) {

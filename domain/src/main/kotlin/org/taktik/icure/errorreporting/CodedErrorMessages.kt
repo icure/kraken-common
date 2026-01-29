@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 
 interface CodedErrorMessages {
-	fun getDefaultMessage(errorCode: String, params: Map<String, String>): String
+	fun getDefaultMessage(errorCode: String, params: Map<String, Any>): String
 
 	companion object {
 		fun basic(): CodedErrorMessages = NoTemplates
@@ -31,7 +31,7 @@ interface CodedErrorMessages {
  * Lightweight implementation, fast, no memory impact, but bad for debugging
  */
 private object NoTemplates : CodedErrorMessages {
-	override fun getDefaultMessage(errorCode: String, params: Map<String, String>): String =
+	override fun getDefaultMessage(errorCode: String, params: Map<String, Any>): String =
 		"Error $errorCode (this kraken instance does not provide detailed error messages for this error, for debugging purposes we recommend using nightly or qa builds)"
 }
 
@@ -42,7 +42,7 @@ private object NoTemplates : CodedErrorMessages {
 private class WithTemplates(
 	private val errorTemplates: Map<String, String>
 ) : CodedErrorMessages {
-	override fun getDefaultMessage(errorCode: String, params: Map<String, String>): String {
+	override fun getDefaultMessage(errorCode: String, params: Map<String, Any>): String {
 		/*
 		 * The implementation is kept intentionally simple.
 		 * It could have issues if a parameter value could have the form {{param}} itself:
@@ -57,7 +57,7 @@ private class WithTemplates(
 		 */
 		var template = errorTemplates[errorCode] ?: return "Error $errorCode (this code is missing a user-friendly message, please contact support)"
 		for ((key, value) in params) {
-			template = template.replace("{{$key}}", value)
+			template = template.replace("{{$key}}", value.toString())
 		}
 		return template
 	}

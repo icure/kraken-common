@@ -40,30 +40,30 @@ data class FloatTypeConfig(
 	) {
 		validation?.apply {
 			if (validation.min != null && !validation.min.isFinite()) {
-				validationContext.addError("GE-FLOAT-MIN", emptyMap())
+				validationContext.addError("GE-FLOAT-MIN")
 			}
 			if (validation.max != null && !validation.max.isFinite()) {
-				validationContext.addError("GE-FLOAT-MAX", emptyMap())
+				validationContext.addError("GE-FLOAT-MAX")
 			}
 			val minOrDefault = validation.min ?: -Double.MAX_VALUE
 			val maxOrDefault = validation.max ?: Double.MAX_VALUE
 			if (minOrDefault > maxOrDefault) {
-				validationContext.addError("GE-FLOAT-NORANGE", emptyMap())
+				validationContext.addError("GE-FLOAT-NORANGE")
 			} else if (minOrDefault == maxOrDefault) {
 				if (exclusiveMin || exclusiveMax) {
-					validationContext.addError("GE-FLOAT-NORANGE", emptyMap())
+					validationContext.addError("GE-FLOAT-NORANGE")
 				} else {
 					validationContext.addWarning(
 						"GE-FLOAT-WONE",
-						"value" to minOrDefault.toString()
+						"value" to minOrDefault
 					)
 				}
 			}
 			if (validation.min == -Double.MAX_VALUE && !validation.exclusiveMin) { // do not use minOrDefault here
-				validationContext.addWarning("GE-FLOAT-WMIN", emptyMap())
+				validationContext.addWarning("GE-FLOAT-WMIN")
 			}
 			if (validation.max == Double.MAX_VALUE && !validation.exclusiveMax) { // do not use maxOrDefault here
-				validationContext.addWarning("GE-FLOAT-WMAX", emptyMap())
+				validationContext.addWarning("GE-FLOAT-WMAX")
 			}
 		}
 	}
@@ -74,12 +74,12 @@ data class FloatTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonNumber) {
-			validationContext.addError("GE-FLOAT-JSON", emptyMap())
+			validationContext.addError("GE-FLOAT-JSON")
 			value
 		} else {
 			val valueDouble = value.asDouble()
 			if (!valueDouble.isFinite()) {
-				validationContext.addError("GE-FLOAT-INFINITE", emptyMap())
+				validationContext.addError("GE-FLOAT-INFINITE")
 			}
 			if (validation != null) {
 				if (
@@ -88,7 +88,7 @@ data class FloatTypeConfig(
 				) {
 					validationContext.addError(
 						"GE-FLOAT-OUTRANGE",
-						"value" to valueDouble.toString(),
+						"value" to valueDouble,
 					)
 				}
 			}

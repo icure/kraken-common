@@ -11,7 +11,7 @@ data class EnumDefinition(
 	fun validateDefinition(
 		context: ScopedErrorCollector,
 	) {
-		if (entries.isEmpty()) context.addError("GE-ENUM-EMPTY", emptyMap())
+		if (entries.isEmpty()) context.addError("GE-ENUM-EMPTY")
 		context.appending(".entries") {
 			entries.forEach { entry -> validateIdentifier(context, entry) }
 		}

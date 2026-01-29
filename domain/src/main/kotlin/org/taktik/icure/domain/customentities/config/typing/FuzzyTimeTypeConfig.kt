@@ -22,16 +22,16 @@ data class FuzzyTimeTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("GE-FUZZYTIME-JSON", emptyMap())
+			validationContext.addError("GE-FUZZYTIME-JSON")
 		} else {
 			val parsed = value.asExactIntOrNull()?.let { FuzzyDates.getLocalTimeWithPrecision(it) }
 			if (parsed == null) {
-				validationContext.addError("GE-FUZZYTIME-PARSE", "value" to value.value.toString())
+				validationContext.addError("GE-FUZZYTIME-PARSE", "value" to value.value)
 			} else if (!allowPrecisionEncoding) {
 				if (parsed.second != ChronoUnit.SECONDS) {
 					validationContext.addError(
 						"GE-FUZZYTIME-PRECISION",
-						"value" to value.value.toString(),
+						"value" to value.value,
 						"precision" to parsed.second.name
 					)
 				}

@@ -45,15 +45,15 @@ data class ListTypeConfig(
 		}
 		validation?.apply {
 			if (minLength != null && minLength < 0) {
-				validationContext.addError("GE-LIST-MIN", emptyMap())
+				validationContext.addError("GE-LIST-MIN")
 			}
 			if (maxLength != null && maxLength < 0) {
-				validationContext.addError("GE-LIST-MAX", emptyMap())
+				validationContext.addError("GE-LIST-MAX")
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				validationContext.addError("GE-LIST-NORANGE", emptyMap())
+				validationContext.addError("GE-LIST-NORANGE")
 			} else if (maxLength == 0) {
-				validationContext.addWarning("GE-LIST-WEMPTY", emptyMap())
+				validationContext.addWarning("GE-LIST-WEMPTY")
 			}
 			if (uniqueValues) {
 				if (
@@ -61,11 +61,11 @@ data class ListTypeConfig(
 						&& elementType !is IntTypeConfig
 						&& elementType !is EnumTypeConfig
 				) {
-					validationContext.addError("GE-LIST-UNIQUETYPE", emptyMap())
+					validationContext.addError("GE-LIST-UNIQUETYPE")
 				}
 			}
 			if (minLength == 0) {
-				validationContext.addWarning("GE-LIST-WMIN", emptyMap())
+				validationContext.addWarning("GE-LIST-WMIN")
 			}
 		}
 	}
@@ -76,7 +76,7 @@ data class ListTypeConfig(
 		value: RawJson,
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonArray) {
-			validationContext.addError("GE-LIST-JSON", emptyMap())
+			validationContext.addError("GE-LIST-JSON")
 			value
 		} else {
 			val res =
@@ -98,15 +98,15 @@ data class ListTypeConfig(
 				) {
 					validationContext.addError(
 						"GE-LIST-OUTRANGE",
-						"length" to res.size.toString(),
-						"min" to (validation.minLength?.toString() ?: "0"),
-						"max" to (validation.maxLength?.toString() ?: "*"),
+						"length" to res.size,
+						"min" to (validation.minLength ?: "0"),
+						"max" to (validation.maxLength ?: "*"),
 					)
 				}
 				if(
 					validation.uniqueValues && res.toSet().size != res.size
 				) {
-					validationContext.addError("GE-LIST-DUPLICATES", emptyMap())
+					validationContext.addError("GE-LIST-DUPLICATES")
 				}
 			}
 			RawJson.JsonArray(res)

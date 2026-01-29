@@ -7,23 +7,33 @@ package org.taktik.icure.errorreporting
  */
 interface ErrorCollector {
 	/**
-	 * Report a non-fatal error, which could hide a potential issue, but can be ignored.
+	 * Report a non-fatal error.
+	 * When using an error collector for entity validation, validation will generally continue, to collect other
+	 * warnings/errors, and the entity is generally considered valid, but warnings could point to potential issues and
+	 * ignoring them could cause unexpected/unintuitive behaviors.
+	 * Parameters might be converted using [Any.toString] in a second moment when creating error messages.
+	 * For mutable values, you should convert the parameter to string before passing it to this method.
 	 */
-	fun addWarning(code: String, params: Map<String, String>/* = emptyMap() */)
+	fun addWarning(code: String, params: Map<String, Any> = emptyMap())
 	/**
-	 * Report a fatal error, which prevents further processing.
+	 * Report a fatal error.
+	 * When using an error collector for entity validation, depending on the implementation, validation may continue, to
+	 * collect other warnings/errors, but the entity is considered invalid and in general can't be used for the intended
+	 * purpose.
+	 * Parameters might be converted using [Any.toString] in a second moment when creating error messages.
+	 * For mutable values, you should convert the parameter to string before passing it to this method.
 	 */
-	fun addError(code: String, params: Map<String, String>/* = emptyMap() */)
+	fun addError(code: String, params: Map<String, Any> = emptyMap())
 
 	/**
 	 * An error collector that throws an exception on errors and ignores warnings.
 	 */
 	object Throwing : ErrorCollector {
-		override fun addWarning(code: String, params: Map<String, String>) {
+		override fun addWarning(code: String, params: Map<String, Any>) {
 			// do nothing
 		}
 
-		override fun addError(code: String, params: Map<String, String>): Nothing {
+		override fun addError(code: String, params: Map<String, Any>): Nothing {
 			throw CodedErrorException(code, params)
 		}
 	}
@@ -43,20 +53,20 @@ interface ErrorCollector {
 			errors = errorList
 		)
 
-		override fun addWarning(code: String, params: Map<String, String>) {
+		override fun addWarning(code: String, params: Map<String, Any>) {
 			warningList.add(CodedErrorDetails(code, params))
 		}
 
-		override fun addError(code: String, params: Map<String, String>) {
+		override fun addError(code: String, params: Map<String, Any>) {
 			errorList.add(CodedErrorDetails(code, params))
 		}
 	}
 }
 
-fun ErrorCollector.addError(code: String, param1: Pair<String, String>, vararg params: Pair<String, String>) {
-	this.addError(code, mapOf(param1, *params))
+fun ErrorCollector.addError(code: String, vararg params: Pair<String, Any>) {
+	this.addError(code, mapOf(*params))
 }
 
-fun ErrorCollector.addWarning(code: String, param1: Pair<String, String>, vararg params: Pair<String, String>) {
-	this.addWarning(code, mapOf(param1, *params))
+fun ErrorCollector.addWarning(code: String, vararg params: Pair<String, Any>) {
+	this.addWarning(code, mapOf(*params))
 }

@@ -14,14 +14,15 @@ class ScopedErrorCollector(
 		const val NO_PATH_VALUE = "<unknown path>"
 	}
 
-	private fun paramsWithPath(params: Map<String, String>): Map<String, String> =
+	private fun paramsWithPath(params: Map<String, Any>): Map<String, Any> =
+		// NOTE: must do path.toString() NOW, since path is mutable
 		params + (PATH_PARAM_NAME to (path?.toString() ?: NO_PATH_VALUE))
 
-	override fun addWarning(code: String, params: Map<String, String>) {
+	override fun addWarning(code: String, params: Map<String, Any>) {
 		errorCollector.addWarning(code, paramsWithPath(params))
 	}
 
-	override fun addError(code: String, params: Map<String, String>) {
+	override fun addError(code: String, params: Map<String, Any>) {
 		errorCollector.addError(code, paramsWithPath(params))
 	}
 }

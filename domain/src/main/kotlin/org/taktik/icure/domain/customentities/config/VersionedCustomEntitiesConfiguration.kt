@@ -22,17 +22,11 @@ data class VersionedCustomEntitiesConfiguration(
 	val extensions: ExtensionsConfiguration,
 	val published: Boolean,
 ) {
-	// TODO replace ResolutionPath with an error collector
-	// - Interface can take both warnings and errors
-	// - One implementation throws on first error and ignores warning
-	// - Other implementation just collects everything
-	// - Errors should be data classes with constant code, and parameters like path, input, ..., to allow for multilingual message later
-
 	suspend fun validateDefinition(): CollectedErrors {
 		val collector = ErrorCollector.Collecting()
-		val validationContext = ScopedErrorCollector(collector, ScopePath())
+		val validationContext = ScopedErrorCollector(collector, ScopePath("CustomEntitiesConfiguration"))
 		val resolutionContext = CustomEntityConfigResolutionContext.ofConfig(this)
-		validationContext.appending("objects") {
+		validationContext.appending(".objects") {
 			objects.forEach { (name, objDef) ->
 				validateIdentifier(validationContext, name)
 				validationContext.appending(".", name) {
@@ -40,7 +34,7 @@ data class VersionedCustomEntitiesConfiguration(
 				}
 			}
 		}
-		validationContext.appending("enums") {
+		validationContext.appending(".enums") {
 			enums.forEach { (name, objDef) ->
 				validateIdentifier(validationContext, name)
 				validationContext.appending(".", name) {
@@ -48,8 +42,20 @@ data class VersionedCustomEntitiesConfiguration(
 				}
 			}
 		}
+		sequenceOf(
+			objects.keys,
+			enums.keys,
+		).flatten().groupingBy { it }.eachCount().forEach { (identifier, occurrences) ->
+			if (occurrences > 1) {
+				validationContext.addError(
+					"GE-CONFIG-DUPID",
+					"id" to truncateValueForErrorMessage(identifier),
+					"count" to occurrences
+				)
+			}
+		}
 		extensions.allDefined.forEach { (krakenName, config) ->
-			validationContext.appending("extensions.", krakenName) {
+			validationContext.appending(".extensions.", krakenName) {
 				if (config.objectDefinitionReference !in objects) {
 					validationContext.addError(
 						"GE-CONFIG-EXT-ROOT",

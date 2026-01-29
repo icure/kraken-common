@@ -15,7 +15,7 @@ internal inline fun validatingAndIgnoringNullForStore(
 	block: () -> RawJson
 ): RawJson =
 	if (value === RawJson.JsonNull) {
-		if (!nullable) validationContext.addError("GE-NULL", emptyMap())
+		if (!nullable) validationContext.addError("GE-NULL")
 		value
 	} else {
 		block()
@@ -32,8 +32,8 @@ fun validateIdentifier(validationContext: ScopedErrorCollector, identifier: Stri
 	if (identifier.length !in IDENTIFIER_ALLOWED_LENGTH) validationContext.addError(
 		"GE-IDENTIFIER-LENGTH",
 		"value" to truncateValueForErrorMessage(identifier, IDENTIFIER_ALLOWED_LENGTH.last),
-		"min" to IDENTIFIER_ALLOWED_LENGTH.first.toString(),
-		"max" to IDENTIFIER_ALLOWED_LENGTH.last.toString(),
+		"min" to IDENTIFIER_ALLOWED_LENGTH.first,
+		"max" to IDENTIFIER_ALLOWED_LENGTH.last,
 	)
 	if (
 		(identifier.first() in DIGITS) || !identifier.all { c ->

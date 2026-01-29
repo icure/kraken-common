@@ -5,5 +5,5 @@ package org.taktik.icure.errorreporting
  */
 data class CodedErrorDetails(
 	val code: String,
-	val params: Map<String, String>
+	val params: Map<String, Any>
 )

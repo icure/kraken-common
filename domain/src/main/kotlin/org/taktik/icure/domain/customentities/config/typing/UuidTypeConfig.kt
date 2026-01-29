@@ -70,7 +70,7 @@ data class UuidTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-UUID-JSON", emptyMap())
+			validationContext.addError("GE-UUID-JSON")
 		} else {
 			val formatOrDefault = format ?: Format.LOWER_DASHED
 			if (!formatOrDefault.validate(value.value)) {

@@ -32,19 +32,19 @@ class StringTypeConfig(
 			context: ScopedErrorCollector
 		) {
 			if (minLength != null && minLength < 0) {
-				context.addError("GE-STRING-MIN", emptyMap())
+				context.addError("GE-STRING-MIN")
 			}
 			if (maxLength != null && maxLength < 0) {
-				context.addError("GE-STRING-MAX", emptyMap())
+				context.addError("GE-STRING-MAX")
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				context.addError("GE-STRING-NORANGE", emptyMap())
+				context.addError("GE-STRING-NORANGE")
 			}
 			if (maxLength == 0) {
-				context.addWarning("GE-STRING-WEMPTY", emptyMap())
+				context.addWarning("GE-STRING-WEMPTY")
 			}
 			if (minLength == 0) {
-				context.addWarning("GE-STRING-WMIN", emptyMap())
+				context.addWarning("GE-STRING-WMIN")
 			}
 		}
 
@@ -58,9 +58,9 @@ class StringTypeConfig(
 			) {
 				context.addError(
 					"GE-STRING-OUTRANGE",
-					"length" to value.length.toString(),
-					"min" to (minLength?.toString() ?: "0"),
-					"max" to (maxLength?.toString() ?: "*"),
+					"length" to value.length,
+					"min" to (minLength ?: "0"),
+					"max" to (maxLength ?: "*"),
 				)
 			}
 		}
@@ -79,7 +79,7 @@ class StringTypeConfig(
 		value: RawJson
 	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-STRING-JSON", emptyMap())
+			validationContext.addError("GE-STRING-JSON")
 		} else {
 			validation?.validateValue(validationContext, value.value)
 		}
