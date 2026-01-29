@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
@@ -48,13 +47,11 @@ import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
 import org.taktik.icure.domain.customentities.config.ExtensionsConfiguration
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.domain.filter.predicate.Predicate
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
+import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.errorreporting.ScopePath
-import org.taktik.icure.errorreporting.ScopePath.Companion.invoke
 import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
@@ -88,7 +85,6 @@ import org.taktik.icure.utils.JsonString
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
-import org.taktik.icure.utils.paginatedList
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
@@ -116,6 +112,7 @@ class PatientController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
 ) {
 	private suspend fun PatientDto.toDomain(): Patient =
 		mapFromDtoWithExtension(
@@ -123,7 +120,7 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			ExtensionsConfiguration::patient,
 			patientMapper::map,
-			ScopePath("Patient") // TODO this or null depending on spring property
+			scopePathProvider.getScopePathFor("Patient")
 		)
 
 	private suspend fun Patient.toDto(): PatientDto =
@@ -135,7 +132,7 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			ExtensionsConfiguration::patient,
 			patientMapper::map,
-			ScopePath("Patient") // TODO this or null depending on spring property
+			scopePathProvider.getScopePathFor("Patient")
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =

@@ -16,13 +16,13 @@ interface ScopePath {
 	}
 
 	fun enterScope(scope: Any)
-	fun enterScope(vararg scope: Any)
+	fun enterScopes(vararg scope: Any)
 	fun exitScope()
 	fun exitScopes(depth: Int)
 }
 
 @JvmInline
-private value class ScopePathImpl(private val pathSegments: ArrayList<Any>) : ScopePath {
+value class ScopePathImpl(private val pathSegments: ArrayList<Any>) : ScopePath {
 
 	override fun toString(): String = buildString { pathSegments.forEach { append(it) } }
 
@@ -30,7 +30,7 @@ private value class ScopePathImpl(private val pathSegments: ArrayList<Any>) : Sc
 		pathSegments.addLast(scope)
 	}
 
-	override fun enterScope(vararg scope: Any) {
+	override fun enterScopes(vararg scope: Any) {
 		pathSegments.addAll(scope.asList())
 	}
 
@@ -48,17 +48,6 @@ private value class ScopePathImpl(private val pathSegments: ArrayList<Any>) : Sc
 /**
  * Appends the given string to the scope path for the duration of the [block], then removes it.
  */
-inline fun <T> ScopePath.appending(toAppend: Any, block: () -> T): T {
-	enterScope(toAppend)
-	return try {
-		block()
-	} finally {
-		exitScope()
-	}
-}
-
-// Prefer duplicating implementation rather than reusing non-null version to avoid inlining block twice
-@JvmName("appendingNullable")
 inline fun <T> ScopePath?.appending(toAppend: Any, block: () -> T): T {
 	this?.enterScope(toAppend)
 	return try {
@@ -68,22 +57,38 @@ inline fun <T> ScopePath?.appending(toAppend: Any, block: () -> T): T {
 	}
 }
 
-/**
- * Appends the given strings to the scope path for the duration of the [block], then removes it.
- */
-inline fun <T> ScopePath.appending(vararg toAppend: Any, block: () -> T): T {
-	enterScope(*toAppend)
+// 2 and 3 args versions are very common, should be a bit faster than using vararg at least for ScopePathImpl
+inline fun <T> ScopePath?.appending(toAppend1: Any, toAppend2: Any, block: () -> T): T {
+	this?.apply {
+		enterScope(toAppend1)
+		enterScope(toAppend2)
+	}
 	return try {
 		block()
 	} finally {
-		exitScopes(toAppend.size)
+		this?.exitScopes(2)
 	}
 }
 
-// Prefer duplicating implementation rather than reusing non-null version to avoid inlining block twice
-@JvmName("appendingNullable")
+// 2 and 3 args versions are very common, should be a bit faster than using vararg at least for ScopePathImpl
+inline fun <T> ScopePath?.appending(toAppend1: Any, toAppend2: Any, toAppend3: Any, block: () -> T): T {
+	this?.apply {
+		enterScope(toAppend1)
+		enterScope(toAppend2)
+		enterScope(toAppend3)
+	}
+	return try {
+		block()
+	} finally {
+		this?.exitScopes(3)
+	}
+}
+
+/**
+ * Appends the given strings to the scope path for the duration of the [block], then removes it.
+ */
 inline fun <T> ScopePath?.appending(vararg toAppend: Any, block: () -> T): T {
-	this?.enterScope(*toAppend)
+	this?.enterScopes(*toAppend)
 	return try {
 		block()
 	} finally {

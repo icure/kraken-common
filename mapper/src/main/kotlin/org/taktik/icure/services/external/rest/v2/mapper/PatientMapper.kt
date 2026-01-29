@@ -68,7 +68,7 @@ interface PatientV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapRootExtensionsForStore(patientDto))"),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapRootExtensionsForStore(patientDto))", requireMappingContext = true),
 	)
 	fun map(
 		patientDto: PatientDto,
