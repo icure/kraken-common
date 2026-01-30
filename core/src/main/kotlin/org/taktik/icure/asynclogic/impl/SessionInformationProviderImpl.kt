@@ -58,7 +58,7 @@ open class SessionInformationProviderImpl(
 	override suspend fun getAllSearchKeysIfCurrentDataOwner(dataOwnerId: String): Set<String> {
 		val authenticationDetails = getDataOwnerAuthenticationDetailsOrNull()
 		return when (authenticationDetails?.dataOwner?.id) {
-			dataOwnerId -> return authenticationDetails.accessControlKeysHashes + dataOwnerId
+			dataOwnerId -> authenticationDetails.accessControlKeysHashes + dataOwnerId
 			else -> setOf(dataOwnerId)
 		}
 	}
