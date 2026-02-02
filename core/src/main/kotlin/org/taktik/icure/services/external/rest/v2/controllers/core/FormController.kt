@@ -414,27 +414,117 @@ class  FormController(
 		formTemplateV2Mapper.map(formTemplate)
 	}
 
-	@Operation(summary = "Delete a form template")
+	@Operation(summary = "Modify a form template with the current user", description = "Returns an instance of created form template.")
+	@PutMapping("/template", consumes = [APPLICATION_JSON_VALUE])
+	fun modifyFormTemplate(
+		@RequestBody ft: FormTemplateDto,
+	): Mono<FormTemplateDto> = mono {
+		val template = formTemplateV2Mapper.map(ft)
+		val formTemplate = formTemplateService.modifyFormTemplate(template)
+
+		formTemplateV2Mapper.map(formTemplate)
+	}
+
+	@Deprecated("Use modifyFormTemplate instead")
+	@PutMapping("/template/{formTemplateId}", consumes = [APPLICATION_JSON_VALUE])
+	fun modifyFormTemplateLegacy(
+		@RequestBody ft: FormTemplateDto,
+		@PathVariable formTemplateId: String,
+	): Mono<FormTemplateDto> = mono {
+		val template = formTemplateV2Mapper.map(ft)
+		val formTemplate = formTemplateService.modifyFormTemplate(template.copy(id = formTemplateId))
+
+		formTemplateV2Mapper.map(formTemplate)
+	}
+
+	@Operation(summary = "Get form templates by their ids")
+	@PostMapping("/template/byIds")
+	fun getFormTemplates(
+		@RequestBody formTemplateIds: ListOfIdsDto
+	): Flux<FormTemplateDto> = formTemplateService.getFormTemplates(formTemplateIds.ids)
+		.map(formTemplateV2Mapper::map)
+		.injectReactorContext()
+
+	@Operation(summary = "Create a batch of form templates", description = "Returns instances of created form templates.")
+	@PostMapping("/template/batch")
+	fun createFormTemplates(
+		@RequestBody formTemplates: List<FormTemplateDto>,
+	): Flux<FormTemplateDto> = flow {
+		emitAll(
+			formTemplateService.createFormTemplates(
+				formTemplates.map(formTemplateV2Mapper::map),
+				emptyList()
+			).map(formTemplateV2Mapper::map)
+		)
+	}.injectReactorContext()
+
+	@Operation(summary = "Modify a batch of form templates", description = "Returns instances of modified form templates.")
+	@PutMapping("/template/batch")
+	fun modifyFormTemplates(
+		@RequestBody formTemplates: List<FormTemplateDto>,
+	): Flux<FormTemplateDto> = formTemplateService.modifyFormTemplates(
+		formTemplates.map(formTemplateV2Mapper::map)
+	).map(formTemplateV2Mapper::map).injectReactorContext()
+
+	@Operation(summary = "Deletes a batch of FormTemplates if the current version matches the provided revs")
+	@PostMapping("/template/delete/batch/withrev")
+	fun deleteFormTemplates(
+		@RequestBody formTemplateIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = formTemplateIds.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+		formTemplateService
+			.deleteFormTemplatesWithRev(ids.map(idWithRevV2Mapper::map))
+			.map { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
+			.injectCachedReactorContext(reactorCacheInjector, 100)
+	}
+		?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "A required query parameter was not specified for this request.").also {
+			logger.error(it.message)
+		}
+
+	@Operation(summary = "Deletes a FormTemplate")
 	@DeleteMapping("/template/{formTemplateId}")
 	fun deleteFormTemplate(
 		@PathVariable formTemplateId: String,
-	): Mono<DocIdentifierDto> = mono {
-		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()?.let { DocIdentifierDto(it.id, it.rev) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form deletion failed")
+		@RequestParam(required = false) rev: String?
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		formTemplateService.deleteFormTemplate(formTemplateId, rev)
+			.let { docIdentifierV2Mapper.map(DocIdentifier(it.id, it.rev)) }
 	}
 
-	@Operation(summary = "Modify a form template with the current user", description = "Returns an instance of created form template.")
-	@PutMapping("/template/{formTemplateId}", consumes = [APPLICATION_JSON_VALUE])
-	fun updateFormTemplate(
+	@Operation(summary = "Undeletes a FormTemplate")
+	@PostMapping("/template/undelete/{formTemplateId}")
+	fun undeleteFormTemplate(
 		@PathVariable formTemplateId: String,
-		@RequestBody ft: FormTemplateDto,
-	): Mono<FormTemplateDto> = mono {
-		val template = formTemplateV2Mapper.map(ft).copy(id = formTemplateId)
-		val formTemplate =
-			formTemplateService.modifyFormTemplate(template)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form modification failed")
-		formTemplateV2Mapper.map(formTemplate)
+		@RequestParam rev: String,
+	): Mono<FormTemplateDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		formTemplateService.undeleteFormTemplate(formTemplateId, rev).let(formTemplateV2Mapper::map)
 	}
+
+	@Operation(summary = "Undeletes a batch of FormTemplates")
+	@PostMapping("/template/undelete/batch")
+	fun undeleteFormTemplates(
+		@RequestBody formTemplateIds: ListOfIdsAndRevDto,
+	): Flux<FormTemplateDto> = formTemplateService
+		.undeleteFormTemplates(formTemplateIds.ids.map(idWithRevV2Mapper::map))
+		.map(formTemplateV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
+
+	@Operation(summary = "Purges a FormTemplate")
+	@DeleteMapping("/template/purge/{formTemplateId}")
+	fun purgeFormTemplate(
+		@PathVariable formTemplateId: String,
+		@RequestParam(required = true) rev: String,
+	): Mono<DocIdentifierDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		formTemplateService.purgeFormTemplate(formTemplateId, rev).let(docIdentifierV2Mapper::map)
+	}
+
+	@Operation(summary = "Purges a batch of FormTemplates")
+	@PostMapping("/template/purge/batch")
+	fun purgeFormTemplatesWithRev(
+		@RequestBody formTemplateIds: ListOfIdsAndRevDto,
+	): Flux<DocIdentifierDto> = formTemplateService
+		.purgeFormTemplates(formTemplateIds.ids.map(idWithRevV2Mapper::map))
+		.map(docIdentifierV2Mapper::map)
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Update a form template's layout")
 	@PutMapping("/template/{formTemplateId}/attachment/multipart", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

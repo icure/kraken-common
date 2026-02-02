@@ -379,9 +379,9 @@ class FormController(
 	@DeleteMapping("/template/{formTemplateId}")
 	fun deleteFormTemplate(
 		@PathVariable formTemplateId: String,
+		@RequestParam(required = false) rev: String?,
 	) = mono {
-		formTemplateService.deleteFormTemplates(setOf(formTemplateId)).firstOrNull()?.let { DocIdentifierDto(it.id, it.rev) }
-			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form deletion failed")
+		formTemplateService.deleteFormTemplate(formTemplateId, rev).let { DocIdentifierDto(it.id, it.rev) }
 	}
 
 	@Operation(summary = "Modify a form template with the current user", description = "Returns an instance of created form template.")
@@ -393,7 +393,6 @@ class FormController(
 		val template = formTemplateMapper.map(ft).copy(id = formTemplateId)
 		val formTemplate =
 			formTemplateService.modifyFormTemplate(template)
-				?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form modification failed")
 		formTemplateMapper.map(formTemplate)
 	}
 

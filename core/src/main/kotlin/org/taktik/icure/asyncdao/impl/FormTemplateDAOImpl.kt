@@ -24,7 +24,6 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.datastore.IDatastoreInformation
@@ -123,11 +122,6 @@ internal class FormTemplateDAOImpl(
 				formTemplates
 			},
 		)
-	}
-
-	override suspend fun createFormTemplate(datastoreInformation: IDatastoreInformation, entity: FormTemplate): FormTemplate {
-		super.save(datastoreInformation, true, entity)
-		return entity
 	}
 
 	/**
