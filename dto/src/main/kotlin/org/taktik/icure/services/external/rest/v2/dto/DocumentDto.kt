@@ -53,11 +53,10 @@ data class DocumentDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Location of the document") val documentLocation: DocumentLocationDto? = null,
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
 	@param:Schema(description = "The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc.") val documentStatus: DocumentStatusDto? = null,
 	@param:Schema(description = "When the document is stored in an external repository, this is the uri of the document in that repository") val externalUri: String? = null,

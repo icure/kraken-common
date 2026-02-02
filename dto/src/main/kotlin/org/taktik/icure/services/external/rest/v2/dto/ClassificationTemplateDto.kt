@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 
@@ -32,6 +33,7 @@ data class ClassificationTemplateDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
@@ -40,7 +42,8 @@ data class ClassificationTemplateDto(
 	val parentId: String? = null,
 	val label: String = "",
 ) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	ICureDocumentDto<String>,
+	HasEndOfLifeDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
