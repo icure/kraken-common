@@ -39,6 +39,19 @@ interface ErrorCollector {
 	}
 
 	/**
+	 * An error collector that throws an exception on errors and warnings.
+	 */
+	object ThrowingStrict : ErrorCollector {
+		override fun addWarning(code: String, params: Map<String, Any>) {
+			throw CodedErrorException(code, params)
+		}
+
+		override fun addError(code: String, params: Map<String, Any>): Nothing {
+			throw CodedErrorException(code, params)
+		}
+	}
+
+	/**
 	 * An error collector that collects warnings and errors, without failing.
 	 */
 	class Collecting : ErrorCollector {
