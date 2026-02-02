@@ -1,5 +1,9 @@
 package org.taktik.icure.domain.customentities.config.migration
 
+import org.taktik.icure.domain.customentities.config.typing.FloatTypeConfig
+import org.taktik.icure.domain.customentities.config.typing.IntTypeConfig
+import org.taktik.icure.domain.customentities.config.typing.ListTypeConfig
+import org.taktik.icure.domain.customentities.config.typing.MapTypeConfig
 import org.taktik.icure.entities.RawJson
 
 data class ObjectMigration(
@@ -250,20 +254,201 @@ data class ObjectMigration(
 		 * - ObjV1 -> ObjV2 with mappings { foo: FromSource(transform: CoerceValue) }, fallbackBehavior [ UseTargetDefault ]
 		 */
 		data object CoerceType : SourceValueTransform
-		// T -> [T]
-//		data object WrapToSingletonList : SourceValueTransform
-		// T -> { key: T }
-//		data class WrapToSingletonMap(
-//			val key: String
-//		) : SourceValueTransform
-		// Number -> Number with incompatible range
-//		data object CoerceToRange : SourceValueTransform
-		// Number -> Number with different range
-//		data object ScaleToRange : SourceValueTransform // Rounding option?
-		// Double -> Int
-//		data object Round : SourceValueTransform // Rounding option
-		// String -> String, List -> List
-//		data object Truncate : SourceValueTransform // Truncate start/end/middle?
+
+		/**
+		 * Wrap the source value into a singleton list to use as the target value.
+		 * The list element type must match the source type exactly, including validation and nullability, but this
+		 * restriction may be relaxed using [mapElement] and/or [nullSourceBehavior].
+		 *
+		 * # Null source behavior
+		 *
+		 * You can use [nullSourceBehavior] to specify how to handle the source values if it is null, which allows to
+		 * relax nullability restriction.
+		 * This is applied before any [mapElement] transformation.
+		 *
+		 * If the source value is `null`, you will get different target value depending on the [nullSourceBehavior]:
+		 * - is not set (null): the target value will be a list containing a single value `null`. This requires that the
+		 *   target [ListTypeConfig.elementType] is nullable.
+		 * - is set to [WrapNullBehavior.NullValue]: the target value will be the value `null`, not a list. This
+		 *   requires that the target [ListTypeConfig.nullable] is true.
+		 * - is set to [WrapNullBehavior.Empty]: the target value will be an empty list. This does not put any
+		 *   nullability restriction on [ListTypeConfig.elementType] or on [ListTypeConfig.nullable] itself.
+		 *
+		 * When the source value is not `null` [nullSourceBehavior] has no effect.
+		 * If the source value type configuration is not nullable then the source value can't be `null` and
+		 * [nullSourceBehavior] is always ignored.
+		 *
+		 * # Map element
+		 *
+		 * You can use [mapElement] to specify a transformation that should be applied to the source value before
+		 * wrapping it in a list.
+		 *
+		 * The [mapElement] transformation must be applicable for the conversion from the source type to the target
+		 * [ListTypeConfig.elementType].
+		 *
+		 * [mapElement] is applied after handling the [nullSourceBehavior].
+		 */
+		data class WrapToSingletonList(
+			val mapElement: SourceValueTransform? = null,
+			val nullSourceBehavior: WrapNullBehavior? = null
+		) : SourceValueTransform
+
+		/**
+		 * Wrap the source value into a singleton map to use as the target value, associating the source value with
+		 * specified [key].
+		 * The [key] must be a valid key for the target map type, according to its [MapTypeConfig.ValidationConfig.KeyValidation]
+		 * rules.
+		 * The map value type must match the source type exactly, including validation and nullability, but this
+		 * restriction may be relaxed using [mapValue] and/or [nullSourceBehavior].
+		 *
+		 * # Null source behavior
+		 *
+		 * You can use [nullSourceBehavior] to specify how to handle the source values if it is null, which allows to
+		 * relax nullability restriction.
+		 * This is applied before any [mapValue] transformation.
+		 *
+		 * If the source value is `null`, you will get different target value depending on the [nullSourceBehavior]:
+		 * - is not set (null): the target value will be a map containing a single value `null` associated to [key]
+		 *   (`{ key: null }`). This requires that the target [MapTypeConfig.valueType] is nullable.
+		 * - is set to [WrapNullBehavior.NullValue]: the target value will be the value `null`, not a map. This
+		 *   requires that the target [MapTypeConfig.nullable] is true.
+		 * - is set to [WrapNullBehavior.Empty]: the target value will be an empty map. This does not put any
+		 *   nullability restriction on [MapTypeConfig.valueType] or on [MapTypeConfig.nullable] itself.
+		 *
+		 * When the source value is not `null` [nullSourceBehavior] has no effect.
+		 * If the source value type configuration is not nullable then the source value can't be `null` and
+		 * [nullSourceBehavior] is always ignored.
+		 *
+		 * # Map value
+		 *
+		 * You can use [mapValue] to specify a transformation that should be applied to the source value before
+		 * wrapping it in a map.
+		 *
+		 * The [mapValue] transformation must be applicable for the conversion from the source type to the target
+		 * [MapTypeConfig.valueType].
+		 *
+		 * [mapValue] is applied after handling the [nullSourceBehavior].
+		 */
+		data class WrapToSingletonMap(
+			val key: String,
+			val mapValue: SourceValueTransform? = null,
+			val nullSourceBehavior: WrapNullBehavior? = null
+		) : SourceValueTransform
+
+		enum class WrapNullBehavior {
+			NullValue,
+			Empty
+		}
+
+		/**
+		 * Ensure the source value fits within the target value range:
+		 * - If the source value is below the target range, the minimum of the target range is used.
+		 * - If the source value is above the target range, the maximum of the target range is used.
+		 * This transformation can only be applied when both source and target types are numeric types.
+		 * If the source is a [FloatTypeConfig] and the target is a [IntTypeConfig] you must also specify the [roundingMode]
+		 * mode to use; in all other cases [roundingMode] is ignored.
+		 * The [roundingMode] is applied only if the source value already falls within the range of the target value: if
+		 * the source value is outside the target range, it is clamped to the min/max of the target range and there is
+		 * no need to round.
+		 */
+		data class ClampToRange(
+			val roundingMode: Rounding.Mode? = null,
+		) : SourceValueTransform
+
+		/**
+		 * Scale the source value to fit within the target value range, using linear interpolation between the min and
+		 * max values of the source and target ranges.
+		 * This transformation can only be applied when both source and target types are numeric types.
+		 * If the target type is a [IntTypeConfig] you must also specify the [roundingMode] mode to use after applying
+		 * the interpolation, (even if the source type is [IntTypeConfig]).
+		 * If the target type is a [FloatTypeConfig] the [roundingMode] is ignored.
+		 * Note that the scaling is subject to precision limitations of 64 bit floating point numbers.
+		 */
+		data class ScaleToRange(
+			val roundingMode: Rounding.Mode? = null,
+		) : SourceValueTransform
+
+		/**
+		 * Can only be applied if the source type is a [FloatTypeConfig] and the target type is an [IntTypeConfig], and
+		 * the target range covers the entire source range.
+		 * If the target range does not cover the entire source range you will have to use [ClampToRange] or
+		 * [ScaleToRange] transformation with the appropriate [Rounding.Mode].
+		 *
+		 * Note that if no validation range is defined for the source type, then this transformation can't be applied,
+		 * since:
+		 * - For [FloatTypeConfig] the range is implicitly [-1.7976931348623157E308, 1.7976931348623157E308] (inclusive)
+		 * - For [IntTypeConfig] the maximum (and implicit) range is [-9007199254740991, 9007199254740991] (inclusive)
+		 */
+		data class Rounding(
+			val mode: Mode? = null
+		): SourceValueTransform {
+			enum class Mode {
+				/**
+				 * Round towards the nearest integer, if equidistant from two integers round away from zero instead.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.4 -> 2
+				 * - 2.5 -> 3
+				 * - 2.6 -> 3
+				 * - -2.0 -> -2
+				 * - -2.4 -> -2
+				 * - -2.5 -> -3
+				 * - -2.6 -> -3
+				 */
+				HalfUp,
+				/**
+				 * Round always towards negative infinity.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.1 -> 2
+				 * - 2.5 -> 2
+				 * - 2.9 -> 2
+				 * - -2.0 -> -2
+				 * - -2.1 -> -3
+				 * - -2.5 -> -3
+				 * - -2.9 -> -3
+				 */
+				Floor,
+				/**
+				 * Round always towards positive infinity.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.1 -> 3
+				 * - 2.5 -> 3
+				 * - 2.9 -> 3
+				 * - -2.0 -> -2
+				 * - -2.1 -> -2
+				 * - -2.5 -> -2
+				 * - -2.9 -> -2
+				 */
+				Ceiling
+				//TODO If needed:
+				// - HalfDown
+				// - HalfEven
+				// - Up
+				// - Down
+				// - HalfCeiling
+				// - HalfFloor
+			}
+		}
+
+		/**
+		 * If the source value is larger than the target value max allowed length constraints only take
+		 * characters/elements up to the max allowed amount.
+		 * This transformation can be applied for String->String and List->List conversions where the source min length
+		 * constraint is greater than or equal to the target min length constraint (note that if undefined min length
+		 * is implicitly 0).
+		 * If the target max length is not defined, or greater than or equal to the source max length, this
+		 * transformation has no effect.
+		 *
+		 * By default, the trimming keeps the start of the value: if the target max length is `tmax` and the source
+		 * value is longer than `tmax`, then only the first `tmax` characters/elements of the source value are kept.
+		 * If [fromEnd] is set to true, then only the last `tmax` characters/elements of the source value are kept
+		 * instead.
+		 * If the source is shorter than or equal to the target max length, the value is unchanged.
+		 */
+		data class Slice(
+			val fromEnd: Boolean = false,
+		) : SourceValueTransform
 	}
 }
-
