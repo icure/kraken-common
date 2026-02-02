@@ -5,7 +5,9 @@
 package org.taktik.icure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
@@ -22,6 +24,7 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
+import org.taktik.icure.serialization.JacksonModules
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
@@ -67,39 +70,42 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	abstract fun getJackson2JsonEncoder(): Jackson2JsonEncoder
+	// TODO update also in kraken-lite to use provided mapper instead of instantiating a new one
+	abstract fun getJackson2JsonEncoder(objectMapper: ObjectMapper): Jackson2JsonEncoder
 
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)
 
 		configurer.customCodecs().register(FluxStringJsonEncoder())
 
-		configurer.defaultCodecs().jackson2JsonEncoder(getJackson2JsonEncoder())
-
-		configurer.defaultCodecs().jackson2JsonDecoder(
-			Jackson2JsonDecoder(
-				ObjectMapper().registerModule(
-					KotlinModule
-						.Builder()
-						.configure(KotlinFeature.NullIsSameAsDefault, true)
-						// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
-						.configure(KotlinFeature.StrictNullChecks, true)
-						.build(),
-				),
-			).apply { maxInMemorySize = 128 * 1024 * 1024 },
-		)
-	}
-
-	fun objectMapper(): ObjectMapper = ObjectMapper()
-		.registerModule(
-			KotlinModule
-				.Builder()
-				.withReflectionCacheSize(512)
+		val encodingMapper: ObjectMapper = JsonMapper.builder().configure(
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, true
+		).build().registerModule(
+			KotlinModule.Builder()
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
-				.configure(KotlinFeature.NullToEmptyCollection, true)
-				.configure(KotlinFeature.NullToEmptyMap, true)
-				.build(),
-		).apply {
+				.build()
+		).registerModule(JacksonModules.strictFloatsModule).apply {
 			setSerializationInclusion(JsonInclude.Include.NON_NULL)
 		}
+
+		val decodingMapper: ObjectMapper = JsonMapper.builder().configure(
+			MapperFeature.ALLOW_COERCION_OF_SCALARS, true
+		).build().registerModule(
+			KotlinModule
+				.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
+				.configure(KotlinFeature.StrictNullChecks, true)
+				.build(),
+		).registerModule(JacksonModules.strictFloatsModule)
+
+
+		configurer.defaultCodecs().jackson2JsonEncoder(
+			getJackson2JsonEncoder(encodingMapper)
+		)
+
+		configurer.defaultCodecs().jackson2JsonDecoder(
+			Jackson2JsonDecoder(decodingMapper).apply { maxInMemorySize = 128 * 1024 * 1024 },
+		)
+	}
 }
