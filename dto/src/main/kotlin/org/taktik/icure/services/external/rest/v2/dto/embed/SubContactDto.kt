@@ -44,7 +44,7 @@ data class SubContactDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	@param:Schema(description = "Description of the sub-contact") val descr: String? = null,
 	@param:Schema(description = "Protocol based on which the sub-contact was used for linking services to structuring elements") val protocol: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")

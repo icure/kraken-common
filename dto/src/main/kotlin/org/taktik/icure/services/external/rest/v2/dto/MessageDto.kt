@@ -50,7 +50,7 @@ data class MessageDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
 	@param:Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
@@ -66,8 +66,8 @@ data class MessageDto(
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
 	val metas: Map<String, String> = emptyMap(),
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val messageAttachments: List<MessageAttachmentDto> = emptyList(),
     /*
         CHAP4:IN:   ${Mycarenet message ref}

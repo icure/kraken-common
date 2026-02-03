@@ -88,7 +88,7 @@ data class PatientDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "the firstname (name) of the patient.") override val firstName: String? = null,
 	@param:Schema(description = "the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes.")

@@ -51,7 +51,7 @@ data class AccessLogDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	override val endOfLife: Long? = null,
+	val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	@param:Schema(description = "Id of the object that is being requested.") val objectId: String? = null,
 	@param:Schema(description = "The type of access") val accessType: String? = null,

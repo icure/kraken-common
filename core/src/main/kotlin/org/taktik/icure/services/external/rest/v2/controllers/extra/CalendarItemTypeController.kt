@@ -70,7 +70,7 @@ class CalendarItemTypeController(
 	}
 
 	@PostMapping("/byIds")
-	fun createCalendarItemTypesByIds(
+	fun getCalendarItemTypesByIds(
 		@RequestBody calendarItemTypeIds: ListOfIdsDto,
 	): Flux<CalendarItemTypeDto> = calendarItemTypeService.getCalendarItemTypes(
 		calendarItemTypeIds.ids
