@@ -24,7 +24,6 @@ interface CodeIdentificationDto<K> {
 	val context: String?
 	val type: String?
 	val version: String?
-	val label: Map<String, String>?
 
 	fun normalizeIdentification(): CodeIdentificationDto<K>
 }

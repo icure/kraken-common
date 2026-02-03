@@ -548,7 +548,7 @@ class  FormController(
 						.asFlow()
 						.toByteArray(true),
 				),
-			)?.rev
+			).rev
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
 	}
 
@@ -561,7 +561,7 @@ class  FormController(
 		val formTemplate =
 			formTemplateService.getFormTemplate(formTemplateId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "FormTemplate with id $formTemplateId not found")
-		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true)))?.rev
+		formTemplateService.modifyFormTemplate(formTemplate.copy(templateLayout = payload.toByteArray(true))).rev
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Form Template modification failed")
 	}
 

@@ -34,7 +34,7 @@ data class CodeStubDto(
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	val contextLabel: String? = null,
 	@Deprecated("label shouldn't be included in code stub but only in full codes")
-	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
 	companion object : DynamicInitializer<CodeStubDto>
 
