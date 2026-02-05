@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -41,7 +40,6 @@ import java.time.Instant
 @Schema(
 	description = """This entity is a root level object. It represents an user that can log in to the iCure platform. It is serialized in JSON and saved in the underlying icure-base CouchDB database.""",
 )
-@JsonFilter("userFilter")
 data class UserDto(
 	@param:Schema(description = "the Id of the user. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@param:Schema(description = "the revision of the user in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
@@ -66,12 +64,6 @@ data class UserDto(
 	@param:Schema(description = "Id of the device if the user is a device") val deviceId: String? = null,
 	@param:Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user")
 	val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), // DelegationTagDto -> healthcarePartyIds
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:JsonSerialize(using = InstantSerializer::class)
-	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@param:JsonDeserialize(using = InstantDeserializer::class)
-	@param:Schema(description = "the timestamp (unix epoch in ms) of creation of the user, will be filled automatically if missing. Not enforced by the application server.")
-	val createdDate: Instant? = null,
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)

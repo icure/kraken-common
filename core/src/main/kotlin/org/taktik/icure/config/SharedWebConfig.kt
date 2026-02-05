@@ -70,11 +70,6 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider().addFilter(
-		"userFilter",
-		SimpleBeanPropertyFilter.serializeAll()
-	)
-
 	protected val legacyObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
 			KotlinModule.Builder()
@@ -82,13 +77,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 				.build()
 		).apply {
 			setSerializationInclusion(JsonInclude.Include.NON_NULL)
-			setFilterProvider(legacyJacksonFilter)
 		}
-
-	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider().addFilter(
-		"userFilter",
-		SimpleBeanPropertyFilter.serializeAllExcept("createdDate")
-	)
 
 	protected val cardinalObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
@@ -97,7 +86,6 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 				.build()
 		).apply {
 			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-			setFilterProvider(cardinalJacksonFilter)
 		}
 
 	abstract fun getJackson2JsonEncoder(): Encoder<Any>

@@ -57,12 +57,6 @@ data class UserDto(
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(
-		description = "the timestamp (unix epoch in ms) of creation of the user, will be filled automatically if missing. Not enforced by the application server.",
-	) val createdDate: Instant? = null,
-	@param:JsonSerialize(using = InstantSerializer::class)
-	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@param:JsonDeserialize(using = InstantDeserializer::class)
-	@param:Schema(
 		description = "the timestamp (unix epoch in ms) of the latest validation of the terms of use of the application",
 	) val termsOfUseDate: Instant? = null,
 	@param:Schema(description = "email address of the user (used for token exchange or password recovery).") val email: String? = null,

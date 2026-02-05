@@ -55,7 +55,6 @@ import java.time.Instant
  * @property healthcarePartyId Id of the healthcare party if the user is a healthcare party.
  * @property patientId Id of the patient if the user is a patient
  * @property autoDelegations Delegations that are automatically generated client side when a new database object is created by this user
- * @property createdDate the timestamp (unix epoch in ms) of creation of the user, will be filled automatically if missing. Not enforced by the application server.
  * @property termsOfUseDate the timestamp (unix epoch in ms) of the latest validation of the terms of use of the application
  * @property email email address of the user.
  */
@@ -88,10 +87,6 @@ data class User(
 	val patientId: String? = null,
 	val deviceId: String? = null,
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
-	@param:JsonSerialize(using = InstantSerializer::class)
-	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@param:JsonDeserialize(using = InstantDeserializer::class)
-	val createdDate: Instant? = null, // TODO remove if unused (use created insted)
 
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
@@ -146,7 +141,6 @@ data class User(
 			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
 			"patientId" to (this.patientId ?: other.patientId),
 			"autoDelegations" to mergeMapsOfSetsDistinct(this.autoDelegations, other.autoDelegations),
-			"createdDate" to (this.createdDate ?: other.createdDate),
 			"termsOfUseDate" to (this.termsOfUseDate ?: other.termsOfUseDate),
 			"email" to (this.email ?: other.email),
 			"applicationTokens" to (other.applicationTokens?.let { it + (this.applicationTokens ?: emptyMap()) } ?: this.applicationTokens),
