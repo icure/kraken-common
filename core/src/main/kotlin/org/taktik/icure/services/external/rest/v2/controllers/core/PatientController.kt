@@ -45,12 +45,11 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
-import org.taktik.icure.domain.customentities.config.ExtensionsConfiguration
+import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.errorreporting.MapperScopePathProvider
-import org.taktik.icure.errorreporting.ScopePath
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -118,7 +117,7 @@ class PatientController(
 		mapFromDtoWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
+			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient")
 		)
@@ -130,7 +129,7 @@ class PatientController(
 		mapFromDtoWithExtension(
 			this,
 			customEntitiesConfigurationProvider,
-			ExtensionsConfiguration::patient,
+			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient")
 		)

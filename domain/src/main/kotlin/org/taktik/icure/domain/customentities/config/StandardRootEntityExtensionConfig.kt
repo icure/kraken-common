@@ -1,6 +1,5 @@
 package org.taktik.icure.domain.customentities.config
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -31,13 +30,6 @@ data class StandardRootEntityExtensionConfig(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class ExtensionsConfiguration(
-	val patient: StandardRootEntityExtensionConfig? = null,
-	// TODO others
-) {
-	@get:JsonIgnore
-	val allDefined get() = listOfNotNull(
-		patient?.let { "Patient" to it },
-		// TODO others
-	)
-}
+data class StandardRootEntitiesExtensionConfig(
+	override val patient: StandardRootEntityExtensionConfig? = null,
+) : ExtendableRootEntitiesConfiguration<StandardRootEntityExtensionConfig>

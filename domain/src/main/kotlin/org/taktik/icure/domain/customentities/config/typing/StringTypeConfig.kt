@@ -8,7 +8,7 @@ import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-class StringTypeConfig(
+data class StringTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {

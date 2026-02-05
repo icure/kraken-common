@@ -19,7 +19,7 @@ data class VersionedCustomEntitiesConfiguration(
 	val objects: Map<String, ObjectDefinition>,
 	val enums: Map<String, EnumDefinition>,
 	// TODO type aliases -> allows to share validation logic in type configs for properties that are logically connected + would generate a specialization on the custom SDK
-	val extensions: ExtensionsConfiguration,
+	val extensions: StandardRootEntitiesExtensionConfig,
 	val published: Boolean,
 ) {
 	suspend fun validateDefinition(): CollectedErrors {

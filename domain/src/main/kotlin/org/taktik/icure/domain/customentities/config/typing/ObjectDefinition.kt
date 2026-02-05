@@ -23,10 +23,6 @@ import java.util.UUID
 data class ObjectDefinition(
 	val properties: Map<String, PropertyConfiguration>
 ) {
-	/*TODO
-	 * - Ignore fields, list of fields that should be ignored (to support deletion)
-	 * - Field name aliases
-	 */
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class PropertyConfiguration(
 		val type: GenericTypeConfig,

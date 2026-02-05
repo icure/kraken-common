@@ -8,7 +8,7 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-class ObjectTypeConfig(
+data class ObjectTypeConfig(
 	val objectReference: String,
 	val nullable: Boolean = false
 ) : GenericTypeConfig {

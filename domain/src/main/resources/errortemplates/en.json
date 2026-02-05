@@ -72,5 +72,10 @@
   "GE-UUID-FORMAT": "{{path}}: Value `{{value}}` is not a UUID respecting the format {{format}}",
   "GE-CONFIG-EXT-ROOT": "{{path}}: Invalid root extension, object definition `{{ref}}` not found",
   "GE-CONFIG-EXT-EMBEDDED": "{{path}}: Invalid extension for {{className}}, object definition `{{ref}}` not found",
-  "GE-CONFIG-DUPID": "{{path}}: Duplicate type identifier `{{id}}` found in configuration (used {{count}} times)"
+  "GE-CONFIG-DUPID": "{{path}}: Duplicate type identifier `{{id}}` found in configuration (used {{count}} times)",
+  "GEM-EXT-INIT-REQUIRED": "{{path}}: Missing required extension initialization configuration. An extension initialization configuration is required when adding an extension to a standard entity that didn't have in the previous verison.",
+  "GEM-EXT-INIT-WIGNORED": "{{path}}: Extension configuration will be ignored. The corresponding extension was already present in the previous version of the entity.",
+  "GEM-EXT-WREMOVED": "{{path}}: Extension configuration has been removed, all data in this extension will be lost unless migrated by another configuration.",
+  "GEM-EXT-INIT-NOTARGET": "{{path}}: This migration configuration refers to an extension that does not exist on the target configuration.",
+  "GEM-EXT-INIT-TARGETREF": "{{path}}: The target configuration for this extension {{ref}} refers to an object definition that does not exist."
 }

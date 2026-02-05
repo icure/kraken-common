@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.taktik.icure.domain.customentities.config.ExtensionsConfiguration
+import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
 import org.taktik.icure.domain.customentities.config.StandardRootEntityExtensionConfig
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
@@ -67,7 +67,7 @@ object MappersWithCustomExtensions {
 
 	suspend inline fun getMapperExtensionsValidationContext(
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionsConfiguration.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		scopePath: ScopePath?
 	): MapperExtensionsValidationContext {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
@@ -86,7 +86,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionsConfiguration.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?
 	): OBJ =
@@ -95,7 +95,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO : IdentifiableDto<String>, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		getExtension: ExtensionsConfiguration.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?
 	): List<OBJ> {
@@ -110,7 +110,7 @@ object MappersWithCustomExtensions {
 	inline fun <DTO : IdentifiableDto<String>, OBJ> mapFromDtoWithExtension(
 		dtos: Flow<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getExtension: ExtensionsConfiguration.() -> StandardRootEntityExtensionConfig?,
+		crossinline getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		crossinline doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?
 	): Flow<OBJ> = flow {
