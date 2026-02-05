@@ -44,7 +44,6 @@ import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.utils.bufferedChunks
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
-import java.time.Instant
 import java.util.*
 
 open class UserLogicImpl(
