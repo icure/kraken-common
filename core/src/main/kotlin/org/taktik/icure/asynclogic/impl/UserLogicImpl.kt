@@ -403,7 +403,6 @@ open class UserLogicImpl(
 				fix(
 					user
 						.copy(
-							createdDate = Instant.now(),
 							status = user.status ?: Users.Status.ACTIVE,
 							login = user.login ?: user.email ?: user.mobilePhone,
 							email = user.email?.takeIf { it.isNotBlank() },
