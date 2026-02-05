@@ -32,7 +32,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents a device. It is serialized in JSON and saved in the underlying icure-device CouchDB database.""",
@@ -69,7 +68,7 @@ data class DeviceDto(
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(), // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: SpkiHexStringDto? = null,
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
-	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	NamedDto,

@@ -42,7 +42,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents a healthcare party. It is serialized in JSON and saved in the underlying icure-healthdata CouchDB database.""",
@@ -116,6 +115,7 @@ data class HealthcarePartyDto(
 	val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
 	@param:Schema(description = "Text notes.") val notes: String? = null,
 	@param:Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()") val descr: Map<String, String>? = emptyMap(),
 	// Medical houses
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
@@ -138,7 +138,7 @@ data class HealthcarePartyDto(
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
-	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
