@@ -6,6 +6,9 @@ package org.taktik.icure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ser.FilterProvider
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
@@ -66,6 +69,36 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedMethods("*")
 			.allowedHeaders("*")
 	}
+
+	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider().addFilter(
+		"userFilter",
+		SimpleBeanPropertyFilter.serializeAll()
+	)
+
+	protected val legacyObjectMapper: ObjectMapper =
+		ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_NULL)
+			setFilterProvider(legacyJacksonFilter)
+		}
+
+	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider().addFilter(
+		"userFilter",
+		SimpleBeanPropertyFilter.serializeAllExcept("createdDate")
+	)
+
+	protected val cardinalObjectMapper: ObjectMapper =
+		ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+			setFilterProvider(cardinalJacksonFilter)
+		}
 
 	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 
