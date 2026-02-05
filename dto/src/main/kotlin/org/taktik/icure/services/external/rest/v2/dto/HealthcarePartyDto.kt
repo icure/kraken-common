@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
@@ -115,8 +116,10 @@ data class HealthcarePartyDto(
 	val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
 	@param:Schema(description = "Text notes.") val notes: String? = null,
 	@param:Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@SdkNonNullable
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()") val descr: Map<String, String>? = emptyMap(),
+	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()")
+	val descr: Map<String, String>? = emptyMap(),
 	// Medical houses
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The invoicing scheme this healthcare party adheres to : 'service fee' or 'flat rate'")
@@ -138,7 +141,9 @@ data class HealthcarePartyDto(
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_NULL)
+	@SdkNonNullable
+	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),

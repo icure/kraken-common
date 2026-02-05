@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
@@ -68,7 +69,7 @@ data class DeviceDto(
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(), // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	override val publicKey: SpkiHexStringDto? = null,
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	NamedDto,

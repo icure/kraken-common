@@ -11,9 +11,9 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
+import org.springframework.core.codec.Encoder
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.Jackson2JsonDecoder
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.web.reactive.config.CorsRegistry
 import org.springframework.web.reactive.config.ResourceHandlerRegistry
 import org.springframework.web.reactive.config.WebFluxConfigurer
@@ -67,7 +67,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	abstract fun getJackson2JsonEncoder(): Jackson2JsonEncoder
+	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)

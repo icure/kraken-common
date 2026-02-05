@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.services.external.rest.v2.dto.base.AppendixTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeFlagDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeIdentificationDto
@@ -35,7 +36,7 @@ data class CodeDto(
 	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
 	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
-	@param:JsonInclude(JsonInclude.Include.NON_NULL) val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	val author: String? = null,
 	val regions: Set<String> = emptySet(), // ex: be,fr
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")

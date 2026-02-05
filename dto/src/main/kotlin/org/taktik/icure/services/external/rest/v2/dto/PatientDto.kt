@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.extensions.Extension
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
+import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -170,7 +171,7 @@ data class PatientDto(
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
-	@AlwaysDecrypted @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@SdkNonNullable @AlwaysDecrypted @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
