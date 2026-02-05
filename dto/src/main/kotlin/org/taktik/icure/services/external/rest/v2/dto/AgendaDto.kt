@@ -30,7 +30,6 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocat
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AgendaDto(
 	override val id: String,

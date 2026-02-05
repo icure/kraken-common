@@ -51,7 +51,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents a patient It is serialized in JSON and saved in the underlying icure-patient CouchDB database.""",
@@ -171,7 +170,7 @@ data class PatientDto(
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val encryptedSelf: Base64StringDto? = null,
 	override val securityMetadata: SecurityMetadataDto? = null,
-	@AlwaysDecrypted override val cryptoActorProperties: Set<PropertyStubDto>? = null,
+	@AlwaysDecrypted @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
