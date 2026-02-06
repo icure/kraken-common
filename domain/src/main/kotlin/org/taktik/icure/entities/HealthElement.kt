@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -97,7 +95,7 @@ data class HealthElement(
 	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	@field:NotNull(autoFix = AutoFix.UUID) val healthElementId: String? = null, // Several versions of the same healthcare element share the same healthElementId while having different ids
+	@field:NotNull(autoFix = AutoFix.UUID, doNotApplyOnCardinalModel = true) val healthElementId: String? = null, // Several versions of the same healthcare element share the same healthElementId while having different ids
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.

@@ -54,7 +54,6 @@ data class HealthElementDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The logical id of the healthcare element, used to link together different versions of the same healthcare element. We encourage using either a v4 UUID or a HL7 Id.")
 	val healthElementId: String? = null,
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
