@@ -16,6 +16,7 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	val entityClass: String,
 	val filter: FilterChain<O>?,
 	val accessControlKeys: List<AccessControlKeyHexStringDto>?,
+	val useCardinalModelSerialization: Boolean? = null,
 ) : java.io.Serializable
 
 enum class SubscriptionEventType {
