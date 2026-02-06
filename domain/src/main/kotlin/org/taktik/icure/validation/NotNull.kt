@@ -11,7 +11,15 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 @Constraint(validatedBy = [NotNullValidator::class])
-annotation class NotNull(val message: String = "{org.taktik.icure.validation.NotNull.message}", val groups: Array<KClass<*>> = [], val payload: Array<KClass<out Payload>> = [], val autoFix: AutoFix = AutoFix.NOFIX, val applyOnModify: Boolean = true) {
+annotation class NotNull(
+	val message: String = "{org.taktik.icure.validation.NotNull.message}",
+	val groups: Array<KClass<*>> = [],
+	val payload: Array<KClass<out Payload>> = [],
+	val autoFix: AutoFix = AutoFix.NOFIX,
+	val applyOnModify: Boolean = true,
+	val doNotApplyOnCardinalModel: Boolean = false, // If true, it will not applied when the cardinal model header is present
+) {
+
 	/**
 	 * Defines several [NotNull] annotations on the same element.
 	 *
