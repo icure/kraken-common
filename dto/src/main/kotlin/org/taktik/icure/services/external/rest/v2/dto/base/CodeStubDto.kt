@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.RequireHashable
 import org.taktik.icure.utils.DynamicInitializer
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
 data class CodeStubDto(
