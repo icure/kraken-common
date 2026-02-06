@@ -85,6 +85,9 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			setFilterProvider(legacyJacksonFilter)
 		}
 
+	@Bean
+	open fun legacyObjectMapper() = legacyObjectMapper
+
 	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider().addFilter(
 		"healthElementFilter",
 		SimpleBeanPropertyFilter.serializeAllExcept("status")
@@ -99,6 +102,9 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
 			setFilterProvider(cardinalJacksonFilter)
 		}
+
+	@Bean
+	open fun cardinalObjectMapper() = cardinalObjectMapper
 
 	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 
