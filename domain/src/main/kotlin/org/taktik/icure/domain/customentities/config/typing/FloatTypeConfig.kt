@@ -72,7 +72,7 @@ data class FloatTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonNumber) {
 			validationContext.addError("GE-FLOAT-JSON")
 			value

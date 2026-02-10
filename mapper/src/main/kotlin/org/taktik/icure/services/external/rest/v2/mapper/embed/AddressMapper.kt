@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
@@ -31,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 @Mapper(componentModel = "spring", uses = [TelecomV2Mapper::class, AnnotationV2Mapper::class, CodeStubV2Mapper::class, IdentifierV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface AddressV2Mapper {
 	@Mappings(
-		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapEmbeddedExtensionsForStore(addressDto, \"${Address.QUALIFIED_NAME}\"))", requireMappingContext = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapEmbeddedExtensionsForStore(addressDto, \"${ExtendableEntityName.AddressName}\"))", requireMappingContext = true),
 	)
 	fun map(addressDto: AddressDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Address
 	fun map(address: Address): AddressDto

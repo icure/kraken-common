@@ -16,6 +16,17 @@ data class MapTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
+	override val objectDefinitionDependencies: Set<String> get() =
+		valueType.objectDefinitionDependencies
+
+	override val enumDefinitionDependencies: Set<String> get() =
+		valueType.enumDefinitionDependencies + setOfNotNull(validation?.keyValidation?.let {
+			when (it) {
+				is ValidationConfig.KeyValidation.EnumKeyValidation -> it.reference
+				else -> null
+			}
+		})
+
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val minSize: Int? = null,
@@ -100,7 +111,7 @@ data class MapTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonObject) {
 			validationContext.addError("GE-MAP-JSON")
 			value

@@ -6,23 +6,25 @@ import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionC
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
- * Represents a configuration for a boolean type.
+ * A reference to a custom enum definition
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-data class BooleanTypeConfig(
-	val nullable: Boolean = false,
+data class BuiltinEnumTypeConfig(
+	val enumReference: String,
+	val nullable: Boolean = false
 ) : GenericTypeConfig {
+	override fun validateConfig(
+		resolutionContext: CustomEntityConfigResolutionContext,
+		validationContext: ScopedErrorCollector,
+	) {
+		TODO()
+	}
+
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson =
-		validatingNullForStore(
-			validationContext,
-			value,
-			nullable
-		) {
-			if (value !is RawJson.JsonBoolean) validationContext.addError("GE-BOOL-JSON")
-			value
-		}
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+		TODO()
+	}
 }

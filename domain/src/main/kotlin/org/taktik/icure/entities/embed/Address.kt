@@ -49,9 +49,7 @@ data class Address(
 	HasTags,
 	HasCodes,
 	Extendable {
-	companion object : DynamicInitializer<Address> {
-		const val QUALIFIED_NAME = "org.taktik.icure.entities.embed.Address"
-	}
+	companion object : DynamicInitializer<Address>
 
 	fun merge(other: Address) = Address(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Address) =

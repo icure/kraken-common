@@ -12,6 +12,9 @@ data class ObjectTypeConfig(
 	val objectReference: String,
 	val nullable: Boolean = false
 ) : GenericTypeConfig {
+	override val objectDefinitionDependencies: Set<String> get() =
+		setOf(objectReference)
+
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
@@ -27,7 +30,7 @@ data class ObjectTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson,
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonObject) {
 			validationContext.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value

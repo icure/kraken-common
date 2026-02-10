@@ -6,5 +6,4 @@ data class MigrationConfiguration(
 	val targetConfigurationVersion: Int,
 	val enumMigrations: List<EnumMigration> = emptyList(),
 	val objectMigrations: List<ObjectMigration> = emptyList(),
-	val extensions: StandardRootEntitiesExtensionMigrationConfiguration,
 )

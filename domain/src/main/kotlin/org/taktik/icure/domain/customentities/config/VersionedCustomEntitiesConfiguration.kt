@@ -56,18 +56,32 @@ data class VersionedCustomEntitiesConfiguration(
 		}
 		extensions.allDefined.forEach { (krakenName, config) ->
 			validationContext.appending(".extensions.", krakenName) {
-				if (config.objectDefinitionReference !in objects) {
+				val rootDef = objects[config.objectDefinitionReference]
+				if (rootDef == null) {
 					validationContext.addError(
-						"GE-CONFIG-EXT-ROOT",
-						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference)
+						"GE-CONFIG-EXT-ROOTREF",
+						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
+						"expectedBaseEntity" to krakenName
+					)
+				} else if (rootDef.baseEntity != krakenName) {
+					validationContext.addError(
+						"GE-CONFIG-EXT-ROOTBASE",
+						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
 					)
 				}
-				config.embeddedEntitiesConfigs.forEach { (className, objDefRef) ->
-					if (objDefRef !in objects) {
+				config.embeddedEntitiesConfigs.forEach { (embeddedEntityName, objDefRef) ->
+					val objDef = objects[objDefRef]
+					if (objDef == null) {
 						validationContext.addError(
-							"GE-CONFIG-EXT-EMBEDDED",
+							"GE-CONFIG-EXT-EMBEDDEDREF",
 							"ref" to truncateValueForErrorMessage(objDefRef),
-							"className" to truncateValueForErrorMessage(className, 128)
+							"embeddedEntityName" to embeddedEntityName
+						)
+					} else if (objDef.baseEntity != embeddedEntityName) {
+						validationContext.addError(
+							"GE-CONFIG-EXT-EMBEDDEDBASE",
+							"ref" to truncateValueForErrorMessage(objDefRef),
+							"embeddedEntityName" to embeddedEntityName
 						)
 					}
 					// TODO validate that className is actually embedded in the entity or in custom extensions definitions with BuiltinTypeConfig.

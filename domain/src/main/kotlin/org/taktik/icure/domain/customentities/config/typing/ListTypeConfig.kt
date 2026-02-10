@@ -13,6 +13,12 @@ data class ListTypeConfig(
 	val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
+	override val objectDefinitionDependencies: Set<String> get() =
+		elementType.objectDefinitionDependencies
+
+	override val enumDefinitionDependencies: Set<String> get() =
+		elementType.enumDefinitionDependencies
+
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		val minLength: Int? = null,
@@ -74,7 +80,7 @@ data class ListTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson,
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonArray) {
 			validationContext.addError("GE-LIST-JSON")
 			value

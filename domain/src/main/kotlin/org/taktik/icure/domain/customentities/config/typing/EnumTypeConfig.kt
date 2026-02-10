@@ -7,11 +7,17 @@ import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 
+/**
+ * A reference to a custom enum definition
+ */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumTypeConfig(
 	val enumReference: String,
 	val nullable: Boolean = false
 ) : GenericTypeConfig {
+	override val enumDefinitionDependencies: Set<String> get() =
+		setOf(enumReference)
+
 	override fun validateConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
@@ -30,7 +36,7 @@ data class EnumTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
 			validationContext.addError("GE-ENUM-JSON")
 		} else {

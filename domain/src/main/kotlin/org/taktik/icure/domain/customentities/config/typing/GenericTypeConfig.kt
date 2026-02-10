@@ -77,4 +77,20 @@ sealed interface GenericTypeConfig {
 		validationContext: ScopedErrorCollector,
 		value: RawJson,
 	): RawJson
+
+	/**
+	 * Dependencies of this type to object definitions.
+	 * Checks recursively on collection types but doesn't resolve references to object definitions, so only direct
+	 * dependencies are included.
+	 */
+	val objectDefinitionDependencies: Set<String>
+		get() = emptySet()
+
+	/**
+	 * Dependencies of this type to enum definitions.
+	 * Checks recursively on collection types but doesn't resolve references to enum definitions, so only direct
+	 * dependencies are included.
+	 */
+	val enumDefinitionDependencies: Set<String>
+		get() = emptySet()
 }

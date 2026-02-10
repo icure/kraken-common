@@ -4,11 +4,20 @@ package org.taktik.icure.errorreporting
  * An [ErrorCollector] that adds scope path information to each reported error or warning.
  * The [path] is optional, if not available a path parameter will still be provided to the underlying error
  * collector, but the value will be a constant string.
+ * The underlying error collector ([pathless]) must not be another [ScopedErrorCollector], as it would override the path
+ * information instead of adding additional info.
+ * You can access directly the underlying [pathless] error collector to report errors without adding path information.
  */
 class ScopedErrorCollector(
-	private val errorCollector: ErrorCollector,
+	val pathless: ErrorCollector,
 	val path: ScopePath?
 ) : ErrorCollector {
+	init {
+		check (pathless !is ScopedErrorCollector) {
+			"Nested ScopedErrorCollector are not allowed"
+		}
+	}
+
 	companion object {
 		const val PATH_PARAM_NAME = "path"
 		const val NO_PATH_VALUE = "<unknown path>"
@@ -19,11 +28,11 @@ class ScopedErrorCollector(
 		params + (PATH_PARAM_NAME to (path?.toString() ?: NO_PATH_VALUE))
 
 	override fun addWarning(code: String, params: Map<String, Any>) {
-		errorCollector.addWarning(code, paramsWithPath(params))
+		pathless.addWarning(code, paramsWithPath(params))
 	}
 
 	override fun addError(code: String, params: Map<String, Any>) {
-		errorCollector.addError(code, paramsWithPath(params))
+		pathless.addError(code, paramsWithPath(params))
 	}
 }
 

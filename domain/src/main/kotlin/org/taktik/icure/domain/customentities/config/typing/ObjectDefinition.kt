@@ -3,11 +3,11 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
-import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.Validation
@@ -19,9 +19,35 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+/**
+ * A definition of a custom or built-in object type
+ */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ObjectDefinition(
-	val properties: Map<String, PropertyConfiguration>
+	/**
+	 * The "data" properties of the object.
+	 * These are properties that have only the purpose of storing data and do not have a specific meaning for the system,
+	 * as opposed to metadata properties, such as:
+	 * - id
+	 * - revision
+	 * - creation, modification, deletion timestamps
+	 * - security metadata, legacy delegations, other access control related metadata
+	 * - attachment metadata
+	 * - versioning metadata (e.g. healthElementId and endOfLife on health elements)
+	 *
+	 * If this object definition extends a builtin entity, these properties are in addition to the ones already defined
+	 * in the builtin entity.
+	 * It is possible, though discouraged, to use the same name as a property already defined in the builtin entity; in
+	 * that case the SDK generator will move the standard entity property value in to a different property.
+	 *
+	 * Should be not empty if [baseEntity] is null.
+	 */
+	val properties: Map<String, PropertyConfiguration> = emptyMap(),
+	/**
+	 * If this configuration extends a builtin entity the standard entity being extended; if null this configuration
+	 * does not extend any builtin entity.
+	 */
+	val baseEntity: ExtendableEntityName? = null
 ) {
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class PropertyConfiguration(
@@ -64,16 +90,14 @@ data class ObjectDefinition(
 			 */
 			fun shouldIgnoreForStore(value: RawJson): Boolean
 
+			val isConstant: Boolean
+
 			/**
 			 * Represents a constant default value.
+			 * Properties with values equal to the default value are not included in the serialized representation
 			 */
 			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 			data class Constant(
-				/**
-				 * If false, if a field's value matches the configured default, it is not saved in the database.
-				 * If true, a field's value is always stored, even if it matches the configured default.
-				 */
-				val storeExplicitly: Boolean = false,
 				/**
 				 * The default value
 				 */
@@ -90,10 +114,12 @@ data class ObjectDefinition(
 					typeConfig.validateAndMapValueForStore(resolutionContext, context, value)
 				}
 
-				override fun valueForStore(): RawJson? = if (storeExplicitly) value else null
+				override fun valueForStore(): RawJson? = null
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
-					!storeExplicitly && this.value == value
+					value == this.value
+
+				override val isConstant: Boolean = true
 			}
 
 			data object GenerateUuidV4 : DefaultValue {
@@ -114,6 +140,8 @@ data class ObjectDefinition(
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
+
+				override val isConstant: Boolean = false
 			}
 
 			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -148,6 +176,8 @@ data class ObjectDefinition(
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
+
+				override val isConstant: Boolean = false
 			}
 
 			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -182,6 +212,8 @@ data class ObjectDefinition(
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
+
+				override val isConstant: Boolean = false
 			}
 
 			@JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -214,6 +246,8 @@ data class ObjectDefinition(
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
+
+				override val isConstant: Boolean = false
 			}
 		}
 	}
@@ -222,7 +256,7 @@ data class ObjectDefinition(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		context: ScopedErrorCollector
 	) {
-		if (properties.isEmpty()) {
+		if (properties.isEmpty() && baseEntity == null) {
 			context.addWarning("GE-OBJECT-WEMPTY")
 		}
 		context.appending(".") {
@@ -236,6 +270,9 @@ data class ObjectDefinition(
 				}
 			}
 		}
+		if (baseEntity != null) {
+			TODO("Validate base entity and check for conflict on props (give warning)")
+		}
 	}
 
 	fun validateAndMapValueForStore(
@@ -243,6 +280,9 @@ data class ObjectDefinition(
 		context: ScopedErrorCollector,
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
+		if (baseEntity != null) {
+			TODO("Handle base entity")
+		}
 		val mappedObjectProperties = mutableMapOf<String, RawJson>()
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]

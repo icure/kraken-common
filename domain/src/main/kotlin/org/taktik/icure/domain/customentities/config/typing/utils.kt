@@ -8,17 +8,17 @@ import org.taktik.icure.errorreporting.addError
  * If [value] is [RawJson.JsonNull] requires that [nullable] is true and returns [RawJson.JsonNull] (fails if nullable is false).
  * Else executes the block and returns its value
  */
-internal inline fun validatingAndIgnoringNullForStore(
+internal inline fun validatingNullForStore(
 	validationContext: ScopedErrorCollector,
 	value: RawJson,
 	nullable: Boolean,
-	block: () -> RawJson
+	validateNonNull: () -> RawJson
 ): RawJson =
 	if (value === RawJson.JsonNull) {
 		if (!nullable) validationContext.addError("GE-NULL")
 		value
 	} else {
-		block()
+		validateNonNull()
 	}
 
 // Purpose on identifiers validation:

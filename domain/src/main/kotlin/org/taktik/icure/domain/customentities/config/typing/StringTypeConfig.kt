@@ -5,7 +5,6 @@ import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionC
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
-import org.taktik.icure.errorreporting.addWarning
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class StringTypeConfig(
@@ -77,7 +76,7 @@ data class StringTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 		value: RawJson
-	): RawJson = validatingAndIgnoringNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(validationContext, value, nullable) {
 		if (value !is RawJson.JsonString) {
 			validationContext.addError("GE-STRING-JSON")
 		} else {
