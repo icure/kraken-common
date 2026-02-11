@@ -6,8 +6,6 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -18,29 +16,29 @@ import java.io.Serializable
  */
 data class TimeTableItem(
 	val rruleStartDate: Long? = null, // YYYYMMDD
-	@param:ContentValue(ContentValues.ANY_STRING) val rrule: String? = null,
+	val rrule: String? = null,
 
 	/**
 	 * If not null, the slot iterator will not provide slots before now() - [notBeforeInMinutes], where now is the
 	 * current timestamp in minutes.
 	 */
-	@param:ContentValue(ContentValues.ANY_INT) val notBeforeInMinutes: Int? = null,
+	val notBeforeInMinutes: Int? = null,
 	/**
 	 * If not null, the slot iterator will not provide slots after now() - [notBeforeInMinutes], where now is the
 	 * current timestamp in minutes.
 	 */
-	@param:ContentValue(ContentValues.ANY_INT) val notAfterInMinutes: Int? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val zoneId: String? = null,
+	val notAfterInMinutes: Int? = null,
+	val zoneId: String? = null,
 
 	@Deprecated("Will be replaced by rrule") val days: List<String> = emptyList(),
 	@Deprecated("Will be replaced by rrule") val recurrenceTypes: List<String> = emptyList(),
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val hours: List<TimeTableHour> = emptyList(),
-	@param:ContentValue(ContentValues.ANY_STRING) val calendarItemTypeId: String? = null,
+	val hours: List<TimeTableHour> = emptyList(),
+	val calendarItemTypeId: String? = null,
 
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) @JsonProperty("isHomeVisit") val homeVisit: Boolean = false,
-	@param:ContentValue(ContentValues.ANY_STRING) val placeId: String? = null,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val publicTimeTableItem: Boolean = false,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val acceptsNewPatient: Boolean = true,
+	@param:JsonProperty("isHomeVisit") val homeVisit: Boolean = false,
+	val placeId: String? = null,
+	val publicTimeTableItem: Boolean = false,
+	val acceptsNewPatient: Boolean = true,
 	/**
 	 * A list of the ids of the users who are allowed to create a CalendarItem in this slot.
 	 */

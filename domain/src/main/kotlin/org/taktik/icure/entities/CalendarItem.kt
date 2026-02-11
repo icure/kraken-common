@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -37,7 +35,7 @@ data class CalendarItem(
 	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	@param:ContentValue(ContentValues.TIMESTAMP) override val endOfLife: Long? = null,
+	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull val title: String? = null,
 	val calendarItemTypeId: String? = null,
@@ -47,7 +45,7 @@ data class CalendarItem(
 	val homeVisit: Boolean? = null,
 	val phoneNumber: String? = null,
 	val placeId: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITY) val address: Address? = null,
+	val address: Address? = null,
 	val addressText: String? = null,
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
@@ -55,7 +53,7 @@ data class CalendarItem(
 	val cancellationTimestamp: Long? = null,
 	val confirmationId: String? = null,
 	val duration: Long? = null,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val allDay: Boolean? = null,
+	val allDay: Boolean? = null,
 	val details: String? = null,
 	val wasMigrated: Boolean? = null,
 	/**

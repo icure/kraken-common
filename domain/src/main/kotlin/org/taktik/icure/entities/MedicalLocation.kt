@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
@@ -20,14 +18,14 @@ import org.taktik.icure.utils.invoke
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MedicalLocation(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	@param:ContentValue(ContentValues.ANY_STRING) override val name: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val description: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val responsible: String? = null,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val guardPost: Boolean? = null,
+	override val name: String? = null,
+	val description: String? = null,
+	val responsible: String? = null,
+	val guardPost: Boolean? = null,
 	val cbe: String? = null,
 	val bic: String? = null,
 	val bankAccount: String? = null,

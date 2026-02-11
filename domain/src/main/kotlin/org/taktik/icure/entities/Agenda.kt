@@ -19,6 +19,8 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.invoke
@@ -27,7 +29,6 @@ import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 import java.time.DateTimeException
 import java.time.ZoneId
-import kotlin.collections.isNotEmpty
 
 /**
  * An agenda allows keeping track of appointments (calendar items) for a resource (usually a doctor or other hcp) or
@@ -241,6 +242,7 @@ import kotlin.collections.isNotEmpty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Agenda(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -260,7 +262,7 @@ data class Agenda(
 	 * Associates a user id to the permission that user has on the entity.
 	 */
 	val userRights: Map<String, UserAccessLevel> = emptyMap(),
-	val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
+	@NonMergeable val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
 	/**
 	 * Custom properties of the agenda. Public on public agenda.
 	 */

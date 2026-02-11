@@ -6,18 +6,16 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class InvoicingCode(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") val id: String?,
+	@param:JsonProperty("_id") val id: String?,
 	val dateCode: Long? = null,
 	val logicalId: String? = null, // Stays the same when a code is resent to the IO
-	@param:ContentValue(ContentValues.ANY_STRING) val label: String? = null,
+	val label: String? = null,
 	val userId: String? = null,
 	val contactId: String? = null,
 	val serviceId: String? = null,
@@ -25,7 +23,7 @@ data class InvoicingCode(
 	// For obsolete codes or codes not linked to a tarification
 	val code: String? = null,
 	val paymentType: PaymentType? = null,
-	@param:ContentValue(ContentValues.ANY_DOUBLE) val paid: Double? = null,
+	val paid: Double? = null,
 	val totalAmount: Double? = null, // =reimbursement+doctorSupplement+intervention,
 	val reimbursement: Double? = null,
 	val patientIntervention: Double? = null,

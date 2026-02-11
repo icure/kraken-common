@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.CodeStubDeserializer
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import java.io.Serializable
@@ -28,6 +29,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
+@Mergeable
 data class CodeStub(
 	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used

@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.AppendixType
 import org.taktik.icure.entities.base.CodeFlag
 import org.taktik.icure.entities.base.CodeIdentification
@@ -27,14 +25,14 @@ import org.taktik.icure.utils.invoke
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Tarification(
-	@param:ContentValue(ContentValues.TARIFICATION_ID) @JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
+	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	override val context: String? = null, // ex: When embedded the context where this code is used
-	@param:ContentValue(ContentValues.ANY_STRING) override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
-	@param:ContentValue(ContentValues.ANY_STRING) override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
-	@param:ContentValue(ContentValues.ANY_STRING) override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
+	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
+	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 
 	val author: String? = null,
@@ -48,7 +46,7 @@ data class Tarification(
 	val data: String? = null,
 	val appendices: Map<AppendixType, String> = emptyMap(),
 	val disabled: Boolean = false,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) val valorisations: Set<Valorisation> = emptySet(),
+	val valorisations: Set<Valorisation> = emptySet(),
 	val category: Map<String, String> = emptyMap(),
 	val consultationCode: Boolean? = null,
 	val hasRelatedCode: Boolean? = null,

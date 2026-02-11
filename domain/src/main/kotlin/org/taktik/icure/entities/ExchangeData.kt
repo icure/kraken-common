@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.HasExplicitDataOwnerAccess
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.base.StoredDocument
@@ -23,7 +21,7 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ExchangeData(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].

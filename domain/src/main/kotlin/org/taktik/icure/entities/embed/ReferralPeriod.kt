@@ -18,14 +18,14 @@ import java.time.Instant
  * A period during which this patient is under the care of a hcp
  */
 data class ReferralPeriod(
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val startDate: Instant? = null,
 
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val endDate: Instant? = null,
 
 	val comment: String? = null,

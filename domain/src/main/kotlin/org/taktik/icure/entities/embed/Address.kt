@@ -6,8 +6,6 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasTags
@@ -27,19 +25,19 @@ import java.io.Serializable
 data class Address(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_LIST) val identifier: List<Identifier> = emptyList(),
+	val identifier: List<Identifier> = emptyList(),
 	val addressType: AddressType? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val descr: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val street: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val houseNumber: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val postboxNumber: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val postalCode: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val city: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val state: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val country: String? = null,
-	@Deprecated("Use notes instead") @param:ContentValue(ContentValues.ANY_STRING) val note: String? = null,
+	val descr: String? = null,
+	val street: String? = null,
+	val houseNumber: String? = null,
+	val postboxNumber: String? = null,
+	val postalCode: String? = null,
+	val city: String? = null,
+	val state: String? = null,
+	val country: String? = null,
+	@Deprecated("Use notes instead") val note: String? = null,
 	val notes: List<Annotation> = emptyList(),
-	@JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
+	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	Serializable,

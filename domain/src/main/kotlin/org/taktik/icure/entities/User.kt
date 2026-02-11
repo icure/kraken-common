@@ -10,8 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.constants.Users
 import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.base.PropertyStub
@@ -93,7 +91,7 @@ data class User(
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val termsOfUseDate: Instant? = null,
 
-	@param:ContentValue(ContentValues.EMAIL) val email: String? = null,
+	val email: String? = null,
 	val mobilePhone: String? = null,
 
 	@Deprecated("Application tokens stocked in clear and eternal. Replaced by authenticationTokens")

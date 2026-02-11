@@ -10,7 +10,6 @@ import io.swagger.v3.oas.models.info.Info
 import org.springdoc.core.GroupedOpenApi
 import org.springdoc.core.SpringDocUtils
 import org.springdoc.core.customizers.OperationCustomizer
-import org.springdoc.core.customizers.ParameterCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -22,9 +21,7 @@ import org.taktik.icure.annotations.controllers.RetrievesAll
 import org.taktik.icure.annotations.controllers.RetrievesMany
 import org.taktik.icure.annotations.controllers.RetrievesOne
 import org.taktik.icure.annotations.controllers.UpdatesOne
-import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.permissions.AccessControl
-import java.util.Map
 
 @Configuration
 @Profile("app")
@@ -124,19 +121,8 @@ class SwaggerConfig {
 								} ?: "",
 						)
 					}
-			} catch (e: IllegalStateException) {
+			} catch (_: IllegalStateException) {
 			}
-		}
-	}
-
-	@Bean
-	fun parameterCustomizer() = ParameterCustomizer { parameter, methodParameter ->
-		parameter?.also { _ ->
-			parameter.example =
-				methodParameter
-					.parameterAnnotations
-					.find { it is ContentValue }
-					?.let { annotation -> (annotation as? ContentValue)?.contentValue?.value }
 		}
 	}
 

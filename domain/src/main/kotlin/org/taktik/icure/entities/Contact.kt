@@ -145,7 +145,7 @@ data class Contact(
 				services,
 				other.services,
 				{ a, b -> a.id == b.id },
-				{ a: Service, b: Service -> a.merge(b) },
+				{ a: Service, b: Service -> a. (b) },
 			),
 		)
 

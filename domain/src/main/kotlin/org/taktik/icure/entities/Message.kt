@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -115,7 +113,7 @@ data class Message(
 	val transportGuid: String? = null, // Each message should have a transportGuid: see above for formats
 	val remark: String? = null,
 	val conversationGuid: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val subject: String? = null,
+	val subject: String? = null,
 	val invoiceIds: Set<String> = emptySet(),
 	val parentId: String? = null, // ID of parent in a message conversation
 	val externalRef: String? = null,

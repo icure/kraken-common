@@ -22,9 +22,9 @@ data class TypedValue(
 	val doubleValue: Double? = null,
 	val stringValue: String? = null,
 
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
 	override val encryptedSelf: String? = null,
 ) : Comparable<TypedValue>,
