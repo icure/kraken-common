@@ -9,7 +9,7 @@ import org.taktik.icure.errorreporting.addWarning
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class IntTypeConfig(
-	val nullable: Boolean = false,
+	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {
 	companion object {

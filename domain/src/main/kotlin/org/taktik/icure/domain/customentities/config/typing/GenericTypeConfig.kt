@@ -50,6 +50,8 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 	JsonSubTypes.Type(value = UuidTypeConfig::class, name = "Uuid"),
 )
 sealed interface GenericTypeConfig {
+	val nullable: Boolean
+
 	/**
 	 * Verifies that the configuration is valid.
 	 * For example, this checks that if the configuration specifies a default value the default value respects

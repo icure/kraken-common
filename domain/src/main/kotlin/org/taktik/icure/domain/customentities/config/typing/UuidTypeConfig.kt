@@ -15,7 +15,7 @@ import org.taktik.icure.errorreporting.addError
 // Could be annoying for debug and could prohibit certain queries by range if we use a base64 though.
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class UuidTypeConfig(
-	val nullable: Boolean = false,
+	override val nullable: Boolean = false,
 	val format: Format? = null,
 ) : GenericTypeConfig {
 	companion object {

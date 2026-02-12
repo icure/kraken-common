@@ -77,6 +77,12 @@
   "GE-CONFIG-DUPID": "{{path}}: Duplicate type identifier `{{id}}` found in configuration (used {{count}} times)",
   "GEM-EXT-REQUIRED": "{{path}}: The extensions configuration changed, a migration for ({{sourceRefType}}) {{sourceRef}} -> ({{targetRefType}}) {{target}} is required.",
   "GEM-PROV-DEFAULT": "{{path}}: The configuration for this property requires to use the target entity default value but the target entity has no default value or has a non-constant default value.",
+  "GEM-PROV-SOURCE-MISSING": "{{path}}: The configured migration specifies to use the value of a non-existing source property ({{sourcePropLocation}}) {{sourceProp}}.",
+  "GEM-PROV-SOURCE-WNOTNULLABLE": "{{path}}: The configured mapped null value is unused, since the source property ({{sourcePropLocation}}) {{sourceProp}} is not nullable.",
+  "GEM-PROV-SOURCE-NULLABLE": "{{path}}: The source property ({{sourcePropLocation}}) {{sourceProp}} is nullable but the target property is not; you must specify a value to use for the target when the source is nullable.",
+  "GEM-PROV-SOURCE-TRANSFORM": "{{path}}: The source property ({{sourcePropLocation}}) {{sourceProp}} does not match the target type, you must provide an appropriate builtin value transformer or use a custom migration method.",
+  "GEM-PROV-SOURCE-TRANSFORMRECOMMEND": "{{path}}: The source property ({{sourcePropLocation}}) {{sourceProp}} does not match the target type, you must provide an appropriate builtin value transformer (such as {{recommendation}}) or use a custom migration method.",
+  "GEM-PROV-SOURCE-APPLICABILITY": "{{path}}: The requested value transformation ({{transform}}) can't ",
   "GEM-ENUM-DUPLICATES": "{{path}}: Duplicate enum migrations for {{source}} (builtin={{builtinSource}}) -> {{target}} (builtin={{builtinTarget}}), multiple definitions for the same source->target enum pair are not allowed.",
   "GEM-ENUM-SOURCEREF": "{{path}}: Enum definition for source reference `{{ref}}` does not exist.",
   "GEM-ENUM-TARGETREF": "{{path}}: Enum definition for target reference `{{ref}}` does not exist.",
@@ -85,5 +91,9 @@
   "GEM-ENUM-NULLABLE": "{{path}}: Enum migration configuration is used with a non-nullable target, can't use null target value ({{mappingSource}}).",
   "GEM-ENUM-WUNUSED": "{{path}}: Enum migration is not used",
   "GEM-OBJECT-DUPLICATES": "{{path}}: Duplicate object migrations for ({{sourceRefType}}) {{sourceRef}} -> ({{targetRefType}}) {{target}}, multiple definitions for the same source->target object pair are not allowed.",
-  "GEM-OBJECT-WUNUSED": "{{path}}: Object migration is not used"
+  "GEM-OBJECT-WUNUSED": "{{path}}: Object migration is not used",
+  "GEM-OBJECT-SOURCEREF": "{{path}}: Object definition for source custom object reference `{{ref}}` does not exist.",
+  "GEM-OBJECT-TARGETREF": "{{path}}: Object definition for target custom object reference `{{ref}}` does not exist.",
+  "GEM-OBJECT-MAPPING": "{{path}}: Object migration configuration does not define a mapping for source property `{{prop}}` and there is no applicable fallback. You must define a mapping for this property.",
+  "GEM-OBJECT-MAPPINGRECOMMEND": "{{path}}: Object migration configuration does not define a mapping for source property `{{prop}}` and configured fallbacks are not applicable. You must define a mapping for this property or add an appropriate fallback behavior such as {{recommendation}}."
 }

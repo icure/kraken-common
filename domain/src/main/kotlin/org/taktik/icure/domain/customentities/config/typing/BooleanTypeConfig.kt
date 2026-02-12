@@ -10,7 +10,7 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class BooleanTypeConfig(
-	val nullable: Boolean = false,
+	override val nullable: Boolean = false,
 ) : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,

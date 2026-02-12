@@ -53,6 +53,8 @@ data class ObjectMigration(
 	 * changed using [targetBuiltinMappings].
 	 * If the target is a [DefinitionReference.StandardBuiltin] then this [fallbackBehavior] is ignored.
 	 *
+	 * All entries in this list must be unique.
+	 *
 	 * # Example
 	 * - Source(a: Int(0-10), b: Int(0-10), c: Float(0.0-1.0))
 	 * - Target(a: Int(0-10), b: Int(0-20) = 10, c: Int(0-100) = 50, d: Boolean = true)
@@ -91,6 +93,12 @@ data class ObjectMigration(
 	 */
 	val fallbackBehavior: List<FallbackBehavior> = emptyList(),
 ) {
+	init {
+		require (fallbackBehavior.toSet().size == fallbackBehavior.size) {
+			"Duplicate fallback behavior entries are not allowed."
+		}
+	}
+
 	sealed interface DefinitionReference {
 		/**
 		 * The source is a builtin entity with no configured extension on the source configuration
@@ -165,6 +173,8 @@ data class ObjectMigration(
 		/**
 		 * Automatically get the target property value if there is a source property with the same name and a type that
 		 * can be coerced to the target type using the rules of [ValueTransformer.CoerceType].
+		 *
+		 * Note that coercion of nullable to non-nullable types is not allowed by this fallback behavior.
 		 *
 		 * Only source properties coming from custom [ObjectDefinition] are considered: if the source is a
 		 * [DefinitionReference.StandardBuiltin] this fallback behavior won't apply.
@@ -290,8 +300,10 @@ data class ObjectMigration(
 		 * The supported conversions are:
 		 * - Nullable->non-nullable, Non-nullable->non-nullable, and nullable->nullable coercions are always applicable,
 		 *   as long as the rest of the type configuration can be coerced.
-		 *   Nullable->non-nullable coercion can only apply in the scope of a [PropertyValueProvider.FromSource], as in
+		 * - Nullable->non-nullable coercion can apply in the scope of a [PropertyValueProvider.FromSource], as in
 		 *   that case the null value is always handled by [PropertyValueProvider.FromSource.mappedNullValue].
+		 *   In other cases, such as [FallbackBehavior.CoerceFromSourceByName] a nullable type can't be coerced to a
+		 *   non-nullable type, regardless of the underlying type.
 		 * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
 		 *   of the source enum exist in the target enum
 		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or all
@@ -395,11 +407,16 @@ data class ObjectMigration(
 		 * - If the source value is below the target range, the minimum of the target range is used.
 		 * - If the source value is above the target range, the maximum of the target range is used.
 		 * This transformation can only be applied when both source and target types are numeric types.
+		 *
 		 * If the source is a [FloatTypeConfig] and the target is a [IntTypeConfig] you must also specify the [roundingMode]
 		 * mode to use; in all other cases [roundingMode] is ignored.
+		 *
 		 * The [roundingMode] is applied only if the source value already falls within the range of the target value: if
 		 * the source value is outside the target range, it is clamped to the min/max of the target range and there is
 		 * no need to round.
+		 *
+		 * If the range of the source type does not intersect with the range of the target type, this transformation
+		 * will result in all source values being mapped to the same target value.
 		 */
 		data class ClampToRange(
 			val roundingMode: Rounding.Mode? = null,

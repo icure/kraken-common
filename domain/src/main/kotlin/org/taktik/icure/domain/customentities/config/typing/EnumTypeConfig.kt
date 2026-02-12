@@ -13,7 +13,8 @@ import org.taktik.icure.errorreporting.addError
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumTypeConfig(
 	val enumReference: String,
-	val nullable: Boolean = false
+	val isBuiltIn: Boolean = false,
+	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override val enumDefinitionDependencies: Set<String> get() =
 		setOf(enumReference)
@@ -22,6 +23,7 @@ data class EnumTypeConfig(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,
 	) {
+		if (isBuiltIn) TODO("validate built-in enum reference")
 		val definition = resolutionContext.resolveEnumReference(enumReference)
 		if (definition == null) {
 			validationContext.addError(
@@ -37,6 +39,7 @@ data class EnumTypeConfig(
 		validationContext: ScopedErrorCollector,
 		value: RawJson
 	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+		if (isBuiltIn) TODO("validate built-in enum reference")
 		if (value !is RawJson.JsonString) {
 			validationContext.addError("GE-ENUM-JSON")
 		} else {

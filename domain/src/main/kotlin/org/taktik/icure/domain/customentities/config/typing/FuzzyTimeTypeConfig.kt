@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class FuzzyTimeTypeConfig(
-	val nullable: Boolean = false,
+	override val nullable: Boolean = false,
 	val allowPrecisionEncoding: Boolean = false
 ) : GenericTypeConfig {
 	override fun validateAndMapValueForStore(

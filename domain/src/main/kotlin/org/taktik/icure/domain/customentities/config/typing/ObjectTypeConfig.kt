@@ -10,7 +10,7 @@ import org.taktik.icure.errorreporting.addError
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ObjectTypeConfig(
 	val objectReference: String,
-	val nullable: Boolean = false
+	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override val objectDefinitionDependencies: Set<String> get() =
 		setOf(objectReference)

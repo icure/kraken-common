@@ -13,7 +13,7 @@ import org.taktik.icure.errorreporting.appending
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class MapTypeConfig(
 	val valueType: GenericTypeConfig,
-	val nullable: Boolean = false,
+	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
 	override val objectDefinitionDependencies: Set<String> get() =

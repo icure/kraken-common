@@ -20,4 +20,7 @@ data object JsonTypeConfig : GenericTypeConfig {
 		value: RawJson
 	): RawJson =
 		value
+
+	override val nullable: Boolean
+		get() = true
 }
