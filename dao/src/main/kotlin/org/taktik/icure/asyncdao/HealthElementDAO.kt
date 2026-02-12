@@ -21,7 +21,7 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
 		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
 	""")
-	fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeNumber: String): Flow<String>
+	fun listHealthElementIdsByHcPartyAndCodes(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, codeType: String, codeCode: String): Flow<String>
 
 	@Deprecated("""
 		Use listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning instead.

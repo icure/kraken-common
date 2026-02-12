@@ -11,6 +11,7 @@ import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
@@ -122,6 +123,7 @@ data class Message(
 	val unassignedResults: Set<String> = emptySet(), // refs
 	val assignedResults: Map<String, String> = emptyMap(), // ContactId -> ref
 	val senderReferences: Map<String, String> = emptyMap(),
+	val properties: Set<PropertyStub> = emptySet(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
