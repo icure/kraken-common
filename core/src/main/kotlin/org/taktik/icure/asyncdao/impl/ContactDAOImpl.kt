@@ -1139,8 +1139,8 @@ class ContactDAOImpl(
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
-			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).map {
-				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+			client.queryView<ComplexKey, String>(query).map {
+				ContactIdMandatoryServiceId(it.id, it.value!!)
 			}
 		}
 		emitAll(filterLatestServices(
@@ -1290,9 +1290,11 @@ class ContactDAOImpl(
 				p: JsonParser,
 				ctxt: DeserializationContext
 			): ServiceIdAndDateValue {
-				val jsonList = p.readValueAsTree<ArrayNode>().map { it?.let { p.codec.treeToValue(it, Object::class.java) }}
-				check(jsonList.size >= 2) { "Expected at least 2 items" }
-				return ServiceIdAndDateValue(jsonList[0] as String, (jsonList[1] as Number?)?.toLong())
+				val jsonList = p.readValueAsTree<ArrayNode>()
+				check(jsonList.size() == 2) { "Expected exactly 2 items" }
+				check(jsonList[0].isTextual) { "Expected first item to be a string" }
+				check(jsonList[1].canConvertToLong() && !jsonList[1].isFloatingPointNumber) { "Expected second item to be a long" }
+				return ServiceIdAndDateValue(jsonList[0].textValue(), jsonList[1].longValue())
 			}
 		}
 	}

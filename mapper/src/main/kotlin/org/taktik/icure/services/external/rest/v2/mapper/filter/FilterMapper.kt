@@ -146,8 +146,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.Mai
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.AllMedicalLocationsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.MedicalLocationByPostCodeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerFromAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerLifecycleBetween
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerToAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTransportGuidSentDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHcPartyTransportGuidReceivedFilter
@@ -559,6 +561,8 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: MessageByParentIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByParentIdsFilter
 	abstract fun map(filterDto: MessageByInvoiceIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByInvoiceIdsFilter
 	abstract fun map(filterDto: MessageByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerLifecycleBetween
+	abstract fun map(filterDto: MessageByDataOwnerCodeFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerCodeFilter
+	abstract fun map(filterDto: MessageByDataOwnerTagFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerTagFilter
 
 	@JvmName("tryMapMessageFilter")
 	fun tryMap(filterDto: AbstractFilterDto<MessageDto>): AbstractFilter<Message>? = when (filterDto) {
@@ -569,6 +573,8 @@ abstract class FilterV2Mapper {
 		is MessageByParentIdsFilter -> map(filterDto)
 		is MessageByInvoiceIdsFilter -> map(filterDto)
 		is MessageByDataOwnerLifecycleBetween -> map(filterDto)
+		is MessageByDataOwnerCodeFilter -> map(filterDto)
+		is MessageByDataOwnerTagFilter -> map(filterDto)
 		else -> tryMapMessage(filterDto)
 	}
 

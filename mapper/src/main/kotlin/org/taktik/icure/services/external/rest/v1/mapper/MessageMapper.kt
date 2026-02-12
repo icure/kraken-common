@@ -23,6 +23,7 @@ interface MessageMapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "properties", ignore = true),
 	)
 	fun map(messageDto: MessageDto): Message
 	fun map(message: Message): MessageDto

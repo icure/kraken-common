@@ -8,9 +8,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import org.taktik.icure.entities.Agenda
 import org.taktik.icure.entities.CalendarItem
-import org.taktik.icure.services.external.rest.v1.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v1.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.AddressMapper
@@ -29,6 +27,7 @@ abstract class CalendarItemMapper {
 		Mapping(target = "resourceGroup", ignore = true),
 		Mapping(target = "availabilitiesAssignmentStrategy", ignore = true),
 		Mapping(target = "tentativeTimestamp", ignore = true),
+		Mapping(target = "properties", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 

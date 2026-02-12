@@ -22,6 +22,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -496,4 +497,45 @@ open class MessageDAOImpl(
 				.map { it.id },
 		)
 	}
+
+	private fun listMessageIdsByDataOwnerTagOrCode(
+		viewName: String,
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		type: String?,
+		code: String?
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val query = createQuery(datastoreInformation, viewName, MAURICE_PARTITION)
+			.keys(
+				if (code != null) {
+					searchKeys.map { ComplexKey.of(it, type, code) }
+				} else {
+					searchKeys.map { ComplexKey.of(it, type) }
+				},
+			)
+			.reduce(false)
+			.includeDocs(false)
+		emitAll(
+			client.queryView<ComplexKey, Void>(query)
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, Void>>()
+				.map { it.id },
+		)
+	}
+
+	@View(name = "by_data_owner_tag", map = "classpath:js/message/By_data_owner_tag.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listMessageIdsByDataOwnerTag(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCode: String?
+	): Flow<String> = listMessageIdsByDataOwnerTagOrCode("by_data_owner_tag", datastoreInformation, searchKeys, tagType, tagCode)
+
+	@View(name = "by_data_owner_code", map = "classpath:js/message/By_data_owner_code.js", secondaryPartition = MAURICE_PARTITION)
+	override fun listMessageIdsByDataOwnerCode(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCode: String?
+	): Flow<String> = listMessageIdsByDataOwnerTagOrCode("by_data_owner_code", datastoreInformation, searchKeys, codeType, codeCode)
 }

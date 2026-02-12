@@ -53,7 +53,7 @@ class HealthElementByHcPartyTagCodeFilter(
 							datastoreInformation = datastoreInformation,
 							searchKeys = searchKeys,
 							codeType = filter.codeType!!,
-							codeNumber = filter.codeCode!!,
+							codeCode = filter.codeCode!!,
 						).toSet()
 				if (!searchByTag) {
 					ids.addAll(byCode)
