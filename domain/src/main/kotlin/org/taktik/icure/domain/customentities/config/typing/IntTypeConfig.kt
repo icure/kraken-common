@@ -12,6 +12,9 @@ data class IntTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is IntTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	companion object {
 		/**
 		 * Biggest long that we can safely store without incurring in any issues with js numbers or couchdb views

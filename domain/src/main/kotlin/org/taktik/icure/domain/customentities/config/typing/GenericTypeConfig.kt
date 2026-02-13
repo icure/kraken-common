@@ -95,4 +95,9 @@ sealed interface GenericTypeConfig {
 	 */
 	val enumDefinitionDependencies: Set<String>
 		get() = emptySet()
+
+	/**
+	 * Check if this type configuration is equal to another one, but ignoring the value of [nullable]
+	 */
+	fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean
 }

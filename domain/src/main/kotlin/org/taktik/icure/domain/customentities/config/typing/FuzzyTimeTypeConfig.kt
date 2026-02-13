@@ -16,6 +16,9 @@ data class FuzzyTimeTypeConfig(
 	override val nullable: Boolean = false,
 	val allowPrecisionEncoding: Boolean = false
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is FuzzyTimeTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,

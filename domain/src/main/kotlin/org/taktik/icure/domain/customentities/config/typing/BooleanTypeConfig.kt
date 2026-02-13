@@ -12,6 +12,9 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 data class BooleanTypeConfig(
 	override val nullable: Boolean = false,
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is BooleanTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	override fun validateAndMapValueForStore(
 		resolutionContext: CustomEntityConfigResolutionContext,
 		validationContext: ScopedErrorCollector,

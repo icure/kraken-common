@@ -3,6 +3,7 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.taktik.icure.domain.customentities.config.migration.ObjectMigration
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.entities.RawJson
@@ -16,6 +17,9 @@ data class MapTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is MapTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	override val objectDefinitionDependencies: Set<String> get() =
 		valueType.objectDefinitionDependencies
 
@@ -47,18 +51,76 @@ data class MapTypeConfig(
 		)
 		sealed interface KeyValidation {
 			/**
+			 * Validate if a key is valid according to this validation configuration.
+			 * Adds any error details and or warnings to the validation context, before returning false if the key is
+			 * invalid.
+			 */
+			fun validate(
+				resolutionContext: CustomEntityConfigResolutionContext,
+				validationContext: ScopedErrorCollector?,
+				keys: Set<String>
+			): Boolean
+
+			/**
 			 * Each key must be an entry of the referenced enum
 			 */
 			data class EnumKeyValidation(
 				val reference: String
-			) : KeyValidation
+			) : KeyValidation {
+				override fun validate(
+					resolutionContext: CustomEntityConfigResolutionContext,
+					validationContext: ScopedErrorCollector?,
+					keys: Set<String>
+				): Boolean {
+					var res = true
+					val enumDefinition = resolutionContext.resolveRequiredEnumReference(reference)
+					validationContext.appending("{KEY \"") {
+						keys.forEach {
+							if (it !in enumDefinition.entries) {
+								validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
+									validationContext?.addError(
+										"GE-MAP-KEYENUM-VALUE",
+										"key" to it,
+										"ref" to reference
+									)
+								}
+								res = false
+							}
+						}
+					}
+					return res
+				}
+			}
 
 			/**
 			 * Each key must validate against the specified string validation configuration
 			 */
 			data class StringKeyValidation(
 				val validation: StringTypeConfig.ValidationConfig,
-			) : KeyValidation
+			) : KeyValidation {
+				override fun validate(
+					resolutionContext: CustomEntityConfigResolutionContext,
+					validationContext: ScopedErrorCollector?,
+					keys: Set<String>
+				): Boolean {
+					var res = true
+					validationContext.appending("{KEY \"") {
+						keys.forEach { key ->
+							validationContext.appending(truncateValueForErrorMessage(key), "\"}") {
+								if (
+									!validation.validateValue(
+										validationContext,
+										key
+									)
+								) {
+									res = false
+								}
+							}
+						}
+					}
+					return res
+				}
+			}
 		}
 	}
 
@@ -140,36 +202,11 @@ data class MapTypeConfig(
 						"max" to (validation.maxSize ?: "*"),
 					)
 				}
-				if (validation.keyValidation != null) {
-					validationContext.appending("{KEY \"") {
-						when (validation.keyValidation) {
-							is ValidationConfig.KeyValidation.StringKeyValidation -> {
-								res.keys.forEach { key ->
-									validationContext.appending(truncateValueForErrorMessage(key), "\"}") {
-										validation.keyValidation.validation.validateValue(
-											validationContext,
-											key
-										)
-									}
-								}
-							}
-							is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-								val enumDefinition = resolutionContext.resolveRequiredEnumReference(validation.keyValidation.reference)
-								res.keys.forEach {
-									if (it !in enumDefinition.entries) {
-										validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
-											validationContext.addError(
-												"GE-MAP-KEYENUM-VALUE",
-												"key" to it,
-												"ref" to validation.keyValidation.reference
-											)
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				validation.keyValidation?.validate(
+					resolutionContext,
+					validationContext,
+					res.keys
+				)
 			}
 			RawJson.JsonObject(res)
 		}

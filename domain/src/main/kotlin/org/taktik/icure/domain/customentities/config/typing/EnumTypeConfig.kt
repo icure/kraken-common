@@ -16,6 +16,9 @@ data class EnumTypeConfig(
 	val isBuiltIn: Boolean = false,
 	override val nullable: Boolean = false
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is EnumTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	override val enumDefinitionDependencies: Set<String> get() =
 		setOf(enumReference)
 

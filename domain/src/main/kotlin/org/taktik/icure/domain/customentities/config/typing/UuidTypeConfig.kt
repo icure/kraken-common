@@ -18,6 +18,9 @@ data class UuidTypeConfig(
 	override val nullable: Boolean = false,
 	val format: Format? = null,
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is UuidTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	companion object {
 		@JvmStatic
 		private val DIGITS = '0'..'9'

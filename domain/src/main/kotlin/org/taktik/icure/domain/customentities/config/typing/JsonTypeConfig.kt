@@ -23,4 +23,7 @@ data object JsonTypeConfig : GenericTypeConfig {
 
 	override val nullable: Boolean
 		get() = true
+
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other == JsonTypeConfig
 }

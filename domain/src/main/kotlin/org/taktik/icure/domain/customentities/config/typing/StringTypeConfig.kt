@@ -11,6 +11,9 @@ data class StringTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
 ) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is StringTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(
 		/**
@@ -48,20 +51,22 @@ data class StringTypeConfig(
 		}
 
 		fun validateValue(
-			context: ScopedErrorCollector,
+			context: ScopedErrorCollector?,
 			value: String
-		) {
+		): Boolean {
 			if (
 				(minLength != null && value.length < minLength)
 				|| (maxLength != null && value.length > maxLength)
 			) {
-				context.addError(
+				context?.addError(
 					"GE-STRING-OUTRANGE",
 					"length" to value.length,
 					"min" to (minLength ?: "0"),
 					"max" to (maxLength ?: "*"),
 				)
+				return false
 			}
+			return true
 		}
 	}
 

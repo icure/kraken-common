@@ -47,6 +47,7 @@ value class ScopePathImpl(private val pathSegments: ArrayList<Any>) : ScopePath 
 
 /**
  * Appends the given string to the scope path for the duration of the [block], then removes it.
+ * Execute the block even if the receiver is null, but without appending anything to the path in that case.
  */
 inline fun <T> ScopePath?.appending(toAppend: Any, block: () -> T): T {
 	this?.enterScope(toAppend)
@@ -86,6 +87,7 @@ inline fun <T> ScopePath?.appending(toAppend1: Any, toAppend2: Any, toAppend3: A
 
 /**
  * Appends the given strings to the scope path for the duration of the [block], then removes it.
+ * Execute the block even if the receiver is null, but without appending anything to the path in that case.
  */
 inline fun <T> ScopePath?.appending(vararg toAppend: Any, block: () -> T): T {
 	this?.enterScopes(*toAppend)

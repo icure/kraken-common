@@ -500,22 +500,55 @@ data class ObjectMigration(
 		}
 
 		/**
-		 * If the source value is larger than the target value max allowed length constraints only take
-		 * characters/elements up to the max allowed amount.
-		 * This transformation can be applied for String->String and List->List conversions where the source min length
+		 * If the source string is larger than the target string max allowed length constraint only take
+		 * characters up to the max allowed amount.
+		 * This transformation can only be applied for String->String conversions where the source min length
 		 * constraint is greater than or equal to the target min length constraint (note that if undefined min length
 		 * is implicitly 0).
 		 * If the target max length is not defined, or greater than or equal to the source max length, this
 		 * transformation has no effect.
 		 *
 		 * By default, the trimming keeps the start of the value: if the target max length is `tmax` and the source
-		 * value is longer than `tmax`, then only the first `tmax` characters/elements of the source value are kept.
-		 * If [fromEnd] is set to true, then only the last `tmax` characters/elements of the source value are kept
+		 * value is longer than `tmax`, then only the first `tmax` characters of the source value are kept.
+		 * If [fromEnd] is set to true, then only the last `tmax` characters of the source value are kept
 		 * instead.
 		 * If the source is shorter than or equal to the target max length, the value is unchanged.
 		 */
-		data class Slice(
+		data class SliceString(
 			val fromEnd: Boolean = false,
 		) : ValueTransformer
+
+		/**
+		 * If the source list is larger than the target list max allowed length constraint only take
+		 * elements up to the max allowed amount.
+		 * This transformation can only be applied for List->List conversions where the source min length
+		 * constraint is greater than or equal to the target min length constraint (note that if undefined min length
+		 * is implicitly 0).
+		 * If the target max length is not defined, or greater than or equal to the source max length, this
+		 * transformation has no effect.
+		 *
+		 * By default, the trimming keeps the start of the list: if the target max length is `tmax` and the source
+		 * list is longer than `tmax`, then only the first `tmax` elements of the source list are kept.
+		 * If [fromEnd] is set to true, then only the last `tmax` elements of the source list are kept
+		 * instead.
+		 * If the source is shorter than or equal to the target max length, the list is unchanged.
+		 *
+		 * # Map elements
+		 *
+		 * You can use [mapElements] to specify a transformation that should be applied to the element of the source
+		 * list after slicing.
+		 *
+		 * The [mapElements] transformation must be applicable for the conversion from the source
+		 * [ListTypeConfig.elementType] to the target [ListTypeConfig.elementType].
+		 *
+		 * If no [mapElements] transformation is specified the source and target list element types must match exactly,
+		 * including validation rules and nullability.
+		 */
+		data class SliceList(
+			val fromEnd: Boolean = false,
+			val mapElements: ValueTransformer? = null,
+		) : ValueTransformer
+
+
 	}
 }

@@ -38,6 +38,7 @@ class ScopedErrorCollector(
 
 /**
  * Appends the given string to the scope path for the duration of the [block], then removes it.
+ * Execute the block even if the receiver is null, but without appending anything to the path in that case.
  */
 inline fun <T> ScopedErrorCollector?.appending(toAppend: Any, block: () -> T): T =
 	this?.path.appending(toAppend, block)
@@ -52,6 +53,7 @@ inline fun <T> ScopedErrorCollector?.appending(toAppend1: Any, toAppend2: Any, t
 
 /**
  * Appends the given strings to the scope path for the duration of the [block], then removes it.
+ * Execute the block even if the receiver is null, but without appending anything to the path in that case.
  */
 inline fun <T> ScopedErrorCollector?.appending(vararg toAppend: Any, block: () -> T): T =
 	this?.path.appending(*toAppend, block = block)
