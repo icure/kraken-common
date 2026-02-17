@@ -171,7 +171,6 @@ data class Patient(
 	val insurabilities: List<Insurability> = emptyList(),
 	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val partnerships: List<Partnership> = emptyList(),
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val patientHealthCareParties: List<PatientHealthCareParty> = emptyList(),
 	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),
