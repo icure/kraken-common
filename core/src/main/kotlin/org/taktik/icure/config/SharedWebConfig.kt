@@ -73,6 +73,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider()
 		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAll())
 		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAll())
+		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAll())
 
 	protected val legacyObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
@@ -90,6 +91,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider()
 		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status"))
 		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type"))
+		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
 
 	protected val cardinalObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
