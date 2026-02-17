@@ -17,6 +17,7 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -40,6 +41,7 @@ import java.time.Instant
 @Schema(
 	description = """This entity is a root level object. It represents an user that can log in to the iCure platform. It is serialized in JSON and saved in the underlying icure-base CouchDB database.""",
 )
+@JsonFilter("userFilter")
 data class UserDto(
 	@param:Schema(description = "the Id of the user. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@param:Schema(description = "the revision of the user in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
