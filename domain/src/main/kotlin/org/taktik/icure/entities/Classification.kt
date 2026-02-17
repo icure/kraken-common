@@ -15,6 +15,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -37,7 +38,7 @@ data class Classification(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val parentId: String? = null,
-	val label: String = "",
+	@MergeStrategyNotBlank val label: String = "",
 	val templateId: String? = null,
 
 	override val secretForeignKeys: Set<String> = emptySet(),
@@ -51,7 +52,7 @@ data class Classification(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument,
+	) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
 	companion object : DynamicInitializer<Classification>

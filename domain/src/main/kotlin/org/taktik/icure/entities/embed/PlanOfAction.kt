@@ -12,6 +12,11 @@ import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -58,9 +63,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this healthcare approach.
  *
  */
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class PlanOfAction(
 	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
@@ -73,21 +78,28 @@ data class PlanOfAction(
 	override val endOfLife: Long? = null,
 
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMax
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
 	val deadlineDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	override val name: String? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	val relevant: Boolean = true,
+	@NonMergeable val relevant: Boolean = true,
 	val idOpeningContact: String? = null,
 	val idClosingContact: String? = null,
-	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@NonMergeable val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 
 	val documentIds: Set<String> = emptySet(),
 	val prescriberId: String? = null, // healthcarePartyId
 	val numberOfCares: Int? = null,
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val careTeamMemberships: List<CareTeamMembership> = emptyList(),
 	override val encryptedSelf: String? = null,
@@ -120,7 +132,6 @@ data class PlanOfAction(
 			"idOpeningContact" to (this.idOpeningContact ?: other.idOpeningContact),
 			"idClosingContact" to (this.idClosingContact ?: other.idClosingContact),
 			"status" to (this.status),
-
 			"documentIds" to (other.documentIds + this.documentIds),
 			"prescriberId" to (this.prescriberId ?: other.prescriberId),
 			"numberOfCares" to (this.numberOfCares ?: other.numberOfCares),

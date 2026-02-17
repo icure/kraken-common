@@ -7,6 +7,7 @@ package org.taktik.icure.entities.base
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
 
 interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	/**
@@ -26,6 +27,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
 	val cryptedForeignKeys: Map<String, Set<Delegation>>
 
 	// When a document is created, the responsible generates a cryptographically random master key (never to be used for something else than referencing from other entities)
@@ -38,6 +40,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
 	val delegations: Map<String, Set<Delegation>>
 
 	// When a document needs to be encrypted, the responsible generates a cryptographically random master key (different from the delegation key, never to appear in clear anywhere in the db)
@@ -49,6 +52,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
 	val encryptionKeys: Map<String, Set<Delegation>>
 
 	fun solveConflictsWith(other: HasEncryptionMetadata): Map<String, Any?> = mapOf(
@@ -62,7 +66,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 					thisSecurityMetadata.mergeForDifferentVersionsOfEntity(otherSecurityMetadata)
 				} ?: thisSecurityMetadata
 			} ?: other.securityMetadata
-			),
+		),
 	)
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>

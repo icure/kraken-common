@@ -11,6 +11,7 @@ import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -22,6 +23,7 @@ import java.io.Serializable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Address(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),

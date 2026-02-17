@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.RevisionInfo
+import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -32,14 +33,14 @@ data class ClassificationTemplate(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val parentId: String? = null,
-	val label: String = "",
+	@MergeStrategyNotBlank val label: String = "",
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument {
+	) : StoredICureDocument {
 	companion object : DynamicInitializer<ClassificationTemplate>
 
 	fun merge(other: ClassificationTemplate) = ClassificationTemplate(args = this.solveConflictsWith(other))

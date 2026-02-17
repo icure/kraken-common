@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -17,8 +18,9 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class CareTeamMember(
-	@field:NotBlank(autoFix = AutoFix.UUID) @JsonProperty("_id") override val id: String = "",
+	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
 	val careTeamMemberType: CareTeamMemberType? = null,
 	val healthcarePartyId: String? = null,
 	val quality: CodeStub? = null,

@@ -1,11 +1,44 @@
 package org.taktik.icure.mergers
 
 import org.taktik.couchdb.id.Identifiable
+import org.taktik.icure.entities.base.HasDataAttachments
+import org.taktik.icure.entities.embed.DeletedAttachment
+import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.entities.objectstorage.DataAttachment
+import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 
 abstract class Merger<T> {
 	abstract fun canMerge(l: T?, r: T?): Boolean
 	abstract fun merge(l: T?, r: T?): T?
 
+	// region mergeUtils
+	protected fun mergeDeletedAttachments(l: List<DeletedAttachment>, r: List<DeletedAttachment>): List<DeletedAttachment> =
+		MergeUtil.mergeListsDistinct(
+			l,
+			r,
+			comparator = { a, b -> a.key == b.key && a.objectStoreAttachmentId == b.objectStoreAttachmentId && a.couchDbAttachmentId == b.couchDbAttachmentId },
+		)
+
+	protected fun mergeSecurityMetadata(l: SecurityMetadata?, r: SecurityMetadata?): SecurityMetadata? =
+		l?.let { thisSecurityMetadata ->
+			r?.let { otherSecurityMetadata ->
+				thisSecurityMetadata.mergeForDifferentVersionsOfEntity(otherSecurityMetadata)
+			} ?: thisSecurityMetadata
+		} ?: r
+
+	protected fun <D : HasDataAttachments<D>> solveDataAttachmentsConflicts(
+		l: HasDataAttachments<D>?,
+		r: HasDataAttachments<D>?
+	): Map<String, DataAttachment> =
+		if (l != null && r != null) l.solveDataAttachmentsConflicts(r)
+		else emptyMap()
+
+	protected fun mergeListOfStringsIgnoringCase(l: List<String>, r: List<String>): List<String> =
+		mergeListsDistinct(l, r, { a, b -> a.equals(b, true) }, { a, _ -> a })
+	// endregion
+
+	// region canMergeUtils
 	protected fun <F> canMergeNonMergeableField(l: F?, r: F?): Boolean = (l == null || r == null || l == r)
 
 	protected inline fun <F : Identifiable<String>> canMergeCollectionsOfMergeable(
@@ -61,4 +94,6 @@ abstract class Merger<T> {
 		} ?: true
 		return visitLeft && visitedRemainingRight
 	}
+
+	// endregion
 }

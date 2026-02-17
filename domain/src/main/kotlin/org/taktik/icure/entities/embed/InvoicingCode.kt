@@ -6,11 +6,13 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class InvoicingCode(
 	@param:JsonProperty("_id") val id: String?,
 	val dateCode: Long? = null,

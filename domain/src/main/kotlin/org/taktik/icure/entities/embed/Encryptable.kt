@@ -4,8 +4,10 @@
 
 package org.taktik.icure.entities.embed
 
+import org.taktik.icure.mergers.annotations.NonMergeable
+
 interface Encryptable {
-	val encryptedSelf: String?
+	@NonMergeable val encryptedSelf: String?
 
 	fun solveConflictsWith(other: Encryptable) = mapOf(
 		"encryptedSelf" to (this.encryptedSelf ?: other.encryptedSelf),

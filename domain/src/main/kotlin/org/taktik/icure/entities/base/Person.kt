@@ -8,6 +8,7 @@ import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.PersonName
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import java.io.Serializable
 
 interface Person :
@@ -20,7 +21,7 @@ interface Person :
 	val names: List<PersonName>
 	val companyName: String?
 	val addresses: List<Address>
-	val languages: List<String>
+	@MergeStrategyUse("mergeListOfStringsIgnoringCase") val languages: List<String>
 
 	fun solveConflictsWith(other: Person): Map<String, Any?> = mapOf(
 		"id" to this.id,

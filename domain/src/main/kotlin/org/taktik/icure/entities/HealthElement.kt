@@ -22,6 +22,8 @@ import org.taktik.icure.entities.embed.PlanOfAction
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -97,8 +99,13 @@ data class HealthElement(
 
 	@field:NotNull(autoFix = AutoFix.UUID, doNotApplyOnCardinalModel = true) val healthElementId: String? = null, // Several versions of the same healthcare element share the same healthElementId while having different ids
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMax
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val descr: String? = null,
 	val note: String? = null,

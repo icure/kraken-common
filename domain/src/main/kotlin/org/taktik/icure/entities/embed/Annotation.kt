@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -27,6 +28,7 @@ import java.util.*
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Annotation(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) val author: String? = null,

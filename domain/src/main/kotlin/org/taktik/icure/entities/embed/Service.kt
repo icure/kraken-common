@@ -14,6 +14,8 @@ import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Base64String
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.serializers.ServiceQualifiedLinkDeserializer
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -67,6 +69,7 @@ import java.util.*
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Service(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
@@ -80,7 +83,7 @@ data class Service(
 	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
 	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
 	@JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
+	@NonMergeable @JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
 	val label: String? = null,
 	@Deprecated("Deleted in V2") val dataClassName: String? = null,
 	val index: Long? = null, // Used for sorting

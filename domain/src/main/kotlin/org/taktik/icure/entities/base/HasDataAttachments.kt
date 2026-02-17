@@ -4,6 +4,7 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.DeletedAttachment
 import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 /**
  * Interface for entities which store part of their data as attachments.
@@ -19,6 +20,7 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 	/**
 	 * History of all deleted attachments.
 	 */
+	@MergeStrategyUse("mergeDeletedAttachments")
 	val deletedAttachments: List<DeletedAttachment>
 
 	fun withUpdatedDataAttachment(key: String, newValue: DataAttachment?): T

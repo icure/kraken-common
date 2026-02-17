@@ -22,9 +22,6 @@ import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-
 /**
  * A Message
  * This entity is a root level object. It represents a Message. It is serialized in JSON and saved in the underlying CouchDB database.
@@ -71,6 +68,8 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this Message.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Message(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

@@ -2,6 +2,7 @@ package org.taktik.icure.entities.base
 
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 /**
  * Represents a special case of entities with user-based access control where the users with access to the entity may not be explicitly
@@ -14,9 +15,10 @@ interface HasSecureDelegationsAccessControl : HasExplicitDataOwnerAccess {
 	/**
 	 * Security metadata for the entity, contains metadata necessary for access control.
 	 * In [HasEncryptionMetadata] entities this is also used to store additional encrypted metadata on the entity, including encryption keys for the
-	 * [HasEncryptionMetadata.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
+	 * [org.taktik.icure.entities.embed.Encryptable.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
 	 * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
 	 */
+	@MergeStrategyUse("mergeSecurityMetadata")
 	val securityMetadata: SecurityMetadata?
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() =

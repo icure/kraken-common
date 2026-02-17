@@ -21,12 +21,6 @@ import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 
 /**
- * Created by aduchate on 18/07/13, 13:06
- */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-
-/**
  * This entity is a root level object. It represents a Form. It is serialized in JSON and saved in the underlying CouchDB database.
  *
  * A form is used to visually structure medical information pertaining to one or several healthcare elements and collected on the course of a series of contacts.
@@ -58,7 +52,8 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this Form.
  *
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Form(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

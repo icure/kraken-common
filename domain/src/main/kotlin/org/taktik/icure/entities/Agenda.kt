@@ -19,7 +19,6 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
-import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
@@ -242,7 +241,6 @@ import java.time.ZoneId
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
 data class Agenda(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -257,11 +255,11 @@ data class Agenda(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	val name: String? = null,
 	@Deprecated("Use TODO instead") val userId: String? = null,
-	@Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
+	@NonMergeable @Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
 	/**
 	 * Associates a user id to the permission that user has on the entity.
 	 */
-	val userRights: Map<String, UserAccessLevel> = emptyMap(),
+	@NonMergeable val userRights: Map<String, UserAccessLevel> = emptyMap(),
 	@NonMergeable val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
 	/**
 	 * Custom properties of the agenda. Public on public agenda.

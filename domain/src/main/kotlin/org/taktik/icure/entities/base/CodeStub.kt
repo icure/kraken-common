@@ -29,7 +29,6 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
-@Mergeable
 data class CodeStub(
 	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used

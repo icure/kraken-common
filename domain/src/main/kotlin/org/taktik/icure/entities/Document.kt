@@ -21,6 +21,8 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
+import org.taktik.icure.mergers.annotations.MergeStrategyUseExpression
+import org.taktik.icure.mergers.annotations.PrecomputeForMerge
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -66,6 +68,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@PrecomputeForMerge("allDataAttachments", "solveDataAttachmentsConflicts(l, r)")
 data class Document(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -90,10 +93,15 @@ data class Document(
 	val storedICureDocumentId: String? = null, // The ICureDocument (Form, Contact, ...) that has been used to generate the document
 	val externalUuid: String? = null,
 
+	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.couchDbAttachmentId")
 	val attachmentId: String? = null,
+	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.objectStoreAttachmentId")
 	val objectStoreReference: String? = null,
+	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.utis?.firstOrNull()")
 	val mainUti: String? = null,
+	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.utis?.drop(1)?.toSet() ?: emptySet()")
 	val otherUtis: Set<String> = emptySet(),
+	@MergeStrategyUseExpression("allDataAttachments - l!!.mainAttachmentKey")
 	val secondaryAttachments: Map<String, DataAttachment> = emptyMap(),
 	override val deletedAttachments: List<DeletedAttachment> = emptyList(),
 

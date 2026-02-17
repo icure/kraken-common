@@ -13,6 +13,8 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
 import org.taktik.icure.exceptions.MergeConflictException
+import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
 /**
@@ -26,11 +28,11 @@ data class ExchangeData(
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].
 	 */
-	val delegator: String,
+	@NonMergeable val delegator: String,
 	/**
 	 * ID of a data owner which can use this exchange data to access data shared with him by [delegator].
 	 */
-	val delegate: String,
+	@NonMergeable val delegate: String,
 	/**
 	 * Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 	 * delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.
@@ -80,7 +82,7 @@ data class ExchangeData(
 	 * - The delegator and delegates being part of the exchange data
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
 	 */
-	val sharedSignature: Base64String,
+	@MergeStrategyChooseLeft val sharedSignature: Base64String,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

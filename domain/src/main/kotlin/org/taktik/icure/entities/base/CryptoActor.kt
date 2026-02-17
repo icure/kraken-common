@@ -7,6 +7,8 @@ package org.taktik.icure.entities.base
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.NonMergeable
 
 /**
  * @property hcPartyKeys For each couple of HcParties (delegator and delegate), this map contains the exchange AES key. The delegator is always this hcp, the key of the map is the id of the delegate. The AES exchange key is encrypted using RSA twice : once using this hcp public key (index 0 in the Array) and once using the other hcp public key (index 1 in the Array). For a pair of HcParties. Each HcParty always has one AES exchange key for himself.
@@ -23,6 +25,7 @@ interface CryptoActor {
 	// The map's keys are the delegate id.
 	// In the table, we get at the first position: the key encrypted using owner (this)'s public key and in 2nd pos.
 	// the key encrypted using delegate's public key.
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct")
 	val hcPartyKeys: Map<String, List<String>>
 
 	// Extra AES exchange keys, usually the ones we lost access to at some point
@@ -34,7 +37,7 @@ interface CryptoActor {
 	val transferKeys: Map<String, Map<String, String>>
 
 	val privateKeyShamirPartitions: Map<String, String> // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
-	val publicKey: String?
+	@NonMergeable val publicKey: String?
 
 	// The public keys stored in this set must be used only for RSA-OAEP with Sha-256 encryption. (Instead, the one contained in the publicKey and
 	// aesExchangeKey field must be used for RSA-OAEP with Sha-1 and are considered legacy starting from v8 of the SDK).

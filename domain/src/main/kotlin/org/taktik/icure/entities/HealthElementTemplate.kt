@@ -13,6 +13,7 @@ import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.PlanOfActionTemplate
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -35,15 +36,18 @@ data class HealthElementTemplate(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	val descr: String? = null,
 	val note: String? = null,
+	@NonMergeable
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	@param:JsonProperty("isRelevant") val relevant: Boolean = true,
+	@NonMergeable
+	@param:JsonProperty("isRelevant")
+	val relevant: Boolean = true,
 	@field:Valid val plansOfAction: List<PlanOfActionTemplate> = emptyList(),
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument {
+	) : StoredICureDocument {
 	companion object : DynamicInitializer<HealthElementTemplate>
 
 	fun merge(other: HealthElementTemplate) = HealthElementTemplate(args = this.solveConflictsWith(other))

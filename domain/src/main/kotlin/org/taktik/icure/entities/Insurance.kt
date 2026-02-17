@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.RevisionInfo
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -21,8 +22,11 @@ data class Insurance(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val name: Map<String, String> = emptyMap(),
+	@NonMergeable
 	val privateInsurance: Boolean = false,
+	@NonMergeable
 	val hospitalisationInsurance: Boolean = false,
+	@NonMergeable
 	val ambulatoryInsurance: Boolean = false,
 	val code: String? = null,
 	val agreementNumber: String? = null,

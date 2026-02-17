@@ -24,14 +24,14 @@ import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.embed.ServiceLink
 import org.taktik.icure.entities.embed.SubContact
 import org.taktik.icure.entities.utils.MergeUtil.mergeSets
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * This entity is a root level object. It represents a contact. It is serialized in JSON and saved in the underlying icure-contact CouchDB database.
@@ -73,7 +73,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this contact.
  *
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Contact(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -90,7 +92,10 @@ data class Contact(
 
 	@field:NotNull(autoFix = AutoFix.UUID) val groupId: String? = null, // Several contacts can be combined in a logical contact if they share the same groupId
 
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	@MergeStrategyMin
+	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMax
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 
 	val descr: String? = null,
@@ -145,7 +150,7 @@ data class Contact(
 				services,
 				other.services,
 				{ a, b -> a.id == b.id },
-				{ a: Service, b: Service -> a. (b) },
+				{ a: Service, b: Service -> a.merge(b) },
 			),
 		)
 

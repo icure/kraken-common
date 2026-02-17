@@ -35,6 +35,8 @@ import org.taktik.icure.entities.embed.SchoolingInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -136,8 +138,11 @@ data class Patient(
 	val mergeToPatientId: String? = null,
 	val mergedIds: Set<String> = emptySet(),
 	val alias: String? = null,
+	@NonMergeable
 	val active: Boolean = true,
+	@NonMergeable
 	val deactivationReason: String = "none",
+	@NonMergeable
 	val deactivationDate: Int? = null,
 	val ssin: String? = null,
 	val maidenName: String? = null, // Never changes (nom de jeune fille),
@@ -159,14 +164,22 @@ data class Patient(
 	val ethnicity: String? = null,
 	val nationality: String? = null,
 	val preferredUserId: String? = null,
-	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
+	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class)
+	val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
+	@MergeStrategyUseReference("org.taktik.icure.entities.Patient.mergeInsurabilities")
 	val insurabilities: List<Insurability> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val partnerships: List<Partnership> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val patientHealthCareParties: List<PatientHealthCareParty> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val medicalHouseContracts: List<MedicalHouseContract> = emptyList(),
-	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) val patientProfessions: List<CodeStub> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
+	val patientProfessions: List<CodeStub> = emptyList(),
 	val parameters: Map<String, List<String>> = emptyMap(),
 	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
 	@Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
@@ -177,8 +190,12 @@ data class Patient(
 	@Deprecated("Use properties instead") val nativeCountry: CodeStub? = null,
 	@Deprecated("Use properties instead") val socialStatus: CodeStub? = null,
 	@Deprecated("Use properties instead") val mainSourceOfIncome: CodeStub? = null,
-	@Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfo> = emptyList(),
-	@Deprecated("Use properties instead") val employementInfos: List<EmploymentInfo> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
+	@Deprecated("Use properties instead")
+	val schoolingInfos: List<SchoolingInfo> = emptyList(),
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
+	@Deprecated("Use properties instead")
+	val employementInfos: List<EmploymentInfo> = emptyList(),
 	override val properties: Set<PropertyStub> = emptySet(),
 
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
@@ -218,7 +235,18 @@ data class Patient(
 	CryptoActor,
 	DataOwner,
 	Encryptable {
-	companion object : DynamicInitializer<Patient>
+
+	companion object : DynamicInitializer<Patient> {
+		fun mergeInsurabilities(
+			thisInsurabilities: List<Insurability>,
+			otherInsurabilities: List<Insurability>
+		): List<Insurability> = mergeListsDistinct(
+			thisInsurabilities,
+			otherInsurabilities,
+			{ a, b -> a.insuranceId == b.insuranceId && a.startDate == b.startDate },
+			{ a, b -> if (a.endDate != null) a else b },
+		)
+	}
 
 	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
 

@@ -14,6 +14,7 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.TaskStatus
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -36,6 +37,7 @@ data class MaintenanceTask(
 
 	val taskType: String? = null,
 	val properties: Set<PropertyStub> = emptySet(),
+	@NonMergeable
 	val status: TaskStatus = TaskStatus.pending,
 
 	override val secretForeignKeys: Set<String> = emptySet(),

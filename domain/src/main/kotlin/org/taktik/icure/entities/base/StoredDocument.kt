@@ -10,6 +10,8 @@ import org.taktik.couchdb.entity.Revisionable
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.exceptions.DeserializationTypeException
+import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
+import org.taktik.icure.mergers.annotations.NonMergeable
 
 interface StoredDocument : Versionable<String> {
 	companion object {
@@ -39,9 +41,9 @@ interface StoredDocument : Versionable<String> {
 	}
 
 	val deletionDate: Long?
-	val revisionsInfo: List<RevisionInfo>?
-	val conflicts: List<String>?
-	val attachments: Map<String, Attachment>?
+	@MergeStrategyChooseLeft val revisionsInfo: List<RevisionInfo>?
+	@MergeStrategyChooseLeft val conflicts: List<String>?
+	@NonMergeable val attachments: Map<String, Attachment>?
 
 	fun solveConflictsWith(other: StoredDocument): Map<String, Any?> = mapOf(
 		"id" to this.id,
