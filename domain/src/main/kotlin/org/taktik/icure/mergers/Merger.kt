@@ -1,20 +1,18 @@
 package org.taktik.icure.mergers
 
-import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.embed.DeletedAttachment
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 
 abstract class Merger<T> {
-	abstract fun canMerge(l: T?, r: T?): Boolean
-	abstract fun merge(l: T, r: T): T
+	abstract fun canMerge(left: T, right: T): Boolean
+	abstract fun merge(left: T, right: T): T
 
 	// region mergeUtils
 	protected fun mergeDeletedAttachments(l: List<DeletedAttachment>, r: List<DeletedAttachment>): List<DeletedAttachment> =
-		MergeUtil.mergeListsDistinct(
+		mergeListsDistinct(
 			l,
 			r,
 			comparator = { a, b -> a.key == b.key && a.objectStoreAttachmentId == b.objectStoreAttachmentId && a.couchDbAttachmentId == b.couchDbAttachmentId },
@@ -44,58 +42,74 @@ abstract class Merger<T> {
 	protected inline fun <F> canMergeCollectionsOfMergeable(
 		l: Collection<F>?,
 		r: Collection<F>?,
-		canMerge: (F?, F?) -> Boolean,
+		canMerge: (F, F) -> Boolean,
 		comparator: (F, F) -> Boolean
 	): Boolean {
-		val mutableRight = r?.toMutableList()
-		val visitLeft = l?.all { leftItem ->
-			val rightItem = mutableRight?.firstOrNull {
+		// If either are null, I can always merge setting the other
+		if (l == null || r == null) {
+			return true
+		}
+
+		val mutableRight = r.toMutableList()
+		val visitLeft = l.all { leftItem ->
+			val rightItem = mutableRight.firstOrNull {
 				comparator(it, leftItem)
 			}?.also {
 				mutableRight.remove(it)
 			}
-			canMerge(leftItem, rightItem)
-		} ?: true
-		val visitedRemainingRight = mutableRight?.all { rightItem ->
-			canMerge(l?.firstOrNull { comparator(it, rightItem) }, rightItem)
-		} ?: true
+			rightItem == null || canMerge(leftItem, rightItem)
+		}
+		val visitedRemainingRight = mutableRight.all { rightItem ->
+			val leftItem = l.firstOrNull { comparator(it, rightItem) }
+			leftItem == null || canMerge(leftItem, rightItem)
+		}
 		return visitLeft && visitedRemainingRight
 	}
 
 	protected inline fun <K, F> canMergeMapsOfMergeable(
 		l: Map<K, F>?,
 		r: Map<K, F>?,
-		canMerge: (F?, F?) -> Boolean
+		canMerge: (F, F) -> Boolean
 	): Boolean {
+		// If either are null, I can always merge setting the other
+		if (l == null || r == null) {
+			return true
+		}
+
 		val visited = mutableSetOf<K>()
-		val visitLeft = l?.all { (k, v) ->
+		val visitLeft = l.all { (k, v) ->
 			visited.add(k)
-			canMerge(v, r?.get(k))
-		} ?: true
-		val visitedRemainingRight = r?.filterKeys { k ->
+			r[k] == null || canMerge(v, r.getValue(k))
+		}
+		val visitedRemainingRight = r.filterKeys { k ->
 			k !in visited
-		}?.all { (k, v) ->
-			canMerge(l?.get(k), v)
-		} ?: true
+		}.all { (k, v) ->
+			l[k] == null || canMerge(l.getValue(k), v)
+		}
 		return visitLeft && visitedRemainingRight
 	}
 
-	protected inline fun <K, F : Identifiable<String>> canMergeMapsOfMergeableCollections(
+	protected inline fun <K, F> canMergeMapsOfMergeableCollections(
 		l: Map<K, Collection<F>>?,
 		r: Map<K, Collection<F>>?,
-		canMerge: (F?, F?) -> Boolean,
+		canMerge: (F, F) -> Boolean,
 		comparator: (F, F) -> Boolean,
 	): Boolean {
+		// If either are null, I can always merge setting the other
+		if (l == null || r == null) {
+			return true
+		}
+
 		val visited = mutableSetOf<K>()
-		val visitLeft = l?.all { (k, v) ->
+		val visitLeft = l.all { (k, v) ->
 			visited.add(k)
-			canMergeCollectionsOfMergeable(v, r?.get(k), canMerge, comparator)
-		} ?: true
-		val visitedRemainingRight = r?.filterKeys { k ->
+			canMergeCollectionsOfMergeable(v, r[k], canMerge, comparator)
+		}
+		val visitedRemainingRight = r.filterKeys { k ->
 			k !in visited
-		}?.all { (k, v) ->
-			canMergeCollectionsOfMergeable(l?.get(k), v, canMerge, comparator)
-		} ?: true
+		}.all { (k, v) ->
+			canMergeCollectionsOfMergeable(l[k], v, canMerge, comparator)
+		}
 		return visitLeft && visitedRemainingRight
 	}
 
