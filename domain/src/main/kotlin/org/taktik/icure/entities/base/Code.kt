@@ -10,11 +10,15 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.embed.Periodicity
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Code(
 	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -33,17 +37,18 @@ data class Code(
 	val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
 	val flags: Set<CodeFlag> = emptySet(), // flags (like female only) for the code
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	val data: String? = null,
 	val appendices: Map<AppendixType, String> = emptyMap(),
-	val disabled: Boolean = false,
+	@NonMergeable val disabled: Boolean = false,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument,
+	) : StoredDocument,
 	CodeIdentification {
 	companion object : DynamicInitializer<Code> {
 		fun from(type: String, code: String, version: String) = Code(id = "$type|$code|$version", type = type, code = code, version = version)

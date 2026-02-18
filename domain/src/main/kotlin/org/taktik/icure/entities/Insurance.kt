@@ -10,12 +10,14 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.RevisionInfo
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Insurance(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

@@ -29,14 +29,13 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.TelecomType
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A healthcareParty
@@ -86,7 +85,9 @@ import org.taktik.icure.validation.ValidCode
  * @property tags Tags that qualify the healthcareparty as being member of a certain class.
  * @property codes Codes that identify or qualify this particular healthcareparty.
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class HealthcareParty(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -149,7 +150,9 @@ data class HealthcareParty(
 	 * will be accessible through the anonymous endpoints.
 	 * TODO added for the future but currently unused
 	 */
-	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
+	@NonMergeable
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT)
+	val public: Boolean = false,
 	/**
 	 * Public properties are exposed to all users and anonymous endpoints.
 	 */

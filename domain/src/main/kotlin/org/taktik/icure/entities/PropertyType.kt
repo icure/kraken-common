@@ -11,6 +11,7 @@ import org.taktik.icure.constants.PropertyTypeScope
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.TypedValuesType
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -21,19 +22,19 @@ data class PropertyType(
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	val identifier: String,
+	@NonMergeable val identifier: String,
 	val type: TypedValuesType? = null,
 	val scope: PropertyTypeScope? = null,
-	val unique: Boolean = false,
+	@NonMergeable val unique: Boolean = false,
 	val editor: String? = null,
-	val localized: Boolean = false,
+	@NonMergeable val localized: Boolean = false,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument {
+	) : StoredDocument {
 	companion object : DynamicInitializer<PropertyType> {
 		fun with(type: TypedValuesType, scope: PropertyTypeScope, identifier: String) = PropertyType(id = identifier, type = type, scope = scope, identifier = identifier)
 	}

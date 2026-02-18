@@ -24,14 +24,13 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A Healthcare Element
@@ -82,7 +81,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this healthcare element.
  *
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class HealthElement(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -110,11 +111,11 @@ data class HealthElement(
 	val descr: String? = null,
 	val note: String? = null,
 	val notes: List<Annotation> = emptyList(),
-	val relevant: Boolean = true,
+	@NonMergeable val relevant: Boolean = true,
 	val idOpeningContact: String? = null,
 	val idClosingContact: String? = null,
 	val idService: String? = null, // When a service is used to create the healthElement
-	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@NonMergeable val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	val laterality: Laterality? = null,
 	@field:Valid val plansOfAction: List<PlanOfAction> = emptyList(),
 	@field:Valid val episodes: List<Episode> = emptyList(),
@@ -131,7 +132,7 @@ data class HealthElement(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument,
+	) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
 	companion object : DynamicInitializer<HealthElement>

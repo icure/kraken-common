@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Base64String
+import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.serializers.ServiceQualifiedLinkDeserializer
@@ -84,6 +85,7 @@ data class Service(
 	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
 	@JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
 	@NonMergeable @JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyNotBlank
 	val label: String? = null,
 	@Deprecated("Deleted in V2") val dataClassName: String? = null,
 	val index: Long? = null, // Used for sorting

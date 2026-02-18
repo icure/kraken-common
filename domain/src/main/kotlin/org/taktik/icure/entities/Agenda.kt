@@ -19,6 +19,8 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.mergers.annotations.MergeStrategyCollectionNotEmpty
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
@@ -241,6 +243,7 @@ import java.time.ZoneId
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Agenda(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -260,7 +263,8 @@ data class Agenda(
 	 * Associates a user id to the permission that user has on the entity.
 	 */
 	@NonMergeable val userRights: Map<String, UserAccessLevel> = emptyMap(),
-	@NonMergeable val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
+	@MergeStrategyCollectionNotEmpty
+	val schedules: List<ResourceGroupAllocationSchedule> = emptyList(),
 	/**
 	 * Custom properties of the agenda. Public on public agenda.
 	 */
@@ -322,7 +326,7 @@ data class Agenda(
 	 * can be used with those features normally.
 	 * An unpublished agenda has less strict integrity checks.
 	 */
-	val unpublished: Boolean = false,
+	@NonMergeable val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	/**
 	 * If not null limits the amount of appointments that each user without special privileges is allowed to take for

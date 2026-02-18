@@ -21,6 +21,9 @@ import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.InstantDeserializer
@@ -58,11 +61,14 @@ import java.time.Instant
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class User(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
-	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.NOW)
+	val created: Long? = null,
 
 	val identifier: List<Identifier> = listOf(),
 
@@ -84,6 +90,7 @@ data class User(
 	val healthcarePartyId: String? = null,
 	val patientId: String? = null,
 	val deviceId: String? = null,
+	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct")
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
 
 	@param:JsonSerialize(using = InstantSerializer::class)

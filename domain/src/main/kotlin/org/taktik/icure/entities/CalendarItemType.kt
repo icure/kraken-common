@@ -12,11 +12,14 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class CalendarItemType(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -24,9 +27,9 @@ data class CalendarItemType(
 	val name: String? = null,
 	val healthcarePartyId: String? = null,
 	val agendaId: String? = null,
-	val defaultCalendarItemType: Boolean = false,
+	@NonMergeable val defaultCalendarItemType: Boolean = false,
 	val color: String? = null, // "#123456"
-	val duration: Int = 0, // Duration in minutes
+	@NonMergeable val duration: Int = 0, // Duration in minutes
 	val extraDurationsConfig: DurationConfig? = null,
 	val externalRef: String? = null,
 	val mikronoId: String? = null,

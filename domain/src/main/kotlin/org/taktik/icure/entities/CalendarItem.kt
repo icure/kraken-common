@@ -17,6 +17,7 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -25,6 +26,7 @@ import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class CalendarItem(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

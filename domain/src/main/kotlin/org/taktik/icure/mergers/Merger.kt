@@ -10,7 +10,7 @@ import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 
 abstract class Merger<T> {
 	abstract fun canMerge(l: T?, r: T?): Boolean
-	abstract fun merge(l: T?, r: T?): T?
+	abstract fun merge(l: T, r: T): T
 
 	// region mergeUtils
 	protected fun mergeDeletedAttachments(l: List<DeletedAttachment>, r: List<DeletedAttachment>): List<DeletedAttachment> =
@@ -41,20 +41,23 @@ abstract class Merger<T> {
 	// region canMergeUtils
 	protected fun <F> canMergeNonMergeableField(l: F?, r: F?): Boolean = (l == null || r == null || l == r)
 
-	protected inline fun <F : Identifiable<String>> canMergeCollectionsOfMergeable(
+	protected inline fun <F> canMergeCollectionsOfMergeable(
 		l: Collection<F>?,
 		r: Collection<F>?,
-		canMerge: (F?, F?) -> Boolean
+		canMerge: (F?, F?) -> Boolean,
+		comparator: (F, F) -> Boolean
 	): Boolean {
-		val visited = mutableSetOf<String>()
+		val mutableRight = r?.toMutableList()
 		val visitLeft = l?.all { leftItem ->
-			visited.add(leftItem.id)
-			canMerge(leftItem, r?.firstOrNull { it.id == leftItem.id })
+			val rightItem = mutableRight?.firstOrNull {
+				comparator(it, leftItem)
+			}?.also {
+				mutableRight.remove(it)
+			}
+			canMerge(leftItem, rightItem)
 		} ?: true
-		val visitedRemainingRight = r?.filter {
-			it.id !in visited
-		}?.all { rightItem ->
-			canMerge(l?.firstOrNull { it.id == rightItem.id }, rightItem)
+		val visitedRemainingRight = mutableRight?.all { rightItem ->
+			canMerge(l?.firstOrNull { comparator(it, rightItem) }, rightItem)
 		} ?: true
 		return visitLeft && visitedRemainingRight
 	}
@@ -80,17 +83,18 @@ abstract class Merger<T> {
 	protected inline fun <K, F : Identifiable<String>> canMergeMapsOfMergeableCollections(
 		l: Map<K, Collection<F>>?,
 		r: Map<K, Collection<F>>?,
-		canMerge: (F?, F?) -> Boolean
+		canMerge: (F?, F?) -> Boolean,
+		comparator: (F, F) -> Boolean,
 	): Boolean {
 		val visited = mutableSetOf<K>()
 		val visitLeft = l?.all { (k, v) ->
 			visited.add(k)
-			canMergeCollectionsOfMergeable(v, r?.get(k), canMerge)
+			canMergeCollectionsOfMergeable(v, r?.get(k), canMerge, comparator)
 		} ?: true
 		val visitedRemainingRight = r?.filterKeys { k ->
 			k !in visited
 		}?.all { (k, v) ->
-			canMergeCollectionsOfMergeable(l?.get(k), v, canMerge)
+			canMergeCollectionsOfMergeable(l?.get(k), v, canMerge, comparator)
 		} ?: true
 		return visitLeft && visitedRemainingRight
 	}

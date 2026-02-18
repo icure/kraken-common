@@ -36,6 +36,7 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -114,6 +115,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class Patient(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -167,7 +169,7 @@ data class Patient(
 	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class)
 	val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
-	@MergeStrategyUseReference("org.taktik.icure.entities.Patient.mergeInsurabilities")
+	@MergeStrategyUseReference("org.taktik.icure.entities.Patient.Companion.mergeInsurabilities")
 	val insurabilities: List<Insurability> = emptyList(),
 	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
 	val partnerships: List<Partnership> = emptyList(),

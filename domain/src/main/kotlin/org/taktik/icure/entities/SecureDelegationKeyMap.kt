@@ -11,6 +11,8 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 
 /**
  * An internal top-level entity which allows data owners to identify the anonymous delegator and/or delegate of secure
@@ -18,13 +20,14 @@ import org.taktik.icure.entities.utils.Base64String
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class SecureDelegationKeyMap(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * The secure delegation key this map refers to.
 	 */
-	val delegationKey: String,
+	@NonMergeable val delegationKey: String,
 	/**
 	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
 	 * and if not encrypted.

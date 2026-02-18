@@ -22,6 +22,7 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.mergers.annotations.MergeStrategyUseExpression
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.PrecomputeForMerge
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -68,6 +69,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 @PrecomputeForMerge("allDataAttachments", "solveDataAttachmentsConflicts(l, r)")
 data class Document(
 	@param:JsonProperty("_id") override val id: String,
@@ -93,15 +95,15 @@ data class Document(
 	val storedICureDocumentId: String? = null, // The ICureDocument (Form, Contact, ...) that has been used to generate the document
 	val externalUuid: String? = null,
 
-	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.couchDbAttachmentId")
+	@MergeStrategyUseExpression("allDataAttachments[{{LEFT}}.mainAttachmentKey]?.couchDbAttachmentId")
 	val attachmentId: String? = null,
-	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.objectStoreAttachmentId")
+	@MergeStrategyUseExpression("allDataAttachments[{{LEFT}}.mainAttachmentKey]?.objectStoreAttachmentId")
 	val objectStoreReference: String? = null,
-	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.utis?.firstOrNull()")
+	@MergeStrategyUseExpression("allDataAttachments[{{LEFT}}.mainAttachmentKey]?.utis?.firstOrNull()")
 	val mainUti: String? = null,
-	@MergeStrategyUseExpression("allDataAttachments[l!!.mainAttachmentKey]?.utis?.drop(1)?.toSet() ?: emptySet()")
+	@MergeStrategyUseExpression("allDataAttachments[{{LEFT}}.mainAttachmentKey]?.utis?.drop(1)?.toSet() ?: emptySet()")
 	val otherUtis: Set<String> = emptySet(),
-	@MergeStrategyUseExpression("allDataAttachments - l!!.mainAttachmentKey")
+	@MergeStrategyUseExpression("allDataAttachments - {{LEFT}}.mainAttachmentKey")
 	val secondaryAttachments: Map<String, DataAttachment> = emptyMap(),
 	override val deletedAttachments: List<DeletedAttachment> = emptyList(),
 

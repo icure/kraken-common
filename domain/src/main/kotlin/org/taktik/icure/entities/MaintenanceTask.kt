@@ -14,6 +14,7 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.TaskStatus
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -21,6 +22,7 @@ import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable
 data class MaintenanceTask(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -64,5 +66,4 @@ data class MaintenanceTask(
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
-	// TODO solve conflicts?
 }
