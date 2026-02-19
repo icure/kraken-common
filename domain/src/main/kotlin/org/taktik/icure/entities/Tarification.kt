@@ -20,14 +20,12 @@ import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
 import org.taktik.icure.entities.utils.MergeUtil.mergeSets
 import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
-import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
 data class Tarification(
 	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	@param:JsonProperty("_rev") override val rev: String? = null,

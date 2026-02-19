@@ -8,27 +8,23 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.TotalCount
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.HealthElementDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.generated.HealthElementMerger
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
@@ -40,6 +36,7 @@ open class HealthElementLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
+	healthElementMerger: HealthElementMerger,
 ) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(
 	fixer,
 	sessionLogic,
@@ -47,6 +44,7 @@ open class HealthElementLogicImpl(
 	exchangeDataMapLogic,
 	filters,
 ),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(healthElementDAO, healthElementMerger, datastoreInstanceProvider),
 	HealthElementLogic {
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,
@@ -170,52 +168,6 @@ open class HealthElementLogicImpl(
 				),
 			)
 		}
-	}
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { healthElementDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: healthElementDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { healthElementDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { healthElement ->
-				healthElement.conflicts
-					?.mapNotNull { conflictingRevision ->
-						healthElementDAO.get(
-							datastoreInformation,
-							healthElement.id,
-							conflictingRevision,
-						)
-					}?.fold(healthElement to emptyList<HealthElement>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedHealthElement, toBePurged) ->
-						healthElementDAO.save(datastoreInformation, mergedHealthElement).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedHealthElement.rev) {
-									healthElementDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun filter(

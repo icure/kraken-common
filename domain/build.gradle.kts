@@ -57,6 +57,7 @@ val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersF
 	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))
 
 	dependsOn("kspKotlin")
+	dependsOn("compileKotlin")
 }
 
 // afterEvaluate is fundamental: the kspKotlin task does not exist yet when the script is evaluated, and so the

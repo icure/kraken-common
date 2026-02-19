@@ -20,7 +20,6 @@ import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.mergers.annotations.MergeStrategyCollectionNotEmpty
-import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
@@ -243,7 +242,6 @@ import java.time.ZoneId
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
 data class Agenda(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

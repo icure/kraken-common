@@ -5,7 +5,6 @@ package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
@@ -13,15 +12,11 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.ContactDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -37,6 +32,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.pimpWithContactInformation
+import org.taktik.icure.mergers.generated.ContactMerger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -51,7 +47,9 @@ open class ContactLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	filters: Filters,
 	fixer: Fixer,
+	contactMerger: ContactMerger,
 ) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(contactDAO, contactMerger, datastoreInstanceProvider),
 	ContactLogic {
 	override suspend fun getContact(id: String) = getEntity(id)
 
@@ -343,52 +341,6 @@ open class ContactLogicImpl(
 			},
 			startDocumentId = paginationOffset.startDocumentId,
 		).forEach { emit(it) }
-	}
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { contactDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: contactDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { contactDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { contact ->
-				contact.conflicts
-					?.mapNotNull { conflictingRevision ->
-						contactDAO.get(
-							datastoreInformation,
-							contact.id,
-							conflictingRevision,
-						)
-					}?.fold(contact to emptyList<Contact>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedContact, toBePurged) ->
-						contactDAO.save(datastoreInformation, mergedContact).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedContact.rev) {
-									contactDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun listContactsByOpeningDate(

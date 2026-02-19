@@ -10,7 +10,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
 
-interface FormDAO : GenericDAO<Form> {
+interface FormDAO : ConflictDAO<Form> {
 	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	fun listFormsByHcPartyPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<Form>
 
@@ -57,8 +57,6 @@ interface FormDAO : GenericDAO<Form> {
 	fun listFormIdsByDataOwnerAndParentId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String): Flow<String>
 
 	fun findForms(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
-
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Form>
 
 	/**
 	 * Returns all the [Form]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or

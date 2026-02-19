@@ -4,26 +4,21 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MessageLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
@@ -32,6 +27,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.mergers.generated.MessageMerger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -41,11 +37,13 @@ open class MessageLogicImpl(
 	private val messageDAO: MessageDAO,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	private val sessionLogic: SessionInformationProvider,
-	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	datastoreInstanceProvider: DatastoreInstanceProvider,
 	filters: Filters,
 	private val userLogic: UserLogic,
 	fixer: Fixer,
+	messageMerger: MessageMerger,
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(messageDAO, messageMerger, datastoreInstanceProvider),
 	MessageLogic {
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
@@ -310,52 +308,6 @@ open class MessageLogicImpl(
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
 
 	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { messageDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: messageDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { messageDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { message ->
-				message.conflicts
-					?.mapNotNull { conflictingRevision ->
-						messageDAO.get(
-							datastoreInformation,
-							message.id,
-							conflictingRevision,
-						)
-					}?.fold(message to emptyList<Message>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedMessage, toBePurged) ->
-						messageDAO.save(datastoreInformation, mergedMessage).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedMessage.rev) {
-									messageDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
-	}
 
 	override fun filterMessages(
 		paginationOffset: PaginationOffset<Nothing>,

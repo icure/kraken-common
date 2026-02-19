@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -20,7 +19,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface InvoiceLogic :
 	EntityPersister<Invoice>,
-	EntityWithSecureDelegationsLogic<Invoice> {
+	EntityWithSecureDelegationsLogic<Invoice>,
+	ConflictResolutionLogic {
 	suspend fun createInvoice(invoice: Invoice): Invoice
 
 	suspend fun getInvoice(invoiceId: String): Invoice?
@@ -102,9 +102,6 @@ interface InvoiceLogic :
 	suspend fun addDelegations(invoiceId: String, delegations: List<Delegation>): Invoice?
 	fun removeCodes(userId: String, secretPatientKeys: Set<String>, serviceId: String, inputTarificationIds: List<String>): Flow<Invoice>
 	fun listInvoicesHcpsByStatus(status: String, from: Long?, to: Long?, hcpIds: List<String>): Flow<Invoice>
-
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
-
 	suspend fun getTarificationsCodesOccurrences(hcPartyId: String, minOccurrences: Long): List<LabelledOccurence>
 	fun listInvoicesIdsByTarificationsByCode(hcPartyId: String, codeCode: String, startValueDate: Long, endValueDate: Long): Flow<String>
 

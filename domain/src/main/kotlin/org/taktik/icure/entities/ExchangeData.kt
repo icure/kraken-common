@@ -14,7 +14,6 @@ import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
 import org.taktik.icure.exceptions.MergeConflictException
 import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
-import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
@@ -23,7 +22,6 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
 data class ExchangeData(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

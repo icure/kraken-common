@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -15,7 +14,8 @@ import org.taktik.icure.entities.embed.Delegation
 
 interface HealthElementLogic :
 	EntityPersister<HealthElement>,
-	EntityWithSecureDelegationsLogic<HealthElement> {
+	EntityWithSecureDelegationsLogic<HealthElement>,
+	ConflictResolutionLogic {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
 
@@ -57,8 +57,6 @@ interface HealthElementLogic :
 	suspend fun addDelegation(healthElementId: String, delegation: Delegation): HealthElement?
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
-
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	fun filter(
 		paginationOffset: PaginationOffset<Nothing>,

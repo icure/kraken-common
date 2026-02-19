@@ -13,9 +13,6 @@ import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.apache.commons.beanutils.PropertyUtilsBean
@@ -26,10 +23,9 @@ import org.taktik.couchdb.TotalCount
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
@@ -37,7 +33,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
@@ -52,6 +47,7 @@ import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.mergers.generated.PatientMerger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlowOfIds
@@ -69,7 +65,9 @@ open class PatientLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
+	patientMerger: PatientMerger
 ) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(patientDAO, patientMerger, datastoreInstanceProvider),
 	PatientLogic {
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
@@ -517,52 +515,6 @@ open class PatientLogicImpl(
 	override suspend fun getByExternalId(externalId: String): Patient? {
 		val datastoreInformation = getInstanceAndGroup()
 		return patientDAO.getPatientByExternalId(datastoreInformation, externalId)
-	}
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { patientDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: patientDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { patientDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { patient ->
-				patient.conflicts
-					?.mapNotNull { conflictingRevision ->
-						patientDAO.get(
-							datastoreInformation,
-							patient.id,
-							conflictingRevision,
-						)
-					}?.fold(patient to emptyList<Patient>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedPatient, toBePurged) ->
-						patientDAO.save(datastoreInformation, mergedPatient).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedPatient.rev) {
-									patientDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	@Deprecated("A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")

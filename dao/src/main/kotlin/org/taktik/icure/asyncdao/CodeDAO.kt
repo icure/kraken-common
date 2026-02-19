@@ -10,7 +10,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.Code
 
-interface CodeDAO : GenericDAO<Code> {
+interface CodeDAO : ConflictDAO<Code> {
 
 	/**
 	 * Retrieves all the types of the [Code]s in the db for the specified region and code.
@@ -155,7 +155,6 @@ interface CodeDAO : GenericDAO<Code> {
 	 */
 	fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?): Flow<String>
 	fun getCodesByIdsForPagination(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<ViewQueryResultEvent>
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Code>
 
 	/**
 	 * Retrieves all the [Code.id]s with the specified region, type, code, and version.

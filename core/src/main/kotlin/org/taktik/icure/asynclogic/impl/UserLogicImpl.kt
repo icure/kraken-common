@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -17,11 +16,11 @@ import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.constants.Users
@@ -35,6 +34,7 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.DuplicateDocumentException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.mergers.generated.UserMerger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.security.credentials.SecretType
@@ -54,7 +54,9 @@ open class UserLogicImpl(
 	private val userEnhancer: UserEnhancer,
 	fixer: Fixer,
 	private val globalUserUpdater: GlobalUserUpdater,
+	userMerger: UserMerger,
 ) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(userDAO, userMerger, datastoreInstanceProvider),
 	UserLogic {
 	private val shortTokenFormatter = DecimalFormat("000000")
 
@@ -303,53 +305,6 @@ open class UserLogicImpl(
 		?: getUserByLogin(genericIdentifier)
 		?: getUserByEmail(genericIdentifier)
 		?: getUserByPhone(genericIdentifier)
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		// TODO need to notify separately global user updater or do we let the UserReplicator take care of it?
-		val flow =
-			ids?.asFlow()?.mapNotNull { userDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: userDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { userDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { user ->
-				user.conflicts
-					?.mapNotNull { conflictingRevision ->
-						userDAO.get(
-							datastoreInformation,
-							user.id,
-							conflictingRevision,
-						)
-					}?.fold(user to emptyList<User>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedUser, toBePurged) ->
-						userDAO.save(datastoreInformation, mergedUser).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedUser.rev) {
-									userDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
-	}
 
 	/**
 	 * Creates a new user, abstracting all the differences between the different implementations of the user logic.

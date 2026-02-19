@@ -5,10 +5,8 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.Sorting
@@ -22,7 +20,8 @@ import java.time.Instant
 
 interface PatientLogic :
 	EntityPersister<Patient>,
-	EntityWithSecureDelegationsLogic<Patient> {
+	EntityWithSecureDelegationsLogic<Patient>,
+	ConflictResolutionLogic {
 
 	companion object {
 		@Suppress("EnumEntryName")
@@ -137,7 +136,6 @@ interface PatientLogic :
 	suspend fun modifyPatientReferral(patient: Patient, referralId: String?, start: Instant?, end: Instant?): Patient?
 
 	suspend fun getByExternalId(externalId: String): Patient?
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	@Deprecated(message = "A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	suspend fun getHcPartyKeysForDelegate(healthcarePartyId: String): Map<String, String>

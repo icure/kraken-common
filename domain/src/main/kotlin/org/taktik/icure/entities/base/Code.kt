@@ -47,8 +47,7 @@ data class Code(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-
-	) : StoredDocument,
+) : StoredDocument,
 	CodeIdentification {
 	companion object : DynamicInitializer<Code> {
 		fun from(type: String, code: String, version: String) = Code(id = "$type|$code|$version", type = type, code = code, version = version)

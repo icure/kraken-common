@@ -5,26 +5,19 @@ package org.taktik.icure.asynclogic.impl
 
 import com.google.common.base.Preconditions
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
 import org.taktik.icure.pagination.PaginationElement
@@ -238,39 +231,6 @@ open class TarificationLogicImpl(
 				}
 			}?.first()
 			?: createTarification(Tarification.from(type, tarification, "1.0"))
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { tarificationDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: tarificationDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { tarificationDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { code ->
-				code.conflicts
-					?.mapNotNull { conflictingRevision ->
-						tarificationDAO.get(
-							datastoreInformation,
-							code.id,
-							conflictingRevision,
-						)
-					}?.fold(code to emptyList<Tarification>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedCode, toBePurged) ->
-						tarificationDAO.save(datastoreInformation, mergedCode).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedCode.rev) {
-									tarificationDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun getGenericDAO(): TarificationDAO = tarificationDAO

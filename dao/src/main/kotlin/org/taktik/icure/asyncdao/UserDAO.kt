@@ -10,7 +10,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.User
 
-interface UserDAO : GenericDAO<User> {
+interface UserDAO : ConflictDAO<User> {
 	fun listUserIdsByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String): Flow<String>
 	fun listUsersByUsername(datastoreInformation: IDatastoreInformation, username: String): Flow<User>
 
@@ -66,7 +66,6 @@ interface UserDAO : GenericDAO<User> {
 	fun getUsersOnDb(datastoreInformation: IDatastoreInformation): Flow<User>
 	fun findUsersByIds(datastoreInformation: IDatastoreInformation, userIds: Flow<String>): Flow<ViewQueryResultEvent>
 	fun findUsersByNameEmailPhone(datastoreInformation: IDatastoreInformation, searchString: String, pagination: PaginationOffset<String>): Flow<ViewQueryResultEvent>
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<User>
 
 	/**
 	 * Retrieves the ids of all the [User]s where [User.healthcarePartyId] is equal to [hcPartyId].

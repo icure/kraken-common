@@ -4,24 +4,19 @@
 package org.taktik.icure.asynclogic.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.DocumentLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -37,6 +32,7 @@ import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.mergers.generated.DocumentMerger
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
@@ -49,7 +45,9 @@ open class DocumentLogicImpl(
 	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	fixer: Fixer,
 	filters: Filters,
+	documentMerger: DocumentMerger
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(documentDAO, documentMerger, datastoreInstanceProvider),
 	DocumentLogic {
 	override suspend fun createDocument(
 		document: Document,
@@ -315,52 +313,6 @@ open class DocumentLogicImpl(
 	override fun listDocumentsWithoutDelegation(limit: Int): Flow<Document> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(documentDAO.listDocumentsWithNoDelegations(datastoreInformation, limit))
-	}
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { documentDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: documentDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { documentDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { document ->
-				document.conflicts
-					?.mapNotNull { conflictingRevision ->
-						documentDAO.get(
-							datastoreInformation,
-							document.id,
-							conflictingRevision,
-						)
-					}?.fold(document to emptyList<Document>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedDocument, toBePurged) ->
-						documentDAO.save(datastoreInformation, mergedDocument).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedDocument.rev) {
-									documentDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override fun entityWithUpdatedSecurityMetadata(

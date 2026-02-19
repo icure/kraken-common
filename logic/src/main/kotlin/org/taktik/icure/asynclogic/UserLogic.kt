@@ -5,7 +5,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
@@ -13,7 +12,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserLogic : EntityPersister<User> {
+interface UserLogic : EntityPersister<User>, ConflictResolutionLogic {
 
 	companion object {
 		fun formatLogin(login: String) = login.trim { it <= ' ' }
@@ -80,8 +79,6 @@ interface UserLogic : EntityPersister<User> {
 	 * @return the created token
 	 */
 	suspend fun createOrUpdateToken(userIdentifier: String, key: String, tokenValidity: Long = 3600, token: String? = null, useShortToken: Boolean = false): String
-
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	// endregion
 }

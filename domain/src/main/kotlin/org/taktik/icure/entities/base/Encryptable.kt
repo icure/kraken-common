@@ -1,9 +1,12 @@
 package org.taktik.icure.entities.base
 
+import org.taktik.icure.mergers.annotations.NonMergeable
+
 interface Encryptable {
 	/**
 	 * The base64 encoded data of this object, formatted as JSON and encrypted in AES using the random master key from encryptionKeys.
 	 */
+	@NonMergeable
 	val encryptedSelf: String?
 
 	fun solveConflictsWith(other: Encryptable): Map<String, Any?> = mapOf(

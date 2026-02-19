@@ -14,7 +14,7 @@ import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
 
-interface PatientDAO : GenericDAO<Patient> {
+interface PatientDAO : ConflictDAO<Patient> {
 
 	/**
 	 * Retrieves all the [Patient.id]s with a delegation for [healthcarePartyId] where [Patient.ssin] starts with the
@@ -41,10 +41,10 @@ interface PatientDAO : GenericDAO<Patient> {
 	/**
 	 * Retrieves all the [Patient.id]s delegated to a data owner (by checking their [searchKeys]) and where [Patient.tags] contains
 	 * at least one tag with type [tagType] and code [tagCode]. If [tagCode] is null, the presence of any tag with the specified [tagType]
-	 * will suffices.
+	 * will suffice.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param dataOwnerId the data owner id.
+	 * @param searchKeys a set of search keys (data owner id + access control keys).
 	 * @param tagType the tag type to search for in [Patient.tags]
 	 * @param tagCode the tag code to search for in [Patient.tags] with the type [tagType].
 	 * @return a [Flow] of [Patient.id]s.
@@ -280,8 +280,6 @@ interface PatientDAO : GenericDAO<Patient> {
 	fun findDeletedPatientsByDeleteDate(datastoreInformation: IDatastoreInformation, start: Long, end: Long?, descending: Boolean, paginationOffset: PaginationOffset<Long>): Flow<ViewQueryResultEvent>
 
 	fun findDeletedPatientsByNames(datastoreInformation: IDatastoreInformation, firstName: String?, lastName: String?): Flow<Patient>
-
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Patient>
 
 	/**
 	 * Returns all the [Patient]s where [Patient.modified] is after [date] in a format for pagination.

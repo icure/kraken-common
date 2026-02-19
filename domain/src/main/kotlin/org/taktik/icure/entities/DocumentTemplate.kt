@@ -14,7 +14,6 @@ import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.DocumentGroup
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -27,7 +26,6 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
 data class DocumentTemplate(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,

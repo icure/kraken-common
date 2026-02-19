@@ -6,22 +6,17 @@ package org.taktik.icure.asynclogic.impl
 import com.google.common.base.Strings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asyncdao.InvoiceDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.EntityReferenceLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.InsuranceLogic
@@ -31,7 +26,6 @@ import org.taktik.icure.asynclogic.UserLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Insurance
@@ -43,6 +37,7 @@ import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.InvoicingCode
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.generated.InvoiceMerger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -69,7 +64,9 @@ open class InvoiceLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
+	invoiceMerger: InvoiceMerger,
 ) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
 	InvoiceLogic {
 	override suspend fun createInvoice(invoice: Invoice) = fix(invoice, isCreate = true) { fixedInvoice ->
 		if (fixedInvoice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
@@ -513,52 +510,6 @@ open class InvoiceLogicImpl(
 	): Flow<Invoice> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(invoiceDAO.listInvoicesHcpsByStatus(datastoreInformation, status, from, to, hcpIds))
-	}
-
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { invoiceDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: invoiceDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { invoiceDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { invoice ->
-				invoice.conflicts
-					?.mapNotNull { conflictingRevision ->
-						invoiceDAO.get(
-							datastoreInformation,
-							invoice.id,
-							conflictingRevision,
-						)
-					}?.fold(invoice to emptyList<Invoice>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedInvoice, toBePurged) ->
-						invoiceDAO.save(datastoreInformation, mergedInvoice).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedInvoice.rev) {
-									invoiceDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
 	}
 
 	override suspend fun getTarificationsCodesOccurrences(

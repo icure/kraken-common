@@ -18,30 +18,26 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.logging.LogFactory
 import org.taktik.couchdb.ViewRowWithDoc
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
+import org.taktik.icure.mergers.generated.base.CodeMerger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.invoke
@@ -58,7 +54,9 @@ open class CodeLogicImpl(
 	filters: Filters,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
+	merger: CodeMerger
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(codeDAO, merger, datastoreInstanceProvider),
 	CodeLogic {
 	companion object {
 		private val log = LogFactory.getLog(this::class.java)
@@ -832,7 +830,7 @@ open class CodeLogicImpl(
 				}
 			}
 
-			sort?.let { sortProperty ->
+			sort?.let { _ ->
 				val pub = PropertyUtilsBean()
 				var codesList = codes.toList()
 				codesList =
@@ -943,49 +941,4 @@ open class CodeLogicImpl(
 
 	override fun getGenericDAO(): CodeDAO = codeDAO
 
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { codeDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: codeDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { codeDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { code ->
-				code.conflicts
-					?.mapNotNull { conflictingRevision ->
-						codeDAO.get(
-							datastoreInformation,
-							code.id,
-							conflictingRevision,
-						)
-					}?.fold(code to emptyList<Code>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedCode, toBePurged) ->
-						codeDAO.save(datastoreInformation, mergedCode).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedCode.rev) {
-									codeDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
-	}
 }

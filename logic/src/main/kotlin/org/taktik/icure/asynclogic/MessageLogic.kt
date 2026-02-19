@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -16,7 +15,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface MessageLogic :
 	EntityPersister<Message>,
-	EntityWithSecureDelegationsLogic<Message> {
+	EntityWithSecureDelegationsLogic<Message>,
+	ConflictResolutionLogic {
 
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],
@@ -158,7 +158,6 @@ interface MessageLogic :
 	fun getMessagesChildren(parentIds: List<String>): Flow<Message>
 	fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
 	fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 	fun filterMessages(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<Message>,

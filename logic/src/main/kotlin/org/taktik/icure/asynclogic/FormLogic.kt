@@ -5,14 +5,14 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 
 interface FormLogic :
 	EntityPersister<Form>,
-	EntityWithSecureDelegationsLogic<Form> {
+	EntityWithSecureDelegationsLogic<Form>,
+	ConflictResolutionLogic {
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 
@@ -58,7 +58,6 @@ interface FormLogic :
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	/**
 	 * Returns all the [Form]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or

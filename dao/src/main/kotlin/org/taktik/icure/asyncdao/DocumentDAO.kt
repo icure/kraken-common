@@ -9,9 +9,8 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Document
 
 interface DocumentDAO :
-	GenericDAO<Document>,
+	ConflictDAO<Document>,
 	AttachmentManagementDAO<Document> {
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Document>
 
 	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	fun listDocumentsByHcPartyAndSecretMessageKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: List<String>): Flow<Document>

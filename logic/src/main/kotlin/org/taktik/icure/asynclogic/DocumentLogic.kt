@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
@@ -15,6 +14,7 @@ import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
 interface DocumentLogic :
+	ConflictResolutionLogic,
 	EntityPersister<Document>,
 	EntityWithSecureDelegationsLogic<Document> {
 	/**
@@ -133,6 +133,5 @@ interface DocumentLogic :
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: Collection<String>): Flow<Document>
 
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 	suspend fun getDocumentsByExternalUuid(documentId: String): List<Document>
 }
