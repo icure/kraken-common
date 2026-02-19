@@ -54,9 +54,9 @@ open class CodeLogicImpl(
 	filters: Filters,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	merger: CodeMerger
+	codeMerger: CodeMerger
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(codeDAO, merger, datastoreInstanceProvider),
+	ConflictResolutionLogic by ConflictResolutionLogicImpl(codeDAO, codeMerger, datastoreInstanceProvider),
 	CodeLogic {
 	companion object {
 		private val log = LogFactory.getLog(this::class.java)
