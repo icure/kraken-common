@@ -1,5 +1,3 @@
-import com.google.devtools.ksp.gradle.KspTask
-
 plugins {
 	id("com.icure.kotlin-library-conventions")
 
@@ -54,8 +52,20 @@ dependencies {
 	testImplementation(coreLibs.bundles.kotestLibs)
 }
 
-tasks.withType<KspTask> {
-	onlyIf {
-		gradle.startParameter.taskNames.contains(":kraken-common:domain:kspKotlin")
+val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersFromJsonTask>("generateMergersFromJson") {
+	inputFolder.set(layout.buildDirectory.dir("generated/ksp/main/resources"))
+	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))
+
+	dependsOn("kspKotlin")
+}
+
+// afterEvaluate is fundamental: the kspKotlin task does not exist yet when the script is evaluated, and so the
+// finalizedBy cannot be applied otherwise.
+afterEvaluate {
+	tasks.named("kspKotlin") {
+		onlyIf {
+			gradle.startParameter.taskNames.contains(":kraken-common:domain:kspKotlin")
+		}
+		finalizedBy(generateMergersFromJsonTask)
 	}
 }
