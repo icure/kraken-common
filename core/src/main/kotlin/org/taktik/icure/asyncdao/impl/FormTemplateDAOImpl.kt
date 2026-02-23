@@ -20,6 +20,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
+import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.FormTemplateDAO
@@ -121,6 +122,21 @@ internal class FormTemplateDAOImpl(
 			} else {
 				formTemplates
 			},
+		)
+	}
+
+	override fun listFormTemplateIdsBySpecialty(datastoreInformation: IDatastoreInformation, specialtyCode: String) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = ComplexKey.of(specialtyCode, null)
+		val to = ComplexKey.of(specialtyCode, ComplexKey.emptyObject())
+		emitAll(
+			client.queryView<Array<String>, String>(
+				createQuery(
+					datastoreInformation,
+					"by_specialty_code_and_guid",
+				).startKey(from).endKey(to).includeDocs(false),
+			).map { it.id },
 		)
 	}
 

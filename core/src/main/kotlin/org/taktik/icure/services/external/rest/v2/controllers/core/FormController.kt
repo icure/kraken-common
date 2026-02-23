@@ -376,6 +376,8 @@ class  FormController(
 		)
 	}.injectReactorContext()
 
+	@Suppress("DEPRECATION")
+	@Deprecated("Use matchFormTemplatesBy with a FormTemplateBySpecialtyFilter instead")
 	@Operation(summary = "Gets all form templates")
 	@GetMapping("/template/bySpecialty/{specialityCode}")
 	fun listFormTemplatesBySpeciality(
@@ -597,6 +599,15 @@ class  FormController(
 		@RequestBody filter: AbstractFilterDto<FormDto>,
 	): Flux<String> = formService
 		.matchFormsBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
+
+	@Operation(summary = "Get the ids of the FormTemplates matching the provided filter.")
+	@PostMapping("/template/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchFormTemplatesBy(
+		@RequestBody filter: AbstractFilterDto<FormTemplateDto>,
+	): Flux<String> = formTemplateService
+		.matchFormTemplatesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }
