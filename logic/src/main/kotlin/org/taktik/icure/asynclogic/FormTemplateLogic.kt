@@ -12,6 +12,7 @@ interface FormTemplateLogic : EntityPersister<FormTemplate> {
 
 	@Deprecated("This method has unintuitive behaviour, read FormTemplateService.getFormTemplatesByGuid doc for more info")
 	fun getFormTemplatesByGuid(userId: String, specialityCode: String, formTemplateGuid: String): Flow<FormTemplate>
+	@Deprecated("Use matchEntitiesBy with a FormTemplateBySpecialtyFilter instead")
 	fun getFormTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<FormTemplate>
 	fun getFormTemplatesByUser(userId: String, loadLayout: Boolean): Flow<FormTemplate>
 }

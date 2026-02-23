@@ -46,6 +46,7 @@ class FormTemplateLogicImpl(
 			}.collect(this)
 	}
 
+	@Suppress("DEPRECATION")
 	override fun getFormTemplatesBySpecialty(
 		specialityCode: String,
 		loadLayout: Boolean,
