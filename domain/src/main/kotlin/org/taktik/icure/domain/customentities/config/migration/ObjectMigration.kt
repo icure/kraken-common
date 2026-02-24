@@ -316,7 +316,16 @@ data class ObjectMigration(
 		 * - StringTypeConfig to StringTypeConfig if the validation rules of the target type are less restrictive, i.e.
 		 *   the maxLength of the target is greater than or equal to the maxLength of the source, and the minLength of
 		 *   the target is less than or equal to the minLength of the source.
-		 * - TODO more?
+		 * - List type to list type if the element type of the target can be coerced and all the validation rules in the
+		 *   target list are less restrictive than or equal to the rules in the source. In the case of a target list
+		 *   with unique value requirement, the source list must also have unique value requirement; additionally, for
+		 *   enum element types it is also required that if a custom migration is used the migration is injective (refer
+		 *   to the [EnumMigration] documentation for more information).
+		 * - Map type to map type if: the values can be coerced, the equivalent key type from the key validation can be
+		 *   coerced and the general validation rules of the target map are less restrictive than or equal to the rules
+		 *   of the source map. If using enum keys and there is a custom migration for the corresponding enum that is
+		 *   not injective coercion is not allowed (refer to the [EnumMigration] documentation for more information).
+		 * - TODO more? e.g. enum -> string
 		 *
 		 * Examples of unsupported conversions:
 		 * - A FloatTypeConfig with min/max 1.0-10.0 to a IntTypeConfig "number" with min/max 1-10 (not all source
@@ -519,36 +528,95 @@ data class ObjectMigration(
 		) : ValueTransformer
 
 		/**
-		 * If the source list is larger than the target list max allowed length constraint only take
-		 * elements up to the max allowed amount.
-		 * This transformation can only be applied for List->List conversions where the source min length
-		 * constraint is greater than or equal to the target min length constraint (note that if undefined min length
-		 * is implicitly 0).
-		 * If the target max length is not defined, or greater than or equal to the source max length, this
-		 * transformation has no effect.
+		 * Transformation that applies from a list to a list, applying the following transformation:
+		 * - If [mapElement] is not null apply the specified transformation to each element of the source list.
+		 *   [mapElement] is required if the source and target list types don't match exactly.
+		 * - Perform elements deduplication if the target list doesn't allow duplicates.
+		 * - Slice the list according to the specified [slicingBehaviour] when needed (after deduplication if
+		 *   applicable). If the max length of the target list is smaller than the max length of the source list, the
+		 *   slicing behavior is required.
 		 *
-		 * By default, the trimming keeps the start of the list: if the target max length is `tmax` and the source
-		 * list is longer than `tmax`, then only the first `tmax` elements of the source list are kept.
-		 * If [fromEnd] is set to true, then only the last `tmax` elements of the source list are kept
-		 * instead.
-		 * If the source is shorter than or equal to the target max length, the list is unchanged.
+		 * # Elements deduplication
 		 *
-		 * # Map elements
+		 * If the target configuration doesn't allow duplicates this transformation will remove duplicate elements after
+		 * mapping the source list elements.
 		 *
-		 * You can use [mapElements] to specify a transformation that should be applied to the element of the source
-		 * list after slicing.
+		 * Note that even if the source list also doesn't allow duplicates deduplication might be needed: the
+		 * [mapElement] transformation might not be injective, and it is possible that after mapping a source list of
+		 * unique values the target list contains duplicate values, which need to be deduplicated.
 		 *
-		 * The [mapElements] transformation must be applicable for the conversion from the source
-		 * [ListTypeConfig.elementType] to the target [ListTypeConfig.elementType].
-		 *
-		 * If no [mapElements] transformation is specified the source and target list element types must match exactly,
-		 * including validation rules and nullability.
+		 * The configuration validation will raise a warning in case the migration might have to deduplicate mapped
+		 * elements to inform about potential data loss.
+		 * This warning might be raised even in some situations where the map element transformation is injective.
 		 */
-		data class SliceList(
-			val fromEnd: Boolean = false,
-			val mapElements: ValueTransformer? = null,
+		data class TransformList(
+			/**
+			 * Map the elements from the source list to the target list using the provided transformation.
+			 */
+			val mapElement: ValueTransformer? = null,
+			/**
+			 * If not null allow transforming a list with max length greater than the target max length constraint
+			 * by slicing it according to the specified behavior, and then applying the transformation to the sliced
+			 * list.
+			 *
+			 * Independently of this configuration the source and target min length constraints must be compatible, i.e.
+			 * the target min length must be less than or equal to the source min length.
+			 */
+			val slicingBehaviour: SlicingBehaviour? = null,
+		) : ValueTransformer {
+			enum class SlicingBehaviour {
+				/**
+				 * If the source list is larger than the target list max allowed length constraint only take
+				 * elements up to the max allowed amount, keeping the start of the list.
+				 */
+				KeepStart,
+				/**
+				 * If the source list is larger than the target list max allowed length constraint only take
+				 * elements up to the max allowed amount, keeping the end of the list.
+				 */
+				KeepEnd
+			}
+		}
+
+
+		/**
+		 * Transformation that applies from a map to a map, applying the following transformation:
+		 * - If [mapValue] is not null apply the specified transformation to each value of the source map.
+		 *   [mapValue] is required if the source and target map value types don't match exactly.
+		 * - If [mapKey] is not null apply the specified transformation to each key of the source map.
+		 *   [mapKey] is required if the source and target map key types corresponding to the validation configuration
+		 *   don't match exactly.
+		 * - Perform entries deduplication if needed. When [mapKey] is not injective, different source keys may map to
+		 *   the same target key; when a collision occurs only one of the conflicting entries is kept, but the specific
+		 *   entry kept is unspecified and may change between versions.
+		 * - If the resulting map exceeds the target map's maximum entry count constraint after deduplication, entries
+		 *   are removed to satisfy the constraint; the specific entries removed are unspecified and may change between
+		 *   versions. The configuration validation will raise a warning if slicing might be needed.
+		 *
+		 * # Entries deduplication
+		 *
+		 * Map keys are always unique, but applying [mapKey] with a non-injective transformation can cause different
+		 * source keys to collide on the same target key, requiring deduplication. Only one entry per conflicting key
+		 * is kept; which entry is kept is unspecified.
+		 *
+		 * The configuration validation will raise a warning when the migration might have to deduplicate entries
+		 * to inform about potential data loss. This warning might be raised even in some situations where the
+		 * [mapKey] transformation is injective.
+		 */
+		data class TransformMap(
+			/**
+			 * Map each value of the source map to the target map using the provided transformation.
+			 * [mapValue] is required if the source and target map value types don't match exactly.
+			 */
+			val mapValue: ValueTransformer? = null,
+			/**
+			 * Map each key of the source map to the target map using the provided transformation.
+			 * [mapKey] is required if the source and target map key types corresponding to the validation
+			 * configuration don't match exactly.
+			 * Note that if [mapKey] is not injective, key collisions may occur and entries will be deduplicated
+			 * with unspecified priority.
+			 */
+			val mapKey: ValueTransformer? = null,
 		) : ValueTransformer
-
-
 	}
 }

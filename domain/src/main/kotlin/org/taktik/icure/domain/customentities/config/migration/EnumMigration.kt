@@ -98,6 +98,35 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
  * - `MEDIUM` → `MEDIUM` (automatic)
  * - `HIGH` → `HIGH` (automatic)
  * - `CRITICAL` → custom logic implementation required
+ *
+ * # One-to-one migration (injective)
+ *
+ * An enum migration is **injective** (one-to-one) if every distinct source enum value is guaranteed to map to a
+ * distinct target value. Formally, for all source values `a` and `b`, if `a != b` then `migrate(a) != migrate(b)`.
+ * Note that `null` is considered a distinct value from any enum entry for the purpose of injectivity.
+
+ * An enum migration is injective if and only if all the following conditions are met:
+ * - All resolved target values are distinct: no two source values map to the same [TargetValue.Use] value, the same
+ *   [TargetValue.Null], or the same automatic name match.
+ * - The [fallbackMapping] is used by at most one source value. If two or more source values are not covered by
+ *   [sourceMappings] or [automaticallyMapIdenticalNames], they all resolve to the same fallback, breaking injectivity.
+ * - [TargetValue.Custom] is not used for any value (see below).
+ * - The source is not a builtin enum (see below).
+ *
+ * Using the examples above:
+ * - Example 1 is injective: all targets are distinct (`LOW`, `MEDIUM`, `HIGH`, `URGENT`).
+ * - Example 2 is injective: all targets are distinct (`LOW`, `MEDIUM`, `HIGH`, `URGENT`).
+ * - Example 3 is **not** injective: both `HIGH` and `CRITICAL` map to `URGENT`.
+ * - Example 4 is **not** injective: both `MEDIUM` and `HIGH` map to `HIGH`.
+ * - Example 5 is **not** injective: uses [TargetValue.Custom].
+ *
+ * ## Special cases
+ * - If the source is a builtin enum ([builtinSource] is true) the migration is never considered injective, since the
+ *   builtin enum may gain additional entries independently of the custom entity version. These new entries would all
+ *   resolve to the [fallbackMapping], potentially mapping multiple source values to the same target.
+ * - If [TargetValue.Custom] is used for at least one source value the migration is not considered injective, since the
+ *   custom logic implementation is opaque and there is no guarantee that it returns distinct values for distinct
+ *   inputs.
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class EnumMigration(

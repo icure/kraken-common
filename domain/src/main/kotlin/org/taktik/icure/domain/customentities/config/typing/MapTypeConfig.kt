@@ -3,7 +3,6 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.taktik.icure.domain.customentities.config.migration.ObjectMigration
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.entities.RawJson
@@ -26,7 +25,7 @@ data class MapTypeConfig(
 	override val enumDefinitionDependencies: Set<String> get() =
 		valueType.enumDefinitionDependencies + setOfNotNull(validation?.keyValidation?.let {
 			when (it) {
-				is ValidationConfig.KeyValidation.EnumKeyValidation -> it.reference
+				is ValidationConfig.KeyValidation.EnumKeyValidation -> it.enumReference
 				else -> null
 			}
 		})
@@ -62,10 +61,15 @@ data class MapTypeConfig(
 			): Boolean
 
 			/**
+			 * Get a [GenericTypeConfig] with validation rules equivalent to this key validation rules.
+			 */
+			fun equivalentTypeConfig(): GenericTypeConfig
+
+			/**
 			 * Each key must be an entry of the referenced enum
 			 */
 			data class EnumKeyValidation(
-				val reference: String
+				val enumReference: String
 			) : KeyValidation {
 				override fun validate(
 					resolutionContext: CustomEntityConfigResolutionContext,
@@ -73,7 +77,7 @@ data class MapTypeConfig(
 					keys: Set<String>
 				): Boolean {
 					var res = true
-					val enumDefinition = resolutionContext.resolveRequiredEnumReference(reference)
+					val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
 					validationContext.appending("{KEY \"") {
 						keys.forEach {
 							if (it !in enumDefinition.entries) {
@@ -81,7 +85,7 @@ data class MapTypeConfig(
 									validationContext?.addError(
 										"GE-MAP-KEYENUM-VALUE",
 										"key" to it,
-										"ref" to reference
+										"ref" to enumReference
 									)
 								}
 								res = false
@@ -90,6 +94,9 @@ data class MapTypeConfig(
 					}
 					return res
 				}
+
+				override fun equivalentTypeConfig(): GenericTypeConfig =
+					EnumTypeConfig(enumReference = enumReference, isBuiltIn = false, nullable = false)
 			}
 
 			/**
@@ -120,6 +127,9 @@ data class MapTypeConfig(
 					}
 					return res
 				}
+
+				override fun equivalentTypeConfig(): GenericTypeConfig =
+					StringTypeConfig(nullable = false, validation = validation)
 			}
 		}
 	}
@@ -156,10 +166,10 @@ data class MapTypeConfig(
 							keyValidation.validation.validateConfig(validationContext)
 						}
 						is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-							if (resolutionContext.resolveEnumReference(keyValidation.reference) == null) {
+							if (resolutionContext.resolveEnumReference(keyValidation.enumReference) == null) {
 								validationContext.addError(
 									"GE-MAP-KEYENUM-REF",
-									"ref" to keyValidation.reference
+									"ref" to keyValidation.enumReference
 								)
 							}
 						}
