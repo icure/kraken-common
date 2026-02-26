@@ -23,9 +23,9 @@ import java.time.Instant
 data class AuthenticationToken(
 	val token: String,
 
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val creationTime: Instant = Instant.now(),
 
 	val validity: Long = 3600,
