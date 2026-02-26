@@ -171,6 +171,14 @@ data class User(
 		 * Identifiers of the user available for login
 		 */
 		val loginIdentifiers: List<Identifier>,
+		/**
+		 * True if the user email has been verified
+		 */
+		val verifiedEmail: Boolean? = null,
+		/**
+		 * True if the user mobile phone has been verified
+		 */
+		val verifiedMobilePhone: Boolean? = null,
 	) : Serializable
 
 	/**
