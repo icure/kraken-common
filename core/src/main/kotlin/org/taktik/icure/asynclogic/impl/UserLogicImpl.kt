@@ -33,6 +33,7 @@ import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
+import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DuplicateDocumentException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
@@ -42,6 +43,7 @@ import org.taktik.icure.security.credentials.SecretValidator
 import org.taktik.icure.security.user.GlobalUserUpdater
 import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.utils.bufferedChunks
+import org.taktik.icure.utils.retry
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.util.*
@@ -570,5 +572,63 @@ open class UserLogicImpl(
 			)
 			emitAll(users.asFlow())
 		}
+	}
+
+	override suspend fun changeUserEmail(
+		userId: String,
+		newEmail: String,
+		previousEmail: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			if (user.email != previousEmail) {
+				throw ConflictRequestException("User email does not match expected")
+			}
+			try {
+				return modifyUser(user.copy(email = newEmail))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) {
+					throw e
+				}
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
+	}
+
+	override suspend fun changeUserMobilePhone(
+		userId: String,
+		newMobilePhone: String,
+		previousMobilePhone: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			if (user.mobilePhone != previousMobilePhone) {
+				throw ConflictRequestException("User mobile phone does not match expected")
+			}
+			try {
+				return modifyUser(user.copy(mobilePhone = newMobilePhone))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) throw e
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
+	}
+
+	override suspend fun changeUserPassword(
+		userId: String,
+		newPassword: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			try {
+				return modifyUser(user.copy(passwordHash = newPassword))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) throw e
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
 	}
 }
