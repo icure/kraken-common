@@ -32,7 +32,6 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.utils.DynamicInitializer
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents a Message. It is serialized in JSON and saved in the underlying CouchDB database.""",
@@ -97,6 +96,8 @@ data class MessageDto(
 	val assignedResults: Map<String, String> = emptyMap(), // ContactId -> ref
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val senderReferences: Map<String, String> = emptyMap(),
+
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

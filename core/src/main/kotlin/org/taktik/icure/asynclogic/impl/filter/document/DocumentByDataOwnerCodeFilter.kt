@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.document.DocumentByDataOwnerPatientDateFilter
 import org.taktik.icure.domain.filter.document.DocumentByDataOwnerCodeFilter
 import org.taktik.icure.entities.Document
 

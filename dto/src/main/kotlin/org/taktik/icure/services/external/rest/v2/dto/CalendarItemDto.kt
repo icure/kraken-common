@@ -32,7 +32,6 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CalendarItemDto(
 	override val id: String,
@@ -51,10 +50,10 @@ data class CalendarItemDto(
 	val title: String? = null,
 	val calendarItemTypeId: String? = null,
 	val masterCalendarItemId: String? = null,
-	@Deprecated("Use crypedForeignKeys instead") val patientId: String? = null,
+	@Deprecated("Use crypedForeignKeys instead")
+	val patientId: String? = null,
 	val important: Boolean? = null,
 	val homeVisit: Boolean? = null,
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val phoneNumber: String? = null,
 	val placeId: String? = null,
 	val address: AddressDto? = null,
@@ -82,6 +81,7 @@ data class CalendarItemDto(
 	val meetingTags: Set<CalendarItemTagDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val flowItem: FlowItemDto? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

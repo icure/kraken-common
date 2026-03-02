@@ -7,6 +7,7 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.FormTemplate
 
 interface FormTemplateService {
@@ -27,8 +28,10 @@ interface FormTemplateService {
 	 */
 	@Deprecated("This method has unintuitive behaviour, read FormTemplateService.getFormTemplatesByGuid doc for more info")
 	fun getFormTemplatesByGuid(userId: String, specialityCode: String, formTemplateGuid: String): Flow<FormTemplate>
+	@Deprecated("Use matchFormTemplatesBy with a FormTemplateBySpecialtyFilter instead")
 	fun getFormTemplatesBySpecialty(specialityCode: String, loadLayout: Boolean): Flow<FormTemplate>
 	fun getFormTemplatesByUser(userId: String, loadLayout: Boolean): Flow<FormTemplate>
+	fun matchFormTemplatesBy(filter: AbstractFilter<FormTemplate>): Flow<String>
 
 	/**
 	 * Deletes [FormTemplate]s in batch.

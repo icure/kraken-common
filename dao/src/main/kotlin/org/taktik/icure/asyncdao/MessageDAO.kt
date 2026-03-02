@@ -243,4 +243,18 @@ interface MessageDAO : GenericDAO<Message> {
 	 * @return a [Flow] of [Message.id]s.
 	 */
 	fun listMessageIdsByDataOwnerLifecycleBetween(datastoreInformation: IDatastoreInformation, searchKey: String, startTimestamp: Long?, endTimestamp: Long?, descending: Boolean): Flow<String>
+
+	fun listMessageIdsByDataOwnerTag(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCode: String?
+	): Flow<String>
+
+	fun listMessageIdsByDataOwnerCode(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCode: String?
+	): Flow<String>
 }

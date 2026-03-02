@@ -25,12 +25,13 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.Message
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.MessageAttachmentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.MessageReadStatusV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 
-@Mapper(componentModel = "spring", uses = [CodeStubV2Mapper::class, DelegationV2Mapper::class, MessageReadStatusV2Mapper::class, SecurityMetadataV2Mapper::class, MessageAttachmentV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [CodeStubV2Mapper::class, DelegationV2Mapper::class, MessageReadStatusV2Mapper::class, SecurityMetadataV2Mapper::class, MessageAttachmentV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface MessageV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

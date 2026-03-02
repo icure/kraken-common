@@ -6,14 +6,17 @@ package org.taktik.icure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ser.FilterProvider
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
+import org.springframework.core.codec.Encoder
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.Jackson2JsonDecoder
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.web.reactive.config.CorsRegistry
 import org.springframework.web.reactive.config.ResourceHandlerRegistry
 import org.springframework.web.reactive.config.WebFluxConfigurer
@@ -67,7 +70,43 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	abstract fun getJackson2JsonEncoder(): Jackson2JsonEncoder
+	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider()
+		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAll())
+		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAll())
+		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAll())
+
+	protected val legacyObjectMapper: ObjectMapper =
+		ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_NULL)
+			setFilterProvider(legacyJacksonFilter)
+		}
+
+	@Bean
+	open fun legacyObjectMapper() = legacyObjectMapper
+
+	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider()
+		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status"))
+		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type"))
+		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
+
+	protected val cardinalObjectMapper: ObjectMapper =
+		ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).apply {
+			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+			setFilterProvider(cardinalJacksonFilter)
+		}
+
+	@Bean
+	open fun cardinalObjectMapper() = cardinalObjectMapper
+
+	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 
 	override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
 		configurer.defaultCodecs().maxInMemorySize(128 * 1024 * 1024)

@@ -26,6 +26,7 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.CalendarItemTagV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mapper
@@ -34,7 +35,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 
 @Mapper(
 	componentModel = "spring",
-	uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class],
+	uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 	defaultPassOnParameters = [
 		DefaultPassOnParameter(

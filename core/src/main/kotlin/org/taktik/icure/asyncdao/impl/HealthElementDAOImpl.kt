@@ -46,8 +46,6 @@ import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
 import java.io.Serializable
-import kotlin.collections.chunked
-import kotlin.collections.forEach
 
 @Repository("healthElementDAO")
 @Profile("app")
@@ -119,6 +117,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_codes", map = "classpath:js/healthelement/By_hcparty_code_map.js"),
 		View(
@@ -151,6 +154,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_tags", map = "classpath:js/healthelement/By_hcparty_tag_map.js"),
 		View(
@@ -183,6 +191,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndStatusAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_status", map = "classpath:js/healthelement/By_hcparty_status_map.js"),
 		View(
@@ -219,6 +232,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(
 			name = "by_hcparty_and_identifiers",

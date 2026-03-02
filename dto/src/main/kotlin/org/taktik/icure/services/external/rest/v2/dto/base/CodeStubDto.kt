@@ -18,14 +18,14 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.RequireHashable
 import org.taktik.icure.utils.DynamicInitializer
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
+@JsonFilter("codeStubFilter")
 data class CodeStubDto(
 	override val id: String? = null, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used
@@ -34,7 +34,7 @@ data class CodeStubDto(
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	val contextLabel: String? = null,
 	@Deprecated("label shouldn't be included in code stub but only in full codes")
-	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
 	companion object : DynamicInitializer<CodeStubDto>
 

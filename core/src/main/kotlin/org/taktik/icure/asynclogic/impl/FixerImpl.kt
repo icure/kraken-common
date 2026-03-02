@@ -15,6 +15,7 @@ import kotlin.reflect.full.memberProperties
 
 open class FixerImpl(
 	private val fixedValueProvider: FixedValueProvider,
+	private val forceSkipLegacyFixing: Boolean
 ) : Fixer {
 	private val factory: ValidatorFactory =
 		Validation
@@ -97,6 +98,7 @@ open class FixerImpl(
 	protected suspend fun <E : Any> fix(
 		doc: E,
 		isCreate: Boolean,
+		skipLegacyFixing: Boolean,
 		getFixValue: suspend (autoFix: AutoFix, value: Any?) -> Any?,
 	): E {
 		val violations = factory.validator.validate(doc)
@@ -110,7 +112,8 @@ open class FixerImpl(
 						.find {
 							it.name == "autoFix"
 						}?.takeIf {
-							isCreate || (members.find { it.name == "applyOnModify" }?.call(annotation) as Boolean? != false)
+							(isCreate || (members.find { it.name == "applyOnModify" }?.call(annotation) as Boolean? != false)) &&
+								(!skipLegacyFixing || (members.find { it.name == "doNotApplyOnCardinalModel" }?.call(annotation) as Boolean? != true))
 						}?.let {
 							it.call(annotation) as? AutoFix
 						}?.let { autoFix ->
@@ -125,14 +128,14 @@ open class FixerImpl(
 											},
 											getFixValue(autoFix, cv.invalidValue),
 										)
-								} catch (e: Exception) {
+								} catch (_: Exception) {
 									fixes
 								}
 							} else {
 								fixes
 							}
 						} ?: fixes
-				} catch (e: NoSuchMethodException) {
+				} catch (_: NoSuchMethodException) {
 					// Skip
 					fixes
 				}
@@ -144,5 +147,5 @@ open class FixerImpl(
 	override suspend fun <E : Any> fix(
 		doc: E,
 		isCreate: Boolean,
-	): E = fix(doc, isCreate, fixedValueProvider::fix)
+	): E = fix(doc, isCreate, forceSkipLegacyFixing, fixedValueProvider::fix)
 }
