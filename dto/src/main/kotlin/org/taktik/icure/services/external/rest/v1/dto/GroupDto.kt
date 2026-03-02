@@ -41,6 +41,7 @@ data class GroupDto(
 		description = "A user-chosen identifier for the applications for which this group holds data. Helps to isolate environments when working with multi-group applications.",
 	)
 	val applicationId: String? = null,
+	val templates: TemplatesConfigurationDto? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
@@ -49,4 +50,14 @@ data class GroupDto(
 	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+
+	data class TemplatesConfigurationDto(
+		val specId: String,
+		val emailSender: String? = null,
+		val smsSender: String? = null,
+		val emailVerificationTemplateId: String? = null,
+		val mobilePhoneVerificationTemplateId: String? = null,
+		val existingEmailNotificationTemplateId: String? = null,
+		val existingMobilePhoneNotificationTemplateId: String? = null,
+	)
 }

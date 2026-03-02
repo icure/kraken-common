@@ -104,6 +104,26 @@ interface UserService : EntityWithConflictResolutionService {
 	 */
 	suspend fun createOrUpdateToken(userIdentifier: String, key: String, tokenValidity: Long = 3600, token: String? = null, useShortToken: Boolean = false): String
 
+	/**
+	 * Change user email of the user if it matches the provided [previousEmail], conflict otherwise.
+	 * This is useful if the user revision is unknown or might change after the SDK calls the corresponding method,
+	 * for example, if a new authentication token was created by a secret provider following a "requireElevatedSecurity".
+	 */
+	suspend fun changeUserEmail(userId: String, newEmail: String, previousEmail: String): User
+
+	/**
+	 * Change user mobile phone of the user if it matches the provided [previousMobilePhone], conflict otherwise.
+	 * This is useful if the user revision is unknown or might change after the SDK calls the corresponding method,
+	 * for example, if a new authentication token was created by a secret provider following a "requireElevatedSecurity".
+	 */
+	suspend fun changeUserMobilePhone(userId: String, newMobilePhone: String, previousMobilePhone: String): User
+
+	/**
+	 * Changes the password of the user.
+	 * The previous password is not required, to allow this method to be used even as a "forgot password" flow.
+	 */
+	suspend fun changeUserPassword(userId: String, newPassword: String): User
+
 	// endregion
 
 	// region delete

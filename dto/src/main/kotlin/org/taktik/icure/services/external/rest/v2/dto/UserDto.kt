@@ -108,5 +108,7 @@ data class UserDto(
 		val inheritsRoles: Boolean,
 		@param:Schema(description = "Identifiers of the user available for login")
 		@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val loginIdentifiers: List<LoginIdentifierDto> = emptyList(),
+		val verifiedEmail: Boolean? = null,
+		val verifiedMobilePhone: Boolean? = null,
 	) : Serializable
 }
