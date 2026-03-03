@@ -14,6 +14,7 @@ import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
@@ -65,7 +66,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class PlanOfAction(
 	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
@@ -91,15 +92,19 @@ data class PlanOfAction(
 	override val name: String? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	@NonMergeable val relevant: Boolean = true,
+	val relevant: Boolean = true,
 	val idOpeningContact: String? = null,
 	val idClosingContact: String? = null,
-	@NonMergeable val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 
 	val documentIds: Set<String> = emptySet(),
 	val prescriberId: String? = null, // healthcarePartyId
 	val numberOfCares: Int? = null,
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
+	)
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val careTeamMemberships: List<CareTeamMembership> = emptyList(),
 	override val encryptedSelf: String? = null,

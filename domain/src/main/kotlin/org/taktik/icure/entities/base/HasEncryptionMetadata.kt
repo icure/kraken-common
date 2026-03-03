@@ -7,7 +7,7 @@ package org.taktik.icure.entities.base
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
-import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	/**
@@ -27,7 +27,11 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
+	)
 	val cryptedForeignKeys: Map<String, Set<Delegation>>
 
 	// When a document is created, the responsible generates a cryptographically random master key (never to be used for something else than referencing from other entities)
@@ -40,7 +44,11 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
+	)
 	val delegations: Map<String, Set<Delegation>>
 
 	// When a document needs to be encrypted, the responsible generates a cryptographically random master key (different from the delegation key, never to appear in clear anywhere in the db)
@@ -52,7 +60,11 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 * With the introduction of [securityMetadata] sdks will stop adding new data to this field, and instead use the [securityMetadata], but the field may still be read
 	 * and/or some of his content may be deleted.
 	 */
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
+	)
 	val encryptionKeys: Map<String, Set<Delegation>>
 
 	fun solveConflictsWith(other: HasEncryptionMetadata): Map<String, Any?> = mapOf(
@@ -98,7 +110,7 @@ fun HasEncryptionMetadata.hasDataOwnerOrDelegationKey(dataOwnerIdOrDelegationKey
  * - [HasEncryptionMetadata.cryptedForeignKeys]
  * - [HasEncryptionMetadata.delegations]
  * - [HasEncryptionMetadata.encryptionKeys]
- * This comparison ignores the value of [HasEncryptionMetadata.encryptedSelf], since it is not metadata but actual entity content.
+ * This comparison ignores the value of [Encryptable.encryptedSelf], since it is not metadata but actual entity content.
  * @return if the metadata of this and [other] are the same.
  */
 fun HasEncryptionMetadata.encryptableMetadataEquals(other: HasEncryptionMetadata): Boolean {

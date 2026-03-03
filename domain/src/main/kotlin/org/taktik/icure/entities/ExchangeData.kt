@@ -14,7 +14,6 @@ import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
 import org.taktik.icure.exceptions.MergeConflictException
 import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
-import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
 /**
@@ -28,11 +27,11 @@ data class ExchangeData(
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].
 	 */
-	@NonMergeable val delegator: String,
+	val delegator: String,
 	/**
 	 * ID of a data owner which can use this exchange data to access data shared with him by [delegator].
 	 */
-	@NonMergeable val delegate: String,
+	val delegate: String,
 	/**
 	 * Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 	 * delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.

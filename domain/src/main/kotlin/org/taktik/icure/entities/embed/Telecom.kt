@@ -15,7 +15,7 @@ import java.io.Serializable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable(["telecomType"])
+@Mergeable(["telecomType", "telecomNumber"])
 data class Telecom(
 	val telecomType: TelecomType? = null,
 	val telecomNumber: String? = null,

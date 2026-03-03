@@ -83,7 +83,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class HealthElement(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -111,11 +111,11 @@ data class HealthElement(
 	val descr: String? = null,
 	val note: String? = null,
 	val notes: List<Annotation> = emptyList(),
-	@NonMergeable val relevant: Boolean = true,
+	val relevant: Boolean = true,
 	val idOpeningContact: String? = null,
 	val idClosingContact: String? = null,
 	val idService: String? = null, // When a service is used to create the healthElement
-	@NonMergeable val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	val laterality: Laterality? = null,
 	@field:Valid val plansOfAction: List<PlanOfAction> = emptyList(),
 	@field:Valid val episodes: List<Episode> = emptyList(),

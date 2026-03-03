@@ -18,7 +18,7 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class CareTeamMember(
 	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
 	val careTeamMemberType: CareTeamMemberType? = null,

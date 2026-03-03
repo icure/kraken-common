@@ -49,7 +49,7 @@ import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class SubContact(
 	@param:JsonProperty("_id") override val id: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,

@@ -22,12 +22,12 @@ data class PropertyType(
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	@NonMergeable val identifier: String,
+	val identifier: String,
 	val type: TypedValuesType? = null,
 	val scope: PropertyTypeScope? = null,
-	@NonMergeable val unique: Boolean = false,
+	val unique: Boolean = false,
 	val editor: String? = null,
-	@NonMergeable val localized: Boolean = false,
+	val localized: Boolean = false,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

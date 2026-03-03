@@ -37,7 +37,6 @@ data class MaintenanceTask(
 
 	val taskType: String? = null,
 	val properties: Set<PropertyStub> = emptySet(),
-	@NonMergeable
 	val status: TaskStatus = TaskStatus.pending,
 
 	override val secretForeignKeys: Set<String> = emptySet(),

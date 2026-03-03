@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import kotlinx.coroutines.flow.Flow
 import org.taktik.commons.uti.UTI
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-
 /**
  * Represent an attachment holding some additional data for an entity.
  * At least one of [couchDbAttachmentId] or [objectStoreAttachmentId] is always not null.
@@ -17,7 +14,13 @@ import org.taktik.commons.uti.UTI
  * @property utis [Uniform Type Identifiers](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE) for the data attachment.
  * This is a list in order to allow specifying a priority, but each uti must be unique.
  */
-data class DataAttachment(val couchDbAttachmentId: String? = null, val objectStoreAttachmentId: String? = null, val utis: List<String> = emptyList()) {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DataAttachment(
+	val couchDbAttachmentId: String? = null,
+	val objectStoreAttachmentId: String? = null,
+	val utis: List<String> = emptyList()
+) {
 	init {
 		require(couchDbAttachmentId != null || objectStoreAttachmentId != null) {
 			"Must specify the id of at least one storage place for the attachment"

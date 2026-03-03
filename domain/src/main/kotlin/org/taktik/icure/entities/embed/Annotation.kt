@@ -28,7 +28,7 @@ import java.util.*
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class Annotation(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) val author: String? = null,

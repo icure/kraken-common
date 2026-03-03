@@ -22,7 +22,7 @@ import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
-import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.utils.DynamicInitializer
@@ -61,7 +61,7 @@ import java.time.Instant
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class User(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -90,7 +90,11 @@ data class User(
 	val healthcarePartyId: String? = null,
 	val patientId: String? = null,
 	val deviceId: String? = null,
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSetsDistinct({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct"]
+	)
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
 
 	@param:JsonSerialize(using = InstantSerializer::class)
@@ -104,6 +108,11 @@ data class User(
 	@Deprecated("Application tokens stocked in clear and eternal. Replaced by authenticationTokens")
 	override val applicationTokens: Map<String, String>? = null,
 
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeAuthenticationTokens({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.User.Companion.mergeAuthenticationTokens"]
+	)
 	override val authenticationTokens: Map<String, AuthenticationToken> = emptyMap(),
 
 	/**
@@ -123,6 +132,32 @@ data class User(
 	BaseUser {
 	companion object : DynamicInitializer<User> {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
+
+		fun mergeAuthenticationTokens(
+			left: Map<String, AuthenticationToken>,
+			right: Map<String, AuthenticationToken>
+		): Map<String, AuthenticationToken> {
+			val result = mutableMapOf<String, AuthenticationToken>()
+			left.forEach { (key, leftToken) ->
+				if (!right.containsKey(key)) {
+					result[key] = leftToken
+				} else {
+					val rightToken = right.getValue(key)
+					result[key] = listOf(leftToken, rightToken).maxBy { it.creationTime }
+				}
+			}
+			right.filterKeys { k ->
+				!result.containsKey(k)
+			}.forEach { (key, rightToken) ->
+				if (!left.containsKey(key)) {
+					result[key] = rightToken
+				} else {
+					val leftToken = right.getValue(key)
+					result[key] = listOf(leftToken, rightToken).maxBy { it.creationTime }
+				}
+			}
+			return result
+		}
 	}
 
 	@JsonIgnore override val secret: String? = null

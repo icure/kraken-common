@@ -36,9 +36,7 @@ data class HealthElementTemplate(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	val descr: String? = null,
 	val note: String? = null,
-	@NonMergeable
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	@NonMergeable
 	@param:JsonProperty("isRelevant")
 	val relevant: Boolean = true,
 	@field:Valid val plansOfAction: List<PlanOfActionTemplate> = emptyList(),

@@ -324,7 +324,7 @@ data class Agenda(
 	 * can be used with those features normally.
 	 * An unpublished agenda has less strict integrity checks.
 	 */
-	@NonMergeable val unpublished: Boolean = false,
+	val unpublished: Boolean = false,
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	/**
 	 * If not null limits the amount of appointments that each user without special privileges is allowed to take for

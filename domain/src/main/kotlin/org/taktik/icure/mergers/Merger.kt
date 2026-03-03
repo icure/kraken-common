@@ -6,7 +6,7 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 
-abstract class Merger<T> {
+abstract class Merger<T : Any> {
 	abstract fun canMerge(left: T, right: T): Boolean
 	abstract fun merge(left: T, right: T): T
 
@@ -34,6 +34,28 @@ abstract class Merger<T> {
 
 	protected fun mergeListOfStringsIgnoringCase(l: List<String>, r: List<String>): List<String> =
 		mergeListsDistinct(l, r, { a, b -> a.equals(b, true) }, { a, _ -> a })
+
+	protected inline fun <K, F> mergeMapsOfMergeable(
+		l: Map<K, F>,
+		r: Map<K, F>,
+		merge: (F, F) -> F
+	): Map<K, F> {
+		val merged = mutableMapOf<K, F>()
+		l.forEach { (k, leftValue) ->
+			if (!r.containsKey(k)) {
+				merged[k] = leftValue
+			} else {
+				val rightValue = r.getValue(k)
+				merged[k] = merge(leftValue, rightValue)
+			}
+		}
+		r.filterKeys { k ->
+			!merged.containsKey(k)
+		}.forEach { (k, v) ->
+			merged[k] = v
+		}
+		return merged
+	}
 	// endregion
 
 	// region canMergeUtils
@@ -51,7 +73,7 @@ abstract class Merger<T> {
 		}
 
 		val mutableRight = r.toMutableList()
-		val visitLeft = l.all { leftItem ->
+		val visited = l.all { leftItem ->
 			val rightItem = mutableRight.firstOrNull {
 				comparator(it, leftItem)
 			}?.also {
@@ -59,11 +81,7 @@ abstract class Merger<T> {
 			}
 			rightItem == null || canMerge(leftItem, rightItem)
 		}
-		val visitedRemainingRight = mutableRight.all { rightItem ->
-			val leftItem = l.firstOrNull { comparator(it, rightItem) }
-			leftItem == null || canMerge(leftItem, rightItem)
-		}
-		return visitLeft && visitedRemainingRight
+		return visited
 	}
 
 	protected inline fun <K, F> canMergeMapsOfMergeable(
@@ -76,17 +94,10 @@ abstract class Merger<T> {
 			return true
 		}
 
-		val visited = mutableSetOf<K>()
-		val visitLeft = l.all { (k, v) ->
-			visited.add(k)
+		// There is no need to visit right: if a key is only present on r and not l, then it will always be mergeable
+		return l.all { (k, v) ->
 			r[k] == null || canMerge(v, r.getValue(k))
 		}
-		val visitedRemainingRight = r.filterKeys { k ->
-			k !in visited
-		}.all { (k, v) ->
-			l[k] == null || canMerge(l.getValue(k), v)
-		}
-		return visitLeft && visitedRemainingRight
 	}
 
 	protected inline fun <K, F> canMergeMapsOfMergeableCollections(
@@ -95,22 +106,15 @@ abstract class Merger<T> {
 		canMerge: (F, F) -> Boolean,
 		comparator: (F, F) -> Boolean,
 	): Boolean {
-		// If either are null, I can always merge setting the other
+		// If either are null it is always possible to merge
 		if (l == null || r == null) {
 			return true
 		}
 
-		val visited = mutableSetOf<K>()
-		val visitLeft = l.all { (k, v) ->
-			visited.add(k)
+		// There is no need to visit right: if a key is only present on r and not l, then it will always be mergeable
+		return l.all { (k, v) ->
 			canMergeCollectionsOfMergeable(v, r[k], canMerge, comparator)
 		}
-		val visitedRemainingRight = r.filterKeys { k ->
-			k !in visited
-		}.all { (k, v) ->
-			canMergeCollectionsOfMergeable(l[k], v, canMerge, comparator)
-		}
-		return visitLeft && visitedRemainingRight
 	}
 
 	// endregion

@@ -29,7 +29,6 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.TelecomType
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
-import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -148,7 +147,6 @@ data class HealthcareParty(
 	 * will be accessible through the anonymous endpoints.
 	 * TODO added for the future but currently unused
 	 */
-	@NonMergeable
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	val public: Boolean = false,
 	/**

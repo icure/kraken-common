@@ -20,7 +20,7 @@ import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Mergeable
+@Mergeable(["id"])
 data class Episode(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(), // Autofix if needed when loading from db
 	override val name: String? = null,

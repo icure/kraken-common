@@ -19,8 +19,7 @@ import org.taktik.icure.entities.embed.Valorisation
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
 import org.taktik.icure.entities.utils.MergeUtil.mergeSets
-import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
-import org.taktik.icure.mergers.annotations.NonMergeable
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -44,11 +43,15 @@ data class Tarification(
 	val links: List<String> = emptyList(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	val qualifiedLinks: Map<LinkQualification, List<String>> = emptyMap(), // Links towards related codes
 	val flags: Set<CodeFlag> = emptySet(), // flags (like female only) for the code
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
+	)
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	val data: String? = null,
 	val appendices: Map<AppendixType, String> = emptyMap(),
-	@NonMergeable val disabled: Boolean = false,
+	val disabled: Boolean = false,
 	val valorisations: Set<Valorisation> = emptySet(),
 	val category: Map<String, String> = emptyMap(),
 	val consultationCode: Boolean? = null,

@@ -12,7 +12,6 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 
@@ -25,9 +24,9 @@ data class CalendarItemType(
 	val name: String? = null,
 	val healthcarePartyId: String? = null,
 	val agendaId: String? = null,
-	@NonMergeable val defaultCalendarItemType: Boolean = false,
+	val defaultCalendarItemType: Boolean = false,
 	val color: String? = null, // "#123456"
-	@NonMergeable val duration: Int = 0, // Duration in minutes
+	val duration: Int = 0, // Duration in minutes
 	val extraDurationsConfig: DurationConfig? = null,
 	val externalRef: String? = null,
 	val mikronoId: String? = null,

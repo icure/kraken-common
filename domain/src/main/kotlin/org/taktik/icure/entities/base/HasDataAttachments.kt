@@ -20,7 +20,10 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 	/**
 	 * History of all deleted attachments.
 	 */
-	@MergeStrategyUse("mergeDeletedAttachments")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeDeletedAttachments({{LEFT}}, {{RIGHT}})"
+	)
 	val deletedAttachments: List<DeletedAttachment>
 
 	fun withUpdatedDataAttachment(key: String, newValue: DataAttachment?): T

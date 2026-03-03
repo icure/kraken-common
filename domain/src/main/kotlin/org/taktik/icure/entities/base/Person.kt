@@ -21,7 +21,11 @@ interface Person :
 	val names: List<PersonName>
 	val companyName: String?
 	val addresses: List<Address>
-	@MergeStrategyUse("mergeListOfStringsIgnoringCase") val languages: List<String>
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeListOfStringsIgnoringCase({{LEFT}}, {{RIGHT}})",
+	)
+	val languages: List<String>
 
 	fun solveConflictsWith(other: Person): Map<String, Any?> = mapOf(
 		"id" to this.id,

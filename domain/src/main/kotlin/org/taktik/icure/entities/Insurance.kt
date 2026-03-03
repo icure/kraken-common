@@ -22,11 +22,8 @@ data class Insurance(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val name: Map<String, String> = emptyMap(),
-	@NonMergeable
 	val privateInsurance: Boolean = false,
-	@NonMergeable
 	val hospitalisationInsurance: Boolean = false,
-	@NonMergeable
 	val ambulatoryInsurance: Boolean = false,
 	val code: String? = null,
 	val agreementNumber: String? = null,

@@ -11,7 +11,6 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
-import org.taktik.icure.mergers.annotations.NonMergeable
 
 /**
  * An internal top-level entity which allows data owners to identify the anonymous delegator and/or delegate of secure
@@ -25,7 +24,7 @@ data class SecureDelegationKeyMap(
 	/**
 	 * The secure delegation key this map refers to.
 	 */
-	@NonMergeable val delegationKey: String,
+	val delegationKey: String,
 	/**
 	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
 	 * and if not encrypted.

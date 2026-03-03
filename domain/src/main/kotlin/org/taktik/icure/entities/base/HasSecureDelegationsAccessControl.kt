@@ -18,7 +18,10 @@ interface HasSecureDelegationsAccessControl : HasExplicitDataOwnerAccess {
 	 * [org.taktik.icure.entities.embed.Encryptable.encryptedSelf] (replacing [HasEncryptionMetadata.encryptionKeys]), owning entity id (replacing [HasEncryptionMetadata.cryptedForeignKeys]),
 	 * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
 	 */
-	@MergeStrategyUse("mergeSecurityMetadata")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeSecurityMetadata({{LEFT}}, {{RIGHT}})",
+	)
 	val securityMetadata: SecurityMetadata?
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel> get() =
