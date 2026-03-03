@@ -19,11 +19,11 @@ data class IntTypeConfig(
 		/**
 		 * Biggest long that we can safely store without incurring in any issues with js numbers or couchdb views
 		 */
-		private const val MAX_SAFE_LONG = 9007199254740991
+		const val MAX_SAFE_LONG = 9007199254740991
 		/**
 		 * Smallest long that we can safely store without incurring in any issues with js numbers or couchdb views
 		 */
-		private const val MIN_SAFE_LONG = -9007199254740991
+		const val MIN_SAFE_LONG = -9007199254740991
 	}
 
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
