@@ -290,6 +290,14 @@ data class ObjectMigration(
 	 * Defines standard rules for transforming values between different type configurations during migration.
 	 * Each transformation is applicable only to some source->target type combinations; see the documentation of each
 	 * transformation for the details.
+	 *
+	 * # Nullability
+	 *
+	 * Value transformers generally don't handle nullability differences between source and target types: null source
+	 * values are not handled by the transformers themselves, but by the configuration using the transformer:
+	 * - [PropertyValueProvider.FromSource.mappedNullValue]
+	 * - [ValueTransformer.TransformList.nullElementMapping]
+	 * - [ValueTransformer.TransformMap.nullValueMapping]
 	 */
 	sealed interface ValueTransformer {
 		/**
@@ -299,11 +307,9 @@ data class ObjectMigration(
 		 *
 		 * The supported conversions are:
 		 * - Nullable->non-nullable, Non-nullable->non-nullable, and nullable->nullable coercions are always applicable,
-		 *   as long as the rest of the type configuration can be coerced.
-		 * - Nullable->non-nullable coercion can apply in the scope of a [PropertyValueProvider.FromSource], as in
-		 *   that case the null value is always handled by [PropertyValueProvider.FromSource.mappedNullValue].
-		 *   In other cases, such as [FallbackBehavior.CoerceFromSourceByName] a nullable type can't be coerced to a
-		 *   non-nullable type, regardless of the underlying type.
+		 *   as long as the rest of the type configuration can be coerced. Nullable types can't be coerced to
+		 *   non-nullable, but some configurations that use value transformer also apply alternative rules for handling
+		 *   null values that take priority over coercion and other value transformers.
 		 * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
 		 *   of the source enum exist in the target enum
 		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or all
@@ -376,7 +382,7 @@ data class ObjectMigration(
 		 * Wrap the source value into a singleton list to use as the target value.
 		 * The list element type must match the source type exactly, including validation.
 		 * Nullability of the list element type is not relevant, since a null source value is handled by the containing
-		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue].
+		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue], rather than being wrapped.
 		 *
 		 * # Map element
 		 *
@@ -396,7 +402,7 @@ data class ObjectMigration(
 		 * The [key] must be a valid key for the target map type, according to its [MapTypeConfig.ValidationConfig.KeyValidation]
 		 * rules.
 		 * Nullability of the map value type is not relevant, since a null source value is handled by the containing
-		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue].
+		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue], rather than being wrapped.
 		 *
 		 * # Map value
 		 *
@@ -563,6 +569,14 @@ data class ObjectMigration(
 			 * the target min length must be less than or equal to the source min length.
 			 */
 			val slicingBehaviour: SlicingBehaviour? = null,
+			/**
+			 * Specify how a null element in the source list should be mapped in the target list.
+			 * If not provided, null elements in the source list will be mapped to null values in the target list,
+			 * which is only allowed if the target list element type is nullable.
+			 * If the source list element type is not nullable, this is always ignored since null values are not
+			 * possible in the source list.
+			 */
+			val nullElementMapping: CollectionNullMapping? = null,
 		) : ValueTransformer {
 			enum class SlicingBehaviour {
 				/**
@@ -617,6 +631,30 @@ data class ObjectMigration(
 			 * with unspecified priority.
 			 */
 			val mapKey: ValueTransformer? = null,
+			/**
+			 * Specify how a null value in the source map should be mapped in the target map.
+			 * If not provided, null values in the source map will be mapped to null values in the target map, which is
+			 * only allowed if the target map value type is nullable.
+			 * If the source map value type is not nullable, this is always ignored since null values are not possible
+			 * in the source map.
+			 */
+			val nullValueMapping: CollectionNullMapping? = null,
 		) : ValueTransformer
+
+		/**
+		 * Specify how to handle a null entry in a collection (an item in a list or a value in a map; null map keys are
+		 * not allowed).
+		 */
+		sealed interface CollectionNullMapping {
+			/**
+			 * The null entry / element will be omitted from the result.
+			 */
+			data object Filter : CollectionNullMapping
+			/**
+			 * The null entry / element will be mapped to the specified [value].
+			 * The value must be compatible with the target collection element type configuration.
+			 */
+			data class UseValue(val value: RawJson) : CollectionNullMapping
+		}
 	}
 }
