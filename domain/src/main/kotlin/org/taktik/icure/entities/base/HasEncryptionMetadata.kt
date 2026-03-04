@@ -29,7 +29,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
 	)
 	val cryptedForeignKeys: Map<String, Set<Delegation>>
@@ -46,7 +46,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
 	)
 	val delegations: Map<String, Set<Delegation>>
@@ -62,7 +62,7 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 	 */
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
 	)
 	val encryptionKeys: Map<String, Set<Delegation>>

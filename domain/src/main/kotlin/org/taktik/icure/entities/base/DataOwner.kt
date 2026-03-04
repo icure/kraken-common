@@ -1,10 +1,14 @@
 package org.taktik.icure.entities.base
 
 import org.taktik.icure.entities.utils.MergeUtil
-import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 interface DataOwner {
-	@MergeStrategyUseReference("org.taktik.icure.entities.utils.MergeUtil.mergeSets")
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeSets"]
+	)
 	val properties: Set<PropertyStub>
 
 	fun solveConflictsWith(other: DataOwner): Map<String, Any?> = mapOf(

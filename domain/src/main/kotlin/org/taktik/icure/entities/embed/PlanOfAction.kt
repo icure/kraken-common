@@ -15,9 +15,7 @@ import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
-import org.taktik.icure.mergers.annotations.MergeStrategyUseReference
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
@@ -102,7 +100,7 @@ data class PlanOfAction(
 	val numberOfCares: Int? = null,
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)

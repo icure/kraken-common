@@ -23,7 +23,7 @@ interface Person :
 	val addresses: List<Address>
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListOfStringsIgnoringCase({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListOfStringsIgnoringCase({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 	)
 	val languages: List<String>
 

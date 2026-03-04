@@ -168,14 +168,14 @@ data class Patient(
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeInsurabilities({{LEFT}}, {{RIGHT}})",
+		merge = "mergeInsurabilities({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.Patient.Companion.mergeInsurabilities"]
 	)
 	val insurabilities: List<Insurability> = emptyList(),
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	val partnerships: List<Partnership> = emptyList(),
@@ -183,21 +183,21 @@ data class Patient(
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	val medicalHouseContracts: List<MedicalHouseContract> = emptyList(),
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
@@ -216,7 +216,7 @@ data class Patient(
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	@Deprecated("Use properties instead")
@@ -224,7 +224,7 @@ data class Patient(
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	@Deprecated("Use properties instead")

@@ -26,7 +26,7 @@ interface CryptoActor {
 	// the key encrypted using delegate's public key.
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct"]
 	)
 	val hcPartyKeys: Map<String, List<String>>

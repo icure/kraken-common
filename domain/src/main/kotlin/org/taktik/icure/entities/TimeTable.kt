@@ -43,7 +43,7 @@ data class TimeTable(
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	val items: List<TimeTableItem> = emptyList(),

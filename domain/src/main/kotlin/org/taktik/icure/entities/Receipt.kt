@@ -43,7 +43,7 @@ data class Receipt(
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
 	)
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)

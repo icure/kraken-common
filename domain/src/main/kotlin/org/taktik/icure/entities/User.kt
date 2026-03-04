@@ -92,7 +92,7 @@ data class User(
 	val deviceId: String? = null,
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfSetsDistinct({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfSetsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct"]
 	)
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
@@ -110,7 +110,7 @@ data class User(
 
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeAuthenticationTokens({{LEFT}}, {{RIGHT}})",
+		merge = "mergeAuthenticationTokens({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.User.Companion.mergeAuthenticationTokens"]
 	)
 	override val authenticationTokens: Map<String, AuthenticationToken> = emptyMap(),

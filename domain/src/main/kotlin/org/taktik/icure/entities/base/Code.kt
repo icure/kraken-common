@@ -38,7 +38,7 @@ data class Code(
 	val flags: Set<CodeFlag> = emptySet(), // flags (like female only) for the code
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeMapsOfSets({{LEFT}}, {{RIGHT}})",
+		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
 	)
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language

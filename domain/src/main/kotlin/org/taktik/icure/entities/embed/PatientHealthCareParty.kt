@@ -27,7 +27,7 @@ data class PatientHealthCareParty(
 	val sendFormats: Map<TelecomType, String> = emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeReferralPeriods({{LEFT}}, {{RIGHT}})",
+		merge = "mergeReferralPeriods({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.embed.PatientHealthCareParty.Companion.mergeReferralPeriods"]
 	)
 	val referralPeriods: SortedSet<ReferralPeriod> = sortedSetOf(), // History of DMG ownerships

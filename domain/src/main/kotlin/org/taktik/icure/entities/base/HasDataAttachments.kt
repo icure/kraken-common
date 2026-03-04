@@ -22,7 +22,7 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 	 */
 	@MergeStrategyUse(
 		canMerge = "true",
-		merge = "mergeDeletedAttachments({{LEFT}}, {{RIGHT}})"
+		merge = "mergeDeletedAttachments({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})"
 	)
 	val deletedAttachments: List<DeletedAttachment>
 
