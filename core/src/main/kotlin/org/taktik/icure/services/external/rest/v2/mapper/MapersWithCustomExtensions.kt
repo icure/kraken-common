@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
 import org.taktik.icure.domain.customentities.config.StandardRootEntityExtensionConfig
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
@@ -48,11 +49,11 @@ object MappersWithCustomExtensions {
 
 		override fun validateAndMapEmbeddedExtensionsForStore(
 			entity: ExtendableDto,
-			entityCanonicalName: String
+			entityName: ExtendableEntityName
 		): RawJson.JsonObject? {
-			val config = extensionConfig.embeddedEntitiesConfigs[entityCanonicalName]
+			val config = extensionConfig.embeddedEntitiesConfigs[entityName]
 			return if (config == null) {
-				MapperExtensionsValidationContext.Empty.validateAndMapEmbeddedExtensionsForStore(entity, entityCanonicalName)
+				MapperExtensionsValidationContext.Empty.validateAndMapEmbeddedExtensionsForStore(entity, entityName)
 			} else {
 				return customEntityConfigResolutionContext
 					.resolveRequiredObjectReference(config)

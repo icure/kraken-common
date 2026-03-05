@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
@@ -21,6 +22,7 @@ data object JsonTypeConfig : GenericTypeConfig {
 	): RawJson =
 		value
 
+	@get:JsonIgnore
 	override val nullable: Boolean
 		get() = true
 

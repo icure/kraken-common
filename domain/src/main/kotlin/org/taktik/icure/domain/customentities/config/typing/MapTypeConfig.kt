@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -19,9 +20,11 @@ data class MapTypeConfig(
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is MapTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
+	@get:JsonIgnore
 	override val objectDefinitionDependencies: Set<String> get() =
 		valueType.objectDefinitionDependencies
 
+	@get:JsonIgnore
 	override val enumDefinitionDependencies: Set<String> get() =
 		valueType.enumDefinitionDependencies + setOfNotNull(validation?.keyValidation?.let {
 			when (it) {

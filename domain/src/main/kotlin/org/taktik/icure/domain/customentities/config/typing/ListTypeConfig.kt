@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
@@ -16,9 +17,11 @@ data class ListTypeConfig(
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ListTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
+	@get:JsonIgnore
 	override val objectDefinitionDependencies: Set<String> get() =
 		elementType.objectDefinitionDependencies
 
+	@get:JsonIgnore
 	override val enumDefinitionDependencies: Set<String> get() =
 		elementType.enumDefinitionDependencies
 

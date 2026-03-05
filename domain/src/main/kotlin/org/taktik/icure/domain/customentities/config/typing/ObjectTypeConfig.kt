@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
@@ -15,6 +16,7 @@ data class ObjectTypeConfig(
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ObjectTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
+	@get:JsonIgnore
 	override val objectDefinitionDependencies: Set<String> get() =
 		setOf(objectReference)
 

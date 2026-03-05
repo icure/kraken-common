@@ -1,5 +1,6 @@
 package org.taktik.icure.domain.customentities.config.typing
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -90,6 +91,7 @@ data class ObjectDefinition(
 			 */
 			fun shouldIgnoreForStore(value: RawJson): Boolean
 
+			@get:JsonIgnore
 			val isConstant: Boolean
 
 			/**
@@ -119,6 +121,7 @@ data class ObjectDefinition(
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					value == this.value
 
+				@get:JsonIgnore
 				override val isConstant: Boolean = true
 			}
 
@@ -141,6 +144,7 @@ data class ObjectDefinition(
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 
+				@get:JsonIgnore
 				override val isConstant: Boolean = false
 			}
 
@@ -177,6 +181,7 @@ data class ObjectDefinition(
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
 
+				@get:JsonIgnore
 				override val isConstant: Boolean = false
 			}
 

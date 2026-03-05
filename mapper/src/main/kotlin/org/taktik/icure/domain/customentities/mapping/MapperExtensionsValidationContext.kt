@@ -1,6 +1,7 @@
 package org.taktik.icure.domain.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
+import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
@@ -25,7 +26,7 @@ interface MapperExtensionsValidationContext {
 
 	fun validateAndMapEmbeddedExtensionsForStore(
 		entity: ExtendableDto,
-		entityCanonicalName: String,
+		entityName: ExtendableEntityName
 	): RawJson.JsonObject?
 
 	/**
@@ -51,9 +52,9 @@ interface MapperExtensionsValidationContext {
 
 		override fun validateAndMapEmbeddedExtensionsForStore(
 			entity: ExtendableDto,
-			entityCanonicalName: String
+			entityName: ExtendableEntityName
 		): RawJson.JsonObject? {
-			require(entity.extensions == null) { "Extensions are not enabled on $entityCanonicalName" }
+			require(entity.extensions == null) { "Extensions are not enabled on $entityName" }
 			return null
 		}
 	}
