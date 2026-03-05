@@ -53,17 +53,6 @@ data class MapTypeConfig(
 		)
 		sealed interface KeyValidation {
 			/**
-			 * Validate if a key is valid according to this validation configuration.
-			 * Adds any error details and or warnings to the validation context, before returning false if the key is
-			 * invalid.
-			 */
-			fun validate(
-				resolutionContext: CustomEntityConfigResolutionContext,
-				validationContext: ScopedErrorCollector?,
-				keys: Set<String>
-			): Boolean
-
-			/**
 			 * Get a [GenericTypeConfig] with validation rules equivalent to this key validation rules.
 			 */
 			fun equivalentTypeConfig(): GenericTypeConfig
@@ -74,30 +63,6 @@ data class MapTypeConfig(
 			data class EnumKeyValidation(
 				val enumReference: String
 			) : KeyValidation {
-				override fun validate(
-					resolutionContext: CustomEntityConfigResolutionContext,
-					validationContext: ScopedErrorCollector?,
-					keys: Set<String>
-				): Boolean {
-					var res = true
-					val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
-					validationContext.appending("{KEY \"") {
-						keys.forEach {
-							if (it !in enumDefinition.entries) {
-								validationContext.appending(truncateValueForErrorMessage(it), "\"}") {
-									validationContext?.addError(
-										"GE-MAP-KEYENUM-VALUE",
-										"key" to it,
-										"ref" to enumReference
-									)
-								}
-								res = false
-							}
-						}
-					}
-					return res
-				}
-
 				override fun equivalentTypeConfig(): GenericTypeConfig =
 					EnumTypeConfig(enumReference = enumReference, isBuiltIn = false, nullable = false)
 			}
@@ -108,29 +73,6 @@ data class MapTypeConfig(
 			data class StringKeyValidation(
 				val validation: StringTypeConfig.ValidationConfig,
 			) : KeyValidation {
-				override fun validate(
-					resolutionContext: CustomEntityConfigResolutionContext,
-					validationContext: ScopedErrorCollector?,
-					keys: Set<String>
-				): Boolean {
-					var res = true
-					validationContext.appending("{KEY \"") {
-						keys.forEach { key ->
-							validationContext.appending(truncateValueForErrorMessage(key), "\"}") {
-								if (
-									!validation.validateValue(
-										validationContext,
-										key
-									)
-								) {
-									res = false
-								}
-							}
-						}
-					}
-					return res
-				}
-
 				override fun equivalentTypeConfig(): GenericTypeConfig =
 					StringTypeConfig(nullable = false, validation = validation)
 			}
@@ -164,19 +106,10 @@ data class MapTypeConfig(
 			}
 			if (keyValidation != null) {
 				validationContext.appending(".keyValidation") {
-					when (keyValidation) {
-						is ValidationConfig.KeyValidation.StringKeyValidation -> {
-							keyValidation.validation.validateConfig(validationContext)
-						}
-						is ValidationConfig.KeyValidation.EnumKeyValidation -> {
-							if (resolutionContext.resolveEnumReference(keyValidation.enumReference) == null) {
-								validationContext.addError(
-									"GE-MAP-KEYENUM-REF",
-									"ref" to keyValidation.enumReference
-								)
-							}
-						}
-					}
+					keyValidation.equivalentTypeConfig().validateConfig(
+						resolutionContext,
+						validationContext
+					)
 				}
 			}
 		}
@@ -215,11 +148,24 @@ data class MapTypeConfig(
 						"max" to (validation.maxSize ?: "*"),
 					)
 				}
-				validation.keyValidation?.validate(
-					resolutionContext,
-					validationContext,
-					res.keys
-				)
+				if (validation.keyValidation != null) {
+					val equivalentTypeConfig = validation.keyValidation.equivalentTypeConfig()
+					validationContext.appending("{KEY \"") {
+						res.keys.forEach { key ->
+							validationContext.appending(key, "\"}") {
+								if (
+									(equivalentTypeConfig.validateAndMapValueForStore(
+										resolutionContext,
+										validationContext,
+										RawJson.JsonString(key)
+									) as? RawJson.JsonString)?.value != key
+								) {
+									throw NotImplementedError("Internal error: support for map keys type that change during validation is not implemented")
+								}
+							}
+						}
+					}
+				}
 			}
 			RawJson.JsonObject(res)
 		}
