@@ -34,7 +34,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.DuplicateDocumentException
+import org.taktik.icure.exceptions.NonRespectedUnicityException
 import org.taktik.icure.exceptions.DuplicateUserException
 import org.taktik.icure.exceptions.DuplicateUserException.UniqueFieldType
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -45,7 +45,6 @@ import org.taktik.icure.security.credentials.SecretValidator
 import org.taktik.icure.security.user.GlobalUserUpdater
 import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.utils.bufferedChunks
-import org.taktik.icure.utils.retry
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
 import java.util.*
@@ -452,7 +451,7 @@ open class UserLogicImpl(
 							throw DuplicateUserException(fieldType, value)
 						}
 					}
-					throw DuplicateDocumentException("Users with $fieldType $existingFields already exist")
+					throw NonRespectedUnicityException("Users with $fieldType $existingFields already exist")
 				} else {
 					users.removeAll { checkField(it) != null && checkField(it) in existingFields }
 				}
