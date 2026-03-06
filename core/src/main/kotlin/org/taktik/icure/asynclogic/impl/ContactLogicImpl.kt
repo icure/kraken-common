@@ -49,7 +49,7 @@ open class ContactLogicImpl(
 	fixer: Fixer,
 	contactMerger: Merger<Contact>,
 ) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(contactDAO, contactMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Contact> by ConflictResolutionLogicImpl(contactDAO, contactMerger, datastoreInstanceProvider),
 	ContactLogic {
 	override suspend fun getContact(id: String) = getEntity(id)
 

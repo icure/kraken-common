@@ -30,7 +30,7 @@ open class FormLogicImpl(
 	filters: Filters,
 	formMerger: Merger<Form>,
 ) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(formDAO, formMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Form> by ConflictResolutionLogicImpl(formDAO, formMerger, datastoreInstanceProvider),
 	FormLogic {
 	override suspend fun getForm(id: String) = getEntity(id)
 

@@ -25,12 +25,11 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 	private val dao: ConflictDAO<E>,
 	private val merger: Merger<E>,
 	private val datastoreInstanceProvider: DatastoreInstanceProvider
-) : ConflictResolutionLogic {
+) : ConflictResolutionLogic<E> {
 
-	// TODO return only ids
-	protected fun doGetConflictingEntities(
+	protected fun doGetConflictingEntitiesIds(
 		datastoreInformation: IDatastoreInformation
-	): Flow<E> = dao.listConflicts(datastoreInformation)
+	): Flow<String> = dao.listIdsOfEntitiesWithConflicts(datastoreInformation)
 
 	protected fun doGetConflictsFor(
 		id: String,
@@ -107,27 +106,44 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 					}
 				}
 			}
-			val entityAfterMerge = if (toBePurged.isNotEmpty()) {
-				dao.save(datastoreInformation, merged).also {
-					TODO()
-					dao.purge(datastoreInformation, toBePurged).filterSuccessfulUpdates().count() != toBePurged.size
-				}
-			} else entity
+			val (entityAfterMerge, purgedCount) = if (toBePurged.isNotEmpty()) {
+				dao.save(datastoreInformation, merged) to
+					dao.purge(datastoreInformation, toBePurged).filterSuccessfulUpdates().count()
+			} else {
+				entity to 0
+			}
 			when {
-				mutableConflicts.isEmpty() -> MergeResult.Success(
+				// All conflicts have been merged and all the other revision have benn purged
+				mutableConflicts.isEmpty() && purgedCount == toBePurged.size -> MergeResult.Success(
 					id = entityAfterMerge.id,
 					rev = checkNotNull(entityAfterMerge.rev) { "Merged entity must have a revision" },
 				)
-				mutableConflicts.size != (entity.conflicts?.size ?: 0) -> MergeResult.PartialSuccess(
+				// There are unmergeable conflicts, but the revisions of merged conflicts have been successfully purged
+				mutableConflicts.size != (entity.conflicts?.size ?: 0) && purgedCount == toBePurged.size -> MergeResult.PartialSuccess(
 					id = entityAfterMerge.id,
 					rev = checkNotNull(entityAfterMerge.rev) { "Merged entity must have a revision" },
 				)
-				else -> MergeResult.Failure(id = entity.id)
+				else -> MergeResult.Failure(id = entityAfterMerge.id)
 			}.also {
 				emit(it)
 			}
 		}
 	}
+
+	override fun getConflictingEntitiesIds(): Flow<String> = flow {
+		emitAll(
+			doGetConflictingEntitiesIds(datastoreInstanceProvider.getInstanceAndGroup())
+		)
+	}
+
+	override fun getConflictsFor(entityId: String): Flow<E> = flow {
+		emitAll(
+			doGetConflictsFor(entityId, datastoreInstanceProvider.getInstanceAndGroup())
+		)
+	}
+
+	override suspend fun declareConflictWinner(entity: E, conflictsToPurge: List<String>) =
+		doDeclareConflictWinner(entity, conflictsToPurge, datastoreInstanceProvider.getInstanceAndGroup())
 
 	override fun solveConflicts(
 		limit: Int?,

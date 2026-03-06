@@ -16,7 +16,7 @@ import org.taktik.icure.pagination.PaginationElement
 interface MessageLogic :
 	EntityPersister<Message>,
 	EntityWithSecureDelegationsLogic<Message>,
-	ConflictResolutionLogic {
+	ConflictResolutionLogic<Message> {
 
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],

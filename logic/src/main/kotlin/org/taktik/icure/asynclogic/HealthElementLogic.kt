@@ -15,7 +15,7 @@ import org.taktik.icure.entities.embed.Delegation
 interface HealthElementLogic :
 	EntityPersister<HealthElement>,
 	EntityWithSecureDelegationsLogic<HealthElement>,
-	ConflictResolutionLogic {
+	ConflictResolutionLogic<HealthElement> {
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
 

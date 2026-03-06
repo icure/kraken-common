@@ -66,7 +66,7 @@ open class InvoiceLogicImpl(
 	fixer: Fixer,
 	invoiceMerger: Merger<Invoice>,
 ) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Invoice> by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
 	InvoiceLogic {
 	override suspend fun createInvoice(invoice: Invoice) = fix(invoice, isCreate = true) { fixedInvoice ->
 		if (fixedInvoice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")

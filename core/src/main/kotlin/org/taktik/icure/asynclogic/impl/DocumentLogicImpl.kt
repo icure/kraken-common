@@ -48,7 +48,7 @@ open class DocumentLogicImpl(
 	filters: Filters,
 	documentMerger: Merger<Document>
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(documentDAO, documentMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Document> by ConflictResolutionLogicImpl(documentDAO, documentMerger, datastoreInstanceProvider),
 	DocumentLogic {
 	override suspend fun createDocument(
 		document: Document,

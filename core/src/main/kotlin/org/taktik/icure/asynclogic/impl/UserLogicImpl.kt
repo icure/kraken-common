@@ -56,7 +56,7 @@ open class UserLogicImpl(
 	private val globalUserUpdater: GlobalUserUpdater,
 	userMerger: UserMerger,
 ) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(userDAO, userMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<User> by ConflictResolutionLogicImpl(userDAO, userMerger, datastoreInstanceProvider),
 	UserLogic {
 	private val shortTokenFormatter = DecimalFormat("000000")
 

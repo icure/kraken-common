@@ -14,7 +14,7 @@ import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import java.nio.ByteBuffer
 
 interface DocumentLogic :
-	ConflictResolutionLogic,
+	ConflictResolutionLogic<Document>,
 	EntityPersister<Document>,
 	EntityWithSecureDelegationsLogic<Document> {
 	/**

@@ -9,7 +9,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.pagination.PaginationElement
 
-interface InsuranceLogic : EntityPersister<Insurance> {
+interface InsuranceLogic : EntityPersister<Insurance>, ConflictResolutionLogic<Insurance> {
 	suspend fun createInsurance(insurance: Insurance): Insurance
 
 	suspend fun getInsurance(insuranceId: String): Insurance?

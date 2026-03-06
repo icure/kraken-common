@@ -8,11 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.PlaceDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.PlaceLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -23,7 +25,9 @@ open class PlaceLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<Place>
 ) : GenericLogicImpl<Place, PlaceDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<Place> by ConflictResolutionLogicImpl(placeDAO, merger, datastoreInstanceProvider),
 	PlaceLogic {
 	override suspend fun createPlace(place: Place) = fix(place, isCreate = true) { fixedPlace ->
 		if (fixedPlace.rev != null) throw IllegalArgumentException("A new entity should not have a rev")

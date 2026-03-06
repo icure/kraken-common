@@ -12,7 +12,7 @@ import org.taktik.icure.entities.embed.Delegation
 interface FormLogic :
 	EntityPersister<Form>,
 	EntityWithSecureDelegationsLogic<Form>,
-	ConflictResolutionLogic {
+	ConflictResolutionLogic<Form> {
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 

@@ -5,7 +5,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 
-interface DeviceLogic : EntityPersister<Device> {
+interface DeviceLogic : EntityPersister<Device>, ConflictResolutionLogic<Device> {
 	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
 

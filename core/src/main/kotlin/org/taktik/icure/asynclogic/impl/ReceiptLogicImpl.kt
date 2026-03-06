@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.codec.digest.DigestUtils
 import org.taktik.icure.asyncdao.ReceiptDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.ReceiptLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
@@ -20,6 +21,7 @@ import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
@@ -30,7 +32,9 @@ open class ReceiptLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<Receipt>,
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
+	ConflictResolutionLogic<Receipt> by ConflictResolutionLogicImpl(receiptDAO, merger, datastoreInstanceProvider),
 	ReceiptLogic {
 	override suspend fun createReceipt(receipt: Receipt) = createEntity(receipt)
 

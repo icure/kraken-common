@@ -44,7 +44,7 @@ open class HealthElementLogicImpl(
 	exchangeDataMapLogic,
 	filters,
 ),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(healthElementDAO, healthElementMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<HealthElement> by ConflictResolutionLogicImpl(healthElementDAO, healthElementMerger, datastoreInstanceProvider),
 	HealthElementLogic {
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,

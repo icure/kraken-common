@@ -20,7 +20,7 @@ import org.taktik.icure.pagination.PaginationElement
 interface InvoiceLogic :
 	EntityPersister<Invoice>,
 	EntityWithSecureDelegationsLogic<Invoice>,
-	ConflictResolutionLogic {
+	ConflictResolutionLogic<Invoice> {
 	suspend fun createInvoice(invoice: Invoice): Invoice
 
 	suspend fun getInvoice(invoiceId: String): Invoice?

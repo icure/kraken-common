@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.DeviceDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.DeviceLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.validation.aspect.Fixer
 
 open class DeviceLogicImpl(
@@ -19,7 +21,9 @@ open class DeviceLogicImpl(
 	private val deviceDAO: DeviceDAO,
 	filters: Filters,
 	fixer: Fixer,
+	merger: Merger<Device>
 ) : GenericLogicImpl<Device, DeviceDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<Device> by ConflictResolutionLogicImpl(deviceDAO, merger, datastoreInstanceProvider),
 	DeviceLogic {
 
 	override suspend fun createDevice(device: Device) = fix(device, isCreate = true) { fixedDevice ->

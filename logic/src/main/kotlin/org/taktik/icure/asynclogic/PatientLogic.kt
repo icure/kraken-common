@@ -21,7 +21,7 @@ import java.time.Instant
 interface PatientLogic :
 	EntityPersister<Patient>,
 	EntityWithSecureDelegationsLogic<Patient>,
-	ConflictResolutionLogic {
+	ConflictResolutionLogic<Patient> {
 
 	companion object {
 		@Suppress("EnumEntryName")

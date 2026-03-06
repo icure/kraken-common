@@ -9,7 +9,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.pagination.PaginationElement
 
-interface CalendarItemTypeLogic : EntityPersister<CalendarItemType> {
+interface CalendarItemTypeLogic : EntityPersister<CalendarItemType>, ConflictResolutionLogic<CalendarItemType> {
 	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
 
 	suspend fun getCalendarItemType(calendarItemTypeId: String): CalendarItemType?

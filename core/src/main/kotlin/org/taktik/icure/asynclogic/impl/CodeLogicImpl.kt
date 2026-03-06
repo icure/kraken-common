@@ -37,7 +37,7 @@ import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
-import org.taktik.icure.mergers.generated.base.CodeMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.utils.invoke
@@ -54,9 +54,9 @@ open class CodeLogicImpl(
 	filters: Filters,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	codeMerger: CodeMerger
+	codeMerger: Merger<Code>
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(codeDAO, codeMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Code> by ConflictResolutionLogicImpl(codeDAO, codeMerger, datastoreInstanceProvider),
 	CodeLogic {
 	companion object {
 		private val log = LogFactory.getLog(this::class.java)

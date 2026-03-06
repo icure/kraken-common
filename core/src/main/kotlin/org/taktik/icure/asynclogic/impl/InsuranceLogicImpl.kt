@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.InsuranceDAO
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.InsuranceLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -21,7 +23,9 @@ open class InsuranceLogicImpl(
 	private val datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<Insurance>
 ) : GenericLogicImpl<Insurance, InsuranceDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<Insurance> by ConflictResolutionLogicImpl(insuranceDAO, merger, datastoreInstanceProvider),
 	InsuranceLogic {
 	override suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 

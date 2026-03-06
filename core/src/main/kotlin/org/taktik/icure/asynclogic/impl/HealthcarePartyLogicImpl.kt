@@ -12,12 +12,14 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.HealthcarePartyLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.exceptions.MissingRequirementsException
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -28,7 +30,9 @@ open class HealthcarePartyLogicImpl(
 	private val healthcarePartyDAO: HealthcarePartyDAO,
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
 	fixer: Fixer,
+	merger: Merger<HealthcareParty>
 ) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<HealthcareParty> by ConflictResolutionLogicImpl(healthcarePartyDAO, merger, datastoreInstanceProvider),
 	HealthcarePartyLogic {
 	override fun getGenericDAO(): HealthcarePartyDAO = healthcarePartyDAO
 

@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AgendaLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
+import org.taktik.icure.asynclogic.impl.ConflictResolutionLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.config.SdkVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -26,7 +29,9 @@ open class AgendaLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<Agenda>
 ) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<Agenda> by ConflictResolutionLogicImpl(agendaDAO, merger, datastoreInstanceProvider),
 	AgendaLogic {
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()

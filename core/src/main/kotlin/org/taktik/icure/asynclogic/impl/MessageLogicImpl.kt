@@ -43,7 +43,7 @@ open class MessageLogicImpl(
 	fixer: Fixer,
 	messageMerger: Merger<Message>,
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(messageDAO, messageMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Message> by ConflictResolutionLogicImpl(messageDAO, messageMerger, datastoreInstanceProvider),
 	MessageLogic {
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")

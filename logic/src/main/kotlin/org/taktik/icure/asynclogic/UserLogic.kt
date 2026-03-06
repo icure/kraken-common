@@ -12,7 +12,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserLogic : EntityPersister<User>, ConflictResolutionLogic {
+interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 
 	companion object {
 		fun formatLogin(login: String) = login.trim { it <= ' ' }

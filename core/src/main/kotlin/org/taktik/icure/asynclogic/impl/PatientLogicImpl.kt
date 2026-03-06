@@ -67,7 +67,7 @@ open class PatientLogicImpl(
 	fixer: Fixer,
 	patientMerger: Merger<Patient>
 ) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
-	ConflictResolutionLogic by ConflictResolutionLogicImpl(patientDAO, patientMerger, datastoreInstanceProvider),
+	ConflictResolutionLogic<Patient> by ConflictResolutionLogicImpl(patientDAO, patientMerger, datastoreInstanceProvider),
 	PatientLogic {
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
