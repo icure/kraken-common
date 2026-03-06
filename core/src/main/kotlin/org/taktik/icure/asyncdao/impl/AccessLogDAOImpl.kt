@@ -47,15 +47,14 @@ class AccessLogDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<AccessLog>(
+) : ConflictDAOImpl<AccessLog>(
 	AccessLog::class.java,
 	couchDbDispatcher,
 	idGenerator,
 	entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	AccessLogDAO {
+), AccessLogDAO {
 	@View(name = "all_by_date", map = "classpath:js/accesslog/All_by_date_map.js")
 	override fun listAccessLogsByDate(
 		datastoreInformation: IDatastoreInformation,
@@ -232,6 +231,17 @@ class AccessLogDAOImpl(
 		endDate = endDate,
 		descending = descending,
 	)
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.AccessLog' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<AccessLog>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<AccessLog>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,

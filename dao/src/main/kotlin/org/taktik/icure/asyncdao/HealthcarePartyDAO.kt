@@ -12,7 +12,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.embed.Identifier
 
-interface HealthcarePartyDAO : GenericDAO<HealthcareParty> {
+interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 	fun listHealthcarePartiesByPublic(datastoreInformation: IDatastoreInformation, public: Boolean): Flow<HealthcareParty>
 
 	fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?): Flow<HealthcareParty>

@@ -16,8 +16,8 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DeviceDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.datastore.IDatastoreInformation
@@ -32,7 +32,7 @@ class DeviceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericIcureDAOImpl<Device>(
+) : ConflictDAOImpl<Device>(
 	Device::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -130,4 +130,15 @@ class DeviceDAOImpl(
 			}
 		}
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Device' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Device>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Device>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 }

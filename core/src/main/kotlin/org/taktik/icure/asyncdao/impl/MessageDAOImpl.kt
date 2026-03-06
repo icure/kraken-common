@@ -21,7 +21,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -46,7 +45,7 @@ open class MessageDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericIcureDAOImpl<Message>(Message::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+) : ConflictDAOImpl<Message>(Message::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
 	MessageDAO {
 
 	companion object {
@@ -460,11 +459,15 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc._conflicts) emit(doc._id )}")
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocsNoValue<String, Message>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map { it.doc })
-	}
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc._conflicts) emit(doc._id) }"
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Message>(datastoreInformation, "conflicts", null)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Message>(datastoreInformation, "conflicts", null)
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {

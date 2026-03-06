@@ -36,7 +36,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -75,7 +74,7 @@ class ContactDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+) : ConflictDAOImpl<Contact>(Contact::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
 	ContactDAO {
 
 	override suspend fun getContact(datastoreInformation: IDatastoreInformation, id: String): Contact? = get(datastoreInformation, id)
@@ -993,13 +992,15 @@ class ContactDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted && doc._conflicts) emit(doc._id )}")
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Contact>(datastoreInformation, "conflicts", null)
 
-		val viewQuery = createQuery(datastoreInformation, "conflicts").includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<String, Contact>(viewQuery).map { it.doc })
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Contact>(datastoreInformation, "conflicts", null)
 
 	@View(name = "service_by_data_owner_patient_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_patient_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
 	override fun listServiceIdsByDataOwnerPatientTagCodePrefix(

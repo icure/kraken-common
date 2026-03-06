@@ -31,7 +31,6 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 		partition: String? = null
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-
 		val viewQuery = createQuery(datastoreInformation, viewName, partition).includeDocs(false)
 		emitAll(client.queryViewIncludeDocsNoValue<String, E>(viewQuery).map { it.id })
 	}
@@ -42,7 +41,6 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 		partition: String? = null
 	): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-
 		val viewQuery = createQuery(datastoreInformation, viewName, partition).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, E>(viewQuery).map { it.doc })
 	}

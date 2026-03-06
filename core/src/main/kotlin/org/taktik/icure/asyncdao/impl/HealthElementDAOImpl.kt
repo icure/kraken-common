@@ -26,7 +26,6 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -46,8 +45,6 @@ import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
 import java.io.Serializable
-import kotlin.collections.chunked
-import kotlin.collections.forEach
 
 @Repository("healthElementDAO")
 @Profile("app")
@@ -61,7 +58,7 @@ internal class HealthElementDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<HealthElement>(
+) : ConflictDAOImpl<HealthElement>(
 	HealthElement::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -119,6 +116,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_codes", map = "classpath:js/healthelement/By_hcparty_code_map.js"),
 		View(
@@ -151,6 +153,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning instead.
+		Equivalent if not specifying value date range and using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_tags", map = "classpath:js/healthelement/By_hcparty_tag_map.js"),
 		View(
@@ -183,6 +190,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementIdsByHcPartyAndStatusAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(name = "by_hcparty_and_status", map = "classpath:js/healthelement/By_hcparty_status_map.js"),
 		View(
@@ -219,6 +231,11 @@ internal class HealthElementDAOImpl(
 		)
 	}.distinct()
 
+	@Deprecated("""
+		Use listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning instead.
+		Equivalent if using VersionFiltering.ANY, but uses new more efficient views.
+		This method is currently kept to allow groups that do not yet have the updated views to continue to work.
+	""")
 	@Views(
 		View(
 			name = "by_hcparty_and_identifiers",
@@ -326,17 +343,13 @@ internal class HealthElementDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<HealthElement>(datastoreInformation, "conflicts", null)
 
-		emitAll(
-			client.queryViewIncludeDocsNoValue<String, HealthElement>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map {
-				it.doc
-			},
-		)
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<HealthElement>(datastoreInformation, "conflicts", null)
 
 	override fun findHealthElementsByIds(
 		datastoreInformation: IDatastoreInformation,

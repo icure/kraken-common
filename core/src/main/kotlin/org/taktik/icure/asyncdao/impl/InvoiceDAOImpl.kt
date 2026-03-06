@@ -25,7 +25,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.InvoiceDAO
@@ -56,7 +55,7 @@ class InvoiceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericIcureDAOImpl<Invoice>(
+) : ConflictDAOImpl<Invoice>(
 	Invoice::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -570,17 +569,13 @@ class InvoiceDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Invoice' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Invoice' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Invoice> = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Invoice> =
+		doListConflicts<Invoice>(datastoreInformation, "conflicts", null)
 
-		emitAll(
-			client.queryViewIncludeDocsNoValue<String, Invoice>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).mapNotNull {
-				it.doc
-			},
-		)
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Invoice>(datastoreInformation, "conflicts", null)
 
 	@View(
 		name = "tarification_by_data_owner",

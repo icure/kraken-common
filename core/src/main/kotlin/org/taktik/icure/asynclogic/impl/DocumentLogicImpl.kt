@@ -8,11 +8,12 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
@@ -349,16 +350,25 @@ open class DocumentLogicImpl(
 		rev: String,
 	): DocIdentifier {
 		val entity = getEntityWithExpectedRev(id, rev)
-		return checkNotNull(
-			getGenericDAO()
-				.purge(
-					getInstanceAndGroup(),
-					listOf(entity),
-				).singleOrNull(),
-		) {
-			"Too many update result from purge"
-		}.entityOrThrow().also {
+		return getGenericDAO().purge(
+			getInstanceAndGroup(),
+			entity,
+		).also {
 			attachmentModificationLogic.cleanupPurgedEntityAttachments(entity)
 		}
+	}
+
+	override fun purgeEntities(identifiers: Collection<IdAndRev>): Flow<DocIdentifier> = flow {
+		val entitiesById = getEntitiesWithExpectedRev(identifiers).associateBy { it.id }
+		emitAll(
+			getGenericDAO().purge(
+				datastoreInformation = getInstanceAndGroup(),
+				entities = entitiesById.values,
+			).filterSuccessfulUpdates().onEach {
+				attachmentModificationLogic.cleanupPurgedEntityAttachments(
+					entitiesById.getValue(checkNotNull(it.id) { "Id cannot be null"})
+				)
+			}
+		)
 	}
 }

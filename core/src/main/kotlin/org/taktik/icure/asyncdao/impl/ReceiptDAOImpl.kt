@@ -17,6 +17,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -34,7 +35,7 @@ class ReceiptDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericIcureDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+) : ConflictDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
 	ReceiptDAO {
 
 	@View(name = "by_reference", map = "classpath:js/receipt/By_ref.js")
@@ -75,4 +76,15 @@ class ReceiptDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return client.deleteAttachment(documentId, attachmentId, rev)
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Receipt' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Receipt>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Receipt>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 }

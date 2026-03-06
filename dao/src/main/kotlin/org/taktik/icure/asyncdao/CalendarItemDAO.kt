@@ -13,7 +13,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import java.io.Serializable
 
-interface CalendarItemDAO : GenericDAO<CalendarItem> {
+interface CalendarItemDAO : ConflictDAO<CalendarItem> {
 	data class CalendarItemStub(
 		/**
 		 * The id of the calendar item

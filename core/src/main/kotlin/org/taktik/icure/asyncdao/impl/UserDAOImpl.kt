@@ -40,7 +40,7 @@ open class UserDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<User>(
+) : ConflictDAOImpl<User>(
 	User::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -402,13 +402,12 @@ open class UserDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION,
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<User>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<String, User>(viewQuery).map { it.doc })
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<User>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 }

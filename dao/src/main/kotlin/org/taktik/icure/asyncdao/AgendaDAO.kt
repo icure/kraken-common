@@ -9,7 +9,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.entities.base.PropertyStub
 
-interface AgendaDAO : GenericDAO<Agenda> {
+interface AgendaDAO : ConflictDAO<Agenda> {
 	/**
 	 * Retrieves all the [Agenda]s where [Agenda.userId] equals [userId]
 	 *

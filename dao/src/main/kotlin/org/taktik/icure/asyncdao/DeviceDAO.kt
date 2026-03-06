@@ -5,7 +5,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Device
 
-interface DeviceDAO : GenericDAO<Device> {
+interface DeviceDAO : ConflictDAO<Device> {
 
 	fun findDevicesByIds(datastoreInformation: IDatastoreInformation, deviceIds: Flow<String>): Flow<ViewQueryResultEvent>
 
