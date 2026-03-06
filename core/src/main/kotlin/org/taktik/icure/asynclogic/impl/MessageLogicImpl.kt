@@ -27,7 +27,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.mergers.generated.MessageMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.validation.aspect.Fixer
@@ -41,7 +41,7 @@ open class MessageLogicImpl(
 	filters: Filters,
 	private val userLogic: UserLogic,
 	fixer: Fixer,
-	messageMerger: MessageMerger,
+	messageMerger: Merger<Message>,
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(messageDAO, messageMerger, datastoreInstanceProvider),
 	MessageLogic {

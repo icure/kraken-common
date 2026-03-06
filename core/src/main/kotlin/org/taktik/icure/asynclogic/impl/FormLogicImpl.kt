@@ -18,7 +18,7 @@ import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.mergers.generated.FormMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.validation.aspect.Fixer
 
 open class FormLogicImpl(
@@ -28,7 +28,7 @@ open class FormLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
-	formMerger: FormMerger,
+	formMerger: Merger<Form>,
 ) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(formDAO, formMerger, datastoreInstanceProvider),
 	FormLogic {

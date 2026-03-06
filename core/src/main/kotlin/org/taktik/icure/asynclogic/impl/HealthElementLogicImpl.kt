@@ -24,7 +24,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.mergers.generated.HealthElementMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.validation.aspect.Fixer
 import java.util.*
@@ -36,7 +36,7 @@ open class HealthElementLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	healthElementMerger: HealthElementMerger,
+	healthElementMerger: Merger<HealthElement>,
 ) : EntityWithEncryptionMetadataLogic<HealthElement, HealthElementDAO>(
 	fixer,
 	sessionLogic,

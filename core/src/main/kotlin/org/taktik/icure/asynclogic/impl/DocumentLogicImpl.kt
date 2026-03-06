@@ -32,7 +32,7 @@ import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.mergers.generated.DocumentMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.validation.aspect.Fixer
 import java.nio.ByteBuffer
 
@@ -45,7 +45,7 @@ open class DocumentLogicImpl(
 	@param:Qualifier("documentDataAttachmentLoader") private val attachmentLoader: DocumentDataAttachmentLoader,
 	fixer: Fixer,
 	filters: Filters,
-	documentMerger: DocumentMerger
+	documentMerger: Merger<Document>
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(documentDAO, documentMerger, datastoreInstanceProvider),
 	DocumentLogic {

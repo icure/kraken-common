@@ -47,7 +47,7 @@ import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.mergers.generated.PatientMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlowOfIds
@@ -65,7 +65,7 @@ open class PatientLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	patientMerger: PatientMerger
+	patientMerger: Merger<Patient>
 ) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(patientDAO, patientMerger, datastoreInstanceProvider),
 	PatientLogic {

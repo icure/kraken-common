@@ -32,7 +32,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.pimpWithContactInformation
-import org.taktik.icure.mergers.generated.ContactMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -47,7 +47,7 @@ open class ContactLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	filters: Filters,
 	fixer: Fixer,
-	contactMerger: ContactMerger,
+	contactMerger: Merger<Contact>,
 ) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(contactDAO, contactMerger, datastoreInstanceProvider),
 	ContactLogic {

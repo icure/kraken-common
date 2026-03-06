@@ -37,7 +37,7 @@ import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.InvoicingCode
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.mergers.generated.InvoiceMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -64,7 +64,7 @@ open class InvoiceLogicImpl(
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
-	invoiceMerger: InvoiceMerger,
+	invoiceMerger: Merger<Invoice>,
 ) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
 	InvoiceLogic {
