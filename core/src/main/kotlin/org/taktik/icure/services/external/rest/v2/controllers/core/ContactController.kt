@@ -438,19 +438,19 @@ class ContactController(
 	@PutMapping("/batch")
 	fun modifyContacts(
 		@RequestBody contactDtos: List<ContactDto>,
-	): Flux<ContactDto> {
+	): Flux<ContactDto> = flow {
 		val contacts = contactService.modifyContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
-		return contacts.map { f -> contactV2Mapper.map(f) }.injectReactorContext()
-	}
+		emitAll(contacts.map { f -> contactV2Mapper.map(f) })
+	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of contacts", description = "Returns the modified contacts.")
 	@PostMapping("/batch")
 	fun createContacts(
 		@RequestBody contactDtos: List<ContactDto>,
-	): Flux<ContactDto> {
+	): Flux<ContactDto> = flow {
 		val contacts = contactService.createContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
-		return contacts.map { f -> contactV2Mapper.map(f) }.injectReactorContext()
-	}
+		emitAll(contacts.map { f -> contactV2Mapper.map(f) })
+	}.injectReactorContext()
 
 	@Operation(
 		summary = "List contacts for the current user (HcParty) or the given hcparty in the filter ",
@@ -475,7 +475,6 @@ class ContactController(
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchContactsBy(
 		@RequestBody filter: AbstractFilterDto<ContactDto>,
-		@RequestParam(required = false) deduplicate: Boolean? = null,
 	): Flux<String> = contactService
 		.matchContactsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
