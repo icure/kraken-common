@@ -39,8 +39,8 @@ interface ImportResultV2Mapper {
 		Mapping(target = "warning", ignore = true),
 		Mapping(target = "error", ignore = true),
 	)
-	fun map(importResultDto: ImportResultDto): ImportResult
-	fun map(importResult: ImportResult): ImportResultDto
+	suspend fun map(importResultDto: ImportResultDto): ImportResult
+	suspend fun map(importResult: ImportResult): ImportResultDto
 	fun map(mimeAttachmentDto: MimeAttachmentDto): MimeAttachment
 	fun map(mimeAttachment: MimeAttachment): MimeAttachmentDto
 }

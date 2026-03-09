@@ -117,7 +117,7 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
  * from [SRC].
  */
 @Suppress("UNCHECKED_CAST")
-fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: (SRC) -> DST): Flow<PaginationElement> = map {
+fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: suspend (SRC) -> DST): Flow<PaginationElement> = map {
 	when (it) {
 		is NextPageElement<*> -> it
 		is PaginationRowElement<*, *> -> {
