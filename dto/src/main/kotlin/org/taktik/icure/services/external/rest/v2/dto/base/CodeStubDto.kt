@@ -18,13 +18,14 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.RequireHashable
 import org.taktik.icure.utils.DynamicInitializer
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
+@JsonFilter("codeStubFilter")
 data class CodeStubDto(
 	override val id: String? = null, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used

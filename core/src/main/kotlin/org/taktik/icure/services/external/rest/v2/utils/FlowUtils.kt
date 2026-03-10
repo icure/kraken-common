@@ -35,7 +35,7 @@ import java.io.Serializable
 @Suppress("UNCHECKED_CAST")
 // TODO SH MB: handle offsets
 suspend fun <U : Identifiable<String>, T : Serializable> Flow<ViewQueryResultEvent>.paginatedList(
-	mapper: (U) -> T,
+	mapper: suspend (U) -> T,
 	realLimit: Int,
 	objectMapper: ObjectMapper,
 	predicate: Predicate? = null,

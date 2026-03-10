@@ -43,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import org.taktik.icure.services.external.rest.v2.dto.security.ChangeUserPasswordRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
@@ -358,4 +359,30 @@ class UserController(
 		.matchUsersBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
+
+	@PutMapping("/{userId}/email")
+	fun changeUserEmail(
+		@PathVariable userId: String,
+		@RequestParam(required = true) newEmail: String,
+		@RequestParam(required = true) previousEmail: String,
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		userV2Mapper.mapOmittingSecrets(userService.changeUserEmail(userId, newEmail, previousEmail))
+	}
+
+	@PutMapping("/{userId}/mobilePhone")
+	fun changeUserMobilePhone(
+		@PathVariable userId: String,
+		@RequestParam(required = true) newMobilePhone: String,
+		@RequestParam(required = true) previousMobilePhone: String,
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, newMobilePhone, previousMobilePhone))
+	}
+
+	@PutMapping("/{userId}/password")
+	fun changeUserPassword(
+		@PathVariable userId: String,
+		@RequestBody request: ChangeUserPasswordRequestDto,
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		userV2Mapper.mapOmittingSecrets(userService.changeUserPassword(userId, request.newPassword))
+	}
 }

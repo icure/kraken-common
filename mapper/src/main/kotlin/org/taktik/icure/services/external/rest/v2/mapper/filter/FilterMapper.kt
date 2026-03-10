@@ -35,6 +35,7 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Form
+import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Insurance
@@ -57,6 +58,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
+import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
@@ -120,6 +122,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwne
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerPatientOpeningDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByLogicalUuidFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByUniqueUuidFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.formtemplate.FormTemplateBySpecialtyFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.AllHealthcarePartiesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdsFilter
@@ -146,8 +149,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.Mai
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.AllMedicalLocationsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.MedicalLocationByPostCodeFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerFromAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerLifecycleBetween
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerPatientSentDateFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerToAddressFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTransportGuidSentDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHcPartyTransportGuidReceivedFilter
@@ -350,6 +356,14 @@ abstract class FilterV2Mapper {
 		is FormByDataOwnerParentIdFilter -> map(filterDto)
 		is FormByLogicalUuidFilter -> map(filterDto)
 		is FormByUniqueUuidFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: FormTemplateBySpecialtyFilter): org.taktik.icure.domain.filter.impl.formtemplate.FormTemplateBySpecialtyFilter
+
+	@JvmName("tryMapFormTemplateFilter")
+	fun tryMap(filterDto: AbstractFilterDto<FormTemplateDto>): AbstractFilter<FormTemplate>? = when (filterDto) {
+		is FormTemplateBySpecialtyFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
@@ -559,6 +573,9 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: MessageByParentIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByParentIdsFilter
 	abstract fun map(filterDto: MessageByInvoiceIdsFilter): org.taktik.icure.domain.filter.impl.message.MessageByInvoiceIdsFilter
 	abstract fun map(filterDto: MessageByDataOwnerLifecycleBetween): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerLifecycleBetween
+	abstract fun map(filterDto: MessageByDataOwnerCodeFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerCodeFilter
+	abstract fun map(filterDto: MessageByDataOwnerTagFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerTagFilter
+	abstract fun map(filterDto: MessageByDataOwnerPatientSentDateFilter): org.taktik.icure.domain.filter.impl.message.MessageByDataOwnerPatientSentDateFilter
 
 	@JvmName("tryMapMessageFilter")
 	fun tryMap(filterDto: AbstractFilterDto<MessageDto>): AbstractFilter<Message>? = when (filterDto) {
@@ -569,6 +586,9 @@ abstract class FilterV2Mapper {
 		is MessageByParentIdsFilter -> map(filterDto)
 		is MessageByInvoiceIdsFilter -> map(filterDto)
 		is MessageByDataOwnerLifecycleBetween -> map(filterDto)
+		is MessageByDataOwnerCodeFilter -> map(filterDto)
+		is MessageByDataOwnerTagFilter -> map(filterDto)
+		is MessageByDataOwnerPatientSentDateFilter -> map(filterDto)
 		else -> tryMapMessage(filterDto)
 	}
 

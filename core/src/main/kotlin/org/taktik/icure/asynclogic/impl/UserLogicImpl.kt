@@ -32,7 +32,10 @@ import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
-import org.taktik.icure.exceptions.DuplicateDocumentException
+import org.taktik.icure.exceptions.ConflictRequestException
+import org.taktik.icure.exceptions.NonRespectedUnicityException
+import org.taktik.icure.exceptions.DuplicateUserException
+import org.taktik.icure.exceptions.DuplicateUserException.UniqueFieldType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.mergers.generated.UserMerger
 import org.taktik.icure.pagination.limitIncludingKey
@@ -332,15 +335,7 @@ open class UserLogicImpl(
 			nonDuplicateUsers,
 			existingUsers,
 			throwOnDuplicate,
-			"logins",
-			{ it.login },
-			{ userDAO.findUsedUsernames(datastoreInformation, it) },
-		)
-		checkOrFilterDuplicates(
-			nonDuplicateUsers,
-			existingUsers,
-			throwOnDuplicate,
-			"emails",
+			UniqueFieldType.Email,
 			{ it.email },
 			{ userDAO.findUsedEmails(datastoreInformation, it) },
 		)
@@ -348,9 +343,19 @@ open class UserLogicImpl(
 			nonDuplicateUsers,
 			existingUsers,
 			throwOnDuplicate,
-			"phones",
+			UniqueFieldType.Phone,
 			{ it.login },
 			{ userDAO.findUsedPhones(datastoreInformation, it) },
+		)
+		// Keep login last, want to prioritize throwing exception for duplicate email or phone as it can allow to
+		// send emails/sms in case of conflicts.
+		checkOrFilterDuplicates(
+			nonDuplicateUsers,
+			existingUsers,
+			throwOnDuplicate,
+			UniqueFieldType.Login,
+			{ it.login },
+			{ userDAO.findUsedUsernames(datastoreInformation, it) },
 		)
 		nonDuplicateUsers
 			.map { user ->
@@ -375,7 +380,7 @@ open class UserLogicImpl(
 		users: MutableList<User>,
 		existingUsers: Map<String, User>,
 		throwOnDuplicate: Boolean,
-		fieldsName: String,
+		fieldType: UniqueFieldType,
 		crossinline checkField: (User) -> String?,
 		getExisting: (Collection<String>) -> Flow<String>,
 	) {
@@ -393,7 +398,15 @@ open class UserLogicImpl(
 			}?.also { fields ->
 				val existingFields = getExisting(fields).toSet()
 				if (throwOnDuplicate && existingFields.isNotEmpty()) {
-					throw DuplicateDocumentException("Users with $fieldsName $existingFields already exist")
+					if (users.size == 1) {
+						// Can give more precise exception if only one user is being created/modified
+						val user = users.first()
+						val value = checkField(user)
+						if (value != null) {
+							throw DuplicateUserException(fieldType, value)
+						}
+					}
+					throw NonRespectedUnicityException("Users with $fieldType $existingFields already exist")
 				} else {
 					users.removeAll { checkField(it) != null && checkField(it) in existingFields }
 				}
@@ -525,5 +538,63 @@ open class UserLogicImpl(
 			)
 			emitAll(users.asFlow())
 		}
+	}
+
+	override suspend fun changeUserEmail(
+		userId: String,
+		newEmail: String,
+		previousEmail: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			if (user.email != previousEmail) {
+				throw ConflictRequestException("User email does not match expected")
+			}
+			try {
+				return modifyUser(user.copy(email = newEmail))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) {
+					throw e
+				}
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
+	}
+
+	override suspend fun changeUserMobilePhone(
+		userId: String,
+		newMobilePhone: String,
+		previousMobilePhone: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			if (user.mobilePhone != previousMobilePhone) {
+				throw ConflictRequestException("User mobile phone does not match expected")
+			}
+			try {
+				return modifyUser(user.copy(mobilePhone = newMobilePhone))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) throw e
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
+	}
+
+	override suspend fun changeUserPassword(
+		userId: String,
+		newPassword: String
+	): User {
+		tailrec suspend fun withRetry(attemptsLeft: Int): User {
+			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+			try {
+				return modifyUser(user.copy(passwordHash = newPassword))
+			} catch (e: ConflictRequestException) {
+				if (attemptsLeft <= 0) throw e
+			}
+			return withRetry(attemptsLeft - 1)
+		}
+		return withRetry(3)
 	}
 }

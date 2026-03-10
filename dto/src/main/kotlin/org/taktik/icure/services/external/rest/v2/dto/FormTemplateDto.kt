@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.form.template.FormTemplateLayout
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -33,7 +34,7 @@ data class FormTemplateDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-	val templateLayout: org.taktik.icure.services.external.rest.v2.dto.embed.form.template.FormTemplateLayout? = null,
+	val templateLayout: FormTemplateLayout? = null,
 	val rawTemplateLayout: ByteArray? = null, // Base64 representation of a form template layout
 	val name: String? = null,
 	// Globally unique and consistent accross all DBs that get their formTemplate from a icure cloud library

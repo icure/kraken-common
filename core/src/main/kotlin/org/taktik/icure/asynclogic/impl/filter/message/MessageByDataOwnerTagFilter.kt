@@ -1,34 +1,34 @@
-package org.taktik.icure.asynclogic.impl.filter.document
+package org.taktik.icure.asynclogic.impl.filter.message
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
-import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.document.DocumentByDataOwnerCodeFilter
-import org.taktik.icure.entities.Document
+import org.taktik.icure.domain.filter.message.MessageByDataOwnerTagFilter
+import org.taktik.icure.entities.Message
 
 @Service
 @Profile("app")
-class DocumentByDataOwnerCodeFilter(
-	private val documentDAO: DocumentDAO,
+class MessageByDataOwnerTagFilter(
+	private val messageDAO: MessageDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
-) : Filter<String, Document, DocumentByDataOwnerCodeFilter> {
+) : Filter<String, Message, MessageByDataOwnerTagFilter> {
 	override fun resolve(
-		filter: DocumentByDataOwnerCodeFilter,
+		filter: MessageByDataOwnerTagFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
 	): Flow<String> = flow {
-		documentDAO.listDocumentIdsByDataOwnerCodes(
+		messageDAO.listMessageIdsByDataOwnerTag(
 			datastoreInformation = datastoreInformation,
 			searchKeys = sessionInformationProvider.getAllSearchKeysIfCurrentDataOwner(filter.dataOwnerId),
-			codeCode = filter.codeCode,
-			codeType = filter.codeType,
+			tagCode = filter.tagCode,
+			tagType = filter.tagType,
 		).also { emitAll(it) }
 	}
 }
