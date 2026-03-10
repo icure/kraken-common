@@ -21,9 +21,13 @@ class ScopedErrorCollector(
 	companion object {
 		const val PATH_PARAM_NAME = "path"
 		const val NO_PATH_VALUE = "<unknown path>"
+
+
+		fun ScopedErrorCollector?.paramsWithPath(params: Map<String, Any>): Map<String, Any> =
+			this?.paramsWithPath(params) ?: (params + (PATH_PARAM_NAME to NO_PATH_VALUE))
 	}
 
-	private fun paramsWithPath(params: Map<String, Any>): Map<String, Any> =
+	fun paramsWithPath(params: Map<String, Any>): Map<String, Any> =
 		// NOTE: must do path.toString() NOW, since path is mutable
 		params + (PATH_PARAM_NAME to (path?.toString() ?: NO_PATH_VALUE))
 

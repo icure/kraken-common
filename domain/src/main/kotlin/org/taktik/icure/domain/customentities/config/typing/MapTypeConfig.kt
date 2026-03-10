@@ -57,6 +57,10 @@ data class MapTypeConfig(
 			 */
 			fun equivalentTypeConfig(): GenericTypeConfig
 
+			companion object {
+				fun KeyValidation?.equivalentTypeConfig(): GenericTypeConfig = this?.equivalentTypeConfig() ?: StringTypeConfig(nullable = false)
+			}
+
 			/**
 			 * Each key must be an entry of the referenced enum
 			 */

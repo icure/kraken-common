@@ -312,9 +312,10 @@ data class ObjectMigration(
 		 *   null values that take priority over coercion and other value transformers.
 		 * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
 		 *   of the source enum exist in the target enum
-		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or all
-		 *   properties of the source value exist in the target and all the target value properties can be mapped using
-		 *   the fallback behaviors defined in the containing [ObjectMigration.fallbackBehavior].
+		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or both
+		 *   definitions are based on the same [ObjectDefinition.baseEntity] and all properties of the source value
+		 *   exist in the target and all the target value properties can be mapped using the fallback behaviors defined
+		 *   in the containing [ObjectMigration.fallbackBehavior].
 		 * - Identical source and target type configurations, including validation rules.
 		 * - Any type configuration to a JsonTypeConfig
 		 * - IntTypeConfig to IntTypeConfig, IntTypeConfig to FloatTypeConfig, or FloatTypeConfig to FloatTypeConfig
