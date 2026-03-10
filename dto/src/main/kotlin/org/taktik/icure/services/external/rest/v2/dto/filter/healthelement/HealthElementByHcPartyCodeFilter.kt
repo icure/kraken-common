@@ -13,13 +13,23 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.VersionFilteringDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches health elements by healthcare party, code, and date range.
+ */
 data class HealthElementByHcPartyCodeFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String,
+	/** The type of the code to match. */
 	val codeType: String,
+	/** The code value to match. */
 	val codeCode: String,
+	/** The start of the health element date range. */
 	val startOfHealthElementDate: Long? = null,
+	/** The end of the health element date range. */
 	val endOfHealthElementDate: Long? = null,
+	/** Optional version filtering criteria. */
 	val versionFiltering: VersionFilteringDto? = null,
 ) : AbstractFilterDto<HealthElementDto>
 

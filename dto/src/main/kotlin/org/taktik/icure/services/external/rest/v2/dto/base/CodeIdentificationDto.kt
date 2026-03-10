@@ -18,6 +18,10 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+/**
+ * Interface for entities that can be identified by a code from a codification system.
+ * The id is typically composed as type|code|version.
+ */
 interface CodeIdentificationDto<K> {
 	val id: K
 	val code: String?

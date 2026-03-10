@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of membership a care team member can hold.
+ */
 enum class MembershipTypeDto {
 	doctor,
 	mutuality,

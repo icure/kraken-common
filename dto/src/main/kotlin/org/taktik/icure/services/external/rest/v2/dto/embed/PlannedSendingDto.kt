@@ -17,6 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Represents a planned sending schedule defined by a cron expression.
+ */
 class PlannedSendingDto(
+	/** The cron expression defining the sending schedule. */
 	val cronExpression: String? = null,
 )

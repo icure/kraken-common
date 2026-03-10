@@ -23,9 +23,14 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Data transfer object representing a labelled occurrence count, typically used for aggregation results.
+ */
 data class LabelledOccurenceDto(
+	/** The label identifying what is being counted. */
 	@param:Schema(required = true)
 	val label: String,
+	/** The number of occurrences for this label. */
 	@param:Schema(required = true)
 	val occurence: Long,
 )

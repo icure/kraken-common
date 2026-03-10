@@ -10,11 +10,18 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Data transfer object aggregating database information for all databases belonging to a specific group,
+ * including their storage sizes and GCP storage usage.
+ */
 data class GroupDatabasesInfoDto(
+	/** The identifier of the group. */
 	@param:Schema(required = true)
 	val groupId: String,
+	/** The list of database information entries for this group. */
 	@param:Schema(required = true)
 	val databasesInfo: List<DatabaseInfoDto>,
+	/** The total GCP storage size in bytes used by this group. */
 	@param:Schema(required = true)
 	val gcpStorageSize: Long,
 ) : Serializable

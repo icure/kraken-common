@@ -28,20 +28,20 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * The RoleDto class represents a role in the system, which can have permissions and can be inheritable up to a certain level by users in child Groups.$
- * @property id The unique identifier of the role.
- * @property rev The revision identifier of the role, used for optimistic locking.
- * @property deletionDate The timestamp of when the role was deleted, if applicable.
- * @property name The name of the role.
- * @property inheritableUpTo The maximum level of inheritance for this role, indicating how far
  * down the group hierarchy this role can be inherited by users in child groups. A value of 0 means it cannot be inherited, while a value of -1 means it can be inherited indefinitely.
- * @property permissions A set of permissions associated with this role, defining what actions users with this role can perform.
  */
 data class RoleDto(
+	/** The unique identifier of the role. */
 	override val id: String,
+	/** The revision identifier of the role, used for optimistic locking. */
 	override val rev: String? = null,
+	/** The timestamp of when the role was deleted, if applicable. */
 	override val deletionDate: Long? = null,
+	/** The name of the role. */
 	override val name: String? = null,
+	/** The maximum level of inheritance for this role, indicating how far */
 	val inheritableUpTo: Int? = null,
+	/** A set of permissions associated with this role, defining what actions users with this role can perform. */
 	val permissions: Set<String> = emptySet(),
 ) : StoredDocumentDto,
 	PrincipalDto,

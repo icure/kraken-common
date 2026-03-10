@@ -28,30 +28,53 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PeriodicityDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a medical code from a terminology system (e.g., ICD, SNOMED). The code id is composed of
+ * type|code|version and must be unique.
+ */
 data class CodeDto(
+	/** The Id of the code, formatted as type|code|version. Must be unique. */
 	override val id: String, // id = type|code|version  => this must be unique
+	/** The revision of the code in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The context in which this code is used when embedded. */
 	override val context: String? = null, // ex: When embedded the context where this code is used
+	/** The code type (e.g., ICD). The type + version + code combination must be unique. */
 	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
+	/** The code value (e.g., I06.2). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT. */
 	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
+	/** The version of the code (e.g., 10). Must be lexicographically searchable. */
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	/** The human-readable label for the code, mapped by language (e.g., {en: "...", fr: "..."}). */
 	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	/** The id of the author of this code. */
 	val author: String? = null,
+	/** The geographic regions where this code is applicable (e.g., be, fr). */
 	val regions: Set<String> = emptySet(), // ex: be,fr
+	/** The periodicities associated with this code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val periodicity: Set<PeriodicityDto> = emptySet(),
+	/** The access level of the code (e.g., 0 = System, 1 = optional/user-modifiable). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val level: Int? = null, // ex: 0 = System, not to be modified by userDto, 1 = optional, created or modified by userDto
+	/** Links towards related codes (corresponds to approximate links in qualifiedLinks). */
 	val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
+	/** Qualified links towards related codes. */
 	val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
+	/** Flags (like female only) for the code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val flags: Set<CodeFlagDto> = emptySet(), // flags (like female only) for the code
+	/** Extra search terms indexed by language. */
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
+	/** Additional data associated with this code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val data: String? = null,
+	/** Appendices associated with this code, keyed by appendix type. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val appendices: Map<AppendixTypeDto, String> = emptyMap(),
+	/** Whether this code is disabled. */
 	@param:Schema(defaultValue = "false") val disabled: Boolean = false,
 ) : StoredDocumentDto,
 	CodeIdentificationDto<String> {

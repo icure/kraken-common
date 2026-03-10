@@ -26,6 +26,10 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
+/**
+ * Interface for entities that participate in the iCure end-to-end encryption system.
+ * A CryptoActor holds the cryptographic keys and key exchange material needed for secure data sharing.
+ */
 interface CryptoActorDto : VersionableDto<String> {
 	@get:Schema(
 		description =

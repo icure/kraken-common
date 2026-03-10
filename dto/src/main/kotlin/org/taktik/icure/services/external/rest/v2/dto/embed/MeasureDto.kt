@@ -24,17 +24,32 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a measured value with its unit, reference value, severity, evolution, and reference ranges.
+ */
 data class MeasureDto(
+	/** The measured numeric value. */
 	val value: Double? = null,
+	/** The reference value for comparison. */
 	val ref: Double? = null,
+	/** The severity level as an integer. */
 	val severity: Int? = null,
+	/** The severity code as a string. */
 	val severityCode: String? = null,
+	/** The evolution indicator as an integer. */
 	val evolution: Int? = null,
+	/** The unit of measurement as a string. */
 	val unit: String? = null,
+	/** The coded units of measurement. */
 	val unitCodes: Set<CodeStubDto>? = null,
+	/** A comment about the measurement. */
 	val comment: String? = null,
+	/** A comparator string (e.g., "<", ">", "<="). */
 	val comparator: String? = null,
+	/** The sign of the value. */
 	val sign: String? = null,
+	/** The list of reference ranges for this measurement. */
 	val referenceRanges: List<ReferenceRangeDto> = emptyList(),
+	/** The value with its precision information. */
 	val valueWithPrecision: ValueWithPrecisionDto? = null,
 ) : Serializable

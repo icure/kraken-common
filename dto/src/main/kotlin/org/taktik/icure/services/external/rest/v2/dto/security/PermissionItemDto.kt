@@ -12,6 +12,10 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDiscriminator("itemType")
 @JsonDeserialize(using = JacksonPermissionItemDeserializer::class)
+/**
+ * Sealed interface representing a single permission entry that pairs a permission type with a predicate.
+ * The predicate defines the condition under which the permission applies.
+ */
 sealed interface PermissionItemDto : Serializable {
 	val itemType: String
 		get() = this::class.simpleName!!

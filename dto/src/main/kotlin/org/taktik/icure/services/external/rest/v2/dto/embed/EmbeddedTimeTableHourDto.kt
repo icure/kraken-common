@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a time range within a time table, defined by a start and end hour.
+ */
 data class EmbeddedTimeTableHourDto(
+	/** The start hour encoded as an integer. */
 	val startHour: Int,
+	/** The end hour encoded as an integer. */
 	val endHour: Int,
 ) : Serializable

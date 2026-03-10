@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+/**
+ * Enumeration of appendix types that can be associated with a code or other entity.
+ */
 enum class AppendixTypeDto {
 	externalLink,
 	video,

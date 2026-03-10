@@ -25,9 +25,16 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the access rights of a user, specifying read, write, and administration permissions.
+ */
 data class RightDto(
+	/** The identifier of the user these rights apply to. */
 	val userId: String? = null,
+	/** Whether the user has read permission. */
 	@param:Schema(defaultValue = "false") val read: Boolean = false,
+	/** Whether the user has write permission. */
 	@param:Schema(defaultValue = "false") val write: Boolean = false,
+	/** Whether the user has administration permission. */
 	@param:Schema(defaultValue = "false") val administration: Boolean = false,
 ) : Serializable

@@ -18,6 +18,10 @@ import java.io.Serializable
 		JsonSubTypes.Type(value = DataOwnerWithTypeDto.DeviceDataOwner::class, name = "device"),
 	],
 )
+/**
+ * Sealed interface representing a data owner paired with its type. Each subtype wraps a specific
+ * kind of data owner (healthcare party, patient, or device) as a polymorphic type.
+ */
 sealed interface DataOwnerWithTypeDto : Serializable {
 	val dataOwner: CryptoActorDto
 

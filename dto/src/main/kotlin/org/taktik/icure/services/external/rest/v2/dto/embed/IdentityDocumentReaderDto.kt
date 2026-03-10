@@ -25,11 +25,21 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents information about how an identity document (such as a Belgian eID) was read,
+ * including the document number, support serial number, and encoding details.
+ */
 data class IdentityDocumentReaderDto(
+	/** The justification document number. */
 	val justificatifDocumentNumber: String? = null,
+	/** The serial number of the support used to read the document. */
 	val supportSerialNumber: String? = null,
+	/** The timestamp (unix epoch in ms) when the eID document was read. */
 	val timeReadingEIdDocument: Long? = null,
+	/** The type of eID document support used. */
 	@param:Schema(defaultValue = "0") val eidDocumentSupportType: Int = 0,
+	/** The reason code for manual encoding, if applicable. */
 	@param:Schema(defaultValue = "0") val reasonManualEncoding: Int = 0,
+	/** The reason code for using a vignette, if applicable. */
 	@param:Schema(defaultValue = "0") val reasonUsingVignette: Int = 0,
 ) : Serializable

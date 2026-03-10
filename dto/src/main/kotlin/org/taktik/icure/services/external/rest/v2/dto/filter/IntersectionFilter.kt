@@ -29,8 +29,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that returns only elements that match all of the provided sub-filters (logical AND).
+ */
 data class IntersectionFilter<O : IdentifiableDto<String>>(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The list of filters whose results are intersected. */
 	override val filters: List<AbstractFilterDto<O>> = emptyList(),
 ) : AbstractFilterDto<O>,
 	FilterDto.IntersectionFilter<O>

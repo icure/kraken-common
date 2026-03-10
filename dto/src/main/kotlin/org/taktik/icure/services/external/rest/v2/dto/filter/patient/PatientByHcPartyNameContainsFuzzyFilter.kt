@@ -30,8 +30,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Deprecated("This filter is deprecated")
+/**
+ * Deprecated filter that matches patients by healthcare party and a fuzzy name search string.
+ */
 data class PatientByHcPartyNameContainsFuzzyFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The fuzzy name search string to match. */
 	val searchString: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

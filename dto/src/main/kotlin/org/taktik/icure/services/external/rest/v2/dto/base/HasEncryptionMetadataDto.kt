@@ -22,6 +22,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 
+/**
+ * Interface for entities that hold encryption metadata used for end-to-end encryption and access control.
+ * This includes delegation keys, encrypted foreign keys, and security metadata.
+ */
 interface HasEncryptionMetadataDto : VersionableDto<String> {
 	@get:Schema(
 		description = "The secretForeignKeys are filled at the to many end of a one to many relationship (for example inside Contact for the Patient -> Contacts relationship). Used when we want to find all contacts for a specific patient. These keys are in clear. You can have several to partition the medical document space.",

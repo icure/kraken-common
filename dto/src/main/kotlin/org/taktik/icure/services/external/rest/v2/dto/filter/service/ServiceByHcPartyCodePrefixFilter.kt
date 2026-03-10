@@ -15,9 +15,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches services by healthcare party and code prefix.
+ */
 data class ServiceByHcPartyCodePrefixFilter(
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String,
+	/** The type of the code to match. */
 	val codeType: String,
+	/** The code prefix to match. */
 	val codeCodePrefix: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

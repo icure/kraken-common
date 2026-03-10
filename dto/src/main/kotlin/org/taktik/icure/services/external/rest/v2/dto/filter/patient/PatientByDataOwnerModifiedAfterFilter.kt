@@ -12,10 +12,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by data owner and modification date range.
+ */
 data class PatientByDataOwnerModifiedAfterFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The start of the modification date range (inclusive). */
 	val startDate: Long?,
+	/** The end of the modification date range (inclusive). */
 	val endDate: Long?,
+	/** Whether to return results in descending order. */
 	val descending: Boolean?,
+	/** Optional description of this filter. */
 	override val desc: String?,
 ) : AbstractFilterDto<PatientDto>

@@ -25,15 +25,28 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing the definition of a property type, including its value type, scope, and
+ * uniqueness constraints.
+ */
 data class PropertyTypeDto(
+	/** The unique identifier of the property type. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
+	/** The human-readable identifier of this property type. */
 	val identifier: String,
+	/** The value type of this property type. */
 	val type: TypedValuesTypeDto? = null,
+	/** The scope in which this property type is applicable. */
 	val scope: PropertyTypeScopeDto? = null,
+	/** Whether values of this property type must be unique. */
 	val unique: Boolean = false,
+	/** The identifier of the editor component used to edit this property type. */
 	val editor: String? = null,
+	/** Whether this property type supports localized values. */
 	val localized: Boolean = false,
 ) : StoredDocumentDto {
 	override fun withIdRev(

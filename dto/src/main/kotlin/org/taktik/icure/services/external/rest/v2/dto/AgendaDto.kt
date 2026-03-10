@@ -31,30 +31,56 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents an agenda that keeps track of appointments (calendar items) for a resource or group of resources.
+ * An agenda can specify a schedule for its resources and allows managing availabilities for booking.
+ */
 data class AgendaDto(
+	/** The Id of the agenda. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
+	/** The revision of the agenda in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
 	override val modified: Long? = null,
+	/** The id of the User that created this agenda. */
 	override val author: String? = null,
+	/** The id of the data owner that is responsible for this agenda. */
 	override val responsible: String? = null,
+	/** The medical location where this entity was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the agenda as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular agenda. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** A fuzzy time in HHMMSS format used to split working hours into blocks for availabilities computation. */
 	val daySplitHour: Int? = null,
+	/** If true the agenda is not available for availabilities and safe booking requests. */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
+	/** The name of the agenda. */
 	val name: String? = null,
+	/** The id of the user associated with this agenda. */
 	val userId: String? = null,
+	/** An identifier for the time zone of the agenda, must be an id accepted by java's ZoneId. */
 	val zoneId: String? = null,
+	/** The legacy rights for this agenda. Deprecated: use userRights instead. */
 	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
+	/** Associates a user id to the permission that user has on the entity. */
 	@param:Schema(description = "Associates a user id to the permission that user has on the entity.")
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	/** The algorithm to use for computing time slots in the agenda. */
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
+	/** If not null, limits the amount of monthly appointments per unprivileged user for this agenda. */
 	val publicBookingQuota: Int? = null,
+	/** Custom properties of the agenda. */
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	/** The resource group allocation schedules defining availability rules for this agenda. */
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 ) : StoredDocumentDto, ICureDocumentDto<String>, HasEndOfLifeDto {
 

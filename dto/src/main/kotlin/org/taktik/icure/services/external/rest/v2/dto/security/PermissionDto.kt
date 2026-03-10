@@ -24,8 +24,14 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the combined set of granted and revoked permissions for a user or role.
+ * Revocations take precedence over grants when both apply to the same permission type.
+ */
 data class PermissionDto(
+	/** The set of permission items that are explicitly granted. */
 	@param:Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
+	/** The set of permission items that are explicitly revoked. */
 	@param:Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet(),
 ) : Cloneable,
 	Serializable

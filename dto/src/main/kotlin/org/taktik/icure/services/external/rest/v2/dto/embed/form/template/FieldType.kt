@@ -3,6 +3,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed.form.template
 import kotlin.reflect.KClass
 
 @Suppress("EnumEntryName")
+/**
+ * Enumerates the types of fields available in a form template, each mapped to its corresponding implementation class.
+ */
 enum class FieldType(
 	val clazz: KClass<out Field>,
 ) {

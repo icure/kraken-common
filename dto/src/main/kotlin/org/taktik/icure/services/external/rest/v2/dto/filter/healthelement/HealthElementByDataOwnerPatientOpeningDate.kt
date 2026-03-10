@@ -12,11 +12,20 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches health elements by data owner, patient, and opening date range.
+ */
 data class HealthElementByDataOwnerPatientOpeningDate(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party (data owner). */
 	val healthcarePartyId: String,
+	/** The set of secret foreign keys for patient matching. */
 	val patientSecretForeignKeys: Set<String> = emptySet(),
+	/** The start of the opening date range (inclusive). */
 	val startDate: Long? = null,
+	/** The end of the opening date range (inclusive). */
 	val endDate: Long? = null,
+	/** Whether to return results in descending order. */
 	val descending: Boolean = false,
 ) : AbstractFilterDto<HealthElementDto>

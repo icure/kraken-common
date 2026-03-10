@@ -30,11 +30,19 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches invoices by healthcare party, code, and invoice date range.
+ */
 data class InvoiceByHcPartyCodeDateFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The code to match. */
 	@param:Schema(required = true)
 	val code: String,
+	/** The start of the invoice date range. */
 	val startInvoiceDate: Long? = null,
+	/** The end of the invoice date range. */
 	val endInvoiceDate: Long? = null,
 ) : AbstractFilterDto<InvoiceDto>

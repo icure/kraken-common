@@ -10,4 +10,7 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = JsonDeserializer.None::class)
+/**
+ * Predicate that always evaluates to true, matching all elements.
+ */
 class AlwaysPredicate : Predicate

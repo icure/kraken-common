@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a country with its ISO code and localized names.
+ */
 data class CountryDto(
+	/** The ISO country code. */
 	val code: String? = null,
+	/** A map of localized country names, keyed by language code. */
 	val name: Map<String, String>? = null,
 ) : Serializable

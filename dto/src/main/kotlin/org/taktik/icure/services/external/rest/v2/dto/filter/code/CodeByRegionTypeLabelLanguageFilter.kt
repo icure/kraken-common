@@ -31,12 +31,20 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches codes by region, type, label, and language.
+ */
 data class CodeByRegionTypeLabelLanguageFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The region to filter codes by. */
 	val region: String? = null,
+	/** The code type to match. */
 	@param:Schema(required = true)
 	val type: String,
+	/** The language of the label to match. */
 	@param:Schema(required = true)
 	val language: String,
+	/** The label text to match. */
 	val label: String? = null,
 ) : AbstractFilterDto<CodeDto>

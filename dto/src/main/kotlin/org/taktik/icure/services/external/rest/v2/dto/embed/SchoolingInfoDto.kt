@@ -26,11 +26,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents schooling information for a patient, including the period, school name, and type of education.
+ */
 data class SchoolingInfoDto(
+	/** The start date (unix epoch in ms) of the schooling period. */
 	val startDate: Long? = null,
+	/** The end date (unix epoch in ms) of the schooling period. */
 	val endDate: Long? = null,
+	/** The name of the school. */
 	val school: String? = null,
+	/** A code describing the type of education. */
 	val typeOfEducation: CodeStubDto? = null,
+	/** The base64-encoded encrypted content of this schooling info. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,
 	EncryptableDto

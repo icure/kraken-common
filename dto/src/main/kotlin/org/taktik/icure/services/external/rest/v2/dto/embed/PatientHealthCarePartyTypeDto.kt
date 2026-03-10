@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of relationships between a patient and a healthcare party.
+ */
 enum class PatientHealthCarePartyTypeDto {
 	doctor,
 	referral,

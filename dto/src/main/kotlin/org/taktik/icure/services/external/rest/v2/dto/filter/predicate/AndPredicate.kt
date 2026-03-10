@@ -27,6 +27,10 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = JsonDeserializer.None::class)
+/**
+ * Predicate that evaluates to true only when all sub-predicates evaluate to true (logical AND).
+ */
 data class AndPredicate(
+	/** The list of predicates that must all be satisfied. */
 	val predicates: List<Predicate> = emptyList(),
 ) : Predicate

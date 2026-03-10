@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible reasons for deactivating a patient record.
+ */
 enum class DeactivationReasonDto {
 	deceased,
 	moved,

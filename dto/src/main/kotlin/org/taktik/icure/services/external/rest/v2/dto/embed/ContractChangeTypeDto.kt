@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of changes that can occur on a medical house contract.
+ */
 enum class ContractChangeTypeDto {
 	inscriptionStart,
 	inscriptionEnd,

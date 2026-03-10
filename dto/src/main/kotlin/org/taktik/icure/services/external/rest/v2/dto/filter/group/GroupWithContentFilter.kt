@@ -12,8 +12,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches groups within a super group whose content matches a search string.
+ */
 data class GroupWithContentFilter(
+	/** The identifier of the super group to search within. */
 	val superGroupId: String,
+	/** The string to search for in group content. */
 	val searchString: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<GroupDto>

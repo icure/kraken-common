@@ -12,6 +12,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches all agendas without any filtering criteria.
+ */
 data class AllAgendasFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AgendaDto>

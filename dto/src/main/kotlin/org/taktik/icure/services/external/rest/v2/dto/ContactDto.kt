@@ -58,83 +58,82 @@ The main sub-element of the contact is the service. Each atomic piece of informa
  *
  * A contact can occur with or without direct interaction between the patient and the healthcare party. For example,
  * when a healthcare party encodes data received from laboratory's test result, this is done in the absence of a patient.
- *
- * @property id The Id of the contact. We encourage using either a v4 UUID or a HL7 Id.
- * @property rev The revision of the contact in the database, used for conflict management / optimistic locking.
- * @property created The timestamp (unix epoch in ms) of creation of the contact, will be filled automatically if missing. Not enforced by the application server.
- * @property modified The date (unix epoch in ms) of the latest modification of the contact, will be filled automatically if missing. Not enforced by the application server.
- * @property author The id of the User that has created this contact, will be filled automatically if missing. Not enforced by the application server.
- * @property responsible The id of the HealthcareParty that is responsible for this contact, will be filled automatically if missing. Not enforced by the application server.
- * @property medicalLocationId The id of the medical location where the contact was recorded. Deprecated for use with Cardinal SDK.
- * @property tags Tags that qualify the contact as being member of a certain class.
- * @property codes Codes that identify or qualify this particular contact.
- * @property identifier The identifiers of the Contact.
- * @property endOfLife Soft delete (unix epoch in ms) timestamp of the object.
- * @property deletionDate Hard delete (unix epoch in ms) timestamp of the object.
- * @property groupId Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId.
- * @property openingDate The date (YYYYMMDDhhmmss) of the start of the contact.
- * @property closingDate The date (YYYYMMDDhhmmss) marking the end of the contact.
- * @property descr Description of the contact.
- * @property location Location where the contact was recorded.
- * @property externalId An external (from another source) id with no guarantee or requirement for unicity. Deprecated for use with Cardinal SDK.
- * @property encounterType The type of encounter made for the contact.
- * @property encounterLocation The location where the encounter took place.
- * @property subContacts Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.
- * @property services Set of all services provided to the patient during the contact.
- * @property participants The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id. Deprecated: use [participantList] instead.
- * @property participantList The list of participants to the contact, with their type and data owner id.
- * @property healthcarePartyId Deprecated: use [responsible] instead.
- * @property modifiedContactId Deprecated: use [groupId] instead.
- * @property secretForeignKeys The secret patient key, encrypted in the patient document, in clear here.
- * @property cryptedForeignKeys The public patient key, encrypted here for separate Crypto Actors.
- * @property delegations The delegations giving access to connected healthcare information.
- * @property encryptionKeys The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.
- * @property encryptedSelf The encrypted fields of this contact.
- * @property securityMetadata The security metadata of this contact, tracking access control information.
- * @property notes Comments and notes recorded by a healthcare party about this contact.
  */
 data class ContactDto(
+	/** The Id of the contact. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	/** The revision of the contact in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the contact in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of the contact, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) of creation of the contact, will be filled automatically if missing. Not enforced by the application server.") override val created: Long? = null,
+	/** The date (unix epoch in ms) of the latest modification of the contact, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The date (unix epoch in ms) of the latest modification of the contact, will be filled automatically if missing. Not enforced by the application server.") override val modified: Long? = null,
+	/** The id of the User that has created this contact, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The id of the User that has created this contact, will be filled automatically if missing. Not enforced by the application server.") override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this contact, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The id of the HealthcareParty that is responsible for this contact, will be filled automatically if missing. Not enforced by the application server.") override val responsible: String? = null,
+	/** The id of the medical location where the contact was recorded. Deprecated for use with Cardinal SDK. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The id of the medical location where the contact was recorded.") override val medicalLocationId: String? = null,
+	/** Tags that qualify the contact as being member of a certain class. */
 	@param:Schema(description = "Tags that qualify the contact as being member of a certain class.") override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular contact. */
 	@param:Schema(description = "Codes that identify or qualify this particular contact.") override val codes: Set<CodeStubDto> = emptySet(),
+	/** The identifiers of the Contact. */
 	@param:Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.") override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "Hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
 	@param:Schema(
 		description = "Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId",
+	/** Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId. */
 	) val groupId: String? = null,
+	/** The date (YYYYMMDDhhmmss) of the start of the contact. */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") val openingDate: Long? = null,
+	/** The date (YYYYMMDDhhmmss) marking the end of the contact. */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null,
+	/** Description of the contact. */
 	@param:Schema(description = "Description of the contact") val descr: String? = null,
+	/** Location where the contact was recorded. */
 	@param:Schema(description = "Location where the contact was recorded.") val location: String? = null,
+	/** An external (from another source) id with no guarantee or requirement for unicity. Deprecated for use with Cardinal SDK. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
+	/** The type of encounter made for the contact. */
 	@param:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
+	/** The location where the encounter took place. */
 	@param:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
 	@param:Schema(
 		description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.",
+	/** Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms. */
 	) val subContacts: Set<SubContactDto> = emptySet(),
+	/** Set of all services provided to the patient during the contact. */
 	@param:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
+	/** The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id. Deprecated: use [participantList] instead. */
 	@param:Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id")
 	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
 	val participants: Map<ParticipantTypeDto, String> = emptyMap(),
+	/** The list of participants to the contact, with their type and data owner id. */
 	@param:Schema(description = "The list of participants to the contact, with their type and data owner id.")
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val participantList: List<ContactParticipantDto> = emptyList(),
+	/** Deprecated: use [responsible] instead. */
 	@Deprecated("Use responsible") val healthcarePartyId: String? = null,
+	/** Deprecated: use [groupId] instead. */
 	@Deprecated("Use groupId") val modifiedContactId: String? = null,
+	/** The secret patient key, encrypted in the patient document, in clear here. */
 	@param:Schema(description = "The secret patient key, encrypted in the patient document, in clear here.") override val secretForeignKeys: Set<String> = emptySet(),
+	/** The public patient key, encrypted here for separate Crypto Actors. */
 	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The delegations giving access to connected healthcare information. */
 	@param:Schema(description = "The delegations giving access to connected healthcare information.") override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors. */
 	@param:Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.") override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The encrypted fields of this contact. */
 	@param:Schema(description = "The encrypted fields of this contact.") override val encryptedSelf: Base64StringDto? = null,
+	/** The security metadata of this contact, tracking access control information. */
 	@param:Schema(description = "The security metadata of this contact, tracking access control information.") override val securityMetadata: SecurityMetadataDto? = null,
+	/** Comments and notes recorded by a healthcare party about this contact. */
 	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

@@ -26,8 +26,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A chain that combines a filter with an optional predicate for post-filtering results.
+ */
 data class FilterChain<O : IdentifiableDto<String>>(
+	/** The filter to apply. */
 	@param:Schema(required = true)
 	val filter: AbstractFilterDto<O>,
+	/** An optional predicate to further refine the filter results. */
 	val predicate: Predicate? = null,
 )

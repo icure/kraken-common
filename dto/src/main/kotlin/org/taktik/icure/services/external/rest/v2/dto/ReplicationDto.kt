@@ -26,12 +26,22 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DatabaseSynchronizat
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing a replication configuration, defining how databases are synchronized between
+ * CouchDB instances.
+ */
 data class ReplicationDto(
+	/** The unique identifier of the replication. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
+	/** The display name of this replication configuration. */
 	override val name: String? = null,
+	/** The context or environment for this replication. */
 	var context: String? = null,
+	/** The list of database synchronization rules defined in this replication. */
 	var databaseSynchronizations: List<DatabaseSynchronizationDto> = emptyList(),
 ) : StoredDocumentDto,
 	IdentifiableDto<String>,

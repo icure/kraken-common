@@ -29,12 +29,21 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimiti
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Predicate that evaluates a comparison between an entity property and a value using an operator.
+ */
 data class KeyValuePredicate(
+	/** The property key to compare. */
 	val key: String? = null,
+	/** The comparison operator. */
 	val operator: Operator? = null,
+	/** The value to compare against. */
 	val value: AnyPrimitive? = null,
 ) : Predicate
 
+/**
+ * Comparison operators for use in key-value predicates.
+ */
 enum class Operator(
 	val code: String,
 ) {
