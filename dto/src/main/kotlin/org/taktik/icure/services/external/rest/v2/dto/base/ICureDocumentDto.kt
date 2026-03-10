@@ -19,6 +19,10 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
 
+/**
+ * Interface for iCure document entities that track creation and modification metadata.
+ * Extends [IdentifiableDto], [HasTagsDto], and [HasCodesDto] to provide a common base for all medical documents.
+ */
 interface ICureDocumentDto<T> :
 	IdentifiableDto<T>,
 	HasTagsDto,

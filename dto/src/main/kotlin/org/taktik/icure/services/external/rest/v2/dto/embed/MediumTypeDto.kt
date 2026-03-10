@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the medium types through which invoices or documents can be transmitted.
+ */
 enum class MediumTypeDto {
 	cdrom,
 	eattest,

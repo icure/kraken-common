@@ -23,8 +23,14 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Request object used to add a form for a patient.
+ */
 data class AddFormRequest(
+	/** The unique identifier of the patient to associate the form with. */
 	val patientId: String? = null,
+	/** The unique identifier of the form to add. */
 	val formId: String? = null,
+	/** The GUID of the form template to use for creating the form. */
 	val formTemplateGuid: String? = null,
 ) : Serializable

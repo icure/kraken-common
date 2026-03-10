@@ -26,11 +26,19 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing a physical place or location, such as a clinic or office.
+ */
 data class PlaceDto(
+	/** The unique identifier of the place. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
+	/** The display name of the place. */
 	override val name: String? = null,
+	/** The address of the place. */
 	val address: AddressDto? = null,
 ) : StoredDocumentDto,
 	NamedDto {

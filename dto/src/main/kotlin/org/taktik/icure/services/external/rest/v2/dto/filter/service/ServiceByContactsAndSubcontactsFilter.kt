@@ -31,12 +31,21 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Deprecated("This filter is deprecated")
+/**
+ * Deprecated filter that matches services by healthcare party, contacts, sub-contacts, and value date range.
+ */
 data class ServiceByContactsAndSubcontactsFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The set of contact identifiers to match. */
 	@param:Schema(required = true)
 	val contacts: Set<String>,
+	/** The set of sub-contact identifiers to match. */
 	val subContacts: Set<String>? = null,
+	/** The start of the value date range. */
 	val startValueDate: Long? = null,
+	/** The end of the value date range. */
 	val endValueDate: Long? = null,
 ) : AbstractFilterDto<ServiceDto>

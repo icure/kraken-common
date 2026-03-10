@@ -23,9 +23,16 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO providing status information about an ongoing or configured database replication.
+ */
 data class ReplicationInfoDto(
+	/** Whether the replication is currently active. */
 	val active: Boolean = false,
+	/** Whether the replication process is currently running. */
 	val running: Boolean = false,
+	/** The number of pending changes to replicate from the source. */
 	val pendingFrom: Int? = null,
+	/** The number of pending changes to replicate to the target. */
 	val pendingTo: Int? = null,
 ) : Serializable

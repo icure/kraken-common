@@ -22,6 +22,9 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PersonNameDto
 import java.io.Serializable
 
+/**
+ * Interface for entities that represent a person with personal details and contact information.
+ */
 interface PersonDto :
 	Serializable,
 	IdentifiableDto<String> {

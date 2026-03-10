@@ -25,7 +25,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a weekday reference used in medication regimens, optionally specifying a week number.
+ */
 data class Weekday(
+	/** The coded weekday (CD-WEEKDAY). */
 	val weekday: CodeStubDto? = null, // CD-WEEKDAY
+	/** The week number within a cycle, or null if not applicable. */
 	val weekNumber: Int? = null, // Can be null
 ) : Serializable

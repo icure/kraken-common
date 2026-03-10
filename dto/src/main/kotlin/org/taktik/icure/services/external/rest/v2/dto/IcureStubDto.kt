@@ -29,22 +29,42 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A lightweight stub representation of an iCure document, containing only the core metadata fields
+ * such as identifiers, timestamps, tags, codes, and encryption metadata. Used when the full entity
+ * payload is not needed.
+ */
 data class IcureStubDto(
+	/** The unique identifier of the entity. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The timestamp in epoch milliseconds when the entity was created. */
 	override val created: Long? = null,
+	/** The timestamp in epoch milliseconds when the entity was last modified. */
 	override val modified: Long? = null,
+	/** The identifier of the user who created this entity. */
 	override val author: String? = null,
+	/** The identifier of the data owner responsible for this entity. */
 	override val responsible: String? = null,
+	/** The identifier of the medical location associated with this entity. Deprecated for use with Cardinal SDK. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** The set of tags associated with this entity. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** The set of codes associated with this entity. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val endOfLife: Long? = null,
+	/** The set of secret foreign keys used for encryption. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The map of encrypted foreign keys, keyed by data owner identifier. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The map of access delegations, keyed by data owner identifier. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The map of encryption keys, keyed by data owner identifier. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The security metadata containing secure delegation information. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : ICureDocumentDto<String>,
 	VersionableDto<String>,

@@ -23,7 +23,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Lightweight stub representation of a property type, containing only the identifier and value type.
+ */
 data class PropertyTypeStubDto(
+	/** The human-readable identifier of this property type. */
 	val identifier: String? = null,
+	/** The value type of this property type. */
 	val type: TypedValuesTypeDto? = null,
 )

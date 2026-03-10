@@ -29,26 +29,43 @@ import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the value content of a medical service. A content can hold different types of values
+ * such as strings, numbers, dates, measurements, medications, time series, or compound sub-services.
+ */
 data class ContentDto(
+	/** A string value. */
 	val stringValue: String? = null,
+	/** A numeric value. */
 	val numberValue: Double? = null,
+	/** A boolean value. */
 	val booleanValue: Boolean? = null,
+	/** An instant value. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
 	@param:Schema(
 		description = "Value as date. The format could have a all three (day, month and year) or values on any of these three, whatever is known.",
+	/** Value as a fuzzy date, which may contain day, month, and/or year components. */
 	) val fuzzyDateValue: Long? = null,
+	/** A binary value encoded as a byte array. */
 	@param:Schema(type = "string", format = "byte") val binaryValue: ByteArray? = null,
+	/** The identifier of a linked document. */
 	@param:Schema(description = "Linked document.") val documentId: String? = null,
 	@param:Schema(
 		description = "Values of measurements recorded. Fields included would be the value, permissible range (min. and max.), severity, unit of measurement, etc ",
+	/** Values of measurements recorded, including value, range, severity, and unit. */
 	) val measureValue: MeasureDto? = null,
+	/** The details of prescribed or suggested medication. */
 	@param:Schema(description = "The details of prescribed or suggested medication") val medicationValue: MedicationDto? = null,
+	/** A high frequency time-series containing timestamps in ms and their values. */
 	@param:Schema(description = "A high frequency time-series containing the ts in ms from the start (double) and the values") val timeSeries: TimeSeriesDto? = null,
+	/** A list of sub-services forming a compound value. */
 	val compoundValue: List<ServiceDto>? = null,
+	/** A list of measures representing a ratio. */
 	val ratio: List<MeasureDto>? = null,
+	/** A list of measures representing a range. */
 	val range: List<MeasureDto>? = null,
 ) : Serializable {
 	override fun equals(other: Any?): Boolean {

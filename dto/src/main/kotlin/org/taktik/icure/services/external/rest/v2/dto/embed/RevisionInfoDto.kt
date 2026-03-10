@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents revision information for a CouchDB document, including the revision identifier and its status.
+ */
 data class RevisionInfoDto(
+	/** The revision identifier. */
 	val rev: String? = null,
+	/** The status of this revision (e.g., available, missing, deleted). */
 	val status: String? = null,
 ) : Serializable

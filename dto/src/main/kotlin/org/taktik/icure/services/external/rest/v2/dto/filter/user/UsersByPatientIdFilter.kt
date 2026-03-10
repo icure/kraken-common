@@ -13,8 +13,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A filter that matches users linked to a specific patient entity.
+ */
 data class UsersByPatientIdFilter(
+	/** The identifier of the patient whose associated users should be returned. */
 	@param:Schema(required = true)
 	val patientId: String,
+	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

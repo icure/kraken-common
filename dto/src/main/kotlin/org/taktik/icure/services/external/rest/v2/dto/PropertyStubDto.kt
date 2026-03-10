@@ -23,10 +23,18 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Lightweight stub representation of a property, used when the full stored property is not needed.
+ */
 data class PropertyStubDto(
+	/** The unique identifier of the property stub. */
 	val id: String? = null,
+	/** The type stub definition of this property. */
 	val type: PropertyTypeStubDto? = null,
+	/** The typed value held by this property. */
 	val typedValue: TypedValueDto? = null,
+	/** The soft-delete timestamp in epoch milliseconds. Deprecated: remove from list instead. */
 	@Deprecated("Remove from list instead") val deletionDate: Long? = null,
+	/** The encrypted content of this property, encoded as a Base64 string. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto

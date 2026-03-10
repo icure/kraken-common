@@ -19,6 +19,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import java.io.Serializable
 
+/**
+ * Enumerates the possible personal (marital/civil) statuses of a patient.
+ */
 enum class PersonalStatusDto : Serializable {
 	single,
 	in_couple,

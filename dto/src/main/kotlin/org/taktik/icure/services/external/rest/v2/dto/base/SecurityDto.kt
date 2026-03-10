@@ -24,7 +24,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Data transfer object representing the security configuration of a CouchDB database, defining admin and member access rights.
+ */
 data class SecurityDto(
+	/** The access rights for database administrators. */
 	@param:Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
+	/** The access rights for database members. */
 	@param:Schema(defaultValue = "RightDto()") val members: RightDto = RightDto(),
 ) : Serializable

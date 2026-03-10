@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the levels of confidentiality that can be applied to medical data.
+ */
 enum class ConfidentialityDto {
 	freeaccess,
 	personal,

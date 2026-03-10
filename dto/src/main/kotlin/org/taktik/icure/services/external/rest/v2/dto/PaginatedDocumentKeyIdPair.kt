@@ -24,7 +24,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing a key-document ID pair used for cursor-based pagination in CouchDB views.
+ */
 data class PaginatedDocumentKeyIdPair(
+	/** The view key to start the next page from. */
 	var startKey: JsonNode? = null,
+	/** The document identifier to start the next page from, used to disambiguate when multiple documents share the same key. */
 	var startKeyDocId: String? = null,
 ) : Serializable

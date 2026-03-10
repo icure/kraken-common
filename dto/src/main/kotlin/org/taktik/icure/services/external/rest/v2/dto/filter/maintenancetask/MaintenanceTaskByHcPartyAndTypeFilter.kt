@@ -16,9 +16,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches maintenance tasks by healthcare party and task type.
+ */
 data class MaintenanceTaskByHcPartyAndTypeFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The type of maintenance task to match. */
 	@param:Schema(required = true)
 	val type: String,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<MaintenanceTaskDto>

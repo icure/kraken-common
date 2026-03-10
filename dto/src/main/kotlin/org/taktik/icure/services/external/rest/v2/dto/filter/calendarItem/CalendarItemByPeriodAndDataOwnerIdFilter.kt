@@ -12,9 +12,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches calendar items within a time period for a specific data owner.
+ */
 data class CalendarItemByPeriodAndDataOwnerIdFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The start of the time period. */
 	val startTime: Long,
+	/** The end of the time period. */
 	val endTime: Long,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<CalendarItemDto>

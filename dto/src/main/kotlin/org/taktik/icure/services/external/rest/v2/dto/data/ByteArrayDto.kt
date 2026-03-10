@@ -24,6 +24,10 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Data transfer object wrapping a raw byte array for use in API requests and responses.
+ */
 data class ByteArrayDto(
+	/** The byte array content. */
 	@param:Schema(required = true) val data: ByteArray,
 ) : Serializable

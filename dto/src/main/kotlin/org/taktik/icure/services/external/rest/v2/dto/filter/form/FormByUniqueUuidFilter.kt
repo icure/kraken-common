@@ -12,8 +12,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches forms by their unique identifier.
+ */
 data class FormByUniqueUuidFilter(
+	/** The unique identifier to match. */
 	val uniqueId: String,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<FormDto>

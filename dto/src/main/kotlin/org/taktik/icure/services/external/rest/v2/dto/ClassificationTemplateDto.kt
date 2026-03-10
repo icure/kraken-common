@@ -24,20 +24,36 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a template for classifications, defining a reusable structure that classifications can be based on.
+ */
 data class ClassificationTemplateDto(
+	/** The Id of the classification template. */
 	override val id: String,
+	/** The revision of the classification template in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
 	override val modified: Long? = null,
+	/** The id of the User that created this classification template. */
 	override val author: String? = null,
+	/** The id of the data owner that is responsible for this classification template. */
 	override val responsible: String? = null,
+	/** The medical location where this entity was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the classification template as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular classification template. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The id of the parent classification template, for nesting. */
 	val parentId: String? = null,
+	/** A human-readable label for this classification template. */
 	val label: String = "",
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

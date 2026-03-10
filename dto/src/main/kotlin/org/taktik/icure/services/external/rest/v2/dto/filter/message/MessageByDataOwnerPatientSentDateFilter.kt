@@ -13,11 +13,20 @@ import java.time.Instant
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages by data owner, patient, and sent date range.
+ */
 data class MessageByDataOwnerPatientSentDateFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The set of secret patient keys used for secure delegation matching. */
 	val secretPatientKeys: Set<String>,
+	/** The start of the sent date range (inclusive). */
 	val startDate: Instant? = null,
+	/** The end of the sent date range (inclusive). */
 	val endDate: Instant? = null,
+	/** Whether to return results in descending order. */
 	val descending: Boolean?,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

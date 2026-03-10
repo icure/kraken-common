@@ -24,4 +24,7 @@ import java.io.Serializable
 
 @JsonDeserialize(using = JacksonPredicateDeserializer::class)
 @JsonDiscriminator("\$type")
+/**
+ * Sealed interface for filter predicates that can be used to post-filter results from a filter chain.
+ */
 sealed interface Predicate : Serializable

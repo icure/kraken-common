@@ -30,10 +30,16 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that returns all elements matching the superSet filter but not matching the subSet filter.
+ */
 data class ComplementFilter<O : IdentifiableDto<String>>(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The base filter whose results form the initial set. */
 	@param:Schema(required = true)
 	override val superSet: AbstractFilterDto<O>,
+	/** The filter whose results are removed from the superSet results. */
 	@param:Schema(required = true)
 	override val subSet: AbstractFilterDto<O>,
 ) : AbstractFilterDto<O>,

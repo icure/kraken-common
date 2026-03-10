@@ -9,16 +9,28 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessCont
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a real-time event subscription for a specific entity class. Clients use this DTO to
+ * declare which event types and optional filter criteria they want to be notified about.
+ */
 data class SubscriptionDto<O : IdentifiableDto<String>>(
+	/** The list of event types (CREATE, UPDATE, DELETE) to subscribe to. */
 	@param:Schema(required = true)
 	val eventTypes: List<SubscriptionEventType>,
+	/** The fully-qualified or short class name of the entity to observe. */
 	@param:Schema(required = true)
 	val entityClass: String,
+	/** An optional filter chain that narrows which entity instances trigger notifications. */
 	val filter: FilterChain<O>?,
+	/** Optional access-control keys used to scope the subscription to specific encrypted data. */
 	val accessControlKeys: List<AccessControlKeyHexStringDto>?,
+	/** When true, uses Cardinal model serialization for the entity payloads. */
 	val useCardinalModelSerialization: Boolean? = null,
 ) : java.io.Serializable
 
+/**
+ * The types of entity lifecycle events that can be observed via a subscription.
+ */
 enum class SubscriptionEventType {
 	CREATE,
 	UPDATE,

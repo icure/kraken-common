@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a grouping of documents, identified by a GUID and a human-readable name.
+ */
 data class DocumentGroupDto(
+	/** The globally unique identifier for this document group. */
 	val guid: String? = null,
+	/** The human-readable name of the document group. */
 	val name: String? = null,
 ) : Serializable

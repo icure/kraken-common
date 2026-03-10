@@ -25,8 +25,13 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents an employer with a name and address.
+ */
 data class EmployerDto(
+	/** The name of the employer. */
 	override val name: String? = null,
+	/** The address of the employer. */
 	val addresse: AddressDto? = null,
 ) : NamedDto,
 	Serializable

@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible statuses of a healthcare party regarding their professional standing.
+ */
 enum class HealthcarePartyStatusDto {
 	trainee,
 	withconvention,

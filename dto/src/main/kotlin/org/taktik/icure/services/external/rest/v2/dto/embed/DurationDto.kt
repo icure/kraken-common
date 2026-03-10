@@ -24,7 +24,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a duration with a numeric value and a time unit code.
+ */
 data class DurationDto(
+	/** The numeric value of the duration. */
 	val value: Double? = null,
+	/** The coded time unit (CD-TIMEUNIT) for this duration. */
 	val unit: CodeStubDto? = null, // CD-TIMEUNIT
 ) : Serializable

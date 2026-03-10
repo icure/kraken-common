@@ -29,8 +29,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by healthcare party and active status.
+ */
 data class PatientByHcPartyAndActiveFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** Whether to match active or inactive patients. */
 	val active: Boolean = false,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

@@ -17,7 +17,13 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+/**
+ * DTO representing an entity identifier paired with its optional revision. Commonly used in
+ * bulk operations and responses to identify stored documents.
+ */
 data class IdWithRevDto(
+	/** The unique identifier of the entity. */
 	val id: String,
+	/** The revision of the entity, used for optimistic locking. */
 	val rev: String? = null,
 )

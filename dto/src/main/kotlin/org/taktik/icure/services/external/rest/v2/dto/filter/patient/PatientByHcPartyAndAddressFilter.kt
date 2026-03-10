@@ -29,10 +29,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by healthcare party and address criteria.
+ */
 data class PatientByHcPartyAndAddressFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The address search string to match. */
 	val searchString: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The postal code to match. */
 	val postalCode: String? = null,
+	/** The house number to match. */
 	val houseNumber: String? = null,
 ) : AbstractFilterDto<PatientDto>

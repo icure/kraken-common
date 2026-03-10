@@ -10,7 +10,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing a medical location with only publicly accessible information, stripped of sensitive data.
+ */
 data class AnonymousMedicalLocationDto(
+	/** The unique identifier of the medical location. */
 	val id: String,
+	/** A map of publicly available information about the medical location, keyed by information type. */
 	val publicInformations: Map<String, String> = emptyMap(),
 ) : Serializable

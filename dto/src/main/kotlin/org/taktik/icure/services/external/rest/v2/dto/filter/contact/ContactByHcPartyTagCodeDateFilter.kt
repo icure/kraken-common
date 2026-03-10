@@ -29,13 +29,24 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches contacts by healthcare party, tag, code, and opening date range.
+ */
 data class ContactByHcPartyTagCodeDateFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The type of the tag to filter on. */
 	val tagType: String? = null,
+	/** The tag code value to match. */
 	val tagCode: String? = null,
+	/** The type of the code to filter on. */
 	val codeType: String? = null,
+	/** The code value to match. */
 	val codeCode: String? = null,
+	/** The start of the contact opening date range. */
 	val startOfContactOpeningDate: Long? = null,
+	/** The end of the contact opening date range. */
 	val endOfContactOpeningDate: Long? = null,
 ) : AbstractFilterDto<ContactDto>

@@ -20,6 +20,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import java.io.Serializable
 
+/**
+ * Enumerates the possible statuses of a front-end migration process.
+ */
 enum class FrontEndMigrationStatusDto : Serializable {
 	STARTED,
 	PAUSED,

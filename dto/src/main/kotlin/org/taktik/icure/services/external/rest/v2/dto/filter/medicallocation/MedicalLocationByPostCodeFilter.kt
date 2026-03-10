@@ -12,7 +12,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches medical locations by postal code.
+ */
 data class MedicalLocationByPostCodeFilter(
+	/** The postal code to match. */
 	val postCode: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MedicalLocationDto>

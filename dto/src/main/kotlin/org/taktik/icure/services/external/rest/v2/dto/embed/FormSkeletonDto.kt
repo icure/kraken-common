@@ -23,7 +23,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a skeleton reference to a form template, used for defining form structure.
+ */
 data class FormSkeletonDto(
+	/** A description of the form skeleton. */
 	val descr: String? = null,
+	/** The identifier of the associated form template. */
 	val formTemplateId: String? = null,
 )

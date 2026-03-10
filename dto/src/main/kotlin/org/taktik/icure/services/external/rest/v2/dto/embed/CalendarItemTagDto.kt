@@ -25,11 +25,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a tag associated with a calendar item, carrying metadata about who tagged it and when.
+ */
 data class CalendarItemTagDto(
+	/** The code identifying this tag. */
 	val code: String? = null,
+	/** The timestamp (unix epoch in ms) when the tag was applied. */
 	val date: Long? = null,
+	/** The identifier of the user who applied the tag. */
 	val userId: String? = null,
+	/** The display name of the user who applied the tag. */
 	val userName: String? = null,
+	/** The base64-encoded encrypted content of this tag. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,
 	EncryptableDto

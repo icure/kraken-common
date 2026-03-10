@@ -19,6 +19,9 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
 
+/**
+ * Interface for entities that can be qualified with codes from codification systems such as SNOMED-CT, ICPC-2, or ICD-10.
+ */
 interface HasCodesDto {
 	@get:Schema(
 		description = "A code is an item from a codification system that qualifies the content of this entity. SNOMED-CT, ICPC-2 or ICD-10 codifications systems can be used for codes",

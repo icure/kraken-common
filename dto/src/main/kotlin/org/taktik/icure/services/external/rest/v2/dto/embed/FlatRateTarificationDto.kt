@@ -25,11 +25,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a flat rate tarification used in medical house contracts, linking a code to its valorisations.
+ */
 data class FlatRateTarificationDto(
+	/** The tarification code. */
 	val code: String? = null,
+	/** The type of flat rate (physician, physiotherapist, nurse, or ptd). */
 	val flatRateType: FlatRateTypeDto? = null,
+	/** Localized labels for this tarification, keyed by language code. */
 	val label: Map<String, String>? = null,
+	/** The list of valorisations associated with this tarification. */
 	val valorisations: List<ValorisationDto> = emptyList(),
+	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

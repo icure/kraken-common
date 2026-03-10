@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible locations of a document within a message: annex or body.
+ */
 enum class DocumentLocationDto {
 	annex,
 	body,

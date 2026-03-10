@@ -22,6 +22,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO wrapping a map of entity identifiers to lists of associated identifiers, used for expressing
+ * relationships between entities in bulk operations.
+ */
 data class MapOfIdsDto(
+	/** A map where each key is an entity identifier and the value is a list of related entity identifiers. */
 	val mapOfIds: Map<String, List<String>> = emptyMap(),
 )

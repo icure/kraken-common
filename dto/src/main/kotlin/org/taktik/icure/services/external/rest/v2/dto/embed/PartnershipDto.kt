@@ -25,12 +25,20 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "A relationship between this patient and another person.")
+/**
+ * Represents a relationship between a patient and another person (contact person or another patient).
+ */
 data class PartnershipDto(
+	/** The type of relationship (from CD-CONTACT-PERSON codes). */
 	@param:Schema(description = "Type of relationship.") val type: PartnershipTypeDto? = null, // codes are from CD-CONTACT-PERSON
+	/** The status of the relationship. */
 	@param:Schema(description = "Status of the relationship.") val status: PartnershipStatusDto? = null,
+	/** The UUID of the contact person or patient in this relationship. */
 	@param:Schema(description = "UUID of the contact person or patient in this relationship.") val partnerId: String? = null, // PersonDto: can either be a patient or a hcp
+	/** Deprecated. Description of the relationship from this patient to the other person. */
 	@Deprecated("use type instead")
 	val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
+	/** Deprecated. Description of the relationship from the other person to this patient. */
 	@Deprecated("use type instead")
 	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
 ) : Serializable
