@@ -8,7 +8,7 @@ import java.io.Serializable
  */
 data class PublicAgendasAndCalendarItemTypesDto(
 	/** The list of publicly available agendas. */
-	val agendas: List<AgendaDto>,
+	val agendas: List<AgendaDto> = emptyList(),
 	/** The list of calendar item types associated with the public agendas. */
-	val calendarItemTypes: List<CalendarItemTypeDto>,
+	val calendarItemTypes: List<CalendarItemTypeDto> = emptyList(),
 ) : Serializable
