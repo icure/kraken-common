@@ -87,6 +87,7 @@
   "GEM-ENUM-MAPPING": "{{path}}: Enum migration configuration does not define an explicit mapping for source entry `{{entry}}` and there is no applicable fallback.",
   "GEM-ENUM-MAPPINGAUTO": "{{path}}: Enum migration configuration does not define an explicit mapping for source entry `{{entry}}` and there is no applicable fallback, but could be mapped by enabling automatic mapping of entries with identical names in the target configuration.",
   "GEM-ENUM-NULLABLE": "{{path}}: Enum migration configuration is used with a non-nullable target, can't use null target value ({{mappingSource}}).",
+  "GEM-ENUM-BUILTINFALLBACK": "{{path}}: Enum migration configuration requires a fallback value when the source enum is builtin",
   "GEM-ENUM-WUNUSED": "{{path}}: Enum migration is not used",
   "GEM-OBJECT-DUPLICATES": "{{path}}: Duplicate object migrations for ({{sourceRefType}}) {{sourceRef}} -> ({{targetRefType}}) {{target}}, multiple definitions for the same source->target object pair are not allowed.",
   "GEM-OBJECT-WUNUSED": "{{path}}: Object migration is not used",
