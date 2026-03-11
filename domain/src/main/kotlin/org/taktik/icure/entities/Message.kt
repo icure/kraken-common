@@ -205,4 +205,6 @@ data class Message(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withSecurityMetadata(securityMetadata: SecurityMetadata?) =
+		copy(securityMetadata = securityMetadata)
 }

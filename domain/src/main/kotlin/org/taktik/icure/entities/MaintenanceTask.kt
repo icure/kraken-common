@@ -14,7 +14,6 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.TaskStatus
-import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -62,5 +61,17 @@ data class MaintenanceTask(
 	}
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
-
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

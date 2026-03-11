@@ -164,7 +164,21 @@ private data class ServiceWithEncryptionMetadataStub(
 	override val encryptedSelf: Base64String?,
 	override val securityMetadata: SecurityMetadata?,
 ) : HasEncryptionMetadata,
-	Encryptable
+	Encryptable {
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
+}
 
 /**
  * If the service is 'pimped' with contact information returns the service as an encryptable entity stub, allowing it

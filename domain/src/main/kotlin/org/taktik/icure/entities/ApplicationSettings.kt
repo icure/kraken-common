@@ -66,4 +66,17 @@ data class ApplicationSettings(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

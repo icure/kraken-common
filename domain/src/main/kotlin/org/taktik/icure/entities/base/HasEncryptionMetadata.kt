@@ -6,6 +6,7 @@ package org.taktik.icure.entities.base
 
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
@@ -85,6 +86,14 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 		get() = super.dataOwnersWithExplicitAccess +
 			(delegations.keys + delegations.values.flatMap { delegationsForDelegate -> delegationsForDelegate.mapNotNull { it.owner } })
 				.associateWith { AccessLevel.WRITE }
+
+	fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	): HasEncryptionMetadata
 }
 
 /**

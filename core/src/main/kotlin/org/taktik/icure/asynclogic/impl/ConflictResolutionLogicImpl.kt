@@ -16,9 +16,13 @@ import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.base.encryptableMetadataEquals
 import org.taktik.icure.entities.conflicts.ConflictResolutionResult
 import org.taktik.icure.entities.conflicts.MergeResult
+import org.taktik.icure.entities.utils.MergeUtil
+import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.mergers.Merger
 
 open class ConflictResolutionLogicImpl<E : StoredDocument>(
@@ -52,11 +56,58 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		)
 	}
 
+	private suspend fun requireUnmodifiedSecurityMetadata(
+		entity: E,
+		datastoreInformation: IDatastoreInformation,
+	) {
+		if (entity is HasEncryptionMetadata) {
+			val currentRevisionOnDb = dao.get(datastoreInformation, entity.id, entity.rev)?.let {
+				it as HasEncryptionMetadata
+			} ?: throw NotFoundRequestException("Entity with id ${entity.id} with rev ${entity.rev} not found")
+			if (!entity.encryptableMetadataEquals(currentRevisionOnDb)) {
+				throw IllegalArgumentException("SystemMetadata of winner is not equal to the one in the database")
+			}
+		}
+	}
+
+	private suspend fun mergeSecurityMetadataOfOldRevisions(
+		entity: E,
+		conflictsToPurge: List<String>,
+		datastoreInformation: IDatastoreInformation,
+	): E =
+		if (entity is HasEncryptionMetadata) {
+			conflictsToPurge.fold(entity) { acc, rev ->
+				val conflict = dao.get(datastoreInformation, entity.id, rev)?.let {
+					it as HasEncryptionMetadata
+				}
+				if (conflict != null && !acc.encryptableMetadataEquals(conflict)) {
+					val res = acc.withEncryptionMetadata(
+						securityMetadata =
+							acc.securityMetadata?.let { intoMetadata ->
+								conflict.securityMetadata?.let { fromMetadata ->
+									intoMetadata.mergeForDifferentVersionsOfEntity(fromMetadata)
+								} ?: intoMetadata
+							} ?: conflict.securityMetadata,
+						delegations = MergeUtil.mergeMapsOfSets(conflict.delegations, acc.delegations),
+						encryptionKeys = acc.encryptionKeys,
+						cryptedForeignKeys = MergeUtil.mergeMapsOfSets(conflict.cryptedForeignKeys, acc.cryptedForeignKeys),
+						secretForeignKeys = conflict.secretForeignKeys + acc.secretForeignKeys,
+					) as E
+					acc
+				} else {
+					acc
+				}
+			}
+		} else {
+			entity
+		}
+
 	protected suspend fun doDeclareConflictWinner(
 		entity: E,
 		conflictsToPurge: List<String>,
 		datastoreInformation: IDatastoreInformation,
 	): ConflictResolutionResult<E> {
+		requireUnmodifiedSecurityMetadata(entity, datastoreInformation)
 		val savedWinner = dao.save(datastoreInformation, entity)
 		dao.purgeConflictingRevisions(
 			datastoreInformation,

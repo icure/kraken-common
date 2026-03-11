@@ -223,6 +223,20 @@ data class Document(
 		else -> this
 	}
 
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
+
 	fun withUpdatedMainAttachment(newMainAttachment: DataAttachment?) = this.copy(
 		attachmentId = newMainAttachment?.couchDbAttachmentId,
 		objectStoreReference = newMainAttachment?.objectStoreAttachmentId,
