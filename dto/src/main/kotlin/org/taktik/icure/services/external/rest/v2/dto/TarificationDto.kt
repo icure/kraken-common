@@ -27,6 +27,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.LetterValueDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PeriodicityDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.PricingDomainDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ValorisationDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -52,6 +53,8 @@ data class TarificationDto(
 	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
 	/** The version of the tarification. Must be lexicographically searchable. */
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	/** The pricing domain for this tarification (ambulatory, hospital, or both). */
+	val domain: PricingDomainDto? = null,
 	/** The author of the tarification. */
 	val author: String? = null,
 	/** The regions where this tarification applies (e.g., be, fr). */

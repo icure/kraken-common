@@ -16,6 +16,7 @@ import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.LetterValue
 import org.taktik.icure.entities.embed.Periodicity
+import org.taktik.icure.entities.embed.PricingDomain
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Valorisation
 import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
@@ -37,6 +38,7 @@ data class Tarification(
 	@param:ContentValue(ContentValues.ANY_STRING) override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 
+	val domain: PricingDomain? = null,
 	val author: String? = null,
 	val regions: Set<String> = emptySet(), // ex: be,fr
 	val periodicity: List<Periodicity> = emptyList(),
@@ -62,7 +64,7 @@ data class Tarification(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument,
+	) : StoredDocument,
 	CodeIdentification {
 	companion object : DynamicInitializer<Tarification> {
 		fun from(type: String, code: String, version: String) = Tarification(id = "$type|$code|$version", type = type, code = code, version = version)
