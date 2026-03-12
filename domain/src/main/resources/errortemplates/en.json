@@ -100,6 +100,9 @@
   "GEM-EXACT-CONFIG": "{{path}}: source and target configurations are the same type but have different validation rules or configurations.",
   "GEM-EXACT-ENUM": "{{path}}: source and target enum definitions do not match exactly and there is no explicit migration.",
   "GEM-EXACT-OBJECT": "{{path}}: source and target object definitions do not match exactly and there is no explicit migration.",
+  "GEM-EXACT-OBJECT-PROPKEYS": "{{path}}: source and target object definitions have different sets of property keys.",
+  "GEM-EXACT-LISTNONINJ": "{{path}}: source and target cannot be an exact match; the list requires unique values but the enum element migration is non-injective and may introduce duplicate values after migration.",
+  "GEM-EXACT-MAPKEYNONINJ": "{{path}}: source and target cannot be an exact match; the enum key migration is non-injective and may cause key collisions after migration.",
   "GEM-TRANSFORM-WRAPLIST-TARGET": "{{path}}: WrapToSingletonList transformer requires the target type to be a list.",
   "GEM-TRANSFORM-WRAPLIST-SIZE": "{{path}}: WrapToSingletonList transformer is incompatible with the target list size validation, which must allow lists of one element.",
   "GEM-TRANSFORM-WRAPMAP-TARGET": "{{path}}: WrapToSingletonMap transformer requires the target type to be a map.",
@@ -152,6 +155,6 @@
   "GEM-COERCE-MAPVALIDATION": "{{path}}: CoerceType cannot coerce the source map to the target map; the target size validation is more restrictive than the source.",
   "GEM-COERCE-MAPKEYNONINJ": "{{path}}: CoerceType cannot coerce the source map to the target map; the map key coercion is non-injective and may cause key collisions.",
   "GEM-FALLBACK-DEFAULTOVERRIDE": "{{path}}: Default value on target property cannot be used as fallback because it would override the corresponding value in the source property. If you want to allow overriding for all target properties with a default value add the `UseTargetDefaultIgnoringSource` fallback behaviour, or specify an explicit mapping for this property with `Use.TargetDefault`.",
-  "GEM-FALLBACK-NODEFAULT": "{{path}}: Target property has no default value, can't apply default-based fallback behaviour.",
+  "GEM-FALLBACK-NODEFAULT": "{{path}}: Target property has no default value, or has a non-constant default value, can't apply default-based fallback behaviour.",
   "GEM-FALLBACK-NOSOURCE": "{{path}}: Target property does not have matching source property, can't apply source-based fallback behaviour."
 }

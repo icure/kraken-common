@@ -166,6 +166,11 @@ data class ObjectMigration(
 		 * - A StringTypeConfig "name" with maxLength validation 10 on source and a StringTypeConfig "name" with
 		 *   maxLength validation 20 on target
 		 * - A non-nullable StringTypeConfig "name" on source and a nullable StringTypeConfig "name" on target
+		 *
+		 * # Enum migration with unique lists and maps
+		 *
+		 * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
+		 * match
 		 */
 		//TODO for typealias won't resolve: a typealias that resolves to a certain configuration is not an exact match
 		// for another typealias that resolves to the same configuration, or for the configuration itself
