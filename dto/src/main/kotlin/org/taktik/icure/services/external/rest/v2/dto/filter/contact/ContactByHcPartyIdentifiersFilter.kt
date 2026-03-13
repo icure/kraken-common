@@ -13,8 +13,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches contacts by healthcare party and a list of identifiers.
+ */
 data class ContactByHcPartyIdentifiersFilter(
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The list of identifiers to match. */
 	val identifiers: List<IdentifierDto> = emptyList(),
 ) : AbstractFilterDto<ContactDto>

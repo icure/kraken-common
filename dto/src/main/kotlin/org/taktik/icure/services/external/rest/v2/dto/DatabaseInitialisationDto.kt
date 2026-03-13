@@ -24,9 +24,17 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO containing the initial data required to set up a new database environment, including
+ * seed users, healthcare parties, and replication configuration.
+ */
 data class DatabaseInitialisationDto(
+	/** The list of initial users to create during database initialisation. */
 	@param:Schema(defaultValue = "emptyList()") val users: List<UserDto>? = emptyList(),
+	/** The list of initial healthcare parties to create during database initialisation. */
 	@param:Schema(defaultValue = "emptyList()") val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
+	/** The replication configuration to apply during database initialisation. */
 	val replication: ReplicationDto? = null,
+	/** The minimum required Kraken version for this database configuration. */
 	val minimumKrakenVersion: String? = null,
 ) : Serializable

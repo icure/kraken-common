@@ -12,7 +12,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A filter that matches users linked to a specific healthcare party.
+ */
 data class UserByHealthcarePartyIdFilter(
+	/** The identifier of the healthcare party whose associated users should be returned. */
 	val healthcarePartyId: String,
+	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

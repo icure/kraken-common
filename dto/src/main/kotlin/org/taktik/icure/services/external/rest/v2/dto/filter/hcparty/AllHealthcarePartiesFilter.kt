@@ -31,7 +31,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches all healthcare parties without any filtering criteria.
+ */
 data class AllHealthcarePartiesFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>,
 	FilterDto.AllFilter<HealthcarePartyDto>

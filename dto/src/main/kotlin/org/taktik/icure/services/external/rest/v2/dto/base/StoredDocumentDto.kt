@@ -19,6 +19,9 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
 
+/**
+ * Interface for entities that are persisted as CouchDB documents and support hard deletion via a deletion timestamp.
+ */
 interface StoredDocumentDto : VersionableDto<String> {
 	@get:Schema(description = "hard delete (unix epoch in ms) timestamp of the object. Filled automatically when deletePatient is called.")
 	val deletionDate:

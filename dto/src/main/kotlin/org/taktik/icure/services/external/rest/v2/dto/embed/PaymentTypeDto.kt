@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible payment methods.
+ */
 enum class PaymentTypeDto {
 	cash,
 	wired,

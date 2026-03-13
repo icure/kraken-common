@@ -25,8 +25,14 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a payment record with date, type, and amount.
+ */
 data class PaymentDto(
+	/** The date of the payment (unix epoch in ms). */
 	@param:Schema(defaultValue = "0") val paymentDate: Long = 0,
+	/** The type of payment method used. */
 	val paymentType: PaymentTypeDto? = null,
+	/** The amount paid. */
 	val paid: Double? = null,
 ) : Serializable

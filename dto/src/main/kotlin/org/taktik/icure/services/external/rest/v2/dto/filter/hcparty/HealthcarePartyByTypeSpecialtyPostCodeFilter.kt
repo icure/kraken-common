@@ -12,10 +12,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches healthcare parties by specialty type and postal code range.
+ */
 data class HealthcarePartyByTypeSpecialtyPostCodeFilter(
+	/** The specialty category to match. */
 	val specialty: String,
+	/** The specialty code to match. */
 	val specCode: String,
+	/** The start of the postal code range (inclusive). */
 	val startPostCode: String,
+	/** The end of the postal code range (inclusive). */
 	val endPostCode: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

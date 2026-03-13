@@ -17,6 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+/**
+ * DTO wrapping a list of entity identifiers, used for bulk operations.
+ */
 data class ListOfIdsDto(
+	/** The list of entity identifiers. */
 	val ids: List<String> = emptyList(),
 )

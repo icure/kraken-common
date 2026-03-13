@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible statuses of a partnership (relationship between persons).
+ */
 enum class PartnershipStatusDto {
 	active,
 	complicated,

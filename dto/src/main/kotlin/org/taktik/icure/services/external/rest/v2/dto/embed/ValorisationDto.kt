@@ -25,17 +25,31 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the financial valorisation of a flat rate tarification, including validity period and amount breakdown.
+ */
 data class ValorisationDto(
+	/** The start of the validity period (yyyyMMdd). */
 	val startOfValidity: Long? = null, // yyyyMMdd
+	/** The end of the validity period (yyyyMMdd). */
 	val endOfValidity: Long? = null, // yyyyMMdd
+	/** A predicate expression for conditional valorisation. */
 	val predicate: String? = null,
+	/** A list of reference integers. */
 	val reference: List<Int>? = null,
+	/** The total amount (reimbursement + doctor supplement + intervention). */
 	val totalAmount: Double? = null, // =reimbursement+doctorSupplement+intervention
+	/** The reimbursement amount. */
 	val reimbursement: Double? = null,
+	/** The patient intervention amount. */
 	val patientIntervention: Double? = null,
+	/** The doctor supplement amount. */
 	val doctorSupplement: Double? = null,
+	/** The VAT amount. */
 	val vat: Double? = null,
+	/** Localized labels for this valorisation, keyed by language code. */
 	@param:Schema(defaultValue = "emptyMap()") val label: Map<String, String>? = emptyMap(), // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

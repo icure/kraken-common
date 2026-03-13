@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of invoices based on the recipient or billing channel.
+ */
 enum class InvoiceTypeDto {
 	patient,
 	mutualfund,

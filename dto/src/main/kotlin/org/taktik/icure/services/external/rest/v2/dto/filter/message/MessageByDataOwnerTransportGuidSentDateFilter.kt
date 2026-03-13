@@ -13,11 +13,20 @@ import java.time.Instant
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages by data owner, transport guid, and sent date range.
+ */
 data class MessageByDataOwnerTransportGuidSentDateFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The transport guid to match. */
 	val transportGuid: String,
+	/** The start of the sent date range (inclusive). */
 	val fromDate: Instant?,
+	/** The end of the sent date range (inclusive). */
 	val toDate: Instant?,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

@@ -12,7 +12,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches agendas that have a specific property.
+ */
 data class AgendaWithPropertyFilter(
+	/** The identifier of the property to match. */
 	val propertyId: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AgendaDto>

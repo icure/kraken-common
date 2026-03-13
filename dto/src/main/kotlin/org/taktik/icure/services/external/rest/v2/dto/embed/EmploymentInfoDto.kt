@@ -26,11 +26,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents employment information for a patient, including the period, profession type, and employer details.
+ */
 data class EmploymentInfoDto(
+	/** The start date (unix epoch in ms) of the employment. */
 	val startDate: Long? = null,
+	/** The end date (unix epoch in ms) of the employment. */
 	val endDate: Long? = null,
+	/** A code describing the profession type. */
 	val professionType: CodeStubDto? = null,
+	/** The employer details. */
 	val employer: EmployerDto? = null,
+	/** The base64-encoded encrypted content of this employment info. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,
 	EncryptableDto

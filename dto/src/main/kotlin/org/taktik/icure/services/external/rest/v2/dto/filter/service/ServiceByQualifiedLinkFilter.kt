@@ -13,8 +13,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches services by their qualified links.
+ */
 data class ServiceByQualifiedLinkFilter(
+	/** The list of link values to match. */
 	val linkValues: List<String>,
+	/** The optional link qualification to filter by. */
 	val linkQualification: LinkQualificationDto? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

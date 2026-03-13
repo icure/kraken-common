@@ -25,11 +25,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a time-bounded membership of a care team member, specifying the period and type of involvement.
+ */
 data class CareTeamMembershipDto(
+	/** The start date (unix epoch in ms) of this membership. */
 	val startDate: Long? = null,
+	/** The end date (unix epoch in ms) of this membership. */
 	val endDate: Long? = null,
+	/** The identifier of the care team member. */
 	val careTeamMemberId: String? = null,
+	/** The type of membership. */
 	val membershipType: MembershipTypeDto? = null,
+	/** The base64-encoded encrypted content of this membership. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

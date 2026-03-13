@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+/**
+ * Enumeration of supported report format versions.
+ */
 enum class ReportVersionDto {
 	V1_0_0,
 }

@@ -12,9 +12,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages by data owner and code.
+ */
 data class MessageByDataOwnerCodeFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The type of the code to match. */
 	val codeType: String,
+	/** The code value to match. */
 	val codeCode: String? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

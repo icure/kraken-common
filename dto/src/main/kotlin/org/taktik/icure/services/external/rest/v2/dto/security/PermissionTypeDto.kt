@@ -1,5 +1,8 @@
 package org.taktik.icure.services.external.rest.v2.dto.security
 
+/**
+ * Enumerates the categories of operations or data access that can be granted or revoked as permissions in iCure.
+ */
 enum class PermissionTypeDto {
 	AUTHENTICATE,
 	HCP,

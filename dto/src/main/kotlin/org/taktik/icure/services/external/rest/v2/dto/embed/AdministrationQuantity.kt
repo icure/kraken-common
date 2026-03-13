@@ -25,8 +25,14 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a quantity for medication administration, including the numeric amount and the unit of administration.
+ */
 data class AdministrationQuantity(
+	/** The numeric quantity to administer. */
 	val quantity: Double? = null,
+	/** The coded unit of administration (CD-ADMINISTRATIONUNIT). */
 	val administrationUnit: CodeStubDto? = null, // CD-ADMINISTRATIONUNIT
+	/** A textual representation of the unit. */
 	val unit: String? = null, // Should be null
 ) : Serializable

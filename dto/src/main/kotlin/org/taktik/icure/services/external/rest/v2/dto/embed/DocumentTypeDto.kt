@@ -21,6 +21,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of medical and administrative documents that can be managed in the system.
+ */
 enum class DocumentTypeDto {
 	admission,
 	alert,

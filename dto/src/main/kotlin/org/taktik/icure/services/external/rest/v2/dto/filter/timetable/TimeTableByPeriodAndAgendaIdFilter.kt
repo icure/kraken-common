@@ -12,10 +12,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches timetables within a date range for a specific agenda.
+ */
 data class TimeTableByPeriodAndAgendaIdFilter(
+	/** The identifier of the agenda. */
 	val agendaId: String,
+	/** The start of the date range (inclusive). */
 	val startDate: Long? = null,
+	/** The end of the date range (inclusive). */
 	val endDate: Long? = null,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<TimeTableDto>

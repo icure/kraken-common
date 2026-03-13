@@ -21,6 +21,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+/**
+ * Enumeration of flags that can be applied to medical codes, indicating gender restrictions or department-specific applicability.
+ */
 enum class CodeFlagDto {
 	male_only,
 	female_only,

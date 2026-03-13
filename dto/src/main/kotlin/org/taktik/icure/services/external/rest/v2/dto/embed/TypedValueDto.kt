@@ -30,16 +30,27 @@ import java.util.Date
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a typed value that can hold one of several primitive types (boolean, integer, double, string, or date).
+ * The actual value is stored in the corresponding typed field based on the [type].
+ */
 data class TypedValueDto(
+	/** The type of the value stored. */
 	val type: TypedValuesTypeDto? = null,
+	/** The boolean value, if type is BOOLEAN. */
 	val booleanValue: Boolean? = null,
+	/** The integer value, if type is INTEGER. */
 	val integerValue: Long? = null,
+	/** The double value, if type is DOUBLE. */
 	val doubleValue: Double? = null,
+	/** The string value, if type is STRING, JSON, or CLOB. */
 	val stringValue: String? = null,
+	/** The date value as an Instant, if type is DATE. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
+	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Comparable<TypedValueDto>,
 	EncryptableDto,

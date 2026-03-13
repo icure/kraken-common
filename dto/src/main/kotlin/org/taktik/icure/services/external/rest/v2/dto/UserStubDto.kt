@@ -30,17 +30,32 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Lightweight stub representation of a user, containing only the essential identification and
+ * status fields. Used when the full user payload is not needed.
+ */
 data class UserStubDto(
+	/** The unique identifier of the user. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
+	/** The display name of the user. */
 	val name: String? = null,
+	/** The type of user (e.g. database, external). */
 	val type: UsersTypeDto? = null,
+	/** The current status of the user (e.g. active, disabled). */
 	val status: UsersStatusDto? = null,
+	/** The login identifier of the user. */
 	val login: String? = null,
+	/** The identifier of the group this user belongs to. */
 	val groupId: String? = null,
+	/** The identifier of the healthcare party linked to this user. */
 	val healthcarePartyId: String? = null,
+	/** The identifier of the patient linked to this user. */
 	val patientId: String? = null,
+	/** The email address of the user. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)

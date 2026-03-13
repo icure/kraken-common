@@ -8,6 +8,10 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDele
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """Holds information for user-based access control and encryption of entities.""")
+/**
+ * Holds the security metadata for user-based access control and encryption of entities.
+ * Maps access control key hashes to their corresponding secure delegations.
+ */
 data class SecurityMetadataDto(
 	@param:Schema(
 		description = """This maps the hex-encoded sha256 hash of a key created by the client using a certain [ExchangeData.accessControlSecret] to the
@@ -18,5 +22,6 @@ Note that it is also possible for a secure delegation in this map to have no ent
 This could happen in situations where a user should have access only to the unencrypted content of an entity.""",
 		required = true,
 	)
+	/** A map from hex-encoded SHA-256 hash of an access control key to its corresponding secure delegation. */
 	val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
 )

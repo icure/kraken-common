@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible types of a care team member.
+ */
 enum class CareTeamMemberTypeDto {
 	physician,
 	specialist,

@@ -17,9 +17,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches maintenance tasks by their unique identifiers.
+ */
 data class MaintenanceTaskByIdsFilter(
+	/** The set of maintenance task identifiers to match. */
 	@param:Schema(required = true)
 	override val ids: Set<String>,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MaintenanceTaskDto>,
 	FilterDto.IdsFilter<String, MaintenanceTaskDto>

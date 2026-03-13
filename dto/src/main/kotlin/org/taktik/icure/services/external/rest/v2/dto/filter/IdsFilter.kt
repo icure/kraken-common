@@ -30,8 +30,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches entities by their unique identifiers.
+ */
 data class IdsFilter<O : IdentifiableDto<String>>(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The set of entity identifiers to match. */
 	@param:Schema(required = true)
 	override val ids: Set<String>,
 ) : AbstractFilterDto<O>,

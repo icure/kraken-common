@@ -24,10 +24,18 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a medicinal product with its intended and actually delivered codes and names.
+ */
 data class MedicinalproductDto(
+	/** The list of coded identifiers for the intended medicinal product. */
 	val intendedcds: List<CodeStubDto> = emptyList(),
+	/** The list of coded identifiers for the actually delivered medicinal product. */
 	val deliveredcds: List<CodeStubDto> = emptyList(),
+	/** The name of the intended medicinal product. */
 	val intendedname: String? = null,
+	/** The name of the actually delivered medicinal product. */
 	val deliveredname: String? = null,
+	/** The product identifier. */
 	val productId: String? = null,
 ) : Serializable

@@ -15,9 +15,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by data owner and tag.
+ */
 data class PatientByDataOwnerTagFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The type of the tag to match. */
 	val tagType: String,
+	/** The tag code value to match. */
 	val tagCode: String? = null,
 ) : AbstractFilterDto<PatientDto>

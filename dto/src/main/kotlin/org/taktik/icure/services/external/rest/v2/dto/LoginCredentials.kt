@@ -21,7 +21,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.io.Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO containing the credentials for user authentication.
+ */
 data class LoginCredentials(
+	/** The username or login identifier. */
 	val username: String? = null,
+	/** The password for authentication. */
 	val password: String? = null,
 ) : Serializable

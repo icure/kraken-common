@@ -19,4 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import java.io.Serializable
 
+/**
+ * Reply object returned when retrieving a form.
+ */
 class GetFormReply : Serializable

@@ -12,8 +12,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches codes by their qualified link type and optionally by linked entity identifier.
+ */
 data class CodeByQualifiedLinkFilter(
+	/** The type of qualified link to match. */
 	val linkType: String,
+	/** The optional identifier of the linked entity. */
 	val linkedId: String? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<CodeDto>

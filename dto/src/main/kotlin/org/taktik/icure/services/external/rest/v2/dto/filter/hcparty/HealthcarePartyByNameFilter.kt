@@ -17,9 +17,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches healthcare parties by name.
+ */
 data class HealthcarePartyByNameFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The name to search for. */
 	@param:Schema(required = true)
 	val name: String,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

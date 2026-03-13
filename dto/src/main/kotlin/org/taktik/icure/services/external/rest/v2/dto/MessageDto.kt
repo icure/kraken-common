@@ -36,36 +36,63 @@ import org.taktik.icure.utils.DynamicInitializer
 @Schema(
 	description = """This entity is a root level object. It represents a Message. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
+/**
+ * Represents a message exchanged between healthcare parties. Messages can be used for internal communication,
+ * eHealth box messages, eFact batches, and other types of healthcare-related communications.
+ */
 data class MessageDto(
+	/** The ID of the message. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	/** The revision of the message in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "The revision of the message in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification. */
 	override val modified: Long? = null,
+	/** The id of the User that created this message. */
 	override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this message. */
 	override val responsible: String? = null,
+	/** The id of the medical location where this message was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the message as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular message. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** Address of the sender of the message. */
 	@param:Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
+	/** ID of the healthcare party sending the message. */
 	@param:Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
+	/** The id of the form linked to this message. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val formId: String? = null,
+	/** Status of the message as a bitfield. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Status of the message") val status: Int? = null,
+	/** The type of user who is the recipient of this message. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
+	/** List of IDs of healthcare parties to whom the message is addressed. */
 	@param:Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), // The id of the hcp whose the message is addressed to
+	/** The addresses of the recipients of the message. */
 	@param:Schema(description = "The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)")
 	val toAddresses: Set<String> = emptySet(),
+	/** The timestamp (unix epoch in ms) when the message was received. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
+	/** The timestamp (unix epoch in ms) when the message was sent. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
+	/** Additional metadata for the message. */
 	val metas: Map<String, String> = emptyMap(),
+	/** Status showing whether the message is read or not and the time of reading. */
 	@param:Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
+	/** List of message attachments. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val messageAttachments: List<MessageAttachmentDto> = emptyList(),
     /*
@@ -82,27 +109,44 @@ data class MessageDto(
         REPORT:IN:  ${iCure ref}
         REPORT:OUT: ${iCure ref}
      */
+	/** Transport-level identifier for the message, format depends on the transport type. */
 	val transportGuid: String? = null, // Each message should have a transportGuid: see above for formats
+	/** An additional remark on the message. */
 	val remark: String? = null,
+	/** The guid of the conversation this message belongs to. */
 	val conversationGuid: String? = null,
+	/** Subject for the message. */
 	@param:Schema(description = "Subject for the message") val subject: String? = null,
+	/** Set of IDs for invoices in the message. */
 	@param:Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
+	/** ID of a parent in a message conversation. */
 	@param:Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, // ID of parent in a message conversation
+	/** External reference for the message. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val externalRef: String? = null,
+	/** Set of unassigned result references. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val unassignedResults: Set<String> = emptySet(), // refs
+	/** Map of assigned results (ContactId to reference). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val assignedResults: Map<String, String> = emptyMap(), // ContactId -> ref
+	/** Map of sender references. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val senderReferences: Map<String, String> = emptyMap(),
 
+	/** Extra properties for the message. */
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The delegations giving access to connected healthcare information. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The keys used to encrypt this entity when stored encrypted. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
+	/** The base64-encoded encrypted fields of this entity. */
 	override val encryptedSelf: Base64StringDto? = null,
+	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

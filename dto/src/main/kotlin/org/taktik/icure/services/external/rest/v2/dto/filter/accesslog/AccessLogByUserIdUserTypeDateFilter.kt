@@ -13,10 +13,18 @@ import java.time.Instant
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches access logs by user identifier, access type, and start date.
+ */
 data class AccessLogByUserIdUserTypeDateFilter(
+	/** The identifier of the user who created the access log. */
 	val userId: String,
+	/** The type of access to filter on. */
 	val accessType: String?,
+	/** The start date from which to retrieve access logs. */
 	val startDate: Instant?,
+	/** Whether to return results in descending order. */
 	val descending: Boolean?,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AccessLogDto>

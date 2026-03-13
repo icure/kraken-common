@@ -23,9 +23,16 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a letter-based value used in tarification, associating a letter key with an index, coefficient, and numeric value.
+ */
 data class LetterValueDto(
+	/** The letter key identifier. */
 	val letter: String? = null,
+	/** The index associated with this letter value. */
 	val index: String? = null,
+	/** The coefficient multiplier. */
 	val coefficient: Double? = null,
+	/** The numeric value. */
 	val value: Double? = null,
 )

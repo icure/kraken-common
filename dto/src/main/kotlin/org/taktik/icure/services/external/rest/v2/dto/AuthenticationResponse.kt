@@ -17,9 +17,16 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+/**
+ * Response object returned after an authentication attempt.
+ */
 class AuthenticationResponse(
+	/** The unique identifier of the healthcare party associated with the authenticated user. */
 	var healthcarePartyId: String? = null,
+	/** The reason for authentication failure, if applicable. */
 	var reason: String? = null,
+	/** Whether the authentication attempt was successful. */
 	var successful: Boolean = false,
+	/** The username of the authenticated user. */
 	var username: String? = null,
 )

@@ -25,8 +25,14 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Data transfer object representing a MIME attachment with binary data, a file name, and a content type.
+ */
 data class MimeAttachmentDto(
+	/** The binary content of the attachment. */
 	@param:Schema(type = "string", format = "byte") val data: ByteArray? = null,
+	/** The name of the attached file. */
 	val fileName: String? = null,
+	/** The MIME type of the attachment (e.g. application/pdf, image/png). */
 	val mimeType: String? = null,
 ) : Serializable
