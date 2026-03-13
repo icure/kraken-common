@@ -21,7 +21,6 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.taktik.icure.RequireHashable
-import org.taktik.icure.utils.DynamicInitializer
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
@@ -47,7 +46,6 @@ data class CodeStubDto(
 	@Deprecated("label shouldn't be included in code stub but only in full codes")
 	val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
-	companion object : DynamicInitializer<CodeStubDto>
 
 	override fun normalizeIdentification(): CodeStubDto {
 		val parts = this.id?.split("|")?.toTypedArray()

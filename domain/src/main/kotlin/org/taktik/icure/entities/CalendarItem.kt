@@ -19,8 +19,6 @@ import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -105,7 +103,6 @@ data class CalendarItem(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<CalendarItem>
 
 	init {
 		resourceGroup?.also { it.requireNormalized() }
@@ -138,35 +135,6 @@ data class CalendarItem(
 		@JsonProperty("L")
 		Loose,
 	}
-
-	fun merge(other: CalendarItem) = CalendarItem(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CalendarItem) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"title" to (this.title ?: other.title),
-			"calendarItemTypeId" to (this.calendarItemTypeId ?: other.calendarItemTypeId),
-			"masterCalendarItemId" to (this.masterCalendarItemId ?: other.masterCalendarItemId),
-			"patientId" to (this.patientId ?: other.patientId),
-			"important" to (this.important ?: other.important),
-			"homeVisit" to (this.homeVisit ?: other.homeVisit),
-			"phoneNumber" to (this.phoneNumber ?: other.phoneNumber),
-			"placeId" to (this.placeId ?: other.placeId),
-			"address" to (this.address ?: other.address),
-			"addressText" to (this.addressText ?: other.addressText),
-			"startTime" to (this.startTime ?: other.startTime),
-			"endTime" to (this.endTime ?: other.endTime),
-			"confirmationTime" to (this.confirmationTime ?: other.confirmationTime),
-			"confirmationId" to (this.confirmationId ?: other.confirmationId),
-			"duration" to (this.duration ?: other.duration),
-			"allDay" to (this.allDay ?: other.allDay),
-			"details" to (this.details ?: other.details),
-			"wasMigrated" to (this.wasMigrated ?: other.wasMigrated),
-			"agendaId" to (this.agendaId ?: other.agendaId),
-			"recurrenceId" to (this.recurrenceId ?: other.recurrenceId),
-			"meetingTags" to (other.meetingTags + this.meetingTags),
-			"flowItem" to (this.flowItem ?: other.flowItem),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

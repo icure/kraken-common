@@ -21,8 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -148,7 +146,7 @@ data class InvoicingCodeDto(
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Comparable<InvoicingCodeDto?> {
-	companion object : DynamicInitializer<InvoicingCodeDto> {
+	companion object {
 		const val STATUS_PAID: Long = 1
 		const val STATUS_PRINTED: Long = 2
 		const val STATUS_PAIDPRINTED: Long = 3
@@ -158,67 +156,6 @@ data class InvoicingCodeDto(
 		const val STATUS_RESENT: Long = 32
 		const val STATUS_LOST: Long = 64
 	}
-
-	fun merge(other: InvoicingCodeDto) = InvoicingCodeDto(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: InvoicingCodeDto) = mapOf(
-		"id" to (this.id),
-		"dateCode" to (this.dateCode ?: other.dateCode),
-		"logicalId" to (this.logicalId ?: other.logicalId),
-		"label" to (this.label ?: other.label),
-		"userId" to (this.userId ?: other.userId),
-		"contactId" to (this.contactId ?: other.contactId),
-		"serviceId" to (this.serviceId ?: other.serviceId),
-		"tarificationId" to (this.tarificationId ?: other.tarificationId),
-		"code" to (this.code ?: other.code),
-		"paymentType" to (this.paymentType ?: other.paymentType),
-		"paid" to (this.paid ?: other.paid),
-		"totalAmount" to (this.totalAmount ?: other.totalAmount),
-		"reimbursement" to (this.reimbursement ?: other.reimbursement),
-		"patientIntervention" to (this.patientIntervention ?: other.patientIntervention),
-		"amiIntervention" to (this.amiIntervention ?: other.amiIntervention),
-		"doctorSupplement" to (this.doctorSupplement ?: other.doctorSupplement),
-		"conventionAmount" to (this.conventionAmount ?: other.conventionAmount),
-		"vat" to (this.vat ?: other.vat),
-		"error" to (this.error ?: other.error),
-		"contract" to (this.contract ?: other.contract),
-		"contractDate" to (this.contractDate ?: other.contractDate),
-		"units" to (this.units ?: other.units),
-		"side" to (this.side ?: other.side),
-		"timeOfDay" to (this.timeOfDay ?: other.timeOfDay),
-		"eidReadingHour" to (this.eidReadingHour ?: other.eidReadingHour),
-		"eidReadingValue" to (this.eidReadingValue ?: other.eidReadingValue),
-		"override3rdPayerCode" to (this.override3rdPayerCode ?: other.override3rdPayerCode),
-		"override3rdPayerReason" to (this.override3rdPayerReason ?: other.override3rdPayerReason),
-		"transplantationCode" to (this.transplantationCode ?: other.transplantationCode),
-		"prescriberNorm" to (this.prescriberNorm ?: other.prescriberNorm),
-		"percentNorm" to (this.percentNorm ?: other.percentNorm),
-		"prescriberNihii" to (this.prescriberNihii ?: other.prescriberNihii),
-		"relatedCode" to (this.relatedCode ?: other.relatedCode),
-		"prescriptionDate" to (this.prescriptionDate ?: other.prescriptionDate),
-		"derogationMaxNumber" to (this.derogationMaxNumber ?: other.derogationMaxNumber),
-		"prescriberSsin" to (this.prescriberSsin ?: other.prescriberSsin),
-		"prescriberLastName" to (this.prescriberLastName ?: other.prescriberLastName),
-		"prescriberFirstName" to (this.prescriberFirstName ?: other.prescriberFirstName),
-		"prescriberCdHcParty" to (this.prescriberCdHcParty ?: other.prescriberCdHcParty),
-		"locationNihii" to (this.locationNihii ?: other.locationNihii),
-		"locationCdHcParty" to (this.locationCdHcParty ?: other.locationCdHcParty),
-		"locationService" to (this.locationService ?: other.locationService),
-		"admissionDate" to (this.admissionDate ?: other.admissionDate),
-		"canceled" to (this.canceled ?: other.canceled),
-		"accepted" to (this.accepted ?: other.accepted),
-		"pending" to (this.pending ?: other.pending),
-		"resent" to (this.resent ?: other.resent),
-		"archived" to (this.archived ?: other.archived),
-		"lost" to (this.lost ?: other.lost),
-		"insuranceJustification" to (this.insuranceJustification ?: other.insuranceJustification),
-		"cancelPatientInterventionReason" to (
-			this.cancelPatientInterventionReason
-				?: other.cancelPatientInterventionReason
-			),
-		"status" to (this.status ?: other.status),
-		"codeLabel" to (this.codeLabel ?: other.codeLabel),
-	)
 
 	override fun compareTo(other: InvoicingCodeDto?): Int = if (other == null) -1 else dateCode?.compareTo(other.dateCode ?: 0) ?: 0
 }

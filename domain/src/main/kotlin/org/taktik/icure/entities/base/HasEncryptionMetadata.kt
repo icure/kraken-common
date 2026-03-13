@@ -7,7 +7,6 @@ package org.taktik.icure.entities.base
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
@@ -67,20 +66,6 @@ interface HasEncryptionMetadata : HasSecureDelegationsAccessControl {
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
 	)
 	val encryptionKeys: Map<String, Set<Delegation>>
-
-	fun solveConflictsWith(other: HasEncryptionMetadata): Map<String, Any?> = mapOf(
-		"secretForeignKeys" to this.secretForeignKeys + other.secretForeignKeys,
-		"cryptedForeignKeys" to mergeMapsOfSets(this.cryptedForeignKeys, other.cryptedForeignKeys),
-		"delegations" to mergeMapsOfSets(this.delegations, other.delegations),
-		"encryptionKeys" to mergeMapsOfSets(this.encryptionKeys, other.encryptionKeys),
-		"securityMetadata" to (
-			this.securityMetadata?.let { thisSecurityMetadata ->
-				other.securityMetadata?.let { otherSecurityMetadata ->
-					thisSecurityMetadata.mergeForDifferentVersionsOfEntity(otherSecurityMetadata)
-				} ?: thisSecurityMetadata
-			} ?: other.securityMetadata
-		),
-	)
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = super.dataOwnersWithExplicitAccess +

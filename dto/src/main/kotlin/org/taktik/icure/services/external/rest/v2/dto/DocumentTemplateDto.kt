@@ -27,7 +27,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ReportVersionDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
-import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -88,7 +87,6 @@ data class DocumentTemplateDto(
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {
-	companion object : DynamicInitializer<DocumentTemplateDto>
 
 	override fun withIdRev(
 		id: String?,

@@ -8,10 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.ICureDocument
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -71,7 +68,7 @@ data class SubContact(
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	ICureDocument<String?> {
-	companion object : DynamicInitializer<SubContact> {
+	companion object {
 		const val STATUS_LABO_RESULT = 1
 		const val STATUS_UNREAD = 2
 		const val STATUS_ALWAYS_DISPLAY = 4
@@ -80,20 +77,6 @@ data class SubContact(
 		const val STATUS_PROTOCOL_RESULT = 32
 		const val STATUS_UPLOADED_FILES = 64
 	}
-
-	fun merge(other: SubContact) = SubContact(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: SubContact) = super<Encryptable>.solveConflictsWith(other) +
-		super<ICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"descr" to (this.descr ?: other.descr),
-			"protocol" to (this.protocol ?: other.protocol),
-			"status" to (this.status ?: other.status),
-			"formId" to (this.formId ?: other.formId),
-			"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
-			"healthElementId" to (this.healthElementId ?: other.healthElementId),
-			"classificationId" to (this.classificationId ?: other.classificationId),
-			"services" to MergeUtil.mergeListsDistinct(this.services, other.services, { a, b -> a.serviceId == b.serviceId }),
-		)
 
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
 		created != null && modified != null -> this.copy(created = created, modified = modified)

@@ -17,16 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-/**
- * Created by aduchate on 21/01/13, 14:47
- */
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -40,16 +34,6 @@ data class TelecomDto(
 ) : EncryptableDto,
 	Serializable,
 	Comparable<TelecomDto> {
-	companion object : DynamicInitializer<TelecomDto>
-
-	fun merge(other: TelecomDto) = TelecomDto(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: TelecomDto) = super.solveConflictsWith(other) +
-		mapOf(
-			"telecomType" to (this.telecomType ?: other.telecomType),
-			"telecomNumber" to (this.telecomNumber ?: other.telecomNumber),
-			"telecomDescription" to (this.telecomDescription ?: other.telecomDescription),
-		)
 
 	override fun compareTo(other: TelecomDto): Int = telecomType?.compareTo(other.telecomType ?: TelecomTypeDto.other) ?: 0
 }

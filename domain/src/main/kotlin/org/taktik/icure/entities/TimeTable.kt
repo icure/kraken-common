@@ -11,10 +11,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.TimeTableItem
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -52,17 +49,6 @@ data class TimeTable(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredICureDocument {
-	companion object : DynamicInitializer<TimeTable>
-
-	fun merge(other: TimeTable) = TimeTable(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: TimeTable): Map<String, Any?> = super<StoredICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"agendaId" to (this.agendaId ?: other.agendaId),
-			"startTime" to (this.startTime ?: other.startTime),
-			"endTime" to (this.endTime ?: other.endTime),
-			"items" to mergeListsDistinct(this.items, other.items),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 

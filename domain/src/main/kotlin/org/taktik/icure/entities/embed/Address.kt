@@ -9,11 +9,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasTags
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.ValidCode
 import java.io.Serializable
@@ -46,34 +43,6 @@ data class Address(
 	Comparable<Address>,
 	HasTags,
 	HasCodes {
-	companion object : DynamicInitializer<Address>
-
-	fun merge(other: Address) = Address(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Address) = super.solveConflictsWith(other) +
-		mapOf(
-			"addressType" to (this.addressType ?: other.addressType),
-			"descr" to (this.descr ?: other.descr),
-			"street" to (this.street ?: other.street),
-			"houseNumber" to (this.houseNumber ?: other.houseNumber),
-			"postboxNumber" to (this.postboxNumber ?: other.postboxNumber),
-			"postalCode" to (this.postalCode ?: other.postalCode),
-			"city" to (this.city ?: other.city),
-			"state" to (this.state ?: other.state),
-			"country" to (this.country ?: other.country),
-			"note" to (this.note ?: other.note),
-			"notes" to mergeListsDistinct(
-				this.notes,
-				other.notes,
-				{ a, b -> a.modified?.equals(b.modified) ?: false },
-				{ a, b -> a.merge(b) },
-			),
-			"telecoms" to mergeListsDistinct(
-				this.telecoms,
-				other.telecoms,
-				{ a, b -> a.telecomType?.equals(b.telecomType) ?: false },
-				{ a, b -> a.merge(b) },
-			),
-		)
 
 	override fun compareTo(other: Address): Int = addressType?.compareTo(other.addressType ?: AddressType.other) ?: 0
 }

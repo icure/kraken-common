@@ -23,12 +23,9 @@ import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.embed.ServiceLink
 import org.taktik.icure.entities.embed.SubContact
-import org.taktik.icure.entities.utils.MergeUtil.mergeSets
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -124,35 +121,6 @@ data class Contact(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Contact>
-
-	fun merge(other: Contact) = Contact(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Contact) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"descr" to (this.descr ?: other.descr),
-			"groupId" to (this.groupId ?: other.groupId),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"externalId" to (this.externalId ?: other.externalId),
-			"modifiedContactId" to (this.modifiedContactId ?: other.modifiedContactId),
-			"location" to (this.location ?: other.location),
-			"encounterType" to (this.encounterType ?: other.encounterType),
-			"subContacts" to mergeSets(
-				subContacts,
-				other.subContacts,
-				{ a, b -> a.id == b.id },
-				{ a: SubContact, b: SubContact -> a.merge(b) },
-			),
-			"services" to mergeSets(
-				services,
-				other.services,
-				{ a, b -> a.id == b.id },
-				{ a: Service, b: Service -> a.merge(b) },
-			),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

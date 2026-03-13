@@ -37,8 +37,6 @@ import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -269,7 +267,7 @@ data class Patient(
 	DataOwner,
 	Encryptable {
 
-	companion object : DynamicInitializer<Patient> {
+	companion object {
 		fun mergeInsurabilities(
 			thisInsurabilities: List<Insurability>,
 			otherInsurabilities: List<Insurability>
@@ -280,78 +278,6 @@ data class Patient(
 			{ a, b -> if (a.endDate != null) a else b },
 		)
 	}
-
-	fun merge(other: Patient) = Patient(args = this.solveConflictsWith(other))
-
-	@Suppress("DEPRECATION")
-	fun solveConflictsWith(other: Patient) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<Person>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<CryptoActor>.solveConflictsWith(other) +
-		super<DataOwner>.solveConflictsWith(other) +
-		mapOf(
-			"encryptionKeys" to this.encryptionKeys, // Only keep this ones
-			"identifier" to mergeListsDistinct(
-				this.identifier,
-				other.identifier,
-				{ a, b -> a.system == b.system && a.value == b.value },
-			),
-			"birthSex" to (this.birthSex ?: other.birthSex),
-			"mergeToPatientId" to (this.mergeToPatientId ?: other.mergeToPatientId),
-			"mergedIds" to (other.mergedIds + this.mergedIds),
-			"nonDuplicateIds" to (other.nonDuplicateIds + this.nonDuplicateIds),
-			"encryptedAdministrativesDocuments" to (other.encryptedAdministrativesDocuments + this.encryptedAdministrativesDocuments),
-			"alias" to (this.alias ?: other.alias),
-			"active" to (this.active),
-			"deactivationReason" to (this.deactivationReason),
-			"deactivationDate" to (this.deactivationDate),
-			"ssin" to (this.ssin ?: other.ssin),
-			"maidenName" to (this.maidenName ?: other.maidenName),
-			"spouseName" to (this.spouseName ?: other.spouseName),
-			"partnerName" to (this.partnerName ?: other.partnerName),
-			"personalStatus" to (this.personalStatus ?: other.personalStatus),
-			"dateOfBirth" to (this.dateOfBirth ?: other.dateOfBirth),
-			"deceased" to (this.deceased ?: other.deceased),
-			"dateOfDeath" to (this.dateOfDeath ?: other.dateOfDeath),
-			"placeOfBirth" to (this.placeOfBirth ?: other.placeOfBirth),
-			"placeOfDeath" to (this.placeOfDeath ?: other.placeOfDeath),
-			"education" to (this.education ?: other.education),
-			"profession" to (this.profession ?: other.profession),
-			"note" to (this.note ?: other.note),
-			"administrativeNote" to (this.administrativeNote ?: other.administrativeNote),
-			"comment" to (this.comment ?: other.comment),
-			"warning" to (this.warning ?: other.warning),
-			"race" to (this.race ?: other.race),
-			"ethnicity" to (this.ethnicity ?: other.ethnicity),
-			"nationality" to (this.nationality ?: other.nationality),
-			"preferredUserId" to (this.preferredUserId ?: other.preferredUserId),
-			"picture" to (this.picture ?: other.picture),
-			"externalId" to (this.externalId ?: other.externalId),
-			"partnerships" to mergeListsDistinct(partnerships, other.partnerships),
-			"financialInstitutionInformation" to mergeListsDistinct(financialInstitutionInformation, other.financialInstitutionInformation),
-			"medicalHouseContracts" to mergeListsDistinct(medicalHouseContracts, other.medicalHouseContracts),
-			"parameters" to (other.parameters + this.parameters),
-			"patientProfessions" to mergeListsDistinct(patientProfessions, other.patientProfessions),
-			"fatherBirthCountry" to (this.fatherBirthCountry ?: other.fatherBirthCountry),
-			"birthCountry" to (this.birthCountry ?: other.birthCountry),
-			"nativeCountry" to (this.nativeCountry ?: other.nativeCountry),
-			"socialStatus" to (this.socialStatus ?: other.socialStatus),
-			"mainSourceOfIncome" to (this.mainSourceOfIncome ?: other.mainSourceOfIncome),
-			"schoolingInfos" to mergeListsDistinct(schoolingInfos, other.schoolingInfos),
-			"employementInfos" to mergeListsDistinct(employementInfos, other.employementInfos),
-			"insurabilities" to mergeListsDistinct(
-				insurabilities,
-				other.insurabilities,
-				{ a, b -> a.insuranceId == b.insuranceId && a.startDate == b.startDate },
-				{ a, b -> if (a.endDate != null) a else b },
-			),
-			"patientHealthCareParties" to mergeListsDistinct(
-				patientHealthCareParties,
-				other.patientHealthCareParties,
-				{ a, b -> a.healthcarePartyId == b.healthcarePartyId && a.type == b.type },
-				{ a, b -> a.merge(b) },
-			),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

@@ -17,8 +17,6 @@ import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.serializers.ServiceQualifiedLinkDeserializer
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -112,31 +110,6 @@ data class Service(
 ) : Encryptable,
 	ICureDocument<String>,
 	Comparable<Service> {
-	companion object : DynamicInitializer<Service>
-
-	fun merge(other: Service) = Service(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Service) = super<Encryptable>.solveConflictsWith(other) +
-		super<ICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"label" to if (this.label.isNullOrBlank()) other.label else this.label,
-			"dataClassName" to (this.dataClassName ?: other.dataClassName),
-			"index" to (this.index ?: other.index),
-			"contactId" to (this.contactId ?: other.contactId),
-			"content" to (other.content + this.content),
-			"encryptedContent" to (this.encryptedContent ?: other.encryptedContent),
-			"textIndexes" to (other.textIndexes + this.textIndexes),
-			"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"formId" to (this.formId ?: other.formId),
-			"author" to (this.author ?: other.author),
-			"responsible" to (this.responsible ?: other.responsible),
-			"comment" to (this.comment ?: other.comment),
-			"status" to (this.status ?: other.status),
-			"invoicingCodes" to (other.invoicingCodes + this.invoicingCodes),
-			"notes" to (other.notes + this.notes),
-			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
-		)
 
 	override fun compareTo(other: Service): Int {
 		if (this == other) {

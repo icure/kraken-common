@@ -12,7 +12,6 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
-import org.taktik.icure.exceptions.MergeConflictException
 import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
@@ -109,27 +108,4 @@ data class ExchangeData(
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = mapOf(this.delegator to AccessLevel.WRITE, this.delegate to AccessLevel.WRITE)
-
-	fun solveConflictsWith(other: ExchangeData): Map<String, Any?> {
-		if (this.delegator != other.delegator || this.delegate != other.delegate) {
-			throw MergeConflictException(
-				"Impossible to merge exchange data referring to different delegator/delegate pairs",
-			)
-		}
-		return super<StoredDocument>.solveConflictsWith(other) +
-			mapOf(
-				"delegator" to this.delegator,
-				"delegate" to this.delegate,
-            /*
-             * RSA Encryption of the same value with the same key multiple times will give different result: discordant
-             * entries for the same public key fingerprint is normal.
-             */
-				"exchangeKey" to this.exchangeKey + other.exchangeKey,
-				"accessControlSecret" to this.accessControlSecret + other.accessControlSecret,
-				// As a result of merging the signature may become invalid -> exchange data is not trusted anymore
-				"sharedSignature" to this.sharedSignature,
-				"sharedSignatureKey" to this.sharedSignatureKey + other.sharedSignatureKey,
-				"delegatorSignature" to this.delegatorSignature + other.delegatorSignature,
-			)
-	}
 }

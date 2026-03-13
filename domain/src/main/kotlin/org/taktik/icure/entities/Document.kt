@@ -24,8 +24,6 @@ import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.PrecomputeForMerge
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -142,7 +140,7 @@ data class Document(
 	HasEncryptionMetadata,
 	HasDataAttachments<Document>,
 	Encryptable {
-	companion object : DynamicInitializer<Document> {
+	companion object {
 		fun mainAttachmentKeyFromId(id: String) = id
 	}
 
@@ -180,37 +178,6 @@ data class Document(
 		.withUpdatedMainAttachment(newDataAttachments[mainAttachmentKey])
 
 	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): Document = copy(deletedAttachments = newDeletedAttachments)
-
-	fun merge(other: Document) = Document(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"size" to (this.size ?: other.size),
-			"hash" to (this.hash ?: other.hash),
-			"openingContactId" to (this.openingContactId ?: other.openingContactId),
-			"documentLocation" to (this.documentLocation ?: other.documentLocation),
-			"documentType" to (this.documentType ?: other.documentType),
-			"documentStatus" to (this.documentStatus ?: other.documentStatus),
-			"externalUri" to (this.externalUri ?: other.externalUri),
-			"name" to (this.name ?: other.name),
-			"version" to (this.version ?: other.version),
-			"storedICureDocumentId" to (this.storedICureDocumentId ?: other.storedICureDocumentId),
-			"externalUuid" to (this.externalUuid ?: other.externalUuid),
-			"deletedAttachments" to this.solveDeletedAttachmentsConflicts(other),
-		) +
-		this.solveDataAttachmentsConflicts(other).let { allDataAttachments ->
-			allDataAttachments[this.mainAttachmentKey].let { mainAttachment ->
-				mapOf(
-					"attachmentId" to mainAttachment?.couchDbAttachmentId,
-					"objectStoreReference" to mainAttachment?.objectStoreAttachmentId,
-					"mainUti" to mainUtiOf(mainAttachment),
-					"otherUtis" to otherUtisOf(mainAttachment),
-					"secondaryAttachments" to (allDataAttachments - this.mainAttachmentKey),
-				)
-			}
-		}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 

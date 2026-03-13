@@ -9,9 +9,6 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.type.Data
 import java.io.Serializable
 import java.io.UnsupportedEncodingException
 
-/**
- * Created by aduchate on 19/11/13, 10:41
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class AttributedString(
@@ -19,7 +16,7 @@ class AttributedString(
 	val rtfData: ByteArray? = null,
 ) : Data(),
 	Primitive {
-	fun length(): Int = if (rtfString!!.length > 0) rtfString!!.length else rtfData!!.size
+	fun length(): Int = if (rtfString!!.isNotEmpty()) rtfString.length else rtfData!!.size
 
 	override fun getPrimitiveValue(): Serializable? = try {
 		String(rtfData!!, Charsets.UTF_8)

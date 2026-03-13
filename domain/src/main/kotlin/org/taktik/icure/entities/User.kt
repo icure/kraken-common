@@ -20,15 +20,12 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.security.credentials.SecretType
-import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import java.io.Serializable
@@ -130,7 +127,7 @@ data class User(
 	Cloneable,
 	Serializable,
 	BaseUser {
-	companion object : DynamicInitializer<User> {
+	companion object {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
 
 		fun mergeAuthenticationTokens(
@@ -163,29 +160,6 @@ data class User(
 	@JsonIgnore override val secret: String? = null
 
 	@JsonIgnore override val use2fa: Boolean? = null
-
-	fun merge(other: User) = User(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: User) = super.solveConflictsWith(other) +
-		mapOf(
-			"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
-			"name" to (this.name ?: other.name),
-			"properties" to (other.properties + this.properties),
-			"permissions" to (other.permissions + this.permissions),
-			"type" to (this.type ?: other.type),
-			"status" to (this.status ?: other.status),
-			"login" to (this.login ?: other.login),
-			"passwordHash" to (this.passwordHash ?: other.passwordHash),
-			"secret" to (this.secret ?: other.secret),
-			"isUse2fa" to (this.use2fa ?: other.use2fa),
-			"groupId" to (this.groupId ?: other.groupId),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"patientId" to (this.patientId ?: other.patientId),
-			"autoDelegations" to mergeMapsOfSetsDistinct(this.autoDelegations, other.autoDelegations),
-			"termsOfUseDate" to (this.termsOfUseDate ?: other.termsOfUseDate),
-			"email" to (this.email ?: other.email),
-			"applicationTokens" to (other.applicationTokens?.let { it + (this.applicationTokens ?: emptyMap()) } ?: this.applicationTokens),
-			"authenticationTokens" to (other.authenticationTokens + this.authenticationTokens),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

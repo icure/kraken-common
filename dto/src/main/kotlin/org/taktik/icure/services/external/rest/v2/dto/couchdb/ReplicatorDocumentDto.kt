@@ -34,8 +34,8 @@ data class ReplicatorDocumentDto(
 	/** The current state of the replication (e.g. triggered, completed, error). */
 	val replicationState: String? = null,
 	/** The time when the replication state was last updated. */
-	@JsonSerialize(using = ZonedDateTimeSerializer::class)
-	@JsonDeserialize(using = ZonedDateTimeDeserializer::class)
+	@param:JsonSerialize(using = ZonedDateTimeSerializer::class)
+	@param:JsonDeserialize(using = ZonedDateTimeDeserializer::class)
 	val replicationStateTime: ZonedDateTime? = null,
 	/** Statistics about the replication process. */
 	val replicationStats: ReplicationStatsDto? = null,

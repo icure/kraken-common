@@ -12,8 +12,6 @@ import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -42,24 +40,6 @@ data class MedicalLocation(
 
 ) : StoredDocument,
 	Named {
-	companion object : DynamicInitializer<MedicalLocation>
-
-	fun merge(other: MedicalLocation) = MedicalLocation(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: MedicalLocation) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"description" to (this.description ?: other.description),
-			"responsible" to (this.responsible ?: other.responsible),
-			"guardPost" to (this.guardPost ?: other.guardPost),
-			"cbe" to (this.cbe ?: other.cbe),
-			"bic" to (this.bic ?: other.bic),
-			"bankAccount" to (this.bankAccount ?: other.bankAccount),
-			"nihii" to (this.nihii ?: other.nihii),
-			"ssin" to (this.ssin ?: other.ssin),
-			"address" to (this.address ?: other.address),
-			"agendaIds" to (other.agendaIds + this.agendaIds),
-			"optons" to (other.options + this.options),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

@@ -11,8 +11,6 @@ import org.taktik.icure.entities.base.Named
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import java.io.Serializable
@@ -35,16 +33,4 @@ data class Episode(
 ) : Encryptable,
 	Serializable,
 	Identifiable<String>,
-	Named {
-	companion object : DynamicInitializer<Episode>
-
-	fun merge(other: Episode) = Episode(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Episode) = super.solveConflictsWith(other) +
-		mapOf(
-			"id" to (this.id),
-			"name" to (this.name ?: other.name),
-			"comment" to (this.comment ?: other.comment),
-			"startDate" to (startDate?.coerceAtMost(other.startDate ?: Long.MAX_VALUE) ?: other.startDate),
-			"endDate" to (endDate?.coerceAtLeast(other.endDate ?: 0L) ?: other.endDate),
-		)
-}
+	Named

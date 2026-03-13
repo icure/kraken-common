@@ -1,6 +1,5 @@
 package org.taktik.icure.entities.base
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.security.AuthenticationToken
 
 interface BaseUser {

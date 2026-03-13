@@ -15,9 +15,6 @@ import org.taktik.icure.services.external.rest.v1.dto.gui.GuiCodeType
 import org.taktik.icure.services.external.rest.v1.dto.gui.Suggest
 import java.io.Serializable
 
-/**
- * Created by aduchate on 19/11/13, 10:50
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 open class FormLayoutData(

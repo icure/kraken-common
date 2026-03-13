@@ -21,13 +21,9 @@ import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.mergers.annotations.NonMergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -135,34 +131,6 @@ data class HealthElement(
 	) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<HealthElement>
-
-	fun merge(other: HealthElement) = HealthElement(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: HealthElement) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"identifiers" to mergeListsDistinct(
-				this.identifiers,
-				other.identifiers,
-				{ a, b -> a.system == b.system && a.value == b.value },
-			),
-			"healthElementId" to (this.healthElementId ?: other.healthElementId),
-			"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"descr" to (this.descr ?: other.descr),
-			"note" to (this.note ?: other.note),
-			"relevant" to (this.relevant),
-			"idOpeningContact" to (this.idOpeningContact ?: other.idOpeningContact),
-			"idClosingContact" to (this.idClosingContact ?: other.idClosingContact),
-			"idService" to (this.idService ?: other.idService),
-			"status" to (this.status),
-			"laterality" to (this.laterality ?: other.laterality),
-			"plansOfAction" to mergeListsDistinct(this.plansOfAction, other.plansOfAction, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-			"episodes" to mergeListsDistinct(this.episodes, other.episodes, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-			"careTeam" to mergeListsDistinct(this.careTeam, other.careTeam, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

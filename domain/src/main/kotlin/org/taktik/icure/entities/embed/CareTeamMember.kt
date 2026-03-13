@@ -10,8 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotBlank
 import java.io.Serializable
@@ -27,15 +25,4 @@ data class CareTeamMember(
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	Serializable,
-	Identifiable<String> {
-	companion object : DynamicInitializer<CareTeamMember>
-
-	fun merge(other: CareTeamMember) = CareTeamMember(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CareTeamMember) = super.solveConflictsWith(other) +
-		mapOf(
-			"id" to (this.id),
-			"careTeamMemberType" to (this.careTeamMemberType ?: other.careTeamMemberType),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"quality" to (this.quality ?: other.quality),
-		)
-}
+	Identifiable<String>

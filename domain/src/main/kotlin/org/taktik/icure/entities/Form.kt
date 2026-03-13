@@ -15,8 +15,6 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -97,24 +95,6 @@ data class Form(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Form>
-
-	fun merge(other: Form) = Form(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Form) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"status" to (this.status ?: other.status),
-			"version" to (this.version ?: other.version),
-			"descr" to (this.descr ?: other.descr),
-			"formTemplateId" to (this.formTemplateId ?: other.formTemplateId),
-			"contactId" to (this.contactId ?: other.contactId),
-			"uniqueId" to (this.uniqueId ?: other.uniqueId),
-			"logicalUuid" to (this.logicalUuid ?: other.logicalUuid),
-			"healthElementId" to (this.healthElementId ?: other.healthElementId),
-			"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
-			"parent" to (this.parent ?: other.parent),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

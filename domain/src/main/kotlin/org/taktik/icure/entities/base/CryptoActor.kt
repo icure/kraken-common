@@ -6,7 +6,6 @@ package org.taktik.icure.entities.base
 
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.CryptoActorStub
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 /**
@@ -50,14 +49,6 @@ interface CryptoActor {
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
-	fun solveConflictsWith(other: CryptoActor): Map<String, Any?> = mapOf(
-		"hcPartyKeys" to mergeMapsOfListsDistinct(this.hcPartyKeys, other.hcPartyKeys),
-		"privateKeyShamirPartitions" to (other.privateKeyShamirPartitions + this.privateKeyShamirPartitions),
-		"publicKey" to (this.publicKey ?: other.publicKey),
-		"aesExchangeKeys" to (other.aesExchangeKeys + this.aesExchangeKeys),
-		"transferKeys" to (other.transferKeys + this.transferKeys),
-		"cryptoActorProperties" to (this.cryptoActorProperties ?: other.cryptoActorProperties),
-	)
 }
 
 /**

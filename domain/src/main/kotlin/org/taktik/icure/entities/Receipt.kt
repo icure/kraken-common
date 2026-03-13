@@ -16,12 +16,9 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -70,18 +67,6 @@ data class Receipt(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Receipt>
-
-	fun merge(other: Receipt) = Receipt(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Receipt) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		mapOf(
-			"attachmentIds" to (other.attachmentIds + this.attachmentIds),
-			"references" to mergeListsDistinct(this.references, other.references),
-			"documentId" to (this.documentId ?: other.documentId),
-			"category" to (this.category ?: other.category),
-			"subCategory" to (this.subCategory ?: other.subCategory),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

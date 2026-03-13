@@ -28,17 +28,5 @@ interface ICureDocument<T> :
 	val medicalLocationId: String?
 	@MergeStrategyMin val endOfLife: Long?
 
-	fun solveConflictsWith(other: ICureDocument<T>): Map<String, Any?> = mapOf(
-		"id" to this.id,
-		"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
-		"modified" to (this.modified?.coerceAtLeast(other.modified ?: 0L) ?: other.modified),
-		"endOfLife" to (this.endOfLife?.coerceAtMost(other.endOfLife ?: Long.MAX_VALUE) ?: other.endOfLife),
-		"author" to (this.author ?: other.author),
-		"responsible" to (this.responsible ?: other.responsible),
-		"medicalLocationId" to (this.medicalLocationId ?: other.medicalLocationId),
-		"tags" to (other.tags + this.tags),
-		"codes" to (other.codes + this.codes),
-	)
-
 	fun withTimestamps(created: Long? = null, modified: Long? = null): ICureDocument<T>
 }

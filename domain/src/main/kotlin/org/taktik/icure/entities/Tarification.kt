@@ -17,12 +17,7 @@ import org.taktik.icure.entities.embed.Periodicity
 import org.taktik.icure.entities.embed.PricingDomain
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Valorisation
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
-import org.taktik.icure.entities.utils.MergeUtil.mergeSets
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -70,42 +65,9 @@ data class Tarification(
 
 	) : StoredDocument,
 	CodeIdentification {
-	companion object : DynamicInitializer<Tarification> {
+	companion object {
 		fun from(type: String, code: String, version: String) = Tarification(id = "$type|$code|$version", type = type, code = code, version = version)
 	}
-
-	fun merge(other: Tarification) = Tarification(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Tarification) = super<StoredDocument>.solveConflictsWith(other) +
-		super<CodeIdentification>.solveConflictsWith(other) +
-		mapOf(
-			"author" to (this.author ?: other.author),
-			"regions" to (other.regions + this.regions),
-			"periodicity" to (other.periodicity + this.periodicity),
-			"level" to (this.level ?: other.level),
-			"links" to (other.links + this.links),
-			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
-			"flags" to (other.flags + this.flags),
-			"searchTerms" to mergeMapsOfSets(this.searchTerms, other.searchTerms),
-			"data" to (this.data ?: other.data),
-			"appendices" to (other.appendices + this.appendices),
-			"disabled" to (this.disabled),
-			"valorisations" to mergeSets(
-				this.valorisations,
-				other.valorisations,
-				{ a, b -> a.predicate == b.predicate && a.startOfValidity == b.startOfValidity && a.endOfValidity == b.endOfValidity },
-			),
-			"category" to (other.category + this.category),
-			"consultationCode" to (this.consultationCode ?: other.consultationCode),
-			"hasRelatedCode" to (this.hasRelatedCode ?: other.hasRelatedCode),
-			"needsPrescriber" to (this.needsPrescriber ?: other.needsPrescriber),
-			"relatedCodes" to (other.relatedCodes + this.relatedCodes),
-			"ngroup" to (this.ngroup ?: other.ngroup),
-			"letterValues" to mergeListsDistinct(
-				this.letterValues,
-				other.letterValues,
-				{ a, b -> a.coefficient == b.coefficient && a.index == b.index && a.letter == b.letter },
-			),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

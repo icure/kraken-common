@@ -10,14 +10,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotBlank
 import org.taktik.icure.validation.NotNull
@@ -109,37 +106,13 @@ data class PlanOfAction(
 ) : Encryptable,
 	ICureDocument<String>,
 	Named {
-	companion object : DynamicInitializer<PlanOfAction> {
+	companion object {
 		const val STATUS_PLANNED = 1 shl 0
 		const val STATUS_ONGOING = 1 shl 1
 		const val STATUS_FINISHED = 1 shl 2
 		const val STATUS_PROLONGED = 1 shl 3
 		const val STATUS_CANCELED = 1 shl 4
 	}
-
-	fun merge(other: PlanOfAction) = PlanOfAction(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: PlanOfAction) = super<Encryptable>.solveConflictsWith(other) +
-		super<ICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"valueDate" to (this.valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (this.openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (this.closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"deadlineDate" to (
-				this.deadlineDate?.coerceAtMost(other.deadlineDate ?: Long.MAX_VALUE)
-					?: other.deadlineDate
-				),
-			"name" to (this.descr ?: other.descr),
-			"descr" to (this.descr ?: other.descr),
-			"note" to (this.note ?: other.note),
-			"relevant" to this.relevant,
-			"idOpeningContact" to (this.idOpeningContact ?: other.idOpeningContact),
-			"idClosingContact" to (this.idClosingContact ?: other.idClosingContact),
-			"status" to (this.status),
-			"documentIds" to (other.documentIds + this.documentIds),
-			"prescriberId" to (this.prescriberId ?: other.prescriberId),
-			"numberOfCares" to (this.numberOfCares ?: other.numberOfCares),
-			"careTeamMemberships" to MergeUtil.mergeListsDistinct(this.careTeamMemberships, other.careTeamMemberships),
-		)
 
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
 		created != null && modified != null -> this.copy(created = created, modified = modified)

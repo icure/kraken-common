@@ -44,7 +44,7 @@ enum class AuthenticationClass(val level: Int) {
 		 */
 		const val MINIMUM_REQUIRED_AUTH_LEVEL_HEADER = "Icure-Minimum-Required-Auth-Level"
 
-		fun fromLevelOrNull(level: Int) = values().firstOrNull { it.level == level }
+		fun fromLevelOrNull(level: Int) = entries.firstOrNull { it.level == level }
 
 		fun fromLevel(level: Int) = requireNotNull(fromLevelOrNull(level)) {
 			"No authentication class found for level $level"

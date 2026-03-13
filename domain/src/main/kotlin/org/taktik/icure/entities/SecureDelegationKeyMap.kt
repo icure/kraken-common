@@ -73,20 +73,6 @@ data class SecureDelegationKeyMap(
 		securityMetadata = securityMetadata
 	)
 
-	fun solveConflictsWith(other: SecureDelegationKeyMap): Map<String, Any?> {
-		require(this.delegationKey == other.delegationKey) {
-			"Can't merge automatically secure delegation key maps with different delegation keys."
-		}
-		return super<StoredDocument>.solveConflictsWith(other) +
-			super<HasEncryptionMetadata>.solveConflictsWith(other) +
-			super<Encryptable>.solveConflictsWith(other) +
-			mapOf(
-				"delegator" to (this.delegator ?: other.delegator),
-				"delegate" to (this.delegate ?: other.delegate),
-				"delegationKey" to this.delegationKey,
-			)
-	}
-
 	override fun withIdRev(id: String?, rev: String): SecureDelegationKeyMap = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
 	fun validateForStore() {

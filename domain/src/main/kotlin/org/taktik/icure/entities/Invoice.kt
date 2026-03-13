@@ -23,10 +23,7 @@ import org.taktik.icure.entities.embed.Payment
 import org.taktik.icure.entities.embed.PaymentType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -126,76 +123,6 @@ data class Invoice(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Invoice>
-
-	fun merge(other: Invoice) = Invoice(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Invoice) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"identifier" to mergeListsDistinct(
-				this.identifier,
-				other.identifier,
-				{ a, b -> a.system == b.system && a.value == b.value },
-			),
-			"invoiceDate" to (this.invoiceDate ?: other.invoiceDate),
-			"sentDate" to (this.sentDate ?: other.sentDate),
-			"printedDate" to (this.printedDate ?: other.printedDate),
-			"invoicingCodes" to mergeListsDistinct(invoicingCodes, other.invoicingCodes, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-			"receipts" to (other.receipts + this.receipts),
-			"recipientType" to (this.recipientType ?: other.recipientType),
-			"recipientId" to (this.recipientId ?: other.recipientId),
-			"invoiceReference" to (this.invoiceReference ?: other.invoiceReference),
-			"thirdPartyReference" to (this.thirdPartyReference ?: other.thirdPartyReference),
-			"thirdPartyPaymentJustification" to (
-				this.thirdPartyPaymentJustification
-					?: other.thirdPartyPaymentJustification
-				),
-			"thirdPartyPaymentReason" to (this.thirdPartyPaymentReason ?: other.thirdPartyPaymentReason),
-			"reason" to (this.reason ?: other.reason),
-			"invoiceType" to (this.invoiceType ?: other.invoiceType),
-			"sentMediumType" to (this.sentMediumType ?: other.sentMediumType),
-			"interventionType" to (this.interventionType ?: other.interventionType),
-			"groupId" to (this.groupId ?: other.groupId),
-			"paymentType" to (this.paymentType ?: other.paymentType),
-			"paid" to (this.paid ?: other.paid),
-			"payments" to (this.payments ?: other.payments),
-			"gnotionNihii" to (this.gnotionNihii ?: other.gnotionNihii),
-			"gnotionSsin" to (this.gnotionSsin ?: other.gnotionSsin),
-			"gnotionLastName" to (this.gnotionLastName ?: other.gnotionLastName),
-			"gnotionFirstName" to (this.gnotionFirstName ?: other.gnotionFirstName),
-			"gnotionCdHcParty" to (this.gnotionCdHcParty ?: other.gnotionCdHcParty),
-			"invoicePeriod" to (this.invoicePeriod ?: other.invoicePeriod),
-			"careProviderType" to (this.careProviderType ?: other.careProviderType),
-			"internshipNihii" to (this.internshipNihii ?: other.internshipNihii),
-			"internshipSsin" to (this.internshipSsin ?: other.internshipSsin),
-			"internshipLastName" to (this.internshipLastName ?: other.internshipLastName),
-			"internshipFirstName" to (this.internshipFirstName ?: other.internshipFirstName),
-			"internshipCdHcParty" to (this.internshipCdHcParty ?: other.internshipCdHcParty),
-			"internshipCbe" to (this.internshipCbe ?: other.internshipCbe),
-			"supervisorNihii" to (this.supervisorNihii ?: other.supervisorNihii),
-			"supervisorSsin" to (this.supervisorSsin ?: other.supervisorSsin),
-			"supervisorLastName" to (this.supervisorLastName ?: other.supervisorLastName),
-			"supervisorFirstName" to (this.supervisorFirstName ?: other.supervisorFirstName),
-			"supervisorCdHcParty" to (this.supervisorCdHcParty ?: other.supervisorCdHcParty),
-			"supervisorCbe" to (this.supervisorCbe ?: other.supervisorCbe),
-			"error" to (this.error ?: other.error),
-			"encounterLocationName" to (this.encounterLocationName ?: other.encounterLocationName),
-			"encounterLocationNihii" to (this.encounterLocationNihii ?: other.encounterLocationNihii),
-			"encounterLocationNorm" to (this.encounterLocationNorm ?: other.encounterLocationNorm),
-			"longDelayJustification" to (this.longDelayJustification ?: other.longDelayJustification),
-			"correctiveInvoiceId" to (this.correctiveInvoiceId ?: other.correctiveInvoiceId),
-			"correctedInvoiceId" to (this.correctedInvoiceId ?: other.correctedInvoiceId),
-			"creditNote" to (this.creditNote ?: other.creditNote),
-			"creditNoteRelatedInvoiceId" to (this.creditNoteRelatedInvoiceId ?: other.creditNoteRelatedInvoiceId),
-			"idDocument" to (this.idDocument ?: other.idDocument),
-			"cancelReason" to (this.cancelReason ?: other.cancelReason),
-			"cancelDate" to (this.cancelDate ?: other.cancelDate),
-			"options" to (other.options + this.options),
-			"locationNihii" to (this.locationNihii ?: other.locationNihii),
-			"locationService" to (this.locationService ?: other.locationService),
-			"admissionDate" to (this.admissionDate ?: other.admissionDate),
-		)
 
 	fun reassign(invoicingCodes: List<InvoicingCode>, uuidGenerator: UUIDGenerator) = this.copy(
 		id = uuidGenerator.newGUID().toString(),

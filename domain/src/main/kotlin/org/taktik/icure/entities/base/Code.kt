@@ -9,11 +9,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.embed.Periodicity
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -52,26 +49,6 @@ data class Code(
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredDocument,
 	CodeIdentification {
-	companion object : DynamicInitializer<Code> {
-		fun from(type: String, code: String, version: String) = Code(id = "$type|$code|$version", type = type, code = code, version = version)
-	}
-
-	fun merge(other: Code) = Code(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Code) = super<StoredDocument>.solveConflictsWith(other) +
-		super<CodeIdentification>.solveConflictsWith(other) +
-		mapOf(
-			"author" to (this.author ?: other.author),
-			"regions" to (other.regions + this.regions),
-			"periodicity" to (other.periodicity + this.periodicity),
-			"level" to (this.level ?: other.level),
-			"links" to (other.links + this.links),
-			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
-			"flags" to (other.flags + this.flags),
-			"searchTerms" to MergeUtil.mergeMapsOfSets(this.searchTerms, other.searchTerms),
-			"data" to (this.data ?: other.data),
-			"appendices" to (other.appendices + this.appendices),
-			"disabled" to (this.disabled),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

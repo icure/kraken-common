@@ -20,9 +20,6 @@ package org.taktik.icure.services.external.rest.v1.dto.data
 import org.taktik.icure.services.external.rest.v1.dto.CodeDto
 import java.io.Serializable
 
-/**
- * Created by aduchate on 01/02/13, 12:23
- */
 open class FormItem(
 	open val label: String? = null,
 	open val index: Int? = null,

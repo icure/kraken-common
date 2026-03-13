@@ -9,8 +9,6 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.utils.MergeUtil.mergeSets
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import java.io.Serializable
 import java.util.*
 
@@ -35,7 +33,7 @@ data class PatientHealthCareParty(
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	Serializable {
-	companion object : DynamicInitializer<PatientHealthCareParty> {
+	companion object {
 		fun mergeReferralPeriods(
 			thisReferralPeriods: SortedSet<ReferralPeriod>,
 			otherReferralPeriods: SortedSet<ReferralPeriod>
@@ -47,18 +45,4 @@ data class PatientHealthCareParty(
 		).toSortedSet()
 	}
 
-	fun merge(other: PatientHealthCareParty) = PatientHealthCareParty(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: PatientHealthCareParty) = super.solveConflictsWith(other) +
-		mapOf(
-			"type" to (this.type ?: other.type),
-			"referral" to this.referral,
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"sendFormats" to (other.sendFormats + this.sendFormats),
-			"referralPeriods" to mergeSets(
-				this.referralPeriods,
-				other.referralPeriods,
-				{ a, b -> a.startDate == b.startDate },
-				{ a, b -> if (a.endDate == null) a.copy(endDate = b.endDate) else a },
-			).toSortedSet(),
-		)
 }

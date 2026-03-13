@@ -18,13 +18,10 @@ import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
 import org.taktik.icure.entities.embed.UserAccessLevel
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.mergers.annotations.MergeStrategyCollectionNotEmpty
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
-import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.FuzzyDates
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -338,7 +335,6 @@ data class Agenda(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredICureDocument {
-	companion object : DynamicInitializer<Agenda>
 
 	init {
 		@Suppress("DEPRECATION")
@@ -384,22 +380,6 @@ data class Agenda(
 		}
 		if (daySplitHour != null) requireNotNull(FuzzyDates.getFullLocalTime(daySplitHour)) { "`daySplitHour` is not a valid fuzzy time" }
 	}
-
-	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))
-
-	@Suppress("DEPRECATION")
-	fun solveConflictsWith(other: Agenda) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"userId" to (this.userId ?: other.userId),
-			"rights" to MergeUtil.mergeListsDistinct(this.rights, other.rights, { a, b -> a == b }) { a, _ -> a },
-			"userRights" to (other.userRights + this.userRights),
-			"schedules" to this.schedules.ifEmpty { other.schedules },
-			"properties" to (other.properties + this.properties),
-			"zoneId" to (this.zoneId ?: other.zoneId),
-			"daySplitHour" to (this.daySplitHour ?: other.daySplitHour),
-			"slottingAlgorithm" to (this.slottingAlgorithm ?: other.slottingAlgorithm),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

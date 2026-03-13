@@ -6,7 +6,4 @@ interface Encryptable {
 	 */
 	val encryptedSelf: String?
 
-	fun solveConflictsWith(other: Encryptable): Map<String, Any?> = mapOf(
-		"encryptedSelf" to (this.encryptedSelf ?: other.encryptedSelf),
-	)
 }

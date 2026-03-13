@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.mergers.annotations.Mergeable
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -41,22 +39,4 @@ data class Annotation(
 	val location: String? = null,
 	val encryptedSelf: String? = null,
 ) : Identifiable<String>,
-	Serializable {
-
-	companion object : DynamicInitializer<Annotation>
-
-	fun merge(other: Annotation) = Annotation(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: Annotation) = mapOf(
-		"id" to (this.id),
-		"author" to (this.author ?: other.author),
-		"created" to (this.created ?: other.created),
-		"modified" to (this.modified ?: other.modified),
-		"text" to (this.text ?: other.text),
-		"markdown" to (other.markdown + this.markdown),
-		"location" to (this.location ?: other.location),
-		"tags" to (this.tags + other.tags),
-		"confidential" to (this.confidential ?: other.confidential),
-		"encryptedSelf" to (this.encryptedSelf ?: other.encryptedSelf),
-	)
-}
+	Serializable
