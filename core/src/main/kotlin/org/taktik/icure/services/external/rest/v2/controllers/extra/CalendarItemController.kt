@@ -40,6 +40,9 @@ import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -47,6 +50,8 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CalendarItemBulkShareResultV2Mapper
@@ -76,6 +81,8 @@ class CalendarItemController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
@@ -395,4 +402,36 @@ class CalendarItemController(
 				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		calendarItemService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<CalendarItemDto> =
+		calendarItemService.getConflictsFor(entityId)
+			.map(calendarItemV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<CalendarItemDto>
+	): Mono<ConflictResolutionResultDto<CalendarItemDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			calendarItemService.declareConflictWinner(
+				entity = calendarItemV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = calendarItemService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

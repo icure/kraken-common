@@ -28,6 +28,9 @@ import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
@@ -35,6 +38,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -59,6 +64,8 @@ class DeviceController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
@@ -220,4 +227,36 @@ class DeviceController(
 			deviceIds.ids.map(idWithRevV2Mapper::map),
 		).map(docIdentifierV2Mapper::map)
 		.injectCachedReactorContext(reactorCacheInjector, 100)
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		deviceService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<DeviceDto> =
+		deviceService.getConflictsFor(entityId)
+			.map(deviceV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<DeviceDto>
+	): Mono<ConflictResolutionResultDto<DeviceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			deviceService.declareConflictWinner(
+				entity = deviceV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = deviceService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

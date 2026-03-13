@@ -52,6 +52,9 @@ import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -59,6 +62,8 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
@@ -84,6 +89,8 @@ class DocumentController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	@Operation(summary = "Create a Document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
@@ -585,4 +592,36 @@ class DocumentController(
 		.matchDocumentsBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		documentService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<DocumentDto> =
+		documentService.getConflictsFor(entityId)
+			.map(documentV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<DocumentDto>
+	): Mono<ConflictResolutionResultDto<DocumentDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			documentService.declareConflictWinner(
+				entity = documentV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = documentService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

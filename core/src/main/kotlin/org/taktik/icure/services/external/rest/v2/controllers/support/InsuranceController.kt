@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
@@ -30,9 +32,14 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InsuranceV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
@@ -48,6 +55,9 @@ class InsuranceController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val reactorCacheInjector: ReactorCacheInjector,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	@Operation(summary = "Gets all the insurances")
 	@GetMapping
@@ -196,4 +206,36 @@ class InsuranceController(
 	): Flux<InsuranceDto> = insuranceService.modifyInsurances(
 		insuranceDtos.map(insuranceV2Mapper::map)
 	).map(insuranceV2Mapper::map).injectReactorContext()
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		insuranceService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<InsuranceDto> =
+		insuranceService.getConflictsFor(entityId)
+			.map(insuranceV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<InsuranceDto>
+	): Mono<ConflictResolutionResultDto<InsuranceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			insuranceService.declareConflictWinner(
+				entity = insuranceV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = insuranceService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

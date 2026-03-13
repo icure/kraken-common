@@ -48,6 +48,9 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
@@ -59,6 +62,8 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -96,6 +101,8 @@ class ContactController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 
 	@Operation(summary = "Get an empty content")
@@ -604,4 +611,36 @@ class ContactController(
 				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		contactService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<ContactDto> =
+		contactService.getConflictsFor(entityId)
+			.map(contactV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<ContactDto>
+	): Mono<ConflictResolutionResultDto<ContactDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			contactService.declareConflictWinner(
+				entity = contactV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = contactService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

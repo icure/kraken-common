@@ -12,6 +12,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -33,9 +34,14 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemTypeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -53,6 +59,8 @@ class CalendarItemTypeController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -211,4 +219,36 @@ class CalendarItemTypeController(
 	): Flux<CalendarItemTypeDto> = calendarItemTypeService.modifyCalendarItemTypes(
 		calendarItemTypeDtos.map(calendarItemTypeV2Mapper::map)
 	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		calendarItemTypeService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<CalendarItemTypeDto> =
+		calendarItemTypeService.getConflictsFor(entityId)
+			.map(calendarItemTypeV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<CalendarItemTypeDto>
+	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+		conflictResolutionV2Mapper.map(
+			calendarItemTypeService.declareConflictWinner(
+				entity = calendarItemTypeV2Mapper.map(request.document),
+				conflictsToPurge = request.conflictsToPurge
+			)
+		)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = calendarItemTypeService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }
