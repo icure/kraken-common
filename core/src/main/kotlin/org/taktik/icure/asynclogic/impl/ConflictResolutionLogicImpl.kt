@@ -72,35 +72,42 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 
 	private suspend fun mergeSecurityMetadataOfOldRevisions(
 		entity: E,
-		conflictsToPurge: List<String>,
+		oldRevisions: List<String>,
 		datastoreInformation: IDatastoreInformation,
 	): E =
-		if (entity is HasEncryptionMetadata) {
-			conflictsToPurge.fold(entity) { acc, rev ->
-				val conflict = dao.get(datastoreInformation, entity.id, rev)?.let {
-					it as HasEncryptionMetadata
-				}
-				if (conflict != null && !acc.encryptableMetadataEquals(conflict)) {
-					val res = acc.withEncryptionMetadata(
-						securityMetadata =
-							acc.securityMetadata?.let { intoMetadata ->
-								conflict.securityMetadata?.let { fromMetadata ->
-									intoMetadata.mergeForDifferentVersionsOfEntity(fromMetadata)
-								} ?: intoMetadata
-							} ?: conflict.securityMetadata,
-						delegations = MergeUtil.mergeMapsOfSets(conflict.delegations, acc.delegations),
-						encryptionKeys = acc.encryptionKeys,
-						cryptedForeignKeys = MergeUtil.mergeMapsOfSets(conflict.cryptedForeignKeys, acc.cryptedForeignKeys),
-						secretForeignKeys = conflict.secretForeignKeys + acc.secretForeignKeys,
-					) as E
-					acc
-				} else {
-					acc
-				}
-			}
-		} else {
+		if (entity !is HasEncryptionMetadata) {
 			entity
+		} else {
+			mergeSecurityMetadataOfOldRevisionsForEncryptable(entity, oldRevisions, datastoreInformation)
 		}
+
+	private suspend fun mergeSecurityMetadataOfOldRevisionsForEncryptable(
+		entity: E,
+		oldRevisions: List<String>,
+		datastoreInformation: IDatastoreInformation,
+	): E = oldRevisions.fold(entity) { acc, rev ->
+		val accWithMetadata = acc as HasEncryptionMetadata
+		val conflict = dao.get(datastoreInformation, entity.id, rev)?.let {
+			it as HasEncryptionMetadata
+		}
+		if (conflict != null && !accWithMetadata.encryptableMetadataEquals(conflict)) {
+			@Suppress("UNCHECKED_CAST")
+			accWithMetadata.withEncryptionMetadata(
+				securityMetadata =
+					accWithMetadata.securityMetadata?.let { intoMetadata ->
+						conflict.securityMetadata?.let { fromMetadata ->
+							intoMetadata.mergeForDifferentVersionsOfEntity(fromMetadata)
+						} ?: intoMetadata
+					} ?: conflict.securityMetadata,
+				delegations = MergeUtil.mergeMapsOfSets(conflict.delegations, accWithMetadata.delegations),
+				encryptionKeys = accWithMetadata.encryptionKeys,
+				cryptedForeignKeys = MergeUtil.mergeMapsOfSets(conflict.cryptedForeignKeys, accWithMetadata.cryptedForeignKeys),
+				secretForeignKeys = conflict.secretForeignKeys + accWithMetadata.secretForeignKeys,
+			) as E
+		} else {
+			acc
+		}
+	}
 
 	protected suspend fun doDeclareConflictWinner(
 		entity: E,
@@ -108,7 +115,10 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		datastoreInformation: IDatastoreInformation,
 	): ConflictResolutionResult<E> {
 		requireUnmodifiedSecurityMetadata(entity, datastoreInformation)
-		val savedWinner = dao.save(datastoreInformation, entity)
+		val savedWinner = dao.save(
+			datastoreInformation = datastoreInformation,
+			entity = mergeSecurityMetadataOfOldRevisions(entity, conflictsToPurge, datastoreInformation),
+		)
 		dao.purgeConflictingRevisions(
 			datastoreInformation,
 			entityId = savedWinner.id,

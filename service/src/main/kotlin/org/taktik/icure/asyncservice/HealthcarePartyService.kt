@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -18,7 +19,8 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface HealthcarePartyService {
+interface HealthcarePartyService : EntityWithConflictResolutionService<HealthcareParty> {
+
 	suspend fun getHealthcareParty(id: String): HealthcareParty?
 	fun listHealthcarePartiesBy(searchString: String, offset: Int, limit: Int): Flow<HealthcareParty>
 

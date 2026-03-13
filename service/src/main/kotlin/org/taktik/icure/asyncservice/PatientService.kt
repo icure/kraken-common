@@ -26,7 +26,8 @@ import java.time.Instant
 
 interface PatientService :
 	EntityWithSecureDelegationsService<Patient>,
-	EntityWithConflictResolutionService {
+	EntityWithConflictResolutionService<Patient> {
+
 	suspend fun countByHcParty(healthcarePartyId: String): Int
 	fun listOfMergesAfter(date: Long?): Flow<Patient>
 
@@ -105,8 +106,6 @@ interface PatientService :
 	suspend fun modifyPatientReferral(patient: Patient, referralId: String?, start: Instant?, end: Instant?): Patient?
 
 	suspend fun getByExternalId(externalId: String): Patient?
-
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 
 	@Deprecated(message = "A DataOwner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	suspend fun getHcPartyKeysForDelegate(healthcarePartyId: String): Map<String, String>

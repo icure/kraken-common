@@ -154,7 +154,8 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 
 	override suspend fun exists(id: String): Boolean = getGenericDAO().contains(getInstanceAndGroup(), id)
 
-	override suspend fun getEntity(id: String): E? = getGenericDAO().get(getInstanceAndGroup(), id)
+	override suspend fun getEntity(id: String, rev: String?): E? =
+		getGenericDAO().get(getInstanceAndGroup(), id, rev)
 
 	override fun getEntities(identifiers: Flow<String>): Flow<E> = flow {
 		emitAll(getGenericDAO().getEntities(getInstanceAndGroup(), identifiers))

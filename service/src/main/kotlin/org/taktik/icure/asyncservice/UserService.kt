@@ -18,7 +18,8 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserService : EntityWithConflictResolutionService {
+interface UserService : EntityWithConflictResolutionService<User> {
+
 	// region create
 
 	suspend fun createUser(user: User): User

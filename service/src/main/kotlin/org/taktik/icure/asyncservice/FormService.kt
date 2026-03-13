@@ -18,7 +18,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface FormService :
 	EntityWithSecureDelegationsService<Form>,
-	EntityWithConflictResolutionService {
+	EntityWithConflictResolutionService<Form> {
+
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 
@@ -118,7 +119,6 @@ interface FormService :
 	fun listByHcPartyAndParentId(hcPartyId: String, formId: String): Flow<Form>
 
 	suspend fun addDelegations(formId: String, delegations: List<Delegation>): Form?
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 
 	/**
 	 * Returns all the [Form]s where [Form.logicalUuid] is equal to [formUuid], sorted by [Form.created] in ascending or

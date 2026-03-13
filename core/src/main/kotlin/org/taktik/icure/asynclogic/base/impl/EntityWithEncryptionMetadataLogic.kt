@@ -138,8 +138,8 @@ class EntityWithEncryptionMetadataLogicHelper<E, D>(
 	private val withUpdatedSecurityMetadata: E.(updatedMetadata: SecurityMetadata) -> E,
 )
 	where
-	      E : HasEncryptionMetadata, E : Versionable<String>,
-	      D : GenericDAO<E> {
+		E : HasEncryptionMetadata, E : Versionable<String>,
+		D : GenericDAO<E> {
 	fun doBulkShareOrUpdateMetadata(
 		requests: BulkShareOrUpdateMetadataParams,
 		entities: Map<String, E>,

@@ -57,6 +57,7 @@ class AccessLogLogicImpl(
 		filters,
 	), ConflictResolutionLogic<AccessLog> by ConflictResolutionLogicImpl(accessLogDAO, merger, datastoreInstanceProvider),
 	AccessLogLogic {
+
 	override suspend fun createAccessLog(accessLog: AccessLog) = fix(accessLog, isCreate = true) { fixedAccessLog ->
 		checkValidityForCreation(fixedAccessLog)
 		val datastoreInformation = getInstanceAndGroup()
