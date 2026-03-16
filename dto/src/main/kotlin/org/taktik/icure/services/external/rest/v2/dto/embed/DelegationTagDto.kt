@@ -17,6 +17,10 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the categories of medical data that can be used to tag delegations,
+ * controlling access to specific types of information.
+ */
 enum class DelegationTagDto {
 	all,
 	administrativeData,

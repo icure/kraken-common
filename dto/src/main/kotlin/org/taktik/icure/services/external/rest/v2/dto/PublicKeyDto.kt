@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing the public key of a healthcare party, used for end-to-end encryption.
+ */
 data class PublicKeyDto(
+	/** The identifier of the healthcare party that owns this public key. */
 	val hcPartyId: String? = null,
+	/** The public key encoded as a hexadecimal string. */
 	val hexString: String? = null,
 ) : Serializable

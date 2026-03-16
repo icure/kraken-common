@@ -33,33 +33,55 @@ import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents a group""")
+/**
+ * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
+ * that contains its own set of databases and users.
+ */
 data class GroupDto(
+	/** The id of the group. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	/** The revision of the group in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "The revision of the group in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** Tags that qualify the group as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Tags that are publicly visible for the group. */
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val publicTags: Set<CodeStubDto> = emptySet(),
+	/** Username for the group. */
 	@param:Schema(description = "Username for the group") val name: String? = null,
+	/** Password for the group access. */
 	@param:Schema(description = "Password for the group access") val password: String? = null,
+	/** List of servers accessible to the group. */
 	@param:Schema(description = "List of servers accessible to the group") val servers: List<String>? = null,
+	/** Whether the group has a super admin permission. */
 	@param:Schema(description = "Whether the group has a super admin permission, originally set to no access.") val superAdmin: Boolean = false,
+	/** Extra properties for the group. Those properties are typed (see class Property). */
 	@param:Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") val properties: Set<PropertyStubDto> = emptySet(),
+	/** The default roles for each user type, if not otherwise specified on the user. */
 	@param:Schema(description = "The default roles for each user type, if not otherwise specified on the user.") val defaultUserRoles: Map<UserTypeDto, Set<String>> = emptyMap(),
+	/** Single-used token to perform specific operations. */
 	@param:Schema(description = "Single-used token to perform specific operations") val operationTokens: Map<String, OperationTokenDto> = emptyMap(),
 	@param:Schema(
 		description = "List of entities that have to be collected from a shared database. Only Code and tarification can be set at this point.",
+	/** List of entities that have to be collected from a shared database. */
 	) val sharedEntities: Map<String, String> = emptyMap(),
+	/** Minimum version of Kraken required to access API. */
 	@param:Schema(description = "Minimum version of Kraken required to access API") val minimumKrakenVersion: String? = null,
 	@param:JsonInclude(
 		JsonInclude.Include.NON_EMPTY,
 	)
+	/** Verified public keys that can be used to allow log in with external JWTs. */
 	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs") val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
 	val customEntityConfig: CustomEntityConfiguration? = null,
+	/** The minimum authentication class required for elevated privileges. */
 	val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
+	/** The id of the parent super group, if any. */
 	val superGroup: String? = null,
 	@param:Schema(
 		description = "A user-chosen identifier for the applications for which this group holds data. Helps to isolate environments when working with multi-group applications.",
 	)
+	/** A user-chosen identifier for the applications for which this group holds data. */
 	@param:JsonAlias("projectId")
 	@SdkName("projectId")
 	val applicationId: String? = null,

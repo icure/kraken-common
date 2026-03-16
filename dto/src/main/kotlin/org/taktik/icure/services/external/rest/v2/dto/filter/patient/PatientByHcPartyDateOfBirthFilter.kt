@@ -30,9 +30,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by healthcare party and exact date of birth.
+ */
 data class PatientByHcPartyDateOfBirthFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The date of birth to match (in YYYYMMDD format). */
 	@param:Schema(required = true)
 	val dateOfBirth: Int,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

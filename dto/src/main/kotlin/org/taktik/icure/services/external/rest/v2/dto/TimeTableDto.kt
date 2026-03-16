@@ -27,23 +27,43 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableItemDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a timetable for scheduling appointments and availability. A timetable is linked to an agenda
+ * and defines time slots within a given period.
+ */
 data class TimeTableDto(
+	/** The unique identifier of the timetable. */
 	override val id: String,
+	/** The revision of the timetable in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification. */
 	override val modified: Long? = null,
+	/** The id of the User that created this timetable. */
 	override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this timetable. */
 	override val responsible: String? = null,
+	/** The id of the medical location where this timetable was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the timetable as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular timetable. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The name of the timetable. */
 	val name: String? = null,
+	/** The id of the agenda this timetable belongs to. */
 	val agendaId: String? = null,
+	/** The start time of the timetable period (format: YYYYMMDDHHMMSS). */
 	val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	/** The end time of the timetable period (format: YYYYMMDDHHMMSS). */
 	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	/** The list of time table items defining individual time slots. */
 	val items: List<TimeTableItemDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,

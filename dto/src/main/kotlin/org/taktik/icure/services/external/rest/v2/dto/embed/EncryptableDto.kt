@@ -21,6 +21,10 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
+/**
+ * Interface for DTOs that support end-to-end encryption. Implementing classes carry an encrypted payload
+ * that can be decrypted using the appropriate encryption keys.
+ */
 interface EncryptableDto {
 	@get:Schema(
 		description = "The base64 encoded data of this object, formatted as JSON and encrypted in AES using the random master key from encryptionKeys.",

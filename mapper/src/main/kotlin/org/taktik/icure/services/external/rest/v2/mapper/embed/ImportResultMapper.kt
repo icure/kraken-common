@@ -42,11 +42,11 @@ interface ImportResultV2Mapper {
 		Mapping(target = "error", ignore = true),
 		Mapping(target = "patient", expression = "kotlin(importResultDto.patient?.let { mapPatientForStore(it) })"),
 	)
-	fun map(importResultDto: ImportResultDto, mapPatientForStore: (PatientDto) -> Patient): ImportResult
+	suspend fun map(importResultDto: ImportResultDto, mapPatientForStore: (PatientDto) -> Patient): ImportResult
 	@Mappings(
 		Mapping(target = "patient", expression = "kotlin(importResult.patient?.let { mapPatientForRead(it) })"),
 	)
-	fun map(importResult: ImportResult, mapPatientForRead: (Patient) -> PatientDto): ImportResultDto
+	suspend fun map(importResult: ImportResult, mapPatientForRead: (Patient) -> PatientDto): ImportResultDto
 	fun map(mimeAttachmentDto: MimeAttachmentDto): MimeAttachment
 	fun map(mimeAttachment: MimeAttachment): MimeAttachmentDto
 }

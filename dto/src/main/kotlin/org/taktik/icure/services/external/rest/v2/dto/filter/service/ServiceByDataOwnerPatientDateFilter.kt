@@ -12,11 +12,20 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches services by data owner, patient, and date range.
+ */
 data class ServiceByDataOwnerPatientDateFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The set of secret foreign keys for patient matching. */
 	val secretForeignKeys: Set<String>,
+	/** The start of the date range (inclusive). */
 	val startDate: Long? = null,
+	/** The end of the date range (inclusive). */
 	val endDate: Long? = null,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

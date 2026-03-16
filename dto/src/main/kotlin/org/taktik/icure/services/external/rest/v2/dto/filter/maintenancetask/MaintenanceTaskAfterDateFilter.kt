@@ -16,9 +16,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches maintenance tasks created after a specific date.
+ */
 data class MaintenanceTaskAfterDateFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The date threshold; only tasks after this date are matched. */
 	@param:Schema(required = true)
 	val date: Long,
 ) : AbstractFilterDto<MaintenanceTaskDto>

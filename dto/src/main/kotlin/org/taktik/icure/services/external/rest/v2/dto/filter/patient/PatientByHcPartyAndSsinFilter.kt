@@ -30,9 +30,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by healthcare party and social security identification number (SSIN).
+ */
 data class PatientByHcPartyAndSsinFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The social security identification number to match. */
 	@param:Schema(required = true)
 	val ssin: String,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

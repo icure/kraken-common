@@ -24,17 +24,32 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents an insurance entity. An insurance can be a mutual fund, a private insurance company,
+ * or any other type of insurance organization that covers healthcare costs.
+ */
 data class InsuranceDto(
+	/** The unique identifier of the insurance. */
 	override val id: String,
+	/** The revision of the insurance in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The name of the insurance in different languages. */
 	val name: Map<String, String> = emptyMap(),
+	/** Whether this is a private insurance. */
 	val privateInsurance: Boolean = false,
+	/** Whether this insurance covers hospitalisation. */
 	val hospitalisationInsurance: Boolean = false,
+	/** Whether this insurance covers ambulatory care. */
 	val ambulatoryInsurance: Boolean = false,
+	/** The insurance code. */
 	val code: String? = null,
+	/** The agreement number for the insurance. */
 	val agreementNumber: String? = null,
+	/** The id of the parent insurance entity. */
 	val parent: String? = null, // ID of the parent
+	/** The address of the insurance company. */
 	val address: AddressDto = AddressDto(),
 ) : StoredDocumentDto {
 	override fun withIdRev(

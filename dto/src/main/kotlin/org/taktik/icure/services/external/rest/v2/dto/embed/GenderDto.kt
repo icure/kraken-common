@@ -20,6 +20,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
+/**
+ * Enumerates the possible gender values for a patient, including original gender, changed gender, and unknown.
+ */
 enum class GenderDto(
 	val code: String,
 ) : Serializable {

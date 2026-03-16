@@ -24,7 +24,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the renewal information for a medication prescription, including the number of renewals and their duration.
+ */
 data class RenewalDto(
+	/** The number of authorized renewals. */
 	val decimal: Int? = null,
+	/** The duration of each renewal period. */
 	val duration: DurationDto? = null,
 ) : Serializable

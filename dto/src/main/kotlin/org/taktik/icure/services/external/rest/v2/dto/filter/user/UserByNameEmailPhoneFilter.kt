@@ -13,8 +13,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A filter that matches users by a free-text search string applied against name, email, and phone fields.
+ */
 data class UserByNameEmailPhoneFilter(
+	/** The search string to match against user name, email address, or phone number. */
 	@param:Schema(required = true)
 	val searchString: String,
+	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

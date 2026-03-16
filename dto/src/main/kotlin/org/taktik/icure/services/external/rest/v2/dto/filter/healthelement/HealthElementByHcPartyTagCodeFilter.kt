@@ -30,12 +30,22 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches health elements by healthcare party, tag, code, and status.
+ */
 data class HealthElementByHcPartyTagCodeFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String,
+	/** The type of the code to filter on. */
 	val codeType: String? = null,
+	/** The code value to match. */
 	val codeCode: String? = null,
+	/** The type of the tag to filter on. */
 	val tagType: String? = null,
+	/** The tag code value to match. */
 	val tagCode: String? = null,
+	/** The status value to match. */
 	val status: Int? = null,
 ) : AbstractFilterDto<HealthElementDto>

@@ -29,17 +29,31 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches services by healthcare party, patient secret foreign keys, tag, code, and value date range.
+ */
 data class ServiceByHcPartyTagCodeDateFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** Deprecated. Use patientSecretForeignKeys instead. */
 	@Deprecated("Use patientSecretForeignKeys instead")
 	val patientSecretForeignKey: String? = null,
+	/** The list of secret foreign keys for patient matching. */
 	val patientSecretForeignKeys: List<String>? = null,
+	/** The type of the tag to filter on. */
 	val tagType: String? = null,
+	/** The tag code value to match. */
 	val tagCode: String? = null,
+	/** The type of the code to filter on. */
 	val codeType: String? = null,
+	/** The code value to match. */
 	val codeCode: String? = null,
+	/** The start of the value date range. */
 	val startValueDate: Long? = null,
+	/** The end of the value date range. */
 	val endValueDate: Long? = null,
+	/** Whether to return results in descending order. */
 	val descending: Boolean = false,
 ) : AbstractFilterDto<ServiceDto>

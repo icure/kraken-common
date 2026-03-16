@@ -24,15 +24,25 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a single item in a medication regimen, defining when and how much medication should be administered.
+ * The day can be specified as a specific date, day number in treatment, or weekday. The time can be a day period or exact time.
+ */
 data class RegimenItemDto(
 	// Day definition (One and only one of the three following should be not null)
 	// The three are null if it applies to every day
+	/** A specific date (yyyyMMdd) for this regimen item. */
 	val date: Long? = null, // yyyymmdd at this date
+	/** The day number in the treatment (1-based). */
 	val dayNumber: Int? = null, // day 1 of treatment. 1 based numeration
+	/** The weekday for this regimen item. */
 	val weekday: Weekday? = null, // on monday
 	// Time of day definition (One and only one of the three following should be not null)
 	// Both are null if not specified
+	/** The period of the day (CD-DAYPERIOD) for administration. */
 	val dayPeriod: CodeStubDto? = null, // CD-DAYPERIOD
+	/** The time of day (hhmmss) for administration. */
 	val timeOfDay: Long? = null, // hhmmss 103010
+	/** The quantity to administer. */
 	val administratedQuantity: AdministrationQuantity? = null,
 ) : Serializable

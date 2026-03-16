@@ -24,9 +24,16 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a suspension period for a medication, including start and end moments, reason, and lifecycle state.
+ */
 data class SuspensionDto(
+	/** The start moment of the suspension (fuzzy date). */
 	val beginMoment: Long? = null,
+	/** The end moment of the suspension (fuzzy date). */
 	val endMoment: Long? = null,
+	/** The reason for the suspension. */
 	val suspensionReason: String? = null,
+	/** The lifecycle state of the suspension. */
 	val lifecycle: String? = null,
 ) : Serializable

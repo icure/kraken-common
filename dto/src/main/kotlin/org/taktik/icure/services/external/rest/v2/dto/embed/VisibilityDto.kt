@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the visibility levels for medical data elements, controlling how they appear in summaries and exports.
+ */
 enum class VisibilityDto {
 	maskedfromsummary,
 	maskedfromexportedfile,

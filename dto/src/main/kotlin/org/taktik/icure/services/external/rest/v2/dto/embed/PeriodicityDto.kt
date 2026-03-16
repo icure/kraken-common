@@ -27,7 +27,12 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
+/**
+ * Represents a periodicity linking a code to its related periodicity code, used in medication regimens.
+ */
 data class PeriodicityDto(
+	/** The code associated with this periodicity. */
 	val relatedCode: CodeStubDto? = null,
+	/** The periodicity code defining the recurrence pattern. */
 	val relatedPeriodicity: CodeStubDto? = null,
 ) : Serializable

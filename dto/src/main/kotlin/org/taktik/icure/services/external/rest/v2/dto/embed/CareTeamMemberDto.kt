@@ -29,11 +29,19 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a member of a care team involved in a patient's care, linking a healthcare party with their role.
+ */
 data class CareTeamMemberDto(
+	/** The unique identifier of this care team member. */
 	override val id: String,
+	/** The type of care team member (physician, specialist, or other). */
 	val careTeamMemberType: CareTeamMemberTypeDto? = null,
+	/** The identifier of the associated healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** A code describing the quality or qualification of this care team member. */
 	val quality: CodeStubDto? = null,
+	/** The base64-encoded encrypted content of this care team member. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable,

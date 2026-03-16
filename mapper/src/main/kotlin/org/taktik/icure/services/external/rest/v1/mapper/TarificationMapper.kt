@@ -12,9 +12,10 @@ import org.taktik.icure.entities.Tarification
 import org.taktik.icure.services.external.rest.v1.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v1.mapper.embed.LetterValueMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.PeriodicityMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.PricingDomainMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.ValorisationMapper
 
-@Mapper(componentModel = "spring", uses = [LetterValueMapper::class, PeriodicityMapper::class, ValorisationMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [LetterValueMapper::class, PeriodicityMapper::class, PricingDomainMapper::class, ValorisationMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface TarificationMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

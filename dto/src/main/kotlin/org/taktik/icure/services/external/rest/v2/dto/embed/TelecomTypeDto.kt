@@ -19,6 +19,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import java.io.Serializable
 
+/**
+ * Enumerates the types of telecommunication channels available for contacting a person or organization.
+ */
 enum class TelecomTypeDto : Serializable {
 	mobile,
 	phone,

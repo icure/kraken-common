@@ -31,9 +31,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages associated with a specific healthcare party.
+ */
 data class MessageByHcPartyFilter(
+	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)
 	override val hcpId: String,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>,
 	FilterDto.ByHcpartyFilter<MessageDto>

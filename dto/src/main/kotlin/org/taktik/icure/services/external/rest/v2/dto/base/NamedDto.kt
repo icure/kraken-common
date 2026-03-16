@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+/**
+ * Interface for entities that have a human-readable name.
+ */
 interface NamedDto {
 	val name: String?
 }

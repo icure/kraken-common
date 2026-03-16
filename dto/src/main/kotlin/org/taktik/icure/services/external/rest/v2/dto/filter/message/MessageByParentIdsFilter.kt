@@ -12,7 +12,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages by their parent message identifiers.
+ */
 data class MessageByParentIdsFilter(
+	/** The list of parent message identifiers to match. */
 	val parentIds: List<String>,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

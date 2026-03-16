@@ -31,9 +31,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * A filter that matches users whose identifiers are contained in the provided set.
+ */
 data class UserByIdsFilter(
+	/** The set of user identifiers to match against. */
 	@param:Schema(required = true)
 	override val ids: Set<String>,
+	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>,
 	FilterDto.IdsFilter<String, UserDto>

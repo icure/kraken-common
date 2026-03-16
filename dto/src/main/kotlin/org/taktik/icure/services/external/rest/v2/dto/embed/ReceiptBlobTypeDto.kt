@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of blobs that can be stored in a receipt, such as XML signatures, KMEHR messages, and SOAP exchanges.
+ */
 enum class ReceiptBlobTypeDto {
 	xades,
 	kmehrRequest,

@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the parameters that can be associated with an insurance record, such as status codes and approval information.
+ */
 enum class InsuranceParameterDto {
 	status,
 	tc1,

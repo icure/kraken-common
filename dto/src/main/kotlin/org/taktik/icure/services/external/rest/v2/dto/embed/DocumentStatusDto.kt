@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the lifecycle statuses of a document, from draft through finalization, review, signature, and delivery.
+ */
 enum class DocumentStatusDto {
 	draft,
 	finalized,

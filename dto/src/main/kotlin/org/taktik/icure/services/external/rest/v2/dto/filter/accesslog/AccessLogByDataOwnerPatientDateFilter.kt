@@ -13,11 +13,20 @@ import java.time.Instant
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches access logs by data owner, patient, and date range.
+ */
 data class AccessLogByDataOwnerPatientDateFilter(
+	/** The identifier of the data owner. */
 	val dataOwnerId: String,
+	/** The start of the date range (inclusive). */
 	val startDate: Instant?,
+	/** The end of the date range (inclusive). */
 	val endDate: Instant?,
+	/** The set of secret patient identifiers used for secure delegation matching. */
 	val secretPatientIds: Set<String>,
+	/** Whether to return results in descending order. */
 	val descending: Boolean?,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AccessLogDto>

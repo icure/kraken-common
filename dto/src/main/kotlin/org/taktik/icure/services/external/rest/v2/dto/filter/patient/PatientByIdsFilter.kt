@@ -31,9 +31,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by their unique identifiers.
+ */
 data class PatientByIdsFilter(
+	/** The set of patient identifiers to match. */
 	@param:Schema(required = true)
 	override val ids: Set<String>,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<PatientDto>,
 	FilterDto.IdsFilter<String, PatientDto>

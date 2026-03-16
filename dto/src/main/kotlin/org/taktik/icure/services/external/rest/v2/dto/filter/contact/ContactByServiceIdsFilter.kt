@@ -29,7 +29,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches contacts containing services with the specified identifiers.
+ */
 data class ContactByServiceIdsFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The list of service identifiers to match. */
 	val ids: List<String>? = null,
 ) : AbstractFilterDto<ContactDto>

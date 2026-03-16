@@ -24,7 +24,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents the read status of a message for a specific user, tracking whether it has been read and when.
+ */
 data class MessageReadStatusDto(
+	/** The timestamp (unix epoch in ms) when the message was read. */
 	val time: Long? = null,
+	/** Whether the message has been read. */
 	@param:Schema(defaultValue = "false") val read: Boolean = false,
 ) : Serializable

@@ -13,6 +13,7 @@ import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.LetterValueDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.PeriodicityDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.PricingDomainDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ValorisationDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,6 +27,7 @@ data class TarificationDto(
 	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
 	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	val domain: PricingDomainDto? = null,
 	val author: String? = null,
 	val regions: Set<String> = emptySet(), // ex: be,fr
 	val periodicity: List<PeriodicityDto> = emptyList(),

@@ -24,10 +24,18 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a reference to another entity by its document id. Entity references provide a lightweight
+ * way to create links between entities.
+ */
 data class EntityReferenceDto(
+	/** The Id of the entity reference. */
 	override val id: String,
+	/** The revision of the entity reference in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The id of the referenced document. */
 	val docId: String? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(

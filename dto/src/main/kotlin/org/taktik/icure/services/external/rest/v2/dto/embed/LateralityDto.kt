@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible laterality values for a medical observation or procedure.
+ */
 enum class LateralityDto {
 	left,
 	right,

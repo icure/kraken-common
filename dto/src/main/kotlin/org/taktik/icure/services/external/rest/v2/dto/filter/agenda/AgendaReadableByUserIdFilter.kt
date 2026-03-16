@@ -12,7 +12,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches agendas readable by a specific user.
+ */
 data class AgendaReadableByUserIdFilter(
+	/** The identifier of the user who has read access to the agendas. */
 	val userId: String,
+	/** Optional description of this filter. */
 	override val desc: String?,
 ) : AbstractFilterDto<AgendaDto>

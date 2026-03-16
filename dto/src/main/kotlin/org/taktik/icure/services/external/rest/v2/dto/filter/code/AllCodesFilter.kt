@@ -31,7 +31,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches all codes without any filtering criteria.
+ */
 data class AllCodesFilter(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<CodeDto>,
 	FilterDto.AllFilter<CodeDto>

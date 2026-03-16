@@ -10,6 +10,11 @@ import org.taktik.icure.services.external.rest.v2.handlers.JacksonFieldDeseriali
 @JsonDiscriminator("type")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Sealed interface representing a form field within a form template. Concrete implementations define
+ * specific field types (text, number, date picker, etc.). Each field has a name, display configuration,
+ * validation rules, and optional codification and tagging.
+ */
 sealed interface Field : StructureElement {
 	val field: String
 	val shortLabel: String?

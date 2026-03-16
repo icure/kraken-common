@@ -24,9 +24,16 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents an appendix attached to an agreement, referencing a specific document and its location within a structured path.
+ */
 data class AgreementAppendixDto(
+	/** The sequence number of the document. */
 	val docSeq: Int? = null,
+	/** The sequence number of the verse within the document. */
 	val verseSeq: Int? = null,
+	/** The identifier of the linked document. */
 	val documentId: String? = null,
+	/** The path to the appendix content. */
 	val path: String? = null,
 ) : Serializable

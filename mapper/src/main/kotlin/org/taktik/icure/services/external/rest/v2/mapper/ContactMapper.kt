@@ -23,11 +23,13 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
@@ -40,7 +42,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SubContactV2Mappe
 
 @Mapper(
 	componentModel = "spring",
-	uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class, ContactParticipantV2Mapper::class],
+	uses = [IdentifierV2Mapper::class, SubContactV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, ServiceV2Mapper::class, SecurityMetadataV2Mapper::class, AnnotationV2Mapper::class, AddressV2Mapper::class, ContactParticipantV2Mapper::class, CardinalVersionConfig::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 	defaultPassOnParameters = [
 		DefaultPassOnParameter(
@@ -56,32 +58,65 @@ interface ContactV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
-		Mapping(target = "participants", expression = """kotlin(org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper.Companion.mapParticipants(contactDto))"""),
-		Mapping(target = "participantList", expression = """kotlin(org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper.Companion.mapParticipantList(contactDto, this.contactParticipantV2Mapper))"""),
+		Mapping(target = "participants", expression = """kotlin(ContactV2Mapper.mapParticipants(contactDto, cardinalVersionConfig))"""),
+		Mapping(target = "participantList", expression = """kotlin(ContactV2Mapper.mapParticipantList(contactDto, contactParticipantV2Mapper, cardinalVersionConfig))"""),
 	)
-	fun map(contactDto: ContactDto): Contact
+	suspend fun map(contactDto: ContactDto): Contact
 
-	@Mappings()
-	fun map(contact: Contact): ContactDto
+	@Mappings(
+		Mapping(target = "participants", expression = """kotlin(ContactV2Mapper.mapParticipants(contact, cardinalVersionConfig))"""),
+		Mapping(target = "participantList", expression = """kotlin(ContactV2Mapper.mapParticipantList(contact, contactParticipantV2Mapper, cardinalVersionConfig))"""),
+	)
+	suspend fun map(contact: Contact): ContactDto
 
 	companion object {
-		fun mapParticipants(contactDto: ContactDto): Map<ParticipantType, String> {
+		suspend fun mapParticipants(contactDto: ContactDto, cardinalVersionConfig: CardinalVersionConfig): Map<ParticipantType, String> {
 			require(contactDto.participants.isEmpty() || contactDto.participantList.isEmpty()) {
 				"ContactDto cannot have both participants map and participantList populated"
 			}
 
-			return contactDto.participantList.takeIf { it.isNotEmpty() }?.associate { participantDto ->
+			return contactDto.participantList.takeIf {
+				it.isNotEmpty() && !cardinalVersionConfig.shouldUseCardinalModel()
+			}?.associate { participantDto ->
 				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
-			}?.takeIf { it.size == contactDto.participantList.size && it.none { (type) -> type == ParticipantType.Recorder  } }
+			}?.takeIf { it.size == contactDto.participantList.size && it.none { (type) -> type == ParticipantType.Recorder } }
 				?: contactDto.participants.mapKeys { entry ->
 					ParticipantType.valueOf(entry.key.name)
 				}
 		}
 
-		fun mapParticipantList(contactDto: ContactDto, participantMapper: ContactParticipantV2Mapper): List<ContactParticipant> {
-			return contactDto.participantList.takeIf {
-				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 } || it.any { (type) -> type == ParticipantTypeDto.Recorder  }
+		suspend fun mapParticipantList(contactDto: ContactDto, participantMapper: ContactParticipantV2Mapper, cardinalVersionConfig: CardinalVersionConfig): List<ContactParticipant> =
+			contactDto.participantList.takeIf {
+				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 } // If there are multiple participant with the same type
+					|| it.any { (type) -> type == ParticipantTypeDto.Recorder } // or at least one participant with type "Recorder"
+					|| cardinalVersionConfig.shouldUseCardinalModel()   // or the contact was created with the Cardinal SDK
 			}.orEmpty().map { participantMapper.map(it) }
-		}
+
+		suspend fun mapParticipants(contact: Contact, cardinalVersionConfig: CardinalVersionConfig): Map<ParticipantTypeDto, String> =
+			if (cardinalVersionConfig.shouldUseCardinalModel()) {
+				emptyMap()
+			} else {
+				contact.participants.mapKeys { (k, _) -> ParticipantTypeDto.valueOf(k.name) }
+			}
+
+		suspend fun mapParticipantList(
+			contact: Contact,
+			participantMapper: ContactParticipantV2Mapper,
+			cardinalVersionConfig: CardinalVersionConfig
+		): List<ContactParticipantDto> =
+			if (cardinalVersionConfig.shouldUseCardinalModel()) {
+				require(contact.participants.isEmpty() || contact.participantList.isEmpty()) {
+					"Invalid Contact: cannot have both participants map and participantList populated"
+				}
+				when {
+					contact.participantList.isNotEmpty() -> contact.participantList.map(participantMapper::map)
+					contact.participants.isNotEmpty() -> contact.participants.map { (k, v) ->
+						ContactParticipantDto(type = ParticipantTypeDto.valueOf(k.name), hcpId = v)
+					}
+					else -> emptyList()
+				}
+			} else {
+				contact.participantList.map(participantMapper::map)
+			}
 	}
 }

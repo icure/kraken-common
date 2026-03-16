@@ -12,10 +12,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches codes by region, type, code value, and version.
+ */
 data class CodeByRegionTypeCodeVersionFilters(
+	/** The region to filter codes by. */
 	val region: String,
+	/** The code type to match. */
 	val type: String?,
+	/** The code value to match. */
 	val code: String?,
+	/** The code version to match. */
 	val version: String?,
+	/** Optional description of this filter. */
 	override val desc: String?,
 ) : AbstractFilterDto<CodeDto>

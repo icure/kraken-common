@@ -22,9 +22,16 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a batch update request for the read status of multiple messages.
+ */
 data class MessagesReadStatusUpdateDto(
+	/** The list of message identifiers to update. */
 	val ids: List<String>? = null,
+	/** The identifier of the user whose read status is being updated. */
 	val userId: String? = null,
+	/** The timestamp (unix epoch in ms) of the status update. */
 	val time: Long? = null,
+	/** The new read status (true for read, false for unread). */
 	val status: Boolean? = null,
 )

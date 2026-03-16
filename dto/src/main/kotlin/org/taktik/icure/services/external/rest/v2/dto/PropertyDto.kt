@@ -26,12 +26,22 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * DTO representing a stored property with a type and typed value. Properties are used to
+ * attach configurable key-value data to entities.
+ */
 data class PropertyDto(
+	/** The unique identifier of the property. */
 	override val id: String,
+	/** The revision identifier for optimistic locking. */
 	override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
+	/** The type definition of this property. */
 	val type: PropertyTypeDto? = null,
+	/** The typed value held by this property. */
 	val typedValue: TypedValueDto? = null,
+	/** The encrypted content of this property, encoded as a Base64 string. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : StoredDocumentDto,
 	EncryptableDto {

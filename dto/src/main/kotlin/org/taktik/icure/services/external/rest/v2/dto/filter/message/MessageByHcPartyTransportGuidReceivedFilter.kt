@@ -30,11 +30,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches messages by healthcare party and transport guid, ordered by received date.
+ */
 data class MessageByHcPartyTransportGuidReceivedFilter(
+	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)
 	val healthcarePartyId: String,
+	/** The transport guid to match. */
 	@param:Schema(required = true)
 	val transportGuid: String,
+	/** Whether to return results in descending order. */
 	val descending: Boolean? = null,
+	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

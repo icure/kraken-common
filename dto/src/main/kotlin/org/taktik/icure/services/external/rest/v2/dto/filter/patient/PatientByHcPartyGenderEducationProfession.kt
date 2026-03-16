@@ -30,10 +30,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Filter that matches patients by healthcare party, gender, education, and profession.
+ */
 data class PatientByHcPartyGenderEducationProfession(
+	/** Optional description of this filter. */
 	override val desc: String? = null,
+	/** The identifier of the healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** The gender to match. */
 	val gender: GenderDto? = null,
+	/** The education level to match. */
 	val education: String? = null,
+	/** The profession to match. */
 	val profession: String? = null,
 ) : AbstractFilterDto<PatientDto>

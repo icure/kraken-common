@@ -27,23 +27,42 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a template for a plan of action, defining a reusable structure of forms and metadata
+ * that can be applied to healthcare elements.
+ */
 data class PlanOfActionTemplateDto(
+	/** The unique identifier of this plan of action template. */
 	override val id: String,
+	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification. */
 	override val modified: Long? = null,
+	/** The identifier of the author. */
 	override val author: String? = null,
+	/** The identifier of the responsible entity. */
 	override val responsible: String? = null,
+	/** Deprecated. The identifier of the medical location. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** The set of tags associated with this template. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** The set of codes associated with this template. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** The soft-delete timestamp. */
 	override val endOfLife: Long? = null,
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
+	/** The name of this plan of action template. */
 	override val name: String? = null,
+	/** A description of the template. */
 	val descr: String? = null,
+	/** A note associated with the template. */
 	val note: String? = null,
+	/** Whether this template is relevant. */
 	@param:Schema(defaultValue = "true") val relevant: Boolean = true,
+	/** A bitmask status (bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2: present/absent). */
 	@param:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	/** The list of form skeletons that compose this template. */
 	var forms: List<FormSkeletonDto> = emptyList(),
 ) : ICureDocumentDto<String>,
 	NamedDto,

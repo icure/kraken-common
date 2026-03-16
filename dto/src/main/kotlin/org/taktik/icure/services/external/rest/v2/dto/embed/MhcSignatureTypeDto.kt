@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of signatures used for medical house contracts, by holder or legal representative, via eID or paper.
+ */
 enum class MhcSignatureTypeDto {
 	holderEid,
 	holderPaper,

@@ -24,16 +24,30 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a reusable template for creating entities. Entity templates store a JSON-based entity definition
+ * that can be used as a starting point for creating new entities of a given type.
+ */
 data class EntityTemplateDto(
+	/** The Id of the entity template. */
 	override val id: String,
+	/** The revision of the entity template in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** The id of the user who owns this entity template. */
 	var userId: String? = null,
+	/** A description of the entity template. */
 	val descr: String? = null,
+	/** A set of keywords for searching and categorizing the template. */
 	val keywords: Set<String>? = null,
+	/** The type of entity this template is for. */
 	var entityType: String? = null,
+	/** The sub-type of entity this template is for. */
 	var subType: String? = null,
+	/** Whether this is the default template for its entity type and sub-type. */
 	var defaultTemplate: Boolean? = null,
+	/** The JSON representation of the template entity content. */
 	var entity: List<JsonNode> = emptyList(),
 ) : StoredDocumentDto {
 	override fun withIdRev(

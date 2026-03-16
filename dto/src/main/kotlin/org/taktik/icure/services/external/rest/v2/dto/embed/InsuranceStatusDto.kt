@@ -17,6 +17,9 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the possible insurance statuses of a patient relative to the titular insured person.
+ */
 enum class InsuranceStatusDto {
 	titular,
 	child,

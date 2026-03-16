@@ -23,7 +23,12 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a group of forms, identified by a GUID and a human-readable name.
+ */
 data class FormGroupDto(
+	/** The globally unique identifier for this form group. */
 	val guid: String? = null,
+	/** The human-readable name of the form group. */
 	val name: String? = null,
 ) : Serializable

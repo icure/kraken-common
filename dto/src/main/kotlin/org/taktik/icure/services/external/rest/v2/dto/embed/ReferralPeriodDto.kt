@@ -29,7 +29,11 @@ import java.time.Instant
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Represents a time-bounded referral period between a patient and a healthcare party.
+ */
 data class ReferralPeriodDto(
+	/** The date when the referral period started. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
@@ -39,7 +43,9 @@ data class ReferralPeriodDto(
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(
 		description = "The date (unix epoch in ms) the referral period ended, will be instantaneously filled.",
+	/** The date when the referral period ended. */
 	) val endDate: Instant? = null,
+	/** Comments made during the referral. */
 	@param:Schema(description = "Comments made during the referral.") val comment: String? = null,
 ) : Serializable,
 	Comparable<ReferralPeriodDto> {

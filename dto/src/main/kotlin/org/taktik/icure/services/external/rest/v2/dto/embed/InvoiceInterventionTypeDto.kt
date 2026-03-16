@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of intervention on an invoice: total amount or user fees only.
+ */
 enum class InvoiceInterventionTypeDto {
 	total,
 	userfees,

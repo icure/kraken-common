@@ -18,6 +18,9 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+/**
+ * Enumerates the types of healthcare providers for which flat rate tarifications apply.
+ */
 enum class FlatRateTypeDto {
 	physician,
 	physiotherapist,
