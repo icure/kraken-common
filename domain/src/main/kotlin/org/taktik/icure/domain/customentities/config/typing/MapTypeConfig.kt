@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
@@ -84,57 +84,48 @@ data class MapTypeConfig(
 	}
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector
+		context: CustomEntityConfigValidationContext,
 	) {
-		validationContext.appending("{*}") {
-			valueType.validateConfig(
-				resolutionContext,
-				validationContext
-			)
+		context.validation.appending("{*}") {
+			valueType.validateConfig(context)
 		}
 		validation?.apply {
 			if (minSize != null && minSize < 0) {
-				validationContext.addError("GE-MAP-MIN")
+				context.validation.addError("GE-MAP-MIN")
 			}
 			if (maxSize != null && maxSize < 0) {
-				validationContext.addError("GE-MAP-MAX")
+				context.validation.addError("GE-MAP-MAX")
 			}
 			if (minSize != null && maxSize != null && maxSize < minSize) {
-				validationContext.addError("GE-MAP-NORANGE")
+				context.validation.addError("GE-MAP-NORANGE")
 			} else if (maxSize == 0) {
-				validationContext.addWarning("GE-MAP-WEMPTY")
+				context.validation.addWarning("GE-MAP-WEMPTY")
 			}
 			if (minSize == 0) {
-				validationContext.addWarning("GE-MAP-WMIN")
+				context.validation.addWarning("GE-MAP-WMIN")
 			}
 			if (keyValidation != null) {
-				validationContext.appending(".keyValidation") {
-					keyValidation.equivalentTypeConfig().validateConfig(
-						resolutionContext,
-						validationContext
-					)
+				context.validation.appending(".keyValidation") {
+					keyValidation.equivalentTypeConfig().validateConfig(context)
 				}
 			}
 		}
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonObject) {
-			validationContext.addError("GE-MAP-JSON")
+			context.validation.addError("GE-MAP-JSON")
 			value
 		} else {
 			val res =
-				validationContext.appending("{") {
+				context.validation.appending("{") {
 					value.properties.mapValues { (k, v) ->
-						validationContext.appending(truncateValueForErrorMessage(k), "}") {
+						context.validation.appending(truncateValueForErrorMessage(k), "}") {
 							valueType.validateAndMapValueForStore(
-								resolutionContext,
-								validationContext,
+								context,
 								v
 							)
 						}
@@ -145,7 +136,7 @@ data class MapTypeConfig(
 					(validation.minSize != null && res.size < validation.minSize)
 						|| (validation.maxSize != null && res.size > validation.maxSize)
 				) {
-					validationContext.addError(
+					context.validation.addError(
 						"GE-MAP-OUTRANGE",
 						"size" to res.size,
 						"min" to (validation.minSize ?: "0"),
@@ -154,13 +145,12 @@ data class MapTypeConfig(
 				}
 				if (validation.keyValidation != null) {
 					val equivalentTypeConfig = validation.keyValidation.equivalentTypeConfig()
-					validationContext.appending("{KEY \"") {
+					context.validation.appending("{KEY \"") {
 						res.keys.forEach { key ->
-							validationContext.appending(key, "\"}") {
+							context.validation.appending(key, "\"}") {
 								if (
 									(equivalentTypeConfig.validateAndMapValueForStore(
-										resolutionContext,
-										validationContext,
+										context,
 										RawJson.JsonString(key)
 									) as? RawJson.JsonString)?.value != key
 								) {

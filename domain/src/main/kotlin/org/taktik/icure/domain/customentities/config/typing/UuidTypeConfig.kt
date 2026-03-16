@@ -3,6 +3,7 @@ package org.taktik.icure.domain.customentities.config.typing
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 
@@ -68,16 +69,15 @@ data class UuidTypeConfig(
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-UUID-JSON")
+			context.validation.addError("GE-UUID-JSON")
 		} else {
 			val formatOrDefault = format ?: Format.LOWER_DASHED
 			if (!formatOrDefault.validate(value.value)) {
-				validationContext.addError(
+				context.validation.addError(
 					"GE-UUID-FORMAT",
 					"format" to formatOrDefault.name,
 					"value" to truncateValueForErrorMessage(value.value)

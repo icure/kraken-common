@@ -2,9 +2,8 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
@@ -46,26 +45,22 @@ data class ListTypeConfig(
 	)
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 	) {
-		validationContext.appending("[*]") {
-			elementType.validateConfig(
-				resolutionContext,
-				validationContext
-			)
+		context.validation.appending("[*]") {
+			elementType.validateConfig(context)
 		}
 		validation?.apply {
 			if (minLength != null && minLength < 0) {
-				validationContext.addError("GE-LIST-MIN")
+				context.validation.addError("GE-LIST-MIN")
 			}
 			if (maxLength != null && maxLength < 0) {
-				validationContext.addError("GE-LIST-MAX")
+				context.validation.addError("GE-LIST-MAX")
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				validationContext.addError("GE-LIST-NORANGE")
+				context.validation.addError("GE-LIST-NORANGE")
 			} else if (maxLength == 0) {
-				validationContext.addWarning("GE-LIST-WEMPTY")
+				context.validation.addWarning("GE-LIST-WEMPTY")
 			}
 			if (uniqueValues) {
 				if (
@@ -73,31 +68,29 @@ data class ListTypeConfig(
 						&& elementType !is IntTypeConfig
 						&& elementType !is EnumTypeConfig
 				) {
-					validationContext.addError("GE-LIST-UNIQUETYPE")
+					context.validation.addError("GE-LIST-UNIQUETYPE")
 				}
 			}
 			if (minLength == 0) {
-				validationContext.addWarning("GE-LIST-WMIN")
+				context.validation.addWarning("GE-LIST-WMIN")
 			}
 		}
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson,
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonArray) {
-			validationContext.addError("GE-LIST-JSON")
+			context.validation.addError("GE-LIST-JSON")
 			value
 		} else {
 			val res =
-				validationContext.appending("[") {
+				context.validation.appending("[") {
 					value.items.mapIndexed { index, element ->
-						validationContext.appending(index, "]") {
+						context.validation.appending(index, "]") {
 							elementType.validateAndMapValueForStore(
-								resolutionContext,
-								validationContext,
+								context,
 								element
 							)
 						}
@@ -108,7 +101,7 @@ data class ListTypeConfig(
 					(validation.minLength != null && res.size < validation.minLength)
 					|| (validation.maxLength != null && res.size > validation.maxLength)
 				) {
-					validationContext.addError(
+					context.validation.addError(
 						"GE-LIST-OUTRANGE",
 						"length" to res.size,
 						"min" to (validation.minLength ?: "0"),
@@ -118,7 +111,7 @@ data class ListTypeConfig(
 				if(
 					validation.uniqueValues && res.toSet().size != res.size
 				) {
-					validationContext.addError("GE-LIST-DUPLICATES")
+					context.validation.addError("GE-LIST-DUPLICATES")
 				}
 			}
 			RawJson.JsonArray(res)

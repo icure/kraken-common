@@ -1,9 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * Represents a configuration for a boolean type.
@@ -16,16 +15,15 @@ data class BooleanTypeConfig(
 		other is BooleanTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
 	): RawJson =
 		validatingNullForStore(
-			validationContext,
+			context.validation,
 			value,
 			nullable
 		) {
-			if (value !is RawJson.JsonBoolean) validationContext.addError("GE-BOOL-JSON")
+			if (value !is RawJson.JsonBoolean) context.validation.addError("GE-BOOL-JSON")
 			value
 		}
 }

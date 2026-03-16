@@ -1,9 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 
@@ -38,58 +37,56 @@ data class FloatTypeConfig(
 	)
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 	) {
 		validation?.apply {
 			if (validation.min != null && !validation.min.isFinite()) {
-				validationContext.addError("GE-FLOAT-MIN")
+				context.validation.addError("GE-FLOAT-MIN")
 			}
 			if (validation.max != null && !validation.max.isFinite()) {
-				validationContext.addError("GE-FLOAT-MAX")
+				context.validation.addError("GE-FLOAT-MAX")
 			}
 			val minOrDefault = validation.min ?: -Double.MAX_VALUE
 			val maxOrDefault = validation.max ?: Double.MAX_VALUE
 			if (minOrDefault > maxOrDefault) {
-				validationContext.addError("GE-FLOAT-NORANGE")
+				context.validation.addError("GE-FLOAT-NORANGE")
 			} else if (minOrDefault == maxOrDefault) {
 				if (exclusiveMin || exclusiveMax) {
-					validationContext.addError("GE-FLOAT-NORANGE")
+					context.validation.addError("GE-FLOAT-NORANGE")
 				} else {
-					validationContext.addWarning(
+					context.validation.addWarning(
 						"GE-FLOAT-WONE",
 						"value" to minOrDefault
 					)
 				}
 			}
 			if (validation.min == -Double.MAX_VALUE && !validation.exclusiveMin) { // do not use minOrDefault here
-				validationContext.addWarning("GE-FLOAT-WMIN")
+				context.validation.addWarning("GE-FLOAT-WMIN")
 			}
 			if (validation.max == Double.MAX_VALUE && !validation.exclusiveMax) { // do not use maxOrDefault here
-				validationContext.addWarning("GE-FLOAT-WMAX")
+				context.validation.addWarning("GE-FLOAT-WMAX")
 			}
 		}
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonNumber) {
-			validationContext.addError("GE-FLOAT-JSON")
+			context.validation.addError("GE-FLOAT-JSON")
 			value
 		} else {
 			val valueDouble = value.asDouble()
 			if (!valueDouble.isFinite()) {
-				validationContext.addError("GE-FLOAT-INFINITE")
+				context.validation.addError("GE-FLOAT-INFINITE")
 			}
 			if (validation != null) {
 				if (
 					validation.min?.let { min -> if (validation.exclusiveMin) valueDouble <= min else valueDouble < min } ?: false
 					|| validation.max?.let { max -> if (validation.exclusiveMax) valueDouble >= max else valueDouble > max } ?: false
 				) {
-					validationContext.addError(
+					context.validation.addError(
 						"GE-FLOAT-OUTRANGE",
 						"value" to valueDouble,
 					)

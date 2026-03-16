@@ -10,6 +10,7 @@ import org.taktik.icure.domain.customentities.config.StandardRootEntityExtension
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ErrorCollector
@@ -22,14 +23,18 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 
 object MappersWithCustomExtensions {
 	class MapperExtensionsValidationContextImpl(
-		private val customEntityConfigResolutionContext: CustomEntityConfigResolutionContext,
+		customEntityConfigResolutionContext: CustomEntityConfigResolutionContext,
 		private val extensionConfig: StandardRootEntityExtensionConfig,
 		scopePath: ScopePath?
 	) : MapperExtensionsValidationContext {
-		override val collector: ScopedErrorCollector = ScopedErrorCollector(
-			ErrorCollector.Throwing,
-			scopePath
+		private val fullContext = CustomEntityConfigValidationContext(
+			resolution = customEntityConfigResolutionContext,
+			validation = ScopedErrorCollector(
+				ErrorCollector.Throwing,
+				scopePath
+			)
 		)
+		override val collector: ScopedErrorCollector get() = fullContext.validation
 
 		override fun validateAndMapRootExtensionsForStore(
 			entity: ExtendableRootDto
@@ -38,11 +43,10 @@ object MappersWithCustomExtensions {
 			// validate extension version is accepted
 			// - Currently we are only accepting one version of entity. If config wants version X of Entity you can't provide Entity at (X-1) or (X+1)
 			// - In future should support multiple versions to allow for smoother app upgrades?
-			return customEntityConfigResolutionContext
+			return fullContext.resolution
 				.resolveRequiredObjectReference(extensionConfig.objectDefinitionReference)
 				.validateAndMapValueForStore(
-					customEntityConfigResolutionContext,
-					collector,
+					fullContext,
 					entity.extensions ?: RawJson.JsonObject.empty
 				)
 		}
@@ -55,11 +59,10 @@ object MappersWithCustomExtensions {
 			return if (config == null) {
 				MapperExtensionsValidationContext.Empty.validateAndMapEmbeddedExtensionsForStore(entity, entityName)
 			} else {
-				return customEntityConfigResolutionContext
+				fullContext.resolution
 					.resolveRequiredObjectReference(config)
 					.validateAndMapValueForStore(
-						customEntityConfigResolutionContext,
-						collector,
+						fullContext,
 						entity.extensions ?: RawJson.JsonObject.empty
 					)
 			}

@@ -2,9 +2,8 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 //TODO
 // - add BuiltInTypeConfig to allow referencing built-in embedded complex types (like Address, CodeStub, ...)?
@@ -56,27 +55,23 @@ sealed interface GenericTypeConfig {
 	 * Verifies that the configuration is valid.
 	 * For example, this checks that if the configuration specifies a default value the default value respects
 	 * the restrictions imposed by the configuration.
-	 * @param resolutionContext allows retrieving custom types definitions needed to validate the config
-	 * @param validationContext context to report validation errors
+	 * @param context the context of the validation, allowing to resolve references and report errors
 	 * @throws IllegalArgumentException if the configuration is not valid
 	 */
 	fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 	) {}
 
 	/**
 	 * Verifies if a json provided by a user is valid for this configuration, and transforms it if needed before storing
 	 * it (to set default values, or update renamed parameters).
-	 * @param resolutionContext allows retrieving custom types definitions needed to validate the value
-	 * @param validationContext context to report validation errors
+	 * @param context the context of the validation, allowing to resolve references and report errors
 	 * @param value a value that should be of this type
 	 * @return the transformed json value
 	 * @throws IllegalArgumentException if the value is not valid
 	 */
 	fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson,
 	): RawJson
 

@@ -2,6 +2,7 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
@@ -71,21 +72,19 @@ data class StringTypeConfig(
 	}
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector
+		context: CustomEntityConfigValidationContext,
 	) {
-		validation?.validateConfig(validationContext)
+		validation?.validateConfig(context.validation)
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-STRING-JSON")
+			context.validation.addError("GE-STRING-JSON")
 		} else {
-			validation?.validateValue(validationContext, value.value)
+			validation?.validateValue(context.validation, value.value)
 		}
 		value
 	}

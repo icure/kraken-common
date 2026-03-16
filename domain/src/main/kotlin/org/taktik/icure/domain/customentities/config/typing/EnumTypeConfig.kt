@@ -2,10 +2,9 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredEnumReference
-import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 
 /**
@@ -25,13 +24,12 @@ data class EnumTypeConfig(
 		setOf(enumReference)
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 	) {
 		if (isBuiltIn) TODO("validate built-in enum reference")
-		val definition = resolutionContext.resolveEnumReference(enumReference)
+		val definition = context.resolution.resolveEnumReference(enumReference)
 		if (definition == null) {
-			validationContext.addError(
+			context.validation.addError(
 				"GE-ENUM-MISSINGREF",
 				"ref" to enumReference
 			)
@@ -40,17 +38,16 @@ data class EnumTypeConfig(
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (isBuiltIn) TODO("validate built-in enum reference")
 		if (value !is RawJson.JsonString) {
-			validationContext.addError("GE-ENUM-JSON")
+			context.validation.addError("GE-ENUM-JSON")
 		} else {
-			val enumDefinition = resolutionContext.resolveRequiredEnumReference(enumReference)
+			val enumDefinition = context.resolution.resolveRequiredEnumReference(enumReference)
 			if (value.value !in enumDefinition.entries) {
-				validationContext.addError(
+				context.validation.addError(
 					"GE-ENUM-VALUE",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumReference),

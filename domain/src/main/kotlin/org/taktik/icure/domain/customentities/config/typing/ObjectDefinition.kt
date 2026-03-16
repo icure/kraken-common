@@ -7,8 +7,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.Validation
@@ -76,8 +78,7 @@ data class ObjectDefinition(
 			 */
 			suspend fun validateFor(
 				typeConfig: GenericTypeConfig,
-				resolutionContext: CustomEntityConfigResolutionContext,
-				context: ScopedErrorCollector
+				context: CustomEntityConfigValidationContext
 			)
 
 			/**
@@ -108,12 +109,11 @@ data class ObjectDefinition(
 			) : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
-					resolutionContext: CustomEntityConfigResolutionContext,
-					context: ScopedErrorCollector,
+					context: CustomEntityConfigValidationContext,
 				) {
 					// Technically supported on all types even though doesn't really make sense to have a "constant" id or date
 					// For simplicity will probably just hide it on the frontend
-					typeConfig.validateAndMapValueForStore(resolutionContext, context, value)
+					typeConfig.validateAndMapValueForStore(context, value)
 				}
 
 				override fun valueForStore(): RawJson? = null
@@ -128,13 +128,12 @@ data class ObjectDefinition(
 			data object GenerateUuidV4 : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
-					resolutionContext: CustomEntityConfigResolutionContext,
-					context: ScopedErrorCollector,
+					context: CustomEntityConfigValidationContext,
 				) {
 					if (
 						typeConfig !is UuidTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE")
+						context.validation.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE")
 					}
 				}
 
@@ -154,17 +153,16 @@ data class ObjectDefinition(
 			) : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
-					resolutionContext: CustomEntityConfigResolutionContext,
-					context: ScopedErrorCollector,
+					context: CustomEntityConfigValidationContext,
 				) {
 					if (
 						typeConfig !is FuzzyDateTimeTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE")
+						context.validation.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("GE-ZONEID",  "value" to it)
+							context.validation.addError("GE-ZONEID",  "value" to it)
 						}
 					}
 				}
@@ -191,17 +189,16 @@ data class ObjectDefinition(
 			) : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
-					resolutionContext: CustomEntityConfigResolutionContext,
-					context: ScopedErrorCollector,
+					context: CustomEntityConfigValidationContext,
 				) {
 					if (
 						typeConfig !is FuzzyDateTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWDATETYPE")
+						context.validation.addError("GE-OBJECT-DEFAULT-NOWDATETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("GE-ZONEID", "value" to it)
+							context.validation.addError("GE-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -227,17 +224,16 @@ data class ObjectDefinition(
 			) : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
-					resolutionContext: CustomEntityConfigResolutionContext,
-					context: ScopedErrorCollector,
+					context: CustomEntityConfigValidationContext,
 				) {
 					if (
 						typeConfig !is FuzzyTimeTypeConfig
 					) {
-						context.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE")
+						context.validation.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.addError("GE-ZONEID", "value" to it)
+							context.validation.addError("GE-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -258,19 +254,18 @@ data class ObjectDefinition(
 	}
 
 	suspend fun validateDefinition(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		context: ScopedErrorCollector
+		context: CustomEntityConfigValidationContext,
 	) {
 		if (properties.isEmpty() && baseEntity == null) {
-			context.addWarning("GE-OBJECT-WEMPTY")
+			context.validation.addWarning("GE-OBJECT-WEMPTY")
 		}
-		context.appending(".") {
+		context.validation.appending(".") {
 			properties.forEach { (propName, propConfig) ->
-				context.appending(propName) {
-					validateIdentifier(context, propName)
-					propConfig.type.validateConfig(resolutionContext, context)
-					context.appending("<DEFAULT>") {
-						propConfig.defaultValue?.validateFor(propConfig.type, resolutionContext, context)
+				context.validation.appending(propName) {
+					validateIdentifier(context.validation, propName)
+					propConfig.type.validateConfig(context)
+					context.validation.appending("<DEFAULT>") {
+						propConfig.defaultValue?.validateFor(propConfig.type, context)
 					}
 				}
 			}
@@ -281,8 +276,7 @@ data class ObjectDefinition(
 	}
 
 	fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		context: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
 		if (baseEntity != null) {
@@ -292,12 +286,12 @@ data class ObjectDefinition(
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
 			if (propConfig == null) {
-				context.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
+				context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
 			} else {
 				val propValue: RawJson? = value.properties[propName]
 				val mappedValue = if (propValue == null) {
 					if (propConfig.defaultValue == null) {
-						context.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
+						context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
 						null
 					} else {
 						propConfig.defaultValue.valueForStore()
@@ -305,8 +299,8 @@ data class ObjectDefinition(
 				} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
 					null
 				} else {
-					context.appending(".", propName) {
-						propConfig.type.validateAndMapValueForStore(resolutionContext, context, propValue)
+					context.validation.appending(".", propName) {
+						propConfig.type.validateAndMapValueForStore(context, propValue)
 					}
 				}
 				if (mappedValue != null) {

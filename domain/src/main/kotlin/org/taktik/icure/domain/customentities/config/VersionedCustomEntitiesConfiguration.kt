@@ -5,6 +5,7 @@ import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.config.typing.truncateValueForErrorMessage
 import org.taktik.icure.domain.customentities.config.typing.validateIdentifier
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.CollectedErrors
 import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopePath
@@ -30,7 +31,7 @@ data class VersionedCustomEntitiesConfiguration(
 			objects.forEach { (name, objDef) ->
 				validateIdentifier(validationContext, name)
 				validationContext.appending(".", name) {
-					objDef.validateDefinition(resolutionContext, validationContext)
+					objDef.validateDefinition(CustomEntityConfigValidationContext(resolutionContext, validationContext))
 				}
 			}
 		}

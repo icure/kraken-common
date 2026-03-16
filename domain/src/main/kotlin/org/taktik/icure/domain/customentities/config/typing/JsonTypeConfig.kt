@@ -1,9 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * A type representing some unstructured json that should be stored without any validation.
@@ -16,8 +15,7 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
  */
 data object JsonTypeConfig : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
 	): RawJson =
 		value

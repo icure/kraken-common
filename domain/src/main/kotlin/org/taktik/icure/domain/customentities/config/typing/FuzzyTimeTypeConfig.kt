@@ -1,9 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.utils.FuzzyDates
 import java.time.temporal.ChronoUnit
@@ -20,19 +19,18 @@ data class FuzzyTimeTypeConfig(
 		other is FuzzyTimeTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("GE-FUZZYTIME-JSON")
+			context.validation.addError("GE-FUZZYTIME-JSON")
 		} else {
 			val parsed = value.asExactIntOrNull()?.let { FuzzyDates.getLocalTimeWithPrecision(it) }
 			if (parsed == null) {
-				validationContext.addError("GE-FUZZYTIME-PARSE", "value" to value.value)
+				context.validation.addError("GE-FUZZYTIME-PARSE", "value" to value.value)
 			} else if (!allowPrecisionEncoding) {
 				if (parsed.second != ChronoUnit.SECONDS) {
-					validationContext.addError(
+					context.validation.addError(
 						"GE-FUZZYTIME-PRECISION",
 						"value" to value.value,
 						"precision" to parsed.second.name

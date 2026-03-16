@@ -1,9 +1,8 @@
 package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 
@@ -41,47 +40,45 @@ data class IntTypeConfig(
 	)
 
 	override fun validateConfig(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 	) {
 		validation?.apply {
 			if (min != null && min !in MIN_SAFE_LONG..MAX_SAFE_LONG) {
-				validationContext.addError("GE-INT-MIN")
+				context.validation.addError("GE-INT-MIN")
 			}
 			if (max != null && max !in MIN_SAFE_LONG..MAX_SAFE_LONG) {
-				validationContext.addError("GE-INT-MAX")
+				context.validation.addError("GE-INT-MAX")
 			}
 			val minOrDefault = min ?: MIN_SAFE_LONG
 			val maxOrDefault = max ?: MAX_SAFE_LONG
 			if (maxOrDefault < minOrDefault) {
-				validationContext.addError("GE-INT-NORANGE")
+				context.validation.addError("GE-INT-NORANGE")
 			} else if (minOrDefault == maxOrDefault) {
-				validationContext.addWarning(
+				context.validation.addWarning(
 					"GE-INT-WONE",
 					"value" to minOrDefault
 				)
 			}
 			if (min == MIN_SAFE_LONG) { // do not use minOrDefault here
-				validationContext.addWarning("GE-INT-WMIN")
+				context.validation.addWarning("GE-INT-WMIN")
 			}
 			if (max == MAX_SAFE_LONG) { // do not use maxOrDefault here
-				validationContext.addWarning("GE-INT-WMAX")
+				context.validation.addWarning("GE-INT-WMAX")
 			}
 		}
 	}
 
 	override fun validateAndMapValueForStore(
-		resolutionContext: CustomEntityConfigResolutionContext,
-		validationContext: ScopedErrorCollector,
+		context: CustomEntityConfigValidationContext,
 		value: RawJson
-	): RawJson = validatingNullForStore(validationContext, value, nullable) {
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			validationContext.addError("GE-INT-JSON")
+			context.validation.addError("GE-INT-JSON")
 		} else {
 			if (
 				value.value < (validation?.min ?: MIN_SAFE_LONG) || value.value > (validation?.max ?: MAX_SAFE_LONG)
 			) {
-				validationContext.addError(
+				context.validation.addError(
 					"GE-INT-OUTRANGE",
 					"value" to value.value,
 					"min" to (validation?.min ?: MIN_SAFE_LONG),
