@@ -42,10 +42,12 @@ import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.asyncservice.PatientService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.customentities.util.CustomEntityBuiltinValidatorProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
 import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
@@ -112,6 +114,8 @@ class PatientController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+	private val builtinDefinitions: BuiltinDefinitionsProvider,
 ) {
 	private suspend fun PatientDto.toDomain(): Patient =
 		mapFromDtoWithExtension(
@@ -119,7 +123,9 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
-			scopePathProvider.getScopePathFor("Patient")
+			scopePathProvider.getScopePathFor("Patient"),
+			builtinValidationProvider,
+			builtinDefinitions,
 		)
 
 	private suspend fun Patient.toDto(): PatientDto =
@@ -131,7 +137,9 @@ class PatientController(
 			customEntitiesConfigurationProvider,
 			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
-			scopePathProvider.getScopePathFor("Patient")
+			scopePathProvider.getScopePathFor("Patient"),
+			builtinValidationProvider,
+			builtinDefinitions,
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =

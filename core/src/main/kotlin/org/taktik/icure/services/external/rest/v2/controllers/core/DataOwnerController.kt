@@ -2,7 +2,6 @@ package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -18,14 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DataOwnerService
-import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.mapper.CryptoActorStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,9 +35,7 @@ class DataOwnerController(
 	private val dataOwnerService: DataOwnerService,
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
-	private val patientMapper: PatientV2Mapper,
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
-	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 ) {
 	private suspend fun currentDataOwnerOr404(): String =
 		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")

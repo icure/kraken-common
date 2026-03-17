@@ -4,10 +4,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import org.springframework.stereotype.Component
+import org.taktik.icure.customentities.util.CustomEntityBuiltinValidatorProvider
 import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
 import org.taktik.icure.domain.customentities.config.StandardRootEntityExtensionConfig
 import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
+import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
 import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
@@ -21,18 +24,25 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 
+
+@Component
 object MappersWithCustomExtensions {
 	class MapperExtensionsValidationContextImpl(
 		customEntityConfigResolutionContext: CustomEntityConfigResolutionContext,
 		private val extensionConfig: StandardRootEntityExtensionConfig,
-		scopePath: ScopePath?
+		scopePath: ScopePath?,
+		builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+		builtinDefinitions: BuiltinDefinitionsProvider,
 	) : MapperExtensionsValidationContext {
+
 		private val fullContext = CustomEntityConfigValidationContext(
 			resolution = customEntityConfigResolutionContext,
 			validation = ScopedErrorCollector(
 				ErrorCollector.Throwing,
 				scopePath
-			)
+			),
+			builtinValidation = builtinValidationProvider.getValidator(this),
+			builtinDefinitions = builtinDefinitions,
 		)
 		override val collector: ScopedErrorCollector get() = fullContext.validation
 
@@ -72,7 +82,9 @@ object MappersWithCustomExtensions {
 	suspend inline fun getMapperExtensionsValidationContext(
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
-		scopePath: ScopePath?
+		scopePath: ScopePath?,
+		builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+		builtinDefinitions: BuiltinDefinitionsProvider,
 	): MapperExtensionsValidationContext {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
 		val extension = config?.extensions?.getExtension()
@@ -81,6 +93,8 @@ object MappersWithCustomExtensions {
 				customEntityConfigResolutionContext = CustomEntityConfigResolutionContext.ofConfig(config),
 				extensionConfig = extension,
 				scopePath = scopePath,
+				builtinValidationProvider = builtinValidationProvider,
+				builtinDefinitions = builtinDefinitions,
 			)
 		} else {
 			MapperExtensionsValidationContext.Empty
@@ -92,18 +106,34 @@ object MappersWithCustomExtensions {
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
-		scopePath: ScopePath?
+		scopePath: ScopePath?,
+		builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+		builtinDefinitions: BuiltinDefinitionsProvider,
 	): OBJ =
-		doMap(dto, getMapperExtensionsValidationContext(customEntitiesConfigurationProvider, getExtension, scopePath))
+		doMap(dto, getMapperExtensionsValidationContext(
+			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+			getExtension = getExtension,
+			scopePath = scopePath,
+			builtinValidationProvider = builtinValidationProvider,
+			builtinDefinitions = builtinDefinitions,
+		))
 
 	suspend inline fun <DTO : IdentifiableDto<String>, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
-		scopePath: ScopePath?
+		scopePath: ScopePath?,
+		builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+		builtinDefinitions: BuiltinDefinitionsProvider,
 	): List<OBJ> {
-		val context = getMapperExtensionsValidationContext(customEntitiesConfigurationProvider, getExtension, scopePath)
+		val context = getMapperExtensionsValidationContext(
+			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+			getExtension = getExtension,
+			scopePath = scopePath,
+			builtinValidationProvider = builtinValidationProvider,
+			builtinDefinitions = builtinDefinitions,
+		)
 		return dtos.map { dto ->
 			scopePath.appending("(", dto.id, ")") {
 				doMap(dto, context)
@@ -116,9 +146,17 @@ object MappersWithCustomExtensions {
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		crossinline getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		crossinline doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
-		scopePath: ScopePath?
+		scopePath: ScopePath?,
+		builtinValidationProvider: CustomEntityBuiltinValidatorProvider,
+		builtinDefinitions: BuiltinDefinitionsProvider,
 	): Flow<OBJ> = flow {
-		val context = getMapperExtensionsValidationContext(customEntitiesConfigurationProvider, getExtension, scopePath)
+		val context = getMapperExtensionsValidationContext(
+			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+			getExtension = getExtension,
+			scopePath = scopePath,
+			builtinValidationProvider = builtinValidationProvider,
+			builtinDefinitions = builtinDefinitions,
+		)
 		emitAll(dtos.map { dto ->
 			scopePath.appending("(", dto.id, ")")  {
 				doMap(dto, context)

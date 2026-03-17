@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
@@ -264,6 +263,13 @@ data class ObjectDefinition(
 				context.validation.appending(propName) {
 					validateIdentifier(context.validation, propName)
 					propConfig.type.validateConfig(context)
+					propConfig.type.objectDefinitionDependencies.forEach { definitionName ->
+						context.resolution.resolveObjectReference(definitionName)?.also { definition ->
+							if (definition.baseEntity?.isRootEntity == true) {
+								context.validation.addError("GE-OBJECT-EMBEDROOT", "object" to definitionName, "entity" to definition.baseEntity)
+							}
+						}
+					}
 					context.validation.appending("<DEFAULT>") {
 						propConfig.defaultValue?.validateFor(propConfig.type, context)
 					}
@@ -271,7 +277,18 @@ data class ObjectDefinition(
 			}
 		}
 		if (baseEntity != null) {
-			TODO("Validate base entity and check for conflict on props (give warning)")
+			val builtinProperties = context.builtinDefinitions.getBuiltinObjectDefinition(baseEntity)
+			if (builtinProperties == null) {
+				context.validation.addError("GE-OBJECT-BASEENTITYREF", "entity" to baseEntity)
+			} else {
+				context.validation.appending(".") {
+					properties.keys.intersect(builtinProperties.keys).forEach {
+						context.validation.appending(it) {
+							context.validation.addWarning("GE-OBJECT-WBASEENTITYPROP", "prop" to it, "entity" to baseEntity)
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -280,34 +297,39 @@ data class ObjectDefinition(
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
 		if (baseEntity != null) {
-			TODO("Handle base entity")
-		}
-		val mappedObjectProperties = mutableMapOf<String, RawJson>()
-		(properties.keys + value.properties.keys).forEach { propName ->
-			val propConfig = properties[propName]
-			if (propConfig == null) {
-				context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
-			} else {
-				val propValue: RawJson? = value.properties[propName]
-				val mappedValue = if (propValue == null) {
-					if (propConfig.defaultValue == null) {
-						context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
+			return context.builtinValidation.validateAndMapExtendableBuiltinForStore(
+				baseEntity,
+				context,
+				value
+			)
+		} else {
+			val mappedObjectProperties = mutableMapOf<String, RawJson>()
+			(properties.keys + value.properties.keys).forEach { propName ->
+				val propConfig = properties[propName]
+				if (propConfig == null) {
+					context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
+				} else {
+					val propValue: RawJson? = value.properties[propName]
+					val mappedValue = if (propValue == null) {
+						if (propConfig.defaultValue == null) {
+							context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
+							null
+						} else {
+							propConfig.defaultValue.valueForStore()
+						}
+					} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
 						null
 					} else {
-						propConfig.defaultValue.valueForStore()
+						context.validation.appending(".", propName) {
+							propConfig.type.validateAndMapValueForStore(context, propValue)
+						}
 					}
-				} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
-					null
-				} else {
-					context.validation.appending(".", propName) {
-						propConfig.type.validateAndMapValueForStore(context, propValue)
+					if (mappedValue != null) {
+						mappedObjectProperties[propName] = mappedValue
 					}
-				}
-				if (mappedValue != null) {
-					mappedObjectProperties[propName] = mappedValue
 				}
 			}
+			return RawJson.JsonObject(mappedObjectProperties)
 		}
-		return RawJson.JsonObject(mappedObjectProperties)
 	}
 }
