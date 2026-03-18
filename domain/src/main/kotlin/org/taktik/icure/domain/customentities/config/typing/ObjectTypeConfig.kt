@@ -2,11 +2,9 @@ package org.taktik.icure.domain.customentities.config.typing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -39,7 +37,7 @@ data class ObjectTypeConfig(
 			context.validation.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
 		} else {
-			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
+			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapExtensionValueForStore(
 				context,
 				value
 			)

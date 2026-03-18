@@ -4,6 +4,8 @@ import org.taktik.icure.domain.customentities.config.typing.EnumDefinition
 import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.domain.customentities.config.typing.truncateValueForErrorMessage
 import org.taktik.icure.domain.customentities.config.typing.validateIdentifier
+import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
+import org.taktik.icure.domain.customentities.util.ExtendableBuiltinEntityValidator
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.CollectedErrors
@@ -23,15 +25,26 @@ data class VersionedCustomEntitiesConfiguration(
 	val extensions: StandardRootEntitiesExtensionConfig,
 	val published: Boolean,
 ) {
-	suspend fun validateDefinition(): CollectedErrors {
+	suspend fun validateDefinition(
+		builtinDefinitionsProvider: BuiltinDefinitionsProvider,
+		makeBuiltinValidator: (ScopePath, CustomEntityConfigResolutionContext) -> ExtendableBuiltinEntityValidator,
+	): CollectedErrors {
 		val collector = ErrorCollector.Collecting()
-		val validationContext = ScopedErrorCollector(collector, ScopePath("CustomEntitiesConfiguration"))
+		val scopePath = ScopePath("CustomEntitiesConfiguration")
+		val validationContext = ScopedErrorCollector(collector, scopePath)
 		val resolutionContext = CustomEntityConfigResolutionContext.ofConfig(this)
 		validationContext.appending(".objects") {
 			objects.forEach { (name, objDef) ->
 				validateIdentifier(validationContext, name)
 				validationContext.appending(".", name) {
-					objDef.validateDefinition(CustomEntityConfigValidationContext(resolutionContext, validationContext))
+					objDef.validateDefinition(
+						CustomEntityConfigValidationContext(
+							resolutionContext,
+							validationContext,
+							makeBuiltinValidator(scopePath, resolutionContext),
+							builtinDefinitionsProvider
+						)
+					)
 				}
 			}
 		}
@@ -69,23 +82,6 @@ data class VersionedCustomEntitiesConfiguration(
 						"GE-CONFIG-EXT-ROOTBASE",
 						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
 					)
-				}
-				config.embeddedEntitiesConfigs.forEach { (embeddedEntityName, objDefRef) ->
-					val objDef = objects[objDefRef]
-					if (objDef == null) {
-						validationContext.addError(
-							"GE-CONFIG-EXT-EMBEDDEDREF",
-							"ref" to truncateValueForErrorMessage(objDefRef),
-							"embeddedEntityName" to embeddedEntityName
-						)
-					} else if (objDef.baseEntity != embeddedEntityName) {
-						validationContext.addError(
-							"GE-CONFIG-EXT-EMBEDDEDBASE",
-							"ref" to truncateValueForErrorMessage(objDefRef),
-							"embeddedEntityName" to embeddedEntityName
-						)
-					}
-					// TODO validate that className is actually embedded in the entity or in custom extensions definitions with BuiltinTypeConfig.
 				}
 			}
 		}

@@ -19,19 +19,6 @@ data class StandardRootEntityExtensionConfig(
 	 * extension, and on types this extension depends on, this version must be kept the same.
 	 */
 	val version: Int,
-	/**
-	 * A map to configure extension on builtin extendable embedded entities.
-	 *
-	 * The key must be the name (as defined in [ExtendableEntityName]) of an entity that is used, directly
-	 * or indirectly, as a standard property on this root entity.
-	 *
-	 * Similarly to [objectDefinitionReference], the value is both a reference to an object definition that specifies
-	 * extension properties, and the name of the type in the generated custom SDK.
-	 *
-	 * Each referenced object definition must have a [ObjectDefinition.baseEntity] that is equal to the builtin
-	 * embedded entity being extended.
-	 */
-	val embeddedEntitiesConfigs: Map<ExtendableEntityName, String> = emptyMap(),
 )
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

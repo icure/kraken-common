@@ -2,32 +2,59 @@ package org.taktik.icure.domain.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
 import org.taktik.icure.domain.customentities.config.ExtendableEntityName
+import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 
+// TODO Update annotation
 @MappingContextCollector(
-	beforeEnteringProperty = "%X.collector.appending(\".\", %P)·{",
+	beforeEnteringProperty = "%X.withProperty(%P)·{",
 	afterExitingProperty = "}",
-	beforeEnteringListItem = "%X.collector.appending(\"[\", %I, \"]\")·{",
+	beforeEnteringListItem = "%X.withListItem(%I)·{",
 	afterExitingListItem = "}",
-	beforeEnteringMapEntry = "%X.collector.appending(\"{\", %K, \"}\")·{",
+	beforeEnteringMapEntry = "%X.withMapEntry(%K)·{",
 	afterExitingMapEntry = "}",
-	additionalImports = ["org.taktik.icure.errorreporting.appending"],
+	additionalImports = [
+		"org.taktik.icure.domain.customentities.mapping.withProperty",
+		"org.taktik.icure.domain.customentities.mapping.withListItem",
+		"org.taktik.icure.domain.customentities.mapping.withMapEntry"
+	],
 	invokeOnlyOnExplicitRequirement = true
 )
 interface MapperExtensionsValidationContext {
-	val collector: ScopedErrorCollector?
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun enterProperty(propertyName: String)
 
-	fun validateAndMapRootExtensionsForStore(
-		entity: ExtendableRootDto
-	): RawJson.JsonObject?
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun exitProperty()
 
-	fun validateAndMapEmbeddedExtensionsForStore(
-		entity: ExtendableDto,
-		entityName: ExtendableEntityName
-	): RawJson.JsonObject?
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun enterListItem(index: Int)
+
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun exitListItem()
+
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun enterMapEntry(key: Any)
+
+	/**
+	 * May mutate this, implementation dependent
+	 */
+	fun exitMapEntry()
+
+	fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject?
 
 	/**
 	 * A no-op implementation of [MapperExtensionsValidationContext] that enforces absence of extensions.
@@ -43,19 +70,60 @@ interface MapperExtensionsValidationContext {
 	 * in the mapper, and create a new instance for each invocation of the mapping function.
 	 */
 	object Empty : MapperExtensionsValidationContext {
-		override val collector: ScopedErrorCollector? = null
-
-		override fun validateAndMapRootExtensionsForStore(entity: ExtendableRootDto): RawJson.JsonObject? {
-			require(entity.extensions == null) { "Extensions are not enabled on ${entity::class.simpleName}" }
-			return null
+		override fun enterProperty(propertyName: String) {
+			// No op
 		}
 
-		override fun validateAndMapEmbeddedExtensionsForStore(
-			entity: ExtendableDto,
-			entityName: ExtendableEntityName
-		): RawJson.JsonObject? {
-			require(entity.extensions == null) { "Extensions are not enabled on $entityName" }
+		override fun exitProperty() {
+			// No op
+		}
+
+		override fun enterListItem(index: Int) {
+			// No op
+		}
+
+		override fun exitListItem() {
+			// No op
+		}
+
+		override fun enterMapEntry(key: Any) {
+			// No op
+		}
+
+		override fun exitMapEntry() {
+			// No op
+		}
+
+		override fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject? {
+			require(extensionValue == null) { "Extensions are not enabled for this entity" }
 			return null
 		}
+	}
+}
+
+inline fun <T> MapperExtensionsValidationContext.withProperty(propertyName: String, block: () -> T): T {
+	enterProperty(propertyName)
+	return try {
+		block()
+	} finally {
+		exitProperty()
+	}
+}
+
+inline fun <T> MapperExtensionsValidationContext.withListItem(index: Int, block: () -> T): T {
+	enterListItem(index)
+	return try {
+		block()
+	} finally {
+		exitListItem()
+	}
+}
+
+inline fun <T> MapperExtensionsValidationContext.withMapEntry(key: Any, block: () -> T): T {
+	enterMapEntry(key)
+	return try {
+		block()
+	} finally {
+		exitMapEntry()
 	}
 }

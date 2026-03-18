@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.icure.domain.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
-import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
@@ -49,7 +48,20 @@ data class ObjectDefinition(
 	 * If this configuration extends a builtin entity the standard entity being extended; if null this configuration
 	 * does not extend any builtin entity.
 	 */
-	val baseEntity: ExtendableEntityName? = null
+	val baseEntity: ExtendableEntityName? = null,
+	/**
+	 * A map to configure extension on builtin properties of the extended builtin entity, if any.
+	 *
+	 * The key must be the name of a property with an extendable type defined in the entity corresponding to this
+	 * definition [baseEntity].
+	 *
+	 * The value is a reference to an object definition that specifies extension properties for the type of the
+	 * specified property.
+	 *
+	 * This can also be applied if the extendable type is nested within a collection or in a map's value, even if
+	 * there are multiple levels of nesting.
+	 */
+	val extendedBuiltinProperties: Map<String, String> = emptyMap(),
 ) {
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class PropertyConfiguration(
@@ -284,10 +296,19 @@ data class ObjectDefinition(
 				context.validation.appending(".") {
 					properties.keys.intersect(builtinProperties.keys).forEach {
 						context.validation.appending(it) {
+							// Probably no real implementation complexity or other limitation in allowing it, but root
+							// entities also include access control and other metadata that does not work when embedded
 							context.validation.addWarning("GE-OBJECT-WBASEENTITYPROP", "prop" to it, "entity" to baseEntity)
 						}
 					}
 				}
+				extendedBuiltinProperties.forEach { builtinPropName, targetDefinition ->
+					TODO("Validate extended builtin prop $builtinPropName with definition $targetDefinition")
+				}
+			}
+		} else {
+			if (extendedBuiltinProperties.isNotEmpty()) {
+				TODO("ERROR")
 			}
 		}
 	}
@@ -295,41 +316,46 @@ data class ObjectDefinition(
 	fun validateAndMapValueForStore(
 		context: CustomEntityConfigValidationContext,
 		value: RawJson.JsonObject,
-	): RawJson.JsonObject {
+	): RawJson =
 		if (baseEntity != null) {
-			return context.builtinValidation.validateAndMapExtendableBuiltinForStore(
-				baseEntity,
-				context,
+			context.builtinValidation.validateAndMapExtendedBuiltinForStore(
+				this,
 				value
-			)
+			) // Will take care of also mapping extensions
 		} else {
-			val mappedObjectProperties = mutableMapOf<String, RawJson>()
-			(properties.keys + value.properties.keys).forEach { propName ->
-				val propConfig = properties[propName]
-				if (propConfig == null) {
-					context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
-				} else {
-					val propValue: RawJson? = value.properties[propName]
-					val mappedValue = if (propValue == null) {
-						if (propConfig.defaultValue == null) {
-							context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
-							null
-						} else {
-							propConfig.defaultValue.valueForStore()
-						}
-					} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
+			validateAndMapExtensionValueForStore(context, value)
+		}
+
+	fun validateAndMapExtensionValueForStore(
+		context: CustomEntityConfigValidationContext,
+		value: RawJson.JsonObject,
+	): RawJson.JsonObject {
+		val mappedObjectProperties = mutableMapOf<String, RawJson>()
+		(properties.keys + value.properties.keys).forEach { propName ->
+			val propConfig = properties[propName]
+			if (propConfig == null) {
+				context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
+			} else {
+				val propValue: RawJson? = value.properties[propName]
+				val mappedValue = if (propValue == null) {
+					if (propConfig.defaultValue == null) {
+						context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
 						null
 					} else {
-						context.validation.appending(".", propName) {
-							propConfig.type.validateAndMapValueForStore(context, propValue)
-						}
+						propConfig.defaultValue.valueForStore()
 					}
-					if (mappedValue != null) {
-						mappedObjectProperties[propName] = mappedValue
+				} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
+					null
+				} else {
+					context.validation.appending(".", propName) {
+						propConfig.type.validateAndMapValueForStore(context, propValue)
 					}
 				}
+				if (mappedValue != null) {
+					mappedObjectProperties[propName] = mappedValue
+				}
 			}
-			return RawJson.JsonObject(mappedObjectProperties)
 		}
+		return RawJson.JsonObject(mappedObjectProperties)
 	}
 }

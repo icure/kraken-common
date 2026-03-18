@@ -5,6 +5,6 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 class CustomEntityConfigValidationContext(
 	val resolution: CustomEntityConfigResolutionContext,
 	val validation: ScopedErrorCollector,
-	val builtinValidation: CustomEntityBuiltinValidator,
+	val builtinValidation: ExtendableBuiltinEntityValidator,
 	val builtinDefinitions: BuiltinDefinitionsProvider,
 )

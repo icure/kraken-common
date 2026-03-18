@@ -24,12 +24,16 @@ class ScopedErrorCollector(
 
 
 		fun ScopedErrorCollector?.paramsWithPath(params: Map<String, Any>): Map<String, Any> =
-			this?.paramsWithPath(params) ?: (params + (PATH_PARAM_NAME to NO_PATH_VALUE))
-	}
+			this?.path.asCodedErrorParams(params)
 
-	fun paramsWithPath(params: Map<String, Any>): Map<String, Any> =
-		// NOTE: must do path.toString() NOW, since path is mutable
-		params + (PATH_PARAM_NAME to (path?.toString() ?: NO_PATH_VALUE))
+		fun ScopePath?.asCodedErrorParams(initialParams: Map<String, Any>): Map<String, Any> =
+			if (this != null) {
+				// NOTE: must do path.toString() NOW, since path is mutable
+				initialParams + (PATH_PARAM_NAME to this.toString())
+			} else {
+				(initialParams + (PATH_PARAM_NAME to NO_PATH_VALUE))
+			}
+	}
 
 	override fun addWarning(code: String, params: Map<String, Any>) {
 		pathless.addWarning(code, paramsWithPath(params))

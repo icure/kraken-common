@@ -32,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 @Mapper(componentModel = "spring", uses = [TelecomV2Mapper::class, AnnotationV2Mapper::class, CodeStubV2Mapper::class, IdentifierV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface AddressV2Mapper {
 	@Mappings(
-		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapEmbeddedExtensionsForStore(addressDto, org.taktik.icure.domain.customentities.config.ExtendableEntityName.Address))", requireMappingContext = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(addressDto.extensions))", requireMappingContext = true),
 	)
 	fun map(addressDto: AddressDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Address
 	fun map(address: Address): AddressDto
