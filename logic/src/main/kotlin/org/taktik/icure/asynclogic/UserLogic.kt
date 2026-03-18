@@ -80,8 +80,6 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 	 */
 	suspend fun createOrUpdateToken(userIdentifier: String, key: String, tokenValidity: Long = 3600, token: String? = null, useShortToken: Boolean = false): String
 
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
-
 	/**
 	 * Change user email of the user if it matches the provided [previousEmail], conflict otherwise.
 	 * This is useful if the user revision is unknown or might change after the SDK calls the corresponding method,

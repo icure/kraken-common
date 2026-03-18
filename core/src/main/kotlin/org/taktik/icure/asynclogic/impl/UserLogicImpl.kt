@@ -33,11 +33,11 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.NonRespectedUnicityException
 import org.taktik.icure.exceptions.DuplicateUserException
 import org.taktik.icure.exceptions.DuplicateUserException.UniqueFieldType
+import org.taktik.icure.exceptions.NonRespectedUnicityException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.mergers.generated.UserMerger
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.security.credentials.SecretType
@@ -57,7 +57,7 @@ open class UserLogicImpl(
 	private val userEnhancer: UserEnhancer,
 	fixer: Fixer,
 	private val globalUserUpdater: GlobalUserUpdater,
-	userMerger: UserMerger,
+	userMerger: Merger<User>,
 ) : GenericLogicImpl<User, UserDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<User> by ConflictResolutionLogicImpl(userDAO, userMerger, datastoreInstanceProvider),
 	UserLogic {
@@ -242,7 +242,10 @@ open class UserLogicImpl(
 		return userDAO.contains(datastoreInformation, id)
 	}
 
-	override suspend fun getEntity(id: String): User? = getUser(id, false)
+	override suspend fun getEntity(id: String, rev: String?): User? {
+		TODO("How does rev interact with this? False is actually ignored when enhancing and is rev != null is needed in conflict resolution")
+		return getUser(id, false)
+	}
 
 	override fun listUsers(
 		paginationOffset: PaginationOffset<String>,

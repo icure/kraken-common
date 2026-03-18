@@ -9,6 +9,7 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.ConflictDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.cache.EntityCacheChainLink
@@ -32,7 +33,7 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(datastoreInformation, viewName, partition).includeDocs(false)
-		emitAll(client.queryViewIncludeDocsNoValue<String, E>(viewQuery).map { it.id })
+		emitAll(client.queryViewNoValue<String>(viewQuery).map { it.id })
 	}
 
 	protected inline fun <reified E: T> doListConflicts(

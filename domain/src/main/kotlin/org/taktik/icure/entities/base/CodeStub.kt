@@ -39,6 +39,13 @@ data class CodeStub(
 ) : CodeIdentification,
 	Serializable {
 
+	companion object {
+		fun from(type: String, code: String, version: String) = CodeStub(id = "$type|$code|$version", type = type, code = code, version = version)
+		fun fromId(id: String) = id.split("|")
+			.also { require(it.size == 3) { "id: $id must have type|code|version format" } }
+			.let { CodeStub(id = id, type = it[0], code = it[1], version = it[2]) }
+	}
+
 	override fun normalizeIdentification(): CodeStub {
 		val parts = this.id.split("|").toTypedArray()
 		return if (this.type == null || this.code == null || this.version == null) {

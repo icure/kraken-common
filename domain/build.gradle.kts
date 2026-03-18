@@ -57,16 +57,17 @@ val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersF
 	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))
 
 	dependsOn("kspKotlin")
-	dependsOn("compileKotlin")
 }
 
 // afterEvaluate is fundamental: the kspKotlin task does not exist yet when the script is evaluated, and so the
 // finalizedBy cannot be applied otherwise.
 afterEvaluate {
 	tasks.named("kspKotlin") {
-		onlyIf {
-			gradle.startParameter.taskNames.contains(":kraken-common:domain:kspKotlin")
-		}
 		finalizedBy(generateMergersFromJsonTask)
 	}
+}
+
+// Also super important: compile must happen after the generation or the generated classes will not be compiled
+tasks.named("compileKotlin") {
+	dependsOn(generateMergersFromJsonTask)
 }

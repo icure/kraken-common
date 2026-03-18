@@ -43,11 +43,6 @@ open class ReceiptLogicImpl(
 		updatedMetadata: SecurityMetadata,
 	): Receipt = entity.copy(securityMetadata = updatedMetadata)
 
-	override suspend fun getEntity(id: String): Receipt? {
-		val datastoreInformation = getInstanceAndGroup()
-		return receiptDAO.get(datastoreInformation, id)
-	}
-
 	override fun listReceiptsByReference(ref: String): Flow<Receipt> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(receiptDAO.listByReference(datastoreInformation, ref))
