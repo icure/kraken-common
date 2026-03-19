@@ -7,11 +7,9 @@ package org.taktik.icure.services.external.rest.v1.controllers.support
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -60,12 +58,7 @@ class MaintenanceTaskController(
 		@PathVariable maintenanceTaskIds: String,
 	) = maintenanceTaskService
 		.deleteMaintenanceTasks(maintenanceTaskIds.split(',').map { IdAndRev(it, null) })
-		.catch { e ->
-			if (e is AccessDeniedException) {
-				throw ResponseStatusException(HttpStatus.FORBIDDEN, e.message)
-			}
-			throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "MaintenanceTask deletion failed.")
-		}.injectReactorContext()
+		.injectReactorContext()
 
 	@Operation(summary = "Gets a maintenanceTask")
 	@GetMapping("/{maintenanceTaskId}")

@@ -56,6 +56,11 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		)
 	}
 
+	/**
+	 * Ensures that the systemMetadata of the entity (if any) that the user declared as winner are equal to the ones of
+	 * the current main revision of the entity. Any conflict on systemMetadata will be merged automatically by the
+	 * declare winner method.
+	 */
 	private suspend fun requireUnmodifiedSecurityMetadata(
 		entity: E,
 		datastoreInformation: IDatastoreInformation,
@@ -124,7 +129,7 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 			entityId = savedWinner.id,
 			revisionsToPurge = conflictsToPurge
 		).collect()
-		val remainingConflicts = dao.get(datastoreInformation, savedWinner.id, Option.CONFLICTS)
+		val remainingConflicts = dao.getBypassingCache(datastoreInformation, savedWinner.id, Option.CONFLICTS)
 		return ConflictResolutionResult(
 			document = savedWinner,
 			remainingConflicts = (setOfNotNull(

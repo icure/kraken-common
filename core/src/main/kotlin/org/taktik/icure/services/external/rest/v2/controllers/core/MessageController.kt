@@ -459,12 +459,11 @@ class MessageController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<MessageDto>
 	): Mono<ConflictResolutionResultDto<MessageDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			messageService.declareConflictWinner(
-				entity = messageV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = messageService.declareConflictWinner(
+			entity = messageV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, messageV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

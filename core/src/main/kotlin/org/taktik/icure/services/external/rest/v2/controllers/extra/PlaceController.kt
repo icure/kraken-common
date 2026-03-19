@@ -202,12 +202,11 @@ class PlaceController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<PlaceDto>
 	): Mono<ConflictResolutionResultDto<PlaceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			placeService.declareConflictWinner(
-				entity = placeV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = placeService.declareConflictWinner(
+			entity = placeV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, placeV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

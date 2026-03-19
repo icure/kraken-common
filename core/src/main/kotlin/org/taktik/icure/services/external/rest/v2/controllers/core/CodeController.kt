@@ -431,12 +431,11 @@ class CodeController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<CodeDto>
 	): Mono<ConflictResolutionResultDto<CodeDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			codeService.declareConflictWinner(
-				entity = codeV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = codeService.declareConflictWinner(
+			entity = codeV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, codeV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

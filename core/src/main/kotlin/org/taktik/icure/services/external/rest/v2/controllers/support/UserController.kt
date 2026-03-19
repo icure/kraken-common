@@ -409,12 +409,11 @@ class UserController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<UserDto>
 	): Mono<ConflictResolutionResultDto<UserDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			userService.declareConflictWinner(
-				entity = userV2Mapper.mapFillingOmittedSecrets(request.document, isCreate = false),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = userService.declareConflictWinner(
+			entity = userV2Mapper.mapFillingOmittedSecrets(request.document, isCreate = false),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, userV2Mapper::mapOmittingSecrets)
 	}
 
 	@PostMapping("/conflicts/solve")

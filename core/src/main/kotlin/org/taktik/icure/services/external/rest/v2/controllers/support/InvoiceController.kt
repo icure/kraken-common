@@ -16,7 +16,6 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -38,6 +37,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -242,7 +242,7 @@ class InvoiceController(
 			invoiceService
 				.validateInvoice(
 					sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
-						?: throw AccessDeniedException("Current user is not a HCP"),
+						?: throw ForbiddenException("Current user is not a HCP"),
 					it,
 					scheme,
 					forcedValue,
@@ -667,12 +667,11 @@ class InvoiceController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<InvoiceDto>
 	): Mono<ConflictResolutionResultDto<InvoiceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			invoiceService.declareConflictWinner(
-				entity = invoiceV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = invoiceService.declareConflictWinner(
+			entity = invoiceV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, invoiceV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

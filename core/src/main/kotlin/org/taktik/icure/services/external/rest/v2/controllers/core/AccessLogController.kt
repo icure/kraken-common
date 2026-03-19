@@ -333,12 +333,11 @@ class AccessLogController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<AccessLogDto>
 	): Mono<ConflictResolutionResultDto<AccessLogDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			accessLogService.declareConflictWinner(
-				entity = accessLogV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = accessLogService.declareConflictWinner(
+			entity = accessLogV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, accessLogV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

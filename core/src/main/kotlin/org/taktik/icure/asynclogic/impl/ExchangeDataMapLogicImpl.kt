@@ -19,6 +19,7 @@ import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.HexString
 import org.taktik.icure.entities.utils.KeypairFingerprintV2String
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.security.hashAccessControlKey
 import org.taktik.icure.utils.hexStringToByteArray
 import org.taktik.icure.validation.aspect.Fixer
@@ -80,7 +81,7 @@ open class ExchangeDataMapLogicImpl(
 								is BulkSaveResult.Failure -> {
 									when (it.code) {
 										500 -> throw IllegalStateException(it.message)
-										403 -> throw AccessDeniedException(it.message)
+										403 -> throw ForbiddenException(it.message)
 										409 -> null
 										else -> throw IllegalStateException("Unexpected exception: ${it.code} - ${it.message}")
 									}

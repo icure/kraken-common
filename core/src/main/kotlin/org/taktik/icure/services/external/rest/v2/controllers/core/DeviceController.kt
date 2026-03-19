@@ -244,12 +244,11 @@ class DeviceController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<DeviceDto>
 	): Mono<ConflictResolutionResultDto<DeviceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			deviceService.declareConflictWinner(
-				entity = deviceV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = deviceService.declareConflictWinner(
+			entity = deviceV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, deviceV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

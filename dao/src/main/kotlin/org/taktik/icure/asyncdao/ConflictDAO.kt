@@ -2,6 +2,7 @@ package org.taktik.icure.asyncdao
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.datastore.IDatastoreInformation
@@ -14,4 +15,5 @@ interface ConflictDAO<T: Identifiable<String>> : GenericDAO<T> {
 		entityId: String,
 		revisionsToPurge: List<String>
 	): Flow<BulkSaveResult<DocIdentifier>>
+	suspend fun getBypassingCache(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T?
 }

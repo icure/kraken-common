@@ -223,12 +223,11 @@ class InsuranceController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<InsuranceDto>
 	): Mono<ConflictResolutionResultDto<InsuranceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			insuranceService.declareConflictWinner(
-				entity = insuranceV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = insuranceService.declareConflictWinner(
+			entity = insuranceV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, insuranceV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

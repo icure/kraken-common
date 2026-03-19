@@ -4,9 +4,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import org.apache.commons.lang3.ArrayUtils
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.couchdb.entity.Option
+import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.couchdb.queryViewNoValue
@@ -60,6 +63,19 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 				DocIdentifier(id, rev)
 			}
 		)
+	}
+
+	override suspend fun getBypassingCache(
+		datastoreInformation: IDatastoreInformation,
+		id: String,
+		vararg options: Option
+	): T? {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		return try {
+			client.get(id, clazz = entityClass, *options)
+		} catch (_: DocumentNotFoundException) {
+			null
+		}
 	}
 
 }

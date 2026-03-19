@@ -19,7 +19,6 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -39,6 +38,7 @@ import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -156,7 +156,7 @@ class ContactController(
 			.getServiceCodesOccurences(
 				// TODO might need to be handled at service level by permission
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
-					?: throw AccessDeniedException("Current user is not a healthcare party"),
+					?: throw ForbiddenException("Current user is not a healthcare party"),
 				codeType,
 				minOccurrences,
 			).map { LabelledOccurenceDto(it.label, it.occurence) }
@@ -628,12 +628,11 @@ class ContactController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<ContactDto>
 	): Mono<ConflictResolutionResultDto<ContactDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			contactService.declareConflictWinner(
-				entity = contactV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = contactService.declareConflictWinner(
+			entity = contactV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, contactV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

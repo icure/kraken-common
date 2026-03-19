@@ -3,6 +3,4 @@
  */
 package org.taktik.icure.exceptions
 
-import org.springframework.security.access.AccessDeniedException
-
-class QuotaExceededException(msg: String) : AccessDeniedException(msg)
+class QuotaExceededException(msg: String) : ForbiddenException(msg)

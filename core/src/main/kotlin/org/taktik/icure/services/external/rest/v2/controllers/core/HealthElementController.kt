@@ -383,12 +383,11 @@ class HealthElementController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<HealthElementDto>
 	): Mono<ConflictResolutionResultDto<HealthElementDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			healthElementService.declareConflictWinner(
-				entity = healthElementV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = healthElementService.declareConflictWinner(
+			entity = healthElementV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, healthElementV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")

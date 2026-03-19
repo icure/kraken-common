@@ -244,12 +244,11 @@ class AgendaController(
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<AgendaDto>
 	): Mono<ConflictResolutionResultDto<AgendaDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
-		conflictResolutionV2Mapper.map(
-			agendaService.declareConflictWinner(
-				entity = agendaV2Mapper.map(request.document),
-				conflictsToPurge = request.conflictsToPurge
-			)
+		val result = agendaService.declareConflictWinner(
+			entity = agendaV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
 		)
+		conflictResolutionV2Mapper.map(result, agendaV2Mapper::map)
 	}
 
 	@PostMapping("/conflicts/solve")
