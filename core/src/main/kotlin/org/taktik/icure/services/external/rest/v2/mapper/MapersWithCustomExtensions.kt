@@ -7,15 +7,15 @@ import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Component
 import org.taktik.icure.customentities.util.MapperBasedExtendableBuiltinEntityValidator
 import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
-import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.domain.customentities.config.StandardRootEntityExtensionConfig
-import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
-import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
-import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
-import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigValidationContext
-import org.taktik.icure.domain.customentities.util.resolveRequiredObjectReference
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.config.StandardRootEntityExtensionConfig
+import org.taktik.icure.customentities.config.typing.ObjectDefinition
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
+import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopePath
@@ -33,9 +33,48 @@ object MappersWithCustomExtensions {
 		configsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 		initialExtensionDefinition: ObjectDefinition,
 	) : MapperExtensionsValidationContext {
-		private val currentExtensionDefinitionStack = ArrayDeque<ObjectDefinition?>(10).also {
-			it.addLast(initialExtensionDefinition)
+		private class ExtensionValidationContext(
+			initialExtensionDefinition: ObjectDefinition,
+			private val resolutionContext: CustomEntityConfigResolutionContext
+		) {
+			private val nonNullDefinitionsStack = ArrayDeque<ObjectDefinition>(10).also {
+				it.addLast(initialExtensionDefinition)
+			}
+			private var nullTopElementsCount = 0
+
+			fun enterProperty(propertyName: String) {
+				if (nullTopElementsCount > 0) {
+					nullTopElementsCount++
+				} else {
+					val nextDefinition = nonNullDefinitionsStack.last().extendedBuiltinProperties[propertyName]?.let {
+						resolutionContext.resolveRequiredObjectReference(it)
+					}
+					if (nextDefinition != null) {
+						nonNullDefinitionsStack.addLast(nextDefinition)
+					} else {
+						nullTopElementsCount++
+					}
+				}
+			}
+
+			fun exitProperty() {
+				if (nullTopElementsCount > 0) {
+					nullTopElementsCount--
+				} else {
+					nonNullDefinitionsStack.removeLast()
+				}
+			}
+
+			fun getLastDefinition(): ObjectDefinition? {
+				return if (nullTopElementsCount > 0) {
+					null
+				} else {
+					nonNullDefinitionsStack.last()
+				}
+			}
 		}
+
+		private val extensionValidationContext = ExtensionValidationContext(initialExtensionDefinition, customEntityConfigResolutionContext)
 
 		private val fullContext = CustomEntityConfigValidationContext(
 			resolution = customEntityConfigResolutionContext,
@@ -54,11 +93,7 @@ object MappersWithCustomExtensions {
 				enterScope(".")
 				enterScope(propertyName)
 			}
-			currentExtensionDefinitionStack.addLast(
-				currentExtensionDefinitionStack.last()?.extendedBuiltinProperties?.get(propertyName)?.let {
-					fullContext.resolution.resolveRequiredObjectReference(it)
-				}
-			)
+			extensionValidationContext.enterProperty(propertyName)
 		}
 
 		override fun exitProperty() {
@@ -66,7 +101,7 @@ object MappersWithCustomExtensions {
 				exitScope()
 				exitScope()
 			}
-			currentExtensionDefinitionStack.removeLast()
+			extensionValidationContext.exitProperty()
 		}
 
 		override fun enterListItem(index: Int) {
@@ -102,17 +137,19 @@ object MappersWithCustomExtensions {
 		}
 
 		override fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject? {
-			val currentExtensionDefinition = currentExtensionDefinitionStack.last()
-			if (currentExtensionDefinition == null) {
-				if (extensionValue != null) {
-					fullContext.validation.addError("GE-BUILTIN-EXTENSIONNOTALLOWED")
+			fullContext.validation.appending(".extensions") {
+				val currentExtensionDefinition = extensionValidationContext.getLastDefinition()
+				if (currentExtensionDefinition == null) {
+					if (extensionValue != null) {
+						fullContext.validation.addError("GE-BUILTIN-EXTENSIONNOTALLOWED")
+					}
+					return extensionValue
+				} else {
+					return currentExtensionDefinition.validateAndMapExtensionValueForStore(
+						fullContext,
+						extensionValue ?: RawJson.JsonObject.empty
+					)
 				}
-				return extensionValue
-			} else {
-				return currentExtensionDefinition.validateAndMapExtensionValueForStore(
-					fullContext,
-					extensionValue ?: RawJson.JsonObject.empty
-				)
 			}
 		}
 	}
@@ -129,7 +166,7 @@ object MappersWithCustomExtensions {
 		return if (extension != null) {
 			val customEntityConfigResolutionContext = CustomEntityConfigResolutionContext.ofConfig(config)
 			MapperExtensionsValidationContextImpl(
-				customEntityConfigResolutionContext = CustomEntityConfigResolutionContext.ofConfig(config),
+				customEntityConfigResolutionContext = customEntityConfigResolutionContext,
 				errorCollector = ScopedErrorCollector(ErrorCollector.Throwing, scopePath),
 				builtinDefinitions = builtinDefinitions,
 				configsProvider = builtinValidationConfigsProvider,

@@ -5,7 +5,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.PassOnParameter
-import org.taktik.icure.domain.customentities.mapping.MapperExtensionsValidationContext
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.DataOwnerWithType
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto

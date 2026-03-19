@@ -1,11 +1,10 @@
 package org.taktik.icure.customentities.util
 
-import org.taktik.icure.domain.customentities.config.typing.ObjectDefinition
-import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
-import org.taktik.icure.domain.customentities.util.ExtendableBuiltinEntityValidator
-import org.taktik.icure.domain.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.customentities.config.typing.ObjectDefinition
+import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidator
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.errorreporting.ScopePath
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.MapperExtensionsValidationContextImpl
 

@@ -1,0 +1,666 @@
+package org.taktik.icure.customentities.config.migration
+
+import org.taktik.icure.customentities.config.ExtendableEntityName
+import org.taktik.icure.customentities.config.typing.FloatTypeConfig
+import org.taktik.icure.customentities.config.typing.IntTypeConfig
+import org.taktik.icure.customentities.config.typing.ListTypeConfig
+import org.taktik.icure.customentities.config.typing.MapTypeConfig
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.customentities.config.typing.ObjectDefinition
+
+/**
+ * Instructs how to migrate from a custom object definition to another custom object definition, or how to initialize a
+ * new extension on a builtin entity.
+ */
+data class ObjectMigration(
+	/**
+	 * Reference to the object to be migrated.
+	 */
+	val source: DefinitionReference,
+	/**
+	 * Reference to the object to migrate to.
+	 */
+	val target: DefinitionReference,
+	/**
+	 * Specifies how the value for a property in the target object should be obtained.
+	 * The keys must be property names in the target object, as defined by [ObjectDefinition.properties].
+	 * Takes priority over [fallbackBehavior].
+	 *
+	 * Can be non-empty only if [target] is [DefinitionReference.Custom]: when migrating to a non-extended builtin
+	 * entity you must use [targetMappings].
+	 *
+	 * When using a [DefinitionReference.Custom] with a non-null [ObjectDefinition.baseEntity] as target, the properties
+	 * of this map must be the custom properties defined in the custom object definition; to specify how to get the
+	 * value for properties of the builtin entity use [targetBuiltinMappings].
+	 */
+	val targetMappings: Map<String, PropertyValueProvider> = emptyMap(),
+	/**
+	 * Equivalent to [targetMappings], but for non-extension properties of the target builtin entity; the key must be
+	 * the name of a standard property.
+	 *
+	 * Can be non-empty only if [target] is a [DefinitionReference.StandardBuiltin] or a [DefinitionReference.Custom]
+	 * with a non-null [ObjectDefinition.baseEntity]: when using a custom object that doesn't extend a builtin entity as
+	 * target, there are no builtin properties to map.
+	 */
+	val targetBuiltinMappings: Map<String, PropertyValueProvider> = emptyMap(),
+	/**
+	 * Specifies how to obtain values for keys in the target object that are not explicitly set in [targetMappings].
+	 * On each property of the target object, the behaviors are evaluated in order, and the first that can be applied
+	 * is used.
+	 *
+	 * Note that when migrating a builtin entity extension this [fallbackBehavior] does not apply to non-extension
+	 * properties: non-extension properties are always the same as in the standard source entity unless explicitly
+	 * changed using [targetBuiltinMappings].
+	 * If the target is a [DefinitionReference.StandardBuiltin] then this [fallbackBehavior] is ignored.
+	 *
+	 * All entries in this list must be unique.
+	 *
+	 * # Example
+	 * - Source(a: Int(0-10), b: Int(0-10), c: Float(0.0-1.0))
+	 * - Target(a: Int(0-10), b: Int(0-20) = 10, c: Int(0-100) = 50, d: Boolean = true)
+	 * - No [targetMappings]
+	 *
+	 * With fallbackBehavior = [[FallbackBehavior.ExactMatchFromSourceByName], [FallbackBehavior.UseTargetDefaultIgnoringSource], [FallbackBehavior.CoerceFromSourceByName]]
+	 * - a -> from source a (exact match)
+	 * - b -> use target default 10 (no exact match, has default; could be coerced but default takes priority)
+	 * - c -> use target default 50 (no exact match, has default)
+	 * - d -> use target default true
+	 *
+	 * With fallbackBehavior = [[FallbackBehavior.CoerceFromSourceByName], [FallbackBehavior.UseTargetDefaultIgnoringSource]]
+	 * - a -> from source a (exact match is also a coercion)
+	 * - b -> from source b coerced to Int[0-20]
+	 * - c -> use target default 50 (can't be coerced)
+	 * - d -> use target default true
+	 *
+	 * With fallbackBehavior = [[FallbackBehavior.UseTargetDefaultIgnoringSource], [FallbackBehavior.CoerceFromSourceByName]]
+	 * - a -> from source a (no default, can be coerced)
+	 * - b -> use target default 10
+	 * - c -> use target default 50
+	 * - d -> use target default true
+	 *
+	 * With fallbackBehavior = [[FallbackBehavior.CoerceFromSourceByName]]
+	 * - a -> from source a
+	 * - b -> from source b
+	 * - c -> error: can't be coerced and using the default value is not a fallback option
+	 * - d -> error: doesn't exist in source and using the default value is not a fallback option
+	 *
+	 * With fallbackBehavior = [[FallbackBehavior.CoerceFromSourceByName], [FallbackBehavior.UseTargetDefault]]
+	 * - a -> from source a
+	 * - b -> from source b
+	 * - c -> error: can't be coerced, has a default value but `c` exist also in source so UseTargetDefault can't be
+	 *        applied
+	 * - d -> use target default true (no source, has default)
+	 */
+	val fallbackBehavior: List<FallbackBehavior> = emptyList(),
+) {
+	init {
+		require (fallbackBehavior.toSet().size == fallbackBehavior.size) {
+			"Duplicate fallback behavior entries are not allowed."
+		}
+	}
+
+	sealed interface DefinitionReference {
+		/**
+		 * The source is a builtin entity with no configured extension on the source configuration
+		 */
+		data class StandardBuiltin(
+			val entity: ExtendableEntityName
+		) : DefinitionReference
+
+		/**
+		 * The source is a custom entity or a builtin entity with custom extensions, [reference] points to the object
+		 * definition in the source configuration.
+		 */
+		data class Custom(
+			val reference: String
+		) : DefinitionReference
+	}
+
+	enum class FallbackBehavior {
+		/**
+		 * Automatically get the target property value if there is a source property with the same name and have
+		 * matching type configurations, including validation rules and nullability.
+		 *
+		 *
+		 * An exception is done for object and enum types, which must have the same nullability, but can have different
+		 * definitions as long as there is an [ObjectMigration] or [EnumMigration] defined from the source type to the
+		 * target type.
+		 * If there is no such migration defined for those types then to have a match:
+		 * - Two enum definitions must they have exactly the same entries.
+		 * - Two object definitions must have exactly the same properties with exactly the same type for each property,
+		 *   including nullability and validation rules, except again for object and enum types, which can be different
+		 *   as long as there is a corresponding migration defined.
+		 *
+		 * It is important to note that explicit migrations take priority over this fallback behavior, so if you have
+		 * identical object definitions between two versions:
+		 * - Obj V1 (foo: Foo)
+		 * - Obj V2 (foo: Foo, boo: Int = 42)
+		 * - Foo V1==V2 (bar: String)
+		 *
+		 * And you define object migrations:
+		 * - Obj V1 -> Obj V2 with mappings {} fallbackBehavior [ExactMatchFromSourceByName, UseTargetDefault]
+		 * - Foo -> Foo with mappings { bar: Custom }
+		 *
+		 * Then when migrating Obj V1 to Obj V2, the property foo will use the custom migration defined for Foo -> Foo,
+		 * even though the definitions of the objects are identical.
+		 *
+		 * Only source properties coming from custom [ObjectDefinition] are considered: if the source is a
+		 * [DefinitionReference.StandardBuiltin] this fallback behavior won't apply.
+		 *
+		 * # Examples
+		 * The following example do NOT represent exact matches:
+		 * - A IntTypeConfig "number" with min/max 1-10 on source and min/max 1-20 on target
+		 * - A IntTypeConfig "number" with min/max 1-10 on source and a IntTypeConfig "Number" with min/max 1-10 on
+		 *   target (different names)
+		 * - A IntTypeConfig "number" with min/max 1-10 on source and a FloatTypeConfig "number" with min/max 1.0-10.0
+		 *   on target
+		 * - A ObjectTypeConfig "address" for definition Address(street: String, zip: Int) on source and a
+		 *   ObjectTypeConfig "address" for definition Address(street: String, zip: Int, country: String? = null) on
+		 *   target
+		 * - A ObjectTypeConfig "address" for definition Address(street: String, zip: Int) on source and a
+		 *   ObjectTypeConfig "address" for definition Location(street: String, zip: Int) on target
+		 * - A EnumTypeConfig "priority" for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig "priority"
+		 *   for enum Priority(LOW, MEDIUM, HIGH, CRITICAL) on target
+		 * - A EnumTypeConfig "priority" for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig "priority"
+		 *   for enum Severity(LOW, MEDIUM, HIGH) on target
+		 * - A StringTypeConfig "name" with maxLength validation 10 on source and a StringTypeConfig "name" with
+		 *   maxLength validation 20 on target
+		 * - A non-nullable StringTypeConfig "name" on source and a nullable StringTypeConfig "name" on target
+		 *
+		 * # Enum migration with unique lists and maps
+		 *
+		 * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
+		 * match
+		 */
+		//TODO for typealias won't resolve: a typealias that resolves to a certain configuration is not an exact match
+		// for another typealias that resolves to the same configuration, or for the configuration itself
+		ExactMatchFromSourceByName,
+		/**
+		 * Automatically get the target property value if there is a source property with the same name and a type that
+		 * can be coerced to the target type using the rules of [ValueTransformer.CoerceType].
+		 *
+		 * Note that coercion of nullable to non-nullable types is not allowed by this fallback behavior.
+		 *
+		 * Only source properties coming from custom [ObjectDefinition] are considered: if the source is a
+		 * [DefinitionReference.StandardBuiltin] this fallback behavior won't apply.
+		 */
+		CoerceFromSourceByName,
+		/**
+		 * If there is no source property with matching name, use the default value of the target property as defined in
+		 * the target configuration; if there is a source property with the same name this behavior does not apply.
+		 *
+		 * This only considers properties coming from custom [ObjectDefinition]: if the target defines a custom property
+		 * `x` and the source does not define a custom property `x`, but extends a builtin entity that has a standard
+		 * property `x`, this fallback behavior will still apply.
+		 */
+		UseTargetDefault,
+		/**
+		 * Use the default value of the target property as defined in the target configuration, independently of the
+		 * source.
+		 * Compared to [UseTargetDefault] this behavior could hide issues in your migration configuration: if there is
+		 * a property that changed type in a way that can't be coerced, you might want to use a custom migration, but
+		 * if you configured this fallback behavior and the target property has a default value, you won't get any
+		 * error.
+		 */
+		UseTargetDefaultIgnoringSource,
+	}
+
+	/**
+	 * Specifies how to get the value of a property in a target object.
+	 * These configurations can be applied in any of the following cases:
+	 * - When migrating from a different version of the same object definition (the source object)
+	 * - When migrating from an entirely different object definition (the source object)
+	 * - When adding a new extension to a standard entity that was not using any extension before (no source object)
+	 */
+	sealed interface PropertyValueProvider {
+		/**
+		 * Use a constant value as the value for the target property.
+		 */
+		sealed interface Use : PropertyValueProvider {
+
+			/**
+			 * Use the default value of the target property as defined in the target object configuration.
+			 * This is allowed only if the target property has a default value and that value is a constant.
+			 */
+			data object TargetDefault : Use
+
+			/**
+			 * Use a predefined constant value as the target property value, independently of the source object or default
+			 * values for the target property, if any.
+			 * The value must be compatible with the target property type configuration.
+			 */
+			data class Value(
+				val value: RawJson
+			) : Use
+		}
+
+		/**
+		 * Use a custom migration function to obtain the target property value.
+		 * For each target property with this configuration, a separate custom migration function must be provided.
+		 *
+		 * Note that views that depend on values obtained through custom migration functions will ignore any entity
+		 * that are not yet migrated, so you should rely on builtin migration solutions when possible.
+		 *
+		 * It is recommended that custom migration function implementations depend solely on the provided input value.
+		 * Migration functions that depend on other sources that can vary across different instances of the application,
+		 * or between different invocations (random values, time, a mutable state, device information, etc.) may
+		 * cause issues.
+		 * This could cause inconsistencies, for example, if you have two different processes that are migrating the
+		 * same object, or if an object is not saved after migration, and must be migrated again a second time.
+		 */
+		data object Custom : PropertyValueProvider
+
+		/**
+		 * Transform the value from a property in the source object to use as the target property value.
+		 * Note that it is possible to reuse the same source property for multiple target properties.
+		 */
+		data class FromSource(
+			/**
+			 * The name of the property in the source object to use as the source value for the target property,
+			 * after applying any [transform] or [mappedNullValue] if applicable.
+			 */
+			val sourcePropertyName: String,
+			/**
+			 * If true the source property is from a builtin entity non-extension property.
+			 * Can only be true if the source is a [DefinitionReference.StandardBuiltin] or a
+			 * [DefinitionReference.Custom] with a non-null [ObjectDefinition.baseEntity].
+			 */
+			val isBuiltinProperty: Boolean = false,
+			/**
+			 * Specifies a transformation to apply to non-null source values before using it as the target value (null
+			 * source values use the [mappedNullValue]).
+			 * If null the source value must match exactly, as explained in [FallbackBehavior.ExactMatchFromSourceByName],
+			 * and including nullability rules, regardless of the value of [mappedNullValue].
+			 * If not null the applicability rules depend on the specific [ValueTransformer] used.
+			 */
+			val transform: ValueTransformer? = null,
+			/**
+			 * Specify what value to use if the source value is null: when the source value is null instead of using
+			 * the provided [transform] use this value.
+			 * If [mappedNullValue] is null then a null source value will be mapped to a null target value; this is
+			 * equivalent to `Use.Value(JsonNull)`.
+			 * If the target type configuration is not nullable you must provide an appropriate [Use] value.
+			 * If the source type configuration is not nullable then the source value can't be null and this is always
+			 * ignored.
+			 */
+			val mappedNullValue: Use? = null,
+		) : PropertyValueProvider
+
+		// TODO provider that combines multiple source properties into a single object?
+		// - Reasonable use case
+		// - Might be sufficient to have it only as custom - how often would it need to be used in a view?
+	}
+
+	/**
+	 * Defines standard rules for transforming values between different type configurations during migration.
+	 * Each transformation is applicable only to some source->target type combinations; see the documentation of each
+	 * transformation for the details.
+	 *
+	 * # Nullability
+	 *
+	 * Value transformers generally don't handle nullability differences between source and target types: null source
+	 * values are not handled by the transformers themselves, but by the configuration using the transformer:
+	 * - [PropertyValueProvider.FromSource.mappedNullValue]
+	 * - [ValueTransformer.TransformList.nullElementMapping]
+	 * - [ValueTransformer.TransformMap.nullValueMapping]
+	 */
+	sealed interface ValueTransformer {
+		/**
+		 * Automatically convert the source type to the target type.
+		 * This configuration can only be used if all possible values of the source type are valid values for the target
+		 * type, or can be converted without losing any information.
+		 *
+		 * The supported conversions are:
+		 * - Nullable->non-nullable, Non-nullable->non-nullable, and nullable->nullable coercions are always applicable,
+		 *   as long as the rest of the type configuration can be coerced. Nullable types can't be coerced to
+		 *   non-nullable, but some configurations that use value transformer also apply alternative rules for handling
+		 *   null values that take priority over coercion and other value transformers.
+		 * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
+		 *   of the source enum exist in the target enum
+		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or both
+		 *   definitions are based on the same [ObjectDefinition.baseEntity] and all properties of the source value
+		 *   exist in the target and all the target value properties can be mapped using the fallback behaviors defined
+		 *   in the containing [ObjectMigration.fallbackBehavior].
+		 * - Identical source and target type configurations, including validation rules.
+		 * - Any type configuration to a JsonTypeConfig
+		 * - IntTypeConfig to IntTypeConfig, IntTypeConfig to FloatTypeConfig, or FloatTypeConfig to FloatTypeConfig
+		 *   if the range of the target type covers the entire range of the source type.
+		 * - StringTypeConfig to StringTypeConfig if the validation rules of the target type are less restrictive, i.e.
+		 *   the maxLength of the target is greater than or equal to the maxLength of the source, and the minLength of
+		 *   the target is less than or equal to the minLength of the source.
+		 * - List type to list type if the element type of the target can be coerced and all the validation rules in the
+		 *   target list are less restrictive than or equal to the rules in the source. In the case of a target list
+		 *   with unique value requirement, the source list must also have unique value requirement; additionally, for
+		 *   enum element types it is also required that if a custom migration is used the migration is injective (refer
+		 *   to the [EnumMigration] documentation for more information).
+		 * - Map type to map type if: the values can be coerced, the equivalent key type from the key validation can be
+		 *   coerced and the general validation rules of the target map are less restrictive than or equal to the rules
+		 *   of the source map. If using enum keys and there is a custom migration for the corresponding enum that is
+		 *   not injective coercion is not allowed (refer to the [EnumMigration] documentation for more information).
+		 * - TODO more? e.g. enum -> string
+		 *
+		 * Examples of unsupported conversions:
+		 * - A FloatTypeConfig with min/max 1.0-10.0 to a IntTypeConfig "number" with min/max 1-10 (not all source
+		 *   values can be represented exactly in target)
+		 * - A StringTypeConfig with no minLength validation (implicitly 0) to a StringTypeConfig with minLength
+		 *   validation 3 (The source value "a", it is not valid for the target, )
+		 *
+		 * Note that even when coercion is possible, it is not always the correct choice, for example:
+		 * - A FloatTypeConfig "percent" with min/max 0.0-1.0 can be coerced to a FloatTypeConfig "percent" with min/max
+		 *   0.0-100.0, but you might want to apply a scaling instead (multiply by 100).
+		 *
+		 * # Nested object coercion
+		 *
+		 * ## Example 1
+		 *
+		 * - ObjV1(foo: FooV1)
+		 * - FooV1(bar: String)
+		 * - ObjV2(foo: FooV2, boo: Int = 42)
+		 * - FooV2(bar: String, baz: Boolean = true)
+		 *
+		 * ### Invalid migration 1
+		 * - ObjV1 -> ObjV2 with mappings { boo: UseTargetDefault }, fallbackBehavior [ CoerceFromSourceByName ]
+		 *
+		 * This migration is invalid because FooV1 cannot be coerced to FooV2.
+		 * The implicit rule for migration FooV1 -> FooV2 is with empty mappings and the same fallbackBehavior as
+		 * ObjV1 -> ObjV2.
+		 * Since Foo.baz does not exist in FooV1 and the fallback behavior doesn't allow for default we can't coerce.
+		 *
+		 * ### Invalid migration 2
+		 * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ UseTargetDefault ]
+		 *
+		 * This migration is invalid because coercion is not allowed as a fallback behavior so we cannot go from
+		 * FooV1 to FooV2.
+		 *
+		 * ### Valid migration 1
+		 * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ CoerceFromSourceByName, UseTargetDefault ]
+		 *
+		 * This migration is valid: boo uses the default from the fallback behavior, and foo can be coerced from FooV1
+		 * to FooV2 by implicitly considering the migration rule for FooV1 -> FooV2 with empty mappings {} and same
+		 * fallbackBehavior as the ObjV1 -> ObjV2 configuration.
+		 *
+		 * ### Valid migration 2 (equivalent)
+		 * - ObjV1 -> ObjV2 with mappings { foo: FromSource(transform: CoerceValue) }, fallbackBehavior [ UseTargetDefault ]
+		 */
+		data object CoerceType : ValueTransformer
+
+		/**
+		 * Wrap the source value into a singleton list to use as the target value.
+		 * The list element type must match the source type exactly, including validation.
+		 * Nullability of the list element type is not relevant, since a null source value is handled by the containing
+		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue], rather than being wrapped.
+		 *
+		 * # Map element
+		 *
+		 * You can use [mapElement] to specify a transformation that should be applied to the source value (if not null)
+		 * before wrapping it in a list.
+		 *
+		 * The [mapElement] transformation must be applicable for the conversion from the source type to the target
+		 * [ListTypeConfig.elementType].
+		 */
+		data class WrapToSingletonList(
+			val mapElement: ValueTransformer? = null,
+		) : ValueTransformer
+
+		/**
+		 * Wrap the source value into a singleton map to use as the target value, associating the source value with
+		 * specified [key].
+		 * The [key] must be a valid key for the target map type, according to its [MapTypeConfig.ValidationConfig.KeyValidation]
+		 * rules.
+		 * Nullability of the map value type is not relevant, since a null source value is handled by the containing
+		 * [ObjectMigration.PropertyValueProvider.FromSource.mappedNullValue], rather than being wrapped.
+		 *
+		 * # Map value
+		 *
+		 * You can use [mapValue] to specify a transformation that should be applied to the source value (if not null)
+		 * before wrapping it in a map.
+		 *
+		 * The [mapValue] transformation must be applicable for the conversion from the source type to the target
+		 * [MapTypeConfig.valueType].
+		 */
+		data class WrapToSingletonMap(
+			val key: String,
+			val mapValue: ValueTransformer? = null,
+		) : ValueTransformer
+
+		/**
+		 * Ensure the source value fits within the target value range:
+		 * - If the source value is below the target range, the minimum of the target range is used.
+		 * - If the source value is above the target range, the maximum of the target range is used.
+		 * This transformation can only be applied when both source and target types are numeric types.
+		 *
+		 * If the source is a [FloatTypeConfig] and the target is a [IntTypeConfig] you must also specify the [roundingMode]
+		 * mode to use; in all other cases [roundingMode] is ignored.
+		 *
+		 * The [roundingMode] is applied only if the source value already falls within the range of the target value: if
+		 * the source value is outside the target range, it is clamped to the min/max of the target range and there is
+		 * no need to round.
+		 *
+		 * If the range of the source type does not intersect with the range of the target type, this transformation
+		 * will result in all source values being mapped to the same target value.
+		 */
+		data class ClampToRange(
+			val roundingMode: Rounding.Mode? = null,
+		) : ValueTransformer
+
+		/**
+		 * Scale the source value to fit within the target value range, using linear interpolation between the min and
+		 * max values of the source and target ranges.
+		 * This transformation can only be applied when both source and target types are numeric types.
+		 * If the target type is a [IntTypeConfig] you must also specify the [roundingMode] mode to use after applying
+		 * the interpolation, (even if the source type is [IntTypeConfig]).
+		 * If the target type is a [FloatTypeConfig] the [roundingMode] is ignored.
+		 * Note that the scaling is subject to precision limitations of 64 bit floating point numbers.
+		 */
+		data class ScaleToRange(
+			val roundingMode: Rounding.Mode? = null,
+		) : ValueTransformer
+
+		/**
+		 * Can only be applied if the source type is a [FloatTypeConfig] and the target type is an [IntTypeConfig], and
+		 * the target range covers the entire source range.
+		 * If the target range does not cover the entire source range you will have to use [ClampToRange] or
+		 * [ScaleToRange] transformation with the appropriate [Rounding.Mode].
+		 *
+		 * Note that if no validation range is defined for the source type, then this transformation can't be applied,
+		 * since:
+		 * - For [FloatTypeConfig] the range is implicitly [-1.7976931348623157E308, 1.7976931348623157E308] (inclusive)
+		 * - For [IntTypeConfig] the maximum (and implicit) range is [-9007199254740991, 9007199254740991] (inclusive)
+		 */
+		data class Rounding(
+			val mode: Mode? = null
+		): ValueTransformer {
+			enum class Mode {
+				/**
+				 * Round towards the nearest integer, if equidistant from two integers round away from zero instead.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.4 -> 2
+				 * - 2.5 -> 3
+				 * - 2.6 -> 3
+				 * - -2.0 -> -2
+				 * - -2.4 -> -2
+				 * - -2.5 -> -3
+				 * - -2.6 -> -3
+				 */
+				HalfUp,
+				/**
+				 * Round always towards negative infinity.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.1 -> 2
+				 * - 2.5 -> 2
+				 * - 2.9 -> 2
+				 * - -2.0 -> -2
+				 * - -2.1 -> -3
+				 * - -2.5 -> -3
+				 * - -2.9 -> -3
+				 */
+				Floor,
+				/**
+				 * Round always towards positive infinity.
+				 * Examples:
+				 * - 2.0 -> 2
+				 * - 2.1 -> 3
+				 * - 2.5 -> 3
+				 * - 2.9 -> 3
+				 * - -2.0 -> -2
+				 * - -2.1 -> -2
+				 * - -2.5 -> -2
+				 * - -2.9 -> -2
+				 */
+				Ceiling
+				//TODO If needed:
+				// - HalfDown
+				// - HalfEven
+				// - Up
+				// - Down
+				// - HalfCeiling
+				// - HalfFloor
+			}
+		}
+
+		/**
+		 * If the source string is larger than the target string max allowed length constraint only take
+		 * characters up to the max allowed amount.
+		 * This transformation can only be applied for String->String conversions where the source min length
+		 * constraint is greater than or equal to the target min length constraint (note that if undefined min length
+		 * is implicitly 0).
+		 * If the target max length is not defined, or greater than or equal to the source max length, this
+		 * transformation has no effect.
+		 *
+		 * By default, the trimming keeps the start of the value: if the target max length is `tmax` and the source
+		 * value is longer than `tmax`, then only the first `tmax` characters of the source value are kept.
+		 * If [fromEnd] is set to true, then only the last `tmax` characters of the source value are kept
+		 * instead.
+		 * If the source is shorter than or equal to the target max length, the value is unchanged.
+		 */
+		data class SliceString(
+			val fromEnd: Boolean = false,
+		) : ValueTransformer
+
+		/**
+		 * Transformation that applies from a list to a list, applying the following transformation:
+		 * - If [mapElement] is not null apply the specified transformation to each element of the source list.
+		 *   [mapElement] is required if the source and target list types don't match exactly.
+		 * - Perform elements deduplication if the target list doesn't allow duplicates.
+		 * - Slice the list according to the specified [slicingBehaviour] when needed (after deduplication if
+		 *   applicable). If the max length of the target list is smaller than the max length of the source list, the
+		 *   slicing behavior is required.
+		 *
+		 * # Elements deduplication
+		 *
+		 * If the target configuration doesn't allow duplicates this transformation will remove duplicate elements after
+		 * mapping the source list elements.
+		 *
+		 * Note that even if the source list also doesn't allow duplicates deduplication might be needed: the
+		 * [mapElement] transformation might not be injective, and it is possible that after mapping a source list of
+		 * unique values the target list contains duplicate values, which need to be deduplicated.
+		 *
+		 * The configuration validation will raise a warning in case the migration might have to deduplicate mapped
+		 * elements to inform about potential data loss.
+		 * This warning might be raised even in some situations where the map element transformation is injective.
+		 */
+		data class TransformList(
+			/**
+			 * Map the elements from the source list to the target list using the provided transformation.
+			 */
+			val mapElement: ValueTransformer? = null,
+			/**
+			 * If not null allow transforming a list with max length greater than the target max length constraint
+			 * by slicing it according to the specified behavior, and then applying the transformation to the sliced
+			 * list.
+			 *
+			 * Independently of this configuration the source and target min length constraints must be compatible, i.e.
+			 * the target min length must be less than or equal to the source min length.
+			 */
+			val slicingBehaviour: SlicingBehaviour? = null,
+			/**
+			 * Specify how a null element in the source list should be mapped in the target list.
+			 * If not provided, null elements in the source list will be mapped to null values in the target list,
+			 * which is only allowed if the target list element type is nullable.
+			 * If the source list element type is not nullable, this is always ignored since null values are not
+			 * possible in the source list.
+			 */
+			val nullElementMapping: CollectionNullMapping? = null,
+		) : ValueTransformer {
+			enum class SlicingBehaviour {
+				/**
+				 * If the source list is larger than the target list max allowed length constraint only take
+				 * elements up to the max allowed amount, keeping the start of the list.
+				 */
+				KeepStart,
+				/**
+				 * If the source list is larger than the target list max allowed length constraint only take
+				 * elements up to the max allowed amount, keeping the end of the list.
+				 */
+				KeepEnd
+			}
+		}
+
+
+		/**
+		 * Transformation that applies from a map to a map, applying the following transformation:
+		 * - If [mapValue] is not null apply the specified transformation to each value of the source map.
+		 *   [mapValue] is required if the source and target map value types don't match exactly.
+		 * - If [mapKey] is not null apply the specified transformation to each key of the source map.
+		 *   [mapKey] is required if the source and target map key types corresponding to the validation configuration
+		 *   don't match exactly.
+		 * - Perform entries deduplication if needed. When [mapKey] is not injective, different source keys may map to
+		 *   the same target key; when a collision occurs only one of the conflicting entries is kept, but the specific
+		 *   entry kept is unspecified and may change between versions.
+		 * - If the resulting map exceeds the target map's maximum entry count constraint after deduplication, entries
+		 *   are removed to satisfy the constraint; the specific entries removed are unspecified and may change between
+		 *   versions. The configuration validation will raise a warning if slicing might be needed.
+		 *
+		 * # Entries deduplication
+		 *
+		 * Map keys are always unique, but applying [mapKey] with a non-injective transformation can cause different
+		 * source keys to collide on the same target key, requiring deduplication. Only one entry per conflicting key
+		 * is kept; which entry is kept is unspecified.
+		 *
+		 * The configuration validation will raise a warning when the migration might have to deduplicate entries
+		 * to inform about potential data loss. This warning might be raised even in some situations where the
+		 * [mapKey] transformation is injective.
+		 */
+		data class TransformMap(
+			/**
+			 * Map each value of the source map to the target map using the provided transformation.
+			 * [mapValue] is required if the source and target map value types don't match exactly.
+			 */
+			val mapValue: ValueTransformer? = null,
+			/**
+			 * Map each key of the source map to the target map using the provided transformation.
+			 * [mapKey] is required if the source and target map key types corresponding to the validation
+			 * configuration don't match exactly.
+			 * Note that if [mapKey] is not injective, key collisions may occur and entries will be deduplicated
+			 * with unspecified priority.
+			 */
+			val mapKey: ValueTransformer? = null,
+			/**
+			 * Specify how a null value in the source map should be mapped in the target map.
+			 * If not provided, null values in the source map will be mapped to null values in the target map, which is
+			 * only allowed if the target map value type is nullable.
+			 * If the source map value type is not nullable, this is always ignored since null values are not possible
+			 * in the source map.
+			 */
+			val nullValueMapping: CollectionNullMapping? = null,
+		) : ValueTransformer
+
+		/**
+		 * Specify how to handle a null entry in a collection (an item in a list or a value in a map; null map keys are
+		 * not allowed).
+		 */
+		sealed interface CollectionNullMapping {
+			/**
+			 * The null entry / element will be omitted from the result.
+			 */
+			data object Filter : CollectionNullMapping
+			/**
+			 * The null entry / element will be mapped to the specified [value].
+			 * The value must be compatible with the target collection element type configuration.
+			 */
+			data class UseValue(val value: RawJson) : CollectionNullMapping
+		}
+	}
+}

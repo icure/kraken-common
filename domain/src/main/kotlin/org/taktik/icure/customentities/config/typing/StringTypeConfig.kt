@@ -1,0 +1,91 @@
+package org.taktik.icure.customentities.config.typing
+
+import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
+import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ScopedErrorCollector
+import org.taktik.icure.errorreporting.addError
+
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+data class StringTypeConfig(
+	override val nullable: Boolean = false,
+	val validation: ValidationConfig? = null
+) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is StringTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+	data class ValidationConfig(
+		/**
+		 * Minimum length of the string (inclusive).
+		 * The length is the number of 16-bit Unicode characters needed to represent the string.
+		 * When using some special characters (like emojis), this might not correspond to the number of user-perceived
+		 * characters.
+		 * Most common characters (like latin letters) are represented as a single 16-bit Unicode character.
+		 */
+		val minLength: Int? = null,
+		/**
+		 * Maximum length of the string (inclusive).
+		 * Refer to [minLength] documentation for details about how length is computed.
+		 */
+		val maxLength: Int? = null,
+	) {
+		fun validateConfig(
+			context: ScopedErrorCollector
+		) {
+			if (minLength != null && minLength < 0) {
+				context.addError("GE-STRING-MIN")
+			}
+			if (maxLength != null && maxLength < 0) {
+				context.addError("GE-STRING-MAX")
+			}
+			if (minLength != null && maxLength != null && maxLength < minLength) {
+				context.addError("GE-STRING-NORANGE")
+			}
+			if (maxLength == 0) {
+				context.addWarning("GE-STRING-WEMPTY")
+			}
+			if (minLength == 0) {
+				context.addWarning("GE-STRING-WMIN")
+			}
+		}
+
+		fun validateValue(
+			context: ScopedErrorCollector?,
+			value: String
+		): Boolean {
+			if (
+				(minLength != null && value.length < minLength)
+				|| (maxLength != null && value.length > maxLength)
+			) {
+				context?.addError(
+					"GE-STRING-OUTRANGE",
+					"length" to value.length,
+					"min" to (minLength ?: "0"),
+					"max" to (maxLength ?: "*"),
+				)
+				return false
+			}
+			return true
+		}
+	}
+
+	override fun validateConfig(
+		context: CustomEntityConfigValidationContext,
+	) {
+		validation?.validateConfig(context.validation)
+	}
+
+	override fun validateAndMapValueForStore(
+		context: CustomEntityConfigValidationContext,
+		value: RawJson
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
+		if (value !is RawJson.JsonString) {
+			context.validation.addError("GE-STRING-JSON")
+		} else {
+			validation?.validateValue(context.validation, value.value)
+		}
+		value
+	}
+}

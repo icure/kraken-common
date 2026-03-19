@@ -46,9 +46,9 @@ import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapp
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
-import org.taktik.icure.domain.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.domain.customentities.util.BuiltinDefinitionsProvider
-import org.taktik.icure.domain.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.errorreporting.MapperScopePathProvider
