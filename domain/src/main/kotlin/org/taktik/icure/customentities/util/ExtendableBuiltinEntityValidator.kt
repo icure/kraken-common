@@ -8,4 +8,9 @@ interface ExtendableBuiltinEntityValidator {
 		extendedObjectDefinition: ObjectDefinition,
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject
+
+	fun validateAndMapPlainBuiltinForStore(
+		entityType: String,
+		value: RawJson.JsonObject,
+	): RawJson.JsonObject
 }

@@ -21,17 +21,12 @@ data class MapTypeConfig(
 		other is MapTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	@get:JsonIgnore
-	override val objectDefinitionDependencies: Set<String> get() =
-		valueType.objectDefinitionDependencies
+	override val objectDefinitionDependencies: Set<Pair<String, Boolean>> get() =
+		valueType.objectDefinitionDependencies + validation?.keyValidation?.equivalentTypeConfig()?.objectDefinitionDependencies.orEmpty()
 
 	@get:JsonIgnore
-	override val enumDefinitionDependencies: Set<String> get() =
-		valueType.enumDefinitionDependencies + setOfNotNull(validation?.keyValidation?.let {
-			when (it) {
-				is ValidationConfig.KeyValidation.EnumKeyValidation -> it.enumReference
-				else -> null
-			}
-		})
+	override val enumDefinitionDependencies: Set<Pair<String, Boolean>> get() =
+		valueType.enumDefinitionDependencies + validation?.keyValidation?.equivalentTypeConfig()?.enumDefinitionDependencies.orEmpty()
 
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class ValidationConfig(

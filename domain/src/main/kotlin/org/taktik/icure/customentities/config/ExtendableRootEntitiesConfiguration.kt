@@ -5,8 +5,8 @@ interface ExtendableRootEntitiesConfiguration<T : Any> {
 	// TODO others
 }
 
-val <T : Any> ExtendableRootEntitiesConfiguration<T>.allDefined get(): List<Pair<ExtendableEntityName, T>> = listOfNotNull(
-	patient?.let { ExtendableEntityName.Patient to it },
+val <T : Any> ExtendableRootEntitiesConfiguration<T>.allDefined get(): List<Pair<String, T>> = listOfNotNull(
+	patient?.let { "Patient" to it },
 	// TODO others
 )
 

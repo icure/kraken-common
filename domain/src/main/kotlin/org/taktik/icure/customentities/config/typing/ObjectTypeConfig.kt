@@ -10,21 +10,30 @@ import org.taktik.icure.errorreporting.addError
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ObjectTypeConfig(
 	val objectReference: String,
+	val isBuiltin: Boolean = false,
 	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ObjectTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	@get:JsonIgnore
-	override val objectDefinitionDependencies: Set<String> get() =
-		setOf(objectReference)
+	override val objectDefinitionDependencies: Set<Pair<String, Boolean>> get() =
+		setOf(Pair(objectReference, isBuiltin))
 
 	override fun validateConfig(
 		context: CustomEntityConfigValidationContext,
 	) {
-		val definition = context.resolution.resolveObjectReference(objectReference)
+		val definition = if (isBuiltin) {
+			context.builtinDefinitions.getBuiltinObjectDefinition(objectReference)
+		} else {
+			context.resolution.resolveObjectReference(objectReference)
+		}
 		if (definition == null) {
-			context.validation.addError("GE-OBJECT-MISSINGREF", "ref" to truncateValueForErrorMessage(objectReference))
+			context.validation.addError(
+				"GE-OBJECT-MISSINGREF",
+				"ref" to truncateValueForErrorMessage(objectReference),
+				"builtin" to isBuiltin
+			)
 		}
 		// definition should have already been validated
 	}
@@ -36,6 +45,8 @@ data class ObjectTypeConfig(
 		if (value !is RawJson.JsonObject) {
 			context.validation.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
+		} else if (isBuiltin) {
+			context.builtinValidation.validateAndMapPlainBuiltinForStore(objectReference, value)
 		} else {
 			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapExtensionValueForStore(
 				context,

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.taktik.icure.customentities.config.ExtendableEntityName
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.addError
@@ -40,29 +39,34 @@ data class ObjectDefinition(
 	 * in the builtin entity.
 	 * It is possible, though discouraged, to use the same name as a property already defined in the builtin entity; in
 	 * that case the SDK generator will move the standard entity property value in to a different property.
-	 *
-	 * Should be not empty if [baseEntity] is null.
 	 */
-	val properties: Map<String, PropertyConfiguration> = emptyMap(),
+	val properties: Map<String, PropertyConfiguration>,
 	/**
-	 * If this configuration extends a builtin entity the standard entity being extended; if null this configuration
-	 * does not extend any builtin entity.
+	 * If this configuration extends a builtin entity specifies which entity should be extended, and if the entity has
+	 * builtin extendable properties, how its properties should be extended.
 	 */
-	val baseEntity: ExtendableEntityName? = null,
-	/**
-	 * A map to configure extension on builtin properties of the extended builtin entity, if any.
-	 *
-	 * The key must be the name of a property with an extendable type defined in the entity corresponding to this
-	 * definition [baseEntity].
-	 *
-	 * The value is a reference to an object definition that specifies extension properties for the type of the
-	 * specified property.
-	 *
-	 * This can also be applied if the extendable type is nested within a collection or in a map's value, even if
-	 * there are multiple levels of nesting.
-	 */
-	val extendedBuiltinProperties: Map<String, String> = emptyMap(),
+	val builtinExtension: BuiltinExtensionConfiguration? = null,
 ) {
+	data class BuiltinExtensionConfiguration(
+		/**
+		 * The name of the builtin entity being extended.
+		 */
+		val entityName: String,
+		/**
+		 * A map to configure extension on builtin properties of the extended builtin entity.
+		 *
+		 * The key must be the name of a property with an extendable type defined in the entity corresponding to this
+		 * definition [entityName].
+		 *
+		 * The value is a reference to an object definition that specifies extension properties for the type of the
+		 * specified property.
+		 *
+		 * This can also be applied if the extendable type is nested within a collection or in a map's value, even if
+		 * there are multiple levels of nesting.
+		 */
+		val extendedBuiltinProperties: Map<String, String> = emptyMap(),
+	)
+
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	data class PropertyConfiguration(
 		val type: GenericTypeConfig,
@@ -267,19 +271,26 @@ data class ObjectDefinition(
 	suspend fun validateDefinition(
 		context: CustomEntityConfigValidationContext,
 	) {
-		if (properties.isEmpty() && baseEntity == null) {
-			context.validation.addWarning("GE-OBJECT-WEMPTY")
+		if (properties.isEmpty()) {
+			context.validation.addError("GE-OBJECT-WEMPTY")
 		}
 		context.validation.appending(".") {
 			properties.forEach { (propName, propConfig) ->
 				context.validation.appending(propName) {
 					validateIdentifier(context.validation, propName)
 					propConfig.type.validateConfig(context)
-					propConfig.type.objectDefinitionDependencies.forEach { definitionName ->
-						context.resolution.resolveObjectReference(definitionName)?.also { definition ->
-							if (definition.baseEntity?.isRootEntity == true) {
-								context.validation.addError("GE-OBJECT-EMBEDROOT", "object" to definitionName, "entity" to definition.baseEntity)
+					propConfig.type.objectDefinitionDependencies.forEach { (definitionName, isBuiltin) ->
+						val builtinEntityDependencyName = (
+							if (isBuiltin) {
+								definitionName
+							} else {
+								context.resolution.resolveObjectReference(definitionName)?.builtinExtension?.entityName
 							}
+						)
+						if (builtinEntityDependencyName?.let { context.builtinDefinitions.getBuiltinObjectDefinition(it)?.isRoot } == true) {
+							// Probably no real implementation complexity or other limitation in allowing it, but root
+							// entities also include access control and other metadata that does not work when embedded
+							context.validation.addError("GE-OBJECT-EMBEDROOT", "object" to definitionName, "entity" to builtinEntityDependencyName)
 						}
 					}
 					context.validation.appending("<DEFAULT>") {
@@ -288,27 +299,50 @@ data class ObjectDefinition(
 				}
 			}
 		}
-		if (baseEntity != null) {
-			val builtinProperties = context.builtinDefinitions.getBuiltinObjectDefinition(baseEntity)
-			if (builtinProperties == null) {
-				context.validation.addError("GE-OBJECT-BASEENTITYREF", "entity" to baseEntity)
+		if (builtinExtension != null) {
+			val builtinDefinition = context.builtinDefinitions.getBuiltinObjectDefinition(builtinExtension.entityName)
+			if (builtinDefinition == null) {
+				context.validation.addError("GE-OBJECT-BASEENTITYREF", "entity" to builtinExtension.entityName)
+			} else if (!builtinDefinition.isExtendable) {
+				context.validation.addError("GE-OBJECT-BASEENTITYEXTENDABLE", "entity" to builtinExtension.entityName)
 			} else {
 				context.validation.appending(".") {
-					properties.keys.intersect(builtinProperties.keys).forEach {
+					properties.keys.intersect(builtinDefinition.properties.keys).forEach {
 						context.validation.appending(it) {
-							// Probably no real implementation complexity or other limitation in allowing it, but root
-							// entities also include access control and other metadata that does not work when embedded
-							context.validation.addWarning("GE-OBJECT-WBASEENTITYPROP", "prop" to it, "entity" to baseEntity)
+							context.validation.addWarning("GE-OBJECT-WBASEENTITYPROP", "prop" to it, "entity" to builtinExtension.entityName)
 						}
 					}
 				}
-				extendedBuiltinProperties.forEach { builtinPropName, targetDefinition ->
-					TODO("Validate extended builtin prop $builtinPropName with definition $targetDefinition")
+				builtinExtension.extendedBuiltinProperties.forEach { (builtinPropName, targetDefinitionRef) ->
+					val propConfig = builtinDefinition.properties[builtinPropName]
+					if (propConfig != null) {
+						val objectReferenceDependency = propConfig.type.objectDefinitionDependencies.also {
+							if (it.size > 1) {
+								throw IllegalStateException("Ambiguous builtin property dependency at path ${context.validation.path ?: "<unknown>"} found ${it.size} dependencies")
+							} else if (it.firstOrNull()?.second == false) {
+								throw IllegalStateException("Ambiguous builtin property dependency at path ${context.validation.path ?: "<unknown>"} found non builtin object dependency")
+							}
+						}
+						if (objectReferenceDependency.isEmpty()) {
+							context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPNOTOBJ", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
+						} else {
+							val extendedBuiltinPropObjectDefinition = checkNotNull(context.builtinDefinitions.getBuiltinObjectDefinition(objectReferenceDependency.first().first)) {
+								"Can't resolve builtin object reference for $builtinPropName of entity ${builtinExtension.entityName} at path ${context.validation.path ?: "<unknown>"}"
+							}
+							if (!extendedBuiltinPropObjectDefinition.isExtendable) {
+								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPEXTENDABLE", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to objectReferenceDependency.first().first)
+							}
+							val targetDefinition = context.resolution.resolveObjectReference(targetDefinitionRef)
+							if (targetDefinition == null) {
+								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPDEFREF", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
+							} else if (targetDefinition.builtinExtension?.entityName != objectReferenceDependency.first().first) {
+								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPDEFREFBUILTIN", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
+							}
+						}
+					} else {
+						context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPNOTFOUND", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
+					}
 				}
-			}
-		} else {
-			if (extendedBuiltinProperties.isNotEmpty()) {
-				TODO("ERROR")
 			}
 		}
 	}
@@ -317,7 +351,7 @@ data class ObjectDefinition(
 		context: CustomEntityConfigValidationContext,
 		value: RawJson.JsonObject,
 	): RawJson =
-		if (baseEntity != null) {
+		if (builtinExtension != null) {
 			context.builtinValidation.validateAndMapExtendedBuiltinForStore(
 				this,
 				value

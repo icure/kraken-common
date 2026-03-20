@@ -76,19 +76,19 @@ sealed interface GenericTypeConfig {
 	): RawJson
 
 	/**
-	 * Dependencies of this type to object definitions.
+	 * Dependencies of this type to object definitions (name, builtin).
 	 * Checks recursively on collection types but doesn't resolve references to object definitions, so only direct
 	 * dependencies are included.
 	 */
-	val objectDefinitionDependencies: Set<String>
+	val objectDefinitionDependencies: Set<Pair<String, Boolean>>
 		get() = emptySet()
 
 	/**
-	 * Dependencies of this type to enum definitions.
+	 * Dependencies of this type to enum definitions (name, builtin).
 	 * Checks recursively on collection types but doesn't resolve references to enum definitions, so only direct
 	 * dependencies are included.
 	 */
-	val enumDefinitionDependencies: Set<String>
+	val enumDefinitionDependencies: Set<Pair<String, Boolean>>
 		get() = emptySet()
 
 	/**

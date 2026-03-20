@@ -77,7 +77,7 @@ data class VersionedCustomEntitiesConfiguration(
 						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
 						"expectedBaseEntity" to krakenName
 					)
-				} else if (rootDef.baseEntity != krakenName) {
+				} else if (rootDef.builtinExtension?.entityName != krakenName) {
 					validationContext.addError(
 						"GE-CONFIG-EXT-ROOTBASE",
 						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),

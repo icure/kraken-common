@@ -1,6 +1,5 @@
 package org.taktik.icure.customentities.config.migration
 
-import org.taktik.icure.customentities.config.ExtendableEntityName
 import org.taktik.icure.customentities.config.typing.FloatTypeConfig
 import org.taktik.icure.customentities.config.typing.IntTypeConfig
 import org.taktik.icure.customentities.config.typing.ListTypeConfig
@@ -99,22 +98,10 @@ data class ObjectMigration(
 		}
 	}
 
-	sealed interface DefinitionReference {
-		/**
-		 * The source is a builtin entity with no configured extension on the source configuration
-		 */
-		data class StandardBuiltin(
-			val entity: ExtendableEntityName
-		) : DefinitionReference
-
-		/**
-		 * The source is a custom entity or a builtin entity with custom extensions, [reference] points to the object
-		 * definition in the source configuration.
-		 */
-		data class Custom(
-			val reference: String
-		) : DefinitionReference
-	}
+	data class DefinitionReference(
+		val objectReference: String,
+		val isBuiltin: Boolean
+	)
 
 	enum class FallbackBehavior {
 		/**

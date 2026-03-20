@@ -21,12 +21,12 @@ class MapperBasedExtendableBuiltinEntityValidator(
 	): RawJson.JsonObject =
 		checkNotNull(
 			configsProvider.configs[
-				checkNotNull(extendedObjectDefinition.baseEntity) {
+				checkNotNull(extendedObjectDefinition.builtinExtension?.entityName) {
 					"Object definition does not extend a baseEntity"
 				}
 			]
 		) {
-			"Missing builtin validator for ${extendedObjectDefinition.baseEntity}"
+			"Missing builtin validator for ${extendedObjectDefinition.builtinExtension?.entityName} (extended)"
 		}.invoke(
 			value,
 			MapperExtensionsValidationContextImpl(
@@ -37,4 +37,12 @@ class MapperBasedExtendableBuiltinEntityValidator(
 				extendedObjectDefinition
 			)
 		)
+
+	override fun validateAndMapPlainBuiltinForStore(
+		entityType: String,
+		value: RawJson.JsonObject
+	): RawJson.JsonObject =
+		checkNotNull(configsProvider.configs[entityType]) {
+			"Missing builtin validator for $entityType (plain)"
+		}.invoke(value, null)
 }

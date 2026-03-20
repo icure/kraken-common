@@ -17,11 +17,11 @@ data class ListTypeConfig(
 		other is ListTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	@get:JsonIgnore
-	override val objectDefinitionDependencies: Set<String> get() =
+	override val objectDefinitionDependencies: Set<Pair<String, Boolean>> get() =
 		elementType.objectDefinitionDependencies
 
 	@get:JsonIgnore
-	override val enumDefinitionDependencies: Set<String> get() =
+	override val enumDefinitionDependencies: Set<Pair<String, Boolean>> get() =
 		elementType.enumDefinitionDependencies
 
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
