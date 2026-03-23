@@ -10,8 +10,8 @@ import org.taktik.icure.errorreporting.addError
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ObjectTypeConfig(
 	val objectReference: String,
+	override val nullable: Boolean = false,
 	val isBuiltin: Boolean = false,
-	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ObjectTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
@@ -46,9 +46,9 @@ data class ObjectTypeConfig(
 			context.validation.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
 		} else if (isBuiltin) {
-			context.builtinValidation.validateAndMapPlainBuiltinForStore(objectReference, value)
+			context.builtinValidation.validateAndMapPlainBuiltinForStore(objectReference, value, context.validation)
 		} else {
-			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapExtensionValueForStore(
+			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
 				context,
 				value
 			)

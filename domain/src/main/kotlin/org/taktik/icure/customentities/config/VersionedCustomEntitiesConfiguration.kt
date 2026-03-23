@@ -27,7 +27,7 @@ data class VersionedCustomEntitiesConfiguration(
 ) {
 	suspend fun validateDefinition(
 		builtinDefinitionsProvider: BuiltinDefinitionsProvider,
-		makeBuiltinValidator: (ScopedErrorCollector, CustomEntityConfigResolutionContext) -> ExtendableBuiltinEntityValidator,
+		makeBuiltinValidator: (CustomEntityConfigResolutionContext) -> ExtendableBuiltinEntityValidator,
 	): CollectedErrors {
 		val collector = ErrorCollector.Collecting()
 		val scopePath = ScopePath("CustomEntitiesConfiguration")
@@ -41,7 +41,7 @@ data class VersionedCustomEntitiesConfiguration(
 						CustomEntityConfigValidationContext(
 							resolutionContext,
 							validationContext,
-							makeBuiltinValidator(validationContext, resolutionContext),
+							makeBuiltinValidator(resolutionContext),
 							builtinDefinitionsProvider
 						)
 					)

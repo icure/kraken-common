@@ -82,7 +82,6 @@ object MappersWithCustomExtensions {
 			builtinValidation = MapperBasedExtendableBuiltinEntityValidator(
 				configsProvider = configsProvider,
 				resolutionContext = customEntityConfigResolutionContext,
-				errorCollector = errorCollector,
 				builtinDefinitions = builtinDefinitions,
 			),
 			builtinDefinitions = builtinDefinitions,

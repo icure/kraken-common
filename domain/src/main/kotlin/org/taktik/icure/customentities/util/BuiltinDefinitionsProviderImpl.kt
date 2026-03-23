@@ -39,12 +39,16 @@ class BuiltinDefinitionsProviderImpl : BuiltinDefinitionsProvider {
 				"careaddress"
 			)
 		)
+		"TelecomType" -> BuiltinDefinitionsProvider.BuiltinEnumDefinition(
+			entries = setOf("mobile", "phone", "email", "fax", "skype", "im", "medibridge", "ehealthbox", "apicrypt", "web", "print", "disk", "other", "pager")
+		)
 		else -> null
 	}
 
 	override fun getBuiltinObjectDefinition(name: String): BuiltinDefinitionsProvider.BuiltinObjectDefinition? = when (name) {
 		"Patient" -> patientDefinition
 		"Address" -> addressDefinition
+		"Telecom" -> telecomDefinition
 		else -> null
 	}
 
@@ -111,6 +115,18 @@ class BuiltinDefinitionsProviderImpl : BuiltinDefinitionsProvider {
 				properties = it,
 				isExtendable = true,
 				isRoot = true
+			)
+		}
+
+		private val telecomDefinition = mapOf(
+			"telecomType" to prop(EnumTypeConfig(enumReference = "TelecomType", isBuiltIn = true, nullable = true)),
+			"telecomNumber" to prop(StringTypeConfig(nullable = true)),
+			"telecomDescription" to prop(StringTypeConfig(nullable = true)),
+		).let {
+			BuiltinDefinitionsProvider.BuiltinObjectDefinition(
+				properties = it,
+				isExtendable = true,
+				isRoot = false
 			)
 		}
 

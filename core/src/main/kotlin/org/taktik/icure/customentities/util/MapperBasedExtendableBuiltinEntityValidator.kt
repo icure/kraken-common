@@ -11,13 +11,13 @@ import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtens
 class MapperBasedExtendableBuiltinEntityValidator(
 	private val configsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	private val resolutionContext: CustomEntityConfigResolutionContext,
-	private val errorCollector: ScopedErrorCollector,
 	private val builtinDefinitions: BuiltinDefinitionsProvider,
 ) : ExtendableBuiltinEntityValidator {
 
 	override fun validateAndMapExtendedBuiltinForStore(
 		extendedObjectDefinition: ObjectDefinition,
-		value: RawJson.JsonObject
+		value: RawJson.JsonObject,
+		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject =
 		checkNotNull(
 			configsProvider.configs[
@@ -35,14 +35,16 @@ class MapperBasedExtendableBuiltinEntityValidator(
 				builtinDefinitions,
 				configsProvider,
 				extendedObjectDefinition
-			)
+			),
+			errorCollector
 		)
 
 	override fun validateAndMapPlainBuiltinForStore(
 		entityType: String,
-		value: RawJson.JsonObject
+		value: RawJson.JsonObject,
+		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject =
 		checkNotNull(configsProvider.configs[entityType]) {
 			"Missing builtin validator for $entityType (plain)"
-		}.invoke(value, null)
+		}.invoke(value, null, errorCollector)
 }

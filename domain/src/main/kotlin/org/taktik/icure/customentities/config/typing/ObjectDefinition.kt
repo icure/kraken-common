@@ -271,8 +271,8 @@ data class ObjectDefinition(
 	suspend fun validateDefinition(
 		context: CustomEntityConfigValidationContext,
 	) {
-		if (properties.isEmpty()) {
-			context.validation.addError("GE-OBJECT-WEMPTY")
+		if (properties.isEmpty() && builtinExtension?.extendedBuiltinProperties.isNullOrEmpty()) {
+			context.validation.addWarning("GE-OBJECT-WEMPTY")
 		}
 		context.validation.appending(".") {
 			properties.forEach { (propName, propConfig) ->
@@ -354,7 +354,8 @@ data class ObjectDefinition(
 		if (builtinExtension != null) {
 			context.builtinValidation.validateAndMapExtendedBuiltinForStore(
 				this,
-				value
+				value,
+				context.validation
 			) // Will take care of also mapping extensions
 		} else {
 			validateAndMapExtensionValueForStore(context, value)

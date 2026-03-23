@@ -2,6 +2,8 @@ package org.taktik.icure.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.ErrorCollector
+import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
  * Keep track of the context used for mapping entities that may have extension properties.
@@ -105,6 +107,41 @@ interface MapperExtensionsValidationContext {
 
 		override fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject? {
 			require(extensionValue == null) { "Extensions are not enabled for this entity" }
+			return null
+		}
+	}
+
+	class NotAllowed(
+		val errorCollector: ScopedErrorCollector,
+	): MapperExtensionsValidationContext {
+		override fun enterProperty(propertyName: String) {
+			// No op
+		}
+
+		override fun exitProperty() {
+			// No op
+		}
+
+		override fun enterListItem(index: Int) {
+			// No op
+		}
+
+		override fun exitListItem() {
+			// No op
+		}
+
+		override fun enterMapEntry(key: Any) {
+			// No op
+		}
+
+		override fun exitMapEntry() {
+			// No op
+		}
+
+		override fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject? {
+			if (extensionValue != null) {
+				errorCollector.addError("GE-OBJECT-EXTENSIONS")
+			}
 			return null
 		}
 	}
