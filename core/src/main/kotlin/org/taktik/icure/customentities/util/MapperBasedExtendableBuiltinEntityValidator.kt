@@ -8,6 +8,8 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.MapperExtensionsValidationContextImpl
 
+// Note: for multiplatform we will need to have a different implementation, not based on mappers but only based on
+// cardinal models + multiplatform serialization
 class MapperBasedExtendableBuiltinEntityValidator(
 	private val configsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	private val resolutionContext: CustomEntityConfigResolutionContext,
