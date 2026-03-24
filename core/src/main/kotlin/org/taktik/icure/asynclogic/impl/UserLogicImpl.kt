@@ -588,7 +588,7 @@ open class UserLogicImpl(
 	override suspend fun changeUserEmail(
 		userId: String,
 		newEmail: String,
-		previousEmail: String
+		previousEmail: String?
 	): User {
 		tailrec suspend fun withRetry(attemptsLeft: Int): User {
 			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
@@ -610,7 +610,7 @@ open class UserLogicImpl(
 	override suspend fun changeUserMobilePhone(
 		userId: String,
 		newMobilePhone: String,
-		previousMobilePhone: String
+		previousMobilePhone: String?
 	): User {
 		tailrec suspend fun withRetry(attemptsLeft: Int): User {
 			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")

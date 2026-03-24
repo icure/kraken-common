@@ -364,7 +364,7 @@ class UserController(
 	fun changeUserEmail(
 		@PathVariable userId: String,
 		@RequestParam(required = true) newEmail: String,
-		@RequestParam(required = true) previousEmail: String,
+		@RequestParam previousEmail: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userV2Mapper.mapOmittingSecrets(userService.changeUserEmail(userId, newEmail, previousEmail))
 	}
@@ -373,7 +373,7 @@ class UserController(
 	fun changeUserMobilePhone(
 		@PathVariable userId: String,
 		@RequestParam(required = true) newMobilePhone: String,
-		@RequestParam(required = true) previousMobilePhone: String,
+		@RequestParam previousMobilePhone: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, newMobilePhone, previousMobilePhone))
 	}
