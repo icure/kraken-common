@@ -64,6 +64,7 @@ class BuiltinDefinitionsProviderImpl : BuiltinDefinitionsProvider {
 		)
 
 		private val patientDefinition = mapOf(
+			"responsible" to prop(StringTypeConfig(true)),
 			"identifier" to prop(listOf(simpleBuiltin("Identifier"))),
 			"firstName" to prop(StringTypeConfig(nullable = true)),
 			"lastName" to prop(StringTypeConfig(nullable = true)),

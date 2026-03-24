@@ -126,6 +126,10 @@ sealed interface RawJson {
 	}
 
 	data class JsonArray(val items: List<RawJson>) : RawJson {
+		companion object {
+			val empty = JsonArray(emptyList())
+		}
+
 		override fun writeTo(generator: JsonGenerator) {
 			generator.writeStartArray()
 			for (item in items) {
