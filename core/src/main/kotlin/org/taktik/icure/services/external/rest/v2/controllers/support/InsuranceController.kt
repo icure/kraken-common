@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
-import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
@@ -55,7 +54,6 @@ class InsuranceController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
-	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
@@ -222,7 +220,7 @@ class InsuranceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<InsuranceDto>
-	): Mono<ConflictResolutionResultDto<InsuranceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<InsuranceDto>> = mono {
 		val result = insuranceService.declareConflictWinner(
 			entity = insuranceV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

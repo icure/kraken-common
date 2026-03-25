@@ -633,7 +633,7 @@ class  FormController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<FormDto>
-	): Mono<ConflictResolutionResultDto<FormDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<FormDto>> = mono {
 		val result = formService.declareConflictWinner(
 			entity = formV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

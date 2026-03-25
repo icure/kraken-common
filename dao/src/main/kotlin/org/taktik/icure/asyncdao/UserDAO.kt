@@ -61,7 +61,7 @@ interface UserDAO : ConflictDAO<User> {
 	 * @return a [Flow] of [User.id]s.
 	 */
 	fun listUsersByPatientId(datastoreInformation: IDatastoreInformation, patientId: String): Flow<User>
-	suspend fun getUserOnUserDb(datastoreInformation: IDatastoreInformation, userId: String, bypassCache: Boolean): User
+	suspend fun getUserOnUserDb(datastoreInformation: IDatastoreInformation, userId: String, bypassCache: Boolean, rev: String? = null): User
 	suspend fun findUserOnUserDb(datastoreInformation: IDatastoreInformation, userId: String, bypassCache: Boolean): User?
 	fun getUsersOnDb(datastoreInformation: IDatastoreInformation): Flow<User>
 	fun findUsersByIds(datastoreInformation: IDatastoreInformation, userIds: Flow<String>): Flow<ViewQueryResultEvent>

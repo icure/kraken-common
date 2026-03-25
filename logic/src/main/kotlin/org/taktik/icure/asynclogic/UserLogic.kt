@@ -26,7 +26,7 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 
 	// region get
 
-	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean): EnhancedUser?
+	suspend fun getUser(id: String, includeMetadataFromGlobalUser: Boolean, rev: String? = null): EnhancedUser?
 	suspend fun getUserByEmail(email: String): EnhancedUser?
 
 	/**

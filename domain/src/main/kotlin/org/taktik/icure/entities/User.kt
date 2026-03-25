@@ -20,9 +20,11 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
+import org.taktik.icure.mergers.annotations.MergeIgnore
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.credentials.SecretType
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
@@ -74,7 +76,7 @@ data class User(
 	/**
 	 * Local roles of the user. May not actually reflect the roles the user has in the cloud environment.
 	 */
-	val roles: Set<String> = emptySet(),
+	@NonMergeable val roles: Set<String> = emptySet(),
 	/**
 	 * Local permissions of the user. May not actually reflect the permissions the user has in the cloud system.
 	 */
@@ -116,7 +118,9 @@ data class User(
 	 * Metadata used to enrich the user with information from the cloud environment. Not actually stored as part of the
 	 * user the database, can't be changed through changes of the local/replicated user.
 	 */
-	@JsonIgnore val systemMetadata: SystemMetadata? = null,
+	@JsonIgnore
+	@MergeIgnore
+	val systemMetadata: SystemMetadata? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

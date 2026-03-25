@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.CodeService
-import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -76,7 +75,6 @@ class CodeController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
-	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
@@ -430,7 +428,7 @@ class CodeController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<CodeDto>
-	): Mono<ConflictResolutionResultDto<CodeDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<CodeDto>> = mono {
 		val result = codeService.declareConflictWinner(
 			entity = codeV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

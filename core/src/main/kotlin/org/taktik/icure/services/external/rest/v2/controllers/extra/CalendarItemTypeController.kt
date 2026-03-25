@@ -235,7 +235,7 @@ class CalendarItemTypeController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<CalendarItemTypeDto>
-	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = mono {
 		val result = calendarItemTypeService.declareConflictWinner(
 			entity = calendarItemTypeV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

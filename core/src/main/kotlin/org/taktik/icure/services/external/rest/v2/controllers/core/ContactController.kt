@@ -627,7 +627,7 @@ class ContactController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<ContactDto>
-	): Mono<ConflictResolutionResultDto<ContactDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<ContactDto>> = mono {
 		val result = contactService.declareConflictWinner(
 			entity = contactV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

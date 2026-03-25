@@ -666,7 +666,7 @@ class InvoiceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<InvoiceDto>
-	): Mono<ConflictResolutionResultDto<InvoiceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<InvoiceDto>> = mono {
 		val result = invoiceService.declareConflictWinner(
 			entity = invoiceV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge

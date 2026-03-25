@@ -39,7 +39,7 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		id: String,
 		datastoreInformation: IDatastoreInformation,
 	): Flow<E> = flow {
-		val entity = dao.get(datastoreInformation, id, Option.CONFLICTS)
+		val entity = dao.getBypassingCache(datastoreInformation, id = id, rev = null, Option.CONFLICTS)
 			?: throw DocumentNotFoundException("Entity with id $id not found")
 		if (entity.conflicts.isNullOrEmpty()) {
 			throw IllegalArgumentException("Entity with id $id has no conflicts")
@@ -47,10 +47,10 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		emit(entity)
 		emitAll(
 			entity.conflicts?.asFlow()?.mapNotNull { conflictingRevision ->
-				dao.get(
-					datastoreInformation,
-					entity.id,
-					conflictingRevision,
+				dao.getBypassingCache(
+					datastoreInformation = datastoreInformation,
+					id = entity.id,
+					rev = conflictingRevision,
 				)
 			} ?: emptyFlow()
 		)
@@ -66,7 +66,11 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		datastoreInformation: IDatastoreInformation,
 	) {
 		if (entity is HasEncryptionMetadata) {
-			val currentRevisionOnDb = dao.get(datastoreInformation, entity.id, entity.rev)?.let {
+			val currentRevisionOnDb = dao.getBypassingCache(
+				datastoreInformation = datastoreInformation,
+				id = entity.id,
+				rev = entity.rev
+			)?.let {
 				it as HasEncryptionMetadata
 			} ?: throw NotFoundRequestException("Entity with id ${entity.id} with rev ${entity.rev} not found")
 			if (!entity.encryptableMetadataEquals(currentRevisionOnDb)) {
@@ -75,27 +79,22 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		}
 	}
 
-	private suspend fun mergeSecurityMetadataOfOldRevisions(
+	private fun mergeSecurityMetadataOfOldRevisions(
 		entity: E,
-		oldRevisions: List<String>,
-		datastoreInformation: IDatastoreInformation,
+		oldRevisions: List<E>
 	): E =
 		if (entity !is HasEncryptionMetadata) {
 			entity
 		} else {
-			mergeSecurityMetadataOfOldRevisionsForEncryptable(entity, oldRevisions, datastoreInformation)
+			mergeSecurityMetadataOfOldRevisionsForEncryptable(entity, oldRevisions)
 		}
 
-	private suspend fun mergeSecurityMetadataOfOldRevisionsForEncryptable(
+	private fun mergeSecurityMetadataOfOldRevisionsForEncryptable(
 		entity: E,
-		oldRevisions: List<String>,
-		datastoreInformation: IDatastoreInformation,
-	): E = oldRevisions.fold(entity) { acc, rev ->
+		oldRevisions: List<E>
+	): E = oldRevisions.fold(entity) { acc, conflict ->
 		val accWithMetadata = acc as HasEncryptionMetadata
-		val conflict = dao.get(datastoreInformation, entity.id, rev)?.let {
-			it as HasEncryptionMetadata
-		}
-		if (conflict != null && !accWithMetadata.encryptableMetadataEquals(conflict)) {
+		if (conflict is HasEncryptionMetadata && !accWithMetadata.encryptableMetadataEquals(conflict)) {
 			@Suppress("UNCHECKED_CAST")
 			accWithMetadata.withEncryptionMetadata(
 				securityMetadata =
@@ -116,20 +115,20 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 
 	protected suspend fun doDeclareConflictWinner(
 		entity: E,
-		conflictsToPurge: List<String>,
+		conflictsToPurge: List<E>,
 		datastoreInformation: IDatastoreInformation,
 	): ConflictResolutionResult<E> {
 		requireUnmodifiedSecurityMetadata(entity, datastoreInformation)
 		val savedWinner = dao.save(
 			datastoreInformation = datastoreInformation,
-			entity = mergeSecurityMetadataOfOldRevisions(entity, conflictsToPurge, datastoreInformation),
+			entity = mergeSecurityMetadataOfOldRevisions(entity = entity, oldRevisions = conflictsToPurge),
 		)
 		dao.purgeConflictingRevisions(
 			datastoreInformation,
 			entityId = savedWinner.id,
-			revisionsToPurge = conflictsToPurge
+			revisionsToPurge = conflictsToPurge.mapNotNull { it.rev }
 		).collect()
-		val remainingConflicts = dao.getBypassingCache(datastoreInformation, savedWinner.id, Option.CONFLICTS)
+		val remainingConflicts = dao.getBypassingCache(datastoreInformation, id = savedWinner.id, rev = null,Option.CONFLICTS)
 		return ConflictResolutionResult(
 			document = savedWinner,
 			remainingConflicts = (setOfNotNull(
@@ -146,7 +145,7 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 	): Flow<MergeResult> = flow {
 		val flow = ids?.asFlow()?.mapNotNull { dao.get(datastoreInformation, it, Option.CONFLICTS) }
 				?: dao.listConflicts(datastoreInformation)
-					.mapNotNull { dao.get(datastoreInformation, it.id, Option.CONFLICTS) }
+					.mapNotNull { dao.getBypassingCache(datastoreInformation, id = it.id, rev = null, Option.CONFLICTS) }
 		(limit?.let { flow.take(it) } ?: flow).collect { entity ->
 			val mutableConflicts = entity.conflicts?.toMutableList() ?: mutableListOf()
 			val toBePurged = mutableListOf<E>()
@@ -155,10 +154,10 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 				// Remove from the conflicts only after checking that the entity with that rev exists and is mergeable,
 				// to avoid mixing up the PartialSuccess and Failure cases.
 				val conflictingRevision = mutableConflicts.first()
-				val conflict = dao.get(
-					datastoreInformation,
-					entity.id,
-					conflictingRevision,
+				val conflict = dao.getBypassingCache(
+					datastoreInformation = datastoreInformation,
+					id = entity.id,
+					rev = conflictingRevision,
 				)
 				when {
 					conflict != null && merger.canMerge(merged, conflict) -> {
@@ -208,7 +207,7 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		)
 	}
 
-	override suspend fun declareConflictWinner(entity: E, conflictsToPurge: List<String>) =
+	override suspend fun declareConflictWinner(entity: E, conflictsToPurge: List<E>) =
 		doDeclareConflictWinner(entity, conflictsToPurge, datastoreInstanceProvider.getInstanceAndGroup())
 
 	override fun solveConflicts(
@@ -223,4 +222,11 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 			),
 		)
 	}
+
+	override suspend fun getBypassingCache(id: String, rev: String): E? =
+		dao.getBypassingCache(
+			datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup(),
+			id = id,
+			rev = rev
+		)
 }

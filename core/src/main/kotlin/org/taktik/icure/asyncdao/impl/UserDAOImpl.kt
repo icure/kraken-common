@@ -350,21 +350,28 @@ open class UserDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
 		bypassCache: Boolean,
+		rev: String?
 	): User {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val value =
 			if (bypassCache) {
 				null
 			} else {
-				cacheChain?.getEntity(datastoreInformation.getFullIdFor(userId))
+				cacheChain?.getEntity(datastoreInformation.getFullIdFor(userId))?.takeIf {
+					rev == null || it.rev == rev
+				}
 			}
 
 		return value
 			?: (
-				client.get(userId, User::class.java)?.also {
+				if (rev != null) {
+					client.get(userId, rev, User::class.java)
+				} else {
+					client.get(userId,User::class.java)
+				}?.also {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(userId), it)
 				} ?: throw DocumentNotFoundException(userId)
-				)
+			)
 	}
 
 	override suspend fun findUserOnUserDb(

@@ -66,9 +66,10 @@ open class UserLogicImpl(
 	override suspend fun getUser(
 		id: String,
 		includeMetadataFromGlobalUser: Boolean,
+		rev: String?
 	): EnhancedUser? {
 		val datastoreInformation = getInstanceAndGroup()
-		return userEnhancer.enhance(userDAO.getUserOnUserDb(datastoreInformation, id, false), includeMetadataFromGlobalUser)
+		return userEnhancer.enhance(userDAO.getUserOnUserDb(datastoreInformation, userId = id, bypassCache = false, rev = rev), includeMetadataFromGlobalUser)
 	}
 
 	override suspend fun getUserByPhone(phone: String): EnhancedUser? {
@@ -242,10 +243,8 @@ open class UserLogicImpl(
 		return userDAO.contains(datastoreInformation, id)
 	}
 
-	override suspend fun getEntity(id: String, rev: String?): User? {
-		TODO("How does rev interact with this? False is actually ignored when enhancing and is rev != null is needed in conflict resolution")
-		return getUser(id, false)
-	}
+	override suspend fun getEntity(id: String, rev: String?): User? =
+		getUser(id, includeMetadataFromGlobalUser = false, rev = rev)
 
 	override fun listUsers(
 		paginationOffset: PaginationOffset<String>,

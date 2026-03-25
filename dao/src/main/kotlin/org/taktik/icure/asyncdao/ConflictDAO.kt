@@ -15,5 +15,5 @@ interface ConflictDAO<T: Identifiable<String>> : GenericDAO<T> {
 		entityId: String,
 		revisionsToPurge: List<String>
 	): Flow<BulkSaveResult<DocIdentifier>>
-	suspend fun getBypassingCache(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T?
+	suspend fun getBypassingCache(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option): T?
 }

@@ -26,7 +26,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.PlaceService
-import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
@@ -58,7 +57,6 @@ class PlaceController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
-	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
@@ -201,7 +199,7 @@ class PlaceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<PlaceDto>
-	): Mono<ConflictResolutionResultDto<PlaceDto>> = reactorCacheInjector.monoWithCachedContext(1000) {
+	): Mono<ConflictResolutionResultDto<PlaceDto>> = mono {
 		val result = placeService.declareConflictWinner(
 			entity = placeV2Mapper.map(request.document),
 			conflictsToPurge = request.conflictsToPurge
