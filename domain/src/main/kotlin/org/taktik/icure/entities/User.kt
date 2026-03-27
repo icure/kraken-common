@@ -20,7 +20,7 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
-import org.taktik.icure.mergers.annotations.MergeIgnore
+import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
@@ -119,7 +119,7 @@ data class User(
 	 * user the database, can't be changed through changes of the local/replicated user.
 	 */
 	@JsonIgnore
-	@MergeIgnore
+	@MergeStrategyIgnore
 	val systemMetadata: SystemMetadata? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

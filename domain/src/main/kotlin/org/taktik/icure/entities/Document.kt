@@ -21,6 +21,7 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
+import org.taktik.icure.mergers.annotations.CanMergeCondition
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.PrecomputeForMerge
@@ -68,6 +69,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
+@CanMergeCondition("canMergeDataAttachments({{LEFT}}.dataAttachments, {{RIGHT}}).dataAttachments)")
 @PrecomputeForMerge("allDataAttachments", "solveDataAttachmentsConflicts({{LEFT}}, {{RIGHT}})")
 data class Document(
 	@param:JsonProperty("_id") override val id: String,

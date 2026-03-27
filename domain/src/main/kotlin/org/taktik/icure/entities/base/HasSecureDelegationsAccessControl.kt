@@ -19,7 +19,7 @@ interface HasSecureDelegationsAccessControl : HasExplicitDataOwnerAccess {
 	 * and secret id (replacing the keys of [HasEncryptionMetadata.delegations]).
 	 */
 	@MergeStrategyUse(
-		canMerge = "true",
+		canMerge = "canMergeSecurityMetadata({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		merge = "mergeSecurityMetadata({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 	)
 	val securityMetadata: SecurityMetadata?

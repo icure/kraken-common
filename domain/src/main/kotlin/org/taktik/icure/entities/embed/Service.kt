@@ -15,6 +15,7 @@ import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.serializers.ServiceQualifiedLinkDeserializer
 import org.taktik.icure.validation.AutoFix
@@ -103,7 +104,12 @@ data class Service(
 	val status: Int? = null, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
 	val invoicingCodes: Set<String> = emptySet(),
 	val notes: List<Annotation> = emptyList(),
-	@param:JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class) val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), // Links towards related services (possibly in other contacts)
+	@MergeStrategyUse(
+		canMerge = "canMergeMapsOfMergeable({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}}) { a, b -> canMergeMap(a, b) }",
+		merge = "mergeMapsOfMergeable({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}}) { a, b -> b + a }",
+	)
+	@param:JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class)
+	val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), // Links towards related services (possibly in other contacts)
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,

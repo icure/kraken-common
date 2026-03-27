@@ -31,18 +31,4 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 
 	fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): T
 
-	fun solveDataAttachmentsConflicts(other: HasDataAttachments<T>): Map<String, DataAttachment> = (this.dataAttachments.keys + other.dataAttachments.keys).associateWith { k ->
-		val a = this.dataAttachments[k]
-		val b = other.dataAttachments[k]
-		if (a != null && b != null) {
-			if (b.objectStoreAttachmentId != null && b.objectStoreAttachmentId == a.couchDbAttachmentId) {
-				// b is a "migrated" version of a
-				b
-			} else {
-				a
-			}
-		} else {
-			a ?: b!!
-		}
-	}
 }

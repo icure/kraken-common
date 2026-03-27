@@ -24,20 +24,31 @@ interface CryptoActor {
 	// In the table, we get at the first position: the key encrypted using owner (this)'s public key and in 2nd pos.
 	// the key encrypted using delegate's public key.
 	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeMapsOfListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfListsDistinct"]
+		canMerge = "canMergeMap({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		merge = "{{LEFT}}.{{PROP}} + {{RIGHT}}.{{PROP}}",
 	)
 	val hcPartyKeys: Map<String, List<String>>
 
 	// Extra AES exchange keys, usually the ones we lost access to at some point
 	// The structure is { publicKey: { delegateId: { myPubKey1: aesExKey_for_this, delegatePubKey1: aesExKey_for_delegate } } }
+	@MergeStrategyUse(
+		canMerge = "canMergeAesExchangeKeys({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		merge = "mergeAesExchangeKeys({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+	)
 	val aesExchangeKeys: Map<String, Map<String, Map<String, String>>>
 
 	// Our private keys encrypted with our public keys
 	// The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfMergeable({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}}) { leftKeys, rightKeys -> rightKeys + leftKeys }",
+	)
 	val transferKeys: Map<String, Map<String, String>>
 
+	@MergeStrategyUse(
+		canMerge = "({{LEFT}}.{{PROP}}.keys.containsAll({{RIGHT}}.{{PROP}}.keys) || {{RIGHT}}.{{PROP}}.keys.containsAll({{LEFT}}.{{PROP}}.keys))",
+		merge = "if({{LEFT}}.{{PROP}}.keys.size >= {{RIGHT}}.{{PROP}}.keys.size) {{LEFT}}.{{PROP}} else {{RIGHT}}.{{PROP}}",
+	)
 	val privateKeyShamirPartitions: Map<String, String> // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
 	val publicKey: String?
 

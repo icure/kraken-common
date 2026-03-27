@@ -1,4 +1,4 @@
 package org.taktik.icure.mergers.annotations
 
 @Target(AnnotationTarget.PROPERTY)
-annotation class MergeIgnore
+annotation class MergeStrategyIgnore

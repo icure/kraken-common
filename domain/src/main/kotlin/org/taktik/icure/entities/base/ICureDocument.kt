@@ -26,7 +26,7 @@ interface ICureDocument<T> :
 	val author: String?
 	val responsible: String?
 	val medicalLocationId: String?
-	@MergeStrategyMin val endOfLife: Long?
+	@MergeStrategyMax val endOfLife: Long?
 
 	fun withTimestamps(created: Long? = null, modified: Long? = null): ICureDocument<T>
 }
