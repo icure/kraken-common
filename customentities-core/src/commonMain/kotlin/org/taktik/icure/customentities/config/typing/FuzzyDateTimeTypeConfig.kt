@@ -1,0 +1,45 @@
+package org.taktik.icure.customentities.config.typing
+
+import org.taktik.icure.jackson.annotations.JsonInclude
+import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.utils.ChronoUnitMP
+import org.taktik.icure.utils.FuzzyDatesMultiplatform
+
+/**
+ * Type for fuzzy datetime, with or without precision encoding.
+ */
+@JsonInclude(Include.NON_DEFAULT)
+data class FuzzyDateTimeTypeConfig(
+	override val nullable: Boolean = false,
+	val allowPrecisionEncoding: Boolean = false
+) : GenericTypeConfig {
+	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
+		other is FuzzyDateTimeTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
+	override fun validateAndMapValueForStore(
+		context: CustomEntityConfigValidationContext,
+		value: RawJson
+	): RawJson = validatingNullForStore(context.validation, value, nullable) {
+		if (value !is RawJson.JsonInteger) {
+			context.validation.addError("GE-FUZZYDATETIME-JSON")
+		} else {
+			val parsed = FuzzyDatesMultiplatform.getLocalDateTimeWithPrecision(value.value, false)
+			if (parsed == null) {
+				context.validation.addError(
+					"GE-FUZZYDATETIME-PARSE",
+					"value" to value.value,
+				)
+			} else if (!allowPrecisionEncoding) {
+				if (parsed.second != ChronoUnitMP.SECONDS) context.validation.addError(
+					"GE-FUZZYDATETIME-PRECISION",
+					"value" to value.value,
+					"precision" to parsed.second.name,
+				)
+			}
+		}
+		value
+	}
+}

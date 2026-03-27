@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.taktik.icure.customentities.config.jackson.CustomEntitiesJacksonModule
+import org.taktik.icure.entities.RawJsonJacksonModule
 
 object IcureDomainObjectMapper {
 	/**
@@ -20,5 +22,8 @@ object IcureDomainObjectMapper {
 	).apply {
 		setSerializationInclusion(JsonInclude.Include.NON_NULL)
 		configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
-	}
+	}.registerMultiplatformSupportModules()
+
+	fun ObjectMapper.registerMultiplatformSupportModules(): ObjectMapper =
+		registerModule(RawJsonJacksonModule()).registerModule(CustomEntitiesJacksonModule())
 }

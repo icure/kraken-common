@@ -29,6 +29,7 @@ dependencies {
         }
 
     implementation(project("$projectPrefix:utils"))
+    api(project("$projectPrefix:customentities-core"))
 
     implementation(coreLibs.bundles.jacksonLibs)
     implementation(coreLibs.bundles.kotlinxCoroutinesLibs)

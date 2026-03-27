@@ -25,6 +25,9 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
+import org.taktik.icure.customentities.config.jackson.CustomEntitiesJacksonModule
+import org.taktik.icure.entities.RawJsonJacksonModule
+import org.taktik.icure.serialization.IcureDomainObjectMapper.registerMultiplatformSupportModules
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
@@ -83,7 +86,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		).apply {
 			setSerializationInclusion(JsonInclude.Include.NON_NULL)
 			setFilterProvider(legacyJacksonFilter)
-		}
+		}.registerMultiplatformSupportModules()
 
 	@Bean
 	open fun legacyObjectMapper() = legacyObjectMapper
@@ -101,7 +104,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		).apply {
 			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
 			setFilterProvider(cardinalJacksonFilter)
-		}
+		}.registerMultiplatformSupportModules()
 
 	@Bean
 	open fun cardinalObjectMapper() = cardinalObjectMapper
@@ -124,7 +127,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 						// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
 						.configure(KotlinFeature.StrictNullChecks, true)
 						.build(),
-				),
+				).registerMultiplatformSupportModules(),
 			).apply { maxInMemorySize = 128 * 1024 * 1024 },
 		)
 	}

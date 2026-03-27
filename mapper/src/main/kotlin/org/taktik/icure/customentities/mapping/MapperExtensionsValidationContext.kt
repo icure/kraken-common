@@ -2,7 +2,6 @@ package org.taktik.icure.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
