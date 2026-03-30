@@ -48,17 +48,17 @@ internal actual object TimeUtilsMP {
 	actual val MIDNIGHT_TIME: LocalTimeMP =
 		LocalTime.MIDNIGHT
 
-	actual fun plusDays(date: LocalDateMP, amount: Long): LocalDateMP =
-		date.plusDays(amount)
+	actual fun plusOneDay(date: LocalDateMP): LocalDateMP =
+		date.plusDays(1)
 
-	actual fun minusDays(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP =
-		datetime.minusDays(amount)
+	actual fun minusOneDay(datetime: LocalDateTimeMP): LocalDateTimeMP =
+		datetime.minusDays(1)
 
-	actual fun minusMinutes(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP =
-		datetime.minusMinutes(amount)
+	actual fun minusOneMinute(datetime: LocalDateTimeMP): LocalDateTimeMP =
+		datetime.minusMinutes(1)
 
-	actual fun minusHours(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP =
-		datetime.minusHours(amount)
+	actual fun minusOneHour(datetime: LocalDateTimeMP): LocalDateTimeMP =
+		datetime.minusHours(1)
 
 	actual fun hourOf(time: LocalTimeMP): Int = time.hour
 

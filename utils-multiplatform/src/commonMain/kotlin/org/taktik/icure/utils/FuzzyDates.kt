@@ -1,19 +1,5 @@
 package org.taktik.icure.utils
 
-import java.time.DateTimeException
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
-
-/**
- * Updated version of [FuzzyValues], with improved logic and configurability.
- *
- * You can configure if the precision should be encoded when converting a local date/time to fuzzy, or when converting
- * from fuzzy to local date/time if encoded precision values are allowed
- */
 object FuzzyDates {
 	const val MAX_FUZZY_DATE = 99991231
 	const val MIN_FUZZY_DATE = 10000000
@@ -23,45 +9,45 @@ object FuzzyDates {
 	 */
 	fun getFullLocalTime(
 		fuzzyTime: Int,
-	): LocalTime? = doGetLocalTime(fuzzyTime, false, false)?.first
+	): LocalTimeMP? = doGetLocalTime(fuzzyTime, false, false)?.first
 
 	fun getLocalTimeWithPrecision(
 		fuzzyTime: Int,
-	): Pair<LocalTime, ChronoUnit>? = doGetLocalTime(fuzzyTime, true, false)?.takeIf {
+	): Pair<LocalTimeMP, ChronoUnitMP>? = doGetLocalTime(fuzzyTime, true, false)?.takeIf {
 		// Days precision doesn't make sense for time
-		it.second != ChronoUnit.DAYS
+		it.second != ChronoUnitMP.DAYS
 	}?.let { Pair(it.first, it.second) }
 
 	fun getFullLocalDate(
 		fuzzyDate: Int,
-	): LocalDate? = doGetLocalDate(fuzzyDate, false, false)?.first
+	): LocalDateMP? = doGetLocalDate(fuzzyDate, false, false)?.first
 
 	fun getLocalDateWithPrecision(
 		fuzzyDate: Int,
-	): Pair<LocalDate, ChronoUnit>? = doGetLocalDate(fuzzyDate, true, false)?.let {
+	): Pair<LocalDateMP, ChronoUnitMP>? = doGetLocalDate(fuzzyDate, true, false)?.let {
 		Pair(it.first, it.second)
 	}
 
 	fun getFullLocalDateTime(
 		dateTime: Long,
 		lenient: Boolean,
-	): LocalDateTime? = doGetLocalDateTime(dateTime, false, lenient)?.first
+	): LocalDateTimeMP? = doGetLocalDateTime(dateTime, false, lenient)?.first
 
 	fun getLocalDateTimeWithPrecision(
 		dateTime: Long,
 		lenient: Boolean,
-	): Pair<LocalDateTime, ChronoUnit>? = doGetLocalDateTime(dateTime, true, lenient)
+	): Pair<LocalDateTimeMP, ChronoUnitMP>? = doGetLocalDateTime(dateTime, true, lenient)
 
 	private fun doGetLocalDate(
 		fuzzyDate: Int,
 		allowEncodedPrecisionMarkers: Boolean,
 		lenient: Boolean,
-	): Pair<LocalDate, ChronoUnit>? {
+	): Pair<LocalDateMP, ChronoUnitMP>? {
 		if (fuzzyDate !in MIN_FUZZY_DATE..MAX_FUZZY_DATE) return null
 		val y = (fuzzyDate / 10000L).toInt()
 		var mm = (fuzzyDate / 100L % 100L).toInt()
 		var d = (fuzzyDate % 100L).toInt()
-		var precision: ChronoUnit? = null
+		var precision: ChronoUnitMP? = null
 		if (mm == 0) {
 			if (!allowEncodedPrecisionMarkers) return null
 			if (d != 0) {
@@ -72,17 +58,15 @@ object FuzzyDates {
 				}
 			}
 			mm = 1
-			precision = ChronoUnit.YEARS
+			precision = ChronoUnitMP.YEARS
 		}
 		if (d == 0) {
 			if (!allowEncodedPrecisionMarkers) return null
 			d = 1
-			if (precision == null) precision = ChronoUnit.MONTHS
+			if (precision == null) precision = ChronoUnitMP.MONTHS
 		}
-		return try {
-			Pair(LocalDate.of(y, mm, d), precision ?: ChronoUnit.DAYS)
-		} catch (_: DateTimeException) {
-			null
+		return TimeUtilsMP.tryCreateLocalDate(y, mm, d)?.let {
+			it to (precision ?: ChronoUnitMP.DAYS)
 		}
 	}
 
@@ -90,12 +74,12 @@ object FuzzyDates {
 		fuzzyTime: Int,
 		allowEncodedPrecisionMarkers: Boolean,
 		lenient: Boolean,
-	): Triple<LocalTime, ChronoUnit, Boolean>? {
+	): Triple<LocalTimeMP, ChronoUnitMP, Boolean>? {
 		if (fuzzyTime < 0) return null
 		var h = (fuzzyTime / 10000L).toInt()
 		var m = (fuzzyTime / 100L % 100L).toInt()
 		var s = (fuzzyTime % 100L).toInt()
-		var detectedPrecision: ChronoUnit? = null
+		var detectedPrecision: ChronoUnitMP? = null
 		// Need to keep plusOe separate from detected precision: 23_59_60 is precision minutes, but wants plusOne
 		var plusOne = false
 		if (h > 24) {
@@ -111,7 +95,7 @@ object FuzzyDates {
 			if (!allowEncodedPrecisionMarkers || m == 60) return null
 			s = 0
 			m++
-			detectedPrecision = ChronoUnit.MINUTES
+			detectedPrecision = ChronoUnitMP.MINUTES
 		}
 		if (m == 60) {
 			if (!allowEncodedPrecisionMarkers || h == 24) return null
@@ -124,7 +108,7 @@ object FuzzyDates {
 			}
 			m = 0
 			h++
-			if (detectedPrecision == null) detectedPrecision = ChronoUnit.HOURS
+			if (detectedPrecision == null) detectedPrecision = ChronoUnitMP.HOURS
 		}
 		if (h == 24) {
 			if (!allowEncodedPrecisionMarkers) return null
@@ -138,9 +122,9 @@ object FuzzyDates {
 			}
 			h = 0
 			plusOne = true
-			if (detectedPrecision == null) detectedPrecision = ChronoUnit.DAYS
+			if (detectedPrecision == null) detectedPrecision = ChronoUnitMP.DAYS
 		}
-		return Triple(LocalTime.of(h, m, s), detectedPrecision ?: ChronoUnit.SECONDS, plusOne)
+		return Triple(TimeUtilsMP.createLocalTime(h, m, s), detectedPrecision ?: ChronoUnitMP.SECONDS, plusOne)
 	}
 
 	/**
@@ -156,18 +140,18 @@ object FuzzyDates {
 		dateTime: Long,
 		allowEncodedPrecisionMarkers: Boolean,
 		lenient: Boolean,
-	): Pair<LocalDateTime, ChronoUnit>? {
+	): Pair<LocalDateTimeMP, ChronoUnitMP>? {
 		if (dateTime > MAX_FUZZY_DATE) {
 			if (dateTime < 18000101000000L && lenient) {
-				return Pair(Instant.ofEpochMilli(dateTime).atZone(ZoneOffset.UTC).toLocalDateTime(), ChronoUnit.SECONDS)
+				return Pair(TimeUtilsMP.utcLocalDatetimeAtTimestamp(dateTime), ChronoUnitMP.SECONDS)
 			}
 			// Full date time format
 			val parsedDateInfo = doGetLocalDate((dateTime / 1000000L).toInt(), allowEncodedPrecisionMarkers || lenient, lenient)
 			if (parsedDateInfo == null) return null
 			val time = (dateTime % 1000000L).toInt()
-			return if (parsedDateInfo.second != ChronoUnit.DAYS) {
+			return if (parsedDateInfo.second != ChronoUnitMP.DAYS) {
 				if (lenient || time == 0) {
-					Pair(LocalDateTime.of(parsedDateInfo.first, LocalTime.MIDNIGHT), parsedDateInfo.second)
+					Pair(TimeUtilsMP.createLocalDateTime(parsedDateInfo.first, TimeUtilsMP.MIDNIGHT_TIME), parsedDateInfo.second)
 				} else {
 					null // month or year precision with set time and non-lenient is invalid
 				}
@@ -175,8 +159,8 @@ object FuzzyDates {
 				val parsedTimeInfo = doGetLocalTime(time, allowEncodedPrecisionMarkers || lenient, lenient)
 				if (parsedTimeInfo == null) return null
 				Pair(
-					LocalDateTime.of(
-						if (parsedTimeInfo.third) parsedDateInfo.first.plusDays(1) else parsedDateInfo.first,
+					TimeUtilsMP.createLocalDateTime(
+						if (parsedTimeInfo.third) TimeUtilsMP.plusOneDay(parsedDateInfo.first) else parsedDateInfo.first,
 						parsedTimeInfo.first,
 					),
 					parsedTimeInfo.second,
@@ -184,7 +168,7 @@ object FuzzyDates {
 			}
 		} else if (lenient) {
 			return doGetLocalDate(dateTime.toInt(), true, true)?.let {
-				Pair(LocalDateTime.of(it.first, LocalTime.MIDNIGHT), it.second)
+				Pair(TimeUtilsMP.createLocalDateTime(it.first, TimeUtilsMP.MIDNIGHT_TIME), it.second)
 			}
 		} else {
 			return null
@@ -197,62 +181,62 @@ object FuzzyDates {
 	 * @param precision the precision of the conversion. Truncates the result to the provided precision (rounding is
 	 * done as flooring)
 	 * @param encodePrecision if true will encode the precision of the conversion in the fuzzy date using special markers:
-	 * - For [ChronoUnit.YEARS] precision the values for the months, days, hours, minutes, and seconds parts will be set to 0
+	 * - For [ChronoUnitMP.YEARS] precision the values for the months, days, hours, minutes, and seconds parts will be set to 0
 	 *   example: 2024 with years precision is encoded as 2024_00_00_00_00_00
-	 * - For [ChronoUnit.MONTHS] precision the values for the days, hours, minutes, and seconds parts will be set to 0
+	 * - For [ChronoUnitMP.MONTHS] precision the values for the days, hours, minutes, and seconds parts will be set to 0
 	 *   example: January 2024 with months precision is encoded as 2024_01_00_00_00_00
-	 * - For [ChronoUnit.DAYS] precision the values for the parts:
+	 * - For [ChronoUnitMP.DAYS] precision the values for the parts:
 	 *   - minutes, and seconds will be set to 0
 	 *   - hours will be set to 24
 	 *   - days will be actually one less than the actual value
 	 *   example: 1st January 2024 with days precision is encoded as 2023_12_31_24_00_00
-	 * - For [ChronoUnit.HOURS] precision the value of the parts:
+	 * - For [ChronoUnitMP.HOURS] precision the value of the parts:
 	 *   - seconds will be set to 0
 	 *   - minutes will be set to 60
 	 *   - hours will be set to one less than the actual value
 	 *   example: 1st January 2024 at 00:00 with hours precision is encoded as 2023_12_31_23_60_00
-	 * - For [ChronoUnit.SECONDS] precision the value of the parts:
+	 * - For [ChronoUnitMP.SECONDS] precision the value of the parts:
 	 *   - seconds will be set to 60
 	 *   - minutes will be set to one less than the actual value
 	 *   example: 1st January 2024 at 00:00 with minutes precision is encoded as 2023_12_31_23_59_60
 	 */
-	fun getFuzzyDateTime(dateTime: LocalDateTime, precision: ChronoUnit, encodePrecision: Boolean): Long {
+	fun getFuzzyDateTime(dateTime: LocalDateTimeMP, precision: ChronoUnitMP, encodePrecision: Boolean): Long {
 		require(
-			precision == ChronoUnit.YEARS ||
-				precision == ChronoUnit.MONTHS ||
-				precision == ChronoUnit.DAYS ||
-				precision == ChronoUnit.HOURS ||
-				precision == ChronoUnit.MINUTES ||
-				precision == ChronoUnit.SECONDS,
+			precision == ChronoUnitMP.YEARS ||
+				precision == ChronoUnitMP.MONTHS ||
+				precision == ChronoUnitMP.DAYS ||
+				precision == ChronoUnitMP.HOURS ||
+				precision == ChronoUnitMP.MINUTES ||
+				precision == ChronoUnitMP.SECONDS,
 		) { "Unsupported precision for datetime: $precision" }
 		var returnDateTime = dateTime
-		val seconds = if (precision === ChronoUnit.SECONDS) {
-			returnDateTime.second
-		} else if (encodePrecision && precision == ChronoUnit.MINUTES) {
-			returnDateTime = returnDateTime.minusMinutes(1)
+		val seconds = if (precision === ChronoUnitMP.SECONDS) {
+			TimeUtilsMP.secondOf(returnDateTime)
+		} else if (encodePrecision && precision == ChronoUnitMP.MINUTES) {
+			returnDateTime = TimeUtilsMP.minusOneMinute(returnDateTime)
 			60
 		} else {
 			0
 		}
-		val minutes = if (precision.ordinal <= ChronoUnit.MINUTES.ordinal) {
-			returnDateTime.minute
-		} else if (encodePrecision && precision == ChronoUnit.HOURS) {
-			returnDateTime = returnDateTime.minusHours(1)
+		val minutes = if (precision.ordinal <= ChronoUnitMP.MINUTES.ordinal) {
+			TimeUtilsMP.minuteOf(returnDateTime)
+		} else if (encodePrecision && precision == ChronoUnitMP.HOURS) {
+			returnDateTime = TimeUtilsMP.minusOneHour(returnDateTime)
 			60
 		} else {
 			0
 		}
-		val hours = if (precision.ordinal <= ChronoUnit.HOURS.ordinal) {
-			returnDateTime.hour
-		} else if (encodePrecision && precision == ChronoUnit.DAYS) {
-			returnDateTime = returnDateTime.minusDays(1)
+		val hours = if (precision.ordinal <= ChronoUnitMP.HOURS.ordinal) {
+			TimeUtilsMP.hourOf(returnDateTime)
+		} else if (encodePrecision && precision == ChronoUnitMP.DAYS) {
+			returnDateTime = TimeUtilsMP.minusOneDay(returnDateTime)
 			24
 		} else {
 			0
 		}
 		return getFuzzyDate(
-			returnDateTime.toLocalDate(),
-			if (precision.ordinal < ChronoUnit.DAYS.ordinal) ChronoUnit.DAYS else precision,
+			TimeUtilsMP.dateOf(returnDateTime),
+			if (precision.ordinal < ChronoUnitMP.DAYS.ordinal) ChronoUnitMP.DAYS else precision,
 			encodePrecision,
 		) *
 			1000000L +
@@ -264,38 +248,56 @@ object FuzzyDates {
 	}
 
 	fun getFuzzyDate(
-		dateTime: LocalDate,
-		precision: ChronoUnit,
+		dateTime: LocalDateMP,
+		precision: ChronoUnitMP,
 		encodePrecision: Boolean,
 	): Int {
-		require(precision == ChronoUnit.YEARS || precision == ChronoUnit.MONTHS || precision == ChronoUnit.DAYS) {
+		require(precision == ChronoUnitMP.YEARS || precision == ChronoUnitMP.MONTHS || precision == ChronoUnitMP.DAYS) {
 			"Unsupported precision for fuzzy date: $precision"
 		}
-		require(dateTime.year >= 1000 && dateTime.year <= 9999) {
+		val year = TimeUtilsMP.yearOf(dateTime)
+		require(year in 1000..9999) {
 			"Fuzzy date only allows years in the range 1000-9999"
 		}
-		return dateTime.year *
+		return year *
 			10000 +
 			(
-				if (precision.ordinal <= ChronoUnit.MONTHS.ordinal) {
-					dateTime.monthValue * 100
+				if (precision.ordinal <= ChronoUnitMP.MONTHS.ordinal) {
+					TimeUtilsMP.monthOf(dateTime) * 100
 				} else if (encodePrecision) {
 					0
 				} else {
 					100
 				}
-				) +
-			(
-				if (precision === ChronoUnit.DAYS) {
-					dateTime.dayOfMonth
+			) + (
+				if (precision === ChronoUnitMP.DAYS) {
+					TimeUtilsMP.dayOf(dateTime)
 				} else if (encodePrecision) {
 					0
 				} else {
 					1
 				}
-				)
+			)
 	}
 
 	// No precision encoding
-	fun getFuzzyTime(time: LocalTime) = time.hour * 1_00_00 + time.minute * 1_00 + time.second
+	fun getFuzzyTime(time: LocalTimeMP) =
+		TimeUtilsMP.hourOf(time) * 1_00_00 + TimeUtilsMP.minuteOf(time) * 1_00 + TimeUtilsMP.secondOf(time)
+
+	fun getNowFuzzyDate(zoneId: String?): Int =
+		getFuzzyDate(
+			TimeUtilsMP.nowLocalDate(zoneId),
+			ChronoUnitMP.DAYS,
+			false
+		)
+
+	fun getNowFuzzyTime(zoneId: String?): Int =
+		getFuzzyTime(TimeUtilsMP.nowLocalTime(zoneId))
+
+	fun getNowFuzzyDateTime(zoneId: String?): Long =
+		getFuzzyDateTime(
+			TimeUtilsMP.nowLocalDateTime(zoneId),
+			ChronoUnitMP.SECONDS,
+			false
+		)
 }

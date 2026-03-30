@@ -8,7 +8,7 @@ import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
-import org.taktik.icure.utils.FuzzyDatesMultiplatform
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.UuidMP
 import org.taktik.icure.utils.Validation
 
@@ -165,7 +165,7 @@ data class ObjectDefinition(
 				}
 
 				override fun valueForStore(): RawJson =
-					RawJson.JsonInteger(FuzzyDatesMultiplatform.getNowFuzzyDateTime(zoneId))
+					RawJson.JsonInteger(FuzzyDates.getNowFuzzyDateTime(zoneId))
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
@@ -195,7 +195,7 @@ data class ObjectDefinition(
 				}
 
 				override fun valueForStore(): RawJson =
-					RawJson.JsonInteger(FuzzyDatesMultiplatform.getNowFuzzyDate(zoneId).toLong())
+					RawJson.JsonInteger(FuzzyDates.getNowFuzzyDate(zoneId).toLong())
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false
@@ -224,7 +224,7 @@ data class ObjectDefinition(
 				}
 
 				override fun valueForStore(): RawJson =
-					RawJson.JsonInteger(FuzzyDatesMultiplatform.getNowFuzzyTime(zoneId).toLong())
+					RawJson.JsonInteger(FuzzyDates.getNowFuzzyTime(zoneId).toLong())
 
 				override fun shouldIgnoreForStore(value: RawJson): Boolean =
 					false

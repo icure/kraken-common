@@ -61,22 +61,22 @@ expect internal object TimeUtilsMP {
 	/**
 	 * Does not mutate input
 	 */
-	fun plusDays(date: LocalDateMP, amount: Long): LocalDateMP
+	fun plusOneDay(date: LocalDateMP): LocalDateMP
 
 	/**
 	 * Does not mutate input
 	 */
-	fun minusDays(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP
+	fun minusOneDay(datetime: LocalDateTimeMP): LocalDateTimeMP
 
 	/**
 	 * Does not mutate input
 	 */
-	fun minusMinutes(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP
+	fun minusOneMinute(datetime: LocalDateTimeMP): LocalDateTimeMP
 
 	/**
 	 * Does not mutate input
 	 */
-	fun minusHours(datetime: LocalDateTimeMP, amount: Long): LocalDateTimeMP
+	fun minusOneHour(datetime: LocalDateTimeMP): LocalDateTimeMP
 
 	fun hourOf(time: LocalTimeMP): Int
 

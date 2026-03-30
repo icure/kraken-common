@@ -6,7 +6,7 @@ import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.utils.ChronoUnitMP
-import org.taktik.icure.utils.FuzzyDatesMultiplatform
+import org.taktik.icure.utils.FuzzyDates
 
 /**
  * Type for fuzzy date, with or without precision encoding.
@@ -26,7 +26,7 @@ data class FuzzyDateTypeConfig(
 		if (value !is RawJson.JsonInteger) {
 			context.validation.addError("GE-FUZZYDATE-JSON")
 		} else {
-			val parsed = value.asExactIntOrNull()?.let { FuzzyDatesMultiplatform.getLocalDateWithPrecision(it) }
+			val parsed = value.asExactIntOrNull()?.let { FuzzyDates.getLocalDateWithPrecision(it) }
 			if (parsed == null) {
 				context.validation.addError(
 					"GE-FUZZYDATE-PARSE",

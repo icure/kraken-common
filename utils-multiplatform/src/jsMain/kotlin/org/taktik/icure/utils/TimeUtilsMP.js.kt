@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
@@ -54,33 +55,47 @@ internal actual object TimeUtilsMP {
 
 	@OptIn(ExperimentalTime::class)
 	actual fun utcLocalDatetimeAtTimestamp(epochTimestamp: Long): LocalDateTimeMP =
-		Instant.fromEpochMilliseconds(epochTimestamp).toLocalDateTime(kotlinx.datetime.TimeZone.UTC)
+		Instant.fromEpochMilliseconds(epochTimestamp).toLocalDateTime(TimeZone.UTC)
 
 	actual val MIDNIGHT_TIME: LocalTimeMP = LocalTime(0, 0, 0)
 
-	actual fun plusDays(
+	actual fun plusOneDay(
 		date: LocalDateMP,
-		amount: Long
 	): LocalDateMP =
-		date.plus(amount, DateTimeUnit.DAY)
+		date.plus(1, DateTimeUnit.DAY)
 
-	actual fun minusDays(
+	actual fun minusOneDay(
 		datetime: LocalDateTimeMP,
-		amount: Long
-	): LocalDateTimeMP = TODO()
+	): LocalDateTimeMP = LocalDateTime(
+		datetime.date.minus(1, DateTimeUnit.DAY),
+		datetime.time
+	)
 
-	actual fun minusMinutes(
+	actual fun minusOneMinute(
 		datetime: LocalDateTimeMP,
-		amount: Long
 	): LocalDateTimeMP {
-		TODO("Not yet implemented")
+		val newMinute = datetime.minute - 1
+		return if (newMinute >= 0) {
+			LocalDateTime(datetime.date, LocalTime(datetime.hour, newMinute, datetime.second, datetime.nanosecond))
+		} else {
+			val newHour = datetime.hour - 1
+			if (newHour >= 0) {
+				LocalDateTime(datetime.date, LocalTime(newHour, 59, datetime.second, datetime.nanosecond))
+			} else {
+				LocalDateTime(datetime.date.minus(1, DateTimeUnit.DAY), LocalTime(23, 59, datetime.second, datetime.nanosecond))
+			}
+		}
 	}
 
-	actual fun minusHours(
+	actual fun minusOneHour(
 		datetime: LocalDateTimeMP,
-		amount: Long
 	): LocalDateTimeMP {
-		TODO("Not yet implemented")
+		val newHour = datetime.hour - 1
+		return if (newHour >= 0) {
+			LocalDateTime(datetime.date, LocalTime(newHour, datetime.minute, datetime.second, datetime.nanosecond))
+		} else {
+			LocalDateTime(datetime.date.minus(1, DateTimeUnit.DAY), LocalTime(23, datetime.minute, datetime.second, datetime.nanosecond))
+		}
 	}
 
 	actual fun hourOf(time: LocalTimeMP): Int =
