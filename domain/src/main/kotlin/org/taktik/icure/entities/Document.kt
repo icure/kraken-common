@@ -69,7 +69,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
-@CanMergeCondition("canMergeDataAttachments({{LEFT}}.dataAttachments, {{RIGHT}}).dataAttachments)")
+@CanMergeCondition("canMergeDataAttachments({{LEFT}}.dataAttachments, {{RIGHT}}.dataAttachments)")
 @PrecomputeForMerge("allDataAttachments", "solveDataAttachmentsConflicts({{LEFT}}, {{RIGHT}})")
 data class Document(
 	@param:JsonProperty("_id") override val id: String,

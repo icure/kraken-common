@@ -247,7 +247,7 @@ abstract class Merger<T : Any> {
 
 		return l.filter { !leftDuplicates.containsKey(idGetter(it)) }.all { leftItem ->
 			val rightItem = r.firstOrNull {
-				rightDuplicates.containsKey(idGetter(it)) && idComparator(it, leftItem)
+				!rightDuplicates.containsKey(idGetter(it)) && idComparator(it, leftItem)
 			}
 			rightItem == null || canMerge(leftItem, rightItem)
 		}

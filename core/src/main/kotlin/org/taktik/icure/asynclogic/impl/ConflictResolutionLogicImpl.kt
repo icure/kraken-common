@@ -178,7 +178,7 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 				entity to 0
 			}
 			when {
-				// All conflicts have been merged and all the other revision have benn purged
+				// All conflicts have been merged and all the other revision have been purged
 				mutableConflicts.isEmpty() && purgedCount == toBePurged.size -> MergeResult.Success(
 					id = entityAfterMerge.id,
 					rev = checkNotNull(entityAfterMerge.rev) { "Merged entity must have a revision" },
