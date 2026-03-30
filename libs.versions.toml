@@ -104,7 +104,7 @@ kotlinxSerializationJsonJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx
 kotlinxSerializationJsonIo = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJsonIoJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io-jvm", version.ref = "kotlinxSerialization" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
-kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.2" } # 2FA
+kotp = { group = "com.icure.kotp", name = "kotp", version = "1.1.0" } # 2FA
 krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.77-gc7905ae4a2" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }

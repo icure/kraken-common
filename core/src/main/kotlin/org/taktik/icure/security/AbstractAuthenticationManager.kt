@@ -22,6 +22,7 @@ import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
 import org.taktik.icure.security.jwt.JwtUtils
 import reactor.core.publisher.Mono
+import kotlin.time.ExperimentalTime
 
 abstract class AbstractAuthenticationManager<
 	out JWT : JwtDetails,
@@ -162,6 +163,7 @@ abstract class AbstractAuthenticationManager<
 	 * - [PasswordValidationStatus.Missing2fa]: Password validated, but 2FA verification code is missing
 	 * - [PasswordValidationStatus.Failed2fa]: Password validated, but 2FA verification code is wrong
 	 */
+	@OptIn(ExperimentalTime::class)
 	protected suspend fun isPasswordValid(
 		u: BaseUser,
 		password: String,
