@@ -34,9 +34,9 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.ConflictRequestException
-import org.taktik.icure.exceptions.NonRespectedUnicityException
 import org.taktik.icure.exceptions.DuplicateUserException
 import org.taktik.icure.exceptions.DuplicateUserException.UniqueFieldType
+import org.taktik.icure.exceptions.NonRespectedUnicityException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -412,7 +412,7 @@ open class UserLogicImpl(
 							email = user.email?.takeIf { it.isNotBlank() },
 							mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
 							applicationTokens = emptyMap(),
-						).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
+						).hashPasswordAndTokens(secretValidator::encodeAndValidateSecretsIfNotHashed),
 					isCreate = user.rev == null,
 				)
 			}.takeIf { it.isNotEmpty() }
@@ -538,9 +538,9 @@ open class UserLogicImpl(
 						(
 							key to
 								AuthenticationToken(
-									secretValidator.encodeAndValidateSecrets(
-										authenticationToken,
-										if (tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY) {
+									secretValidator.encodeAndValidateSecret(
+										secret = authenticationToken,
+										secretType = if (tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY) {
 											SecretType.SHORT_TOKEN
 										} else {
 											SecretType.LONG_TOKEN
