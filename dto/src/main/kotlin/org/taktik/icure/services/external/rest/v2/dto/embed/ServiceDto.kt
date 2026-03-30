@@ -30,7 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import java.util.*
+import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,8 +45,7 @@ data class ServiceDto(
 	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
 	val transactionId: String? = null,
 	val identifier: List<IdentifierDto> = emptyList(),
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "Id of the contact during which the service is provided") val contactId: String? = null,
+	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact") val contactId: String? = null,
 	@param:Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
 	val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact")
