@@ -369,7 +369,7 @@ open class UserLogicImpl(
 							email = user.email?.takeIf { it.isNotBlank() },
 							mobilePhone = user.mobilePhone?.takeIf { it.isNotBlank() },
 							applicationTokens = emptyMap(),
-						).hashPasswordAndTokens(secretValidator::encodeAndValidateSecrets),
+						).hashPasswordAndTokens(secretValidator::encodeAndValidateSecretsIfNotHashed),
 					isCreate = user.rev == null,
 				)
 			}.takeIf { it.isNotEmpty() }
@@ -495,9 +495,9 @@ open class UserLogicImpl(
 						(
 							key to
 								AuthenticationToken(
-									secretValidator.encodeAndValidateSecrets(
-										authenticationToken,
-										if (tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY) {
+									secretValidator.encodeAndValidateSecret(
+										secret = authenticationToken,
+										secretType = if (tokenValidityWithinBounds in 1..AuthenticationToken.MAX_SHORT_LIVING_TOKEN_VALIDITY) {
 											SecretType.SHORT_TOKEN
 										} else {
 											SecretType.LONG_TOKEN
@@ -545,7 +545,7 @@ open class UserLogicImpl(
 	override suspend fun changeUserEmail(
 		userId: String,
 		newEmail: String,
-		previousEmail: String
+		previousEmail: String?
 	): User {
 		tailrec suspend fun withRetry(attemptsLeft: Int): User {
 			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
@@ -567,7 +567,7 @@ open class UserLogicImpl(
 	override suspend fun changeUserMobilePhone(
 		userId: String,
 		newMobilePhone: String,
-		previousMobilePhone: String
+		previousMobilePhone: String?
 	): User {
 		tailrec suspend fun withRetry(attemptsLeft: Int): User {
 			val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")

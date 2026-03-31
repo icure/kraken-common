@@ -85,14 +85,14 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 	 * This is useful if the user revision is unknown or might change after the SDK calls the corresponding method,
 	 * for example, if a new authentication token was created by a secret provider following a "requireElevatedSecurity".
 	 */
-	suspend fun changeUserEmail(userId: String, newEmail: String, previousEmail: String): User
+	suspend fun changeUserEmail(userId: String, newEmail: String, previousEmail: String?): User
 
 	/**
 	 * Change user mobile phone of the user if it matches the provided [previousMobilePhone], conflict otherwise.
 	 * This is useful if the user revision is unknown or might change after the SDK calls the corresponding method,
 	 * for example, if a new authentication token was created by a secret provider following a "requireElevatedSecurity".
 	 */
-	suspend fun changeUserMobilePhone(userId: String, newMobilePhone: String, previousMobilePhone: String): User
+	suspend fun changeUserMobilePhone(userId: String, newMobilePhone: String, previousMobilePhone: String?): User
 
 	/**
 	 * Changes the password of the user.
