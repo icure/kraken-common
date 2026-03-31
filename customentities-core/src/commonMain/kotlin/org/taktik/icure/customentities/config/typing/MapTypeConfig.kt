@@ -49,10 +49,11 @@ data class MapTypeConfig(
 			 * Each key must be an entry of the referenced enum
 			 */
 			data class EnumKeyValidation(
-				val enumReference: String
+				val enumReference: String,
+				val isBuiltin: Boolean = false,
 			) : KeyValidation {
 				override fun equivalentTypeConfig(): GenericTypeConfig =
-					EnumTypeConfig(enumReference = enumReference, isBuiltin = false, nullable = false)
+					EnumTypeConfig(enumReference = enumReference, isBuiltin = isBuiltin, nullable = false)
 			}
 
 			/**
