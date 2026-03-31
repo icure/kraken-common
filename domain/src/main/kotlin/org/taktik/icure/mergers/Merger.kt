@@ -237,11 +237,21 @@ abstract class Merger<T : Any> {
 		if (l == null || r == null) {
 			return true
 		}
+
 		val leftDuplicates = l.groupBy { idGetter(it) }.filterValues { it.size > 1 }
 		val rightDuplicates = r.groupBy { idGetter(it) }.filterValues { it.size > 1 }
 
-		if (leftDuplicates.keys != rightDuplicates.keys &&
-			leftDuplicates.any { (k, v) -> rightDuplicates.getValue(k).toSet() != v.toSet() }) {
+		// l = (M1, M2, M2-b) r = (M1) -> mergeable
+		// l = (M1, M2, M2-b) r = (M1, M2) -> mergeable
+		// l = (M1, M2, M2-b) r = (M1, M2-b, M2) -> mergeable
+		// l = (M1, M2, M2-b) r = (M1, M2-c, M2) -> non-mergeable
+		if (
+			leftDuplicates.keys.intersect(rightDuplicates.keys).any {
+				val ld = leftDuplicates.getValue(it)
+				val rd = rightDuplicates.getValue(it)
+				!ld.containsAll(rd) && !rd.containsAll(ld)
+			}
+		) {
 			return false
 		}
 
