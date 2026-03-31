@@ -3,10 +3,8 @@ package org.taktik.icure.customentities.config.typing
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.Include
-import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
@@ -54,7 +52,7 @@ data class MapTypeConfig(
 				val enumReference: String
 			) : KeyValidation {
 				override fun equivalentTypeConfig(): GenericTypeConfig =
-					EnumTypeConfig(enumReference = enumReference, isBuiltIn = false, nullable = false)
+					EnumTypeConfig(enumReference = enumReference, isBuiltin = false, nullable = false)
 			}
 
 			/**

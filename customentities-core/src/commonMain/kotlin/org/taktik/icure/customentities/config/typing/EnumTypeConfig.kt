@@ -15,7 +15,7 @@ import org.taktik.icure.errorreporting.addError
 @JsonInclude(Include.NON_DEFAULT)
 data class EnumTypeConfig(
 	val enumReference: String,
-	val isBuiltIn: Boolean = false,
+	val isBuiltin: Boolean = false,
 	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
@@ -23,12 +23,12 @@ data class EnumTypeConfig(
 
 	@get:JsonIgnore
 	override val enumDefinitionDependencies: Set<Pair<String, Boolean>> get() =
-		setOf(Pair(enumReference, isBuiltIn))
+		setOf(Pair(enumReference, isBuiltin))
 
 	override fun validateConfig(
 		context: CustomEntityConfigValidationContext,
 	) {
-		val definition = if (isBuiltIn) {
+		val definition = if (isBuiltin) {
 			context.builtinDefinitions.getBuiltinEnumDefinition(enumReference)
 		} else {
 			context.resolution.resolveEnumReference(enumReference)
@@ -37,7 +37,7 @@ data class EnumTypeConfig(
 			context.validation.addError(
 				"GE-ENUM-MISSINGREF",
 				"ref" to truncateValueForErrorMessage(enumReference),
-				"builtin" to isBuiltIn
+				"builtin" to isBuiltin
 			)
 		}
 		// definition should have already been validated
@@ -50,7 +50,7 @@ data class EnumTypeConfig(
 		if (value !is RawJson.JsonString) {
 			context.validation.addError("GE-ENUM-JSON")
 		} else {
-			val enumDefinitionEntries = if (isBuiltIn) {
+			val enumDefinitionEntries = if (isBuiltin) {
 				context.builtinDefinitions.getRequiredEnumDefinition(enumReference).entries
 			} else {
 				context.resolution.resolveRequiredEnumReference(enumReference).entries
@@ -60,7 +60,7 @@ data class EnumTypeConfig(
 					"GE-ENUM-VALUE",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumReference),
-					"builtin" to isBuiltIn
+					"builtin" to isBuiltin
 				)
 			}
 		}
