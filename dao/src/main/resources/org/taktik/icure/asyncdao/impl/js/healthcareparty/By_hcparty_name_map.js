@@ -41,7 +41,10 @@ function(doc) {
         if (doc.lastName || doc.firstName) {
             emit_normalized_substrings(doc.lastName + (doc.firstName ? doc.firstName : ""), doc._id, latin_map);
         }
-	    if (doc.speciality) {
+        if (doc.name) {
+            emit_normalized_substrings(doc.name, doc._id, latin_map);
+        }
+        if (doc.speciality) {
 		    emit_normalized_substrings(doc.speciality, doc._id, latin_map);
 	    }
     }
