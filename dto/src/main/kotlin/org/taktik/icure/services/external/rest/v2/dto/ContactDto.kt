@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -32,6 +33,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
@@ -135,11 +137,14 @@ data class ContactDto(
 	@param:Schema(description = "The security metadata of this contact, tracking access control information.") override val securityMetadata: SecurityMetadataDto? = null,
 	/** Comments and notes recorded by a healthcare party about this contact. */
 	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

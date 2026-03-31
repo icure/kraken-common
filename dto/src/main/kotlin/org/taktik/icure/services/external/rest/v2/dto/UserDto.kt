@@ -23,10 +23,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationTagDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto
@@ -108,10 +110,13 @@ data class UserDto(
 	/** Metadata used to enrich the user with information from the cloud environment. */
 	@param:Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.")
 	val systemMetadata: SystemMetadata? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,
-	Serializable {
+	Serializable,
+	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

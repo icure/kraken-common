@@ -53,6 +53,7 @@ abstract class CalendarItemV2Mapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "tentativeTimestamp", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {

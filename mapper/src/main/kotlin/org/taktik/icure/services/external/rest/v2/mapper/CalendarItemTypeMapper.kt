@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -27,7 +28,18 @@ import org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DurationConfigV2Mapper
 
-@Mapper(componentModel = "spring", uses = [DurationConfigV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [DurationConfigV2Mapper::class, PropertyStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface CalendarItemTypeV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
@@ -35,6 +47,7 @@ interface CalendarItemTypeV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(calendarItemTypeDto: CalendarItemTypeDto): CalendarItemType
 	fun map(calendarItemType: CalendarItemType): CalendarItemTypeDto
 }

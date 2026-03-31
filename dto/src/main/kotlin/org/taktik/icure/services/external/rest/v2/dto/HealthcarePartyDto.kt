@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkNonNullable
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
@@ -31,6 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
@@ -212,13 +214,16 @@ data class HealthcarePartyDto(
 	override val publicKey: SpkiHexStringDto? = null,
 	/** Public keys for OAEP with SHA-256 encryption. */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,
 	NamedDto,
 	PersonDto,
 	CryptoActorDto,
 	DataOwnerDto,
 	HasCodesDto,
-	HasTagsDto {
+	HasTagsDto,
+	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

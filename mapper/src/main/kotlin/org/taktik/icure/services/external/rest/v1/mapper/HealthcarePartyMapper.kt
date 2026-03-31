@@ -27,7 +27,15 @@ interface HealthcarePartyMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "publicProperties", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "extensionsVersion", ignore = true),
 	)
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
-	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
+
+	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto {
+		require (healthcareParty.extensions == null)  { "Patient has extensions and can't be used with v1 endpoints" }
+		return doMap(healthcareParty)
+	}
+
+	fun doMap(healthcareParty: HealthcareParty): HealthcarePartyDto
 }

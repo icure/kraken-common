@@ -18,6 +18,7 @@ import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.FlatRateTarification
 import org.taktik.icure.entities.embed.Gender
@@ -177,19 +178,23 @@ data class HealthcareParty(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocument,
 	Named,
 	Person,
 	CryptoActor,
 	DataOwner,
 	HasTags,
-	HasCodes {
+	HasCodes,
+	ExtendableRoot {
 	companion object : DynamicInitializer<HealthcareParty>
 
 	fun merge(other: HealthcareParty) = HealthcareParty(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: HealthcareParty) = super<StoredDocument>.solveConflictsWith(other) +
 		super<Person>.solveConflictsWith(other) +
 		super<CryptoActor>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"speciality" to (this.speciality ?: other.speciality),
 			"bankAccount" to (this.bankAccount ?: other.bankAccount),

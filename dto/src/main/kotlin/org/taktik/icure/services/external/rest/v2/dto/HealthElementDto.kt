@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -30,6 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.LateralityDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionDto
@@ -122,11 +124,14 @@ data class HealthElementDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

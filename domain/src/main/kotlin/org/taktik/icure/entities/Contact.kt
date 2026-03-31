@@ -17,6 +17,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -116,15 +117,20 @@ data class Contact(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	val notes: List<Annotation> = emptyList(),
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
-	Encryptable {
+	Encryptable,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Contact>
 
 	fun merge(other: Contact) = Contact(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Contact) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +
 		super<Encryptable>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
 			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),

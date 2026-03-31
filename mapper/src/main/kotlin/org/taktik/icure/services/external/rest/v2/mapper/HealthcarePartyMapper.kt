@@ -53,6 +53,7 @@ interface HealthcarePartyV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
 	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
 }

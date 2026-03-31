@@ -25,6 +25,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.Named
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier
@@ -128,16 +129,20 @@ data class Device(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	Named,
 	CryptoActor,
-	DataOwner {
+	DataOwner,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Device>
 
 	fun merge(other: Device) = HealthcareParty(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: Device) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<CryptoActor>.solveConflictsWith(other) +
 		super<DataOwner>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"parentId" to (this.parentId ?: other.parentId),
 			"picture" to (this.picture ?: other.picture),

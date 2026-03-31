@@ -13,6 +13,7 @@ import org.taktik.icure.annotations.entities.ContentValue
 import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -43,7 +44,11 @@ data class CalendarItemType(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-) : StoredDocument {
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
+) : StoredDocument,
+	ExtendableRoot {
 	companion object : DynamicInitializer<CalendarItemType>
 
 	init {
@@ -53,7 +58,7 @@ data class CalendarItemType(
 	}
 
 	fun merge(other: CalendarItemType) = CalendarItemType(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CalendarItemType) = super.solveConflictsWith(other) +
+	fun solveConflictsWith(other: CalendarItemType) = super<StoredDocument>.solveConflictsWith(other) + super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"name" to (this.name ?: other.name),
 			"color" to (this.color ?: other.color),

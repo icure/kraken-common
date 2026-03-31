@@ -18,6 +18,7 @@ import org.taktik.icure.entities.embed.DocumentLocation
 import org.taktik.icure.entities.embed.DocumentStatus
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
@@ -109,10 +110,13 @@ data class Document(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	HasDataAttachments<Document>,
-	Encryptable {
+	Encryptable,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Document> {
 		fun mainAttachmentKeyFromId(id: String) = id
 	}
@@ -157,6 +161,7 @@ data class Document(
 	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +
 		super<Encryptable>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"size" to (this.size ?: other.size),
 			"hash" to (this.hash ?: other.hash),

@@ -17,6 +17,7 @@ import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
@@ -111,11 +112,15 @@ data class User(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocument,
 	Principal,
 	Cloneable,
 	Serializable,
-	BaseUser {
+	BaseUser,
+	ExtendableRoot {
 	companion object : DynamicInitializer<User> {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
 	}
@@ -125,7 +130,7 @@ data class User(
 	@JsonIgnore override val use2fa: Boolean? = null
 
 	fun merge(other: User) = User(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: User) = super.solveConflictsWith(other) +
+	fun solveConflictsWith(other: User) = super<StoredDocument>.solveConflictsWith(other) + super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
 			"name" to (this.name ?: other.name),

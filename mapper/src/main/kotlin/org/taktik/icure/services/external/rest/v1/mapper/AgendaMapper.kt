@@ -26,12 +26,17 @@ abstract class AgendaMapper {
 		Mapping(target = "slottingAlgorithm", ignore = true),
 		Mapping(target = "unpublished", ignore = true),
 		Mapping(target = "publicBookingQuota", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "extensionsVersion", ignore = true),
 	)
 	abstract fun map(agendaDto: AgendaDto): Agenda
 
 	protected abstract fun mapEntity(agenda: Agenda): AgendaDto
 
 	fun map(agenda: Agenda): AgendaDto {
+		require(agenda.extensions == null) {
+			"Agenda has extensions and can't be used with v1 endpoints"
+		}
 		require(agenda.userRights.isEmpty()) {
 			"agendas with userRights are not supported on v1 endpoints."
 		}

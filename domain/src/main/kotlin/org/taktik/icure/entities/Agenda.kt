@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.AgendaSlottingAlgorithm
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
@@ -333,7 +334,11 @@ data class Agenda(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-) : StoredICureDocument {
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
+) : StoredICureDocument,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Agenda>
 
 	init {
@@ -384,7 +389,7 @@ data class Agenda(
 	fun merge(other: Agenda) = Agenda(args = this.solveConflictsWith(other))
 
 	@Suppress("DEPRECATION")
-	fun solveConflictsWith(other: Agenda) = super.solveConflictsWith(other) +
+	fun solveConflictsWith(other: Agenda) = super<StoredICureDocument>.solveConflictsWith(other) + super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"name" to (this.name ?: other.name),
 			"userId" to (this.userId ?: other.userId),

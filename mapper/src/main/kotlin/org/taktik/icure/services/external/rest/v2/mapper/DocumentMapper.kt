@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -40,6 +41,13 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 		SecurityMetadataV2Mapper::class,
 	],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
 )
 interface DocumentV2Mapper {
 	@Mappings(
@@ -48,6 +56,7 @@ interface DocumentV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(documentDto: DocumentDto): Document
 
 	@Mappings(

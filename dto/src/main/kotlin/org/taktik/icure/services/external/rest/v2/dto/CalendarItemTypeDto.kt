@@ -22,7 +22,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,7 +65,10 @@ data class CalendarItemTypeDto(
 	val subjectByLanguage: Map<String, String> = emptyMap(),
 	/** Public properties exposed to anonymous endpoints for public calendar items. */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
-) : StoredDocumentDto {
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
+) : StoredDocumentDto,
+	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

@@ -16,6 +16,7 @@ import org.taktik.icure.entities.embed.CareTeamMember
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Episode
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
@@ -124,15 +125,19 @@ data class HealthElement(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
-	Encryptable {
+	Encryptable,
+	ExtendableRoot {
 	companion object : DynamicInitializer<HealthElement>
 
 	fun merge(other: HealthElement) = HealthElement(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: HealthElement) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +
 		super<Encryptable>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"identifiers" to mergeListsDistinct(
 				this.identifiers,

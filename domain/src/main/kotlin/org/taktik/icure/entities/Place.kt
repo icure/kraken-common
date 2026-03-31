@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.invoke
@@ -30,12 +31,15 @@ data class Place(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredDocument,
-	Named {
+	Named,
+	ExtendableRoot {
 	companion object : DynamicInitializer<Place>
 
 	fun merge(other: Place) = Place(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Place) = super.solveConflictsWith(other) +
+	fun solveConflictsWith(other: Place) = super<StoredDocument>.solveConflictsWith(other) + super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"name" to (this.name ?: other.name),
 			"address" to (this.address ?: other.address),

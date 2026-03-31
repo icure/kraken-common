@@ -28,10 +28,13 @@ abstract class CalendarItemMapper {
 		Mapping(target = "availabilitiesAssignmentStrategy", ignore = true),
 		Mapping(target = "tentativeTimestamp", ignore = true),
 		Mapping(target = "properties", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "extensionsVersion", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
+		require(calendarItem.extensions == null) { "CalendarItem has extensions and can't be used with v1 endpoints" }
 		require(calendarItem.resourceGroup == null) { "Can't use calendar item with `resourceGroup` on v1 apis" }
 		require(calendarItem.availabilitiesAssignmentStrategy == null) { "Can't use calendar item with `availabilitiesAssignmentStrategy` on v1 apis" }
 		return doMap(calendarItem)

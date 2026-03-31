@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -30,7 +31,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.AgendaSlottingAlg
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ResourceGroupAllocationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.RightV2Mapper
 
-@Mapper(componentModel = "spring", uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface AgendaV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
@@ -38,6 +50,7 @@ interface AgendaV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(agendaDto: AgendaDto): Agenda
 	fun map(agenda: Agenda): AgendaDto
 }

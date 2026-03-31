@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -31,7 +32,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapp
 import org.taktik.icure.services.external.rest.v2.mapper.security.PermissionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.security.UnsecureAuthenticationTokenV2Mapper
 
-@Mapper(componentModel = "spring", uses = [PermissionV2Mapper::class, PropertyStubV2Mapper::class, IdentifierV2Mapper::class, UnsecureAuthenticationTokenV2Mapper::class, UnsecureUserV2Mapper.SystemMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [PermissionV2Mapper::class, PropertyStubV2Mapper::class, IdentifierV2Mapper::class, UnsecureAuthenticationTokenV2Mapper::class, UnsecureUserV2Mapper.SystemMetadataV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface UnsecureUserV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
@@ -39,7 +51,10 @@ interface UnsecureUserV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "applicationTokens", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "extensionsVersion", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(userDto: UserDto): User
 
 	@Mappings(

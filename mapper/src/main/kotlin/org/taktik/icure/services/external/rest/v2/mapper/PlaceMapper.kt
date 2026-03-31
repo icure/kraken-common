@@ -46,6 +46,7 @@ interface PlaceV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)
+	// TODO update with proper validation context in future
 	fun map(placeDto: PlaceDto): Place
 	fun map(place: Place): PlaceDto
 }

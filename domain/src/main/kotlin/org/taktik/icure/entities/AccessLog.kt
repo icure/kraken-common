@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.utils.DynamicInitializer
@@ -58,15 +59,19 @@ data class AccessLog(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
+	override val extensions: RawJson.JsonObject? = null,
+	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
-	Encryptable {
+	Encryptable,
+	ExtendableRoot {
 	companion object : DynamicInitializer<AccessLog>
 
 	fun merge(other: AccessLog) = AccessLog(args = this.solveConflictsWith(other))
 	fun solveConflictsWith(other: AccessLog) = super<StoredICureDocument>.solveConflictsWith(other) +
 		super<HasEncryptionMetadata>.solveConflictsWith(other) +
 		super<Encryptable>.solveConflictsWith(other) +
+		super<ExtendableRoot>.solveConflictsWith(other) +
 		mapOf(
 			"objectId" to (this.objectId ?: other.objectId),
 			"accessType" to (this.accessType ?: other.accessType),

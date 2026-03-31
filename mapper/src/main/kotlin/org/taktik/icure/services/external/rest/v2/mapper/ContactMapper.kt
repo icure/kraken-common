@@ -61,6 +61,7 @@ interface ContactV2Mapper {
 		Mapping(target = "participants", expression = """kotlin(ContactV2Mapper.mapParticipants(contactDto, cardinalVersionConfig))"""),
 		Mapping(target = "participantList", expression = """kotlin(ContactV2Mapper.mapParticipantList(contactDto, contactParticipantV2Mapper, cardinalVersionConfig))"""),
 	)
+	// TODO update with proper validation context in future
 	suspend fun map(contactDto: ContactDto): Contact
 
 	@Mappings(
