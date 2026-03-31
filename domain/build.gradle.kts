@@ -52,6 +52,12 @@ dependencies {
 	testImplementation(coreLibs.bundles.kotestLibs)
 }
 
+kotlin {
+	compilerOptions {
+		freeCompilerArgs = listOf("-Xcontext-parameters")
+	}
+}
+
 val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersFromJsonTask>("generateMergersFromJson") {
 	inputFolder.set(layout.buildDirectory.dir("generated/ksp/main/resources"))
 	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))

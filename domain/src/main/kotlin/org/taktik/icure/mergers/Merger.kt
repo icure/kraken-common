@@ -139,7 +139,7 @@ abstract class Merger<T : Any> {
 			base.subList(startIndex + sublist.size, base.size)
 	}
 
-	protected fun <M, ID> mergeSetsOfMergeable(
+	fun <M, ID> mergeSetsOfMergeable(
 		l: Set<M>,
 		r: Set<M>,
 		merge: (M, M) -> M,
@@ -226,11 +226,11 @@ abstract class Merger<T : Any> {
 	): Set<ID> = l.groupBy { idGetter(it) }.filterValues { it.size > 1 }.mapTo(mutableSetOf()) { it.key } +
 		r.groupBy { idGetter(it) }.filterValues { it.size > 1 }.mapTo(mutableSetOf()) { it.key }
 
-	protected inline fun <M, ID> canMergeSetsOfMergeable(
+	inline fun <M, ID> canMergeSetsOfMergeable(
 		l: Set<M>?,
 		r: Set<M>?,
 		canMerge: (M, M) -> Boolean,
-		idComparator: (M, M) -> Boolean,
+		idEquals: (M, M) -> Boolean,
 		idGetter: (M) -> ID
 	): Boolean {
 		// If either are null, I can always merge setting the other
@@ -257,7 +257,7 @@ abstract class Merger<T : Any> {
 
 		return l.filter { !leftDuplicates.containsKey(idGetter(it)) }.all { leftItem ->
 			val rightItem = r.firstOrNull {
-				!rightDuplicates.containsKey(idGetter(it)) && idComparator(it, leftItem)
+				!rightDuplicates.containsKey(idGetter(it)) && idEquals(it, leftItem)
 			}
 			rightItem == null || canMerge(leftItem, rightItem)
 		}

@@ -22,7 +22,6 @@ import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
 import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
-import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.credentials.SecretType
@@ -89,11 +88,6 @@ data class User(
 	val healthcarePartyId: String? = null,
 	val patientId: String? = null,
 	val deviceId: String? = null,
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeMapsOfSetsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct"]
-	)
 	val autoDelegations: Map<DelegationTag, Set<String>> = emptyMap(), // DelegationTag -> healthcarePartyIds
 
 	@param:JsonSerialize(using = InstantSerializer::class)
@@ -107,11 +101,6 @@ data class User(
 	@Deprecated("Application tokens stocked in clear and eternal. Replaced by authenticationTokens")
 	override val applicationTokens: Map<String, String>? = null,
 
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeAuthenticationTokens({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.User.Companion.mergeAuthenticationTokens"]
-	)
 	override val authenticationTokens: Map<String, AuthenticationToken> = emptyMap(),
 
 	/**

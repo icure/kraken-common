@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.embed.Periodicity
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -33,11 +32,6 @@ data class Code(
 	val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
 	val flags: Set<CodeFlag> = emptySet(), // flags (like female only) for the code
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
-	)
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	val data: String? = null,
 	val appendices: Map<AppendixType, String> = emptyMap(),

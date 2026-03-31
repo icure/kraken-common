@@ -5,13 +5,12 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
-/**
- * Created by aduchate on 21/01/13, 15:37
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["insuranceId", "startDate"])
 data class Insurability(
 	// Key from InsuranceParameter
 	val parameters: Map<String, String> = emptyMap(),

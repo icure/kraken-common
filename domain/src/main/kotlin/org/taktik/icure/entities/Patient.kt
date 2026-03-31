@@ -33,9 +33,7 @@ import org.taktik.icure.entities.embed.PersonalStatus
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SchoolingInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
-import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -163,41 +161,11 @@ data class Patient(
 	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class)
 	val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeInsurabilities({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.Patient.Companion.mergeInsurabilities"]
-	)
 	val insurabilities: List<Insurability> = emptyList(),
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
 	val partnerships: List<Partnership> = emptyList(),
 	val patientHealthCareParties: List<PatientHealthCareParty> = emptyList(),
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
 	val financialInstitutionInformation: List<FinancialInstitutionInformation> = emptyList(),
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
 	val medicalHouseContracts: List<MedicalHouseContract> = emptyList(),
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val patientProfessions: List<CodeStub> = emptyList(),
 
@@ -211,22 +179,8 @@ data class Patient(
 	@Deprecated("Use properties instead") val nativeCountry: CodeStub? = null,
 	@Deprecated("Use properties instead") val socialStatus: CodeStub? = null,
 	@Deprecated("Use properties instead") val mainSourceOfIncome: CodeStub? = null,
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
-	@Deprecated("Use properties instead")
-	val schoolingInfos: List<SchoolingInfo> = emptyList(),
-
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
-	@Deprecated("Use properties instead")
-	val employementInfos: List<EmploymentInfo> = emptyList(),
+	@Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfo> = emptyList(),
+	@Deprecated("Use properties instead") val employementInfos: List<EmploymentInfo> = emptyList(),
 	override val properties: Set<PropertyStub> = emptySet(),
 
 	// One AES key per HcParty, encrypted using this hcParty public key and the other hcParty public key
@@ -266,18 +220,6 @@ data class Patient(
 	CryptoActor,
 	DataOwner,
 	Encryptable {
-
-	companion object {
-		fun mergeInsurabilities(
-			thisInsurabilities: List<Insurability>,
-			otherInsurabilities: List<Insurability>
-		): List<Insurability> = mergeListsDistinct(
-			thisInsurabilities,
-			otherInsurabilities,
-			{ a, b -> a.insuranceId == b.insuranceId && a.startDate == b.startDate },
-			{ a, b -> if (a.endDate != null) a else b },
-		)
-	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

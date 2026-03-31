@@ -13,7 +13,6 @@ import org.taktik.icure.entities.base.Named
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
-import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotBlank
@@ -95,11 +94,6 @@ data class PlanOfAction(
 	val documentIds: Set<String> = emptySet(),
 	val prescriberId: String? = null, // healthcarePartyId
 	val numberOfCares: Int? = null,
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val careTeamMemberships: List<CareTeamMembership> = emptyList(),
 	override val encryptedSelf: String? = null,

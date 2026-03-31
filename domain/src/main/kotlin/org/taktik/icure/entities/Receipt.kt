@@ -17,7 +17,6 @@ import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
-import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -40,11 +39,7 @@ data class Receipt(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
-	@MergeStrategyUse(
-		canMerge = "true",
-		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
-		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"]
-	)
+
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
 

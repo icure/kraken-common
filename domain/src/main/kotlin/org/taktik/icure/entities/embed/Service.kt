@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Base64String
+import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
 import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
@@ -73,16 +74,16 @@ data class Service(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
 	val identifier: List<Identifier> = emptyList(),
-	@JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val formIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val secretForeignKeys: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val formIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val secretForeignKeys: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
 	@MergeStrategyNotBlank
 	val label: String? = null,
 	@Deprecated("Deleted in V2") val dataClassName: String? = null,
