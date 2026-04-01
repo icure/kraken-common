@@ -11,7 +11,7 @@ import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Identifier
 
-interface HealthElementDAO : GenericDAO<HealthElement> {
+interface HealthElementDAO : ConflictDAO<HealthElement> {
 	fun listHealthElementIdsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String): Flow<String>
 
 	fun listHealthElementIdsByHcPartyAndSecretPatientKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String>
@@ -66,8 +66,6 @@ interface HealthElementDAO : GenericDAO<HealthElement> {
 	 * @return a [Flow] of HealthElement ids.
 	 */
 	fun listHealthElementIdsByDataOwnerPatientOpeningDate(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<HealthElement>
 
 	fun findHealthElementsByIds(datastoreInformation: IDatastoreInformation, healthElementIds: Flow<String>): Flow<ViewQueryResultEvent>
 

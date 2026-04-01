@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Agenda
@@ -15,7 +16,7 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface AgendaService {
+interface AgendaService : EntityWithConflictResolutionService<Agenda> {
 	suspend fun createAgenda(agenda: Agenda): Agenda
 	fun createAgendas(agendas: List<Agenda>): Flow<Agenda>
 

@@ -21,7 +21,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.FormDAO
@@ -48,7 +47,7 @@ internal class FormDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Form>(
+) : ConflictDAOImpl<Form>(
 	Form::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -172,15 +171,13 @@ internal class FormDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Form>(datastoreInformation, "conflicts", null)
 
-		emitAll(
-			client.queryViewIncludeDocsNoValue<String, Form>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map { it.doc },
-		)
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Form>(datastoreInformation, "conflicts", null)
 
 	@Views(
 		View(

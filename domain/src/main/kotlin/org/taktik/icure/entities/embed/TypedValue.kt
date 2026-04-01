@@ -22,9 +22,9 @@ data class TypedValue(
 	val doubleValue: Double? = null,
 	val stringValue: String? = null,
 
-	@JsonSerialize(using = InstantSerializer::class)
+	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonDeserialize(using = InstantDeserializer::class)
+	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val dateValue: Instant? = null,
 	override val encryptedSelf: String? = null,
 ) : Comparable<TypedValue>,
@@ -68,12 +68,10 @@ data class TypedValue(
 				} else {
 					throw IllegalArgumentException("Illegal string value")
 				}
-				TypedValuesType.DATE -> if (value is Instant) {
-					TypedValue(dateValue = value, type = type)
-				} else if (value is Date) {
-					TypedValue(dateValue = (value as Date).toInstant(), type = type)
-				} else {
-					throw IllegalArgumentException("Illegal date value")
+				TypedValuesType.DATE -> when (value) {
+					is Instant -> TypedValue(dateValue = value, type = type)
+					is Date -> TypedValue(dateValue = (value as Date).toInstant(), type = type)
+					else -> throw IllegalArgumentException("Illegal date value")
 				}
 			}
 		}
@@ -93,12 +91,12 @@ data class TypedValue(
 
 	override fun toString(): String {
 		if (type != null) {
-			when (type) {
-				TypedValuesType.BOOLEAN -> return booleanValue.toString()
-				TypedValuesType.INTEGER -> return integerValue.toString()
-				TypedValuesType.DOUBLE -> return doubleValue.toString()
-				TypedValuesType.STRING, TypedValuesType.CLOB, TypedValuesType.JSON -> return stringValue!!
-				TypedValuesType.DATE -> return dateValue.toString()
+			return when (type) {
+				TypedValuesType.BOOLEAN -> booleanValue.toString()
+				TypedValuesType.INTEGER -> integerValue.toString()
+				TypedValuesType.DOUBLE -> doubleValue.toString()
+				TypedValuesType.STRING, TypedValuesType.CLOB, TypedValuesType.JSON -> stringValue!!
+				TypedValuesType.DATE -> dateValue.toString()
 			}
 		}
 		return super.toString()

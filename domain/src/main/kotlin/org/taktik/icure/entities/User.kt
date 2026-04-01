@@ -10,8 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.constants.Users
 import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.base.PropertyStub
@@ -22,12 +20,13 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.entities.security.Permission
 import org.taktik.icure.entities.security.Principal
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSetsDistinct
+import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 import org.taktik.icure.security.credentials.SecretType
-import org.taktik.icure.utils.DynamicInitializer
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import java.io.Serializable
@@ -60,11 +59,14 @@ import java.time.Instant
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class User(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
-	@field:NotNull(autoFix = AutoFix.NOW) val created: Long? = null,
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.NOW)
+	val created: Long? = null,
 
 	val identifier: List<Identifier> = listOf(),
 
@@ -73,7 +75,7 @@ data class User(
 	/**
 	 * Local roles of the user. May not actually reflect the roles the user has in the cloud environment.
 	 */
-	val roles: Set<String> = emptySet(),
+	@NonMergeable val roles: Set<String> = emptySet(),
 	/**
 	 * Local permissions of the user. May not actually reflect the permissions the user has in the cloud system.
 	 */
@@ -93,7 +95,7 @@ data class User(
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val termsOfUseDate: Instant? = null,
 
-	@param:ContentValue(ContentValues.EMAIL) val email: String? = null,
+	val email: String? = null,
 	val mobilePhone: String? = null,
 
 	@Deprecated("Application tokens stocked in clear and eternal. Replaced by authenticationTokens")
@@ -105,7 +107,9 @@ data class User(
 	 * Metadata used to enrich the user with information from the cloud environment. Not actually stored as part of the
 	 * user the database, can't be changed through changes of the local/replicated user.
 	 */
-	@JsonIgnore val systemMetadata: SystemMetadata? = null,
+	@JsonIgnore
+	@MergeStrategyIgnore
+	val systemMetadata: SystemMetadata? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
@@ -116,36 +120,39 @@ data class User(
 	Cloneable,
 	Serializable,
 	BaseUser {
-	companion object : DynamicInitializer<User> {
+	companion object {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
+
+		fun mergeAuthenticationTokens(
+			left: Map<String, AuthenticationToken>,
+			right: Map<String, AuthenticationToken>
+		): Map<String, AuthenticationToken> {
+			val result = mutableMapOf<String, AuthenticationToken>()
+			left.forEach { (key, leftToken) ->
+				if (!right.containsKey(key)) {
+					result[key] = leftToken
+				} else {
+					val rightToken = right.getValue(key)
+					result[key] = listOf(leftToken, rightToken).maxBy { it.creationTime }
+				}
+			}
+			right.filterKeys { k ->
+				!result.containsKey(k)
+			}.forEach { (key, rightToken) ->
+				if (!left.containsKey(key)) {
+					result[key] = rightToken
+				} else {
+					val leftToken = right.getValue(key)
+					result[key] = listOf(leftToken, rightToken).maxBy { it.creationTime }
+				}
+			}
+			return result
+		}
 	}
 
 	@JsonIgnore override val secret: String? = null
 
 	@JsonIgnore override val use2fa: Boolean? = null
-
-	fun merge(other: User) = User(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: User) = super.solveConflictsWith(other) +
-		mapOf(
-			"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
-			"name" to (this.name ?: other.name),
-			"properties" to (other.properties + this.properties),
-			"permissions" to (other.permissions + this.permissions),
-			"type" to (this.type ?: other.type),
-			"status" to (this.status ?: other.status),
-			"login" to (this.login ?: other.login),
-			"passwordHash" to (this.passwordHash ?: other.passwordHash),
-			"secret" to (this.secret ?: other.secret),
-			"isUse2fa" to (this.use2fa ?: other.use2fa),
-			"groupId" to (this.groupId ?: other.groupId),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"patientId" to (this.patientId ?: other.patientId),
-			"autoDelegations" to mergeMapsOfSetsDistinct(this.autoDelegations, other.autoDelegations),
-			"termsOfUseDate" to (this.termsOfUseDate ?: other.termsOfUseDate),
-			"email" to (this.email ?: other.email),
-			"applicationTokens" to (other.applicationTokens?.let { it + (this.applicationTokens ?: emptyMap()) } ?: this.applicationTokens),
-			"authenticationTokens" to (other.authenticationTokens + this.authenticationTokens),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

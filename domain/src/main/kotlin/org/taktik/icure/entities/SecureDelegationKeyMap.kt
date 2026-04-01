@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Delegation
@@ -21,7 +19,7 @@ import org.taktik.icure.entities.utils.Base64String
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SecureDelegationKeyMap(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * The secure delegation key this map refers to.
@@ -61,20 +59,19 @@ data class SecureDelegationKeyMap(
 	}
 
 	override fun withDeletionDate(deletionDate: Long?): SecureDelegationKeyMap = this.copy(deletionDate = deletionDate)
-
-	fun solveConflictsWith(other: SecureDelegationKeyMap): Map<String, Any?> {
-		require(this.delegationKey == other.delegationKey) {
-			"Can't merge automatically secure delegation key maps with different delegation keys."
-		}
-		return super<StoredDocument>.solveConflictsWith(other) +
-			super<HasEncryptionMetadata>.solveConflictsWith(other) +
-			super<Encryptable>.solveConflictsWith(other) +
-			mapOf(
-				"delegator" to (this.delegator ?: other.delegator),
-				"delegate" to (this.delegate ?: other.delegate),
-				"delegationKey" to this.delegationKey,
-			)
-	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 
 	override fun withIdRev(id: String?, rev: String): SecureDelegationKeyMap = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 

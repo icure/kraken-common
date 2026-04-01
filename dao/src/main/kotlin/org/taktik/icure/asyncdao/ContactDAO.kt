@@ -16,7 +16,7 @@ import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.embed.SubContact
 
-interface ContactDAO : GenericDAO<Contact> {
+interface ContactDAO : ConflictDAO<Contact> {
 
 	// region contact
 
@@ -159,7 +159,6 @@ interface ContactDAO : GenericDAO<Contact> {
 	 */
 	fun listContactIdsByExternalId(datastoreInformation: IDatastoreInformation, externalId: String): Flow<String>
 	fun findContactsByHcPartyServiceId(datastoreInformation: IDatastoreInformation, hcPartyId: String, serviceId: String): Flow<Contact>
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Contact>
 	fun relink(cs: Flow<Contact>): Flow<Contact>
 
 	/**

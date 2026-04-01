@@ -9,8 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.CodeStubDeserializer
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
 /**
@@ -28,6 +27,7 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(using = CodeStubDeserializer::class)
+@Mergeable(["id", "context"])
 data class CodeStub(
 	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	override val context: String? = null, // ex: When embedded the context where this code is used
@@ -39,15 +39,12 @@ data class CodeStub(
 ) : CodeIdentification,
 	Serializable {
 
-	companion object : DynamicInitializer<CodeStub> {
+	companion object {
 		fun from(type: String, code: String, version: String) = CodeStub(id = "$type|$code|$version", type = type, code = code, version = version)
 		fun fromId(id: String) = id.split("|")
 			.also { require(it.size == 3) { "id: $id must have type|code|version format" } }
 			.let { CodeStub(id = id, type = it[0], code = it[1], version = it[2]) }
 	}
-
-	fun merge(other: CodeStub) = CodeStub(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CodeStub) = super.solveConflictsWith(other)
 
 	override fun normalizeIdentification(): CodeStub {
 		val parts = this.id.split("|").toTypedArray()

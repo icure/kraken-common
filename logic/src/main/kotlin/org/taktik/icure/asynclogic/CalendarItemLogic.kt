@@ -13,7 +13,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface CalendarItemLogic :
 	EntityPersister<CalendarItem>,
-	EntityWithSecureDelegationsLogic<CalendarItem> {
+	EntityWithSecureDelegationsLogic<CalendarItem>,
+	ConflictResolutionLogic<CalendarItem> {
 
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem
 	fun createCalendarItems(calendarItems: List<CalendarItem>): Flow<CalendarItem>

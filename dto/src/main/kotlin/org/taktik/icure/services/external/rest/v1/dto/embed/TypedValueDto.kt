@@ -11,7 +11,7 @@ import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
-import java.util.Date
+import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -104,12 +104,12 @@ data class TypedValueDto(
 
 	override fun toString(): String {
 		if (type != null) {
-			when (type) {
-				TypedValuesTypeDto.BOOLEAN -> return booleanValue.toString()
-				TypedValuesTypeDto.INTEGER -> return integerValue.toString()
-				TypedValuesTypeDto.DOUBLE -> return doubleValue.toString()
-				TypedValuesTypeDto.STRING, TypedValuesTypeDto.CLOB, TypedValuesTypeDto.JSON -> return stringValue!!
-				TypedValuesTypeDto.DATE -> return dateValue.toString()
+			return when (type) {
+				TypedValuesTypeDto.BOOLEAN -> booleanValue.toString()
+				TypedValuesTypeDto.INTEGER -> integerValue.toString()
+				TypedValuesTypeDto.DOUBLE -> doubleValue.toString()
+				TypedValuesTypeDto.STRING, TypedValuesTypeDto.CLOB, TypedValuesTypeDto.JSON -> stringValue!!
+				TypedValuesTypeDto.DATE -> dateValue.toString()
 			}
 		}
 		return super.toString()

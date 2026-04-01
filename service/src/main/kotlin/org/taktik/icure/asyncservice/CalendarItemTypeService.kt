@@ -7,13 +7,15 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface CalendarItemTypeService {
+interface CalendarItemTypeService : EntityWithConflictResolutionService<CalendarItemType> {
+
 	suspend fun createCalendarItemType(calendarItemType: CalendarItemType): CalendarItemType
 	fun createCalendarItemTypes(calendarItemTypes: List<CalendarItemType>): Flow<CalendarItemType>
 

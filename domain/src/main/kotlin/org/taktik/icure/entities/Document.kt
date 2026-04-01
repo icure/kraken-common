@@ -21,8 +21,10 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.CanMergeCondition
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.PrecomputeForMerge
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -66,6 +68,9 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
+@CanMergeCondition("canMergeDataAttachments({{LEFT}}.dataAttachments, {{RIGHT}}.dataAttachments)")
+@PrecomputeForMerge("allDataAttachments", "solveDataAttachmentsConflicts({{LEFT}}, {{RIGHT}})")
 data class Document(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -90,10 +95,34 @@ data class Document(
 	val storedICureDocumentId: String? = null, // The ICureDocument (Form, Contact, ...) that has been used to generate the document
 	val externalUuid: String? = null,
 
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "allDataAttachments[{{LEFT}}.mainAttachmentKey]?.couchDbAttachmentId",
+	)
 	val attachmentId: String? = null,
+
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "allDataAttachments[{{LEFT}}.mainAttachmentKey]?.objectStoreAttachmentId",
+	)
 	val objectStoreReference: String? = null,
+
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "allDataAttachments[{{LEFT}}.mainAttachmentKey]?.utis?.firstOrNull()",
+	)
 	val mainUti: String? = null,
+
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "allDataAttachments[{{LEFT}}.mainAttachmentKey]?.utis?.drop(1)?.toSet() ?: emptySet()",
+	)
 	val otherUtis: Set<String> = emptySet(),
+
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "allDataAttachments - {{LEFT}}.mainAttachmentKey",
+	)
 	val secondaryAttachments: Map<String, DataAttachment> = emptyMap(),
 	override val deletedAttachments: List<DeletedAttachment> = emptyList(),
 
@@ -113,7 +142,7 @@ data class Document(
 	HasEncryptionMetadata,
 	HasDataAttachments<Document>,
 	Encryptable {
-	companion object : DynamicInitializer<Document> {
+	companion object {
 		fun mainAttachmentKeyFromId(id: String) = id
 	}
 
@@ -152,37 +181,6 @@ data class Document(
 
 	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): Document = copy(deletedAttachments = newDeletedAttachments)
 
-	fun merge(other: Document) = Document(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: Document) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"size" to (this.size ?: other.size),
-			"hash" to (this.hash ?: other.hash),
-			"openingContactId" to (this.openingContactId ?: other.openingContactId),
-			"documentLocation" to (this.documentLocation ?: other.documentLocation),
-			"documentType" to (this.documentType ?: other.documentType),
-			"documentStatus" to (this.documentStatus ?: other.documentStatus),
-			"externalUri" to (this.externalUri ?: other.externalUri),
-			"name" to (this.name ?: other.name),
-			"version" to (this.version ?: other.version),
-			"storedICureDocumentId" to (this.storedICureDocumentId ?: other.storedICureDocumentId),
-			"externalUuid" to (this.externalUuid ?: other.externalUuid),
-			"deletedAttachments" to this.solveDeletedAttachmentsConflicts(other),
-		) +
-		this.solveDataAttachmentsConflicts(other).let { allDataAttachments ->
-			allDataAttachments[this.mainAttachmentKey].let { mainAttachment ->
-				mapOf(
-					"attachmentId" to mainAttachment?.couchDbAttachmentId,
-					"objectStoreReference" to mainAttachment?.objectStoreAttachmentId,
-					"mainUti" to mainUtiOf(mainAttachment),
-					"otherUtis" to otherUtisOf(mainAttachment),
-					"secondaryAttachments" to (allDataAttachments - this.mainAttachmentKey),
-				)
-			}
-		}
-
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -193,6 +191,20 @@ data class Document(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 
 	fun withUpdatedMainAttachment(newMainAttachment: DataAttachment?) = this.copy(
 		attachmentId = newMainAttachment?.couchDbAttachmentId,

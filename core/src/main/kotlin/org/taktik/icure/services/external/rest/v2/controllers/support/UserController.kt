@@ -15,7 +15,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -41,13 +41,18 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
-import org.taktik.icure.services.external.rest.v2.dto.security.ChangeUserPasswordRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
+import org.taktik.icure.services.external.rest.v2.dto.security.ChangeUserPasswordRequestDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -78,6 +83,8 @@ class UserController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
@@ -194,13 +201,13 @@ class UserController(
 	}
 
 	@Operation(summary = "Get the list of User ids by healthcare party id")
-	@GetMapping("/byHealthcarePartyId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@GetMapping("/byHealthcarePartyId/{id}", produces = [APPLICATION_JSON_VALUE])
 	fun findByHcpartyId(
 		@PathVariable id: String,
 	): Flux<String> = userService.listUserIdsByHcpartyId(id).injectReactorContext()
 
 	@Operation(summary = "Get the list of User ids by patient id")
-	@GetMapping("/byPatientId/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@GetMapping("/byPatientId/{id}", produces = [APPLICATION_JSON_VALUE])
 	fun findByPatientId(
 		@PathVariable id: String,
 	): Flux<String> = userService.findByPatientId(id).injectReactorContext()
@@ -352,7 +359,7 @@ class UserController(
 	}
 
 	@Operation(summary = "Get the ids of the Users matching the provided filter.")
-	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchUsersBy(
 		@RequestBody filter: AbstractFilterDto<UserDto>,
 	): Flux<String> = userService
@@ -385,4 +392,35 @@ class UserController(
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userV2Mapper.mapOmittingSecrets(userService.changeUserPassword(userId, request.newPassword))
 	}
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		userService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<UserDto> =
+		userService.getConflictsFor(entityId)
+			.map(userV2Mapper::mapOmittingSecrets)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<UserDto>
+	): Mono<ConflictResolutionResultDto<UserDto>> = mono {
+		val result = userService.declareConflictWinner(
+			entity = userV2Mapper.mapFillingOmittedSecretsFromRev(request.document),
+			conflictsToPurge = request.conflictsToPurge
+		)
+		conflictResolutionV2Mapper.map(result, userV2Mapper::mapOmittingSecrets)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = userService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

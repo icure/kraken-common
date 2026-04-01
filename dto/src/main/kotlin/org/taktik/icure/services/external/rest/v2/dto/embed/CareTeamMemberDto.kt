@@ -23,8 +23,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -45,16 +43,4 @@ data class CareTeamMemberDto(
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable,
-	IdentifiableDto<String> {
-	companion object : DynamicInitializer<CareTeamMemberDto>
-
-	fun merge(other: CareTeamMemberDto) = CareTeamMemberDto(args = this.solveConflictsWith(other))
-
-	fun solveConflictsWith(other: CareTeamMemberDto) = super.solveConflictsWith(other) +
-		mapOf(
-			"id" to (this.id),
-			"careTeamMemberType" to (this.careTeamMemberType ?: other.careTeamMemberType),
-			"healthcarePartyId" to (this.healthcarePartyId ?: other.healthcarePartyId),
-			"quality" to (this.quality ?: other.quality),
-		)
-}
+	IdentifiableDto<String>

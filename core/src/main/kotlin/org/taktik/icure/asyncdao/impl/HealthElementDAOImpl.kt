@@ -26,7 +26,6 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
-import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.BEPPE_PARTITION
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -59,7 +58,7 @@ internal class HealthElementDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<HealthElement>(
+) : ConflictDAOImpl<HealthElement>(
 	HealthElement::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -344,17 +343,13 @@ internal class HealthElementDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<HealthElement>(datastoreInformation, "conflicts", null)
 
-		emitAll(
-			client.queryViewIncludeDocsNoValue<String, HealthElement>(createQuery(datastoreInformation, "conflicts").includeDocs(true)).map {
-				it.doc
-			},
-		)
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<HealthElement>(datastoreInformation, "conflicts", null)
 
 	override fun findHealthElementsByIds(
 		datastoreInformation: IDatastoreInformation,

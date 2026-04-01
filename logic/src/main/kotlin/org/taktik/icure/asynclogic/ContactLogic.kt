@@ -7,7 +7,6 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -20,7 +19,9 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface ContactLogic :
 	EntityPersister<Contact>,
-	EntityWithSecureDelegationsLogic<Contact> {
+	EntityWithSecureDelegationsLogic<Contact>,
+	ConflictResolutionLogic<Contact> {
+
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
 	fun findContactsByIds(selectedIds: Collection<String>): Flow<ViewQueryResultEvent>
@@ -83,8 +84,6 @@ interface ContactLogic :
 	): Flow<ViewQueryResultEvent>
 
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
-
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<IdAndRev>
 
 	/**
 	 * Retrieves all the [Contact]s that a healthcare party can access and which [Contact.openingDate] is between the

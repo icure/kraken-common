@@ -10,6 +10,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.collect.ImmutableMap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -18,33 +19,32 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.fold
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.apache.commons.beanutils.PropertyUtilsBean
 import org.apache.commons.logging.LogFactory
 import org.taktik.couchdb.ViewRowWithDoc
-import org.taktik.couchdb.entity.IdAndRev
-import org.taktik.couchdb.entity.Option
 import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.base.AppendixType
 import org.taktik.icure.entities.base.Code
+import org.taktik.icure.entities.base.CodeFlag
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.EnumVersion
 import org.taktik.icure.entities.base.LinkQualification
+import org.taktik.icure.entities.embed.Periodicity
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.aspect.Fixer
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -58,7 +58,9 @@ open class CodeLogicImpl(
 	filters: Filters,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
+	codeMerger: Merger<Code>
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<Code> by ConflictResolutionLogicImpl(codeDAO, codeMerger, datastoreInstanceProvider),
 	CodeLogic {
 	companion object {
 		private val log = LogFactory.getLog(this::class.java)
@@ -401,8 +403,8 @@ open class CodeLogicImpl(
 						qName?.let {
 							when (it.uppercase()) {
 								"VERSION" ->
-									charsHandler = {
-										version = it
+									charsHandler = { s ->
+										version = s
 									}
 
 								"VALUE" -> {
@@ -415,24 +417,24 @@ open class CodeLogicImpl(
 										)
 								}
 
-								"CODE" -> charsHandler = { code["code"] = it }
+								"CODE" -> charsHandler = { c -> code["code"] = c }
 								"PARENT" ->
-									charsHandler = {
+									charsHandler = { p ->
 										code["qualifiedLinks"] =
-											mapOf(LinkQualification.parent.name to listOf("$type|$it|$version"))
+											mapOf(LinkQualification.parent.name to listOf("$type|$p|$version"))
 									}
 
 								"DESCRIPTION" ->
-									charsHandler = {
+									charsHandler = { d ->
 										attributes?.getValue("L")?.let { attributesValue ->
 											code["label"] =
-												(code["label"] as Map<String, String>) + (attributesValue to it.trim())
+												(code["label"] as Map<String, String>) + (attributesValue to d.trim())
 										}
 									}
 
 								"REGIONS" ->
 									charsHandler =
-										{ code["regions"] = (code["regions"] as Set<String>) + it.trim() }
+										{ r -> code["regions"] = (code["regions"] as Set<String>) + r.trim() }
 
 								else -> {
 									charsHandler = null
@@ -453,7 +455,7 @@ open class CodeLogicImpl(
 									runBlocking(coroutineScope.coroutineContext) {
 										code["id"] =
 											"${code["type"] as String}|${code["code"] as String}|${code["version"] as String}"
-										batchSave(Code(args = code), false)
+										batchSave(codeFromArgs(args = code), false)
 									}
 								}
 
@@ -542,7 +544,7 @@ open class CodeLogicImpl(
 									charsHandler = { ch ->
 										if (ch.isNotBlank()) {
 											code["searchTerms"] = (code["searchTerms"] as Map<*, *>) +
-												("fr" to ch.split(" ").map { it.trim() }.toSet())
+												("fr" to ch.split(" ").map { itt -> itt.trim() }.toSet())
 										}
 									}
 
@@ -550,7 +552,7 @@ open class CodeLogicImpl(
 									charsHandler = { ch ->
 										if (ch.isNotBlank()) {
 											code["searchTerms"] = (code["searchTerms"] as Map<*, *>) +
-												("nl" to ch.split(" ").map { it.trim() }.toSet())
+												("nl" to ch.split(" ").map { itt -> itt.trim() }.toSet())
 										}
 									}
 
@@ -571,7 +573,7 @@ open class CodeLogicImpl(
 									runBlocking(coroutineScope.coroutineContext) {
 										code["id"] =
 											"${code["type"] as String}|${code["code"] as String}|${code["version"] as String}"
-										batchSave(Code(args = code), false)
+										batchSave(codeFromArgs(args = code), false)
 									}
 								}
 
@@ -652,7 +654,7 @@ open class CodeLogicImpl(
 									charsHandler = { ch ->
 										if (ch.isNotBlank()) {
 											code["searchTerms"] = (code["searchTerms"] as Map<*, *>) +
-												("fr" to ch.split(" ").map { it.trim() }.toSet())
+												("fr" to ch.split(" ").map { itt -> itt.trim() }.toSet())
 										}
 									}
 
@@ -660,7 +662,7 @@ open class CodeLogicImpl(
 									charsHandler = { ch ->
 										if (ch.isNotBlank()) {
 											code["searchTerms"] = (code["searchTerms"] as Map<*, *>) +
-												("nl" to ch.split(" ").map { it.trim() }.toSet())
+												("nl" to ch.split(" ").map { itt -> itt.trim() }.toSet())
 										}
 									}
 
@@ -681,7 +683,7 @@ open class CodeLogicImpl(
 									runBlocking(coroutineScope.coroutineContext) {
 										code["id"] =
 											"${code["type"] as String}|${code["code"] as String}|${code["version"] as String}"
-										batchSave(Code(args = code), false)
+										batchSave(codeFromArgs(args = code), false)
 									}
 								}
 
@@ -737,9 +739,9 @@ open class CodeLogicImpl(
 
 								"CODE" -> charsHandler = { ch -> code["code"] = ch }
 								"DESCRIPTION" ->
-									charsHandler = {
+									charsHandler = { d ->
 										attributes?.getValue("L")?.let { attributesValue ->
-											code["label"] = (code["label"] as Map<*, *>) + (attributesValue to it.trim())
+											code["label"] = (code["label"] as Map<*, *>) + (attributesValue to d.trim())
 										}
 									}
 
@@ -760,7 +762,7 @@ open class CodeLogicImpl(
 									runBlocking(coroutineScope.coroutineContext) {
 										code["id"] =
 											"${code["type"] as String}|${code["code"] as String}|${code["version"] as String}"
-										batchSave(Code(args = code), false)
+										batchSave(codeFromArgs(code), false)
 									}
 								}
 
@@ -770,24 +772,58 @@ open class CodeLogicImpl(
 					}
 				}
 
-			try {
-				when (type.uppercase()) {
-					"BE-THESAURUS-PROCEDURES" -> saxParser.parse(stream, beThesaurusProcHandler)
-					"BE-THESAURUS" -> saxParser.parse(stream, beThesaurusHandler)
-					"ISO-639-1" -> saxParser.parse(stream, iso6391Handler)
-					else -> saxParser.parse(stream, handler)
+			withContext(Dispatchers.IO) {
+				try {
+					when (type.uppercase()) {
+						"BE-THESAURUS-PROCEDURES" -> saxParser.parse(stream, beThesaurusProcHandler)
+						"BE-THESAURUS" -> saxParser.parse(stream, beThesaurusHandler)
+						"ISO-639-1" -> saxParser.parse(stream, iso6391Handler)
+						else -> saxParser.parse(stream, handler)
+					}
+					batchSave(null, true)
+					create(Code.from("ICURE-SYSTEM", md5, "1"))
+				} catch (_: IllegalArgumentException) {
+					// Skip
+				} finally {
+					stream.close()
 				}
-				batchSave(null, true)
-				create(Code.from("ICURE-SYSTEM", md5, "1"))
-			} catch (_: IllegalArgumentException) {
-				// Skip
-			} finally {
-				stream.close()
 			}
 		} else {
-			stream.close()
+			withContext(Dispatchers.IO) {
+				stream.close()
+			}
+
 		}
 	}
+
+	private fun codeFromArgs(args: Map<String, Any>): Code = Code(
+		id = args["id"] as String,
+		deletionDate = args["deletionDate"] as Long?,
+		context = args["context"] as String?,
+		type = args["type"] as String?,
+		code = args["code"] as String?,
+		version = args["version"] as String?,
+		label = (args["label"] as Map<*, *>).map { (k, v) ->
+			k as String to v as String
+		}.toMap(),
+		author = args["author"] as String?,
+		regions = (args["regions"] as Set<*>).map { v -> v as String }.toSet(),
+		periodicity = (args["periodicity"] as Set<*>).map { v -> v as Periodicity }.toSet(),
+		level = args["level"] as Int?,
+		links = (args["regions"] as Set<*>).map { v -> v as String }.toSet(),
+		qualifiedLinks = (args["qualifiedLinks"] as Map<*, *>).map { (k, v) ->
+			k as String to (v as List<*>).map { itt -> itt as String }
+		}.toMap(),
+		flags = (args["flags"] as Set<*>).map { v -> v as CodeFlag }.toSet(),
+		searchTerms = (args["searchTerms"] as Map<*, *>).map { (k, v) ->
+			k as String to (v as List<*>).map { itt -> itt as String }.toSet()
+		}.toMap(),
+		data = args["data"] as String?,
+		appendices = (args["appendices"] as Map<*, *>).map { (k, v) ->
+			k as AppendixType to v as String
+		}.toMap(),
+		disabled = args["disabled"] as Boolean,
+	)
 
 	override suspend fun importCodesFromJSON(stream: InputStream) {
 		val datastoreInformation = getInstanceAndGroup()
@@ -832,7 +868,7 @@ open class CodeLogicImpl(
 				}
 			}
 
-			sort?.let { sortProperty ->
+			sort?.let { _ ->
 				val pub = PropertyUtilsBean()
 				var codesList = codes.toList()
 				codesList =
@@ -936,56 +972,6 @@ open class CodeLogicImpl(
 		return getGenericDAO().contains(datastoreInformation, id)
 	}
 
-	override suspend fun getEntity(id: String): Code? {
-		val datastoreInformation = getInstanceAndGroup()
-		return getGenericDAO().get(datastoreInformation, id)
-	}
-
 	override fun getGenericDAO(): CodeDAO = codeDAO
 
-	override fun solveConflicts(
-		limit: Int?,
-		ids: List<String>?,
-	) = flow {
-		emitAll(
-			doSolveConflicts(
-				ids,
-				limit,
-				getInstanceAndGroup(),
-			),
-		)
-	}
-
-	protected fun doSolveConflicts(
-		ids: List<String>?,
-		limit: Int?,
-		datastoreInformation: IDatastoreInformation,
-	) = flow {
-		val flow =
-			ids?.asFlow()?.mapNotNull { codeDAO.get(datastoreInformation, it, Option.CONFLICTS) }
-				?: codeDAO
-					.listConflicts(datastoreInformation)
-					.mapNotNull { codeDAO.get(datastoreInformation, it.id, Option.CONFLICTS) }
-		(limit?.let { flow.take(it) } ?: flow)
-			.mapNotNull { code ->
-				code.conflicts
-					?.mapNotNull { conflictingRevision ->
-						codeDAO.get(
-							datastoreInformation,
-							code.id,
-							conflictingRevision,
-						)
-					}?.fold(code to emptyList<Code>()) { (kept, toBePurged), conflict ->
-						kept.merge(conflict) to toBePurged + conflict
-					}?.let { (mergedCode, toBePurged) ->
-						codeDAO.save(datastoreInformation, mergedCode).also {
-							toBePurged.forEach {
-								if (it.rev != null && it.rev != mergedCode.rev) {
-									codeDAO.purge(datastoreInformation, listOf(it)).single()
-								}
-							}
-						}
-					}
-			}.collect { emit(IdAndRev(it.id, it.rev)) }
-	}
 }

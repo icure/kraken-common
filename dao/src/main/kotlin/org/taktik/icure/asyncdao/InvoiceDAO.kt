@@ -14,7 +14,7 @@ import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
 
-interface InvoiceDAO : GenericDAO<Invoice> {
+interface InvoiceDAO : ConflictDAO<Invoice> {
 
 	/**
 	 * Retrieves all the [Invoice]s for a given data owner and where [Invoice.invoiceDate] is between [fromDate] and
@@ -105,8 +105,6 @@ interface InvoiceDAO : GenericDAO<Invoice> {
 	fun listInvoicesByServiceIds(datastoreInformation: IDatastoreInformation, serviceIds: Set<String>): Flow<Invoice>
 
 	fun listInvoicesHcpsByStatus(datastoreInformation: IDatastoreInformation, status: String, from: Long?, to: Long?, hcpIds: List<String>): Flow<Invoice>
-
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Invoice>
 
 	fun listInvoiceIdsByTarificationsAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeCode: String?, startValueDate: Long?, endValueDate: Long?): Flow<String>
 

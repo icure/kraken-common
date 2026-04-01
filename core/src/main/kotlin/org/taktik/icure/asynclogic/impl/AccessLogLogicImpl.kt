@@ -18,6 +18,7 @@ import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asyncdao.PatientDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AccessLogLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
@@ -28,6 +29,7 @@ import org.taktik.icure.domain.result.AggregatedAccessLogs
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -46,14 +48,16 @@ class AccessLogLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<AccessLog>
 ) : EntityWithEncryptionMetadataLogic<AccessLog, AccessLogDAO>(
-	fixer,
-	sessionLogic,
-	datastoreInstanceProvider,
-	exchangeDataMapLogic,
-	filters,
-),
+		fixer,
+		sessionLogic,
+		datastoreInstanceProvider,
+		exchangeDataMapLogic,
+		filters,
+	), ConflictResolutionLogic<AccessLog> by ConflictResolutionLogicImpl(accessLogDAO, merger, datastoreInstanceProvider),
 	AccessLogLogic {
+
 	override suspend fun createAccessLog(accessLog: AccessLog) = fix(accessLog, isCreate = true) { fixedAccessLog ->
 		checkValidityForCreation(fixedAccessLog)
 		val datastoreInformation = getInstanceAndGroup()

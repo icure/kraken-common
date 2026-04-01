@@ -1,8 +1,5 @@
 package org.taktik.icure.entities.embed
 
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
-
 /**
  * A general range of values.
  *
@@ -10,6 +7,6 @@ import org.taktik.icure.annotations.entities.ContentValues
  * @property high is the higher bound (inclusive) of the range
  */
 data class Range(
-	@param:ContentValue(ContentValues.ANY_DOUBLE) val low: Double? = null,
-	@param:ContentValue(ContentValues.ANY_DOUBLE) val high: Double? = null,
+	val low: Double? = null,
+	val high: Double? = null,
 )

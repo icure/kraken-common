@@ -10,6 +10,9 @@ import org.taktik.couchdb.entity.Revisionable
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.exceptions.DeserializationTypeException
+import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.NonMergeable
 
 interface StoredDocument : Versionable<String> {
 	companion object {
@@ -38,30 +41,10 @@ interface StoredDocument : Versionable<String> {
 		}
 	}
 
-	val deletionDate: Long?
-	val revisionsInfo: List<RevisionInfo>?
-	val conflicts: List<String>?
-	val attachments: Map<String, Attachment>?
-
-	fun solveConflictsWith(other: StoredDocument): Map<String, Any?> = mapOf(
-		"id" to this.id,
-		"rev" to this.rev,
-		"revHistory" to (other.revHistory?.let { it + (this.revHistory ?: mapOf()) } ?: this.revHistory),
-		"revisionsInfo" to this.revisionsInfo,
-		"conflicts" to this.conflicts,
-		"attachments" to solveAttachmentsConflicts(this.attachments, other.attachments),
-		"deletionDate" to (this.deletionDate ?: other.deletionDate),
-	)
-
-	private fun solveAttachmentsConflicts(thisAttachments: Map<String, Attachment>?, otherAttachments: Map<String, Attachment>?): Map<String, Attachment>? = this.attachments?.mapValues { (key, a) ->
-		val b = otherAttachments?.get(key)
-
-		if (b != null) {
-			if (b.length?.let { it > (a.length ?: 0) } == true) b else a
-		} else {
-			a
-		}
-	}
+	@MergeStrategyMax val deletionDate: Long?
+	@MergeStrategyIgnore val revisionsInfo: List<RevisionInfo>?
+	@MergeStrategyIgnore val conflicts: List<String>?
+	@NonMergeable val attachments: Map<String, Attachment>?
 
 	fun withDeletionDate(deletionDate: Long?): StoredDocument
 }

@@ -22,7 +22,8 @@ import java.nio.ByteBuffer
 
 interface DocumentService :
 	EntityWithSecureDelegationsService<Document>,
-	EntityWithConflictResolutionService {
+	EntityWithConflictResolutionService<Document> {
+
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws
@@ -134,7 +135,6 @@ interface DocumentService :
 	fun listDocumentsWithoutDelegation(limit: Int): Flow<Document>
 	fun getDocuments(documentIds: List<String>): Flow<Document>
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	suspend fun getDocumentsByExternalUuid(documentId: String): List<Document>
 
 	/**

@@ -17,6 +17,9 @@ open class SecureUserV1MapperImpl(
 	private val unsecureTokenMapper: UnsecureAuthenticationTokenMapper,
 ) : AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(userLogic),
 	SecureUserV1Mapper {
+
+	override fun getUserRev(userDto: UserDto): String = checkNotNull(userDto.rev) { "User ${userDto.rev} has no rev" }
+
 	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto: UserDto): User = unsecureMapper.map(
 		userDto.copy(
 			authenticationTokens = userDto.authenticationTokens.filterValues { it.token != null },

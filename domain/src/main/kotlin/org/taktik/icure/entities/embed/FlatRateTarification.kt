@@ -10,6 +10,7 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+//@Mergeable(["flatRateType"])
 data class FlatRateTarification(
 	val code: String? = null,
 	val flatRateType: FlatRateType? = null,

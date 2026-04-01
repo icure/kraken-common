@@ -10,7 +10,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
 
-interface CalendarItemTypeDAO : GenericDAO<CalendarItemType> {
+interface CalendarItemTypeDAO : ConflictDAO<CalendarItemType> {
 
 	fun listCalendarItemTypesByAgendaId(datastoreInformation: IDatastoreInformation, agendaId: String): Flow<ViewQueryResultEvent>
 

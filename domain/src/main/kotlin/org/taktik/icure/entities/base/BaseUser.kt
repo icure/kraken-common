@@ -1,7 +1,7 @@
 package org.taktik.icure.entities.base
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.security.AuthenticationToken
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 interface BaseUser {
 	/**
@@ -27,5 +27,10 @@ interface BaseUser {
 	/**
 	 * Encrypted and time-limited Authentication tokens used for inter-applications authentication
 	 */
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeAuthenticationTokens({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		imports = ["org.taktik.icure.entities.User.Companion.mergeAuthenticationTokens"]
+	)
 	val authenticationTokens: Map<String, AuthenticationToken>
 }

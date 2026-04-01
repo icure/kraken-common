@@ -38,7 +38,7 @@ class CalendarItemTypeDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<CalendarItemType>(
+) : ConflictDAOImpl<CalendarItemType>(
 	CalendarItemType::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -94,4 +94,15 @@ class CalendarItemTypeDAOImpl(
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItemType>(viewQuery).map { it.doc })
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<CalendarItemType>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<CalendarItemType>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 }

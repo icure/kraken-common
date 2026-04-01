@@ -9,7 +9,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
 import org.taktik.icure.pagination.PaginationElement
 
-interface PlaceLogic : EntityPersister<Place> {
+interface PlaceLogic : EntityPersister<Place>, ConflictResolutionLogic<Place> {
 	suspend fun createPlace(place: Place): Place
 
 	suspend fun getPlace(place: String): Place?

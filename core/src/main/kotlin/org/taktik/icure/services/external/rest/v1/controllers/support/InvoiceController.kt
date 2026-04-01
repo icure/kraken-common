@@ -35,6 +35,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -167,7 +168,7 @@ class InvoiceController(
 			invoiceService
 				.validateInvoice(
 					sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
-						?: throw AccessDeniedException("Current user is not a healthcare party"),
+						?: throw ForbiddenException("Current user is not a healthcare party"),
 					it,
 					scheme,
 					forcedValue,

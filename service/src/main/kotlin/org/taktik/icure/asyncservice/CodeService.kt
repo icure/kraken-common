@@ -17,7 +17,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.pagination.PaginationElement
 import java.io.InputStream
 
-interface CodeService : EntityWithConflictResolutionService {
+interface CodeService : EntityWithConflictResolutionService<Code> {
 	fun getTagTypeCandidates(): List<String>
 	fun getRegions(): List<String>
 	suspend fun get(id: String): Code?

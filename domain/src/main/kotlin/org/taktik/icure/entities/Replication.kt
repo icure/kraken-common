@@ -12,9 +12,6 @@ import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DatabaseSynchronization
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,15 +32,6 @@ data class Replication(
 ) : StoredDocument,
 	Identifiable<String>,
 	Named {
-	companion object : DynamicInitializer<Replication>
-
-	fun merge(other: Replication) = Replication(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Replication) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"context" to (other.context + this.context),
-			"databaseSynchronizations" to mergeListsDistinct(this.databaseSynchronizations, other.databaseSynchronizations),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

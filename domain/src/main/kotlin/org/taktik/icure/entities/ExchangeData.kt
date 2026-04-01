@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.HasExplicitDataOwnerAccess
 import org.taktik.icure.entities.base.HasSecureDelegationsAccessControl
 import org.taktik.icure.entities.base.StoredDocument
@@ -14,7 +12,7 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
-import org.taktik.icure.exceptions.MergeConflictException
+import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
 /**
@@ -23,7 +21,7 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ExchangeData(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].
@@ -82,7 +80,7 @@ data class ExchangeData(
 	 * - The delegator and delegates being part of the exchange data
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
 	 */
-	val sharedSignature: Base64String,
+	@MergeStrategyChooseLeft val sharedSignature: Base64String,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
@@ -110,27 +108,4 @@ data class ExchangeData(
 
 	override val dataOwnersWithExplicitAccess: Map<String, AccessLevel>
 		get() = mapOf(this.delegator to AccessLevel.WRITE, this.delegate to AccessLevel.WRITE)
-
-	fun solveConflictsWith(other: ExchangeData): Map<String, Any?> {
-		if (this.delegator != other.delegator || this.delegate != other.delegate) {
-			throw MergeConflictException(
-				"Impossible to merge exchange data referring to different delegator/delegate pairs",
-			)
-		}
-		return super<StoredDocument>.solveConflictsWith(other) +
-			mapOf(
-				"delegator" to this.delegator,
-				"delegate" to this.delegate,
-            /*
-             * RSA Encryption of the same value with the same key multiple times will give different result: discordant
-             * entries for the same public key fingerprint is normal.
-             */
-				"exchangeKey" to this.exchangeKey + other.exchangeKey,
-				"accessControlSecret" to this.accessControlSecret + other.accessControlSecret,
-				// As a result of merging the signature may become invalid -> exchange data is not trusted anymore
-				"sharedSignature" to this.sharedSignature,
-				"sharedSignatureKey" to this.sharedSignatureKey + other.sharedSignatureKey,
-				"delegatorSignature" to this.delegatorSignature + other.delegatorSignature,
-			)
-	}
 }

@@ -30,8 +30,8 @@ data class ReplicationStatsDto(
 	/** The last checkpointed source sequence identifier. */
 	val checkpointedSourceSeq: String? = null,
 	/** The time when the replication started. */
-	@JsonSerialize(using = ZonedDateTimeSerializer::class)
-	@JsonDeserialize(using = ZonedDateTimeDeserializer::class)
+	@param:JsonSerialize(using = ZonedDateTimeSerializer::class)
+	@param:JsonDeserialize(using = ZonedDateTimeDeserializer::class)
 	val startTime: ZonedDateTime? = null,
 	/** An error message if the replication encountered an error. */
 	val error: String? = null,

@@ -25,6 +25,8 @@ interface SecureUserMapper<UserDto> {
 	 */
 	suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean = false): User?
 
+	suspend fun mapFillingOmittedSecretsFromRev(userDto: UserDto): User
+
 	/**
 	 * Maps a user entity to a user DTO, omitting any secret data.
 	 * This operation is the inverse of [mapFillingOmittedSecrets].
@@ -35,8 +37,13 @@ interface SecureUserMapper<UserDto> {
 abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 	private val userLogic: UserLogic,
 ) : SecureUserMapper<UserDto> {
+	protected abstract fun getUserRev(userDto: UserDto): String
+
 	override suspend fun mapFillingOmittedSecrets(userDto: UserDto, isCreate: Boolean): User =
 		mapFillingOmittedSecrets(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }
+
+	override suspend fun mapFillingOmittedSecretsFromRev(userDto: UserDto): User =
+		mapFillingOmittedSecrets(userDto, isCreate = false) { userLogic.getUser(it, includeMetadataFromGlobalUser = false, rev = getUserRev(userDto)) }
 
 	override suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean): User? =
 		mapFillingOmittedSecretsOrNull(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }

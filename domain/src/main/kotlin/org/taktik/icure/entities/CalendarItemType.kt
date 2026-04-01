@@ -9,16 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class CalendarItemType(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -44,26 +42,12 @@ data class CalendarItemType(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 ) : StoredDocument {
-	companion object : DynamicInitializer<CalendarItemType>
 
 	init {
 		require(extraDurationsConfig == null || extraDurationsConfig.canAccept(duration)) {
 			"The default duration of the CalendarItemType must be included in the extraDurationConfig"
 		}
 	}
-
-	fun merge(other: CalendarItemType) = CalendarItemType(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CalendarItemType) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"color" to (this.color ?: other.color),
-			"duration" to (this.duration.coerceAtLeast(other.duration)),
-			"externalRef" to (this.externalRef ?: other.externalRef),
-			"mikronoId" to (this.mikronoId ?: other.mikronoId),
-			"docIds" to (other.docIds + this.docIds),
-			"otherInfos" to (other.otherInfos + this.otherInfos),
-			"subjectByLanguage" to (other.subjectByLanguage + this.subjectByLanguage),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

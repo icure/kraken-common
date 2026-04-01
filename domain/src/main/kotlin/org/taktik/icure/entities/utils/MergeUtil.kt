@@ -55,6 +55,12 @@ object MergeUtil {
 		return ret
 	}
 
+	fun <K> getLongestCommonSubsequence(
+		x: List<K>,
+		y: List<K>,
+		comparator: (K, K) -> Boolean = { aa, bb -> aa == bb }
+	): List<K> = getLongestCommonSubSeq(x, y, comparator).map { it.x }
+
 	/**
 	 *
 	 * @param a The first list
@@ -207,5 +213,66 @@ object MergeUtil {
 		return result
 	}
 
-	class ItemWithIndices<K>(var x: K, var xi: Int, var yi: Int)
+	fun <K, V> mergeMapsOfSets(a: Map<K, Set<V>>, b: Map<K, Set<V>>): Map<K, Set<V>> {
+		val result: MutableMap<K, Set<V>> = HashMap()
+		val leftOverAKeys: MutableSet<K> = HashSet(a.keys)
+		b.forEach { (key: K, bvs: Set<V>) ->
+			val setForKey = a[key]
+			if (setForKey != null) {
+				result[key] = setForKey + bvs
+				leftOverAKeys.remove(key)
+			} else {
+				result[key] = bvs
+			}
+		}
+		leftOverAKeys.forEach { k: K -> a[k]?.let { result[k] = it } }
+		return result
+	}
+
+	// Implementation of Knuth-Morris-Pratt
+	inline fun <T> List<T>.indexOfContinuousSublist(other: List<T>, equals: (T, T) -> Boolean = { a, b -> a == b }): Int? {
+		if (isEmpty()) {
+			return null
+		}
+		if (size > other.size) {
+			return null
+		}
+
+		val fail = IntArray(size)
+		var k = 0
+		for (i in 1 until size) {
+			while (k > 0 && !equals(this[k], this[i])) {
+				k = fail[k - 1]
+			}
+			if (equals(this[k], this[i])) {
+				k++
+			}
+			fail[i] = k
+		}
+
+		k = 0
+		for (i in 0 until other.size) {
+			while (k > 0 && !equals(this[k], other[i])) {
+				k = fail[k - 1]
+			}
+			if (equals(this[k], other[i])) {
+				k++
+			}
+			if (k == size) {
+				return i - size + 1
+			}
+		}
+
+		return null
+	}
+
+	inline fun <T> startIndexOfContiguousSublistOrNull(left: List<T>, right: List<T>, equals: (T, T) -> Boolean = { a, b -> a == b }): Int? =
+		when {
+			left.size == right.size -> if (left.zip(right).all { (a, b) -> equals(a, b) }) 0 else null
+			left.size > right.size -> right.indexOfContinuousSublist(left, equals)
+			else -> left.indexOfContinuousSublist(right, equals)
+		}
+
+	data class ItemWithIndices<K>(val x: K, val xi: Int, val yi: Int)
 }
+

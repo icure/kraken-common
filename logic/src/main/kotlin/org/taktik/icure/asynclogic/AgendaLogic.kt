@@ -9,7 +9,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.pagination.PaginationElement
 
-interface AgendaLogic : EntityPersister<Agenda> {
+interface AgendaLogic : EntityPersister<Agenda>, ConflictResolutionLogic<Agenda> {
 
 	/**
 	 * Retrieves all the [Agenda]s in a group in a format for pagination.

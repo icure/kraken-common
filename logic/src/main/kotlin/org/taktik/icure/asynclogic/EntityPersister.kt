@@ -32,7 +32,7 @@ interface EntityPersister<E : Identifiable<String>> {
 
 	suspend fun exists(id: String): Boolean
 
-	suspend fun getEntity(id: String): E?
+	suspend fun getEntity(id: String, rev: String? = null): E?
 
 	fun getEntities(identifiers: Flow<String>): Flow<E>
 	fun createEntities(entities: Flow<E>): Flow<E>

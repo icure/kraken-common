@@ -14,9 +14,11 @@ import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.Base64String
+import org.taktik.icure.mergers.annotations.MergeStrategyIgnore
+import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.serializers.ServiceQualifiedLinkDeserializer
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -67,20 +69,22 @@ import java.util.*
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Service(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
 	val identifier: List<Identifier> = emptyList(),
-	@JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val formIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val secretForeignKeys: Set<String>? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
-	@JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
-	@JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val formIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val secretForeignKeys: Set<String>? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val delegations: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(), // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val contactId: String? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyIgnore @JsonIgnore val securityMetadata: SecurityMetadata? = null, // Only used when the Service is emitted outside its contact
+	@MergeStrategyNotBlank
 	val label: String? = null,
 	@Deprecated("Deleted in V2") val dataClassName: String? = null,
 	val index: Long? = null, // Used for sorting
@@ -101,38 +105,18 @@ data class Service(
 	val status: Int? = null, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit2 : present/absent, ex: 0 = active,relevant and present
 	val invoicingCodes: Set<String> = emptySet(),
 	val notes: List<Annotation> = emptyList(),
-	@param:JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class) val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), // Links towards related services (possibly in other contacts)
+	@MergeStrategyUse(
+		canMerge = "canMergeMapsOfMergeable({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}}) { a, b -> canMergeMap(a, b) }",
+		merge = "mergeMapsOfMergeable({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}}) { a, b -> b + a }",
+	)
+	@param:JsonDeserialize(using = ServiceQualifiedLinkDeserializer::class)
+	val qualifiedLinks: Map<LinkQualification, Map<String, String>> = emptyMap(), // Links towards related services (possibly in other contacts)
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	ICureDocument<String>,
 	Comparable<Service> {
-	companion object : DynamicInitializer<Service>
-
-	fun merge(other: Service) = Service(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Service) = super<Encryptable>.solveConflictsWith(other) +
-		super<ICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"label" to if (this.label.isNullOrBlank()) other.label else this.label,
-			"dataClassName" to (this.dataClassName ?: other.dataClassName),
-			"index" to (this.index ?: other.index),
-			"contactId" to (this.contactId ?: other.contactId),
-			"content" to (other.content + this.content),
-			"encryptedContent" to (this.encryptedContent ?: other.encryptedContent),
-			"textIndexes" to (other.textIndexes + this.textIndexes),
-			"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"formId" to (this.formId ?: other.formId),
-			"author" to (this.author ?: other.author),
-			"responsible" to (this.responsible ?: other.responsible),
-			"comment" to (this.comment ?: other.comment),
-			"status" to (this.status ?: other.status),
-			"invoicingCodes" to (other.invoicingCodes + this.invoicingCodes),
-			"notes" to (other.notes + this.notes),
-			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
-		)
 
 	override fun compareTo(other: Service): Int {
 		if (this == other) {
@@ -160,7 +144,21 @@ private data class ServiceWithEncryptionMetadataStub(
 	override val encryptedSelf: Base64String?,
 	override val securityMetadata: SecurityMetadata?,
 ) : HasEncryptionMetadata,
-	Encryptable
+	Encryptable {
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
+}
 
 /**
  * If the service is 'pimped' with contact information returns the service as an encryptable entity stub, allowing it

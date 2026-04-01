@@ -17,10 +17,13 @@ open class SecureUserV2MapperImpl(
 	private val unsecureTokenMapper: UnsecureAuthenticationTokenV2Mapper,
 ) : AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(userLogic),
 	SecureUserV2Mapper {
+
+	override fun getUserRev(userDto: UserDto): String = checkNotNull(userDto.rev) { "User ${userDto.rev} has no rev" }
+
 	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto: UserDto): User = unsecureMapper.map(
 		userDto.copy(
 			authenticationTokens = userDto.authenticationTokens.filterValues { it.token != null },
-		),
+		)
 	)
 
 	override fun mapTokenOmittingValue(token: AuthenticationToken): AuthenticationTokenDto = unsecureTokenMapper.map(token).copy(token = null)

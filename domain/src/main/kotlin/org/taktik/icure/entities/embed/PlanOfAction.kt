@@ -10,10 +10,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotBlank
 import org.taktik.icure.validation.NotNull
@@ -58,9 +58,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this healthcare approach.
  *
  */
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class PlanOfAction(
 	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
@@ -73,9 +73,15 @@ data class PlanOfAction(
 	override val endOfLife: Long? = null,
 
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMax
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
 	val deadlineDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	override val name: String? = null,
 	val descr: String? = null,
@@ -94,38 +100,13 @@ data class PlanOfAction(
 ) : Encryptable,
 	ICureDocument<String>,
 	Named {
-	companion object : DynamicInitializer<PlanOfAction> {
+	companion object {
 		const val STATUS_PLANNED = 1 shl 0
 		const val STATUS_ONGOING = 1 shl 1
 		const val STATUS_FINISHED = 1 shl 2
 		const val STATUS_PROLONGED = 1 shl 3
 		const val STATUS_CANCELED = 1 shl 4
 	}
-
-	fun merge(other: PlanOfAction) = PlanOfAction(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: PlanOfAction) = super<Encryptable>.solveConflictsWith(other) +
-		super<ICureDocument>.solveConflictsWith(other) +
-		mapOf(
-			"valueDate" to (this.valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (this.openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (this.closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"deadlineDate" to (
-				this.deadlineDate?.coerceAtMost(other.deadlineDate ?: Long.MAX_VALUE)
-					?: other.deadlineDate
-				),
-			"name" to (this.descr ?: other.descr),
-			"descr" to (this.descr ?: other.descr),
-			"note" to (this.note ?: other.note),
-			"relevant" to this.relevant,
-			"idOpeningContact" to (this.idOpeningContact ?: other.idOpeningContact),
-			"idClosingContact" to (this.idClosingContact ?: other.idClosingContact),
-			"status" to (this.status),
-
-			"documentIds" to (other.documentIds + this.documentIds),
-			"prescriberId" to (this.prescriberId ?: other.prescriberId),
-			"numberOfCares" to (this.numberOfCares ?: other.numberOfCares),
-			"careTeamMemberships" to MergeUtil.mergeListsDistinct(this.careTeamMemberships, other.careTeamMemberships),
-		)
 
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
 		created != null && modified != null -> this.copy(created = created, modified = modified)

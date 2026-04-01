@@ -15,8 +15,6 @@ import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -48,15 +46,6 @@ data class ApplicationSettings(
 	override val securityMetadata: SecurityMetadata? = null,
 	override val encryptedSelf: String? = null,
 ) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
-	companion object : DynamicInitializer<ApplicationSettings>
-
-	fun merge(other: ApplicationSettings) = ApplicationSettings(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: ApplicationSettings) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"settings" to (other.settings + this.settings),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -66,4 +55,17 @@ data class ApplicationSettings(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }
