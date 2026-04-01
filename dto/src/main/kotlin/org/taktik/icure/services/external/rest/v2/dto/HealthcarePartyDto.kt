@@ -116,7 +116,7 @@ data class HealthcarePartyDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
 	/** The id of the user that usually handles this healthcare party. */
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@Deprecated("Discouraged, use custom property if you really want them")
 	@param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
 	/** The id of the parent healthcare party. */
 	override val parentId: String? = null,
