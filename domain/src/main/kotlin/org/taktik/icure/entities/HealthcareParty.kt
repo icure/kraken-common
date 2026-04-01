@@ -110,7 +110,7 @@ data class HealthcareParty(
 	val invoiceHeader: String? = null,
 	val cbe: String? = null,
 	val ehp: String? = null,
-	val userId: String? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") val userId: String? = null,
 	override val parentId: String? = null,
 	val convention: Int? = null, // 0,1,2,9
 	val nihii: String? = null, // institution, person

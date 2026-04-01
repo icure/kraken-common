@@ -117,7 +117,7 @@ data class PatientDto(
 	@param:Schema(description = "The nationality of the patient.") val nationality: String? = null,
 	@param:Schema(description = "The race of the patient.") val race: String? = null,
 	@param:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
-	@param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") @param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
 	@param:Schema(
 		description = "An external (from another source) id with no guarantee or requirement for unicity .",

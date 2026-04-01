@@ -157,9 +157,8 @@ data class Patient(
 	val race: String? = null,
 	val ethnicity: String? = null,
 	val nationality: String? = null,
-	val preferredUserId: String? = null,
-	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class)
-	val picture: ByteArray? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") val preferredUserId: String? = null,
+	@param:JsonDeserialize(using = JacksonBase64LenientDeserializer::class) val picture: ByteArray? = null,
 	val externalId: String? = null, // No guarantee of unicity
 	val insurabilities: List<Insurability> = emptyList(),
 	val partnerships: List<Partnership> = emptyList(),

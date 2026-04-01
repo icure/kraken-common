@@ -191,7 +191,7 @@ data class PatientDto(
 	/** The ethnicity of the patient. */
 	@param:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
 	/** The id of the user that usually handles this patient. */
-	@param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") @param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
 	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
