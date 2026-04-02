@@ -2,13 +2,13 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class ObjectTypeConfig(
 	val objectReference: String,
 	override val nullable: Boolean = false,

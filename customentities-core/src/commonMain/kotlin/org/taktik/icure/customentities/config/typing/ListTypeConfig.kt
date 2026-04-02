@@ -2,13 +2,13 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class ListTypeConfig(
 	val elementType: GenericTypeConfig,
 	override val nullable: Boolean = false,
@@ -25,7 +25,7 @@ data class ListTypeConfig(
 	override val enumDefinitionDependencies: Set<Pair<String, Boolean>> get() =
 		elementType.enumDefinitionDependencies
 
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,

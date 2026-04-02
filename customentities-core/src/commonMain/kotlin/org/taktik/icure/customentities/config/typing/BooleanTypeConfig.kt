@@ -1,14 +1,14 @@
 package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 
 /**
  * Represents a configuration for a boolean type.
  */
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class BooleanTypeConfig(
 	override val nullable: Boolean = false,
 ) : GenericTypeConfig {

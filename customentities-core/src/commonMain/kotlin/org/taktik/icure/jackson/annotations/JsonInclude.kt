@@ -4,15 +4,15 @@ import kotlin.reflect.KClass
 
 @OptionalExpectation
 internal expect annotation class JsonInclude(
-	val value: Include = Include.ALWAYS,
-	val content: Include = Include.ALWAYS,
+	val value: JsonIncludeValue = JsonIncludeValue.ALWAYS,
+	val content: JsonIncludeValue = JsonIncludeValue.ALWAYS,
 	val valueFilter: KClass<*> = PlatformVoid::class,
 	val contentFilter: KClass<*> = PlatformVoid::class,
 )
 
 internal expect class PlatformVoid
 
-internal expect enum class Include {
+internal expect enum class JsonIncludeValue {
 	ALWAYS,
 	NON_NULL,
 	NON_EMPTY,

@@ -2,7 +2,7 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.errorreporting.addError
@@ -15,7 +15,7 @@ import org.taktik.icure.utils.Validation
 /**
  * A definition of a custom or built-in object type
  */
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class ObjectDefinition(
 	/**
 	 * The "data" properties of the object.
@@ -60,7 +60,7 @@ data class ObjectDefinition(
 		val extendedBuiltinProperties: Map<String, String> = emptyMap(),
 	)
 
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class PropertyConfiguration(
 		val type: GenericTypeConfig,
 		val defaultValue: DefaultValue? = null
@@ -96,12 +96,12 @@ data class ObjectDefinition(
 			 * Represents a constant default value.
 			 * Properties with values equal to the default value are not included in the serialized representation
 			 */
-			@JsonInclude(Include.NON_DEFAULT)
+			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 			data class Constant(
 				/**
 				 * The default value
 				 */
-				@param:JsonInclude(Include.ALWAYS)
+				@param:JsonInclude(JsonIncludeValue.ALWAYS)
 				val value: RawJson,
 			) : DefaultValue {
 				override suspend fun validateFor(
@@ -144,7 +144,7 @@ data class ObjectDefinition(
 				override val isConstant: Boolean = false
 			}
 
-			@JsonInclude(Include.NON_DEFAULT)
+			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 			class NowDateTime(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -174,7 +174,7 @@ data class ObjectDefinition(
 				override val isConstant: Boolean = false
 			}
 
-			@JsonInclude(Include.NON_DEFAULT)
+			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 			class NowDate(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -203,7 +203,7 @@ data class ObjectDefinition(
 				override val isConstant: Boolean = false
 			}
 
-			@JsonInclude(Include.NON_DEFAULT)
+			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 			class NowTime(
 				val zoneId: String? = null
 			) : DefaultValue {

@@ -1,7 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
@@ -21,7 +21,7 @@ import org.taktik.icure.errorreporting.addWarning
  * 1e400 -> REJECTED (too large, would be infinity)
  * ```
  */
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class FloatTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -29,7 +29,7 @@ data class FloatTypeConfig(
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is FloatTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class ValidationConfig(
 		val min: Double? = null,
 		val max: Double? = null,

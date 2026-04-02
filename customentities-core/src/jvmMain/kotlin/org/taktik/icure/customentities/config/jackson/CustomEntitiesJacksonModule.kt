@@ -2,8 +2,13 @@ package org.taktik.icure.customentities.config.jackson
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.JsonToken
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.taktik.icure.customentities.config.migration.EnumMigration
+import org.taktik.icure.customentities.config.typing.BinaryTypeConfig
 import org.taktik.icure.customentities.config.typing.BooleanTypeConfig
 import org.taktik.icure.customentities.config.typing.EnumTypeConfig
 import org.taktik.icure.customentities.config.typing.FloatTypeConfig
@@ -18,10 +23,12 @@ import org.taktik.icure.customentities.config.typing.MapTypeConfig
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.customentities.config.typing.ObjectTypeConfig
 import org.taktik.icure.customentities.config.typing.StringTypeConfig
+import org.taktik.icure.customentities.config.typing.UnknownTypeConfig
 import org.taktik.icure.customentities.config.typing.UuidTypeConfig
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(
+	JsonSubTypes.Type(value = BinaryTypeConfig::class, name = "Binary"),
 	JsonSubTypes.Type(value = BooleanTypeConfig::class, name = "Boolean"),
 	JsonSubTypes.Type(value = EnumTypeConfig::class, name = "Enum"),
 	JsonSubTypes.Type(value = FloatTypeConfig::class, name = "Float"),
@@ -35,6 +42,7 @@ import org.taktik.icure.customentities.config.typing.UuidTypeConfig
 	JsonSubTypes.Type(value = ObjectTypeConfig::class, name = "Object"),
 	JsonSubTypes.Type(value = StringTypeConfig::class, name = "String"),
 	JsonSubTypes.Type(value = UuidTypeConfig::class, name = "Uuid"),
+	JsonSubTypes.Type(value = UnknownTypeConfig::class, name = "Unknown"),
 )
 private abstract class GenericTypeConfigMixin
 
@@ -63,11 +71,44 @@ private abstract class KeyValidationMixin
 )
 private abstract class TargetValueMixin
 
+private class JsonTypeConfigDeserializer : StdDeserializer<JsonTypeConfig>(JsonTypeConfig::class.java) {
+	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): JsonTypeConfig {
+		var token = p.currentToken()
+		if (token == JsonToken.START_OBJECT) token = p.nextToken()
+		while (token == JsonToken.FIELD_NAME) {
+			p.nextToken()
+			p.skipChildren()
+			token = p.nextToken()
+		}
+		return JsonTypeConfig
+	}
+}
+
+private class UnknownTypeConfigDeserializer : StdDeserializer<UnknownTypeConfig>(UnknownTypeConfig::class.java) {
+	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): UnknownTypeConfig {
+		var nullable = false
+		var token = p.currentToken()
+		if (token == JsonToken.START_OBJECT) token = p.nextToken()
+		while (token == JsonToken.FIELD_NAME) {
+			val fieldName = p.currentName()
+			p.nextToken()
+			when (fieldName) {
+				"nullable" -> nullable = p.booleanValue
+				else -> p.skipChildren()
+			}
+			token = p.nextToken()
+		}
+		return if (nullable) UnknownTypeConfig.Nullable else UnknownTypeConfig.NonNull
+	}
+}
+
 class CustomEntitiesJacksonModule : SimpleModule("CustomEntities") {
 	init {
 		setMixInAnnotation(GenericTypeConfig::class.java, GenericTypeConfigMixin::class.java)
 		setMixInAnnotation(ObjectDefinition.PropertyConfiguration.DefaultValue::class.java, DefaultValueMixin::class.java)
 		setMixInAnnotation(MapTypeConfig.ValidationConfig.KeyValidation::class.java, KeyValidationMixin::class.java)
 		setMixInAnnotation(EnumMigration.TargetValue::class.java, TargetValueMixin::class.java)
+		addDeserializer(JsonTypeConfig::class.java, JsonTypeConfigDeserializer())
+		addDeserializer(UnknownTypeConfig::class.java, UnknownTypeConfigDeserializer())
 	}
 }

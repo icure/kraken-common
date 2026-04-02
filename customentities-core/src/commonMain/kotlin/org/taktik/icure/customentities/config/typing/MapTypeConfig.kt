@@ -2,13 +2,13 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class MapTypeConfig(
 	val valueType: GenericTypeConfig,
 	override val nullable: Boolean = false,
@@ -25,7 +25,7 @@ data class MapTypeConfig(
 	override val enumDefinitionDependencies: Set<Pair<String, Boolean>> get() =
 		valueType.enumDefinitionDependencies + validation?.keyValidation?.equivalentTypeConfig()?.enumDefinitionDependencies.orEmpty()
 
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class ValidationConfig(
 		val minSize: Int? = null,
 		val maxSize: Int? = null,

@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.util
 
+import org.taktik.icure.customentities.config.typing.GenericTypeConfig
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
 interface BuiltinDefinitionsProvider {
@@ -13,7 +14,8 @@ interface BuiltinDefinitionsProvider {
 	data class BuiltinObjectDefinition(
 		val properties: Map<String, ObjectDefinition.PropertyConfiguration>,
 		val isExtendable: Boolean,
-		val isRoot: Boolean
+		val isRoot: Boolean,
+		val deprecatedProperties: Set<String>
 	)
 }
 

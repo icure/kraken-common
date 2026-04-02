@@ -2,6 +2,8 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.jackson.annotations.JsonIgnore
+import org.taktik.icure.jackson.annotations.JsonInclude
 
 //TODO
 // - add BuiltInTypeConfig to allow referencing built-in embedded complex types (like Address, CodeStub, ...)?
@@ -59,6 +61,7 @@ sealed interface GenericTypeConfig {
 	 * Checks recursively on collection types but doesn't resolve references to object definitions, so only direct
 	 * dependencies are included.
 	 */
+	@get:JsonIgnore
 	val objectDefinitionDependencies: Set<Pair<String, Boolean>>
 		get() = emptySet()
 
@@ -67,6 +70,7 @@ sealed interface GenericTypeConfig {
 	 * Checks recursively on collection types but doesn't resolve references to enum definitions, so only direct
 	 * dependencies are included.
 	 */
+	@get:JsonIgnore
 	val enumDefinitionDependencies: Set<Pair<String, Boolean>>
 		get() = emptySet()
 

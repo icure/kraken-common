@@ -1,10 +1,10 @@
 package org.taktik.icure.customentities.config
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class StandardRootEntityExtensionConfig(
 	/**
 	 * Reference to the object definition (i.e. key of [VersionedCustomEntitiesConfiguration.objects]) for this entity
@@ -22,7 +22,7 @@ data class StandardRootEntityExtensionConfig(
 	val version: Int,
 )
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class StandardRootEntitiesExtensionConfig(
 	override val patient: StandardRootEntityExtensionConfig? = null,
 ) : ExtendableRootEntitiesConfiguration<StandardRootEntityExtensionConfig>

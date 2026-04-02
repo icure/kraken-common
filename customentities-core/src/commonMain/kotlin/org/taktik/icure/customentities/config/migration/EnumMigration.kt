@@ -1,7 +1,7 @@
 package org.taktik.icure.customentities.config.migration
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 
 /**
  * Specifies how to convert values from a source enum to a target enum in different configurations.
@@ -127,7 +127,7 @@ import org.taktik.icure.jackson.annotations.Include
  *   custom logic implementation is opaque and there is no guarantee that it returns distinct values for distinct
  *   inputs.
  */
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class EnumMigration(
 	/**
 	 * Reference to an enum definition in the source configuration, or a builtin enum class name if [builtinSource] is true.

@@ -2,7 +2,7 @@ package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.getRequiredEnumDefinition
 import org.taktik.icure.customentities.util.resolveRequiredEnumReference
@@ -12,7 +12,7 @@ import org.taktik.icure.errorreporting.addError
 /**
  * A reference to a custom enum definition
  */
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class EnumTypeConfig(
 	val enumReference: String,
 	val isBuiltin: Boolean = false,

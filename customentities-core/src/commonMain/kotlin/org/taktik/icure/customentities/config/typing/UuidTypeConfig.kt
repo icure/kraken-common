@@ -1,11 +1,9 @@
 package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
-import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import kotlin.jvm.JvmStatic
 
@@ -16,7 +14,7 @@ import kotlin.jvm.JvmStatic
 //TODO
 // uuid should be independent of representation. Should maybe not allow to specify format, and enforce one of our chosing (maybe even Base64),
 // Could be annoying for debug and could prohibit certain queries by range if we use a base64 though.
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class UuidTypeConfig(
 	override val nullable: Boolean = false,
 	val format: Format? = null,
@@ -46,7 +44,7 @@ data class UuidTypeConfig(
 	}
 
 	// Custom lambda is less pretty than regex, but is 3x faster on good input and over 10x faster on bad input
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	enum class Format(val validate: (String) -> Boolean) {
 		/**
 		 * Dash-separated hexadecimal representation with lowercase letters, groups of 8-4-4-4-12 digits.

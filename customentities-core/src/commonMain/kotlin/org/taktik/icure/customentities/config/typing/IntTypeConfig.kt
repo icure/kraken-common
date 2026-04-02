@@ -1,13 +1,13 @@
 package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.jackson.annotations.JsonInclude
-import org.taktik.icure.jackson.annotations.Include
+import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 
-@JsonInclude(Include.NON_DEFAULT)
+@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class IntTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -26,7 +26,7 @@ data class IntTypeConfig(
 		const val MIN_SAFE_LONG = -9007199254740991
 	}
 
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class ValidationConfig(
 		/**
 		 * Minimum acceptable value, always inclusive.
