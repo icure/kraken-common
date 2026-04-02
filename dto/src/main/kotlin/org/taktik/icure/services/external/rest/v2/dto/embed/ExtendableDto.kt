@@ -18,10 +18,10 @@
 
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 interface ExtendableDto {
+	@CardinalMetadataProperty
 	val extensions: RawJson.JsonObject?
 }

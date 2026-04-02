@@ -19,6 +19,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 /**
@@ -29,5 +30,6 @@ interface EncryptableDto {
 	@get:Schema(
 		description = "The base64 encoded data of this object, formatted as JSON and encrypted in AES using the random master key from encryptionKeys.",
 	)
+	@CardinalMetadataProperty
 	val encryptedSelf: Base64StringDto?
 }

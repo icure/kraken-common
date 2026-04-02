@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
@@ -66,29 +67,46 @@ data class UserDto(
 	@param:Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
 	/** Local permissions specified for the user. */
 	@param:Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system")
+	@CardinalMetadataProperty
 	val permissions: Set<PermissionDto> = emptySet(),
 	/** Local roles specified for the user. */
 	@param:Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system")
+	@CardinalMetadataProperty
 	val roles: Set<String> = emptySet(),
 	/** Authorization source for user ('Database', 'ldap' or 'token'). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: UsersTypeDto? = null,
 	/** State of user's activeness: 'Active', 'Disabled' or 'Registering'. */
-	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: UsersStatusDto? = null,
+	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'")
+	@CardinalMetadataProperty
+	val status: UsersStatusDto? = null,
 	/** Username for this user. We encourage using an email address. */
-	@param:Schema(description = "Username for this user. We encourage using an email address") val login: String? = null,
+	@param:Schema(description = "Username for this user. We encourage using an email address")
+	@CardinalMetadataProperty
+	val login: String? = null,
 	/** Hashed version of the password (BCrypt is used for hashing). */
-	@param:Schema(description = "Hashed version of the password (BCrypt is used for hashing)") val passwordHash: String? = null,
+	@param:Schema(description = "Hashed version of the password (BCrypt is used for hashing)")
+	@CardinalMetadataProperty
+	val passwordHash: String? = null,
 	/** The id of the group (practice/hospital) the user is member of. */
-	@param:Schema(description = "id of the group (practice/hospital) the user is member of") val groupId: String? = null,
+	@param:Schema(description = "id of the group (practice/hospital) the user is member of")
+	@CardinalMetadataProperty
+	val groupId: String? = null,
 	/** Id of the healthcare party if the user is a healthcare party. */
-	@param:Schema(description = "Id of the healthcare party if the user is a healthcare party.") val healthcarePartyId: String? = null,
+	@param:Schema(description = "Id of the healthcare party if the user is a healthcare party.")
+	@CardinalMetadataProperty
+	val healthcarePartyId: String? = null,
 	/** Id of the patient if the user is a patient. */
-	@param:Schema(description = "Id of the patient if the user is a patient") val patientId: String? = null,
+	@param:Schema(description = "Id of the patient if the user is a patient")
+	@CardinalMetadataProperty
+	val patientId: String? = null,
 	/** Id of the device if the user is a device. */
-	@param:Schema(description = "Id of the device if the user is a device") val deviceId: String? = null,
+	@param:Schema(description = "Id of the device if the user is a device")
+	@CardinalMetadataProperty
+	val deviceId: String? = null,
 	/** Delegations that are automatically generated client side when a new database object is created by this user. */
 	@param:Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user")
+	@CardinalMetadataProperty
 	val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), // DelegationTagDto -> healthcarePartyIds
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
@@ -98,17 +116,24 @@ data class UserDto(
 	/** The timestamp (unix epoch in ms) of the latest validation of the terms of use. */
 	) val termsOfUseDate: Instant? = null,
 	/** Email address of the user (used for token exchange or password recovery). */
-	@param:Schema(description = "email address of the user (used for token exchange or password recovery).") val email: String? = null,
+	@param:Schema(description = "email address of the user (used for token exchange or password recovery).")
+	@CardinalMetadataProperty
+	val email: String? = null,
 	/** Mobile phone of the user (used for token exchange or password recovery). */
-	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).") val mobilePhone: String? = null,
+	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).")
+	@CardinalMetadataProperty
+	val mobilePhone: String? = null,
 	/** Long lived authentication tokens used for inter-applications authentication. */
 	@Deprecated("Long lived authentication tokens used for inter-applications authentication")
+	@CardinalMetadataProperty
 	val applicationTokens: Map<String, String> = emptyMap(),
 	/** Encrypted and time-limited authentication tokens used for inter-applications authentication. */
 	@param:Schema(description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication")
+	@CardinalMetadataProperty
 	val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
 	/** Metadata used to enrich the user with information from the cloud environment. */
 	@param:Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.")
+	@CardinalMetadataProperty
 	val systemMetadata: SystemMetadata? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,

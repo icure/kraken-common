@@ -18,6 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -75,6 +76,7 @@ data class TopicDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Map of active participants with their roles (participant, admin, or owner). */
+	@CardinalMetadataProperty
 	val activeParticipants: Map<String, TopicRoleDto> = emptyMap(),
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,

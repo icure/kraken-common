@@ -17,10 +17,13 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
 
+import org.taktik.icure.CardinalMetadataProperty
+
 /**
  * @param <T> The type of the entity identity (a String, a UUID, etc.)
 </T> */
 interface VersionableDto<T> : IdentifiableDto<T> {
+	@CardinalMetadataProperty
 	val rev: String?
 
 	fun withIdRev(

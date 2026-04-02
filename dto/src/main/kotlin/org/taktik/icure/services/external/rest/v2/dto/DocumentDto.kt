@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -92,34 +93,52 @@ data class DocumentDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A unique external id (from another external source).") val externalUuid: String? = null,
 	/** The size of the document file. */
-	@param:Schema(description = "Size of the document file") val size: Long? = null,
+	@param:Schema(description = "Size of the document file")
+	@CardinalMetadataProperty
+	val size: Long? = null,
 	/** The hashed version of the document. */
-	@param:Schema(description = "Hashed version of the document") val hash: String? = null,
+	@param:Schema(description = "Hashed version of the document")
+	@CardinalMetadataProperty
+	val hash: String? = null,
 	/** The id of the contact during which the document was created. */
 	@param:Schema(description = "Id of the contact during which the document was created") val openingContactId: String? = null,
 	/** The id of the main attachment stored as a CouchDB attachment. */
-	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment") val attachmentId: String? = null,
+	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment")
+	@CardinalMetadataProperty
+	val attachmentId: String? = null,
 	@param:Schema(
 		description = "Id of the main attachment of this document, if stored using the object storage service",
 	/** The id of the main attachment in the object storage service. */
-	) val objectStoreReference: String? = null,
+	)
+	@CardinalMetadataProperty
+	val objectStoreReference: String? = null,
 	@param:Schema(
 		description = "The main Uniform Type Identifier for the main attachment (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE)",
 	/** The main Uniform Type Identifier of the main attachment. */
-	) val mainUti: String? = null,
+	)
+	@CardinalMetadataProperty
+	val mainUti: String? = null,
 	/** Extra Uniform Type Identifiers for the main attachment. */
-	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
+	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment")
+	@CardinalMetadataProperty
+	val otherUtis: Set<String> = emptySet(),
 	/** Secondary attachments for this document. */
-	@param:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
+	@param:Schema(description = "Secondary attachments for this document")
+	@CardinalMetadataProperty
+	val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
 	/** Information on past attachments for this document. */
-	@param:Schema(description = "Information on past attachments for this document") val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
+	@param:Schema(description = "Information on past attachments for this document")
+	@CardinalMetadataProperty
+	val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** The encrypted attachment content as bytes. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(type = "string", format = "byte")
+	@CardinalMetadataProperty
 	val encryptedAttachment: ByteArray? = null,
 	/** The decrypted attachment content as bytes. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(type = "string", format = "byte")
+	@CardinalMetadataProperty
 	val decryptedAttachment: ByteArray? = null,
 	/** The secret foreign keys, used for secure linking to patients. */
 	override val secretForeignKeys: Set<String> = emptySet(),

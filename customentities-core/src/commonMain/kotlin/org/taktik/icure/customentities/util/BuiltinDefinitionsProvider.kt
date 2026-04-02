@@ -1,6 +1,5 @@
 package org.taktik.icure.customentities.util
 
-import org.taktik.icure.customentities.config.typing.GenericTypeConfig
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
 interface BuiltinDefinitionsProvider {
@@ -12,10 +11,30 @@ interface BuiltinDefinitionsProvider {
 	)
 
 	data class BuiltinObjectDefinition(
+		/**
+		 * Properties of the builtin object, excluding metadata properties
+		 */
 		val properties: Map<String, ObjectDefinition.PropertyConfiguration>,
+		/**
+		 * If this object definition represens an entity that can have custom extensions added to it
+		 */
 		val isExtendable: Boolean,
+		/**
+		 * If this object definition represents an extendable entity that is a root entity in the database.
+		 * These entities can't be embedded in other entities
+		 */
 		val isRoot: Boolean,
-		val deprecatedProperties: Set<String>
+		/**
+		 * Name of properties that are included in [properties] but have been deprecated.
+		 * They might still be useful in migrations.
+		 */
+		val deprecatedProperties: Set<String>,
+		/**
+		 * Name of properties that are not included in the [properties] because they are holding metadata that has
+		 * particular significance to cardinal (for access control, encryption, ...) and therefore should not be used in
+		 * a migration, otherwise some processes may break.
+		 */
+		val metadataProperties: Set<String>
 	)
 }
 

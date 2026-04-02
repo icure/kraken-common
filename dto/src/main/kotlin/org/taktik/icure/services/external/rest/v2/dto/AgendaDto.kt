@@ -21,6 +21,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -62,27 +63,36 @@ data class AgendaDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** A fuzzy time in HHMMSS format used to split working hours into blocks for availabilities computation. */
+	@CardinalMetadataProperty
 	val daySplitHour: Int? = null,
 	/** If true the agenda is not available for availabilities and safe booking requests. */
+	@CardinalMetadataProperty
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
 	/** The name of the agenda. */
 	val name: String? = null,
 	/** The id of the user associated with this agenda. */
 	val userId: String? = null,
 	/** An identifier for the time zone of the agenda, must be an id accepted by java's ZoneId. */
+	@CardinalMetadataProperty
 	val zoneId: String? = null,
 	/** The legacy rights for this agenda. Deprecated: use userRights instead. */
-	@Deprecated("Use `userRights` instead") val rights: List<RightDto> = emptyList(),
+	@Deprecated("Use `userRights` instead")
+	@CardinalMetadataProperty
+	val rights: List<RightDto> = emptyList(),
 	/** Associates a user id to the permission that user has on the entity. */
 	@param:Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@CardinalMetadataProperty
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	/** The algorithm to use for computing time slots in the agenda. */
+	@CardinalMetadataProperty
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
 	/** If not null, limits the amount of monthly appointments per unprivileged user for this agenda. */
+	@CardinalMetadataProperty
 	val publicBookingQuota: Int? = null,
 	/** Custom properties of the agenda. */
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
 	/** The resource group allocation schedules defining availability rules for this agenda. */
+	@CardinalMetadataProperty
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,

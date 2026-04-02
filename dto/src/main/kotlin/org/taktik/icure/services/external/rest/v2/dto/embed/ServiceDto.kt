@@ -24,6 +24,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
@@ -45,7 +46,9 @@ data class ServiceDto(
 	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
 	val transactionId: String? = null,
 	val identifier: List<IdentifierDto> = emptyList(),
-	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact") val contactId: String? = null,
+	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact")
+	@CardinalMetadataProperty
+	val contactId: String? = null,
 	@param:Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
 	val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact")
@@ -58,16 +61,23 @@ data class ServiceDto(
 		description = "The secret patient key, encrypted in the patient document, in clear here.",
 		defaultValue = "emptySet()"
 	)
+	@CardinalMetadataProperty
 	val secretForeignKeys: Set<String>? = emptySet(), // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
-	@param:Schema(description = "The delegations giving access to connected healthcare information.") val delegations: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.")
+	@CardinalMetadataProperty
+	val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "The delegations giving access to connected healthcare information.")
+	@CardinalMetadataProperty
+	val delegations: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.")
+	@CardinalMetadataProperty
 	val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	@param:Schema(description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...")
 	val label: String? = null,
 	@param:Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)")
 	val index: Long? = null, // Used for sorting
-	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
+	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key")
+	val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
 	@Deprecated("use encryptedSelf instead") val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
 	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date") val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
@@ -92,6 +102,7 @@ data class ServiceDto(
 	override val codes: Set<CodeStubDto> = emptySet(), // stub object of the CodeDto used to qualify the content of the ServiceDto
 	override val tags: Set<CodeStubDto> = emptySet(), // stub object of the tag used to qualify the type of the ServiceDto
 	override val encryptedSelf: Base64StringDto? = null,
+	@CardinalMetadataProperty
 	val securityMetadata: SecurityMetadataDto? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
