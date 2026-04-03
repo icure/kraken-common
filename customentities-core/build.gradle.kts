@@ -24,7 +24,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project("$projectPrefix:utils-multiplatform"))
+                api(project("$projectPrefix:utils-multiplatform"))
             }
         }
         val commonTest by getting
