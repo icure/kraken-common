@@ -2,6 +2,7 @@ package org.taktik.icure.customentities.config.migration
 
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
+import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider.BuiltinEnumDefinition
 
 /**
  * Specifies how to convert values from a source enum to a target enum in different configurations.
@@ -149,12 +150,18 @@ data class EnumMigration(
 	 * Specify how to map a certain value of the source enum to a value of the target enum.
 	 * Each key must be a valid entry name in the source enum.
 	 * Takes priority over [automaticallyMapIdenticalNames] and [fallbackMapping].
+	 *
+	 * When the source is a builtin enum the keys of this map should be the [BuiltinEnumDefinition.Entry.sdkName] of
+	 * the entry
 	 */
 	val sourceMappings: Map<String, TargetValue> = emptyMap(),
 	/**
 	 * If not explicitly set to false (default), all values of the source enum that have the same name as an entry in
 	 * the target enum, are automatically mapped to the corresponding entry.
 	 * Takes priority over [fallbackMapping].
+	 *
+	 * When this migration includes a builtin enum names equivalence considers only the
+	 * [BuiltinEnumDefinition.Entry.sdkName] of entries of the builtin enum.
 	 */
 	val automaticallyMapIdenticalNames: Boolean = false,
 	/**

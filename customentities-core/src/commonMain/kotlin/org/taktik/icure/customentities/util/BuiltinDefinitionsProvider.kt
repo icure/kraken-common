@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.util
 
+import org.taktik.icure.customentities.config.migration.EnumMigration
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
 interface BuiltinDefinitionsProvider {
@@ -7,8 +8,31 @@ interface BuiltinDefinitionsProvider {
 	fun getBuiltinObjectDefinition(name: String): BuiltinObjectDefinition?
 
 	data class BuiltinEnumDefinition(
-		val entries: Set<String>
-	)
+		val entries: Set<Entry>
+	) {
+		/**
+		 * An entry of a builtin enum definition.
+		 * Unlike custom enum definition there might be a distinction between serial name of an entry and the name
+		 * displayed to a user.
+		 */
+		data class Entry(
+			/**
+			 * The user-facing name of the entry, what it is used in the SDK code and displayed by the cockpit UI.
+			 * This is the primary value used in migration-related validation:
+			 * - Value considered for [EnumMigration.automaticallyMapIdenticalNames]
+			 * - Value expected in the keys of [EnumMigration.sourceMappings] for builtin enums
+			 * - Value considered for type coercion
+			 */
+			val sdkName: String,
+			/**
+			 * The value used when the entry is serialized for the rest methods and for storage in the db.
+			 * This is the primary value used in value-related validation:
+			 * - Value considered for validating an object property default value
+			 * - Value considered for validating an enum property value inside a custom type
+			 */
+			val serialName: String
+		)
+	}
 
 	data class BuiltinObjectDefinition(
 		/**
@@ -31,8 +55,10 @@ interface BuiltinDefinitionsProvider {
 		val deprecatedProperties: Set<String>,
 		/**
 		 * Name of properties that are not included in the [properties] because they are holding metadata that has
-		 * particular significance to cardinal (for access control, encryption, ...) and therefore should not be used in
-		 * a migration, otherwise some processes may break.
+		 * particular significance to cardinal (for access control, encryption, ...) and therefore should not be
+		 * customized or used in a migration, otherwise some processes may break.
+		 *
+		 * Used only to support providing better error messages.
 		 */
 		val metadataProperties: Set<String>
 	)

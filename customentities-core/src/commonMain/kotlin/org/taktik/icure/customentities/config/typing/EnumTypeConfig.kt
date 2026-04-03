@@ -51,7 +51,10 @@ data class EnumTypeConfig(
 			context.validation.addError("GE-ENUM-JSON")
 		} else {
 			val enumDefinitionEntries = if (isBuiltin) {
-				context.builtinDefinitions.getRequiredEnumDefinition(enumReference).entries
+				context.builtinDefinitions.getRequiredEnumDefinition(enumReference).entries.mapTo(mutableSetOf()) {
+					// Validation requires
+					it.serialName
+				}
 			} else {
 				context.resolution.resolveRequiredEnumReference(enumReference).entries
 			}
