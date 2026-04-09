@@ -35,7 +35,7 @@ data class EntityTemplateDto(
 	override val rev: String? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
-	/** The id of the user who owns this entity template. */
+	/** A description of the entity template. */
 	var userId: String? = null,
 	/** A description of the entity template. */
 	val descr: String? = null,

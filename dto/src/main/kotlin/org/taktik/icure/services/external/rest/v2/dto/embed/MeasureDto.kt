@@ -28,7 +28,7 @@ import java.io.Serializable
  * Represents a measured value with its unit, reference value, severity, evolution, and reference ranges.
  */
 data class MeasureDto(
-	/** The measured numeric value. */
+	/** value of the measure */
 	val value: Double? = null,
 	/** The reference value for comparison. */
 	val ref: Double? = null,
@@ -38,9 +38,9 @@ data class MeasureDto(
 	val severityCode: String? = null,
 	/** The evolution indicator as an integer. */
 	val evolution: Int? = null,
-	/** The unit of measurement as a string. */
+	/** unit of the measure */
 	val unit: String? = null,
-	/** The coded units of measurement. */
+	/** unit codes of the measure */
 	val unitCodes: Set<CodeStubDto>? = null,
 	/** A comment about the measurement. */
 	val comment: String? = null,
@@ -48,7 +48,7 @@ data class MeasureDto(
 	val comparator: String? = null,
 	/** The sign of the value. */
 	val sign: String? = null,
-	/** The list of reference ranges for this measurement. */
+	/** reference range of the measure conversion from min/max is done at the client side level since most of the data are encrypted, we can't do it at the server level (or we can, but it will be a lot of work for very little data that aren't encrypted) */
 	val referenceRanges: List<ReferenceRangeDto> = emptyList(),
 	/** The value with its precision information. */
 	val valueWithPrecision: ValueWithPrecisionDto? = null,

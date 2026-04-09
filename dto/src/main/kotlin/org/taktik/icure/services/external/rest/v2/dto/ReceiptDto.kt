@@ -64,8 +64,8 @@ data class ReceiptDto(
 	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
 	/** List of references (e.g., nipReference, errorCode, errorPath, tarification, invoice UUID). */
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
-	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
 	/** The id of the document (InvoiceDto, ContactDto, ...) this receipt is linked to. */
+	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
 	val documentId: String? = null,
 	/** The category of the receipt. */
 	val category: String? = null,

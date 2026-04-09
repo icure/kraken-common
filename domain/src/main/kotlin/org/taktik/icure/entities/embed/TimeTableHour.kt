@@ -10,6 +10,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TimeTableHour(
+	/** The start hour encoded as a long (hh:mm:ss). */
 	val startHour: Long? = null, // hh:mm:ss
+	/** The end hour encoded as a long (hh:mm:ss). */
 	val endHour: Long? = null, // hh:mm:ss
 ) : Serializable

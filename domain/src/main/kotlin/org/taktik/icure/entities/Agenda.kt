@@ -242,19 +242,33 @@ import java.time.ZoneId
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class Agenda(
+	/** The Id of the agenda. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the agenda in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	/** The id of the User that created this agenda. */
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
+	/** The id of the data owner that is responsible for this agenda. */
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
+	/** The medical location where this entity was created. */
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the agenda as being member of a certain class. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	/** Codes that identify or qualify this particular agenda. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	/** The name of the agenda. */
 	val name: String? = null,
+	/** The id of the user associated with this agenda. */
 	@Deprecated("Use TODO instead") val userId: String? = null,
+	/** The legacy rights for this agenda. Deprecated: use userRights instead. */
 	@NonMergeable @Deprecated("Use `userRights` instead") val rights: List<Right> = emptyList(),
 	/**
 	 * Associates a user id to the permission that user has on the entity.
@@ -324,6 +338,7 @@ data class Agenda(
 	 * An unpublished agenda has less strict integrity checks.
 	 */
 	val unpublished: Boolean = false,
+	/** The algorithm to use for computing time slots in the agenda. */
 	val slottingAlgorithm: AgendaSlottingAlgorithm? = null,
 	/**
 	 * If not null limits the amount of appointments that each user without special privileges is allowed to take for

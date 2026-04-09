@@ -18,20 +18,35 @@ import org.taktik.icure.mergers.annotations.Mergeable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class CalendarItemType(
+	/** The Id of the calendar item type. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the calendar item type in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	/** The display name of this calendar item type. */
 	val name: String? = null,
+	/** The id of the healthcare party associated with this type. */
 	val healthcarePartyId: String? = null,
+	/** The id of the agenda to which this type can be applied. If null, the type can be applied to any agenda. */
 	val agendaId: String? = null,
+	/** Whether this is the default calendar item type for its agenda. */
 	val defaultCalendarItemType: Boolean = false,
+	/** The color associated with this type, in hex format (e.g. "#123456"). */
 	val color: String? = null, // "#123456"
+	/** The default duration in minutes for calendar items of this type. */
 	val duration: Int = 0, // Duration in minutes
+	/** Optional configuration for additional allowed durations. */
 	val extraDurationsConfig: DurationConfig? = null,
+	/** An external reference identifier. */
 	val externalRef: String? = null,
+	/** An external Mikrono identifier. */
 	val mikronoId: String? = null,
+	/** A set of document ids associated with this type. */
 	val docIds: Set<String> = emptySet(),
+	/** Additional information stored as key-value pairs. */
 	val otherInfos: Map<String, String> = emptyMap(),
+	/** Subject text for this calendar item type, by language. */
 	val subjectByLanguage: Map<String, String> = emptyMap(),
 	/**
 	 * Public properties of public calendar items (i.e. calendar items available in public timetableitems) are exposed to anonymous endpoints.

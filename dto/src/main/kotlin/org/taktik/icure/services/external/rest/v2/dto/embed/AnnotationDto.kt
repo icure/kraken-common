@@ -19,25 +19,25 @@ import java.util.UUID
  * for example to flag a faulty thermometer after taking a temperature.
  */
 data class AnnotationDto(
+	/** The Id of the annotation. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(
 		description = "The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id.",
-	/** The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id. */
 	) override val id: String = UUID.randomUUID().toString(),
-	/** The identifier of the author of this annotation. */
+	/** The id of the User that has created this note, will be filled automatically if missing with current user id. Not enforced by the application server. */
 	val author: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of the note, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(
 		description = "The timestamp (unix epoch in ms) of creation of this note, will be filled automatically if missing. Not enforced by the application server.",
-	/** The timestamp (unix epoch in ms) of creation of this note, filled automatically if missing. */
 	) val created: Long? = null,
+	/** The date (unix epoch in ms) of the latest modification of the note, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(
 		description = "The timestamp (unix epoch in ms) of the latest modification of this note, will be filled automatically if missing. Not enforced by the application server.",
-	/** The timestamp (unix epoch in ms) of the latest modification of this note, filled automatically if missing. */
 	) val modified: Long? = null,
-	/** Text contained in the note, written as markdown. Deprecated in favor of [markdown]. */
+	/** Text contained in the note, written as markdown. */
 	@param:Schema(description = "Text contained in the note, written as markdown.", deprecated = true) val text: String? = null,
 	/** Localized text contained in the note, written as markdown. Keys should respect ISO 639-1. */
 	@param:Schema(description = "Localized text contained in the note, written as markdown. Keys should respect ISO 639-1") val markdown: Map<String, String> = emptyMap(),
-	/** Defines to which part of the corresponding information the note is related to. */
+	/** Defines to which part of the corresponding information the note is related to */
 	@param:Schema(description = "Defines to which part of the corresponding information the note is related to.") val location: String? = null,
 	/** Whether this annotation is confidential. */
 	val confidential: Boolean? = null,

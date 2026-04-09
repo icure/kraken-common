@@ -18,19 +18,32 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ClassificationTemplate(
+	/** The Id of the classification template. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the classification template in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	/** The id of the User that created this classification template. */
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
+	/** The id of the data owner that is responsible for this classification template. */
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
+	/** The medical location where this entity was created. */
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the classification template as being member of a certain class. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	/** Codes that identify or qualify this particular classification template. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
+	/** The id of the parent classification template, for nesting. */
 	val parentId: String? = null,
+	/** A human-readable label for this classification template. */
 	@MergeStrategyNotBlank val label: String = "",
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

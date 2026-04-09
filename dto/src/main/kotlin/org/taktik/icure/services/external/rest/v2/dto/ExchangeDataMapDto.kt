@@ -16,16 +16,16 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFin
  * to the encrypted id of the exchange data used for the creation of the secure delegation.
  */
 data class ExchangeDataMapDto(
-	/** The id of this entity, which is the Secure Delegation Key. */
+	/** The id of this entity is the Secure Delegation Key. */
 	override val id: String,
-	/** The revision of the exchange data map in the database, used for conflict management / optimistic locking. */
+	/** The id of this entity is the Secure Delegation Key. / */
 	override val rev: String? = null,
+	/** A map where each key is the fingerprint of a public key of the explicit data owner in an explicit->anonymous or anonymous->explicit delegation, and the value is the id of the exchange data used for the creation of the secure delegation. */
 	@param:Schema(
 		description = """
         A map where each key is the fingerprint of a public key and the value is an exchange data id, encrypted with the private key corresponding to that public key.
     """,
 	)
-	/** A map where each key is a public key fingerprint and the value is an encrypted exchange data id. */
 	val encryptedExchangeDataIds: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,

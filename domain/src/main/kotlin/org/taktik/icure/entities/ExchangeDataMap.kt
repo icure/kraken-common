@@ -26,6 +26,7 @@ data class ExchangeDataMap(
 	 */
 	val encryptedExchangeDataIds: Map<KeypairFingerprintV2String, Sha256HexString> = emptyMap(),
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,

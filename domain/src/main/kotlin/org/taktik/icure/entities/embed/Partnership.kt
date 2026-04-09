@@ -10,11 +10,16 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Partnership(
+	/** The type of relationship (from CD-CONTACT-PERSON codes). */
 	val type: PartnershipType? = null, // codes are from CD-CONTACT-PERSON
+	/** The status of the relationship. */
 	val status: PartnershipStatus? = null,
+	/** The UUID of the contact person or patient in this relationship. */
 	val partnerId: String? = null, // Person: can either be a patient or a hcp
+	/** Deprecated. Description of the relationship from this patient to the other person. */
 	@Deprecated("use type instead")
 	val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
+	/** Deprecated. Description of the relationship from the other person to this patient. */
 	@Deprecated("use type instead")
 	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
 ) : Serializable

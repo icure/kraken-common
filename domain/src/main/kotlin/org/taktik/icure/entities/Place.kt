@@ -18,11 +18,16 @@ import org.taktik.icure.mergers.annotations.Mergeable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class Place(
+	/** The unique identifier of the place. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision identifier for optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
+	/** The display name of the place. */
 	override val name: String? = null,
+	/** The address of the place. */
 	val address: Address? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

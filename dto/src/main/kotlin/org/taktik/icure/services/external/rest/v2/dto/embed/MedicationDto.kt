@@ -30,9 +30,7 @@ data class MedicationDto(
 	val medicinalProduct: MedicinalproductDto? = null,
 	val numberOfPackages: Int? = null,
 	val batch: String? = null,
-	/**
-	 * The expiration date of the medication. Format: yyyyMMdd
-	 */
+	/** The expiration date of the medication. Format: yyyyMMdd */
 	val expirationDate: Long? = null,
 	val instructionForPatient: String? = null,
 	val instructionForReimbursement: String? = null,

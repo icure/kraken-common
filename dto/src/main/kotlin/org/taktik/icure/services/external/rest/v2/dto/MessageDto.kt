@@ -45,15 +45,15 @@ data class MessageDto(
 	/** The revision of the message in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "The revision of the message in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
-	/** The timestamp (unix epoch in ms) of creation. */
+	/** The timestamp (unix epoch in ms) of creation of the message, will be filled automatically if missing. Not enforced by the application server. */
 	override val created: Long? = null,
-	/** The timestamp (unix epoch in ms) of the latest modification. */
+	/** The date (unix epoch in ms) of the latest modification of the message, will be filled automatically if missing. Not enforced by the application server. */
 	override val modified: Long? = null,
-	/** The id of the User that created this message. */
+	/** The ID of the user that has created this message, will be filled automatically if missing. Not enforced by the application server. */
 	override val author: String? = null,
-	/** The id of the HealthcareParty that is responsible for this message. */
+	/** The ID of the HealthcareParty that is responsible for this message, will be filled automatically if missing. Not enforced by the application server. */
 	override val responsible: String? = null,
-	/** The id of the medical location where this message was created. */
+	/** The ID of the medical location where this entity was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	/** Tags that qualify the message as being member of a certain class. */
@@ -65,31 +65,31 @@ data class MessageDto(
 	val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
-	/** Address of the sender of the message. */
+	/** Address of the sender of the message */
 	@param:Schema(description = "Address of the sender of the message") val fromAddress: String? = null,
-	/** ID of the healthcare party sending the message. */
+	/** ID of the healthcare party sending the message */
 	@param:Schema(description = "ID of the healthcare party sending the message") val fromHealthcarePartyId: String? = null,
 	/** The id of the form linked to this message. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val formId: String? = null,
-	/** Status of the message as a bitfield. */
+	/** Status of the message */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Status of the message") val status: Int? = null,
-	/** The type of user who is the recipient of this message. */
+	/** The type of user who is the recipient of this message */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of user who is the recipient of this message") val recipientsType: String? = null,
-	/** List of IDs of healthcare parties to whom the message is addressed. */
+	/** List of IDs of healthcare parties to whom the message is addressed */
 	@param:Schema(description = "List of IDs of healthcare parties to whom the message is addressed") val recipients: Set<String> = emptySet(), // The id of the hcp whose the message is addressed to
-	/** The addresses of the recipients of the message. */
+	/** The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be) */
 	@param:Schema(description = "The address of the recipient of the message. Format is of an email address with extra domains defined for mycarenet and ehealth: (efact.mycarenet.be/eattest.mycarenet.be/chapter4.mycarenet.be/ehbox.ehealth.fgov.be)")
 	val toAddresses: Set<String> = emptySet(),
-	/** The timestamp (unix epoch in ms) when the message was received. */
+	/** The timestamp (unix epoch in ms) when the message was received */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was received") val received: Long? = null,
-	/** The timestamp (unix epoch in ms) when the message was sent. */
+	/** The timestamp (unix epoch in ms) when the message was sent */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the message was sent") val sent: Long? = null,
 	/** Additional metadata for the message. */
 	val metas: Map<String, String> = emptyMap(),
-	/** Status showing whether the message is read or not and the time of reading. */
+	/** Status showing whether the message is read or not and the time of reading */
 	@param:Schema(description = "Status showing whether the message is read or not and the time of reading") val readStatus: Map<String, MessageReadStatusDto> = emptyMap(),
 	/** List of message attachments. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
@@ -114,11 +114,11 @@ data class MessageDto(
 	val remark: String? = null,
 	/** The guid of the conversation this message belongs to. */
 	val conversationGuid: String? = null,
-	/** Subject for the message. */
+	/** Subject for the message */
 	@param:Schema(description = "Subject for the message") val subject: String? = null,
-	/** Set of IDs for invoices in the message. */
+	/** Set of IDs for invoices in the message */
 	@param:Schema(description = "Set of IDs for invoices in the message") val invoiceIds: Set<String> = emptySet(),
-	/** ID of a parent in a message conversation. */
+	/** ID of a parent in a message conversation */
 	@param:Schema(description = "ID of a parent in a message conversation") val parentId: String? = null, // ID of parent in a message conversation
 	/** External reference for the message. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
@@ -139,11 +139,11 @@ data class MessageDto(
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The delegations giving access to connected healthcare information. */
+	/** The delegations giving access to all connected healthcare information. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The keys used to encrypt this entity when stored encrypted. */
+	/** The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The base64-encoded encrypted fields of this entity. */
+	/** The encrypted fields of this Message. */
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,

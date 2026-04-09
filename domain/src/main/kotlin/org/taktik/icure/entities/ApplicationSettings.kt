@@ -22,28 +22,47 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ApplicationSettings(
+	/** The Id of the application settings. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the application settings in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	/** The id of the User that created this entity. */
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
+	/** The id of the data owner that is responsible for this entity. */
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
+	/** The medical location where this entity was created. */
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify this entity as being member of a certain class. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	/** Codes that identify or qualify this entity. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
+	/** A map of plaintext application settings as key-value pairs. */
 	val settings: Map<String, String> = emptyMap(),
+	/** A map of encrypted application settings as key-value pairs. */
 	val encryptedSettings: Map<String, String> = emptyMap(),
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
+	/** The secret foreign keys, used for secure linking. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The encrypted foreign keys. */
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The delegations giving access to connected healthcare information. */
 	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
+	/** The encryption keys used to encrypt secured properties, encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadata? = null,
+	/** The base64-encoded encrypted fields of this entity. */
 	override val encryptedSelf: String? = null,
 ) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
 

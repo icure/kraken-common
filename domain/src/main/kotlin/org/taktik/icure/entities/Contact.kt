@@ -39,78 +39,76 @@ import org.taktik.icure.validation.ValidCode
  * A Contact conforms to a series of interfaces:
  * - StoredICureDocument
  * - Encryptable
- *
- * @property id The Id of the contact. We encourage using either a v4 UUID or a HL7 Id.
- * @property rev The revision of the contact in the database, used for conflict management / optimistic locking.
- * @property created The timestamp (unix epoch in ms) of creation of the contact, will be filled automatically if missing. Not enforced by the application server.
- * @property modified The date (unix epoch in ms) of the latest modification of the contact, will be filled automatically if missing. Not enforced by the application server.
- * @property author The id of the User that has created this contact, will be filled automatically if missing. Not enforced by the application server.
- * @property responsible The id of the HealthcareParty that is responsible for this patient, will be filled automatically if missing. Not enforced by the application server.
- * @property medicalLocationId The id of the medical location where the contact was recorded.
- * @property tags Tags that qualify the contact as being member of a certain class.
- * @property codes Codes that identify or qualify this particular contact.
- * @property identifier The identifiers of the Contact.
- * @property endOfLife Soft delete (unix epoch in ms) timestamp of the object.
- * @property deletionDate Hard delete (unix epoch in ms) timestamp of the object.
- * @property groupId Separate contacts can merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId
- * @property openingDate The date (YYYYMMDDhhmmss) of the start of the contact.
- * @property deletionDate The date (YYYYMMDDhhmmss) marking the end of the contact.
- * @property descr Description of the contact
- * @property location Location where the contact was recorded.
- * @property externalId An external (from another source) id with no guarantee or requirement for unicity.
- * @property encounterType The type of encounter made for the contact
- * @property encounterLocation The location where the encounter took place.
- * @property subContacts Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.
- * @property services Set of all services provided to the patient during the contact.
- * @property participants The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id
- * @property delegations The delegations giving access to connected healthcare information.
- * @property secretForeignKeys The secret patient key, encrypted in the patient document, in clear here.
- * @property cryptedForeignKeys The public patient key, encrypted here for separate Crypto Actors.
- * @property encryptionKeys The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.
- * @property encryptedSelf The encrypted fields of this contact.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class Contact(
+	/** The Id of the contact. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the contact in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The timestamp (unix epoch in ms) of creation of the contact, will be filled automatically if missing. Not enforced by the application server. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	/** The date (unix epoch in ms) of the latest modification of the contact, will be filled automatically if missing. Not enforced by the application server. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	/** The id of the User that has created this contact, will be filled automatically if missing. Not enforced by the application server. */
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this contact, will be filled automatically if missing. Not enforced by the application server. */
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
+	/** The id of the medical location where the contact was recorded. Deprecated for use with Cardinal SDK. */
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the contact as being member of a certain class. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	/** Codes that identify or qualify this particular contact. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** The identifiers of the Contact. */
 	val identifier: List<Identifier> = emptyList(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@field:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	@field:NotNull(autoFix = AutoFix.UUID) val groupId: String? = null, // Several contacts can be combined in a logical contact if they share the same groupId
+	/** Separate contacts can merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId */
+	@field:NotNull(autoFix = AutoFix.UUID) val groupId: String? = null,
 
+	/** The date (YYYYMMDDhhmmss) of the start of the contact. */
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
 	@MergeStrategyMin
-	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	val openingDate: Long? = null,
+	/** The date (YYYYMMDDhhmmss) marking the end of the contact. */
 	@MergeStrategyMax
-	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	val closingDate: Long? = null,
 
+	/** Description of the contact */
 	val descr: String? = null,
+	/** Location where the contact was recorded. */
 	val location: String? = null,
-	@Deprecated("Replaced by responsible") val healthcarePartyId: String? = null, // Redundant and obsolete... Should be responsible
+	@Deprecated("Replaced by responsible") val healthcarePartyId: String? = null,
+	/** An external (from another source) id with no guarantee or requirement for unicity. */
 	val externalId: String? = null,
 	@Deprecated("Contacts should be linked together using formId in subcontact") val modifiedContactId: String? = null,
+	/** The type of encounter made for the contact */
 	val encounterType: CodeStub? = null,
+	/** The location where the encounter took place. */
 	val encounterLocation: Address? = null,
+	/** Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms. */
 	@field:Valid val subContacts: Set<SubContact> = emptySet(),
+	/** Set of all services provided to the patient during the contact. */
 	@field:Valid val services: Set<Service> = emptySet(),
+	/** The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id */
 	val participants: Map<ParticipantType, String> = emptyMap(),
 	val participantList: List<ContactParticipant> = emptyList(),
 
+	/** The secret patient key, encrypted in the patient document, in clear here. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The public patient key, encrypted here for separate Crypto Actors. */
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The delegations giving access to connected healthcare information. */
 	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
+	/** The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The encrypted fields of this contact. */
 	override val encryptedSelf: String? = null,
 	override val securityMetadata: SecurityMetadata? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

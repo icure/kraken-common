@@ -14,6 +14,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Periodicity(
+	/** The code associated with this periodicity. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) val relatedCode: CodeStub? = null,
+	/** The periodicity code defining the recurrence pattern. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) val relatedPeriodicity: CodeStub? = null,
 ) : Serializable

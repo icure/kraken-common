@@ -20,15 +20,21 @@ import java.util.*
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class Episode(
+	/** The unique identifier of this episode. */
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(), // Autofix if needed when loading from db
+	/** The name of the episode. */
 	override val name: String? = null,
+	/** A comment associated with the episode. */
 	val comment: String? = null,
+	/** The start date in YYYYMMDDHHMMSS format. Unknown components are set to 00. */
 	@MergeStrategyMin
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
 	val startDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	/** The end date in YYYYMMDDHHMMSS format. Unknown components are set to 00. */
 	@MergeStrategyMax
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
 	val endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	/** The base64-encoded encrypted content of this episode. */
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	Serializable,

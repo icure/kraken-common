@@ -27,8 +27,8 @@ import java.io.Serializable
  * Represents a time range within a time table, defined by a start and end hour.
  */
 data class EmbeddedTimeTableHourDto(
-	/** The start hour encoded as an integer. */
+	/** The start of a time slot, as fuzzy time in 24-hour hhmmss format. */
 	val startHour: Int,
-	/** The end hour encoded as an integer. */
+	/** The end of a time slot, as fuzzy time in 24-hour hhmmss format. The special value [END_OF_DAY] (23_59_60) can be used to indicate the end of the day. */
 	val endHour: Int,
 ) : Serializable

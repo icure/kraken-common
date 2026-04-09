@@ -10,6 +10,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DocumentGroup(
+	/** The globally unique identifier for this document group. */
 	val guid: String? = null,
+	/** The human-readable name of the document group. */
 	val name: String? = null,
 ) : Serializable

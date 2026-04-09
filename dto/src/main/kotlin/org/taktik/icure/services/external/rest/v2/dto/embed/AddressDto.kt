@@ -37,18 +37,31 @@ import java.io.Serializable
 data class AddressDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** The identifiers of the Address. */
 	@param:Schema(description = "The identifiers of the Address") val identifier: List<IdentifierDto> = emptyList(),
+	/** The type of place the address represents, ex: home, office, hospital, clinic, etc. */
 	@param:Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") val addressType: AddressTypeDto? = null,
+	/** Descriptive notes about the address. */
 	@param:Schema(description = "Descriptive notes about the address") val descr: String? = null,
+	/** Street name. */
 	@param:Schema(description = "Street name") val street: String? = null,
+	/** Building / house number. */
 	@param:Schema(description = "Building / house number") val houseNumber: String? = null,
+	/** Post / PO box number. */
 	@param:Schema(description = "Post / PO box number") val postboxNumber: String? = null,
+	/** Postal/PIN/ZIP/Area code. */
 	@param:Schema(description = "Postal/PIN/ZIP/Area code") val postalCode: String? = null,
+	/** Name of city in the address. */
 	@param:Schema(description = "Name of city in the address") val city: String? = null,
+	/** Name of state in the Address. */
 	@param:Schema(description = "Name of state in the Address") val state: String? = null,
+	/** Name / code of country in the address. */
 	@param:Schema(description = "Name / code of country in the address") val country: String? = null,
+	/** Additional notes. */
 	@param:Schema(description = "Additional notes", deprecated = true) val note: String? = null,
+	/** Additional notes. */
 	@param:Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
+	/** List of other contact details available through telecom services, ex: email, phone number, fax, etc. */
 	@param:Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,

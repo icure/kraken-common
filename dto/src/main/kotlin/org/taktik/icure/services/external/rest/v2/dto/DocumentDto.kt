@@ -45,19 +45,19 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 data class DocumentDto(
 	/** The Id of the document. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the document. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
+	/** The revision of the document in the database, used for conflict management / optimistic locking. */
 	@param:Schema(
 		description = "The revision of the document in the database, used for conflict management / optimistic locking.",
-	/** The revision of the document in the database, used for conflict management / optimistic locking. */
 	) override val rev: String? = null,
-	/** The timestamp (unix epoch in ms) of creation of this entity. */
+	/** The timestamp (unix epoch in ms) of creation of the document, will be filled automatically if missing. Not enforced by the application server. */
 	override val created: Long? = null,
-	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
+	/** The date (unix epoch in ms) of the latest modification of the document, will be filled automatically if missing. Not enforced by the application server. */
 	override val modified: Long? = null,
-	/** The id of the User that created this document. */
+	/** The id of the User that has created this document, will be filled automatically if missing. Not enforced by the application server. */
 	override val author: String? = null,
-	/** The id of the data owner that is responsible for this document. */
+	/** The id of the healthcare party that is responsible for this document, will be filled automatically if missing. Not enforced by the application server. */
 	override val responsible: String? = null,
-	/** The medical location where this entity was created. */
+	/** The id of the medical location where the document was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	/** Tags that qualify the document as being member of a certain class. */
@@ -67,45 +67,45 @@ data class DocumentDto(
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val endOfLife: Long? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** Hard delete (unix epoch in ms) timestamp of the object. Filled automatically when document is deleted. */
 	override val deletionDate: Long? = null,
-	/** The location of the document. */
+	/** Location of the document */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Location of the document") val documentLocation: DocumentLocationDto? = null,
-	/** The type of document (e.g., admission, clinical path, document report, invoice). */
+	/** The type of document, ex: admission, clinical path, document report,invoice, etc. */
 	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
-	/** The status of the document development (e.g., Draft, finalized, reviewed, signed). */
+	/** The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc. */
 	@param:Schema(description = "The status of the development of the document. Ex: Draft, finalized, reviewed, signed, etc.") val documentStatus: DocumentStatusDto? = null,
-	/** When the document is stored externally, the URI of the document in that repository. */
+	/** When the document is stored in an external repository, this is the uri of the document in that repository */
 	@param:Schema(description = "When the document is stored in an external repository, this is the uri of the document in that repository") val externalUri: String? = null,
-	/** The name of the document. */
+	/** Name of the document */
 	@param:Schema(description = "Name of the document") val name: String? = null,
-	/** The document version. */
+	/** The document version */
 	@param:Schema(description = "The document version") val version: String? = null,
-	/** The ICureDocument (Form, Contact, ...) used to generate this document. */
+	/** The ICureDocument (Form, Contact, ...) that has been used to generate the document */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The ICureDocument (Form, Contact, ...) that has been used to generate the document")
 	val storedICureDocumentId: String? = null, // The ICureDocumentDto (FormDto, ContactDto, ...) that has been used to generate the document
-	/** A unique external id from another external source. */
+	/** A unique external id (from another external source). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A unique external id (from another external source).") val externalUuid: String? = null,
-	/** The size of the document file. */
+	/** Size of the document file */
 	@param:Schema(description = "Size of the document file") val size: Long? = null,
-	/** The hashed version of the document. */
+	/** Hashed version of the document */
 	@param:Schema(description = "Hashed version of the document") val hash: String? = null,
-	/** The id of the contact during which the document was created. */
+	/** Id of the contact during which the document was created */
 	@param:Schema(description = "Id of the contact during which the document was created") val openingContactId: String? = null,
-	/** The id of the main attachment stored as a CouchDB attachment. */
+	/** Id of the couch db attachment holding the main data attachment of this document. Null if the main data attachment is not stored as a couchdb attachment. */
 	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment") val attachmentId: String? = null,
+	/** Id of the main data attachment of this document in the object storage service. Null if the main data attachment is not stored using the object storage service. */
 	@param:Schema(
 		description = "Id of the main attachment of this document, if stored using the object storage service",
-	/** The id of the main attachment in the object storage service. */
 	) val objectStoreReference: String? = null,
+	/** The main Uniform Type Identifier of the document main data attachment (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE) */
 	@param:Schema(
 		description = "The main Uniform Type Identifier for the main attachment (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE)",
-	/** The main Uniform Type Identifier of the main attachment. */
 	) val mainUti: String? = null,
-	/** Extra Uniform Type Identifiers for the main attachment. */
+	/** Extra Uniform Type Identifiers for thje document main data attachment. */
 	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
 	/** Secondary attachments for this document. */
 	@param:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
@@ -123,11 +123,11 @@ data class DocumentDto(
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The delegations giving access to connected healthcare information. */
+	/** The delegations giving access to all connected healthcare information. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The encryption keys used to encrypt secured properties, encrypted for separate Crypto Actors. */
+	/** The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The base64-encoded encrypted fields of this document. */
+	/** The encrypted fields of this document. */
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadataDto? = null,

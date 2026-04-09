@@ -32,21 +32,11 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 data class SecureDelegationKeyMapDto(
 	override val id: String,
 	override val rev: String? = null,
-	/**
-	 * The secure delegation key this map refers to.
-	 */
+	/** The secure delegation key this map refers to. */
 	@param:Schema(required = true) val delegationKey: String,
-	/**
-	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
-	 * and if not encrypted.
-	 * On the server side this value should always be encrypted.
-	 */
+	/** The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation, and if not encrypted. On the server side this value should always be encrypted. */
 	val delegator: String? = null,
-	/**
-	 * The delegate of the secure delegation key this map refers to, if the delegate is anonymous in the delegation,
-	 * and if not encrypted.
-	 * On the server side this value should always be encrypted.
-	 */
+	/** The delegate of the secure delegation key this map refers to, if the delegate is anonymous in the delegation, and if not encrypted. On the server side this value should always be encrypted. */
 	val delegate: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),

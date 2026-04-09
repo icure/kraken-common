@@ -15,10 +15,12 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NotificationEvent(
+	/** The instant when the notification event occurred. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val date: Instant? = null,
+	/** The delivery status of the notification (SENT, RECEIVED, or ERROR). */
 	val status: Status? = null,
 ) : Serializable {
 	enum class Status {

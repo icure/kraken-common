@@ -16,22 +16,35 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Content(
+	/** A string value. */
 	@param:JsonProperty("s") val stringValue: String? = null,
+	/** A numeric value. */
 	@param:JsonProperty("n") val numberValue: Double? = null,
+	/** A boolean value. */
 	@param:JsonProperty("b") val booleanValue: Boolean? = null,
+	/** An instant value. */
 	@param:JsonProperty("i")
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
+	/** Value as a fuzzy date, which may contain day, month, and/or year components. */
 	@param:JsonProperty("dt") val fuzzyDateValue: Long? = null,
+	/** A binary value encoded as a byte array. */
 	@param:JsonProperty("x") val binaryValue: ByteArray? = null,
+	/** The identifier of a linked document. */
 	@param:JsonProperty("d") val documentId: String? = null,
+	/** Values of measurements recorded, including value, range, severity, and unit. */
 	@param:JsonProperty("m") val measureValue: Measure? = null,
+	/** The details of prescribed or suggested medication. */
 	@param:JsonProperty("p") val medicationValue: Medication? = null,
+	/** A list of sub-services forming a compound value. */
 	@param:JsonProperty("c") val compoundValue: Set<Service>? = null,
+	/** A high frequency time-series containing timestamps in ms and their values. */
 	@param:JsonProperty("ts") val timeSeries: TimeSeries? = null,
+	/** A list of measures representing a ratio. */
 	val ratio: List<Measure>? = null,
+	/** A list of measures representing a range. */
 	val range: List<Measure>? = null,
 ) : Serializable {
 	override fun equals(other: Any?): Boolean {

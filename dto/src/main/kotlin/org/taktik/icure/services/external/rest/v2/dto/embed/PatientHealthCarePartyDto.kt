@@ -28,9 +28,13 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "One or several periods of care by an hcp for this patient")
 data class PatientHealthCarePartyDto(
+	/** Type of care/relationship. */
 	@param:Schema(description = "Type of care/relationship.") val type: PatientHealthCarePartyTypeDto? = null,
+	/** UUID of the hcp. */
 	@param:Schema(description = "UUID of the hcp.") val healthcarePartyId: String? = null,
+	/** Preferred format of exchange for diverse means of communication. */
 	@param:Schema(description = "Preferred format of exchange for diverse means of communication") val sendFormats: Map<TelecomTypeDto, String> =
+	/** Time periods. */
 		emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
 	@param:Schema(description = "Time periods") val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
 	@Deprecated("Use type") @param:Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)

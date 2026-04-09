@@ -47,8 +47,8 @@ data class MedicalHouseContractDto(
 	val parentContractId: String? = null,
 	/** Who changed the contract (user or mcn). */
 	val changedBy: String? = null, // user, mcn
-	// Coverage specific data (coverage = forfait-inscription)
 	/** The contract signature date (yyyyMMdd). */
+	// Coverage specific data (coverage = forfait-inscription)
 	val startOfContract: Long? = null, // yyyyMMdd : signdate
 	/** The start of coverage date (yyyyMMdd). */
 	val startOfCoverage: Long? = null, // yyyyMMdd
@@ -78,8 +78,8 @@ data class MedicalHouseContractDto(
 	val ptdEnd: Long? = null,
 	/** The date PTD was last invoiced. */
 	val ptdLastInvoiced: Long? = null,
-	// SuspensionDto specific data:
 	/** The start of suspension date (yyyyMMdd). */
+	// SuspensionDto specific data:
 	val startOfSuspension: Long? = null, // yyyyMMdd
 	/** The end of suspension date (yyyyMMdd). */
 	val endOfSuspension: Long? = null, // yyyyMMdd

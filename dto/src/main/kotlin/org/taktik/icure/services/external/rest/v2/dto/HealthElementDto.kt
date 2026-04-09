@@ -51,21 +51,21 @@ data class HealthElementDto(
 	@param:Schema(description = "The Id of the healthcare element. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	/** The identifiers of the healthcare element. */
 	val identifiers: List<IdentifierDto> = emptyList(),
-	/** The revision of the healthcare element in the database, used for conflict management / optimistic locking. */
+	/** The revision of the patient in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "The revision of the patient in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
-	/** The timestamp (unix epoch in ms) of creation. */
+	/** The timestamp (unix epoch in ms) of creation of the healthcare element, will be filled automatically if missing. Not enforced by the application server. */
 	override val created: Long? = null,
-	/** The timestamp (unix epoch in ms) of the latest modification. */
+	/** The date (unix epoch in ms) of latest modification of the healthcare element, will be filled automatically if missing. Not enforced by the application server. */
 	override val modified: Long? = null,
-	/** The id of the User that created this healthcare element. */
+	/** The id of the User that has created this healthcare element, will be filled automatically if missing. Not enforced by the application server. */
 	override val author: String? = null,
-	/** The id of the HealthcareParty that is responsible for this healthcare element. */
+	/** The id of the HealthcareParty that is responsible for this healthcare element, will be filled automatically if missing. Not enforced by the application server. */
 	override val responsible: String? = null,
-	/** The id of the medical location where this healthcare element was created. */
+	/** The id of the medical location where the healthcare element is recorded */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
-	/** Tags that qualify the healthcare element as being member of a certain class. */
+	/** Tags that qualify the healthcare element as a member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
 	/** Codes that identify or qualify this particular healthcare element. */
 	override val codes: Set<CodeStubDto> = emptySet(),
@@ -73,11 +73,11 @@ data class HealthElementDto(
 	override val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
-	/** The logical id of the healthcare element, used to link together different versions of the same healthcare element. */
+	/** The logical id of the healthcare element, used to link together different versions of the same healthcare element. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The logical id of the healthcare element, used to link together different versions of the same healthcare element. We encourage using either a v4 UUID or a HL7 Id.")
 	val healthElementId: String? = null,
+	/** The date (unix epoch in ms) when the healthcare element is noted to have started and also closes on the same date */
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
-	/** The date (unix epoch in ms) when the healthcare element is noted to have started and also closes on the same date. */
 	@param:Schema(description = "The date (unix epoch in ms) when the healthcare element is noted to have started and also closes on the same date")
 	val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The date (unix epoch in ms) of the start of the healthcare element. */
@@ -90,7 +90,7 @@ data class HealthElementDto(
 	@param:Schema(description = "A text note (can be confidential, encrypted by default).") val note: String? = null,
 	/** Localized text annotations for the healthcare element. */
 	val notes: List<AnnotationDto> = emptyList(),
-	/** Whether the healthcare element is relevant or not. */
+	/** If the healthcare element is relevant or not (Set relevant by default). */
 	@param:Schema(description = "If the healthcare element is relevant or not (Set relevant by default).", defaultValue = "true") val relevant: Boolean = true,
 	/** Id of the opening contact when the healthcare element was created. */
 	@param:Schema(description = "Id of the opening contact when the healthcare element was created.") val idOpeningContact: String? = null,
@@ -98,11 +98,11 @@ data class HealthElementDto(
 	@param:Schema(description = "Id of the closing contact for the healthcare element.") val idClosingContact: String? = null,
 	/** Id of the service when a service is used to create a healthcare element. */
 	@param:Schema(description = "Id of the service when a service is used to create a healthcare element.") val idService: String? = null, // When a service is used to create the healthElement
-	/** Bit field representing active/inactive, relevant/irrelevant, present/absent states. */
+	/** bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present", defaultValue = "0")
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
-	/** Left or right dominance/preference. */
+	/** Left or Right dominance/preference. */
 	@param:Schema(description = "Left or Right dominance/preference.") val laterality: LateralityDto? = null,
 	/** List of healthcare approaches. */
 	@param:Schema(description = "List of healthcare approaches.") val plansOfAction: List<PlanOfActionDto> = emptyList(),
@@ -114,11 +114,11 @@ data class HealthElementDto(
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The delegations giving access to connected healthcare information. */
+	/** The delegations giving access to all connected healthcare information. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The keys used to encrypt this entity when the entity is stored encrypted. */
+	/** The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The base64-encoded encrypted fields of this entity. */
+	/** The encrypted fields of this healthcare element. */
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,

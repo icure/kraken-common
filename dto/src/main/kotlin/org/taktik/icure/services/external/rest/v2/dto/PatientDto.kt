@@ -81,48 +81,48 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
 data class PatientDto(
 	/** The Id of the patient. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	/** The patient's identifiers, used by the client to uniquely identify the patient. */
+	/** The patient's identifier. */
 	val identifier: List<IdentifierDto> = emptyList(),
 	/** The revision of the patient in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the patient in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
-	/** The timestamp (unix epoch in ms) of creation. */
+	/** The timestamp (unix epoch in ms) of creation of the patient. Enforced by the application server : will be filled automatically if missing. */
 	override val created: Long? = null,
-	/** The timestamp (unix epoch in ms) of the latest modification. */
+	/** the date (unix epoch in ms) of latest modification of the patient. Enforced by the application server : will be filled automatically if missing. */
 	override val modified: Long? = null,
-	/** The id of the User that created this patient. */
+	/** the id of the User that has created this patient, will be filled automatically if missing. Not enforced by the application server. */
 	override val author: String? = null,
-	/** The id of the HealthcareParty that is responsible for this patient. */
+	/** the id of the HealthcareParty that is responsible for this patient, will be filled automatically if missing. Not enforced by the application server. */
 	override val responsible: String? = null,
-	/** Tags that qualify the patient as being member of a certain class. */
+	/** tags that qualify the patient as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
-	/** Codes that identify or qualify this particular patient. */
+	/** codes that identify or qualify this particular patient. */
 	override val codes: Set<CodeStubDto> = emptySet(),
-	/** Soft delete (unix epoch in ms) timestamp of the object. */
+	/** soft delete (unix epoch in ms) timestamp of the object. Unused for patient. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val endOfLife: Long? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** Hard delete (unix epoch in ms) timestamp of the object. Filled automatically when deletePatient is called. */
 	override val deletionDate: Long? = null,
-	/** The firstname (name) of the patient. */
+	/** the firstname (name) of the patient. */
 	@param:Schema(description = "the firstname (name) of the patient.") override val firstName: String? = null,
-	/** The lastname (surname) of the patient. */
+	/** the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes. */
 	@param:Schema(description = "the lastname (surname) of the patient. This is the official lastname that should be used for official administrative purposes.")
 	override val lastName: String? = null, // Is usually either maidenName or spouseName,
-	/** The list of all names of the patient, ordered by preference of use. */
+	/** The list of all names of the patient, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the patient in the application. */
 	@param:Schema(description = "the list of all names of the patient, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the patient in the application")
 	override val names: List<PersonNameDto> = emptyList(),
-	/** The name of the company this patient is member of. */
+	/** the name of the company this patient is member of. */
 	@param:Schema(description = "the name of the company this patient is member of.") override val companyName: String? = null,
-	/** The list of languages spoken by the patient ordered by fluency (alpha-2 code). */
+	/** the list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html). */
 	@param:Schema(description = "the list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).")
 	override val languages: List<String> = emptyList(), // alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html,
-	/** The list of addresses (with address type). */
+	/** the list of addresses (with address type). */
 	@param:Schema(description = "the list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
 	/** Mr., Ms., Pr., Dr. ... */
 	@param:Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
+	/** the gender of the patient: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown */
 	@param:Schema(
 		description = "the gender of the patient: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown",
 		defaultValue = "GenderDto.unknown",
-	/** The gender of the patient. */
 	) override val gender: GenderDto? = GenderDto.unknown,
 	@param:Schema(
 		description = "the birth sex of the patient: male, female, indeterminate, unknown",
@@ -131,11 +131,11 @@ data class PatientDto(
 	) val birthSex: GenderDto? = GenderDto.unknown,
 	/** The id of the patient this patient has been merged with. */
 	@param:Schema(description = "The id of the patient this patient has been merged with.") val mergeToPatientId: String? = null,
-	/** The ids of the patients that have been merged inside this patient. */
+	/** The ids of the patients that have been merged towards this patient. */
 	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") val mergedIds: Set<String> = emptySet(),
 	/** An alias of the person, nickname, ... */
 	@param:Schema(description = "An alias of the person, nickname, ...") val alias: String? = null,
-	/** Whether the patient is active. */
+	/** Is the patient active (boolean). */
 	@param:Schema(description = "Is the patient active (boolean).", defaultValue = "true") val active: Boolean = true,
 	/** When not active, the reason for deactivation. */
 	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "\"none\"") val deactivationReason: String = "none",
@@ -143,30 +143,30 @@ data class PatientDto(
 	@param:Schema(description = "Deactivation date of the patient") val deactivationDate: Int? = null,
 	/** Social security inscription number. */
 	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
+	/** Lastname at birth (can be different of the current name), depending on the country, must be used to design the patient . */
 	@param:Schema(
 		description = "Lastname at birth (can be different of the current name), depending on the country, must be used to design the patient .",
-	/** Lastname at birth (can be different from the current name). */
 	) val maidenName: String? = null, // Never changes (nom de jeune fille),
+	/** Lastname of the spouse for a married woman, depending on the country, can be used to design the patient. */
 	@param:Schema(
 		description = "Lastname of the spouse for a married woman, depending on the country, can be used to design the patient.",
-	/** Lastname of the spouse for a married woman. */
 	) val spouseName: String? = null, // Name of the spouse after marriage,
-	/** Lastname of the partner. */
+	/** Lastname of the partner, should not be used to design the patient. */
 	@param:Schema(description = "Lastname of the partner, should not be used to design the patient.") val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
+	/** any of `single`, `in_couple`, `married`, `separated`, `divorced`, `divorcing`, `widowed`, `widower`, `complicated`, `unknown`, `contract`, `other`. */
 	@param:Schema(
 		description = "any of `single`, `in_couple`, `married`, `separated`, `divorced`, `divorcing`, `widowed`, `widower`, `complicated`, `unknown`, `contract`, `other`.",
 		defaultValue = "PersonalStatusDto.unknown",
-	/** The personal/marital status of the patient. */
 	) val personalStatus: PersonalStatusDto? = PersonalStatusDto.unknown,
+	/** The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date). */
 	@param:Schema(
 		description = "The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
-	/** The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD). */
 	) val dateOfBirth: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
+	/** The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date). */
 	@param:Schema(
 		description = "The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
-	/** The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD). */
 	) val dateOfDeath: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
-	/** Timestamp of the latest validation of the eID of the person. */
+	/** Timestamp of the latest validation of the eID of the person.. */
 	@param:Schema(description = "Timestamp of the latest validation of the eID of the person..") val timestampOfLatestEidReading: Long? = null,
 	/** The place of birth. */
 	@param:Schema(description = "The place of birth.") val placeOfBirth: String? = null,
@@ -195,20 +195,20 @@ data class PatientDto(
 	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
-	/** An external (from another source) id with no guarantee of unicity. */
+	/** An external (from another source) id with no guarantee or requirement for unicity . */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity .")
 	val externalId: String? = null, // No guarantee of unicity
-	/** List of insurance coverages. */
+	/** List of insurance coverages (of class Insurability, see below). */
 	@param:Schema(description = "List of insurance coverages (of class Insurability, see below).")
 	val insurabilities: List<InsurabilityDto> = emptyList(),
-	/** List of partners, or persons of contact. */
+	/** List of partners, or persons of contact (of class Partnership, see below). */
 	@param:Schema(description = "List of partners, or persons of contact (of class Partnership, see below)")
 	val partnerships: List<PartnershipDto> = emptyList(),
-	/** Links between this patient and healthcare parties. */
+	/** Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty). */
 	@param:Schema(description = "Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty)")
 	val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
-	/** Financial information used to reimburse the patient. */
+	/** Financial information (Bank, bank account) used to reimburse the patient. */
 	@param:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.")
 	val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
 	/** Contracts between the patient and the healthcare entity. */
@@ -218,35 +218,35 @@ data class PatientDto(
 	@param:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
 	/** Extra parameters. */
 	@param:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
-	/** Extra properties. */
+	/** Extra properties for the patient. Those properties are typed (see class Property) */
 	@param:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
-	/** For each couple of HcParties, the AES exchange key. */
+	/** When a patient has access to the medical file for modification or has been given access to it (any time he/she acts as a Crypto Actor), the list of exchange keys with other healthcare parties. */
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	/** Extra AES exchange keys, indexed by the owner of the pair and target data owner id. */
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	/** Keys used to transfer ownership of encrypted data between key pairs. */
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
-	/** Shamir partitions of the private key. */
+	/** A set of shamir partitions for that patient RSA private keys, encrypted with the public keys of the notaries (referred by their ids) */
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(),
-	/** The public key of this patient, used to encrypt data for this patient. */
+	/** The public RSA key of this patient */
 	override val publicKey: SpkiHexStringDto? = null,
-	/** Public keys for OAEP with SHA-256 encryption. */
+	/** The public keys of this actor which should be used for RSA-OAEP with sha256 encryption */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The delegations giving access to connected healthcare information. */
+	/** The delegations giving access to all connected healthcare information. */
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The keys used to encrypt this entity when stored encrypted. */
+	/** The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors. */
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
-	/** The base64-encoded encrypted fields of this entity. */
+	/** The encrypted fields of this patient. */
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	/** Properties related to crypto actor functionality. */
 	@SdkNonNullable @AlwaysDecrypted @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
-	/** The id of the medical location where this patient was created. */
+	/** the medical location where this patient has been created */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	/** Set of patient ids that are not duplicates of this patient. */

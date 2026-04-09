@@ -13,16 +13,22 @@ import java.text.SimpleDateFormat
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RegimenItem(
+	/** A specific date (yyyyMMdd) for this regimen item. */
 	// Day definition (One and only one of the three following should be not null)
 	// The three are null if it applies to every day
 	val date: Long? = null, // yyyymmdd at this date
+	/** The day number in the treatment (1-based). */
 	val dayNumber: Int? = null, // day 1 of treatment. 1 based numeration
+	/** The weekday for this regimen item. */
 	val weekday: Weekday? = null, // on monday
 
+	/** The period of the day (CD-DAYPERIOD) for administration. */
 	// Time of day definition (One and only one of the three following should be not null)
 	// Both are null if not specified
 	val dayPeriod: CodeStub? = null, // CD-DAYPERIOD
+	/** The time of day (hhmmss) for administration. */
 	val timeOfDay: Long? = null, // hhmmss 103010
+	/** The quantity to administer. */
 	val administratedQuantity: AdministrationQuantity? = null,
 ) : Serializable {
 	override fun toString(): String {

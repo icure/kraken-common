@@ -13,12 +13,17 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Medicinalproduct(
+	/** The list of coded identifiers for the intended medicinal product. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val intendedcds: List<CodeStub> = emptyList(),
 
+	/** The list of coded identifiers for the actually delivered medicinal product. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val deliveredcds: List<CodeStub> = emptyList(),
+	/** The name of the intended medicinal product. */
 	val intendedname: String? = null,
+	/** The name of the actually delivered medicinal product. */
 	val deliveredname: String? = null,
+	/** The product identifier. */
 	val productId: String? = null,
 ) : Serializable

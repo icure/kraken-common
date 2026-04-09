@@ -8,6 +8,8 @@ import org.taktik.icure.entities.base.CodeStub
 import java.io.Serializable
 
 data class Weekday(
+	/** The coded weekday (CD-WEEKDAY). */
 	val weekday: CodeStub? = null, // CD-WEEKDAY
+	/** The week number within a cycle, or null if not applicable. */
 	val weekNumber: Int? = null, // Can be null
 ) : Serializable

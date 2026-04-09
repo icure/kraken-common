@@ -16,10 +16,14 @@ import org.taktik.icure.entities.embed.RevisionInfo
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Replication(
+	/** The unique identifier of the replication. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision identifier for optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
+	/** The display name of this replication configuration. */
 	override val name: String? = null,
 	var context: String? = null,
 	var databaseSynchronizations: List<DatabaseSynchronization> = emptyList(),

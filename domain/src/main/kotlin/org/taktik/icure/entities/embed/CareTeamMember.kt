@@ -18,10 +18,15 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["id"])
 data class CareTeamMember(
+	/** The unique identifier of this care team member. */
 	@field:NotBlank(autoFix = AutoFix.UUID) @param:JsonProperty("_id") override val id: String = "",
+	/** The type of care team member (physician, specialist, or other). */
 	val careTeamMemberType: CareTeamMemberType? = null,
+	/** The identifier of the associated healthcare party. */
 	val healthcarePartyId: String? = null,
+	/** A code describing the quality or qualification of this care team member. */
 	val quality: CodeStub? = null,
+	/** The base64-encoded encrypted content of this care team member. */
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	Serializable,

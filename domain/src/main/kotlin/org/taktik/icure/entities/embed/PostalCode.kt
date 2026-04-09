@@ -10,7 +10,9 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PostalCode(
+	/** The postal code value. */
 	val code: String? = null,
+	/** Localized labels for this postal code, keyed by language code. */
 	val label: Map<String, String> = emptyMap(),
 ) : Serializable {
 	override fun toString(): String = code ?: "N/A"

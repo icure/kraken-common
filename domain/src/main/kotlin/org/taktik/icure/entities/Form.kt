@@ -69,6 +69,7 @@ data class Form(
 
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 
+	/** A unique external id (from another external source). */
 	val uniqueId: String? = null,
 	val status: String? = null,
 	val version: Int? = null,
@@ -77,7 +78,9 @@ data class Form(
 	val formTemplateId: String? = null,
 	val anchorId: String? = null,
 	val contactId: String? = null,
+	/** The healthcare element to which this form is attached. */
 	@Deprecated("Use sub-contacts in contact") val healthElementId: String? = null,
+	/** The healthcare approach to which this form is attached. */
 	@Deprecated("Use sub-contacts in contact") val planOfActionId: String? = null,
 	val parent: String? = null,
 

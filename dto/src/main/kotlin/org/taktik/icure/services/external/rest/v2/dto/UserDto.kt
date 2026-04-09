@@ -47,55 +47,55 @@ import java.time.Instant
  * a patient, or a device, and holds authentication credentials, roles, and permissions.
  */
 data class UserDto(
-	/** The Id of the user. We encourage using either a v4 UUID or a HL7 Id. */
+	/** the Id of the user. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the user. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
-	/** The revision of the user in the database, used for conflict management / optimistic locking. */
+	/** the revision of the user in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the user in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** hard delete (unix epoch in ms) timestamp of the object. Filled automatically when user is deleted. */
 	override val deletionDate: Long? = null,
-	/** The timestamp (unix epoch in ms) of creation. */
+	/** the timestamp (unix epoch in ms) of creation of the user, will be filled automatically if missing. Not enforced by the application server. */
 	val created: Long? = null,
 	/** The identifiers of the user. */
 	val identifier: List<IdentifierDto> = listOf(),
-	/** Last name of the user. */
+	/** Last name of the user. This is the official last name that should be used for official administrative purposes. */
 	@param:Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.")
 	override val name: String? = null,
-	/** Extra properties for the user. Those properties are typed (see class Property). */
+	/** Extra properties for the user. Those properties are typed (see class Property) */
 	@param:Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
-	/** Local permissions specified for the user. */
+	/** Local permissions of the user. May not actually reflect the permissions the user has in the cloud system. */
 	@param:Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system")
 	val permissions: Set<PermissionDto> = emptySet(),
-	/** Local roles specified for the user. */
+	/** Local roles of the user. May not actually reflect the roles the user has in the cloud environment. */
 	@param:Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system")
 	val roles: Set<String> = emptySet(),
-	/** Authorization source for user ('Database', 'ldap' or 'token'). */
+	/** Authorization source for user. 'Database', 'ldap' or 'token' */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") val type: UsersTypeDto? = null,
-	/** State of user's activeness: 'Active', 'Disabled' or 'Registering'. */
+	/** State of user's activeness: 'Active', 'Disabled' or 'Registering' */
 	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") val status: UsersStatusDto? = null,
-	/** Username for this user. We encourage using an email address. */
+	/** Username for this user. We encourage using an email address */
 	@param:Schema(description = "Username for this user. We encourage using an email address") val login: String? = null,
 	/** Hashed version of the password (BCrypt is used for hashing). */
 	@param:Schema(description = "Hashed version of the password (BCrypt is used for hashing)") val passwordHash: String? = null,
-	/** The id of the group (practice/hospital) the user is member of. */
+	/** id of the group (practice/hospital) the user is member of */
 	@param:Schema(description = "id of the group (practice/hospital) the user is member of") val groupId: String? = null,
 	/** Id of the healthcare party if the user is a healthcare party. */
 	@param:Schema(description = "Id of the healthcare party if the user is a healthcare party.") val healthcarePartyId: String? = null,
-	/** Id of the patient if the user is a patient. */
+	/** Id of the patient if the user is a patient */
 	@param:Schema(description = "Id of the patient if the user is a patient") val patientId: String? = null,
 	/** Id of the device if the user is a device. */
 	@param:Schema(description = "Id of the device if the user is a device") val deviceId: String? = null,
-	/** Delegations that are automatically generated client side when a new database object is created by this user. */
+	/** Delegations that are automatically generated client side when a new database object is created by this user */
 	@param:Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user")
 	val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), // DelegationTagDto -> healthcarePartyIds
+	/** the timestamp (unix epoch in ms) of the latest validation of the terms of use of the application */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(
 		description = "the timestamp (unix epoch in ms) of the latest validation of the terms of use of the application",
-	/** The timestamp (unix epoch in ms) of the latest validation of the terms of use. */
 	) val termsOfUseDate: Instant? = null,
-	/** Email address of the user (used for token exchange or password recovery). */
+	/** email address of the user. */
 	@param:Schema(description = "email address of the user (used for token exchange or password recovery).") val email: String? = null,
 	/** Mobile phone of the user (used for token exchange or password recovery). */
 	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).") val mobilePhone: String? = null,
@@ -108,6 +108,7 @@ data class UserDto(
 	/** Metadata used to enrich the user with information from the cloud environment. */
 	@param:Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.")
 	val systemMetadata: SystemMetadata? = null,
+		/** Local roles of the user. May not actually reflect the roles the user has in the cloud environment. */
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,

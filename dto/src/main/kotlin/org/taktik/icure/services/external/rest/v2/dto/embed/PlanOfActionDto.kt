@@ -30,38 +30,63 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PlanOfActionDto(
+	/** The Id of the healthcare approach. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
+	/** The timestamp (unix epoch in ms) of creation of the healthcare approach, will be filled automatically if missing. Not enforced by the application server. */
 	override val created: Long? = null,
+	/** The date (unix epoch in ms) of latest modification of the healthcare approach, will be filled automatically if missing. Not enforced by the application server. */
 	override val modified: Long? = null,
+	/** The id of the User that created this healthcare approach, will be filled automatically if missing. Not enforced by the application server. */
 	override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this healthcare approach, will be filled automatically if missing. Not enforced by the application server. */
 	override val responsible: String? = null,
+	/** The id of the medical location where the healthcare approach is carried out. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
+	/** Tags that qualify the healthcare approach as a member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular healthcare approach. */
 	override val codes: Set<CodeStubDto> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Id of the healthcare party that prescribed the healthcare approach */
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
 	@param:Schema(description = "The id of the hcp who prescribed this healthcare approach") val prescriberId: String? = null, // healthcarePartyId
+	/** The date (unix epoch in ms) when the healthcare approach is started (used if also closed on the same date) */
 	@param:Schema(description = "The date (unix epoch in ms) when the healthcare approach is noted to have started and also closes on the same date") val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	/** The date (unix epoch in ms) of the start of the healthcare approach. Either one of the value date or the opening date is usually used. */
 	@param:Schema(description = "The date (unix epoch in ms) of the start of the healthcare approach.") val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	/** The date (unix epoch in ms) marking the end of the healthcare approach. */
 	@param:Schema(description = "The date (unix epoch in ms) marking the end of the healthcare approach.") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	/** The date (YYYYMMDDHHMMSS) which is the last allowed date for carrying out the healthcare approach, recommended by the healthcare party. */
 	@param:Schema(description = "The date (unix epoch in ms) when the healthcare approach has to be carried out.") val deadlineDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	/** Name of the healthcare approach. */
 	@param:Schema(description = "The name of the healthcare approach.") override val name: String? = null,
+	/** Description for the healthcare approach. */
 	@param:Schema(description = "Description of the healthcare approach.") val descr: String? = null,
+	/** A text note (can be confidential, encrypted by default). */
 	@param:Schema(description = "Note about the healthcare approach.") val note: String? = null,
+	/** Id of the opening contact when the healthcare approach was initiated/prescribed. */
 	@param:Schema(description = "Id of the opening contact when the healthcare approach was created.") val idOpeningContact: String? = null,
+	/** Id of the closing contact for the healthcare approach. */
 	@param:Schema(description = "Id of the closing contact for the healthcare approach.") val idClosingContact: String? = null,
+	/** bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present", defaultValue = "0")
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	/** List of Ids of all documents related to the healthcare approach */
 	@Deprecated("Use services linked to this healthcare approach") val documentIds: Set<String> = emptySet(),
+	/** Number of members in the team assigned to execute the healthcare approach */
 	@Deprecated("Use services (one per care) linked to this healthcare approach")
 	@param:Schema(description = "The number of individual cares already performed in the course of this healthcare approach") val numberOfCares: Int? = null,
+	/** List of healthcare party members involved in the healthcare approach */
 	@param:Schema(description = "Members of the careteam involved in this approach")
 	val careTeamMemberships: List<CareTeamMembershipDto> = emptyList(),
+	/** If the healthcare approach is relevant or not (Set relevant by default). */
 	@Deprecated("Use status")
 	@param:Schema(defaultValue = "true")
 	val relevant: Boolean = true,
+	/** The encrypted fields of this healthcare approach. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,

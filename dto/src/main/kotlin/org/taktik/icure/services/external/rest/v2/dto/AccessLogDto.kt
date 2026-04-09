@@ -41,9 +41,9 @@ import java.time.Instant
 data class AccessLogDto(
 	/** The Id of the access log. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,
+	/** The revision of the access log in the database, used for conflict management / optimistic locking. */
 	@param:Schema(
 		description = "The revision of the access log in the database, used for conflict management / optimistic locking.",
-	/** The revision of the access log in the database, used for conflict management / optimistic locking. */
 	) override val rev: String? = null,
 	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	override val created: Long? = null,
@@ -73,11 +73,11 @@ data class AccessLogDto(
 	@param:Schema(description = "Id of the user making the requests") val user: String? = null,
 	/** Further details about the access. */
 	@param:Schema(description = "Further details about the access") val detail: String? = null,
+	/** The date of logging, filled instantaneously. */
 	@param:JsonSerialize(
 		using = InstantSerializer::class,
 		include = JsonSerialize.Inclusion.NON_NULL,
 	)
-	/** The date of logging, filled instantaneously. */
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(description = "The date (unix epoch in ms) of logging, is filled instantaneously.") val date: Instant? = null,
 	/** The patient id. Deprecated: use cryptedForeignKeys instead. */

@@ -21,28 +21,49 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MaintenanceTask(
+	/** The unique identifier of the maintenance task. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision of the maintenance task in the database, used for conflict management / optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The identifiers of the maintenance task. */
 	val identifier: List<Identifier> = listOf(),
+	/** The id of the medical location where this maintenance task was created. */
 	override val medicalLocationId: String? = null,
+	/** The timestamp (unix epoch in ms) of creation. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
+	/** The timestamp (unix epoch in ms) of the latest modification. */
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
+	/** The id of the User that created this maintenance task. */
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
+	/** The id of the HealthcareParty that is responsible for this maintenance task. */
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
+	/** Tags that qualify the maintenance task as being member of a certain class. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	/** Codes that identify or qualify this particular maintenance task. */
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val endOfLife: Long? = null,
+	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
+	/** The type of the maintenance task. */
 	val taskType: String? = null,
+	/** Extra properties for the maintenance task. */
 	val properties: Set<PropertyStub> = emptySet(),
+	/** The current status of the maintenance task (pending, ongoing, cancelled, completed). */
 	val status: TaskStatus = TaskStatus.pending,
 
+	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The delegations giving access to connected healthcare information. */
 	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
+	/** The keys used to encrypt this entity when stored encrypted. */
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
+	/** The base64-encoded encrypted fields of this entity. */
 	override val encryptedSelf: String? = null,
+	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadata? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

@@ -106,11 +106,11 @@ data class CalendarItemDto(
 	val details: String? = null,
 	/** Whether this calendar item was migrated from another system. */
 	val wasMigrated: Boolean? = null,
-	/** The id of the agenda linked to this calendar item. */
+	/** Id of the agenda linked to this CalendarItem. This calendar item will block the availabilities of that agenda. */
 	val agendaId: String? = null,
-	/** The resource group of the agenda that will handle this calendar item. */
+	/** The resource group of the agenda specified by [agendaId] that will handle the calendar item. Refer to the [Agenda] documentation for more information. Note that if the resource group doesn't exist in the agenda this calendar item will be ignored when calculating availabilities. Can only be specified when creating the calendar item through the unrestricted endpoints (accessible only to privileged users). */
 	val resourceGroup: CodeStubDto? = null,
-	/** How this calendar item is considered by the availabilities algorithm. */
+	/** Specify how this calendar item should be considered by the algorithm calculating availabilities. Refer to the [Agenda] and [AvailabilitiesAssignmentStrategy] documentation for more information. For agendas created through the restricted endpoints this will be set to null. */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	/** The healthcare party id associated with this calendar item. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")

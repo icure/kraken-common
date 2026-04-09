@@ -8,6 +8,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDele
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
 data class BulkShareOrUpdateMetadataParamsDto(
+	/** Map in the form entity id -> request details for entity */
 	@param:Schema(required = true)
 	val requestsByEntityId: Map<String, EntityRequestInformationDto>,
 ) {

@@ -10,6 +10,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormGroup(
+	/** The globally unique identifier for this form group. */
 	val guid: String? = null,
+	/** The human-readable name of the form group. */
 	val name: String? = null,
 ) : Serializable

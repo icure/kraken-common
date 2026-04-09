@@ -24,18 +24,31 @@ import java.io.Serializable
 data class Address(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
+	/** The identifiers of the Address. */
 	val identifier: List<Identifier> = emptyList(),
+	/** The type of place the address represents, ex: home, office, hospital, clinic, etc. */
 	val addressType: AddressType? = null,
+	/** Descriptive notes about the address. */
 	val descr: String? = null,
+	/** Street name. */
 	val street: String? = null,
+	/** Building / house number. */
 	val houseNumber: String? = null,
+	/** Post / PO box number. */
 	val postboxNumber: String? = null,
+	/** Postal/PIN/ZIP/Area code. */
 	val postalCode: String? = null,
+	/** Name of city in the address. */
 	val city: String? = null,
+	/** Name of state in the Address. */
 	val state: String? = null,
+	/** Name / code of country in the address. */
 	val country: String? = null,
+	/** Additional notes. */
 	@Deprecated("Use notes instead") val note: String? = null,
+	/** Additional notes. */
 	val notes: List<Annotation> = emptyList(),
+	/** List of other contact details available through telecom services, ex: email, phone number, fax, etc. */
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null,
 ) : Encryptable,

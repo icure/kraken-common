@@ -15,6 +15,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["telecomType", "telecomNumber"])
 data class Telecom(
+	/** The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc. */
 	val telecomType: TelecomType? = null,
 	val telecomNumber: String? = null,
 	val telecomDescription: String? = null,

@@ -85,32 +85,32 @@ data class ContactDto(
 	@param:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.") override val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "Hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
+	/** Separate contacts can merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId */
 	@param:Schema(
 		description = "Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId",
-	/** Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId. */
 	) val groupId: String? = null,
 	/** The date (YYYYMMDDhhmmss) of the start of the contact. */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") val openingDate: Long? = null,
 	/** The date (YYYYMMDDhhmmss) marking the end of the contact. */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null,
-	/** Description of the contact. */
+	/** Description of the contact */
 	@param:Schema(description = "Description of the contact") val descr: String? = null,
 	/** Location where the contact was recorded. */
 	@param:Schema(description = "Location where the contact was recorded.") val location: String? = null,
-	/** An external (from another source) id with no guarantee or requirement for unicity. Deprecated for use with Cardinal SDK. */
+	/** An external (from another source) id with no guarantee or requirement for unicity. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
-	/** The type of encounter made for the contact. */
+	/** The type of encounter made for the contact */
 	@param:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
 	/** The location where the encounter took place. */
 	@param:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
+	/** Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms. */
 	@param:Schema(
 		description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.",
-	/** Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms. */
 	) val subContacts: Set<SubContactDto> = emptySet(),
 	/** Set of all services provided to the patient during the contact. */
 	@param:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
-	/** The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id. Deprecated: use [participantList] instead. */
+	/** The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id */
 	@param:Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id")
 	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
 	val participants: Map<ParticipantTypeDto, String> = emptyMap(),

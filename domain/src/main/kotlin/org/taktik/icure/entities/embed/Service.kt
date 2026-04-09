@@ -72,6 +72,7 @@ import java.util.*
 @Mergeable(["id"])
 data class Service(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
+	/** The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service. */
 	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
 	val identifier: List<Identifier> = emptyList(),
 	@MergeStrategyIgnore @JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact

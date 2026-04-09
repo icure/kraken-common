@@ -16,10 +16,14 @@ import java.util.*
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Mergeable(["type", "healthcarePartyId"])
 data class PatientHealthCareParty(
+	/** Type of care/relationship. */
 	val type: PatientHealthCarePartyType? = null,
 	val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
+	/** UUID of the hcp. */
 	val healthcarePartyId: String? = null,
+	/** Preferred format of exchange for diverse means of communication. */
 	val sendFormats: Map<TelecomType, String> = emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
+	/** Time periods. */
 	@MergeStrategyUse(
 		canMerge = "canMergeReferralPeriods({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		merge = "mergeReferralPeriods({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",

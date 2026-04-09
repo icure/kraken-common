@@ -117,11 +117,14 @@ data class HealthElement(
 	@field:Valid val episodes: List<Episode> = emptyList(),
 	@field:Valid val careTeam: List<CareTeamMember> = emptyList(),
 
+	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
+	/** The patient id encrypted in the delegates' AES keys. */
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val delegations: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val encryptedSelf: String? = null,
+	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadata? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,

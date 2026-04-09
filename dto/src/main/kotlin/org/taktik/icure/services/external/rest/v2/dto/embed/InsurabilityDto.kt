@@ -31,14 +31,23 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
+	/** Insurance extra parameters. */
 	@param:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
+	/** Is hospitalization covered. */
 	@param:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
+	/** Is outpatient care covered. */
 	@param:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
+	/** Is dental care covered. */
 	@param:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
+	/** Identification number of the patient at the insurance. */
 	@param:Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
+	/** Id of the Insurance. */
 	@param:Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
+	/** Start date of the coverage (YYYYMMDD). */
 	@param:Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
+	/** End date of the coverage (YYYYMMDD). */
 	@param:Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
+	/** UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person). */
 	@param:Schema(
 		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
 	) val titularyId: String? = null,

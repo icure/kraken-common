@@ -11,8 +11,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonIgnoreProperties(ignoreUnknown = true)
 //@Mergeable(["coefficient", "index", "letter"])
 data class LetterValue(
+	/** The letter key identifier. */
 	val letter: String? = null,
+	/** The index associated with this letter value. */
 	val index: String? = null,
+	/** The coefficient multiplier. */
 	val coefficient: Double? = null,
+	/** The numeric value. */
 	val value: Double? = null,
 )

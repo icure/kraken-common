@@ -53,77 +53,77 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
  * icure-healthdata CouchDB database.
  */
 data class HealthcarePartyDto(
-	/** The Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id. */
+	/** the Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id.")
 	override val id: String,
-	/** The revision of the healthcare party in the database, used for conflict management / optimistic locking. */
+	/** the revision of the healthcare party in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the healthcare party in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
 	/** Creation timestamp (unix epoch in ms) of the object. */
 	@param:Schema(description = "creation timestamp of the object.") val created: Long? = null,
 	/** Last modification timestamp (unix epoch in ms) of the object. */
 	@param:Schema(description = "last modification timestamp of the object.") val modified: Long? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** hard delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
+	/** The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side. */
 	@param:Schema(
 		description = "The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side.",
-	/** The healthcare party's identifiers, used by the client to identify uniquely and unambiguously the HCP. */
 	) val identifier: List<IdentifierDto> = emptyList(),
-	/** Tags that qualify the healthcare party as being member of a certain class. */
+	/** Tags that qualify the healthcareparty as being member of a certain class. */
 	@param:Schema(description = "Tags that qualify the healthcareparty as being member of a certain class.") override val tags: Set<CodeStubDto> =
 		emptySet(),
-	/** Codes that identify or qualify this particular healthcare party. */
+	/** Codes that identify or qualify this particular healthcareparty. */
 	@param:Schema(description = "Codes that identify or qualify this particular healthcareparty.") override val codes: Set<CodeStubDto> = emptySet(),
-	/** The full name of the healthcare party, used mainly when the healthcare party is an organization. */
+	/** The full name of the healthcare party, used mainly when the healthcare party is an organization */
 	@param:Schema(description = "The full name of the healthcare party, used mainly when the healthcare party is an organization") override val name: String? = null,
+	/** the lastname (surname) of the healthcare party. This is the official lastname that should be used for official administrative purposes. */
 	@param:Schema(
 		description = "the lastname (surname) of the healthcare party. This is the official lastname that should be used for official administrative purposes.",
-	/** The lastname (surname) of the healthcare party. */
 	) override val lastName: String? = null,
-	/** The firstname (name) of the healthcare party. */
+	/** the firstname (name) of the healthcare party. */
 	@param:Schema(description = "the firstname (name) of the healthcare party.") override val firstName: String? = null,
+	/** The list of all names of the healthcare party, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the healthcare party in the application. */
 	@param:Schema(
 		description = "the list of all names of the healthcare party, also containing the official full name information. Ordered by preference of use. First element is therefore the official name used for the healthcare party in the application",
-	/** The list of all names of the healthcare party, ordered by preference of use. */
 	) override val names: List<PersonNameDto> = emptyList(),
+	/** the gender of the healthcare party: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown */
 	@param:Schema(
 		description = "the gender of the healthcare party: male, female, indeterminate, changed, changedToMale, changedToFemale, unknown",
-	/** The gender of the healthcare party. */
 	) override val gender: GenderDto? = null,
 	/** Mr., Ms., Pr., Dr. ... */
 	@param:Schema(description = "Mr., Ms., Pr., Dr. ...") override val civility: String? = null,
-	/** The name of the company this healthcare party is member of. */
+	/** The name of the company this healthcare party is member of */
 	@param:Schema(description = "The name of the company this healthcare party is member of") override val companyName: String? = null,
-	/** Medical specialty of the healthcare party. */
+	/** Medical specialty of the healthcare party */
 	@param:Schema(description = "Medical specialty of the healthcare party") val speciality: String? = null,
+	/** Bank Account identifier of the healhtcare party, IBAN, deprecated, use financial institutions instead */
 	@param:Schema(
 		description = "Bank Account identifier of the healhtcare party, IBAN, deprecated, use financial institutions instead",
-	/** Bank Account identifier of the healthcare party (IBAN). */
 	) val bankAccount: String? = null,
-	/** Bank Identifier Code (SWIFT Address) assigned to the bank. */
+	/** Bank Identifier Code, the SWIFT Address assigned to the bank, use financial institutions instead */
 	@param:Schema(description = "Bank Identifier Code, the SWIFT Address assigned to the bank, use financial institutions instead")
 	val bic: String? = null,
 	/** Proxy bank account number. */
 	val proxyBankAccount: String? = null,
 	/** Proxy bank identifier code. */
 	val proxyBic: String? = null,
-	/** All details included in the invoice header. */
+	/** All details included in the invoice header */
 	@param:Schema(description = "All details included in the invoice header") val invoiceHeader: String? = null,
-	/** Identifier number for institution type if the healthcare party is an enterprise. */
+	/** Identifier number for institution type if the healthcare party is an enterprise */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") val cbe: String? = null,
-	/** Identifier number for the institution if the healthcare party is an organization. */
+	/** Identifier number for the institution if the healthcare party is an organization */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
 	/** The id of the user that usually handles this healthcare party. */
 	@Deprecated("Discouraged, use custom property if you really want them")
 	@param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
-	/** The id of the parent healthcare party. */
+	/** Id of parent of the user representing the healthcare party. */
 	override val parentId: String? = null,
 	/** The convention number (0, 1, 2, or 9). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val convention: Int? = null, // 0,1,2,9
-	/** National Institute for Health and Invalidity Insurance number. */
+	/** National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).")
 	val nihii: String? = null, // institution, person
@@ -134,14 +134,14 @@ data class HealthcarePartyDto(
 	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
 	/** The list of addresses (with address type). */
 	@param:Schema(description = "The list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
-	/** The list of languages spoken by the healthcare party ordered by fluency (alpha-2 code). */
+	/** The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html). */
 	@param:Schema(description = "The list of languages spoken by the patient ordered by fluency (alpha-2 code http://www.loc.gov/standards/iso639-2/ascii_8bits.html).")
 	override val languages: List<String> = emptyList(),
 	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte")
 	val picture: ByteArray? = null,
-	/** The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'. */
+	/** The healthcare party's status: 'trainee' or 'withconvention' or 'accredited' */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'")
 	val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
@@ -149,9 +149,9 @@ data class HealthcarePartyDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The healthcare party's status history")
 	val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
-	/** Medical specialty of the healthcare party codified using FHIR or Kmehr codification scheme. */
+	/** Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme */
 	@param:Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") val specialityCodes: Set<CodeStubDto> = emptySet(), // Speciality codes, default is first
-	/** The type of format for contacting the healthcare party. */
+	/** The type of format for contacting the healthcare party, ex: mobile, phone, email, etc. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.")
 	val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
@@ -159,7 +159,7 @@ data class HealthcarePartyDto(
 	@param:Schema(description = "Text notes.") val notes: String? = null,
 	/** List of financial information (Bank, bank account). */
 	@param:Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
-	/** A description of the HCP, meant for the public and in multiple languages. */
+	/** A description of the HCP, meant for the public and in multiple languages */
 	@SdkNonNullable
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()")
@@ -192,25 +192,25 @@ data class HealthcarePartyDto(
 	val options: Map<String, String> = emptyMap(),
 	/** Extra properties for the healthcare party. */
 	override val properties: Set<PropertyStubDto> = emptySet(),
-	/** Whether the healthcare party profile is publicly visible. */
+	/** If set to true the healthcare party is considered public, and a stripped down version of the healthcare party will be accessible through the anonymous endpoints. TODO added for the future but currently unused */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
-	/** Properties that are publicly visible. */
+	/** Public properties are exposed to all users and anonymous endpoints. */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
 	/** Properties related to crypto actor functionality. */
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@SdkNonNullable
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
-	/** For each couple of HcParties (delegate and owner), this map contains the AES exchange key. */
+	/** When a healthcare party has access to the medical file for modification or has been given access to it (any time he/she acts as a Crypto Actor), the list of exchange keys with other healthcare parties. */
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	/** Extra AES exchange keys, indexed by the owner of the pair and target data owner id. */
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	/** Keys used to transfer ownership of encrypted data between key pairs. */
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
-	/** Shamir partitions of the private key. */
+	/** A set of shamir partitions for this healthcare party RSA private keys, encrypted with the public keys of the notaries (referred by their ids). Format is hcpId of key that has been partitioned : "threshold|partition in hex" */
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(), // Format is hcpId of key that has been partitionned : "threshold⎮partition in hex"
-	/** The public key of this HCP, used to encrypt data for this HCP. */
+	/** The public RSA key of this healthcare party */
 	override val publicKey: SpkiHexStringDto? = null,
-	/** Public keys for OAEP with SHA-256 encryption. */
+	/** The public keys of this actor which should be used for RSA-OAEP with sha256 encryption */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 ) : StoredDocumentDto,
 	NamedDto,

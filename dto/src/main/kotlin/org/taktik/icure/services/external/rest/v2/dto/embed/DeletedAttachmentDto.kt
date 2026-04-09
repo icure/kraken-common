@@ -11,20 +11,20 @@ import java.io.Serializable
  * Represents metadata about an attachment that has been deleted, preserving its former storage identifiers and deletion time.
  */
 data class DeletedAttachmentDto(
-	/** The former CouchDB attachment identifier, if the attachment was stored as a CouchDB attachment. */
+	/** Represents an attachment which was deleted from a document. @property couchDbAttachmentId if the attachment was stored as a couchdb attachment this holds the id of the attachment, else null. @property objectStoreAttachmentId if the attachment was stored with the object storage service this holds the id of the attachment, else null. @property key key of the deleted attachment, as in [HasDataAttachments.dataAttachments]. @property deletionTime the instant the attachment was deleted. / */
 	@param:Schema(description = "If the attachment was stored as a couchdb attachment this holds the id of the attachment, else null.")
 	val couchDbAttachmentId: String? = null,
-	/** The former object storage identifier, if the attachment was stored using the object storage service. */
+	/** Represents an attachment which was deleted from a document. @property couchDbAttachmentId if the attachment was stored as a couchdb attachment this holds the id of the attachment, else null. @property objectStoreAttachmentId if the attachment was stored with the object storage service this holds the id of the attachment, else null. @property key key of the deleted attachment, as in [HasDataAttachments.dataAttachments]. @property deletionTime the instant the attachment was deleted. / */
 	@param:Schema(description = "If the attachment was stored using the object storage servicxe this holds the id of the attachment, else null.")
 	val objectStoreAttachmentId: String? = null,
+	/** Represents an attachment which was deleted from a document. @property couchDbAttachmentId if the attachment was stored as a couchdb attachment this holds the id of the attachment, else null. @property objectStoreAttachmentId if the attachment was stored with the object storage service this holds the id of the attachment, else null. @property key key of the deleted attachment, as in [HasDataAttachments.dataAttachments]. @property deletionTime the instant the attachment was deleted. / */
 	@param:Schema(
 		description =
 		"If the attachment was associated to a key this was its key, else null. In documents a deleted main attachment will " +
 			"have a null key, and a deleted secondary attachment will have the key it was originally associated to in the map.",
 	)
-	/** The key the attachment was associated to, or null for main attachments. */
 	val key: String? = null,
-	/** The timestamp (unix epoch in ms) when the attachment was deleted. */
+	/** Represents an attachment which was deleted from a document. @property couchDbAttachmentId if the attachment was stored as a couchdb attachment this holds the id of the attachment, else null. @property objectStoreAttachmentId if the attachment was stored with the object storage service this holds the id of the attachment, else null. @property key key of the deleted attachment, as in [HasDataAttachments.dataAttachments]. @property deletionTime the instant the attachment was deleted. / */
 	@param:Schema(description = "Instant the attachment was deleted.")
 	val deletionTime: Long? = null,
 ) : Serializable

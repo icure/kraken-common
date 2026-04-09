@@ -10,6 +10,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RevisionInfo(
+	/** The revision identifier. */
 	val rev: String? = null,
+	/** The status of this revision (e.g., available, missing, deleted). */
 	val status: String? = null,
 ) : Serializable

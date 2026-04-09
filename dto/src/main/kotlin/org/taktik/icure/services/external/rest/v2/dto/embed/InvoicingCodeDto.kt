@@ -46,8 +46,8 @@ data class InvoicingCodeDto(
 	/** The identifier of the associated tarification. */
 	@SdkName("pricingId")
 	val tarificationId: String? = null,
-	// For obsolete codes or codes not linked to a tarification
 	/** The code value, for obsolete codes or codes not linked to a tarification. */
+	// For obsolete codes or codes not linked to a tarification
 	val code: String? = null,
 	/** The type of payment. */
 	val paymentType: PaymentTypeDto? = null,
@@ -69,8 +69,8 @@ data class InvoicingCodeDto(
 	val vat: Double? = null,
 	/** The error message from eTarif, if any. */
 	val error: String? = null, // Etarif
-	// TODO... Might want to encrypt this as it could be used to identify the patient
 	/** The contract identifier. */
+	// TODO... Might want to encrypt this as it could be used to identify the patient
 	val contract: String? = null,
 	/** The contract date. */
 	val contractDate: Long? = null,

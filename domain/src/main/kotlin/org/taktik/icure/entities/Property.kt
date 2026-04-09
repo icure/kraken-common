@@ -15,12 +15,18 @@ import org.taktik.icure.entities.embed.TypedValue
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Property(
+	/** The unique identifier of the property. */
 	@param:JsonProperty("_id") override val id: String,
+	/** The revision identifier for optimistic locking. */
 	@param:JsonProperty("_rev") override val rev: String? = null,
+	/** The soft-delete timestamp in epoch milliseconds. */
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
+	/** The type definition of this property. */
 	val type: PropertyType? = null,
+	/** The typed value held by this property. */
 	val typedValue: TypedValue? = null,
+	/** The encrypted content of this property, encoded as a Base64 string. */
 	override val encryptedSelf: String? = null,
 
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,

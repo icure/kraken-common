@@ -10,6 +10,8 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KeywordSubword(
+	/** The string value of this subword. */
 	val value: String? = null,
+	/** The list of child subwords forming a tree. */
 	val subWords: List<KeywordSubword>? = null,
 ) : Serializable

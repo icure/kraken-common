@@ -55,9 +55,9 @@ data class FrontEndMigrationDto(
 	val startKeyDocId: String? = null,
 	/** The number of items processed during the migration. */
 	val processCount: Long? = null,
+	/** Extra properties for the front-end migration. Those properties are typed (see class Property). */
 	@param:Schema(
 		description = "Extra properties for the fem. Those properties are typed (see class Property)",
-	/** Extra properties for the front-end migration. Those properties are typed (see class Property). */
 	) val properties: Set<PropertyStubDto> =
 		emptySet(),
 ) : StoredDocumentDto {

@@ -45,17 +45,17 @@ data class ContentDto(
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	val instantValue: Instant? = null,
+	/** Value as a fuzzy date, which may contain day, month, and/or year components. */
 	@param:Schema(
 		description = "Value as date. The format could have a all three (day, month and year) or values on any of these three, whatever is known.",
-	/** Value as a fuzzy date, which may contain day, month, and/or year components. */
 	) val fuzzyDateValue: Long? = null,
 	/** A binary value encoded as a byte array. */
 	@param:Schema(type = "string", format = "byte") val binaryValue: ByteArray? = null,
 	/** The identifier of a linked document. */
 	@param:Schema(description = "Linked document.") val documentId: String? = null,
+	/** Values of measurements recorded, including value, range, severity, and unit. */
 	@param:Schema(
 		description = "Values of measurements recorded. Fields included would be the value, permissible range (min. and max.), severity, unit of measurement, etc ",
-	/** Values of measurements recorded, including value, range, severity, and unit. */
 	) val measureValue: MeasureDto? = null,
 	/** The details of prescribed or suggested medication. */
 	@param:Schema(description = "The details of prescribed or suggested medication") val medicationValue: MedicationDto? = null,

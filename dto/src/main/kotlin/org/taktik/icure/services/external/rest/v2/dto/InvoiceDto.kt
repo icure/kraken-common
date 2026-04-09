@@ -72,13 +72,13 @@ data class InvoiceDto(
 	val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
-	/** The timestamp (unix epoch in ms) when the invoice was drafted. */
+	/** The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.")
 	val invoiceDate: Long? = null, // yyyyMMdd
-	/** The timestamp (unix epoch in ms) when the invoice was sent. */
+	/** The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.")
 	val sentDate: Long? = null,
-	/** The timestamp (unix epoch in ms) when the invoice was printed. */
+	/** The timestamp (unix epoch in ms) when the invoice was printed, will be filled automatically if missing. Not enforced by the application server. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.")
 	val printedDate: Long? = null,
 	/** The list of invoicing codes associated with this invoice. */
@@ -88,8 +88,8 @@ data class InvoiceDto(
 	/** The type of user who is the recipient of this invoice (patient or healthcare party). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto,
+	/** Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys. */
 	// org.taktik.icure.services.external.rest.v2.dto.InsuranceDto, org.taktik.icure.services.external.rest.v2.dto.PatientDto
-	/** Id of the recipient of the invoice. */
 	@param:Schema(description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys")
 	val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
 	/** The invoice reference number. */
@@ -186,16 +186,16 @@ data class InvoiceDto(
 	val creditNoteRelatedInvoiceId: String? = null,
 	/** Identity document reader information. */
 	val idDocument: IdentityDocumentReaderDto? = null,
-	// efact hospitalization
 	/** The admission date for hospitalization invoices. */
+	// efact hospitalization
 	val admissionDate: Long? = null,
 	/** NIHII number of the location. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val locationNihii: String? = null,
 	/** Service code of the location. */
 	val locationService: Int? = null,
-	// eattest cancel
 	/** The reason for cancellation. */
+	// eattest cancel
 	val cancelReason: String? = null,
 	/** The date of cancellation. */
 	val cancelDate: Long? = null,

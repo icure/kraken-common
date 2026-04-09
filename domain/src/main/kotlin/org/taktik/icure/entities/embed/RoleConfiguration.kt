@@ -7,7 +7,9 @@ package org.taktik.icure.entities.embed
  * be the default one defined by iCure ([ConfigurationSource.DEFAULT]).
  */
 data class RoleConfiguration(
+	/** The source from which the roles are derived (configuration, inherited, or default). */
 	val source: ConfigurationSource,
+	/** The set of role identifiers assigned. */
 	val roles: Set<String> = emptySet(),
 ) {
 

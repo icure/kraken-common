@@ -23,9 +23,9 @@ package org.taktik.icure.services.external.rest.v2.dto
 data class MessagesReadStatusUpdate(
 	/** The list of message identifiers to update. */
 	val ids: List<String>? = null,
-	/** The timestamp in epoch milliseconds when the messages were read. */
+	/** The timestamp (unix epoch in ms) of the status update. */
 	val time: Long? = null,
-	/** The new read status to set (true for read, false for unread). */
+	/** The new read status (true for read, false for unread). */
 	val status: Boolean? = null,
 	/** The identifier of the user whose read status is being updated. */
 	val userId: String? = null,

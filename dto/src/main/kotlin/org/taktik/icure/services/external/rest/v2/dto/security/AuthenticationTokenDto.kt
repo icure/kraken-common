@@ -13,12 +13,12 @@ import java.time.Instant
  * The token value is stored in encrypted form.
  */
 data class AuthenticationTokenDto(
-	/** The encrypted token string. */
+	/** Encrypted token */
 	@param:Schema(description = "Encrypted token") val token: String? = null,
-	/** The epoch-millisecond timestamp at which the token became valid. */
+	/** Validity starting time of the token */
 	@param:Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
-	/** The duration in seconds for which the token remains valid after creation. */
+	/** Token validity in seconds. If no validity is passed, then the token never expires. (Retro compatibility for applicationTokens) */
 	@param:Schema(description = "Token validity in seconds", required = true) val validity: Long,
-	/** The epoch-millisecond timestamp of a hard deletion, if the token has been marked for deletion. */
+	/** hard delete (unix epoch in ms) timestamp of the object. The deletion date will actually never be saved in the database because the corresponding tokens will be deleted from the user. */
 	@param:Schema(description = "hard delete (unix epoch in ms) timestamp of the object") val deletionDate: Long? = null,
 ) : Serializable

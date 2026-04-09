@@ -42,63 +42,63 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
  * A device can act as a data owner and crypto actor for secure data exchange.
  */
 data class DeviceDto(
-	/** The Id of the device. We encourage using either a v4 UUID or a HL7 Id. */
+	/** the Id of the device. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
-	/** The revision of the device in the database, used for conflict management / optimistic locking. */
+	/** the revision of the device in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
-	/** The device's identifiers used for client-side identification. */
+	/** The device's identifiers. Those identifiers are the ones identifying the device for the client. */
 	val identifiers: List<IdentifierDto> = emptyList(),
-	/** The timestamp (unix epoch in ms) of creation of this entity. */
+	/** The timestamp (unix epoch in ms) of creation of the device. Enforced by the application server : will be filled automatically if missing. */
 	override val created: Long? = null,
-	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
+	/** the date (unix epoch in ms) of latest modification of the device. Enforced by the application server : will be filled automatically if missing. */
 	override val modified: Long? = null,
-	/** The id of the User that created this device. */
+	/** the id of the User that has created this device. Enforced by the application server : will be filled automatically if missing. */
 	override val author: String? = null,
-	/** The id of the data owner that is responsible for this device. */
+	/** the id of the HealthcareParty that is responsible for this device. Enforced by the application server : will be filled automatically if missing. */
 	override val responsible: String? = null,
-	/** Tags that qualify the device as being member of a certain class. */
+	/** tags that qualify the device as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
-	/** Codes that identify or qualify this particular device. */
+	/** codes that identify or qualify this particular device. */
 	override val codes: Set<CodeStubDto> = emptySet(),
-	/** Soft delete (unix epoch in ms) timestamp of the object. */
+	/** soft delete (unix epoch in ms) timestamp of the object. Unused for device. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val endOfLife: Long? = null,
-	/** The medical location where this entity was created. */
+	/** the medical location where this device has been created. Not used for now. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
-	/** A non-official external id for the device, not guaranteed to be unique. */
+	/** A non-official id for the device. This one is not guaranteed to be unique in databases. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val externalId: String? = null,
-	/** The name of the device. */
+	/** Name of the device. */
 	override val name: String? = null,
-	/** The type of the device (e.g., smartphone, medical device sort). */
+	/** Type of the device. Could be a smartphone, or a specific medical type sort, ... */
 	val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
-	/** The brand of the device (e.g., Samsung, Apple, Philips). */
+	/** Brand of the device (Samsung, Apple, Philips, ...) */
 	val brand: String? = null,
-	/** The model of the device (e.g., Galaxy S10). */
+	/** Model of the device (Galaxy S10, Kino.md, ...) */
 	val model: String? = null,
-	/** The serial number of the device. */
+	/** Serial number of the device */
 	val serialNumber: String? = null,
-	/** The id of the parent of the user representing the device. */
+	/** Id of parent of the user representing the device. */
 	override val parentId: String? = null,
-	/** A picture of the device, usually in JPEG format. */
+	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val picture: ByteArray? = null,
-	/** Typed properties related to the device (e.g., version, specific device information). */
+	/** List of typed properties related to the device. Could be its version, specific device information, ... */
 	override val properties: Set<PropertyStubDto> = emptySet(),
-	/** The exchange keys with other healthcare parties, encrypted using public keys. */
+	/** When a device has access to the medical file for modification or has been given access to it (any time he/she acts as a Crypto Actor), the list of exchange keys with other healthcare parties. */
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	/** Extra AES exchange keys, usually keys that were lost access to at some point. */
 	override val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>> = emptyMap(),
 	/** Private keys encrypted with public keys for key transfer. */
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
-	/** Shamir partitions of this device's RSA private keys, encrypted with notary public keys. */
+	/** A set of shamir partitions for this device RSA private keys, encrypted with the public keys of the notaries (referred by their ids). Format is hcpId of key that has been partitioned : "threshold|partition in hex" */
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(), // Format is hcpId of key that has been partitioned : "threshold|partition in hex"
-	/** The public RSA key of this device. */
+	/** The public RSA key of this device */
 	override val publicKey: SpkiHexStringDto? = null,
-	/** The public keys of this device generated using OAEP with SHA-256. */
+	/** The public keys of this actor that are generates using the OAEP Sha-256 standard */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 	/** Properties specific to the crypto actor role of this device. */
 	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,

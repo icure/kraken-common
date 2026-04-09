@@ -51,8 +51,8 @@ data class PlanOfActionTemplateDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** The soft-delete timestamp. */
 	override val endOfLife: Long? = null,
-	// Usually one of the following is used (either valueDate or openingDate and closingDate)
 	/** The name of this plan of action template. */
+	// Usually one of the following is used (either valueDate or openingDate and closingDate)
 	override val name: String? = null,
 	/** A description of the template. */
 	val descr: String? = null,

@@ -38,12 +38,12 @@ data class ReferralPeriodDto(
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(description = "The date (unix epoch in ms) when the referral period initiated, will be filled instantaneously.") val startDate: Instant? = null,
+	/** The date when the referral period ended. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(
 		description = "The date (unix epoch in ms) the referral period ended, will be instantaneously filled.",
-	/** The date when the referral period ended. */
 	) val endDate: Instant? = null,
 	/** Comments made during the referral. */
 	@param:Schema(description = "Comments made during the referral.") val comment: String? = null,

@@ -19,13 +19,13 @@ data class RecoveryDataDto(
 	override val id: String,
 	/** The revision of the recovery data in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
-	/** The id of the data owner that this recovery data is meant for. */
+	/** Id of the data owner that this recovery data is meant for */
 	@param:Schema(required = true) val recipient: String,
-	/** The encrypted content of the recovery data. */
+	/** Encrypted recovery data. The structure of the decrypted data depends on the [type] of the recovery data. */
 	@param:Schema(required = true) val encryptedSelf: Base64StringDto,
-	/** The type of recovery data (keypair recovery or exchange key recovery). */
+	/** Type of the recovery data. */
 	@param:Schema(required = true) val type: Type,
-	/** The expiration timestamp (unix epoch in ms) after which this recovery data is no longer valid. */
+	/** Timestamp (unix epoch in ms) at which this recovery data will expire. If null, this recovery data will never expire. Negative values or zero mean the data is already expired. */
 	val expirationInstant: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,

@@ -13,49 +13,26 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFin
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
 data class EntityShareRequestDto(
-	/**
-	 * Id of the data owner which is sharing the entity (delegator), if it should be explicitly indicated or null if the
-	 * delegator requires anonymous delegations. If not null this must match the logged data owner id.
-	 */
+	/** Id of the data owner which is sharing the entity (delegator), if it should be explicitly indicated or null if the delegator requires anonymous delegations. If not null this must match the logged data owner id. */
 	// We can easily infer the delegator id server-side, but the decision of whether to include it or not in the secure
 	// delegation is done on client-side.
 	val explicitDelegator: String? = null,
-	/**
-	 * Id of the data owner which will gain access to the entity (delegate), if it should be explicitly indicated or
-	 * null if the delegate requires anonymous delegations.
-	 */
+	/** Id of the data owner which will gain access to the entity (delegate), if it should be explicitly indicated or null if the delegate requires anonymous delegations. */
 	val explicitDelegate: String? = null,
-	/**
-	 * Values generated using the access control secret of the exchange data used for the encryption of the ids and keys
-	 * to share. Once hashed they are used as secure delegation keys.
-	 */
+	/** Values generated using the access control secret of the exchange data used for the encryption of the ids and keys to share. Once hashed they are used as secure delegation keys. */
 	@param:Schema(required = true)
 	val accessControlKeys: Set<AccessControlKeyHexStringDto>,
-	/**
-	 * Encrypted secret ids to share with the delegate.
-	 */
+	/** Encrypted secret ids to share with the delegate. */
 	val secretIds: Set<Base64StringDto> = emptySet(),
-	/**
-	 * Encrypted encryption keys to share with the delegate.
-	 */
+	/** Encrypted encryption keys to share with the delegate. */
 	val encryptionKeys: Set<Base64StringDto> = emptySet(),
-	/**
-	 * Encrypted owning entity ids to share with the delegate.
-	 */
+	/** Encrypted owning entity ids to share with the delegate. */
 	val owningEntityIds: Set<Base64StringDto> = emptySet(),
-	/**
-	 * Id of the exchange data used for the encryption of the ids and keys to share. Must be null at least one of
-	 * delegator or delegate is not explicit.
-	 */
+	/** Id of the exchange data used for the encryption of the ids and keys to share. Must be null at least one of delegator or delegate is not explicit. */
 	val exchangeDataId: String? = null,
-	/**
-	 * Must be non-empty if exactly one of delegator or delegate is explicit and the other is not, empty in all other
-	 * cases.
-	 */
+	/** Must be non-empty if exactly one of delegator or delegate is explicit and the other is not, empty in all other cases. */
 	val encryptedExchangeDataId: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
-	/**
-	 * Permissions for the delegate.
-	 */
+	/** Permissions for the delegate. */
 	val requestedPermissions: RequestedPermissionDto = RequestedPermissionDto.MAX_WRITE,
 ) {
 	init {

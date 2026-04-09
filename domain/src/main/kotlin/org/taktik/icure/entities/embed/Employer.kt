@@ -12,7 +12,9 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Employer(
+	/** The name of the employer. */
 	override val name: String? = null,
+	/** The address of the employer. */
 	val addresse: Address? = null,
 ) : Named,
 	Serializable

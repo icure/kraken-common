@@ -13,36 +13,22 @@ import java.io.Serializable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IdentifierDto(
-	/**
-	 * Unique id for inter-element referencing
-	 */
+	/** Unique id for inter-element referencing */
 	val id: String? = null,
-	/**
-	 * Organization that issued id (may be just text)
-	 */
+	/** Organization that issued id (may be just text) */
 	val assigner: String? = null,
-	/**
-	 * Unique id for inter-element referencing
-	 */
+	/** Time period when id is/was valid for use */
 	/**
 	 * Time period when id is/was valid for use
 	 */
 	val start: String? = null,
 	val end: String? = null,
-	/**
-	 * The namespace for the identifier value
-	 */
+	/** The namespace for the identifier value */
 	val system: String? = null,
-	/**
-	 * Description of identifier
-	 */
+	/** Description of identifier */
 	val type: CodeStubDto? = null,
-	/**
-	 * usual | official | temp | secondary | old (If known)
-	 */
+	/** usual | official | temp | secondary | old (If known) */
 	val use: String? = null,
-	/**
-	 * The value that is unique
-	 */
+	/** The value that is unique */
 	val value: String? = null,
 ) : Serializable

@@ -29,12 +29,19 @@ import java.io.Serializable
 @JsonDeserialize(using = CodeStubDeserializer::class)
 @Mergeable(["id", "context"])
 data class CodeStub(
-	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
-	override val context: String? = null, // ex: When embedded the context where this code is used
-	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
-	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
-	override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	/** The unique identifier, formatted as type|code|version. */
+	@param:JsonProperty("_id") override val id: String,
+	/** The context where this code is used when embedded in another entity. */
+	override val context: String? = null,
+	/** The codification system type (e.g. ICD, ICPC-2). */
+	override val type: String? = null,
+	/** The code value within the codification system. */
+	override val code: String? = null,
+	/** The version of the codification system. */
+	override val version: String? = null,
+	/** A human-readable label for the context. */
 	val contextLabel: String? = null,
+	/** A map of language codes to localized labels for this code. */
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentification,
 	Serializable {

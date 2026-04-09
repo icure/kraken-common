@@ -39,7 +39,7 @@ data class CalendarItemTypeDto(
 	override val deletionDate: Long? = null,
 	/** The id of the healthcare party associated with this type. */
 	val healthcarePartyId: String? = null,
-	/** The id of the agenda this type belongs to. */
+	/** The id of the agenda to which this type can be applied. If null, the type can be applied to any agenda. */
 	val agendaId: String? = null,
 	/** Whether this is the default calendar item type for its agenda. */
 	val defaultCalendarItemType: Boolean = false,
@@ -61,7 +61,7 @@ data class CalendarItemTypeDto(
 	val otherInfos: Map<String, String> = emptyMap(),
 	/** Subject text for this calendar item type, by language. */
 	val subjectByLanguage: Map<String, String> = emptyMap(),
-	/** Public properties exposed to anonymous endpoints for public calendar items. */
+	/** Public properties of public calendar items (i.e. calendar items available in public timetableitems) are exposed to anonymous endpoints. */
 	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(
