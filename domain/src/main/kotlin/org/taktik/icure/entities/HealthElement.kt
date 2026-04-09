@@ -16,7 +16,7 @@ import org.taktik.icure.entities.embed.CareTeamMember
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Episode
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction

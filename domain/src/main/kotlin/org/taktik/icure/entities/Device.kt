@@ -25,7 +25,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier

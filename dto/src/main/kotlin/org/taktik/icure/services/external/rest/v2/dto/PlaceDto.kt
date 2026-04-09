@@ -24,7 +24,7 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

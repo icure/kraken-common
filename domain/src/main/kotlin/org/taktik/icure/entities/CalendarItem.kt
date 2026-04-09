@@ -15,7 +15,7 @@ import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.CalendarItemTag
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata

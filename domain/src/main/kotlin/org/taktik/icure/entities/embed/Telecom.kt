@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.mergers.annotations.Mergeable
 
 /**

@@ -14,7 +14,7 @@ import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.mergers.annotations.Mergeable

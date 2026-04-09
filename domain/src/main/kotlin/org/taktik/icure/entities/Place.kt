@@ -11,7 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.mergers.annotations.Mergeable
 

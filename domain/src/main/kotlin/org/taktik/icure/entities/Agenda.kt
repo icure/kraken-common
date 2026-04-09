@@ -14,7 +14,7 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.AgendaSlottingAlgorithm
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
-import org.taktik.icure.entities.embed.ExtendableRoot
+import org.taktik.icure.entities.base.ExtendableRoot
 import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right

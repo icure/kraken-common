@@ -16,7 +16,7 @@
  *     <https://www.gnu.org/licenses/>.
  */
 
-package org.taktik.icure.services.external.rest.v2.dto.embed
+package org.taktik.icure.services.external.rest.v2.dto.base
 
 import org.taktik.icure.CardinalMetadataProperty
 

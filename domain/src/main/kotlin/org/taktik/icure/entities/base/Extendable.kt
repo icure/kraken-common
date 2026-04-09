@@ -2,7 +2,7 @@
  * Copyright (c) 2020. Taktik SA, All rights reserved.
  */
 
-package org.taktik.icure.entities.embed
+package org.taktik.icure.entities.base
 
 import org.taktik.icure.entities.RawJson
 
@@ -11,8 +11,4 @@ import org.taktik.icure.entities.RawJson
  */
 interface Extendable {
 	val extensions: RawJson.JsonObject?
-
-	fun solveConflictsWith(other: Extendable) = mapOf(
-		"extensions" to (this.extensions ?: other.extensions),
-	)
 }

@@ -18,7 +18,6 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
@@ -33,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 

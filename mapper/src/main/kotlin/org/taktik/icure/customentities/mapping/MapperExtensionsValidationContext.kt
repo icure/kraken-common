@@ -31,7 +31,7 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 interface MapperExtensionsValidationContext {
 	/**
 	 * Update the extension validation context AND the path context if present to include the property name.
-	 * This method is unsuited for usage with the [org.taktik.icure.entities.embed.Extendable.extensions] property, you
+	 * This method is unsuited for usage with the [org.taktik.icure.entities.base.Extendable.extensions] property, you
 	 * should instead use the [validateAndMapCurrentExtension] method directly on the context.
 	 */
 	fun enterProperty(propertyName: String)

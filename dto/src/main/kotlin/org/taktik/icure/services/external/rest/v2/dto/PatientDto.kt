@@ -37,7 +37,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EmploymentInfoDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InsurabilityDto

@@ -12,12 +12,12 @@ import com.fasterxml.jackson.databind.node.TextNode
 import org.springframework.stereotype.Component
 import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.entities.embed.Extendable
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
-import org.taktik.icure.services.external.rest.v2.dto.embed.ExtendableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TelecomDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
