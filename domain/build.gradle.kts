@@ -30,9 +30,7 @@ dependencies {
 
 	implementation(project("$projectPrefix:utils"))
 
-	if (rootProject.name == "kraken-cloud") {
-		ksp("com.icure:ksp-json-processor")
-	}
+	ksp("com.icure:ksp-json-processor")
 
 	implementation(coreLibs.bundles.jacksonLibs)
 	implementation(coreLibs.bundles.kotlinxCoroutinesLibs)
