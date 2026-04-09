@@ -32,47 +32,39 @@ class ServiceByHcPartyCodesFilter(
 		val startValueDate = filter.startValueDate
 		val endValueDate = filter.endValueDate
 		val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId)
-		val emitted = mutableSetOf<String>()
 
 		val monthRange = if (startValueDate != null) {
 			FuzzyDates.getMonthRange(startValueDate, FuzzyDates.getFuzzyDateTime(LocalDateTime.now(ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofHours(14))),
 				ChronoUnit.SECONDS, false))
 		} else null
 
-		for ((codeType, codeCodes) in filter.codeCodes) {
-			if (monthRange != null) {
-				monthRange.forEachIndexed { index, (year, month) ->
-					val isFirst = index == 0
-					val isLast = index == monthRange.lastIndex
-					contactDAO.listServiceIdsByDataOwnerValueDateMonthCodeCodes(
-						datastoreInformation = datastoreInformation,
-						searchKeys = searchKeys,
-						year = year,
-						month = month,
-						codeType = codeType,
-						codeCodes = codeCodes,
-						startValueDate = if (isFirst) startValueDate else null,
-						endValueDate = if (isLast) endValueDate else null,
-					).collect { serviceId ->
-						if (emitted.add(serviceId)) {
-							emit(serviceId)
-						}
-					}
-				}
-			} else {
-				contactDAO.listServiceIdsByDataOwnerCodeCodes(
+		if (monthRange != null) {
+			val emitted = mutableSetOf<String>()
+			monthRange.forEachIndexed { index, (year, month) ->
+				val isFirst = index == 0
+				val isLast = index == monthRange.lastIndex
+				contactDAO.listServiceIdsByDataOwnerValueDateMonthCodeCodes(
 					datastoreInformation = datastoreInformation,
 					searchKeys = searchKeys,
-					codeType = codeType,
-					codeCodes = codeCodes,
-					startValueDate = startValueDate,
-					endValueDate = endValueDate,
+					year = year,
+					month = month,
+					codeTypesAndCodes = filter.codeCodes,
+					startValueDate = if (isFirst) startValueDate else null,
+					endValueDate = if (isLast) endValueDate else null,
 				).collect { serviceId ->
 					if (emitted.add(serviceId)) {
 						emit(serviceId)
 					}
 				}
 			}
+		} else {
+			emitAll(contactDAO.listServiceIdsByDataOwnerCodeCodes(
+				datastoreInformation = datastoreInformation,
+				searchKeys = searchKeys,
+				codeTypesAndCodes = filter.codeCodes,
+				startValueDate = startValueDate,
+				endValueDate = endValueDate,
+			))
 		}
 	}
 }

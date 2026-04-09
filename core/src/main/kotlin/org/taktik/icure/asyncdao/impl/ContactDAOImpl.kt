@@ -1093,16 +1093,14 @@ class ContactDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		patientSecretForeignKeys: Set<String>,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
 		datastoreInformation,
 		searchKeys,
 		patientSecretForeignKeys,
-		tagType,
-		tagCodes,
+		tagTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_patient_tag_prefix",
@@ -1112,16 +1110,14 @@ class ContactDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		patientSecretForeignKeys: Set<String>,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
 		datastoreInformation,
 		searchKeys,
 		patientSecretForeignKeys,
-		codeType,
-		codeCodes,
+		codeTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_patient_code_prefix",
@@ -1131,8 +1127,7 @@ class ContactDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		patientSecretForeignKeys: Set<String>,
-		type: String,
-		codes: Collection<String>,
+		typesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 		view: String,
@@ -1140,8 +1135,10 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
 			patientSecretForeignKeys.flatMap { patientSecretForeignKey ->
-				codes.map { code ->
-					ComplexKey.of(dataOwnerSearchKey, patientSecretForeignKey, type, code)
+				typesAndCodes.flatMap { (type, codes) ->
+					codes.map { code ->
+						ComplexKey.of(dataOwnerSearchKey, patientSecretForeignKey, type, code)
+					}
 				}
 			}
 		}
@@ -1237,15 +1234,13 @@ class ContactDAOImpl(
 	override fun listServiceIdsByDataOwnerTagCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
 		datastoreInformation,
 		searchKeys,
-		tagType,
-		tagCodes,
+		tagTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_tag_prefix",
@@ -1254,15 +1249,13 @@ class ContactDAOImpl(
 	override fun listServiceIdsByDataOwnerCodeCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
 		datastoreInformation,
 		searchKeys,
-		codeType,
-		codeCodes,
+		codeTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_code_prefix",
@@ -1271,16 +1264,17 @@ class ContactDAOImpl(
 	private fun listServiceIdsByDataOwnerTagOrCodeExact(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		type: String,
-		codes: Collection<String>,
+		typesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 		view: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
-			codes.map { code ->
-				ComplexKey.of(dataOwnerSearchKey, type, code)
+			typesAndCodes.flatMap { (type, codes) ->
+				codes.map { code ->
+					ComplexKey.of(dataOwnerSearchKey, type, code)
+				}
 			}
 		}
 		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
@@ -1345,8 +1339,7 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		year: Int?,
 		month: Int?,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
@@ -1354,8 +1347,7 @@ class ContactDAOImpl(
 		searchKeys,
 		year,
 		month,
-		tagType,
-		tagCodes,
+		tagTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_month_tag_prefix",
@@ -1366,8 +1358,7 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		year: Int?,
 		month: Int?,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
@@ -1375,8 +1366,7 @@ class ContactDAOImpl(
 		searchKeys,
 		year,
 		month,
-		codeType,
-		codeCodes,
+		codeTypesAndCodes,
 		startValueDate,
 		endValueDate,
 		"service_by_data_owner_month_code_prefix",
@@ -1387,8 +1377,7 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		year: Int?,
 		month: Int?,
-		type: String,
-		codes: Collection<String>,
+		typesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 		view: String,
@@ -1404,8 +1393,10 @@ class ContactDAOImpl(
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
-			codes.map { code ->
-				ComplexKey.of(year, month, dataOwnerSearchKey, type, code)
+			typesAndCodes.flatMap { (type, codes) ->
+				codes.map { code ->
+					ComplexKey.of(year, month, dataOwnerSearchKey, type, code)
+				}
 			}
 		}
 		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)

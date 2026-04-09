@@ -25,23 +25,13 @@ class ServiceByHcPartyPatientCodesFilter(
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
-		val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId)
-		val emitted = mutableSetOf<String>()
-
-		for ((codeType, codeCodes) in filter.codeCodes) {
-			contactDAO.listServiceIdsByDataOwnerPatientCodeCodes(
-				datastoreInformation = datastoreInformation,
-				searchKeys = searchKeys,
-				patientSecretForeignKeys = filter.patientSecretForeignKeys,
-				codeType = codeType,
-				codeCodes = codeCodes,
-				startValueDate = filter.startValueDate,
-				endValueDate = filter.endValueDate,
-			).collect { serviceId ->
-				if (emitted.add(serviceId)) {
-					emit(serviceId)
-				}
-			}
-		}
+		emitAll(contactDAO.listServiceIdsByDataOwnerPatientCodeCodes(
+			datastoreInformation = datastoreInformation,
+			searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId),
+			patientSecretForeignKeys = filter.patientSecretForeignKeys,
+			codeTypesAndCodes = filter.codeCodes,
+			startValueDate = filter.startValueDate,
+			endValueDate = filter.endValueDate,
+		))
 	}
 }

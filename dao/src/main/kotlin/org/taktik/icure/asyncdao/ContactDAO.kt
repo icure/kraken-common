@@ -403,8 +403,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		patientSecretForeignKeys: Set<String>,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
@@ -413,8 +412,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		patientSecretForeignKeys: Set<String>,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
@@ -465,8 +463,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		searchKeys: Set<String>,
 		year: Int?,
 		month: Int?,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
@@ -476,8 +473,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		searchKeys: Set<String>,
 		year: Int?,
 		month: Int?,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
@@ -485,8 +481,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 	fun listServiceIdsByDataOwnerTagCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		tagType: String,
-		tagCodes: Collection<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
@@ -494,8 +489,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 	fun listServiceIdsByDataOwnerCodeCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
-		codeType: String,
-		codeCodes: Collection<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
 	): Flow<String>
