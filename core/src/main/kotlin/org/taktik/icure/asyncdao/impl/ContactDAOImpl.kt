@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.node.ArrayNode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -22,6 +25,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -1142,16 +1147,7 @@ class ContactDAOImpl(
 				}
 			}
 		}
-		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
-			.keys(keys)
-			.includeDocs(false)
-		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
-		}.let { f ->
-			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
-		}.map {
-			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
-		}.toList()
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
 		emitAll(filterLatestServices(client, datastoreInformation, results))
 	}
 
@@ -1277,16 +1273,7 @@ class ContactDAOImpl(
 				}
 			}
 		}
-		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
-			.keys(keys)
-			.includeDocs(false)
-		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
-		}.let { f ->
-			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
-		}.map {
-			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
-		}.toList()
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
 		emitAll(filterLatestServices(client, datastoreInformation, results))
 	}
 
@@ -1399,16 +1386,7 @@ class ContactDAOImpl(
 				}
 			}
 		}
-		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
-			.keys(keys)
-			.includeDocs(false)
-		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
-		}.let { f ->
-			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
-		}.map {
-			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
-		}.toList()
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
 		emitAll(filterLatestServices(client, datastoreInformation, results))
 	}
 
@@ -1465,6 +1443,34 @@ class ContactDAOImpl(
 			datastoreInformation,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
+	}
+
+	private suspend fun queryViewByKeysInChunks(
+		client: Client,
+		datastoreInformation: IDatastoreInformation,
+		view: String,
+		partition: String,
+		keys: List<ComplexKey>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): List<ContactIdMandatoryServiceId> = coroutineScope {
+		val semaphore = Semaphore(daoConfig.viewQueryMaxConcurrency)
+		keys.chunked(daoConfig.viewQueryChunkSize).map { chunkKeys ->
+			async {
+				semaphore.withPermit {
+					val query = createQuery(datastoreInformation, view, partition)
+						.keys(chunkKeys)
+						.includeDocs(false)
+					client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+						if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+					}.let { f ->
+						if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+					}.map {
+						ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+					}.toList()
+				}
+			}
+		}.awaitAll().flatten()
 	}
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
