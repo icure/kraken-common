@@ -34,7 +34,7 @@ class ServiceByHcPartyCodePrefixFilter(
 		val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId)
 
 		val monthRange = if (startValueDate != null) {
-			FuzzyDates.getMonthRange(startValueDate, FuzzyDates.getFuzzyDateTime(LocalDateTime.now(ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofHours(14))),
+			FuzzyDates.getMonthRange(startValueDate, endValueDate ?: FuzzyDates.getFuzzyDateTime(LocalDateTime.now(ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofHours(14))),
 				ChronoUnit.SECONDS, false))
 		} else null
 
