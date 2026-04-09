@@ -1389,7 +1389,7 @@ class ContactDAOImpl(
 		}
 		if (endValueDate != null) {
 			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(endValueDate, false)?.first
-			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+			require(parsed != null) { "endValueDate must be a valid fuzzy date time if provided" }
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
