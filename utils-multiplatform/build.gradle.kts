@@ -47,3 +47,7 @@ kotlin {
         val jsTest by getting
     }
 }
+
+dependencies {
+    add("kspJvm", "com.icure:ksp-json-processor")
+}

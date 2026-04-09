@@ -19,14 +19,14 @@ tasks.withType<Test> {
 	maxHeapSize = "16g"
 }
 
-dependencies {
+val projectPrefix =
+	when (rootProject.name) {
+		"kmehr-importer" -> ":kmehr-module:kraken-common"
+		"kraken-common" -> ""
+		else -> ":kraken-common"
+	}
 
-	val projectPrefix =
-		when (rootProject.name) {
-			"kmehr-importer" -> ":kmehr-module:kraken-common"
-			"kraken-common" -> ""
-			else -> ":kraken-common"
-		}
+dependencies {
 
 	implementation(project("$projectPrefix:utils"))
 	api(project("$projectPrefix:customentities-core"))
@@ -61,9 +61,13 @@ kotlin {
 
 val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersFromJsonTask>("generateMergersFromJson") {
 	inputFolder.set(layout.buildDirectory.dir("generated/ksp/main/resources"))
+	additionalInputFolders.from(
+		project("$projectPrefix:utils-multiplatform").layout.buildDirectory.dir("generated/ksp/jvm/jvmMain/resources")
+	)
 	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))
 
 	dependsOn("kspKotlin")
+	dependsOn("$projectPrefix:utils-multiplatform:kspKotlinJvm")
 }
 
 // afterEvaluate is fundamental: the kspKotlin task does not exist yet when the script is evaluated, and so the
