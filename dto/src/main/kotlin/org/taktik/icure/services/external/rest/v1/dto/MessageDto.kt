@@ -15,7 +15,6 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.MessageAttachmentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.MessageReadStatusDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
-import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -82,7 +81,7 @@ data class MessageDto(
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto {
-	companion object : DynamicInitializer<MessageDto> {
+	companion object {
 		const val STATUS_LABO_RESULT = 1 shl 0
 		const val STATUS_UNREAD = 1 shl 1
 		const val STATUS_IMPORTANT = 1 shl 2

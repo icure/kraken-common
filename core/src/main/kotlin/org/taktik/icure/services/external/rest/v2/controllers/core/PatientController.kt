@@ -21,7 +21,7 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -61,6 +61,9 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.SortDirectionDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
@@ -73,6 +76,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringD
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PatientHealthCarePartyV2Mapper
@@ -116,7 +121,14 @@ class PatientController(
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	private val builtinDefinitions: BuiltinDefinitionsProvider,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
 ) {
+
+	companion object {
+		private val log = LoggerFactory.getLogger(this::class.java)
+	}
+
 	private suspend fun PatientDto.toDomain(): Patient =
 		mapFromDtoWithExtension(
 			this,
@@ -476,7 +488,7 @@ class PatientController(
 	}
 
 	@Operation(summary = "Get the ids of Patients matching the provided filter.")
-	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchPatientsBy(
 		@RequestBody filter: AbstractFilterDto<PatientDto>,
 	): Flux<String> = patientService
@@ -845,7 +857,35 @@ class PatientController(
 		).toDto()
 	}
 
-	companion object {
-		private val log = LoggerFactory.getLogger(this::class.java)
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		patientService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<PatientDto> =
+		patientService.getConflictsFor(entityId)
+			.toDto()
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<PatientDto>
+	): Mono<ConflictResolutionResultDto<PatientDto>> = mono {
+		val result = patientService.declareConflictWinner(
+			entity = request.document.toDomain(),
+			conflictsToPurge = request.conflictsToPurge
+		)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = patientService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
+
 }

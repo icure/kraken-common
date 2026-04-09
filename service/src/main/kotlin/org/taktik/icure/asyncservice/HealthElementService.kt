@@ -21,7 +21,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface HealthElementService :
 	EntityWithSecureDelegationsService<HealthElement>,
-	EntityWithConflictResolutionService {
+	EntityWithConflictResolutionService<HealthElement> {
 	suspend fun createHealthElement(healthElement: HealthElement): HealthElement
 
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
@@ -118,7 +118,6 @@ interface HealthElementService :
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
 
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 	fun filter(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthElement>,

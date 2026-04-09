@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+//@Mergeable(["coefficient", "index", "letter"])
 data class LetterValue(
 	val letter: String? = null,
 	val index: String? = null,

@@ -4,13 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.HasExplicitDataOwnerAccess
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.AccessLevel
 import org.taktik.icure.entities.embed.RevisionInfo
-import java.lang.IllegalStateException
 
 /**
  * Metadata which allows a data owner to recover cryptographic secrets meant for him.
@@ -21,7 +18,7 @@ import java.lang.IllegalStateException
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RecoveryData(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * Id of the data owner that this recovery data is meant for

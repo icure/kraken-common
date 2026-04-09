@@ -12,7 +12,9 @@ import java.nio.ByteBuffer
 
 interface ReceiptLogic :
 	EntityPersister<Receipt>,
-	EntityWithSecureDelegationsLogic<Receipt> {
+	EntityWithSecureDelegationsLogic<Receipt>,
+	ConflictResolutionLogic<Receipt>
+{
 	suspend fun createReceipt(receipt: Receipt): Receipt
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>

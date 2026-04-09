@@ -12,7 +12,6 @@ import org.taktik.icure.services.external.rest.v1.dto.base.ReportVersionDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DocumentGroupDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DocumentTypeDto
-import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,7 +42,6 @@ data class DocumentTemplateDto(
 	val specialty: CodeStubDto? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String> {
-	companion object : DynamicInitializer<DocumentTemplateDto>
 
 	override fun withIdRev(
 		id: String?,

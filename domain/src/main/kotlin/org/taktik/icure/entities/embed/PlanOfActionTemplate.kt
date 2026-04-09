@@ -9,9 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -38,18 +35,6 @@ data class PlanOfActionTemplate(
 	var forms: List<FormSkeleton> = emptyList(),
 ) : ICureDocument<String>,
 	Named {
-	companion object : DynamicInitializer<PlanOfActionTemplate>
-
-	fun merge(other: PlanOfActionTemplate) = PlanOfActionTemplate(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: PlanOfActionTemplate) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.descr ?: other.descr),
-			"descr" to (this.descr ?: other.descr),
-			"note" to (this.note ?: other.note),
-			"relevant" to this.relevant,
-			"status" to (this.status),
-			"forms" to mergeListsDistinct(this.forms, other.forms),
-		)
 
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
 		created != null && modified != null -> this.copy(created = created, modified = modified)

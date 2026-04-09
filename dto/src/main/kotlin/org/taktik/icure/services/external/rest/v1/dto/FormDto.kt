@@ -3,10 +3,6 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto
 
-/**
- * Created by aduchate on 18/07/13, 13:06
- */
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema

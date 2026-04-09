@@ -7,11 +7,12 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Place
 import org.taktik.icure.pagination.PaginationElement
 
-interface PlaceService {
+interface PlaceService : EntityWithConflictResolutionService<Place> {
 
 	/**
 	 * Retrieves all the [Place]s in a group in a format for pagination.

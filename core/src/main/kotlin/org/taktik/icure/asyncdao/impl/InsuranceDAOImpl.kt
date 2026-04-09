@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.InsuranceDAO
+import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -40,7 +42,7 @@ class InsuranceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Insurance>(
+) : ConflictDAOImpl<Insurance>(
 	Insurance::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -103,4 +105,15 @@ class InsuranceDAOImpl(
 
 		emitAll(client.queryViewIncludeDocs<Any?, String, Insurance>(viewQuery))
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Insurance' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Insurance>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Insurance>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 }

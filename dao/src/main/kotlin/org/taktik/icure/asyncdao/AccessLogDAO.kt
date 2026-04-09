@@ -12,7 +12,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.pagination.PaginationElement
 
-interface AccessLogDAO : GenericDAO<AccessLog> {
+interface AccessLogDAO : ConflictDAO<AccessLog> {
 
 	/**
 	 * Retrieves all the [AccessLog]s where [AccessLog.date] is not null, [AccessLog.date] is greater than or

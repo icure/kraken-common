@@ -22,15 +22,12 @@ import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.MergeStrategyMax
+import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A Healthcare Element
@@ -81,7 +78,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this healthcare element.
  *
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class HealthElement(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -98,8 +97,13 @@ data class HealthElement(
 
 	@field:NotNull(autoFix = AutoFix.UUID, doNotApplyOnCardinalModel = true) val healthElementId: String? = null, // Several versions of the same healthcare element share the same healthElementId while having different ids
 	// Usually one of the following is used (either valueDate or openingDate and closingDate)
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMin
+	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
+	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@MergeStrategyMax
 	val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val descr: String? = null,
 	val note: String? = null,
@@ -124,43 +128,12 @@ data class HealthElement(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable,
 	ExtendableRoot {
-	companion object : DynamicInitializer<HealthElement>
-
-	fun merge(other: HealthElement) = HealthElement(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: HealthElement) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		super<ExtendableRoot>.solveConflictsWith(other) +
-		mapOf(
-			"identifiers" to mergeListsDistinct(
-				this.identifiers,
-				other.identifiers,
-				{ a, b -> a.system == b.system && a.value == b.value },
-			),
-			"healthElementId" to (this.healthElementId ?: other.healthElementId),
-			"valueDate" to (valueDate?.coerceAtMost(other.valueDate ?: Long.MAX_VALUE) ?: other.valueDate),
-			"openingDate" to (openingDate?.coerceAtMost(other.openingDate ?: Long.MAX_VALUE) ?: other.openingDate),
-			"closingDate" to (closingDate?.coerceAtLeast(other.closingDate ?: 0L) ?: other.closingDate),
-			"descr" to (this.descr ?: other.descr),
-			"note" to (this.note ?: other.note),
-			"relevant" to (this.relevant),
-			"idOpeningContact" to (this.idOpeningContact ?: other.idOpeningContact),
-			"idClosingContact" to (this.idClosingContact ?: other.idClosingContact),
-			"idService" to (this.idService ?: other.idService),
-			"status" to (this.status),
-			"laterality" to (this.laterality ?: other.laterality),
-			"plansOfAction" to mergeListsDistinct(this.plansOfAction, other.plansOfAction, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-			"episodes" to mergeListsDistinct(this.episodes, other.episodes, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-			"careTeam" to mergeListsDistinct(this.careTeam, other.careTeam, { a, b -> a.id == b.id }, { a, b -> a.merge(b) }),
-		)
-
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
@@ -169,4 +142,17 @@ data class HealthElement(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

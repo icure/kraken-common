@@ -10,7 +10,7 @@ interface SecretValidator {
 	}
 
 	/**
-	 * This method receives a secret or the hash of a secret an the [SecretType] of the secret.
+	 * This method receives a secret or the hash of a secret and the [SecretType] of the secret.
 	 * If the secret is a hash, then it returns it directly. Otherwise, it verifies it according to criteria that
 	 * are based on the [SecretType] and on the concrete implementation.
 	 * If the secret does not meet the security criteria, then an [IllegalArgumentException] is thrown, otherwise the
@@ -22,5 +22,17 @@ interface SecretValidator {
 	 * @throws IllegalArgumentException if the secret is not hashed and does not meet the security criteria defined by
 	 * the function.
 	 */
-	fun encodeAndValidateSecrets(secretOrHash: String, secretType: SecretType): String
+	fun encodeAndValidateSecretsIfNotHashed(secretOrHash: String, secretType: SecretType): String
+
+	/**
+	 * This method hashes a secret applying the same checks as in [encodeAndValidateSecretsIfNotHashed], but without
+	 * checking if [secret] is already hashed.
+	 *
+	 * @param secret a non-hashed secret (token, password, or other).
+	 * @param secretType the [SecretType] of the secret.
+	 * @return the hashed secret.
+	 * @throws IllegalArgumentException if the secret is not hashed and does not meet the security criteria defined by
+	 * the function.
+	 */
+	fun encodeAndValidateSecret(secret: String, secretType: SecretType): String
 }

@@ -50,6 +50,6 @@ enum class DocumentType {
 	;
 
 	companion object {
-		fun fromName(name: String): DocumentType? = values().find { it.name == name }
+		fun fromName(name: String): DocumentType? = entries.find { it.name == name }
 	}
 }

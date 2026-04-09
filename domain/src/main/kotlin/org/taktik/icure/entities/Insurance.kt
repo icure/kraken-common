@@ -10,17 +10,18 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
+import org.taktik.icure.mergers.annotations.NonMergeable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Insurance(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	val name: Map<String, String> = emptyMap(),
+	@NonMergeable val name: Map<String, String> = emptyMap(),
 	val privateInsurance: Boolean = false,
 	val hospitalisationInsurance: Boolean = false,
 	val ambulatoryInsurance: Boolean = false,
@@ -34,21 +35,7 @@ data class Insurance(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredDocument {
-	companion object : DynamicInitializer<Insurance>
-
-	fun merge(other: Insurance) = Insurance(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Insurance) = super.solveConflictsWith(other) +
-		mapOf(
-			"privateInsurance" to (this.privateInsurance),
-			"hospitalisationInsurance" to (this.hospitalisationInsurance),
-			"ambulatoryInsurance" to (this.ambulatoryInsurance),
-			"code" to (this.code ?: other.code),
-			"agreementNumber" to (this.agreementNumber ?: other.agreementNumber),
-			"parent" to (this.parent ?: other.parent),
-			"address" to (this.address.merge(other.address)),
-			"name" to (other.name + this.name),
-		)
+	) : StoredDocument {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

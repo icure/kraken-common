@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.security.access.AccessDeniedException
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -38,6 +37,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -45,6 +45,9 @@ import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.InvoiceTypeDto
@@ -57,6 +60,8 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -91,6 +96,8 @@ class InvoiceController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	@Operation(summary = "Creates an invoice")
 	@PostMapping
@@ -235,7 +242,7 @@ class InvoiceController(
 			invoiceService
 				.validateInvoice(
 					sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
-						?: throw AccessDeniedException("Current user is not a HCP"),
+						?: throw ForbiddenException("Current user is not a HCP"),
 					it,
 					scheme,
 					forcedValue,
@@ -368,7 +375,7 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "Find Invoices ids by data owner id, patient secret keys and invoice date")
-	@PostMapping("/byDataOwnerPatientInvoiceDate", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/byDataOwnerPatientInvoiceDate", produces = [APPLICATION_JSON_VALUE])
 	fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
 		@RequestParam dataOwnerId: String,
 		@RequestParam(required = false) startDate: Long?,
@@ -538,7 +545,7 @@ class InvoiceController(
 		}.injectReactorContext()
 
 	@Operation(summary = "Get all the invoice ids for a data owner and a decision reference")
-	@GetMapping("/byDecisionReference", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@GetMapping("/byDecisionReference", produces = [APPLICATION_JSON_VALUE])
 	fun listInvoiceIdsByDecisionReference(
 		@RequestParam dataOwnerId: String,
 		@RequestParam decisionReference: String,
@@ -590,7 +597,7 @@ class InvoiceController(
 	}
 
 	@Operation(summary = "Get ids of Invoices matching the provided filter for the current user.")
-	@PostMapping("/match", produces = [MediaType.APPLICATION_JSON_VALUE])
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
 	fun matchInvoicesBy(
 		@RequestBody filter: AbstractFilterDto<InvoiceDto>,
 	): Flux<String> = invoiceService
@@ -643,4 +650,35 @@ class InvoiceController(
 				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		invoiceService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<InvoiceDto> =
+		invoiceService.getConflictsFor(entityId)
+			.map(invoiceV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<InvoiceDto>
+	): Mono<ConflictResolutionResultDto<InvoiceDto>> = mono {
+		val result = invoiceService.declareConflictWinner(
+			entity = invoiceV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
+		)
+		conflictResolutionV2Mapper.map(result, invoiceV2Mapper::map)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = invoiceService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

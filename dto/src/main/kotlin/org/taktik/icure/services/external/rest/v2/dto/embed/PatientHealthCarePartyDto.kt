@@ -24,10 +24,6 @@ import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
-/**
- * Created by aduchate on 02/07/13, 11:59
- */
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "One or several periods of care by an hcp for this patient")

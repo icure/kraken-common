@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimitive
 
-@JsonPolymorphismRoot(org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate::class)
+@JsonPolymorphismRoot(Predicate::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

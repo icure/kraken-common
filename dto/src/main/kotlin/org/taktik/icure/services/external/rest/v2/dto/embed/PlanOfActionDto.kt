@@ -17,10 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-/**
- * Created by aduchate on 09/07/13, 16:30
- */
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema

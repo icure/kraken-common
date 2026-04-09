@@ -45,7 +45,7 @@ data class TarificationDto(
 	val hasRelatedCode: Boolean? = null,
 	val needsPrescriber: Boolean? = null,
 	val relatedCodes: Set<String> = emptySet(),
-	@JsonProperty("nGroup")
+	@param:JsonProperty("nGroup")
 	val ngroup: String? = null,
 	val letterValues: List<LetterValueDto> = emptyList(),
 ) : StoredDocumentDto,

@@ -11,15 +11,18 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.CalendarItemLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
+import org.taktik.icure.asynclogic.impl.ConflictResolutionLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -36,13 +39,15 @@ open class CalendarItemLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<CalendarItem>
 ) : EntityWithEncryptionMetadataLogic<CalendarItem, CalendarItemDAO>(
-	fixer,
-	sessionLogic,
-	datastoreInstanceProvider,
-	exchangeDataMapLogic,
-	filters,
-), CalendarItemLogic {
+		fixer,
+		sessionLogic,
+		datastoreInstanceProvider,
+		exchangeDataMapLogic,
+		filters,
+	), CalendarItemLogic,
+	ConflictResolutionLogic<CalendarItem> by ConflictResolutionLogicImpl(calendarItemDAO, merger, datastoreInstanceProvider) {
 
 	// TODO seems obsolete behaviour, will not work with scoped data owner
 	protected suspend fun fixHcpIdIfNecessary(

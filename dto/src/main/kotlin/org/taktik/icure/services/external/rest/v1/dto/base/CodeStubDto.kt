@@ -6,7 +6,6 @@ package org.taktik.icure.services.external.rest.v1.dto.base
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.utils.DynamicInitializer
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,7 +18,6 @@ data class CodeStubDto(
 	val contextLabel: String? = null,
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
-	companion object : DynamicInitializer<CodeStubDto>
 
 	override fun normalizeIdentification(): CodeStubDto {
 		val parts = this.id?.split("|")?.toTypedArray()

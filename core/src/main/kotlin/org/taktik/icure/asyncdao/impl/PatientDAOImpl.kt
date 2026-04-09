@@ -67,7 +67,7 @@ class PatientDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericIcureDAOImpl<Patient>(
+) : ConflictDAOImpl<Patient>(
 	Patient::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -1015,19 +1015,13 @@ class PatientDAOImpl(
 
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(
-			client.queryViewIncludeDocsNoValue<String, Patient>(
-				createQuery(
-					datastoreInformation,
-					"conflicts",
-				).includeDocs(true),
-			).map { it.doc },
-		)
-	}
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Patient>(datastoreInformation, "conflicts", null)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation) =
+		doListIdsOfEntitiesWithConflicts<Patient>(datastoreInformation, "conflicts", null)
 
 	@View(
 		name = "by_modification_date",
@@ -1286,14 +1280,14 @@ class PatientDAOImpl(
 							viewNames,
 							healthcarePartyId,
 							paginationOffset.copy(
-								startKey = lastVisited?.key,
-								startDocumentId = lastVisited?.id,
+								startKey = lastVisited.key,
+								startDocumentId = lastVisited.id,
 								limit = paginationOffset.limit - sentElements,
 							),
 						),
 					)
 				} else if (lastVisited != null) {
-					emit(lastVisited!!)
+					emit(lastVisited)
 				}
 			}
 		emitAll(duplicatePatients)

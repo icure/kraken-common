@@ -25,7 +25,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface ContactService :
 	EntityWithSecureDelegationsService<Contact>,
-	EntityWithConflictResolutionService {
+	EntityWithConflictResolutionService<Contact> {
+
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
 	fun findContactsByIds(selectedIds: Collection<String>): Flow<ViewQueryResultEvent>
@@ -141,8 +142,6 @@ interface ContactService :
 	): Flow<ViewQueryResultEvent>
 
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
-
-	override fun solveConflicts(limit: Int?, ids: List<String>?): Flow<IdAndRev>
 
 	/**
 	 * Retrieves all the [Contact]s that a healthcare party can access and which [Contact.openingDate] is between the

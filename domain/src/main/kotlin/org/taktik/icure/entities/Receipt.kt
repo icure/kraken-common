@@ -16,16 +16,15 @@ import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Receipt(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -40,6 +39,7 @@ data class Receipt(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
+
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
 
@@ -62,18 +62,6 @@ data class Receipt(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Receipt>
-
-	fun merge(other: Receipt) = Receipt(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Receipt) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		mapOf(
-			"attachmentIds" to (other.attachmentIds + this.attachmentIds),
-			"references" to mergeListsDistinct(this.references, other.references),
-			"documentId" to (this.documentId ?: other.documentId),
-			"category" to (this.category ?: other.category),
-			"subCategory" to (this.subCategory ?: other.subCategory),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -83,4 +71,17 @@ data class Receipt(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

@@ -4,18 +4,6 @@
 
 package org.taktik.icure.services.external.rest.v1.dto.base
 
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.basedOn
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.derivedFrom
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.device
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.focus
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.hasMember
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.narrower
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.parent
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.performer
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.request
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.sequence
-import org.taktik.icure.services.external.rest.v1.dto.base.LinkQualificationDto.specimen
-
 /**
  * The qualification of a link between two concepts
  *

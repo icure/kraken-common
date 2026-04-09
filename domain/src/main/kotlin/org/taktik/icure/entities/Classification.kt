@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -17,8 +15,7 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.MergeStrategyNotBlank
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -26,7 +23,7 @@ import org.taktik.icure.validation.ValidCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Classification(
-	@param:ContentValue(ContentValues.UUID) @JsonProperty("_id") override val id: String,
+	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -39,7 +36,7 @@ data class Classification(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val parentId: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val label: String = "",
+	@MergeStrategyNotBlank val label: String = "",
 	val templateId: String? = null,
 
 	override val secretForeignKeys: Set<String> = emptySet(),
@@ -53,19 +50,9 @@ data class Classification(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument,
+	) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Classification>
-
-	fun merge(other: Classification) = Classification(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Classification) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"parentId" to (this.parentId ?: other.parentId),
-			"label" to if (this.label.isBlank()) other.label else this.label,
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -75,4 +62,17 @@ data class Classification(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

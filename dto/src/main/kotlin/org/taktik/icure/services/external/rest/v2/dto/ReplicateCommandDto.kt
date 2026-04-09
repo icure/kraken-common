@@ -12,17 +12,17 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class ReplicateCommandDto(
 	/** The URL of the source CouchDB database. */
-	@JsonProperty("source_url") @Schema(required = true) val sourceUrl: String,
+	@param:JsonProperty("source_url") @param:Schema(required = true) val sourceUrl: String,
 	/** The username for authenticating with the source database. */
-	@JsonProperty("source_username") @Schema(required = true) val sourceUsername: String,
+	@param:JsonProperty("source_username") @param:Schema(required = true) val sourceUsername: String,
 	/** The password for authenticating with the source database. */
-	@JsonProperty("source_password") @Schema(required = true) val sourcePassword: String,
+	@param:JsonProperty("source_password") @param:Schema(required = true) val sourcePassword: String,
 	/** The URL of the target CouchDB database. */
-	@JsonProperty("target_url") @Schema(required = true) val targetUrl: String,
+	@param:JsonProperty("target_url") @param:Schema(required = true) val targetUrl: String,
 	/** The username for authenticating with the target database. */
-	@JsonProperty("target_username") @Schema(required = true) val targetUsername: String,
+	@param:JsonProperty("target_username") @param:Schema(required = true) val targetUsername: String,
 	/** The password for authenticating with the target database. */
-	@JsonProperty("target_password") @Schema(required = true) val targetPassword: String,
+	@param:JsonProperty("target_password") @param:Schema(required = true) val targetPassword: String,
 	/** The optional identifier of this replication command. */
 	val id: String? = null,
 )

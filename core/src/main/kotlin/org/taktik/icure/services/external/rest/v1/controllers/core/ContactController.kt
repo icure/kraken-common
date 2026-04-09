@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -37,6 +36,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -141,7 +141,8 @@ class ContactController(
 		contactService
 			.getServiceCodesOccurences(
 				// TODO might need to be handled at service level by permission
-				sessionLogic.getCurrentSessionContext().getHealthcarePartyId() ?: throw AccessDeniedException("Current user is not an HCP"),
+				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()
+					?: throw ForbiddenException("Current user is not an HCP"),
 				codeType,
 				minOccurrences,
 			).map { LabelledOccurenceDto(it.label, it.occurence) }

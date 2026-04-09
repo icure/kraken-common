@@ -12,7 +12,7 @@ import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.pagination.PaginationElement
 
-interface HealthcarePartyLogic : EntityPersister<HealthcareParty> {
+interface HealthcarePartyLogic : EntityPersister<HealthcareParty>, ConflictResolutionLogic<HealthcareParty> {
 
 	suspend fun getHealthcareParty(id: String): HealthcareParty?
 	fun listHealthcarePartiesBy(searchString: String, offset: Int, limit: Int): Flow<HealthcareParty>

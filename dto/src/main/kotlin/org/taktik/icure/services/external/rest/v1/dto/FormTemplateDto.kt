@@ -3,10 +3,6 @@
  */
 package org.taktik.icure.services.external.rest.v1.dto
 
-/**
- * Created by aduchate on 09/07/13, 16:27
- */
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto

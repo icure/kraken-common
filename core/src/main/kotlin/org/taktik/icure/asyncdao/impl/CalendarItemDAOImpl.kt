@@ -63,7 +63,7 @@ class CalendarItemDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<CalendarItem>(
+) : ConflictDAOImpl<CalendarItem>(
 	CalendarItem::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -579,6 +579,17 @@ class CalendarItemDAOImpl(
 		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(false)
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItem' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<CalendarItem>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<CalendarItem>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,

@@ -13,8 +13,6 @@ import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DocumentGroup
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
 
 /**
  * Created by aduchate on 09/07/13, 16:27
@@ -66,38 +64,6 @@ data class FormTemplate(
 	// userId
 ) : StoredDocument,
 	HasTags {
-	companion object : DynamicInitializer<FormTemplate>
-
-	fun merge(other: FormTemplate) = FormTemplate(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: FormTemplate) = super.solveConflictsWith(other) +
-		mapOf(
-			"name" to (this.name ?: other.name),
-			"guid" to (this.guid ?: other.guid),
-			"group" to (this.group ?: other.group),
-			"descr" to (this.descr ?: other.descr),
-			"disabled" to (this.disabled ?: other.disabled),
-			"specialty" to (this.specialty ?: other.specialty),
-			"author" to (this.author ?: other.author),
-			"formInstancePreferredLocation" to (
-				this.formInstancePreferredLocation
-					?: other.formInstancePreferredLocation
-				),
-			"keyboardShortcut" to (this.keyboardShortcut ?: other.keyboardShortcut),
-			"shortReport" to (this.shortReport ?: other.shortReport),
-			"mediumReport" to (this.mediumReport ?: other.mediumReport),
-			"longReport" to (this.longReport ?: other.longReport),
-			"reports" to (other.reports + this.reports),
-			"layoutAttachmentId" to (this.layoutAttachmentId ?: other.layoutAttachmentId),
-			"templateLayoutAttachmentId" to (this.templateLayoutAttachmentId ?: other.templateLayoutAttachmentId),
-			"layout" to (
-				this.layout?.let { if (it.size >= other.layout?.size ?: 0) it else other.layout }
-					?: other.layout
-				),
-			"templateLayout" to (
-				this.templateLayout?.let { if (it.size >= other.templateLayout?.size ?: 0) it else other.templateLayout }
-					?: other.templateLayout
-				),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

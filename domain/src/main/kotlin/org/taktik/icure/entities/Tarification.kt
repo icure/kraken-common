@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.AppendixType
 import org.taktik.icure.entities.base.CodeFlag
 import org.taktik.icure.entities.base.CodeIdentification
@@ -19,23 +17,19 @@ import org.taktik.icure.entities.embed.Periodicity
 import org.taktik.icure.entities.embed.PricingDomain
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Valorisation
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets
-import org.taktik.icure.entities.utils.MergeUtil.mergeSets
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Tarification(
-	@param:ContentValue(ContentValues.TARIFICATION_ID) @JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
+	@param:JsonProperty("_id") override val id: String, // id = type|code|version  => this must be unique
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	override val context: String? = null, // ex: When embedded the context where this code is used
-	@param:ContentValue(ContentValues.ANY_STRING) override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
-	@param:ContentValue(ContentValues.ANY_STRING) override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
-	@param:ContentValue(ContentValues.ANY_STRING) override val version: String? = null, // ex: 10. Must be lexicographically searchable
+	override val type: String? = null, // ex: ICD (type + version + code combination must be unique) (or from tags -> CD-ITEM)
+	override val code: String? = null, // ex: I06.2 (or from tags -> healthcareelement). Local codes are encoded as LOCAL:SLLOCALFROMMYSOFT
+	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	override val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 
 	val domain: PricingDomain? = null,
@@ -46,11 +40,16 @@ data class Tarification(
 	val links: List<String> = emptyList(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	val qualifiedLinks: Map<LinkQualification, List<String>> = emptyMap(), // Links towards related codes
 	val flags: Set<CodeFlag> = emptySet(), // flags (like female only) for the code
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeMapsOfSets({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeMapsOfSets"]
+	)
 	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	val data: String? = null,
 	val appendices: Map<AppendixType, String> = emptyMap(),
 	val disabled: Boolean = false,
-	@param:ContentValue(ContentValues.NESTED_ENTITIES_SET) val valorisations: Set<Valorisation> = emptySet(),
+	val valorisations: Set<Valorisation> = emptySet(),
 	val category: Map<String, String> = emptyMap(),
 	val consultationCode: Boolean? = null,
 	val hasRelatedCode: Boolean? = null,
@@ -66,42 +65,9 @@ data class Tarification(
 
 	) : StoredDocument,
 	CodeIdentification {
-	companion object : DynamicInitializer<Tarification> {
+	companion object {
 		fun from(type: String, code: String, version: String) = Tarification(id = "$type|$code|$version", type = type, code = code, version = version)
 	}
-
-	fun merge(other: Tarification) = Tarification(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Tarification) = super<StoredDocument>.solveConflictsWith(other) +
-		super<CodeIdentification>.solveConflictsWith(other) +
-		mapOf(
-			"author" to (this.author ?: other.author),
-			"regions" to (other.regions + this.regions),
-			"periodicity" to (other.periodicity + this.periodicity),
-			"level" to (this.level ?: other.level),
-			"links" to (other.links + this.links),
-			"qualifiedLinks" to (other.qualifiedLinks + this.qualifiedLinks),
-			"flags" to (other.flags + this.flags),
-			"searchTerms" to mergeMapsOfSets(this.searchTerms, other.searchTerms),
-			"data" to (this.data ?: other.data),
-			"appendices" to (other.appendices + this.appendices),
-			"disabled" to (this.disabled),
-			"valorisations" to mergeSets(
-				this.valorisations,
-				other.valorisations,
-				{ a, b -> a.predicate == b.predicate && a.startOfValidity == b.startOfValidity && a.endOfValidity == b.endOfValidity },
-			),
-			"category" to (other.category + this.category),
-			"consultationCode" to (this.consultationCode ?: other.consultationCode),
-			"hasRelatedCode" to (this.hasRelatedCode ?: other.hasRelatedCode),
-			"needsPrescriber" to (this.needsPrescriber ?: other.needsPrescriber),
-			"relatedCodes" to (other.relatedCodes + this.relatedCodes),
-			"ngroup" to (this.ngroup ?: other.ngroup),
-			"letterValues" to mergeListsDistinct(
-				this.letterValues,
-				other.letterValues,
-				{ a, b -> a.coefficient == b.coefficient && a.index == b.index && a.letter == b.letter },
-			),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

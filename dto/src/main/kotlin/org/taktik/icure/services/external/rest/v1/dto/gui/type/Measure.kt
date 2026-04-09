@@ -7,9 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 
-/**
- * Created by aduchate on 19/11/13, 10:33
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class Measure(
@@ -22,7 +19,7 @@ class Measure(
 ) : Data(),
 	Serializable {
 	fun checkValue(): Int {
-		if (severity != null && severity!!.toInt() > 0) {
+		if (severity.toInt() > 0) {
 			return TOO_HIGHT
 		}
 		return if (minRef == null) {
@@ -30,7 +27,7 @@ class Measure(
 				OK
 			} else {
 				if (value == null) return OK
-				if (value!!.toDouble() > maxRef!!.toDouble()) {
+				if (value.toDouble() > maxRef.toDouble()) {
 					TOO_HIGHT
 				} else {
 					OK
@@ -39,7 +36,7 @@ class Measure(
 		} else {
 			if (maxRef == null) {
 				if (value == null) return OK
-				if (value!!.toDouble() < minRef!!.toDouble()) {
+				if (value.toDouble() < minRef.toDouble()) {
 					TOO_LOW
 				} else {
 					OK
@@ -49,9 +46,9 @@ class Measure(
 					return OK
 				}
 				if (value == null) return OK
-				if (maxRef!!.toDouble() > minRef!!.toDouble() && value!!.toDouble() > maxRef!!.toDouble()) {
+				if (maxRef.toDouble() > minRef.toDouble() && value.toDouble() > maxRef.toDouble()) {
 					TOO_HIGHT
-				} else if (value!!.toDouble() < minRef!!.toDouble()) {
+				} else if (value.toDouble() < minRef.toDouble()) {
 					TOO_LOW
 				} else {
 					OK

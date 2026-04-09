@@ -41,7 +41,7 @@ class AgendaDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Agenda>(
+) : ConflictDAOImpl<Agenda>(
 	Agenda::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -187,6 +187,17 @@ class AgendaDAOImpl(
 
 		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinct())
 	}
+
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Agenda' && !doc.deleted && doc._conflicts) emit(doc._id)}",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Agenda>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Agenda>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,

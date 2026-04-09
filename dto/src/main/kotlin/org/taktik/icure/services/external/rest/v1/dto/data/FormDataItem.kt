@@ -24,9 +24,6 @@ import org.taktik.icure.services.external.rest.v1.dto.CodeDto
 import java.io.Serializable
 import java.util.Date
 
-/**
- * Created by aduchate on 01/02/13, 12:27
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormDataItem(

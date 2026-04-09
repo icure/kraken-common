@@ -11,7 +11,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Message
 
-interface MessageDAO : GenericDAO<Message> {
+interface MessageDAO : ConflictDAO<Message> {
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] is equal to [fromAddress],
 	 * sorted by [Message.received], in a format for pagination.
@@ -161,7 +161,6 @@ interface MessageDAO : GenericDAO<Message> {
 	 */
 	fun listMessagesByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>): Flow<Message>
 	fun getMessagesByTransportGuids(datastoreInformation: IDatastoreInformation, hcPartyId: String, transportGuids: Collection<String>): Flow<Message>
-	fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Message>
 
 	/**
 	 * Returns all the [Message]s where [Message.parentId] is among the provided [parentIds].

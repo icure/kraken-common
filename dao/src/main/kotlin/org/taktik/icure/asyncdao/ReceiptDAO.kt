@@ -9,7 +9,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Receipt
 
 interface ReceiptDAO :
-	GenericDAO<Receipt>,
+	ConflictDAO<Receipt>,
 	AttachmentManagementDAO<Receipt> {
 	fun listByReference(datastoreInformation: IDatastoreInformation, ref: String): Flow<Receipt>
 

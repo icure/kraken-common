@@ -3,11 +3,17 @@
  */
 package org.taktik.icure.asynclogic.impl.filter
 
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.reactor.ReactorContext
+import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
+import org.springframework.web.server.ServerWebExchange
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.properties.ObservabilityProperties
 import java.io.Serializable
 
 class Filters : ApplicationContextAware {
@@ -18,7 +24,12 @@ class Filters : ApplicationContextAware {
 		this.applicationContext = applicationContext
 	}
 
+	private val collectTiming by lazy { this.applicationContext?.getBean<ObservabilityProperties>()?.filterTiming ?: false }
+
 	fun <T : Serializable, O : Identifiable<T>> resolve(filter: org.taktik.icure.domain.filter.Filter<T, O>, datastoreInformation: IDatastoreInformation) = flow<T> {
+		val desc = (filter as? AbstractFilter<*>)?.desc
+		val startTime = if (collectTiming && desc != null) System.currentTimeMillis() else 0L
+
 		val truncatedFullClassName = filter.javaClass.name.replace(".+?filter\\.impl\\.".toRegex(), "").replace(".+?dto\\.filter\\.".toRegex(), "")
 		val filterClass = try {
 			Class.forName("org.taktik.icure.asynclogic.impl.filter.$truncatedFullClassName")
@@ -42,6 +53,19 @@ class Filters : ApplicationContextAware {
 			if (!ids.contains(it)) {
 				emit(it)
 				ids.add(it)
+			}
+		}
+
+		if (collectTiming && desc != null) {
+			val elapsed = System.currentTimeMillis() - startTime
+			val headers = currentCoroutineContext()[ReactorContext.Key]?.context
+				?.getOrEmpty<ServerWebExchange>(ServerWebExchange::class.java)
+				?.orElse(null)
+				?.response?.headers
+			if (headers != null && headers::class.simpleName?.startsWith("ReadOnly") == false) {
+				try {
+					headers.add("x-filter-timing-$desc", "$elapsed ms")
+				} catch (_: UnsupportedOperationException) { }
 			}
 		}
 	}

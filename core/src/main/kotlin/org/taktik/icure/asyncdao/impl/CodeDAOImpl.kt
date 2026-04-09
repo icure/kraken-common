@@ -54,7 +54,7 @@ class CodeDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
+) : ConflictDAOImpl<Code>(Code::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
 	CodeDAO {
 
 	companion object {
@@ -565,7 +565,7 @@ class CodeDAOImpl(
 	): Flow<ViewQueryResultEvent> = flow {
 		// Utility function that will return a set of type code pair for each code that matches the label, language, and
 		// region passed as parameters. It will run recursively until it retrieves enough codes to fill a page.
-		suspend fun findKeyByTypeCode(
+		fun findKeyByTypeCode(
 			datastoreInformation: IDatastoreInformation,
 			client: Client,
 			region: String?,
@@ -632,8 +632,8 @@ class CodeDAOImpl(
 										type,
 										label,
 										offset.copy(
-											startKey = (lastVisited?.key as? Array<String>)?.toList(),
-											startDocumentId = lastVisited?.id,
+											startKey = (lastVisited.key as? Array<String>)?.toList(),
+											startDocumentId = lastVisited.id,
 											limit = (offset.limit - sentElements).coerceAtLeast(1),
 										),
 										(if (seenElements == 0) extensionFactor * 2 else (seenElements.toFloat() / sentElements)).coerceAtMost(
@@ -909,13 +909,16 @@ class CodeDAOImpl(
 		}
 	}
 
-	@View(name = "conflicts", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	@View(
+		name = "conflicts",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id) }",
+		secondaryPartition = MAURICE_PARTITION
+	)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Code>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-		val viewQuery = createQuery(datastoreInformation, "conflicts", MAURICE_PARTITION).includeDocs(true)
-		emitAll(client.queryViewIncludeDocsNoValue<String, Code>(viewQuery).map { it.doc })
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Code>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {

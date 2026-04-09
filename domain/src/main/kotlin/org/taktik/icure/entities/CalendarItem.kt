@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.PropertyStub
@@ -21,14 +19,14 @@ import org.taktik.icure.entities.embed.ExtendableRoot
 import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class CalendarItem(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -39,7 +37,7 @@ data class CalendarItem(
 	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	@param:ContentValue(ContentValues.TIMESTAMP) override val endOfLife: Long? = null,
+	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@field:NotNull val title: String? = null,
 	val calendarItemTypeId: String? = null,
@@ -49,7 +47,7 @@ data class CalendarItem(
 	val homeVisit: Boolean? = null,
 	val phoneNumber: String? = null,
 	val placeId: String? = null,
-	@param:ContentValue(ContentValues.NESTED_ENTITY) val address: Address? = null,
+	val address: Address? = null,
 	val addressText: String? = null,
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW) val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
@@ -57,7 +55,7 @@ data class CalendarItem(
 	val cancellationTimestamp: Long? = null,
 	val confirmationId: String? = null,
 	val duration: Long? = null,
-	@param:ContentValue(ContentValues.ANY_BOOLEAN) val allDay: Boolean? = null,
+	val allDay: Boolean? = null,
 	val details: String? = null,
 	val wasMigrated: Boolean? = null,
 	/**
@@ -110,7 +108,6 @@ data class CalendarItem(
 	HasEncryptionMetadata,
 	Encryptable,
 	ExtendableRoot {
-	companion object : DynamicInitializer<CalendarItem>
 
 	init {
 		resourceGroup?.also { it.requireNormalized() }
@@ -144,36 +141,6 @@ data class CalendarItem(
 		Loose,
 	}
 
-	fun merge(other: CalendarItem) = CalendarItem(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: CalendarItem) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		super<ExtendableRoot>.solveConflictsWith(other) +
-		mapOf(
-			"title" to (this.title ?: other.title),
-			"calendarItemTypeId" to (this.calendarItemTypeId ?: other.calendarItemTypeId),
-			"masterCalendarItemId" to (this.masterCalendarItemId ?: other.masterCalendarItemId),
-			"patientId" to (this.patientId ?: other.patientId),
-			"important" to (this.important ?: other.important),
-			"homeVisit" to (this.homeVisit ?: other.homeVisit),
-			"phoneNumber" to (this.phoneNumber ?: other.phoneNumber),
-			"placeId" to (this.placeId ?: other.placeId),
-			"address" to (this.address ?: other.address),
-			"addressText" to (this.addressText ?: other.addressText),
-			"startTime" to (this.startTime ?: other.startTime),
-			"endTime" to (this.endTime ?: other.endTime),
-			"confirmationTime" to (this.confirmationTime ?: other.confirmationTime),
-			"confirmationId" to (this.confirmationId ?: other.confirmationId),
-			"duration" to (this.duration ?: other.duration),
-			"allDay" to (this.allDay ?: other.allDay),
-			"details" to (this.details ?: other.details),
-			"wasMigrated" to (this.wasMigrated ?: other.wasMigrated),
-			"agendaId" to (this.agendaId ?: other.agendaId),
-			"recurrenceId" to (this.recurrenceId ?: other.recurrenceId),
-			"meetingTags" to (other.meetingTags + this.meetingTags),
-			"flowItem" to (this.flowItem ?: other.flowItem),
-		)
-
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
@@ -182,4 +149,17 @@ data class CalendarItem(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

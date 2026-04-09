@@ -55,14 +55,4 @@ interface ICureDocumentDto<T> :
 	@get:Schema(description = "The id of the medical location where this entity was created.")
 	val medicalLocationId: String?
 
-	fun solveConflictsWith(other: ICureDocumentDto<T>): Map<String, Any?> = mapOf(
-		"id" to this.id,
-		"created" to (this.created?.coerceAtMost(other.created ?: Long.MAX_VALUE) ?: other.created),
-		"modified" to (this.modified?.coerceAtLeast(other.modified ?: 0L) ?: other.modified),
-		"author" to (this.author ?: other.author),
-		"responsible" to (this.responsible ?: other.responsible),
-		"medicalLocationId" to (this.medicalLocationId ?: other.medicalLocationId),
-		"tags" to (other.tags + this.tags),
-		"codes" to (other.codes + this.codes),
-	)
 }

@@ -6,6 +6,7 @@ package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.annotations.permissions.AccessControl
 import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.asyncservice.ContactService
@@ -27,10 +27,10 @@ import org.taktik.icure.asyncservice.ICureSharedService
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.asyncservice.PatientService
+import org.taktik.icure.entities.conflicts.MergeResult
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.IndexingInfoDto
 import org.taktik.icure.services.external.rest.v2.dto.ReplicationInfoDto
-import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IndexingInfoV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.ReplicationInfoV2Mapper
 import org.taktik.icure.utils.injectReactorContext
@@ -51,11 +51,9 @@ class ICureController(
 	private val documentService: DocumentService,
 	private val healthElementService: HealthElementService,
 	private val formService: FormService,
-	private val idWithRevMapper: IdWithRevV2Mapper,
 	private val indexingInfoV2Mapper: IndexingInfoV2Mapper,
 	private val replicationInfoV2Mapper: ReplicationInfoV2Mapper,
 ) {
-	private val idAndRevToIdWithRevDto = { idWithRev: IdAndRev -> idWithRevMapper.map(idWithRev) }
 
 	@Operation(summary = "Get version")
 	@GetMapping("/v", produces = [MediaType.TEXT_PLAIN_VALUE])
@@ -95,7 +93,11 @@ class ICureController(
 	@PostMapping("/conflicts/patient")
 	fun resolvePatientsConflicts(
 		@RequestParam(required = false) limit: Int? = null,
-	): Flux<IdWithRevDto> = patientService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	): Flux<IdWithRevDto> = patientService
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
+		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "Resolve contacts conflicts")
@@ -103,9 +105,9 @@ class ICureController(
 	fun resolveContactsConflicts(
 		@RequestParam(required = false) limit: Int? = null,
 	): Flux<IdWithRevDto> = contactService
-		.solveConflicts(
-			limit,
-		).map(idAndRevToIdWithRevDto)
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
@@ -114,9 +116,9 @@ class ICureController(
 	fun resolveFormsConflicts(
 		@RequestParam(required = false) limit: Int? = null,
 	): Flux<IdWithRevDto> = formService
-		.solveConflicts(
-			limit,
-		).map(idAndRevToIdWithRevDto)
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp")
@@ -125,9 +127,9 @@ class ICureController(
 	fun resolveHealthElementsConflicts(
 		@RequestParam(required = false) limit: Int? = null,
 	): Flux<IdWithRevDto> = healthElementService
-		.solveConflicts(
-			limit,
-		).map(idAndRevToIdWithRevDto)
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
@@ -136,9 +138,9 @@ class ICureController(
 	fun resolveInvoicesConflicts(
 		@RequestParam(required = false) limit: Int? = null,
 	): Flux<IdWithRevDto> = invoiceService
-		.solveConflicts(
-			limit,
-		).map(idAndRevToIdWithRevDto)
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
@@ -146,7 +148,11 @@ class ICureController(
 	@PostMapping("/conflicts/message")
 	fun resolveMessagesConflicts(
 		@RequestParam(required = false) limit: Int? = null,
-	): Flux<IdWithRevDto> = messageService.solveConflicts(limit).map(idAndRevToIdWithRevDto).injectReactorContext()
+	): Flux<IdWithRevDto> = messageService
+		.solveConflicts(limit)
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
+		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "resolve documents conflicts")
@@ -154,7 +160,11 @@ class ICureController(
 	fun resolveDocumentsConflicts(
 		@RequestParam(required = false) ids: String?,
 		@RequestParam(required = false) limit: Int? = null,
-	): Flux<IdWithRevDto> = documentService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+	): Flux<IdWithRevDto> = documentService
+		.solveConflicts(limit, ids?.split(","))
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
+		.injectReactorContext()
 
 	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "resolve codes conflicts")
@@ -162,5 +172,9 @@ class ICureController(
 	fun resolveCodesConflicts(
 		@RequestParam(required = false) ids: String?,
 		@RequestParam(required = false) limit: Int? = null,
-	): Flux<IdWithRevDto> = codeService.solveConflicts(limit, ids?.split(",")).map(idAndRevToIdWithRevDto).injectReactorContext()
+	): Flux<IdWithRevDto> = codeService
+		.solveConflicts(limit, ids?.split(","))
+		.filterIsInstance<MergeResult.Success>()
+		.map { IdWithRevDto(it.id, it.rev) }
+		.injectReactorContext()
 }

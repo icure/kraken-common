@@ -40,11 +40,21 @@ data class SecurityMetadata(
 	 * @param other the security metadata of the other version of the entity.
 	 * @return the merged security metadata.
 	 */
-	fun mergeForDifferentVersionsOfEntity(other: SecurityMetadata): SecurityMetadata = merge(
+	fun mergeForDifferentVersionsOfEntity(other: SecurityMetadata): SecurityMetadata = checkNotNull(
+		tryMerge(
+			other = other,
+			mergeVersions = true,
+			omitEncryptionKeysOfOther = false,
+			requireEqualPermissions = true,
+		)
+	) { "Can't merge security metadata for different versions, check canMergeForDifferentVersionsOfEntity first" }
+
+	fun canMergeForDifferentVersionsOfEntity(other: SecurityMetadata): Boolean = tryMerge(
 		other = other,
 		mergeVersions = true,
 		omitEncryptionKeysOfOther = false,
-	)
+		requireEqualPermissions = true,
+	) != null
 
 	/**
 	 * Merges the security metadata of duplicated entities (e.g. different patient entities representing the same
@@ -65,28 +75,31 @@ data class SecurityMetadata(
 	fun mergeForDuplicatedEntityIntoThisFrom(
 		other: SecurityMetadata,
 		omitEncryptionKeysOfOther: Boolean,
-	): SecurityMetadata = merge(
+	): SecurityMetadata = tryMerge(
 		other = other,
 		mergeVersions = false,
 		omitEncryptionKeysOfOther = omitEncryptionKeysOfOther,
-	)
+		requireEqualPermissions = false,
+	) ?: throw MergeConflictException("Can't merge secure delegations with same key but referring to different delegator, delegate or exchange data id")
 
-	private fun merge(
+	private fun tryMerge(
 		other: SecurityMetadata,
 		mergeVersions: Boolean,
 		omitEncryptionKeysOfOther: Boolean,
-	): SecurityMetadata {
+		requireEqualPermissions: Boolean
+	): SecurityMetadata? {
 		// Find duplicate delegations and merge
 		val mergedDelegations = (this.secureDelegations.keys + other.secureDelegations.keys).associateWith { canonicalKey ->
 			val thisDelegation = this.secureDelegations[canonicalKey]
 			val otherDelegation = other.secureDelegations[canonicalKey]
 			if (thisDelegation != null && otherDelegation != null) {
-				mergeSecDels(
+				tryMergeSecDels(
 					thisDelegation = thisDelegation,
 					otherDelegation = otherDelegation,
 					mergeVersions = mergeVersions,
 					omitEncryptionKeysOfOther = omitEncryptionKeysOfOther,
-				)
+					requireEqualPermissions = requireEqualPermissions,
+				) ?: return null
 			} else {
 				checkNotNull(
 					thisDelegation
@@ -105,20 +118,22 @@ data class SecurityMetadata(
 		)
 	}
 
-	private fun mergeSecDels(
+	private fun tryMergeSecDels(
 		thisDelegation: SecureDelegation,
 		otherDelegation: SecureDelegation,
 		mergeVersions: Boolean,
 		omitEncryptionKeysOfOther: Boolean,
-	): SecureDelegation {
+		requireEqualPermissions: Boolean
+	): SecureDelegation? {
 		if (
 			thisDelegation.delegator != otherDelegation.delegator ||
 			thisDelegation.delegate != otherDelegation.delegate ||
 			thisDelegation.exchangeDataId != otherDelegation.exchangeDataId
 		) {
-			throw MergeConflictException(
-				"Can't merge secure delegations referring to different delegator, delegate or exchange data id",
-			)
+			return null
+		}
+		if (requireEqualPermissions && thisDelegation.permissions != otherDelegation.permissions) {
+			return null
 		}
 		return SecureDelegation(
 			delegator = thisDelegation.delegator,
@@ -141,7 +156,11 @@ data class SecurityMetadata(
 			},
 			exchangeDataId = thisDelegation.exchangeDataId,
 			// Without fine-grained permissions this is fine
-			permissions = if (thisDelegation.permissions == AccessLevel.WRITE) AccessLevel.WRITE else otherDelegation.permissions,
+			permissions = when {
+					requireEqualPermissions -> thisDelegation.permissions
+					thisDelegation.permissions == AccessLevel.WRITE -> AccessLevel.WRITE
+					else -> otherDelegation.permissions
+				},
 		)
 	}
 }

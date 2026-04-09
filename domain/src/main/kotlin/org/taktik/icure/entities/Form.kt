@@ -14,17 +14,10 @@ import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-/**
- * Created by aduchate on 18/07/13, 13:06
- */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * This entity is a root level object. It represents a Form. It is serialized in JSON and saved in the underlying CouchDB database.
@@ -58,7 +51,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this Form.
  *
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Form(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -100,24 +95,6 @@ data class Form(
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable {
-	companion object : DynamicInitializer<Form>
-
-	fun merge(other: Form) = Form(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Form) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		mapOf(
-			"status" to (this.status ?: other.status),
-			"version" to (this.version ?: other.version),
-			"descr" to (this.descr ?: other.descr),
-			"formTemplateId" to (this.formTemplateId ?: other.formTemplateId),
-			"contactId" to (this.contactId ?: other.contactId),
-			"uniqueId" to (this.uniqueId ?: other.uniqueId),
-			"logicalUuid" to (this.logicalUuid ?: other.logicalUuid),
-			"healthElementId" to (this.healthElementId ?: other.healthElementId),
-			"planOfActionId" to (this.planOfActionId ?: other.planOfActionId),
-			"parent" to (this.parent ?: other.parent),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -127,4 +104,17 @@ data class Form(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

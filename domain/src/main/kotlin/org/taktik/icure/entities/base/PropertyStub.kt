@@ -9,15 +9,20 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.TypedValue
+import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class PropertyStub(
 	val id: String? = null,
 	val type: PropertyTypeStub? = null,
 	val typedValue: TypedValue? = null,
-	@Deprecated("Remove from list instead") @JsonProperty("deleted") val deletionDate: Long? = null,
+
+	@Deprecated("Remove from list instead")
+	@param:JsonProperty("deleted")
+	val deletionDate: Long? = null,
+
 	override val encryptedSelf: String? = null,
-) : Serializable,
-	Encryptable
+) : Serializable, Encryptable

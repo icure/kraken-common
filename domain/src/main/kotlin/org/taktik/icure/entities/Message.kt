@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.PropertyStub
@@ -20,14 +18,10 @@ import org.taktik.icure.entities.embed.MessageAttachment
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 
 /**
  * A Message
@@ -75,6 +69,9 @@ import org.taktik.icure.validation.ValidCode
  * @property encryptedSelf The encrypted fields of this Message.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Message(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -117,7 +114,7 @@ data class Message(
 	val transportGuid: String? = null, // Each message should have a transportGuid: see above for formats
 	val remark: String? = null,
 	val conversationGuid: String? = null,
-	@param:ContentValue(ContentValues.ANY_STRING) val subject: String? = null,
+	val subject: String? = null,
 	val invoiceIds: Set<String> = emptySet(),
 	val parentId: String? = null, // ID of parent in a message conversation
 	val externalRef: String? = null,
@@ -136,14 +133,13 @@ data class Message(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable,
 	ExtendableRoot {
-	companion object : DynamicInitializer<Message> {
+	companion object {
 		const val STATUS_LABO_RESULT = 1 shl 0
 		const val STATUS_UNREAD = 1 shl 1
 		const val STATUS_IMPORTANT = 1 shl 2
@@ -174,35 +170,6 @@ data class Message(
 		const val STATUS_PUBLIC = 1 shl 27
 	}
 
-	fun merge(other: Message) = Message(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Message) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<HasEncryptionMetadata>.solveConflictsWith(other) +
-		super<Encryptable>.solveConflictsWith(other) +
-		super<ExtendableRoot>.solveConflictsWith(other) +
-		mapOf(
-			"fromAddress" to (this.fromAddress ?: other.fromAddress),
-			"fromHealthcarePartyId" to (this.fromHealthcarePartyId ?: other.fromHealthcarePartyId),
-			"formId" to (this.formId ?: other.formId),
-			"status" to (this.status ?: other.status),
-			"recipientsType" to (this.recipientsType ?: other.recipientsType),
-			"recipients" to (other.recipients + this.recipients),
-			"toAddresses" to (other.toAddresses + this.toAddresses),
-			"received" to (this.received ?: other.received),
-			"sent" to (this.sent ?: other.sent),
-			"metas" to (other.metas + this.metas),
-			"readStatus" to (this.readStatus),
-			"transportGuid" to (this.transportGuid ?: other.transportGuid),
-			"remark" to (this.remark ?: other.remark),
-			"conversationGuid" to (this.conversationGuid ?: other.conversationGuid),
-			"subject" to (this.subject ?: other.subject),
-			"invoiceIds" to (other.invoiceIds + this.invoiceIds),
-			"parentId" to (this.parentId ?: other.parentId),
-			"externalRef" to (this.externalRef ?: other.externalRef),
-			"unassignedResults" to (other.unassignedResults + this.unassignedResults),
-			"assignedResults" to (other.assignedResults + this.assignedResults),
-			"senderReferences" to (other.senderReferences + this.senderReferences),
-		)
-
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
@@ -211,4 +178,17 @@ data class Message(
 		modified != null -> this.copy(modified = modified)
 		else -> this
 	}
+	override fun withEncryptionMetadata(
+		secretForeignKeys: Set<String>,
+		cryptedForeignKeys: Map<String, Set<Delegation>>,
+		delegations: Map<String, Set<Delegation>>,
+		encryptionKeys: Map<String, Set<Delegation>>,
+		securityMetadata: SecurityMetadata?
+	) = copy(
+		secretForeignKeys = secretForeignKeys,
+		cryptedForeignKeys = cryptedForeignKeys,
+		delegations = delegations,
+		encryptionKeys = encryptionKeys,
+		securityMetadata = securityMetadata
+	)
 }

@@ -35,10 +35,15 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.injectCachedReactorContext
@@ -59,6 +64,8 @@ class AgendaController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper
 ) {
 	@Operation(summary = "Gets all agendas")
 	@GetMapping
@@ -220,4 +227,35 @@ class AgendaController(
 		require(agendaIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		return agendaService.getAgendas(agendaIds.ids).map(agendaV2Mapper::map).injectReactorContext()
 	}
+
+	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
+	fun getConflictingEntitiesIds(): Flux<String> =
+		agendaService.getConflictingEntitiesIds().injectReactorContext()
+
+	@GetMapping("/conflicts/{entityId}")
+	fun getConflictsForEntity(
+		@PathVariable entityId: String,
+	): Flux<AgendaDto> =
+		agendaService.getConflictsFor(entityId)
+			.map(agendaV2Mapper::map)
+			.injectReactorContext()
+
+	@PostMapping("/conflicts/winner")
+	fun declareConflictWinner(
+		@RequestBody request: ConflictResolutionRequestDto<AgendaDto>
+	): Mono<ConflictResolutionResultDto<AgendaDto>> = mono {
+		val result = agendaService.declareConflictWinner(
+			entity = agendaV2Mapper.map(request.document),
+			conflictsToPurge = request.conflictsToPurge
+		)
+		conflictResolutionV2Mapper.map(result, agendaV2Mapper::map)
+	}
+
+	@PostMapping("/conflicts/solve")
+	fun autoSolveConflicts(
+		@RequestBody entityIds: List<String>
+	): Flux<MergeResultDto> = agendaService
+		.solveConflicts(limit = null, ids = entityIds)
+		.map(mergeResultV2Mapper::map)
+		.injectReactorContext()
 }

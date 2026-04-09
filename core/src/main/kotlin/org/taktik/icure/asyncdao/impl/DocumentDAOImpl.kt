@@ -51,7 +51,7 @@ class DocumentDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Document>(
+) : ConflictDAOImpl<Document>(
 	Document::class.java,
 	couchDbDispatcher,
 	idGenerator,
@@ -62,18 +62,13 @@ class DocumentDAOImpl(
 	DocumentDAO {
 	@View(
 		name = "conflicts",
-		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc._conflicts) emit(doc._id )}",
+		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
+	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
+		doListConflicts<Document>(datastoreInformation, "conflicts", null)
 
-		val viewQuery =
-			createQuery(datastoreInformation, "conflicts")
-				.limit(200)
-				.includeDocs(true)
-
-		emitAll(client.queryViewIncludeDocsNoValue<String, Document>(viewQuery).map { it.doc })
-	}
+	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
+		doListIdsOfEntitiesWithConflicts<Document>(datastoreInformation, "conflicts", null)
 
 	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
 	@Views(

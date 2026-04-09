@@ -30,9 +30,7 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
-import org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct
-import org.taktik.icure.utils.DynamicInitializer
-import org.taktik.icure.utils.invoke
+import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
@@ -77,6 +75,7 @@ import org.taktik.icure.validation.ValidCode
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["id"])
 data class Device(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
@@ -136,27 +135,6 @@ data class Device(
 	CryptoActor,
 	DataOwner,
 	ExtendableRoot {
-	companion object : DynamicInitializer<Device>
-
-	fun merge(other: Device) = HealthcareParty(args = this.solveConflictsWith(other))
-	fun solveConflictsWith(other: Device) = super<StoredICureDocument>.solveConflictsWith(other) +
-		super<CryptoActor>.solveConflictsWith(other) +
-		super<DataOwner>.solveConflictsWith(other) +
-		super<ExtendableRoot>.solveConflictsWith(other) +
-		mapOf(
-			"parentId" to (this.parentId ?: other.parentId),
-			"picture" to (this.picture ?: other.picture),
-			"externalId" to (this.type ?: other.externalId),
-			"type" to (this.type ?: other.type),
-			"brand" to (this.type ?: other.brand),
-			"model" to (this.type ?: other.model),
-			"serialNumber" to (this.type ?: other.serialNumber),
-			"identifier" to mergeListsDistinct(
-				this.identifiers,
-				other.identifiers,
-				{ a, b -> a.system == b.system && a.value == b.value },
-			),
-		)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

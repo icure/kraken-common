@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.embed.ReceiptBlobType
@@ -15,7 +16,10 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import java.nio.ByteBuffer
 
-interface ReceiptService : EntityWithSecureDelegationsService<Receipt> {
+interface ReceiptService :
+	EntityWithSecureDelegationsService<Receipt>,
+	EntityWithConflictResolutionService<Receipt> {
+
 	suspend fun modifyReceipt(receipt: Receipt): Receipt
 	fun modifyReceipts(receipts: List<Receipt>): Flow<Receipt>
 

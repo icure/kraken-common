@@ -10,7 +10,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Insurance
 
-interface InsuranceDAO : GenericDAO<Insurance> {
+interface InsuranceDAO : ConflictDAO<Insurance> {
 	fun listInsurancesByCode(datastoreInformation: IDatastoreInformation, code: String): Flow<Insurance>
 
 	fun listInsurancesByName(datastoreInformation: IDatastoreInformation, name: String): Flow<Insurance>

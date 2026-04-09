@@ -69,7 +69,7 @@ data class HealthcarePartyDto(
 	@param:Schema(description = "All details included in the invoice header") val invoiceHeader: String? = null,
 	@param:Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") val cbe: String? = null,
 	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
-	@param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") @param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
 	override val parentId: String? = null,
 	val convention: Int? = null, // 0,1,2,9
 	@param:Schema(

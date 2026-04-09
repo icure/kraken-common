@@ -2,9 +2,8 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.annotations.entities.ContentValue
-import org.taktik.icure.annotations.entities.ContentValues
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
 /**
@@ -15,17 +14,18 @@ import java.io.Serializable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Mergeable(["system", "value"])
 data class Identifier(
 
 	/**
 	 * Unique id for inter-element referencing
 	 */
-	@param:ContentValue(ContentValues.UUID) val id: String? = null,
+	val id: String? = null,
 
 	/**
 	 * Organization that issued id (may be just text)
 	 */
-	@param:ContentValue(ContentValues.ANY_STRING) val assigner: String? = null,
+	val assigner: String? = null,
 	/**
 	 * Unique id for inter-element referencing
 	 */

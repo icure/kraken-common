@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.map
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
+import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
+import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -25,7 +27,9 @@ open class CalendarItemTypeLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
+	merger: Merger<CalendarItemType>
 ) : GenericLogicImpl<CalendarItemType, CalendarItemTypeDAO>(fixer, datastoreInstanceProvider, filters),
+	ConflictResolutionLogic<CalendarItemType> by ConflictResolutionLogicImpl(calendarItemTypeDAO, merger, datastoreInstanceProvider),
 	CalendarItemTypeLogic {
 	override fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastore = getInstanceAndGroup()
