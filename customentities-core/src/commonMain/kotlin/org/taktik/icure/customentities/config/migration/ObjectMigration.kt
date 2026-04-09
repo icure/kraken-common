@@ -8,8 +8,164 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
 /**
- * Instructs how to migrate from a custom object definition to another custom object definition, or how to initialize a
- * new extension on a builtin entity.
+ * Configuration that can be used to specify how an object definition should be migrated when updating custom entities
+ * and/or custom extensions on builtin entities.
+ *
+ * At least one of the source or the target definitions must refer to a custom object definition, but the other can also
+ * be a builtin entity.
+ *
+ * This allows covering the following cases:
+ * - Initializing custom extensions for the first time (builtin source and custom target extending the same builtin)
+ * - Removing custom extensions from an entity, returning only to the builtin (custom source extending a builtin and
+ *   that builtin as the target)
+ * - Migrating two custom object definitions
+ *
+ * Note that it is currently not possible to:
+ * - Define a migration from a builtin entity to another builtin entity
+ * - Define a migration from a custom object definition to another custom definition that do not extend the same entity
+ *   (even if one of the two extends the entity and the other doesn't)
+ *
+ * # Exact matching and coercion
+ *
+ * Two important concepts that are used multiple times in custom entities migration are "exact type matching" and
+ * "type coercion", explained below.
+ *
+ * ## Exact matching
+ *
+ * Two type configurations are considered to be matching exactly if they have the same type configuration, including
+ * validation rules and nullability.
+ *
+ * In the case of object and enum types also the type definition must be the same, unless there is an explicit
+ * [ObjectMigration] or [EnumMigration] defined from the source type to the target type.
+ * If there is no such migration defined for those types then to have a match:
+ * - Two enum definitions must they have exactly the same entries.
+ * - Two object definitions must have exactly the same properties with types that are matching exactly and identical
+ *   default values, same extended builtin entity and same builtin entity extension with corresponding object
+ *   definitions matching exactly.
+ *
+ * ### Examples
+ * The following example do NOT represent exact matches:
+ * - A IntTypeConfig with min/max 1-10 on source and min/max 1-20 on target
+ * - A IntTypeConfig with min/max 1-10 on source and a FloatTypeConfig with min/max 1.0-10.0 on target
+ * - A ObjectTypeConfig for definition Address(street: String, zip: Int) on source and a ObjectTypeConfig for definition
+ *   Address(street: String, zip: Int, country: String? = null) on target (the type config is matching exactly but the
+ *   definition is not)
+ * - A ObjectTypeConfig for definition Address(street: String, zip: Int) on source and a ObjectTypeConfig for definition
+ *   Location(street: String, zip: Int) on target (different type configuration, they use different names, even though
+ *   the definitions otherwise match exactly)
+ * - A EnumTypeConfig for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig for enum
+ *   Priority(LOW, MEDIUM, HIGH, CRITICAL) on target (the type config is matching exactly but the definition is not)
+ * - A EnumTypeConfig for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig for enum
+ *   Severity(LOW, MEDIUM, HIGH) on target
+ * - A StringTypeConfig "name" with maxLength validation 10 on source and a StringTypeConfig "name" with
+ *   maxLength validation 20 on target
+ * - A non-nullable StringTypeConfig "name" on source and a nullable StringTypeConfig "name" on target
+ *
+ * ### Enum migration with unique lists and maps
+ *
+ * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
+ * match
+ *
+ * ## Coercion
+ *
+ * Generally in the scope of custom entities migration two types are coercible if all possible values of the source type
+ * are valid values for the target type, or can be converted without losing any information.
+ *
+ * The supported conversions are:
+ * - Nullable->non-nullable, Non-nullable->non-nullable, and nullable->nullable coercions are always applicable,
+ *   as long as the rest of the type configuration can be coerced. Nullable types generally can't be coerced to
+ *   non-nullable, but some usages of type coercion allow to avoid this restriction (more details below).
+ * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
+ *   of the source enum exist in the target enum
+ * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or the
+ *   definitions are coercible according to the rules explained below.
+ * - Identical source and target type configurations, including validation rules.
+ * - Any type configuration to a JsonTypeConfig
+ * - IntTypeConfig to IntTypeConfig, IntTypeConfig to FloatTypeConfig, or FloatTypeConfig to FloatTypeConfig
+ *   if the range of the target type covers the entire range of the source type.
+ * - StringTypeConfig to StringTypeConfig if the validation rules of the target type are less restrictive, i.e.
+ *   the maxLength of the target is greater than or equal to the maxLength of the source, and the minLength of
+ *   the target is less than or equal to the minLength of the source.
+ * - List type to list type if the element type of the target can be coerced and all the validation rules in the
+ *   target list are less restrictive than or equal to the rules in the source. In the case of a target list
+ *   with unique value requirement, the source list must also have unique value requirement; additionally, for
+ *   enum element types it is also required that if a custom migration is used the migration is injective (refer
+ *   to the [EnumMigration] documentation for more information).
+ * - Map type to map type if: the values can be coerced, the equivalent key type from the key validation can be
+ *   coerced and the general validation rules of the target map are less restrictive than or equal to the rules
+ *   of the source map. If using enum keys and there is a custom migration for the corresponding enum that is
+ *   not injective coercion is not allowed (refer to the [EnumMigration] documentation for more information).
+ * - TODO more? e.g. enum -> string
+ *
+ * Examples of unsupported conversions:
+ * - A FloatTypeConfig with min/max 1.0-10.0 to a IntTypeConfig "number" with min/max 1-10 (not all source
+ *   values can be represented exactly in target)
+ * - A StringTypeConfig with no minLength validation (implicitly 0) to a StringTypeConfig with minLength
+ *   validation 3 (The source value "a", it is not valid for the target, )
+ *
+ * Note that even when coercion is possible, it is not always the correct choice, for example:
+ * - A FloatTypeConfig "percent" with min/max 0.0-1.0 can be coerced to a FloatTypeConfig "percent" with min/max
+ *   0.0-100.0, but you might want to apply a scaling instead (multiply by 100).
+ *
+ * ### Nullable to non-nullable coercion
+ *
+ * As previously mentioned a nullable type can't be coerced to a non-nullable type (since null is a valid value for the
+ * source but not for the target).
+ *
+ * In many situations where you can use type coercion, however, you might be able to ignore this restriction by
+ * explicitly providing a value to use when the source value is null.
+ *
+ * This is the case for example of [PropertyValueProvider.FromSource] configurations with a value for
+ * [PropertyValueProvider.FromSource.mappedNullValue]: in that case when the source value is null the
+ * [PropertyValueProvider.FromSource.transform] will be unused, so if it is a [ValueTransformer.CoerceType] it can
+ * ignore nullability rules
+ *
+ * ### Object definition coercion
+ *
+ * When there is no explicit migration between two object types (builtin or custom), two object definitions are
+ * coercible if and only if all of the following rules apply:
+ * - They are custom definitions without extensions, or they are custom definitions extending the same entity, or they
+ *   one is a builtin definition and the other is a custom definition extending that builtin entity, or they are both
+ *   the same builtin definition
+ * - If the target is a custom definition (regardless of whether it is extending a builtin definition or not) all of its
+ *   [ObjectDefinition.properties] can be mapped from the source using the same fallback behaviors defined in the
+ *   containing [ObjectMigration.fallbackBehavior].
+ * - If the source or target define some [ObjectDefinition.BuiltinExtensionConfiguration.extendedBuiltinProperties] they
+ *   match-exactly OR if the containing [ObjectMigration.allowExtendedBuiltinPropertiesCoercion] is true and the
+ *   types of the extended builtin properties can be coerced.
+ *
+ * ### Nested object coercion
+ *
+ * #### Example 1
+ *
+ * - ObjV1(foo: FooV1)
+ * - FooV1(bar: String)
+ * - ObjV2(foo: FooV2, boo: Int = 42)
+ * - FooV2(bar: String, baz: Boolean = true)
+ *
+ * ##### Invalid migration 1
+ * - ObjV1 -> ObjV2 with mappings { boo: UseTargetDefault }, fallbackBehavior [ CoerceFromSourceByName ]
+ *
+ * This migration is invalid because FooV1 cannot be coerced to FooV2.
+ * The implicit rule for migration FooV1 -> FooV2 is with empty mappings and the same fallbackBehavior as
+ * ObjV1 -> ObjV2.
+ * Since Foo.baz does not exist in FooV1 and the fallback behavior doesn't allow for default we can't coerce.
+ *
+ * ##### Invalid migration 2
+ * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ UseTargetDefault ]
+ *
+ * This migration is invalid because coercion is not allowed as a fallback behavior so we cannot go from
+ * FooV1 to FooV2.
+ *
+ * ##### Valid migration 1
+ * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ CoerceFromSourceByName, UseTargetDefault ]
+ *
+ * This migration is valid: boo uses the default from the fallback behavior, and foo can be coerced from FooV1
+ * to FooV2 by implicitly considering the migration rule for FooV1 -> FooV2 with empty mappings {} and same
+ * fallbackBehavior as the ObjV1 -> ObjV2 configuration.
+ *
+ * ##### Valid migration 2 (equivalent)
+ * - ObjV1 -> ObjV2 with mappings { foo: FromSource(transform: CoerceValue) }, fallbackBehavior [ UseTargetDefault ]
  */
 data class ObjectMigration(
 	/**
@@ -25,20 +181,21 @@ data class ObjectMigration(
 	 * The keys must be property names in the target object, as defined by [ObjectDefinition.properties].
 	 * Takes priority over [fallbackBehavior].
 	 *
-	 * Can be non-empty only if [target] is [DefinitionReference.Custom]: when migrating to a non-extended builtin
-	 * entity you must use [targetMappings].
+	 * Can be non-empty only when the [target] is a custom object definition ([DefinitionReference.isBuiltin] is false):
+	 * when migrating to a non-extended builtin entity you must use [targetBuiltinMappings].
 	 *
-	 * When using a [DefinitionReference.Custom] with a non-null [ObjectDefinition.baseEntity] as target, the properties
-	 * of this map must be the custom properties defined in the custom object definition; to specify how to get the
-	 * value for properties of the builtin entity use [targetBuiltinMappings].
+	 * When the [target] is a custom object extending a builtin entity (i.e. the corresponding
+	 * [ObjectDefinition.builtinExtension] is not null), the properties of this map must be the custom properties names,
+	 * as defined in the custom [ObjectDefinition.properties]; to specify how to get the value for properties of the
+	 * builtin entity use [targetBuiltinMappings].
 	 */
 	val targetMappings: Map<String, PropertyValueProvider> = emptyMap(),
 	/**
 	 * Equivalent to [targetMappings], but for non-extension properties of the target builtin entity; the key must be
 	 * the name of a standard property.
 	 *
-	 * Can be non-empty only if [target] is a [DefinitionReference.StandardBuiltin] or a [DefinitionReference.Custom]
-	 * with a non-null [ObjectDefinition.baseEntity]: when using a custom object that doesn't extend a builtin entity as
+	 * Can be non-empty only if [target] is a builtin entity ([DefinitionReference.isBuiltin] is true) or a
+	 * custom entity extending a builtin entity): when using a custom object that doesn't extend a builtin entity as
 	 * target, there are no builtin properties to map.
 	 */
 	val targetBuiltinMappings: Map<String, PropertyValueProvider> = emptyMap(),
@@ -50,7 +207,7 @@ data class ObjectMigration(
 	 * Note that when migrating a builtin entity extension this [fallbackBehavior] does not apply to non-extension
 	 * properties: non-extension properties are always the same as in the standard source entity unless explicitly
 	 * changed using [targetBuiltinMappings].
-	 * If the target is a [DefinitionReference.StandardBuiltin] then this [fallbackBehavior] is ignored.
+	 * If the [target] is a builtin entity then this [fallbackBehavior] is ignored.
 	 *
 	 * All entries in this list must be unique.
 	 *
@@ -91,6 +248,17 @@ data class ObjectMigration(
 	 * - d -> use target default true (no source, has default)
 	 */
 	val fallbackBehavior: List<FallbackBehavior> = emptyList(),
+	/**
+	 * If the source or target are extension on a builtin entity one defines a [ObjectDefinition.builtinExtension]
+	 * with non-empty [ObjectDefinition.BuiltinExtensionConfiguration.extendedBuiltinProperties] then by default the
+	 * types of the extended builtin properties must match exactly on the source and target, unless the extended
+	 * property has an explicit [targetBuiltinMappings].
+	 *
+	 * By setting this to true instead of requiring an exact match it is only required that the types are coercible.
+	 *
+	 * Uses the same exact-match rules as [FallbackBehavior.ExactMatchFromSourceByName] and the obje
+	 */
+	val allowExtendedBuiltinPropertiesCoercion: Boolean = false
 ) {
 	init {
 		require (fallbackBehavior.toSet().size == fallbackBehavior.size) {
@@ -105,18 +273,9 @@ data class ObjectMigration(
 
 	enum class FallbackBehavior {
 		/**
-		 * Automatically get the target property value if there is a source property with the same name and have
-		 * matching type configurations, including validation rules and nullability.
-		 *
-		 *
-		 * An exception is done for object and enum types, which must have the same nullability, but can have different
-		 * definitions as long as there is an [ObjectMigration] or [EnumMigration] defined from the source type to the
-		 * target type.
-		 * If there is no such migration defined for those types then to have a match:
-		 * - Two enum definitions must they have exactly the same entries.
-		 * - Two object definitions must have exactly the same properties with exactly the same type for each property,
-		 *   including nullability and validation rules, except again for object and enum types, which can be different
-		 *   as long as there is a corresponding migration defined.
+		 * Automatically get the target property value if there is a source property with the same name and:
+		 * - the types match exactly (as explained in the root [ObjectMigration] documentation)
+		 * - the default values are identical
 		 *
 		 * It is important to note that explicit migrations take priority over this fallback behavior, so if you have
 		 * identical object definitions between two versions:
@@ -130,38 +289,15 @@ data class ObjectMigration(
 		 *
 		 * Then when migrating Obj V1 to Obj V2, the property foo will use the custom migration defined for Foo -> Foo,
 		 * even though the definitions of the objects are identical.
-		 *
-		 * Only source properties coming from custom [ObjectDefinition] are considered: if the source is a
-		 * [DefinitionReference.StandardBuiltin] this fallback behavior won't apply.
-		 *
-		 * # Examples
-		 * The following example do NOT represent exact matches:
-		 * - A IntTypeConfig "number" with min/max 1-10 on source and min/max 1-20 on target
-		 * - A IntTypeConfig "number" with min/max 1-10 on source and a IntTypeConfig "Number" with min/max 1-10 on
-		 *   target (different names)
-		 * - A IntTypeConfig "number" with min/max 1-10 on source and a FloatTypeConfig "number" with min/max 1.0-10.0
-		 *   on target
-		 * - A ObjectTypeConfig "address" for definition Address(street: String, zip: Int) on source and a
-		 *   ObjectTypeConfig "address" for definition Address(street: String, zip: Int, country: String? = null) on
-		 *   target
-		 * - A ObjectTypeConfig "address" for definition Address(street: String, zip: Int) on source and a
-		 *   ObjectTypeConfig "address" for definition Location(street: String, zip: Int) on target
-		 * - A EnumTypeConfig "priority" for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig "priority"
-		 *   for enum Priority(LOW, MEDIUM, HIGH, CRITICAL) on target
-		 * - A EnumTypeConfig "priority" for enum Priority(LOW, MEDIUM, HIGH) on source and a EnumTypeConfig "priority"
-		 *   for enum Severity(LOW, MEDIUM, HIGH) on target
-		 * - A StringTypeConfig "name" with maxLength validation 10 on source and a StringTypeConfig "name" with
-		 *   maxLength validation 20 on target
-		 * - A non-nullable StringTypeConfig "name" on source and a nullable StringTypeConfig "name" on target
-		 *
-		 * # Enum migration with unique lists and maps
-		 *
-		 * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
-		 * match
 		 */
 		//TODO for typealias won't resolve: a typealias that resolves to a certain configuration is not an exact match
 		// for another typealias that resolves to the same configuration, or for the configuration itself
 		ExactMatchFromSourceByName,
+		/**
+		 * Similar to [TypeExactMatchFromSourceByNameIgnoringDefault] but only checks if the types match exactly and
+		 * ignores the default values
+		 */
+		TypeExactMatchFromSourceByNameIgnoringDefault,
 		/**
 		 * Automatically get the target property value if there is a source property with the same name and a type that
 		 * can be coerced to the target type using the rules of [ValueTransformer.CoerceType].
@@ -169,7 +305,7 @@ data class ObjectMigration(
 		 * Note that coercion of nullable to non-nullable types is not allowed by this fallback behavior.
 		 *
 		 * Only source properties coming from custom [ObjectDefinition] are considered: if the source is a
-		 * [DefinitionReference.StandardBuiltin] this fallback behavior won't apply.
+		 * builtin entity this fallback behavior won't apply.
 		 */
 		CoerceFromSourceByName,
 		/**
@@ -249,8 +385,7 @@ data class ObjectMigration(
 			val sourcePropertyName: String,
 			/**
 			 * If true the source property is from a builtin entity non-extension property.
-			 * Can only be true if the source is a [DefinitionReference.StandardBuiltin] or a
-			 * [DefinitionReference.Custom] with a non-null [ObjectDefinition.baseEntity].
+			 * Can only be true if the source is a builtin entity or a custom entity that is extending a builtin entity.
 			 */
 			val isBuiltinProperty: Boolean = false,
 			/**
@@ -293,81 +428,8 @@ data class ObjectMigration(
 	 */
 	sealed interface ValueTransformer {
 		/**
-		 * Automatically convert the source type to the target type.
-		 * This configuration can only be used if all possible values of the source type are valid values for the target
-		 * type, or can be converted without losing any information.
-		 *
-		 * The supported conversions are:
-		 * - Nullable->non-nullable, Non-nullable->non-nullable, and nullable->nullable coercions are always applicable,
-		 *   as long as the rest of the type configuration can be coerced. Nullable types can't be coerced to
-		 *   non-nullable, but some configurations that use value transformer also apply alternative rules for handling
-		 *   null values that take priority over coercion and other value transformers.
-		 * - EnumTypeConfig to EnumTypeConfig if an explicit [EnumMigration] is configured (prioritized), or all entries
-		 *   of the source enum exist in the target enum
-		 * - ObjectTypeConfig to ObjectTypeConfig if an explicit [ObjectMigration] is configured (prioritized), or both
-		 *   definitions are based on the same [ObjectDefinition.baseEntity] and all properties of the source value
-		 *   exist in the target and all the target value properties can be mapped using the fallback behaviors defined
-		 *   in the containing [ObjectMigration.fallbackBehavior].
-		 * - Identical source and target type configurations, including validation rules.
-		 * - Any type configuration to a JsonTypeConfig
-		 * - IntTypeConfig to IntTypeConfig, IntTypeConfig to FloatTypeConfig, or FloatTypeConfig to FloatTypeConfig
-		 *   if the range of the target type covers the entire range of the source type.
-		 * - StringTypeConfig to StringTypeConfig if the validation rules of the target type are less restrictive, i.e.
-		 *   the maxLength of the target is greater than or equal to the maxLength of the source, and the minLength of
-		 *   the target is less than or equal to the minLength of the source.
-		 * - List type to list type if the element type of the target can be coerced and all the validation rules in the
-		 *   target list are less restrictive than or equal to the rules in the source. In the case of a target list
-		 *   with unique value requirement, the source list must also have unique value requirement; additionally, for
-		 *   enum element types it is also required that if a custom migration is used the migration is injective (refer
-		 *   to the [EnumMigration] documentation for more information).
-		 * - Map type to map type if: the values can be coerced, the equivalent key type from the key validation can be
-		 *   coerced and the general validation rules of the target map are less restrictive than or equal to the rules
-		 *   of the source map. If using enum keys and there is a custom migration for the corresponding enum that is
-		 *   not injective coercion is not allowed (refer to the [EnumMigration] documentation for more information).
-		 * - TODO more? e.g. enum -> string
-		 *
-		 * Examples of unsupported conversions:
-		 * - A FloatTypeConfig with min/max 1.0-10.0 to a IntTypeConfig "number" with min/max 1-10 (not all source
-		 *   values can be represented exactly in target)
-		 * - A StringTypeConfig with no minLength validation (implicitly 0) to a StringTypeConfig with minLength
-		 *   validation 3 (The source value "a", it is not valid for the target, )
-		 *
-		 * Note that even when coercion is possible, it is not always the correct choice, for example:
-		 * - A FloatTypeConfig "percent" with min/max 0.0-1.0 can be coerced to a FloatTypeConfig "percent" with min/max
-		 *   0.0-100.0, but you might want to apply a scaling instead (multiply by 100).
-		 *
-		 * # Nested object coercion
-		 *
-		 * ## Example 1
-		 *
-		 * - ObjV1(foo: FooV1)
-		 * - FooV1(bar: String)
-		 * - ObjV2(foo: FooV2, boo: Int = 42)
-		 * - FooV2(bar: String, baz: Boolean = true)
-		 *
-		 * ### Invalid migration 1
-		 * - ObjV1 -> ObjV2 with mappings { boo: UseTargetDefault }, fallbackBehavior [ CoerceFromSourceByName ]
-		 *
-		 * This migration is invalid because FooV1 cannot be coerced to FooV2.
-		 * The implicit rule for migration FooV1 -> FooV2 is with empty mappings and the same fallbackBehavior as
-		 * ObjV1 -> ObjV2.
-		 * Since Foo.baz does not exist in FooV1 and the fallback behavior doesn't allow for default we can't coerce.
-		 *
-		 * ### Invalid migration 2
-		 * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ UseTargetDefault ]
-		 *
-		 * This migration is invalid because coercion is not allowed as a fallback behavior so we cannot go from
-		 * FooV1 to FooV2.
-		 *
-		 * ### Valid migration 1
-		 * - ObjV1 -> ObjV2 with mappings {}, fallbackBehavior [ CoerceFromSourceByName, UseTargetDefault ]
-		 *
-		 * This migration is valid: boo uses the default from the fallback behavior, and foo can be coerced from FooV1
-		 * to FooV2 by implicitly considering the migration rule for FooV1 -> FooV2 with empty mappings {} and same
-		 * fallbackBehavior as the ObjV1 -> ObjV2 configuration.
-		 *
-		 * ### Valid migration 2 (equivalent)
-		 * - ObjV1 -> ObjV2 with mappings { foo: FromSource(transform: CoerceValue) }, fallbackBehavior [ UseTargetDefault ]
+		 * Automatically convert the source type to the target type if they are coercible (as explained in the root
+		 * [ObjectMigration] documentation).
 		 */
 		data object CoerceType : ValueTransformer
 
