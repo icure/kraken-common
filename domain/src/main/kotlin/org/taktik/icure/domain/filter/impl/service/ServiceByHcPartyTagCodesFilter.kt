@@ -4,19 +4,18 @@
 package org.taktik.icure.domain.filter.impl.service
 
 import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.service.ServiceByHcPartyCodePrefixFilter
+import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodesFilter
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Service
 
-data class ServiceByHcPartyCodePrefixFilter(
+data class ServiceByHcPartyTagCodesFilter(
 	override val desc: String? = null,
 	override val healthcarePartyId: String,
-	override val codeType: String,
-	override val codeCodePrefix: String,
+	override val tagCodes: Map<String, Collection<String>>,
 	override val startValueDate: Long? = null,
 	override val endValueDate: Long? = null,
 ) : AbstractFilter<Service>,
-	ServiceByHcPartyCodePrefixFilter {
+	ServiceByHcPartyTagCodesFilter {
 
 	override val canBeUsedInWebsocket = false
 	override val requiresSecurityPrecondition: Boolean = false

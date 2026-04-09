@@ -1089,18 +1089,91 @@ class ContactDAOImpl(
 		))
 	}
 
+	override fun listServiceIdsByDataOwnerPatientTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		patientSecretForeignKeys,
+		tagType,
+		tagCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_patient_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerPatientCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		patientSecretForeignKeys,
+		codeType,
+		codeCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_patient_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		type: String,
+		codes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
+			patientSecretForeignKeys.flatMap { patientSecretForeignKey ->
+				codes.map { code ->
+					ComplexKey.of(dataOwnerSearchKey, patientSecretForeignKey, type, code)
+				}
+			}
+		}
+		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+			.keys(keys)
+			.includeDocs(false)
+		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+		}.let { f ->
+			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+		}.map {
+			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+		}.toList()
+		emitAll(filterLatestServices(client, datastoreInformation, results))
+	}
+
 	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
 	override fun listServiceIdsByDataOwnerTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		tagType: String,
 		tagCodePrefix: String,
-	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
+		startValueDate: Long?,
+		endValueDate: Long?,
+		): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
 		datastoreInformation,
 		searchKeys,
 		tagType,
 		tagCodePrefix,
-		"listServiceIdsByDataOwnerTagCodePrefix",
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_tag_prefix",
 	)
 
 	@View(name = "service_by_data_owner_code_prefix", map = "classpath:js/contact/Service_by_data_owner_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1109,11 +1182,15 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		codeType: String,
 		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
 		datastoreInformation,
 		searchKeys,
 		codeType,
 		codeCodePrefix,
+		startValueDate,
+		endValueDate,
 		"service_by_data_owner_code_prefix",
 	)
 
@@ -1122,6 +1199,8 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		type: String,
 		codePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
 		view: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -1140,8 +1219,12 @@ class ContactDAOImpl(
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
-			client.queryView<ComplexKey, String>(query).map {
-				ContactIdMandatoryServiceId(it.id, it.value!!)
+			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+			}.let { f ->
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+			}.map {
+				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 			}
 		}
 		emitAll(filterLatestServices(
@@ -1149,6 +1232,68 @@ class ContactDAOImpl(
 			datastoreInformation,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
+	}
+
+	override fun listServiceIdsByDataOwnerTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		tagType,
+		tagCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		codeType,
+		codeCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		type: String,
+		codes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
+			codes.map { code ->
+				ComplexKey.of(dataOwnerSearchKey, type, code)
+			}
+		}
+		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+			.keys(keys)
+			.includeDocs(false)
+		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+		}.let { f ->
+			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+		}.map {
+			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+		}.toList()
+		emitAll(filterLatestServices(client, datastoreInformation, results))
 	}
 
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1194,6 +1339,87 @@ class ContactDAOImpl(
 		endValueDate,
 		"service_by_data_owner_month_code_prefix",
 	)
+
+	override fun listServiceIdsByDataOwnerValueDateMonthTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		tagType,
+		tagCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		codeType,
+		codeCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		type: String,
+		codes: Collection<String>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		require((year == null) == (month == null)) { "Year and month must both be non-null or both null" }
+		if (startValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(startValueDate, false)?.first
+			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+		}
+		if (endValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(endValueDate, false)?.first
+			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+		}
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
+			codes.map { code ->
+				ComplexKey.of(year, month, dataOwnerSearchKey, type, code)
+			}
+		}
+		val query = createQuery(datastoreInformation, view, BEPPE_PARTITION)
+			.keys(keys)
+			.includeDocs(false)
+		val results = client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+			if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+		}.let { f ->
+			if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+		}.map {
+			ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+		}.toList()
+		emitAll(filterLatestServices(client, datastoreInformation, results))
+	}
 
 	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
 		datastoreInformation: IDatastoreInformation,
@@ -1294,8 +1520,10 @@ class ContactDAOImpl(
 				val jsonList = p.readValueAsTree<ArrayNode>()
 				check(jsonList.size() == 2) { "Expected exactly 2 items" }
 				check(jsonList[0].isTextual) { "Expected first item to be a string" }
-				check(jsonList[1].canConvertToLong() && !jsonList[1].isFloatingPointNumber) { "Expected second item to be a long" }
-				return ServiceIdAndDateValue(jsonList[0].textValue(), jsonList[1].longValue())
+
+				val isValueDateNull = jsonList[1].isNull
+				check(isValueDateNull || (jsonList[1].canConvertToLong() && !jsonList[1].isFloatingPointNumber)) { "Expected second item to be a long or null" }
+				return ServiceIdAndDateValue(jsonList[0].textValue(), if (isValueDateNull) null else jsonList[1].longValue())
 			}
 		}
 	}

@@ -27,4 +27,8 @@ data class ServiceByHcPartyCodePrefixFilter(
 	val codeCodePrefix: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
-) : AbstractFilterDto<ServiceDto>
+	/** Optional start of a range of date for the value date of the service */
+	val startValueDate: Long? = null,
+	/** Optional end of a range of date for the value date of the service */
+	val endValueDate: Long? = null,
+	) : AbstractFilterDto<ServiceDto>

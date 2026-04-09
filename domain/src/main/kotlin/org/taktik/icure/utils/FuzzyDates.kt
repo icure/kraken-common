@@ -298,4 +298,34 @@ object FuzzyDates {
 
 	// No precision encoding
 	fun getFuzzyTime(time: LocalTime) = time.hour * 1_00_00 + time.minute * 1_00 + time.second
+
+	private const val MAX_MONTHS = 24
+
+	/**
+	 * Returns a list of (year, month) pairs covering the range from [startValueDate] to [endValueDate],
+	 * or null if the range spans more than [MAX_MONTHS] months.
+	 * Value dates can be in YYYYMMDD (8 digits) or YYYYMMDDHHmmSS (14 digits) format.
+	 */
+	fun getMonthRange(startValueDate: Long, endValueDate: Long): List<Pair<Int, Int>>? {
+		val normalizedStart = if (startValueDate < 99999999) startValueDate * 1000000 else startValueDate
+		val normalizedEnd = if (endValueDate < 99999999) endValueDate * 1000000 else endValueDate
+		val startYear = (normalizedStart / 10000000000).toInt()
+		val startMonth = ((normalizedStart / 100000000) % 100).toInt()
+		val endYear = (normalizedEnd / 10000000000).toInt()
+		val endMonth = ((normalizedEnd / 100000000) % 100).toInt()
+		val totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1
+		if (totalMonths !in 1..MAX_MONTHS) return null
+		return buildList {
+			var year = startYear
+			var month = startMonth
+			repeat(totalMonths) {
+				add(year to month)
+				month++
+				if (month > 12) {
+					month = 1
+					year++
+				}
+			}
+		}
+	}
 }

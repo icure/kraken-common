@@ -399,6 +399,26 @@ interface ContactDAO : ConflictDAO<Contact> {
 		endValueDate: Long?,
 	): Flow<String>
 
+	fun listServiceIdsByDataOwnerPatientTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerPatientCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
 	fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -427,6 +447,8 @@ interface ContactDAO : ConflictDAO<Contact> {
 		searchKeys: Set<String>,
 		tagType: String,
 		tagCodePrefix: String,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerCodeCodePrefix(
@@ -434,6 +456,48 @@ interface ContactDAO : ConflictDAO<Contact> {
 		searchKeys: Set<String>,
 		codeType: String,
 		codeCodePrefix: String,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerValueDateMonthTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagType: String,
+		tagCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
+	): Flow<String>
+
+	fun listServiceIdsByDataOwnerCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeType: String,
+		codeCodes: Collection<String>,
+		startValueDate: Long? = null,
+		endValueDate: Long? = null,
 	): Flow<String>
 	// endregion
 }
