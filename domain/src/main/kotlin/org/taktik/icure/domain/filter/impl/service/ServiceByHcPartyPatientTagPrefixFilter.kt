@@ -8,6 +8,7 @@ import org.taktik.icure.domain.filter.service.ServiceByHcPartyPatientTagPrefixFi
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.entities.embed.withEncryptionMetadata
+import org.taktik.icure.utils.FuzzyDates
 
 data class ServiceByHcPartyPatientTagPrefixFilter(
 	override val desc: String? = null,
@@ -30,7 +31,7 @@ data class ServiceByHcPartyPatientTagPrefixFilter(
 			(item.withEncryptionMetadata()?.let { searchKeyMatcher(healthcarePartyId, it) } == true) &&
 			(item.secretForeignKeys?.intersect(patientSecretForeignKeys.toSet())?.isNotEmpty() == true) &&
 			(item.tags.any { tagType == it.type && it.code?.startsWith(tagCodePrefix) == true }) &&
-			(startValueDate == null || (item.valueDate ?: item.openingDate)?.let { it >= startValueDate } == true) &&
-			(endValueDate == null || (item.valueDate ?: item.openingDate)?.let { it <= endValueDate } == true)
+			(startValueDate == null || (item.valueDate ?: item.openingDate)?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true) &&
+			(endValueDate == null || (item.valueDate ?: item.openingDate)?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true)
 		)
 }

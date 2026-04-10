@@ -1079,9 +1079,9 @@ class ContactDAOImpl(
 					.endKey(to)
 					.includeDocs(false)
 				client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-					if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+					if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 				}.let { f ->
-					if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+					if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 				}.map {
 					ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 				}
@@ -1213,9 +1213,9 @@ class ContactDAOImpl(
 				.endKey(to)
 				.includeDocs(false)
 			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 			}.let { f ->
-				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 			}.map {
 				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 			}
@@ -1431,9 +1431,9 @@ class ContactDAOImpl(
 				.endKey(to)
 				.includeDocs(false)
 			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 			}.let { f ->
-				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 			}.map {
 				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 			}
@@ -1462,9 +1462,9 @@ class ContactDAOImpl(
 						.keys(chunkKeys)
 						.includeDocs(false)
 					client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-						if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+						if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 					}.let { f ->
-						if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+						if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 					}.map {
 						ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 					}.toList()
