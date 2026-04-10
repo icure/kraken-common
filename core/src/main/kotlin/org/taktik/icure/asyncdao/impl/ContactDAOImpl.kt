@@ -1138,10 +1138,10 @@ class ContactDAOImpl(
 		view: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
-			patientSecretForeignKeys.flatMap { patientSecretForeignKey ->
-				typesAndCodes.flatMap { (type, codes) ->
-					codes.map { code ->
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			patientSecretForeignKeys.asSequence().flatMap { patientSecretForeignKey ->
+				typesAndCodes.asSequence().flatMap { (type, codes) ->
+					codes.asSequence().map { code ->
 						ComplexKey.of(dataOwnerSearchKey, patientSecretForeignKey, type, code)
 					}
 				}
@@ -1266,9 +1266,9 @@ class ContactDAOImpl(
 		view: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
-			typesAndCodes.flatMap { (type, codes) ->
-				codes.map { code ->
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			typesAndCodes.asSequence().flatMap { (type, codes) ->
+				codes.asSequence().map { code ->
 					ComplexKey.of(dataOwnerSearchKey, type, code)
 				}
 			}
@@ -1379,9 +1379,9 @@ class ContactDAOImpl(
 			require(parsed != null) { "endValueDate must be a valid fuzzy date time if provided" }
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val keys = searchKeys.flatMap { dataOwnerSearchKey ->
-			typesAndCodes.flatMap { (type, codes) ->
-				codes.map { code ->
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			typesAndCodes.asSequence().flatMap { (type, codes) ->
+				codes.asSequence().map { code ->
 					ComplexKey.of(year, month, dataOwnerSearchKey, type, code)
 				}
 			}
@@ -1450,7 +1450,7 @@ class ContactDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		view: String,
 		partition: String,
-		keys: List<ComplexKey>,
+		keys: Sequence<ComplexKey>,
 		startValueDate: Long?,
 		endValueDate: Long?,
 	): List<ContactIdMandatoryServiceId> = coroutineScope {
@@ -1470,7 +1470,7 @@ class ContactDAOImpl(
 					}.toList()
 				}
 			}
-		}.awaitAll().flatten()
+		}.toList().awaitAll().flatten()
 	}
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)

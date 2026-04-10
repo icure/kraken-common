@@ -5,6 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
@@ -325,21 +326,29 @@ object FuzzyDates {
 	fun isFuzzyDateBeforeOrEqual(date: Long, reference: Long): Boolean =
 		toFullFuzzyDateTime(date) <= toFullFuzzyDateTime(reference, endOfDay = true)
 
-	private const val MAX_MONTHS = 24
-
 	/**
 	 * Returns a list of (year, month) pairs covering the range from [startValueDate] to [endValueDate],
-	 * or null if the range spans more than [MAX_MONTHS] months.
+	 * or null if the range spans more than [maxMonths] months.
 	 * Value dates can be in YYYYMMDD (8 digits) or YYYYMMDDHHmmSS (14 digits) format.
 	 */
-	fun getMonthRange(startValueDate: Long, endValueDate: Long): List<Pair<Int, Int>>? {
+	fun getMonthRange(startValueDate: Long, endValueDate: Long, maxMonths: Int): List<Pair<Int, Int>>? {
 		val startDateTime = getFullLocalDateTime(toFullFuzzyDateTime(startValueDate), lenient = true) ?: return null
 		val endDateTime = getFullLocalDateTime(toFullFuzzyDateTime(endValueDate), lenient = true) ?: return null
 		val totalMonths = ((endDateTime.year - startDateTime.year) * 12 + (endDateTime.monthValue - startDateTime.monthValue)) + 1
-		if (totalMonths !in 1..MAX_MONTHS) return null
+		if (totalMonths !in 1..maxMonths) return null
 		return (0 until totalMonths).map { i ->
 			val date = startDateTime.plusMonths(i.toLong())
 			date.year to date.monthValue
 		}
 	}
+
+
+	/**
+	 * Get the highest possible value for now in all time zones of the world
+	 */
+	fun maxPossibleFuzzyNowInAllTimeZones(): Long = FuzzyDates.getFuzzyDateTime(
+		LocalDateTime.now(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(14))),
+		ChronoUnit.SECONDS, false
+	)
+
 }

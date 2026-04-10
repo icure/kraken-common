@@ -14,9 +14,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagPrefixFilter
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.FuzzyDates
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
+import org.taktik.icure.utils.FuzzyDates.maxPossibleFuzzyNowInAllTimeZones
 
 @org.springframework.stereotype.Service
 @Profile("app")
@@ -24,6 +22,10 @@ class ServiceByHcPartyTagPrefixFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyTagPrefixFilter> {
+	companion object {
+		private const val MAX_MONTHS = 24
+	}
+
 	override fun resolve(
 		filter: ServiceByHcPartyTagPrefixFilter,
 		context: Filters,
@@ -34,8 +36,7 @@ class ServiceByHcPartyTagPrefixFilter(
 		val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId)
 
 		val monthRange = if (startValueDate != null) {
-			FuzzyDates.getMonthRange(startValueDate, endValueDate ?: FuzzyDates.getFuzzyDateTime(LocalDateTime.now(ZoneId.ofOffset("UTC", java.time.ZoneOffset.ofHours(14))),
-				ChronoUnit.SECONDS, false))
+			FuzzyDates.getMonthRange(startValueDate, endValueDate ?: maxPossibleFuzzyNowInAllTimeZones(), MAX_MONTHS)
 		} else null
 
 		if (monthRange != null) {
