@@ -18,4 +18,6 @@ interface ServiceByHcPartyTagPrefixFilter : Filter<String, Service> {
 	val healthcarePartyId: String
 	val tagType: String
 	val tagCodePrefix: String
+	val startValueDate: Long?
+	val endValueDate: Long?
 }

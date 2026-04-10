@@ -13,6 +13,8 @@ data class ServiceByHcPartyTagPrefixFilter(
 	override val healthcarePartyId: String,
 	override val tagType: String,
 	override val tagCodePrefix: String,
+	override val startValueDate: Long? = null,
+	override val endValueDate: Long? = null,
 ) : AbstractFilter<Service>,
 	ServiceByHcPartyTagPrefixFilter {
 

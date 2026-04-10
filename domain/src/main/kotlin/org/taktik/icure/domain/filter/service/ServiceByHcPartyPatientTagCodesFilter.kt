@@ -7,12 +7,12 @@ import org.taktik.icure.domain.filter.Filter
 import org.taktik.icure.entities.embed.Service
 
 /**
- * Equivalent to [ServiceByHcPartyTagPrefixFilter] but searches for codes instead of tags.
+ * Equivalent to [ServiceByHcPartyPatientTagPrefixFilter] but matches exact tag codes instead of prefixes.
  */
-interface ServiceByHcPartyCodePrefixFilter : Filter<String, Service> {
+interface ServiceByHcPartyPatientTagCodesFilter : Filter<String, Service> {
 	val healthcarePartyId: String
-	val codeType: String
-	val codeCodePrefix: String
+	val patientSecretForeignKeys: Set<String>
+	val tagCodes: Map<String, Collection<String>>
 	val startValueDate: Long?
 	val endValueDate: Long?
 }
