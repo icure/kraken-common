@@ -127,6 +127,7 @@
   "GEM-EXACT-OBJECT": "{{path}}: source and target object definitions do not match exactly and there is no explicit migration.",
   "GEM-EXACT-OBJECT-PROPKEYS": "{{path}}: source and target object definitions have different sets of property keys.",
   "GEM-EXACT-OBJECT-PROPDEFAULT": "{{path}}: source and target object property have different default values.",
+  "GEM-EXACT-OBJECT-EXTBUILTIN": "{{path}}: source and target define incompatible extensions definition for builtin property.",
   "GEM-EXACT-LISTNONINJ": "{{path}}: source and target cannot be an exact match; the list requires unique values but the enum element migration is non-injective and may introduce duplicate values after migration.",
   "GEM-EXACT-MAPKEYNONINJ": "{{path}}: source and target cannot be an exact match; the enum key migration is non-injective and may cause key collisions after migration.",
   "GEM-TRANSFORM-WRAPLIST-TARGET": "{{path}}: WrapToSingletonList transformer requires the target type to be a list.",
@@ -177,7 +178,8 @@
   "GEM-COERCE-OBJECT-BASEENTITY": "{{path}}: CoerceType cannot perform implicit object coercion; source and target object definitions do not extend the same base entity.",
   "GEM-COERCE-OBJECT-BADCOERCE": "{{path}}: CoerceType cannot perform implicit object coercion; the source and target object definitions are not compatible with the configured fallback behaviors and no explicit migration is configured.",
   "GEM-COERCE-OBJECT-PROP": "{{path}}: CoerceType cannot map this target object property using any of the configured fallback behaviors.",
-  "GEM-COERCE-OBJECT-EXTBUILTINPROP": "{{path}}: CoerceType cannot coerce to the target object because a builtin property of the extended object is extended in incompatible ways between source and target configuration.",
+  "GEM-COERCE-OBJECT-EXTBUILTINPROPCOERCE": "{{path}}: CoerceType cannot coerce to the target object because a builtin property of the extended object is extended in incompatible ways between source and target configuration (containing object migration configuration requires that source extension is coercible to target).",
+  "GEM-COERCE-OBJECT-EXTBUILTINPROPMATCH": "{{path}}: CoerceType cannot coerce to the target object because a builtin property of the extended object is extended in incompatible ways between source and target configuration (containing object migration configuration requires that source and target extensions match exactly).",
   "GEM-COERCE-LISTSIZE": "{{path}}: CoerceType cannot coerce the source list to the target list; the target size validation is more restrictive than the source.",
   "GEM-COERCE-LISTUNIQUE": "{{path}}: CoerceType cannot coerce the source list to the target list; the target requires unique values but the source does not guarantee uniqueness.",
   "GEM-COERCE-LISTNONINJ": "{{path}}: CoerceType cannot coerce the source list to the target list; the target requires unique values but the element type coercion is non-injective and may introduce duplicates.",
@@ -185,5 +187,6 @@
   "GEM-COERCE-MAPKEYNONINJ": "{{path}}: CoerceType cannot coerce the source map to the target map; the map key coercion is non-injective and may cause key collisions.",
   "GEM-FALLBACK-DEFAULTOVERRIDE": "{{path}}: Default value on target property cannot be used as fallback because it would override the corresponding value in the source property. If you want to allow overriding for all target properties with a default value add the `UseTargetDefaultIgnoringSource` fallback behaviour, or specify an explicit mapping for this property with `Use.TargetDefault`.",
   "GEM-FALLBACK-NODEFAULT": "{{path}}: Target property has no default value, or has a non-constant default value, can't apply default-based fallback behaviour.",
+  "GEM-FALLBACK-DIFFERENTDEFAULT": "{{path}}: Source and target property default values do not match.",
   "GEM-FALLBACK-NOSOURCE": "{{path}}: Target property does not have matching source property, can't apply source-based fallback behaviour."
 }

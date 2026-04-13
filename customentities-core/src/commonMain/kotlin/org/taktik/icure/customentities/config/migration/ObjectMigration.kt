@@ -131,8 +131,8 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  *   [ObjectDefinition.properties] can be mapped from the source using the same fallback behaviors defined in the
  *   containing [ObjectMigration.fallbackBehavior].
  * - If the source or target define some [ObjectDefinition.BuiltinExtensionConfiguration.extendedBuiltinProperties] they
- *   match-exactly OR if the containing [ObjectMigration.allowExtendedBuiltinPropertiesCoercion] is true and the
- *   types of the extended builtin properties can be coerced.
+ *   match-exactly OR if the containing [ObjectMigration.allowExtendedBuiltinPropertiesCoercion] is true then the
+ *   types of the extended builtin properties must be coercible.
  *
  * ### Nested object coercion
  *
