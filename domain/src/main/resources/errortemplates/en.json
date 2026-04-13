@@ -116,7 +116,7 @@
   "GEM-OBJECT-MAPPING": "{{path}}: Object migration configuration does not define a mapping for source property `{{prop}}` and configured fallbacks are not applicable. You must define a mapping for this property or add an appropriate fallback behavior",
   "GEM-OBJECT-BUILTINMAPPINGS": "{{path}}: Object migration configuration can't specify `targetBuiltinMappings` because the target object definition is neither a builtin entity nor a custom extension on a builtin entity.",
   "GEM-OBJECT-BUILTINPROP": "{{path}}: Invalid builtin property mapping for target, `{{prop}}` is not a builtin property of the target object or is not supported for migration.",
-  "GEM-OBJECT-WUNUSEDTARGETMAPPING": "{{path}}: Object migration defines a mapping for property `{{prop}}` that does not exist in the target object definition.",
+  "GEM-OBJECT-NOTARGETPROP": "{{path}}: Object migration defines a mapping for property `{{prop}}` that does not exist in the target object definition.",
   "GEM-OBJECT-EXTBUILTIN": "{{path}}: builtin property {{prop}} uses custom extensions but the value on source and target are not compatible you must specify an explicit mapping (through `targetBuiltinMappings`).",
   "GEM-OBJECT-EXTBUILTINCOERCION": "{{path}}: builtin property {{prop}} uses custom extensions but the value on source and target do not match exactly you must specify an explicit mapping (through `targetBuiltinMappings`) or set `allowExtendedBuiltinPropertiesCoercion` to true.",
   "GEM-EXACT-UNKNOWNTYPE": "{{path}}: Exact match validation cannot be performed when source or target is Unknown type.",

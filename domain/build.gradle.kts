@@ -59,13 +59,6 @@ kotlin {
 	}
 }
 
-val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersFromJsonTask>("generateMergersFromJson") {
-	inputFolder.set(layout.buildDirectory.dir("generated/ksp/main/resources"))
-	additionalInputFolders.from(
-		project("$projectPrefix:utils-multiplatform").layout.buildDirectory.dir("generated/ksp/jvm/jvmMain/resources")
-	)
-	outputFolder.set(layout.buildDirectory.dir("generated/ksp/main/kotlin"))
-
-	dependsOn("kspKotlin")
-	dependsOn("$projectPrefix:utils-multiplatform:kspKotlinJvm")
+if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
+	apply(plugin = "generate-mergers-conventions")
 }
