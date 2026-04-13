@@ -176,4 +176,69 @@ class FuzzyDatesTest : StringSpec({
 			FuzzyDates.getFullLocalDateTime(epochMillis, lenient = false) shouldBe null
 		}
 	}
+
+	"getMonthRange should return single month when start and end are in the same month" {
+		FuzzyDates.getMonthRange(20240301L, 20240315L, 12) shouldBe listOf(2024 to 3)
+		FuzzyDates.getMonthRange(20240101L, 20240131L, 12) shouldBe listOf(2024 to 1)
+	}
+
+	"getMonthRange should return multiple months within the same year" {
+		FuzzyDates.getMonthRange(20240101L, 20240301L, 12) shouldBe listOf(
+			2024 to 1, 2024 to 2, 2024 to 3
+		)
+		FuzzyDates.getMonthRange(20240601L, 20241201L, 12) shouldBe listOf(
+			2024 to 6, 2024 to 7, 2024 to 8, 2024 to 9, 2024 to 10, 2024 to 11, 2024 to 12
+		)
+	}
+
+	"getMonthRange should handle cross-year boundaries" {
+		FuzzyDates.getMonthRange(20231101L, 20240201L, 12) shouldBe listOf(
+			2023 to 11, 2023 to 12, 2024 to 1, 2024 to 2
+		)
+	}
+
+	"getMonthRange should accept full datetime format (14 digits)" {
+		FuzzyDates.getMonthRange(20240301143000L, 20240501120000L, 12) shouldBe listOf(
+			2024 to 3, 2024 to 4, 2024 to 5
+		)
+	}
+
+	"getMonthRange should return null when range exceeds maxMonths" {
+		FuzzyDates.getMonthRange(20240101L, 20240301L, 2) shouldBe null
+		FuzzyDates.getMonthRange(20240101L, 20241201L, 11) shouldBe null
+	}
+
+	"getMonthRange should return list of exactly maxMonths when range equals maxMonths" {
+		FuzzyDates.getMonthRange(20240101L, 20240301L, 3) shouldBe listOf(
+			2024 to 1, 2024 to 2, 2024 to 3
+		)
+	}
+
+	"getMonthRange should return null when end is before start" {
+		FuzzyDates.getMonthRange(20240301L, 20240101L, 12) shouldBe null
+	}
+
+	"getMonthRange should return null for invalid dates" {
+		FuzzyDates.getMonthRange(20240230L, 20240301L, 12) shouldBe null
+		FuzzyDates.getMonthRange(20240101L, 20240230L, 12) shouldBe null
+	}
+
+	"getMonthRange should handle epoch millis input via lenient parsing" {
+		// 2024-07-03 04:05:06 UTC = 1719979506000 ms
+		// 2024-07-03 is in July, and August 1 2024 at some point
+		FuzzyDates.getMonthRange(1719979506000, 1722470400000, 12) shouldBe listOf(
+			2024 to 7, 2024 to 8
+		)
+	}
+
+	"getMonthRange should handle end-of-month start dates correctly" {
+		// Starting on Jan 31 - iterative plusOneMonth causes day drift, but year/month pairs must still be correct
+		FuzzyDates.getMonthRange(20240131L, 20240401L, 12) shouldBe listOf(
+			2024 to 1, 2024 to 2, 2024 to 3, 2024 to 4
+		)
+	}
+
+	"getMonthRange should handle a 12-month full-year range" {
+		FuzzyDates.getMonthRange(20240101L, 20241201L, 12) shouldBe (1..12).map { 2024 to it }
+	}
 })

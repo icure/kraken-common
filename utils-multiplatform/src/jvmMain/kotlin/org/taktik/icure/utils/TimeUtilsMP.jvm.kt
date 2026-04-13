@@ -88,4 +88,12 @@ internal actual object TimeUtilsMP {
 
 	actual fun nowLocalDateTime(zone: String?): LocalDateTimeMP =
 		LocalDateTime.now(zone?.let { ZoneId.of(it) } ?: ZoneOffset.UTC)
+
+	actual fun plusOneMonth(date: LocalDateMP): LocalDateMP =
+		date.plusMonths(1)
+
+	private val MAX_TIME_ZONE = ZoneId.ofOffset("UTC", ZoneOffset.ofHours(14))
+	actual fun nowMaxLocalDateTime(): LocalDateTimeMP =
+		LocalDateTime.now(MAX_TIME_ZONE)
+
 }

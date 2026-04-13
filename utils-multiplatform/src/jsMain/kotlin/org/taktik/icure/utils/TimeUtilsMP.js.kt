@@ -1,10 +1,12 @@
 package org.taktik.icure.utils
 
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.minus
 import kotlinx.datetime.number
 import kotlinx.datetime.plus
@@ -137,4 +139,12 @@ internal actual object TimeUtilsMP {
 	@OptIn(ExperimentalTime::class)
 	actual fun nowLocalDateTime(zone: String?): LocalDateTimeMP =
 		Clock.System.now().toLocalDateTime(zone?.let { TimeZone.of(it) } ?: TimeZone.UTC)
+
+	actual fun plusOneMonth(date: LocalDateMP): LocalDateMP =
+		date.plus(1, DateTimeUnit.MONTH)
+
+	private val MAX_TIME_ZONE = FixedOffsetTimeZone(UtcOffset(14))
+	@OptIn(ExperimentalTime::class)
+	actual fun nowMaxLocalDateTime(): LocalDateTimeMP =
+		Clock.System.now().toLocalDateTime(MAX_TIME_ZONE)
 }

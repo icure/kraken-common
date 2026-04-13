@@ -11,9 +11,10 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.service.ServiceByHcPartyMonthTagPrefixFilter
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagPrefixFilter
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.utils.FuzzyDates
+import org.taktik.icure.utils.FuzzyDates.maxPossibleFuzzyNowInAllTimeZones
 
 @org.springframework.stereotype.Service
 @Profile("app")
@@ -21,16 +22,52 @@ class ServiceByHcPartyTagPrefixFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyTagPrefixFilter> {
+	companion object {
+		private const val MAX_MONTHS = 24
+	}
+
 	override fun resolve(
 		filter: ServiceByHcPartyTagPrefixFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
-		emitAll(contactDAO.listServiceIdsByDataOwnerTagCodePrefix(
-			datastoreInformation = datastoreInformation,
-			searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId),
-			tagType = filter.tagType,
-			tagCodePrefix = filter.tagCodePrefix,
-		))
+		val startValueDate = filter.startValueDate
+		val endValueDate = filter.endValueDate
+		val searchKeys = sessionLogic.getAllSearchKeysIfCurrentDataOwner(filter.healthcarePartyId)
+
+		val monthRange = if (startValueDate != null) {
+			FuzzyDates.getMonthRange(startValueDate, endValueDate ?: maxPossibleFuzzyNowInAllTimeZones(), MAX_MONTHS)
+		} else null
+
+		if (monthRange != null) {
+			val emitted = mutableSetOf<String>()
+			monthRange.forEachIndexed { index, (year, month) ->
+				val isFirst = index == 0
+				val isLast = index == monthRange.lastIndex
+				contactDAO.listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
+					datastoreInformation = datastoreInformation,
+					searchKeys = searchKeys,
+					year = year,
+					month = month,
+					tagType = filter.tagType,
+					tagCodePrefix = filter.tagCodePrefix,
+					startValueDate = if (isFirst) startValueDate else null,
+					endValueDate = if (isLast) endValueDate else null,
+				).collect { serviceId ->
+					if (emitted.add(serviceId)) {
+						emit(serviceId)
+					}
+				}
+			}
+		} else {
+			emitAll(contactDAO.listServiceIdsByDataOwnerTagCodePrefix(
+				datastoreInformation = datastoreInformation,
+				searchKeys = searchKeys,
+				tagType = filter.tagType,
+				tagCodePrefix = filter.tagCodePrefix,
+				startValueDate = startValueDate,
+				endValueDate = endValueDate,
+			))
+		}
 	}
 }

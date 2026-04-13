@@ -284,6 +284,62 @@ object FuzzyDates {
 	fun getFuzzyTime(time: LocalTimeMP) =
 		TimeUtilsMP.hourOf(time) * 1_00_00 + TimeUtilsMP.minuteOf(time) * 1_00 + TimeUtilsMP.secondOf(time)
 
+	/**
+	 * Normalizes a fuzzy date to full datetime precision (YYYYMMDDHHmmss).
+	 * If the date is in YYYYMMDD format (8 digits), it is padded to 14 digits:
+	 * - with 000000 (start of day) when [endOfDay] is false
+	 * - with 235959 (end of day) when [endOfDay] is true
+	 * Dates already in YYYYMMDDHHmmss format are returned as-is.
+	 */
+	fun toFullFuzzyDateTime(date: Long, endOfDay: Boolean = false): Long =
+		if (date in MIN_FUZZY_DATE.toLong()..MAX_FUZZY_DATE.toLong())
+			date * 1000000 + (if (endOfDay) 235959 else 0)
+		else date
+
+	/**
+	 * Checks if [date] >= [reference], normalizing both to full datetime format.
+	 * Short dates (YYYYMMDD) are treated as start of day (000000).
+	 */
+	fun isFuzzyDateAfterOrEqual(date: Long, reference: Long): Boolean =
+		toFullFuzzyDateTime(date) >= toFullFuzzyDateTime(reference)
+
+	/**
+	 * Checks if [date] <= [reference], normalizing both to full datetime format.
+	 * A short [reference] (YYYYMMDD) is treated as end of day (235959) to be inclusive.
+	 */
+	fun isFuzzyDateBeforeOrEqual(date: Long, reference: Long): Boolean =
+		toFullFuzzyDateTime(date) <= toFullFuzzyDateTime(reference, endOfDay = true)
+
+	/**
+	 * Returns a list of (year, month) pairs covering the range from [startValueDate] to [endValueDate],
+	 * or null if the range spans more than [maxMonths] months.
+	 * Value dates can be in YYYYMMDD (8 digits) or YYYYMMDDHHmmSS (14 digits) format.
+	 */
+	fun getMonthRange(startValueDate: Long, endValueDate: Long, maxMonths: Int): List<Pair<Int, Int>>? {
+		val startDateTime = getFullLocalDateTime(toFullFuzzyDateTime(startValueDate), lenient = true) ?: return null
+		val endDateTime = getFullLocalDateTime(toFullFuzzyDateTime(endValueDate), lenient = true) ?: return null
+		val startDate = TimeUtilsMP.dateOf(startDateTime)
+		val endDate = TimeUtilsMP.dateOf(endDateTime)
+		val totalMonths = ((TimeUtilsMP.yearOf(endDate) - TimeUtilsMP.yearOf(startDate)) * 12 + (TimeUtilsMP.monthOf(endDate) - TimeUtilsMP.monthOf(startDate))) + 1
+		if (totalMonths !in 1..maxMonths) return null
+		var currDate = startDate
+		return (0 until totalMonths).map { _ ->
+			val res = TimeUtilsMP.yearOf(currDate) to TimeUtilsMP.monthOf(currDate)
+			currDate = TimeUtilsMP.plusOneMonth(currDate)
+			res
+		}
+	}
+
+
+	/**
+	 * Get the highest possible value for now in all time zones of the world
+	 */
+	fun maxPossibleFuzzyNowInAllTimeZones(): Long = FuzzyDates.getFuzzyDateTime(
+		TimeUtilsMP.nowMaxLocalDateTime(),
+		ChronoUnitMP.SECONDS,
+		false
+	)
+
 	fun getNowFuzzyDate(zoneId: String?): Int =
 		getFuzzyDate(
 			TimeUtilsMP.nowLocalDate(zoneId),

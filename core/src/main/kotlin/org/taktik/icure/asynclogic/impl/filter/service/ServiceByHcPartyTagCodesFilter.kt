@@ -11,23 +11,26 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.service.ServiceByHcPartyCodePrefixFilter
+import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodesFilter
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.FuzzyDates.maxPossibleFuzzyNowInAllTimeZones
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 @org.springframework.stereotype.Service
 @Profile("app")
-class ServiceByHcPartyCodePrefixFilter(
+class ServiceByHcPartyTagCodesFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
-) : Filter<String, Service, ServiceByHcPartyCodePrefixFilter> {
+) : Filter<String, Service, ServiceByHcPartyTagCodesFilter> {
 	companion object {
 		private const val MAX_MONTHS = 24
 	}
 
 	override fun resolve(
-		filter: ServiceByHcPartyCodePrefixFilter,
+		filter: ServiceByHcPartyTagCodesFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
 	) = flow {
@@ -44,13 +47,12 @@ class ServiceByHcPartyCodePrefixFilter(
 			monthRange.forEachIndexed { index, (year, month) ->
 				val isFirst = index == 0
 				val isLast = index == monthRange.lastIndex
-				contactDAO.listServiceIdsByDataOwnerValueDateMonthCodeCodePrefix(
+				contactDAO.listServiceIdsByDataOwnerValueDateMonthTagCodes(
 					datastoreInformation = datastoreInformation,
 					searchKeys = searchKeys,
 					year = year,
 					month = month,
-					codeType = filter.codeType,
-					codeCodePrefix = filter.codeCodePrefix,
+					tagTypesAndCodes = filter.tagCodes,
 					startValueDate = if (isFirst) startValueDate else null,
 					endValueDate = if (isLast) endValueDate else null,
 				).collect { serviceId ->
@@ -60,16 +62,13 @@ class ServiceByHcPartyCodePrefixFilter(
 				}
 			}
 		} else {
-			emitAll(contactDAO.listServiceIdsByDataOwnerCodeCodePrefix(
+			emitAll(contactDAO.listServiceIdsByDataOwnerTagCodes(
 				datastoreInformation = datastoreInformation,
 				searchKeys = searchKeys,
-				codeType = filter.codeType,
-				codeCodePrefix = filter.codeCodePrefix,
+				tagTypesAndCodes = filter.tagCodes,
 				startValueDate = startValueDate,
 				endValueDate = endValueDate,
 			))
 		}
 	}
-
 }
-

@@ -66,6 +66,11 @@ expect internal object TimeUtilsMP {
 	/**
 	 * Does not mutate input
 	 */
+	fun plusOneMonth(date: LocalDateMP): LocalDateMP
+
+	/**
+	 * Does not mutate input
+	 */
 	fun minusOneDay(datetime: LocalDateTimeMP): LocalDateTimeMP
 
 	/**
@@ -103,4 +108,9 @@ expect internal object TimeUtilsMP {
 	 * Range 1-31
 	 */
 	fun dayOf(date: LocalDateMP): Int
+
+	/**
+	 * Get the maximum possible local date time at this moment, equivalent to local date time at timezone utc + 14
+	 */
+	fun nowMaxLocalDateTime(): LocalDateTimeMP
 }

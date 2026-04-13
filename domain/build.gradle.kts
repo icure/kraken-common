@@ -31,7 +31,7 @@ dependencies {
 	implementation(project("$projectPrefix:utils"))
 	api(project("$projectPrefix:customentities-core"))
 
-	if (rootProject.name == "kraken-cloud") {
+	if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
 		ksp("com.icure:ksp-json-processor")
 	}
 
@@ -68,17 +68,4 @@ val generateMergersFromJsonTask = tasks.register<org.icure.task.GenerateMergersF
 
 	dependsOn("kspKotlin")
 	dependsOn("$projectPrefix:utils-multiplatform:kspKotlinJvm")
-}
-
-// afterEvaluate is fundamental: the kspKotlin task does not exist yet when the script is evaluated, and so the
-// finalizedBy cannot be applied otherwise.
-afterEvaluate {
-	tasks.named("kspKotlin") {
-		finalizedBy(generateMergersFromJsonTask)
-	}
-}
-
-// Also super important: compile must happen after the generation or the generated classes will not be compiled
-tasks.named("compileKotlin") {
-	dependsOn(generateMergersFromJsonTask)
 }

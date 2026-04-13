@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.node.ArrayNode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -22,6 +25,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -1074,9 +1079,9 @@ class ContactDAOImpl(
 					.endKey(to)
 					.includeDocs(false)
 				client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-					if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+					if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 				}.let { f ->
-					if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+					if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 				}.map {
 					ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 				}
@@ -1089,18 +1094,79 @@ class ContactDAOImpl(
 		))
 	}
 
+	override fun listServiceIdsByDataOwnerPatientTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		patientSecretForeignKeys,
+		tagTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_patient_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerPatientCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		patientSecretForeignKeys,
+		codeTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_patient_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerPatientTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		patientSecretForeignKeys: Set<String>,
+		typesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			patientSecretForeignKeys.asSequence().flatMap { patientSecretForeignKey ->
+				typesAndCodes.asSequence().flatMap { (type, codes) ->
+					codes.asSequence().map { code ->
+						ComplexKey.of(dataOwnerSearchKey, patientSecretForeignKey, type, code)
+					}
+				}
+			}
+		}
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
+		emitAll(filterLatestServices(client, datastoreInformation, results))
+	}
+
 	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
 	override fun listServiceIdsByDataOwnerTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		tagType: String,
 		tagCodePrefix: String,
-	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
+		startValueDate: Long?,
+		endValueDate: Long?,
+		): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
 		datastoreInformation,
 		searchKeys,
 		tagType,
 		tagCodePrefix,
-		"listServiceIdsByDataOwnerTagCodePrefix",
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_tag_prefix",
 	)
 
 	@View(name = "service_by_data_owner_code_prefix", map = "classpath:js/contact/Service_by_data_owner_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1109,11 +1175,15 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		codeType: String,
 		codeCodePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodePrefix(
 		datastoreInformation,
 		searchKeys,
 		codeType,
 		codeCodePrefix,
+		startValueDate,
+		endValueDate,
 		"service_by_data_owner_code_prefix",
 	)
 
@@ -1122,6 +1192,8 @@ class ContactDAOImpl(
 		searchKeys: Set<String>,
 		type: String,
 		codePrefix: String,
+		startValueDate: Long?,
+		endValueDate: Long?,
 		view: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -1140,8 +1212,12 @@ class ContactDAOImpl(
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
-			client.queryView<ComplexKey, String>(query).map {
-				ContactIdMandatoryServiceId(it.id, it.value!!)
+			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
+			}.let { f ->
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
+			}.map {
+				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 			}
 		}
 		emitAll(filterLatestServices(
@@ -1149,6 +1225,56 @@ class ContactDAOImpl(
 			datastoreInformation,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
+	}
+
+	override fun listServiceIdsByDataOwnerTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		tagTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		tagTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		codeTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		codeTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		typesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			typesAndCodes.asSequence().flatMap { (type, codes) ->
+				codes.asSequence().map { code ->
+					ComplexKey.of(dataOwnerSearchKey, type, code)
+				}
+			}
+		}
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
+		emitAll(filterLatestServices(client, datastoreInformation, results))
 	}
 
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1195,6 +1321,75 @@ class ContactDAOImpl(
 		"service_by_data_owner_month_code_prefix",
 	)
 
+	override fun listServiceIdsByDataOwnerValueDateMonthTagCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		tagTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		tagTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_tag_prefix",
+	)
+
+	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		codeTypesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation,
+		searchKeys,
+		year,
+		month,
+		codeTypesAndCodes,
+		startValueDate,
+		endValueDate,
+		"service_by_data_owner_month_code_prefix",
+	)
+
+	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		year: Int?,
+		month: Int?,
+		typesAndCodes: Map<String, Collection<String>>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+		view: String,
+	): Flow<String> = flow {
+		require((year == null) == (month == null)) { "Year and month must both be non-null or both null" }
+		if (startValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(startValueDate, false)?.first
+			require(parsed != null) { "startValueDate must be a valid fuzzy date time if provided" }
+		}
+		if (endValueDate != null) {
+			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(endValueDate, false)?.first
+			require(parsed != null) { "endValueDate must be a valid fuzzy date time if provided" }
+		}
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
+			typesAndCodes.asSequence().flatMap { (type, codes) ->
+				codes.asSequence().map { code ->
+					ComplexKey.of(year, month, dataOwnerSearchKey, type, code)
+				}
+			}
+		}
+		val results = queryViewByKeysInChunks(client, datastoreInformation, view, BEPPE_PARTITION, keys, startValueDate, endValueDate)
+		emitAll(filterLatestServices(client, datastoreInformation, results))
+	}
+
 	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1236,9 +1431,9 @@ class ContactDAOImpl(
 				.endKey(to)
 				.includeDocs(false)
 			client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
-				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { it >= startValueDate } == true } else f
+				if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
 			}.let { f ->
-				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { it <= endValueDate } == true } else f
+				if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
 			}.map {
 				ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
 			}
@@ -1248,6 +1443,34 @@ class ContactDAOImpl(
 			datastoreInformation,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
+	}
+
+	private suspend fun queryViewByKeysInChunks(
+		client: Client,
+		datastoreInformation: IDatastoreInformation,
+		view: String,
+		partition: String,
+		keys: Sequence<ComplexKey>,
+		startValueDate: Long?,
+		endValueDate: Long?,
+	): List<ContactIdMandatoryServiceId> = coroutineScope {
+		val semaphore = Semaphore(daoConfig.viewQueryMaxConcurrency)
+		keys.chunked(daoConfig.viewQueryChunkSize).map { chunkKeys ->
+			async {
+				semaphore.withPermit {
+					val query = createQuery(datastoreInformation, view, partition)
+						.keys(chunkKeys)
+						.includeDocs(false)
+					client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
+						if (startValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true } else f
+					}.let { f ->
+						if (endValueDate != null) f.filter { row -> row.value!!.date?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true } else f
+					}.map {
+						ContactIdMandatoryServiceId(it.id, it.value!!.serviceId)
+					}.toList()
+				}
+			}
+		}.toList().awaitAll().flatten()
 	}
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
@@ -1294,8 +1517,10 @@ class ContactDAOImpl(
 				val jsonList = p.readValueAsTree<ArrayNode>()
 				check(jsonList.size() == 2) { "Expected exactly 2 items" }
 				check(jsonList[0].isTextual) { "Expected first item to be a string" }
-				check(jsonList[1].canConvertToLong() && !jsonList[1].isFloatingPointNumber) { "Expected second item to be a long" }
-				return ServiceIdAndDateValue(jsonList[0].textValue(), jsonList[1].longValue())
+
+				val isValueDateNull = jsonList[1].isNull
+				check(isValueDateNull || (jsonList[1].canConvertToLong() && !jsonList[1].isFloatingPointNumber)) { "Expected second item to be a long or null" }
+				return ServiceIdAndDateValue(jsonList[0].textValue(), if (isValueDateNull) null else jsonList[1].longValue())
 			}
 		}
 	}
