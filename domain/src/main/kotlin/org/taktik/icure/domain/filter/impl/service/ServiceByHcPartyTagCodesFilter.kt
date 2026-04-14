@@ -7,6 +7,8 @@ import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodesFilter
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.entities.embed.withEncryptionMetadata
+import org.taktik.icure.utils.FuzzyDates
 
 data class ServiceByHcPartyTagCodesFilter(
 	override val desc: String? = null,
@@ -21,6 +23,11 @@ data class ServiceByHcPartyTagCodesFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(healthcarePartyId)
 
-	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
-		throw UnsupportedOperationException()
+	override fun matches(item: Service, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = (
+		item.endOfLife == null &&
+			(item.withEncryptionMetadata()?.let { searchKeyMatcher(healthcarePartyId, it) } == true) &&
+			(item.tags.any { tagCodes[it.type]?.let { codes -> it.code in codes } == true }) &&
+			(startValueDate == null || (item.valueDate ?: item.openingDate)?.let { FuzzyDates.isFuzzyDateAfterOrEqual(it, startValueDate) } == true) &&
+			(endValueDate == null || (item.valueDate ?: item.openingDate)?.let { FuzzyDates.isFuzzyDateBeforeOrEqual(it, endValueDate) } == true)
+		)
 }
