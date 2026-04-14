@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import kotlinx.coroutines.flow.Flow
 import org.taktik.commons.uti.UTI
+import org.taktik.icure.entities.objectstorage.DataAttachment.Companion.DEFAULT_MIME_TYPE
 
 /**
  * Represent an attachment holding some additional data for an entity.
@@ -19,7 +20,9 @@ import org.taktik.commons.uti.UTI
 data class DataAttachment(
 	val couchDbAttachmentId: String? = null,
 	val objectStoreAttachmentId: String? = null,
-	val utis: List<String> = emptyList()
+	val utis: List<String> = emptyList(),
+	val compressionAlgorithm: String? = null, //lzma,gz... null means not compressed
+	val triedCompressionAlgorithmsVersion: String? = null, //null means never tried to compress
 ) {
 	init {
 		require(couchDbAttachmentId != null || objectStoreAttachmentId != null) {

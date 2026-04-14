@@ -3,19 +3,23 @@
  */
 package org.taktik.icure.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
+import org.taktik.icure.entities.embed.DeletedAttachment
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
@@ -39,6 +43,8 @@ data class Receipt(
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
 	val attachmentIds: Map<ReceiptBlobType, String> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val attachmentInfos: Map<ReceiptBlobType, DataAttachment> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) override val deletedAttachments: List<DeletedAttachment> = emptyList(),
 
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.entities;tarification:id, org.taktik.entities.Invoice:UUID
@@ -59,9 +65,26 @@ data class Receipt(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 
-) : StoredICureDocument,
+	) : StoredICureDocument,
 	HasEncryptionMetadata,
+	HasDataAttachments<Receipt>,
 	Encryptable {
+		override val dataAttachments: Map<String, DataAttachment>
+			@JsonIgnore
+			get() = attachmentInfos.mapKeys { it.key.name }
+
+	override fun withUpdatedDataAttachment(
+		key: String,
+		newValue: DataAttachment?
+	) =  this.copy(
+		attachmentInfos = if (newValue != null) attachmentInfos + (ReceiptBlobType.valueOf(key) to newValue) else attachmentInfos - ReceiptBlobType.valueOf(key)
+	)
+
+	override fun withDataAttachments(newDataAttachments: Map<String, DataAttachment>) = this.copy(
+		attachmentInfos = newDataAttachments.mapKeys { ReceiptBlobType.valueOf(it.key) }
+	)
+
+	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>) = this.copy(deletedAttachments = newDeletedAttachments)
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
