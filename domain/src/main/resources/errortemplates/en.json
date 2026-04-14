@@ -180,6 +180,7 @@
   "GEM-COERCE-OBJECT-PROP": "{{path}}: CoerceType cannot map this target object property using any of the configured fallback behaviors.",
   "GEM-COERCE-OBJECT-EXTBUILTINPROPCOERCE": "{{path}}: CoerceType cannot coerce to the target object because a builtin property of the extended object is extended in incompatible ways between source and target configuration (containing object migration configuration requires that source extension is coercible to target).",
   "GEM-COERCE-OBJECT-EXTBUILTINPROPMATCH": "{{path}}: CoerceType cannot coerce to the target object because a builtin property of the extended object is extended in incompatible ways between source and target configuration (containing object migration configuration requires that source and target extensions match exactly).",
+  "GEM-COERCE-OBJECT-WUNUSEDSOURCE": "{{path}}: Automatic coercion is ignoring this value of the source object definition, this may cause data loss",
   "GEM-COERCE-LISTSIZE": "{{path}}: CoerceType cannot coerce the source list to the target list; the target size validation is more restrictive than the source.",
   "GEM-COERCE-LISTUNIQUE": "{{path}}: CoerceType cannot coerce the source list to the target list; the target requires unique values but the source does not guarantee uniqueness.",
   "GEM-COERCE-LISTNONINJ": "{{path}}: CoerceType cannot coerce the source list to the target list; the target requires unique values but the element type coercion is non-injective and may introduce duplicates.",
