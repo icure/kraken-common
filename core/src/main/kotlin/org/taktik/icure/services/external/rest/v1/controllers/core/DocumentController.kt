@@ -60,6 +60,7 @@ import org.taktik.icure.services.external.rest.v1.dto.requests.document.BulkAtta
 import org.taktik.icure.services.external.rest.v1.mapper.DocumentMapper
 import org.taktik.icure.services.external.rest.v1.mapper.StubMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
+import org.taktik.icure.utils.enforceSize
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.toByteArray
 import reactor.core.publisher.Flux
@@ -277,24 +278,33 @@ class DocumentController(
 				"`enckeys` must contain at least a valid aes key",
 			)
 		}
+		val sizeCheckedPayload = if (size != null) payload.enforceSize(size) else payload
 		val (newPayload, newSize, encrypted) =
 			if (validEncryptionKeys?.isNotEmpty() == true) {
 				Triple(
 					// Encryption should never fail if the key is valid
 					CryptoUtils
-						.encryptFlowAES(payload, validEncryptionKeys.first())
+						.encryptFlowAES(sizeCheckedPayload, validEncryptionKeys.first())
 						.map { DefaultDataBufferFactory.sharedInstance.wrap(it) },
 					size?.let { CryptoUtils.predictAESEncryptedSize(it) },
 					true,
 				)
 			} else {
-				Triple(payload, size, false)
+				Triple(sizeCheckedPayload, size, false)
 			}
 		val document = documentService.getDocument(documentId) ?: throw NotFoundRequestException("Document not found")
 		checkRevision(rev, document)
 		val mainAttachmentChange =
 			if (newSize != null) {
-				DataAttachmentChange.CreateOrUpdate(newPayload, newSize, utis, encrypted)
+				DataAttachmentChange.CreateOrUpdate(
+					newPayload,
+					newSize,
+					utis,
+					encrypted,
+					null,
+					null,
+					null
+				)
 			} else {
 				newPayload.toByteArray(true).let { payloadBytes ->
 					DataAttachmentChange.CreateOrUpdate(
@@ -302,6 +312,9 @@ class DocumentController(
 						payloadBytes.size.toLong(),
 						utis,
 						encrypted,
+						null,
+						null,
+						null
 					)
 				}
 			}
@@ -557,6 +570,9 @@ class DocumentController(
 							attachmentSize,
 							utis,
 							false,
+							null,
+							null,
+							null
 						),
 				),
 			).let { documentMapper.map(checkNotNull(it) { "Could not update document" }) }
@@ -695,6 +711,9 @@ class DocumentController(
 		),
 		metadata?.utis,
 		false,
+		null,
+		null,
+		null,
 	)
 
 	private fun checkRevision(

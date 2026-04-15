@@ -1,6 +1,7 @@
 package org.taktik.icure.asynclogic.objectstorage
 
 import org.taktik.icure.entities.Document
+import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
 
 /**
@@ -35,3 +36,4 @@ interface IcureObjectStorageMigration<T : HasDataAttachments<T>> {
 }
 
 interface DocumentObjectStorageMigration : IcureObjectStorageMigration<Document>
+interface ReceiptObjectStorageMigration : IcureObjectStorageMigration<Receipt>

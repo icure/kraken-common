@@ -2,6 +2,7 @@ package org.taktik.icure.asynclogic.objectstorage
 
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
+import org.taktik.icure.entities.objectstorage.DataAttachment
 
 /**
  * Shared logic for the modification of entities which have [DataAttachment]s.
@@ -15,14 +16,17 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
 	 * The following changes are considered invalid:
 	 * 1. The new version of an entity specifies some attachments which do not exist in the
 	 * current version.
-	 * 2. The new version changes the value of a [IDataAttachment.couchDbAttachmentId] or
-	 * [DataAttachment.objectStoreAttachmentId].
+	 * 2. The new version changes the value of a [DataAttachment.couchDbAttachmentId],
+	 * [DataAttachment.objectStoreAttachmentId], [DataAttachment.compressionAlgorithm], [DataAttachment.storedDataSize],
+	 * or [DataAttachment.realDataSize]
 	 * 3. Any change in the [HasDataAttachments.deletedAttachments]
 	 *
 	 * In most cases if there is an invalid change this method will throw an [IllegalArgumentException],
-	 * however it is possible to specify to have a lenient behaviour for some attachments, in order to
-	 * preserve retro-compatibility. All invalid changes to attachment data that is mapped to a key
-	 * in [lenientKeys] will be simply ignored, without triggering an [IllegalArgumentException].
+	 * however for some values there is a lenient behaviour, in order to preserve retro-compatibility.
+	 * - All invalid changes to attachment data that is mapped to a key in [lenientKeys] will be simply ignored, without
+	 * triggering an [IllegalArgumentException].
+	 * - Passing a null [DataAttachment.storedDataSize] will be allowed regardless of the current corresponding value,
+	 *   in that case the value is overridden with what was already stored
 	 *
 	 * @param currEntity the current value of the entity being updated
 	 * @param newEntity the new desired value for the entity

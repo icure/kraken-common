@@ -28,5 +28,8 @@ data class BulkAttachmentUpdateOptions(
 		val utis: List<String> = emptyList(),
 		/** Whether the attachment data is encrypted. */
 		val dataIsEncrypted: Boolean? = null,
+		val compressionAlgorithm: String? = null,
+		val triedCompressionAlgorithmsVersion: String? = null,
+		val realDataSize: Long? = null,
 	) : Serializable
 }

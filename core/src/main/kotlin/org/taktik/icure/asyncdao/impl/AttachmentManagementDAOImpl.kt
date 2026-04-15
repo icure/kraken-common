@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.StoredDocument
 import java.nio.ByteBuffer
@@ -16,6 +17,7 @@ import java.nio.ByteBuffer
 abstract class AttachmentManagementDAOImpl<T : StoredDocument>(
 	protected val entityClass: Class<T>,
 	protected val couchDbDispatcher: CouchDbDispatcher,
+	private val cacheChain: EntityCacheChainLink<String, T>?
 ) : AttachmentManagementDAO<T> {
 	override fun getAttachment(
 		datastoreInformation: IDatastoreInformation,
@@ -36,7 +38,9 @@ abstract class AttachmentManagementDAOImpl<T : StoredDocument>(
 		data: Flow<ByteBuffer>,
 	): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.createAttachment(documentId, attachmentId, rev, contentType, data)
+		return client.createAttachment(documentId, attachmentId, rev, contentType, data).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 
 	override suspend fun deleteAttachment(
@@ -46,6 +50,8 @@ abstract class AttachmentManagementDAOImpl<T : StoredDocument>(
 		attachmentId: String,
 	): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.deleteAttachment(documentId, attachmentId, rev)
+		return client.deleteAttachment(documentId, attachmentId, rev).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 }

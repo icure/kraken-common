@@ -25,9 +25,11 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
+import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
+import java.util.TreeMap
 
 @Configuration
 class SharedWebConfig {
@@ -52,6 +54,12 @@ class SharedWebConfig {
 }
 
 abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
+	interface CardinalMappers {
+		val byMinVersion: TreeMap<SemanticVersion, ObjectMapper>
+
+		fun getForVersion(semanticVersion: SemanticVersion): ObjectMapper? = byMinVersion.floorEntry(semanticVersion)?.value
+	}
+
 	private val CLASSPATH_RESOURCE_LOCATIONS =
 		arrayOf("classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/")
 
@@ -70,10 +78,13 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
+	// TODO may want to set a default filter instead of putting all explicitly at least for the legacy
 	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider()
 		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAll())
 		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAll())
 		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAll())
+		.addFilter("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAll())
+		.addFilter("documentFilter", SimpleBeanPropertyFilter.serializeAll())
 
 	protected val legacyObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
@@ -81,30 +92,62 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
 				.build()
 		).apply {
-			setSerializationInclusion(JsonInclude.Include.NON_NULL)
+			setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 			setFilterProvider(legacyJacksonFilter)
 		}
 
 	@Bean
 	open fun legacyObjectMapper() = legacyObjectMapper
 
-	private val cardinalJacksonFilter: FilterProvider = SimpleFilterProvider()
-		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status"))
-		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type"))
-		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
+	private val healthElementFilter = Pair("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status"))
+	private val userFilter = Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type"))
+	private val codeStubFilter = Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
+	private val dataAttachmentFilterNoStoredDataSize = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize"))
+	private val dataAttachmentFilterFull = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAll())
+	private val documentNoMainAttachmentSize = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentRealDataSize"))
+	private val documentFull = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAll())
 
-	protected val cardinalObjectMapper: ObjectMapper =
+	private fun makeCardinalObjectMapper(
+		filters: List<Pair<String, SimpleBeanPropertyFilter>>
+	): ObjectMapper =
 		ObjectMapper().registerModule(
 			KotlinModule.Builder()
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
 				.build()
 		).apply {
-			setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-			setFilterProvider(cardinalJacksonFilter)
+			setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
+			setFilterProvider(
+				filters.fold(SimpleFilterProvider()) { filters, (name, filter) ->
+					filters.addFilter(name, filter)
+				}
+			)
 		}
 
+	protected val cardinalMappers = object : CardinalMappers {
+		override val byMinVersion: TreeMap<SemanticVersion, ObjectMapper> = TreeMap<SemanticVersion, ObjectMapper>().apply {
+			put(
+				CardinalVersionConfig.minCardinalModelVersion,
+				makeCardinalObjectMapper(listOf(
+					healthElementFilter,
+					userFilter,
+					codeStubFilter,
+					dataAttachmentFilterNoStoredDataSize
+				))
+			)
+			put(
+				SemanticVersion("2.4.0"),
+				makeCardinalObjectMapper(listOf(
+					healthElementFilter,
+					userFilter,
+					codeStubFilter,
+					dataAttachmentFilterFull
+				))
+			)
+		}
+	}
+
 	@Bean
-	open fun cardinalObjectMapper() = cardinalObjectMapper
+	open fun cardinalObjectMapper() = cardinalMappers
 
 	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 

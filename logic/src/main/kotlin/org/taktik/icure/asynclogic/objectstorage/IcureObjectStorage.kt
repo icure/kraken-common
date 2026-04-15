@@ -3,6 +3,7 @@ package org.taktik.icure.asynclogic.objectstorage
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
 import org.taktik.icure.entities.Document
+import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
 import java.io.IOException
 
@@ -81,3 +82,4 @@ interface IcureObjectStorage<T : HasDataAttachments<T>> {
 }
 
 interface DocumentObjectStorage : IcureObjectStorage<Document>
+interface ReceiptObjectStorage : IcureObjectStorage<Receipt>

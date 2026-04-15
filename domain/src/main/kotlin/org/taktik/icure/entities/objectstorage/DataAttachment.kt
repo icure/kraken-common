@@ -21,8 +21,28 @@ data class DataAttachment(
 	val couchDbAttachmentId: String? = null,
 	val objectStoreAttachmentId: String? = null,
 	val utis: List<String> = emptyList(),
-	val compressionAlgorithm: String? = null, //lzma,gz... null means not compressed
-	val triedCompressionAlgorithmsVersion: String? = null, //null means never tried to compress
+	/**
+	 * Algorithm used on the CLIENT SIDE to compress the data attachment.
+	 * Null means that the document was not compressed because the tried algorithms could not actually compress the data
+	 * (because for example it was an already compressed format) or no algorithms were tried.
+	 */
+	val compressionAlgorithm: String? = null,
+	/**
+	 * A string used by the SDK to mark which compression algorithms were tried.
+	 * Null means that no compression algorithms were tried.
+	 * If an SDK reads some data that is not compressed, if this value indicates that the data was created with an older
+	 * version of the SDK then the SDK may try to use any newly available algorithms to compress the data.
+	 */
+	val triedCompressionAlgorithmsVersion: String? = null,
+	/**
+	 * Value computed by the backend, the actual size of the data stored for the attachment, in bytes.
+	 */
+	val storedDataSize: Long? = null,
+	/**
+	 * Value provided by the client, the real size of the data after it has been decrypted and decompressed, in bytes.
+	 * This value is not used or verified by the backend.
+	 */
+	val realDataSize: Long? = null,
 ) {
 	init {
 		require(couchDbAttachmentId != null || objectStoreAttachmentId != null) {
@@ -44,9 +64,6 @@ data class DataAttachment(
 	@JsonIgnore
 	private var cachedBytes: ByteArray? = null
 
-	@get:JsonIgnore
-	val ids: Pair<String?, String?> get() = couchDbAttachmentId to objectStoreAttachmentId
-
 	/**
 	 * Get the mime type string for this attachment. If the attachment does not specify a UTI with a valid mime type returns null.
 	 */
@@ -60,19 +77,6 @@ data class DataAttachment(
 	@get:JsonIgnore
 	val mimeTypeOrDefault: String get() =
 		mimeType ?: DEFAULT_MIME_TYPE
-
-	/**
-	 * @return if this and other attachment have the same ids (the attachment is the same and is stored in the same place)
-	 */
-	infix fun hasSameIdsAs(other: DataAttachment) = this.ids == other.ids
-
-	/**
-	 * @return a copy of this data attachment where the ids are replaced with those of another data attachment
-	 */
-	fun withIdsOf(other: DataAttachment) = copy(
-		couchDbAttachmentId = other.couchDbAttachmentId,
-		objectStoreAttachmentId = other.objectStoreAttachmentId,
-	)
 
 	/**
 	 * Get the attachment content as bytes. If the content has been cached immediately returns it, otherwise loads the content from

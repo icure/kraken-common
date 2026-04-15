@@ -9,7 +9,9 @@ import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.DataAttachmentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
+import org.taktik.icure.services.external.rest.v1.dto.embed.DeletedAttachmentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.ReceiptBlobTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.SecurityMetadataDto
@@ -29,6 +31,8 @@ data class ReceiptDto(
 	override val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
 	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val attachmentInfos: Map<ReceiptBlobTypeDto, DataAttachmentDto> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v1.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
 	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
 	val documentId: String? = null,

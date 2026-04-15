@@ -69,9 +69,8 @@ data class Receipt(
 	HasEncryptionMetadata,
 	HasDataAttachments<Receipt>,
 	Encryptable {
-		override val dataAttachments: Map<String, DataAttachment>
-			@JsonIgnore
-			get() = attachmentInfos.mapKeys { it.key.name }
+		@get:JsonIgnore
+		override val dataAttachments: Map<String, DataAttachment> by lazy { attachmentInfos.mapKeys { it.key.name } }
 
 	override fun withUpdatedDataAttachment(
 		key: String,

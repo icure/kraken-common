@@ -33,6 +33,8 @@ interface DocumentMapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extraMainAttachmentInfo", ignore = true),
+		Mapping(target = "mainAttachmentRealDataSize", ignore = true),
 	)
 	fun map(documentDto: DocumentDto): Document
 

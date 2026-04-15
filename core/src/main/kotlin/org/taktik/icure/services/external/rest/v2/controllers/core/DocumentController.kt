@@ -69,6 +69,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.addAttachmentResponseHeader
+import org.taktik.icure.utils.enforceSize
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -232,6 +233,12 @@ class DocumentController(
 		@RequestParam(required = false)
 		@Parameter(description = "Utis for the attachment")
 		utis: List<String>?,
+		@RequestParam(required = false)
+		compressionAlgorithm: String?,
+		@RequestParam(required = false)
+		triedCompressionAlgorithmsVersion: String?,
+		@RequestParam(required = false)
+		realDataSize: Long?,
 		@Schema(type = "string", format = "binary")
 		@RequestBody
 		payload: Flow<DataBuffer>,
@@ -248,7 +255,15 @@ class DocumentController(
 			.updateAttachmentsWrappingExceptions(
 				documentId,
 				rev,
-				mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(payload, payloadSize, utis, encrypted ?: false),
+				mainAttachmentChange = DataAttachmentChange.CreateOrUpdate(
+					data = payload.enforceSize(payloadSize),
+					size = payloadSize,
+					utis = utis,
+					dataIsEncrypted = encrypted ?: false,
+					compressionAlgorithm = compressionAlgorithm,
+					triedCompressionAlgorithmsVersion = triedCompressionAlgorithmsVersion,
+					realDataSize = realDataSize
+				),
 			)?.let { documentV2Mapper.map(it) }
 	}
 
@@ -380,6 +395,12 @@ class DocumentController(
 		@RequestParam(required = false)
 		@Parameter(description = "Utis for the attachment")
 		utis: List<String>?,
+		@RequestParam(required = false)
+		compressionAlgorithm: String?,
+		@RequestParam(required = false)
+		triedCompressionAlgorithmsVersion: String?,
+		@RequestParam(required = false)
+		realDataSize: Long?,
 		@Schema(type = "string", format = "binary")
 		@RequestBody
 		payload: Flow<DataBuffer>,
@@ -404,10 +425,13 @@ class DocumentController(
 				mapOf(
 					key to
 						DataAttachmentChange.CreateOrUpdate(
-							payload,
-							attachmentSize,
-							utis,
-							encrypted ?: false,
+							data = payload,
+							size = attachmentSize,
+							utis = utis,
+							dataIsEncrypted = encrypted ?: false,
+							compressionAlgorithm = compressionAlgorithm,
+							triedCompressionAlgorithmsVersion = triedCompressionAlgorithmsVersion,
+							realDataSize = realDataSize
 						),
 				),
 			).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
@@ -534,15 +558,21 @@ class DocumentController(
 		name: String,
 		part: FilePart,
 		metadata: BulkAttachmentUpdateOptions.AttachmentMetadata?,
-	) = DataAttachmentChange.CreateOrUpdate(
-		part.content().asFlow(),
-		part.headers().contentLength.takeIf { it > 0 } ?: throw ResponseStatusException(
+	): DataAttachmentChange.CreateOrUpdate {
+		val size = part.headers().contentLength.takeIf { it > 0 } ?: throw ResponseStatusException(
 			HttpStatus.BAD_REQUEST,
 			"Missing size information for $name: you must provide the size of the attachment in bytes using a Content-Length part header.",
-		),
-		metadata?.utis,
-		metadata?.dataIsEncrypted ?: false,
-	)
+		)
+		return DataAttachmentChange.CreateOrUpdate(
+			data = part.content().asFlow().enforceSize(size),
+			size = size,
+			utis = metadata?.utis,
+			dataIsEncrypted = metadata?.dataIsEncrypted ?: false,
+			compressionAlgorithm = metadata?.compressionAlgorithm,
+			triedCompressionAlgorithmsVersion = metadata?.triedCompressionAlgorithmsVersion,
+			realDataSize = metadata?.realDataSize
+		)
+	}
 
 	private suspend fun DocumentService.updateAttachmentsWrappingExceptions(
 		documentId: String,
