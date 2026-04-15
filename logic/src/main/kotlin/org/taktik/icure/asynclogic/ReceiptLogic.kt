@@ -41,5 +41,4 @@ interface ReceiptLogic :
 	): Receipt
 
 	fun getDataAttachmentByBlobType(receiptId: String, blobType: ReceiptBlobType): Flow<DataBuffer>
-	// TODO migrate attachment method on cloud logic?
 }
