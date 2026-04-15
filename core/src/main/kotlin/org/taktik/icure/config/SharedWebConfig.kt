@@ -104,7 +104,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	private val codeStubFilter = Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
 	private val dataAttachmentFilterNoStoredDataSize = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize"))
 	private val dataAttachmentFilterFull = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAll())
-	private val documentNoMainAttachmentSize = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentRealDataSize"))
+	private val documentNoMainAttachmentSize = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentStoredDataSize"))
 	private val documentFull = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAll())
 
 	private fun makeCardinalObjectMapper(
@@ -131,7 +131,8 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 					healthElementFilter,
 					userFilter,
 					codeStubFilter,
-					dataAttachmentFilterNoStoredDataSize
+					dataAttachmentFilterNoStoredDataSize,
+					documentNoMainAttachmentSize
 				))
 			)
 			put(
@@ -140,7 +141,8 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 					healthElementFilter,
 					userFilter,
 					codeStubFilter,
-					dataAttachmentFilterFull
+					dataAttachmentFilterFull,
+					documentFull
 				))
 			)
 		}

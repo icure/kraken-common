@@ -19,7 +19,6 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -109,7 +108,7 @@ data class DocumentDto(
 	) val mainUti: String? = null,
 	/** Extra Uniform Type Identifiers for the main attachment. */
 	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") val otherUtis: Set<String> = emptySet(),
-	val mainAttachmentRealDataSize: Long? = null,
+	val mainAttachmentStoredDataSize: Long? = null,
 	val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
 	/** Secondary attachments for this document. */
 	@param:Schema(description = "Secondary attachments for this document") val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
@@ -149,6 +148,6 @@ data class DocumentDto(
 	data class ExtraMainAttachmentInfo(
 		val compressionAlgorithm: String? = null,
 		val triedCompressionAlgorithmsVersion: String? = null,
-		val storedDataSize: Long? = null,
+		val realDataSize: Long? = null,
 	)
 }
