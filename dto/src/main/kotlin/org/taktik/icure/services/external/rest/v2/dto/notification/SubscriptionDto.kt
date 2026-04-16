@@ -26,6 +26,7 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	val accessControlKeys: List<AccessControlKeyHexStringDto>?,
 	/** When true, uses Cardinal model serialization for the entity payloads. */
 	val useCardinalModelSerialization: Boolean? = null,
+	val cardinalSdkVersion: String? = null,
 ) : java.io.Serializable
 
 /**

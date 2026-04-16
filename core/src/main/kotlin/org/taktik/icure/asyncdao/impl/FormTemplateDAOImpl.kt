@@ -238,12 +238,16 @@ internal class FormTemplateDAOImpl(
 
 	override suspend fun createAttachment(datastoreInformation: IDatastoreInformation, documentId: String, attachmentId: String, rev: String, contentType: String, data: Flow<ByteBuffer>): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.createAttachment(documentId, attachmentId, rev, contentType, data)
+		return client.createAttachment(documentId, attachmentId, rev, contentType, data).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 
 	override suspend fun deleteAttachment(datastoreInformation: IDatastoreInformation, documentId: String, rev: String, attachmentId: String): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.deleteAttachment(documentId, attachmentId, rev)
+		return client.deleteAttachment(documentId, attachmentId, rev).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 
 	companion object {

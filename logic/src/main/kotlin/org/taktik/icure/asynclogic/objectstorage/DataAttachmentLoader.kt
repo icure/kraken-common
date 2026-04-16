@@ -3,6 +3,7 @@ package org.taktik.icure.asynclogic.objectstorage
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
 import org.taktik.icure.entities.Document
+import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.objectstorage.DataAttachment
 
@@ -74,3 +75,5 @@ interface DocumentDataAttachmentLoader : DataAttachmentLoader<Document> {
 		enckeys: List<String>,
 	): ByteArray? = decryptAttachment(document, enckeys, Document::mainAttachment)
 }
+
+interface ReceiptDataAttachmentLoader : DataAttachmentLoader<Receipt>

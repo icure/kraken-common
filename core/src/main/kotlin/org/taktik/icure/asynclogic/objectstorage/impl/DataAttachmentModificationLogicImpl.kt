@@ -48,7 +48,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 			.withDataAttachments(
 				(currentAttachments.keys + newAttachments.keys)
 					.mapNotNull { key ->
-						ensureNoContentChange(currentAttachments[key], newAttachments[key], key !in lenientKeys, key)
+						validateOneChange(currentAttachments[key], newAttachments[key], key !in lenientKeys, key)
 							?.let { key to it }
 					}.toMap(),
 			).also {
@@ -58,20 +58,30 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 			}
 	}
 
-	private fun ensureNoContentChange(
+	private fun validateOneChange(
 		currentAttachment: DataAttachment?,
 		updatedAttachment: DataAttachment?,
 		strict: Boolean,
 		attachmentKey: String,
 	): DataAttachment? = if (currentAttachment != null) {
-		if (updatedAttachment != null && updatedAttachment hasSameIdsAs currentAttachment) {
-			updatedAttachment
+		if (
+			updatedAttachment != null
+			&& updatedAttachment.couchDbAttachmentId == currentAttachment.couchDbAttachmentId
+			&& updatedAttachment.objectStoreAttachmentId == currentAttachment.objectStoreAttachmentId
+			&& updatedAttachment.realDataSize == currentAttachment.realDataSize
+			&& updatedAttachment.compressionAlgorithm == currentAttachment.compressionAlgorithm
+			&& (updatedAttachment.storedDataSize == null || updatedAttachment.storedDataSize == currentAttachment.storedDataSize)
+		) {
+			updatedAttachment.copy(storedDataSize = currentAttachment.storedDataSize)
 		} else {
 			require(!strict) {
-				"Inconsistency between updated and current for attachment $attachmentKey: " +
-					"expected ${currentAttachment.ids} but got ${updatedAttachment?.ids}"
+				"Inconsistency between updated and current for attachment $attachmentKey"
 			}
-			updatedAttachment?.withIdsOf(currentAttachment) ?: currentAttachment
+			updatedAttachment?.copy(
+				couchDbAttachmentId = currentAttachment.couchDbAttachmentId,
+				objectStoreAttachmentId = currentAttachment.objectStoreAttachmentId,
+				storedDataSize = currentAttachment.storedDataSize,
+			) ?: currentAttachment
 		}
 	} else {
 		require(!strict || updatedAttachment == null) {
@@ -219,7 +229,15 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 				"Duplicate attachment content for ${entity::class.java.simpleName} ${entity.id}: $attachmentId",
 			)
 		}
-		DataAttachment(couchDbAttachmentId = attachmentId, objectStoreAttachmentId = null, utis = utis).let { dataAttachment ->
+		DataAttachment(
+			couchDbAttachmentId = attachmentId,
+			objectStoreAttachmentId = null,
+			utis = utis,
+			realDataSize = change.realDataSize,
+			triedCompressionAlgorithmsVersion = change.triedCompressionAlgorithmsVersion,
+			compressionAlgorithm = change.compressionAlgorithm,
+			storedDataSize = change.size
+		).let { dataAttachment ->
 			Pair(
 				dataAttachment,
 				if (entity.attachments?.keys?.contains(attachmentId) == true) {
@@ -240,7 +258,15 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		// we will duplicate the attachment on object storage, but it can be cleaned up by the periodic cleanup task.
 		val attachmentId = UUID.randomUUID().toString()
 		Pair(
-			DataAttachment(couchDbAttachmentId = null, objectStoreAttachmentId = attachmentId, utis = utis),
+			DataAttachment(
+				couchDbAttachmentId = null,
+				objectStoreAttachmentId = attachmentId,
+				utis = utis,
+				realDataSize = change.realDataSize,
+				triedCompressionAlgorithmsVersion = change.triedCompressionAlgorithmsVersion,
+				compressionAlgorithm = change.compressionAlgorithm,
+				storedDataSize = change.size
+			),
 			AttachmentTask.PreStoreAndUploadObjectStorage(
 				attachmentId,
 				change.data,
