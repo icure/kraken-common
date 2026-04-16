@@ -1,5 +1,7 @@
 package org.taktik.icure.asynclogic.objectstorage
 
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Service
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
@@ -35,5 +37,22 @@ interface IcureObjectStorageMigration<T : HasDataAttachments<T>> {
 	suspend fun rescheduleStoredMigrationTasks()
 }
 
+private class NoObjectStorageMigration<T : HasDataAttachments<T>> : IcureObjectStorageMigration<T> {
+	override fun isMigrating(entity: T, attachmentId: String): Boolean = false
+
+	override suspend fun scheduleMigrateAttachment(entity: T, attachmentId: String) {
+		throw IllegalStateException("Should not schedule migration for entity of type ${entity::class.simpleName}")
+	}
+
+	override suspend fun rescheduleStoredMigrationTasks() {
+		// Do nothing
+	}
+}
+
 interface DocumentObjectStorageMigration : IcureObjectStorageMigration<Document>
 interface ReceiptObjectStorageMigration : IcureObjectStorageMigration<Receipt>
+@Service
+@Profile("app")
+class ReceiptObjectStorageMigrationImpl :
+	ReceiptObjectStorageMigration,
+	IcureObjectStorageMigration<Receipt> by NoObjectStorageMigration()
