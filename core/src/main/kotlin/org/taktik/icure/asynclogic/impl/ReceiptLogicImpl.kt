@@ -111,6 +111,10 @@ open class ReceiptLogicImpl(
 		if (storedDataSize > HARD_LIMIT_ATTACHMENT) throw ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Attachment size exceeds limit of $HARD_LIMIT_ATTACHMENT bytes")
 		val payload = data.enforceSize(storedDataSize).toByteArray(true)
 		val newAttachmentId = DigestUtils.sha256Hex(payload)
+		val currentReceipt = receiptDAO.get(datastoreInformation, receiptId) ?: throw NotFoundRequestException("Receipt with id $receiptId not found")
+		if (currentReceipt.attachmentIds.containsKey(blobType) || currentReceipt.attachmentInfos.containsKey(blobType)) {
+			throw IllegalArgumentException("Another attachment for blob type $blobType already exists in receipt $receiptId")
+		}
 		receiptDAO.createAttachment(
 			datastoreInformation,
 			receiptId,
@@ -120,9 +124,6 @@ open class ReceiptLogicImpl(
 			flowOf(ByteBuffer.wrap(payload)),
 		)
 		val receipt = receiptDAO.get(datastoreInformation, receiptId) ?: throw NotFoundRequestException("Receipt with id $receiptId not found")
-		if (receipt.attachmentIds.containsKey(blobType) || receipt.attachmentInfos.containsKey(blobType)) {
-			throw IllegalArgumentException("Another attachment for blob type $blobType already exists in receipt $receiptId")
-		}
 		val updatedAttachmentInfo = receipt.attachmentInfos + Pair(
 			blobType,
 			DataAttachment(
