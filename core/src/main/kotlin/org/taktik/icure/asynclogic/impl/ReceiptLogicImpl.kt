@@ -120,12 +120,9 @@ open class ReceiptLogicImpl(
 			flowOf(ByteBuffer.wrap(payload)),
 		)
 		val receipt = receiptDAO.get(datastoreInformation, receiptId) ?: throw NotFoundRequestException("Receipt with id $receiptId not found")
-		val updatedAttachments = receipt.attachments?.let { attachments ->
-			receipt.attachmentIds[blobType]?.let { prevAttachmentForBlobType ->
-				attachments - prevAttachmentForBlobType
-			} ?: attachments
+		if (receipt.attachmentIds.containsKey(blobType) || receipt.attachmentInfos.containsKey(blobType)) {
+			throw IllegalArgumentException("Another attachment for blob type $blobType already exists in receipt $receiptId")
 		}
-		val updatedAttachmentIds = receipt.attachmentIds - blobType
 		val updatedAttachmentInfo = receipt.attachmentInfos + Pair(
 			blobType,
 			DataAttachment(
@@ -138,13 +135,7 @@ open class ReceiptLogicImpl(
 				realDataSize = realDataSize,
 			)
 		)
-		return modifyEntity(
-			receipt.copy(
-				attachments = updatedAttachments,
-				attachmentIds = updatedAttachmentIds,
-				attachmentInfos = updatedAttachmentInfo,
-			)
-		)
+		return modifyEntity(receipt.copy(attachmentInfos = updatedAttachmentInfo))
 	}
 
 	override fun getDataAttachmentByBlobType(

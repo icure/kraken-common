@@ -14,6 +14,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.StoredDocument
 import java.nio.ByteBuffer
 
+// TODO should use this one at some point instead of reimplementing the logic everywhere (on document dao, on receipt dao, ...)
 abstract class AttachmentManagementDAOImpl<T : StoredDocument>(
 	protected val entityClass: Class<T>,
 	protected val couchDbDispatcher: CouchDbDispatcher,
