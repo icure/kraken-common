@@ -46,8 +46,8 @@ class JwtUtils(
 				)
 		}
 
-		authJwtEncoder = JwtEncoder(authKeyPair)
-		refreshJwtEncoder = JwtEncoder(refreshKeyPair)
+		authJwtEncoder = JwtEncoder(authKeyPair, JwtKeyUtils.currentSigningKeyId())
+		refreshJwtEncoder = JwtEncoder(refreshKeyPair, JwtKeyUtils.currentSigningKeyId())
 		authPublicKeySpki = JwtKeyUtils.exportSpkiBase64(authKeyPair.first)
 	}
 
