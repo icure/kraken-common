@@ -120,6 +120,10 @@ data class Document(
 	)
 	val otherUtis: Set<String> = emptySet(),
 
+	val mainAttachmentStoredDataSize: Long? = null,
+
+	val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
+
 	@MergeStrategyUse(
 		canMerge = "true",
 		merge = "allDataAttachments - {{LEFT}}.mainAttachmentKey",
@@ -150,6 +154,12 @@ data class Document(
 		fun mainAttachmentKeyFromId(id: String) = id
 	}
 
+	data class ExtraMainAttachmentInfo(
+		val compressionAlgorithm: String? = null,
+		val triedCompressionAlgorithmsVersion: String? = null,
+		val realDataSize: Long? = null,
+	)
+
 	@get:JsonIgnore
 	val mainAttachmentKey: String get() = mainAttachmentKeyFromId(id)
 
@@ -157,9 +167,13 @@ data class Document(
 	val mainAttachment: DataAttachment? by lazy {
 		if (attachmentId != null || objectStoreReference != null) {
 			DataAttachment(
-				attachmentId,
-				objectStoreReference,
-				listOfNotNull(mainUti) + (mainUti?.let { otherUtis - it } ?: otherUtis),
+				couchDbAttachmentId = attachmentId,
+				objectStoreAttachmentId = objectStoreReference,
+				utis = listOfNotNull(mainUti) + (mainUti?.let { otherUtis - it } ?: otherUtis),
+				compressionAlgorithm = extraMainAttachmentInfo?.compressionAlgorithm,
+				triedCompressionAlgorithmsVersion = extraMainAttachmentInfo?.triedCompressionAlgorithmsVersion,
+				storedDataSize = mainAttachmentStoredDataSize,
+				realDataSize = extraMainAttachmentInfo?.realDataSize,
 			)
 		} else {
 			null
@@ -215,6 +229,20 @@ data class Document(
 		objectStoreReference = newMainAttachment?.objectStoreAttachmentId,
 		mainUti = mainUtiOf(newMainAttachment),
 		otherUtis = otherUtisOf(newMainAttachment),
+		mainAttachmentStoredDataSize = newMainAttachment?.storedDataSize,
+		extraMainAttachmentInfo = if (
+			newMainAttachment != null && (
+				newMainAttachment.compressionAlgorithm != null
+					|| newMainAttachment.triedCompressionAlgorithmsVersion != null
+					|| newMainAttachment.realDataSize != null
+			)
+		) {
+			ExtraMainAttachmentInfo(
+				compressionAlgorithm = newMainAttachment.compressionAlgorithm,
+				triedCompressionAlgorithmsVersion = newMainAttachment.triedCompressionAlgorithmsVersion,
+				realDataSize = newMainAttachment.realDataSize,
+			)
+		} else null
 	)
 
 	private fun mainUtiOf(mainAttachment: DataAttachment?) = mainAttachment?.utis?.firstOrNull()

@@ -11,10 +11,22 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.services.external.rest.v1.dto.ReceiptDto
 import org.taktik.icure.services.external.rest.v1.mapper.base.CodeStubMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.DataAttachmentMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.DelegationMapper
+import org.taktik.icure.services.external.rest.v1.mapper.embed.DeletedAttachmentMapper
 import org.taktik.icure.services.external.rest.v1.mapper.embed.SecurityMetadataMapper
 
-@Mapper(componentModel = "spring", uses = [CodeStubMapper::class, DelegationMapper::class, SecurityMetadataMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [
+		CodeStubMapper::class,
+		DelegationMapper::class,
+		SecurityMetadataMapper::class,
+		DataAttachmentMapper::class,
+		DeletedAttachmentMapper::class,
+	],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR
+)
 interface ReceiptMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

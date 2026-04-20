@@ -258,7 +258,9 @@ class DocumentDAOImpl(
 		data: Flow<ByteBuffer>,
 	): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.createAttachment(documentId, attachmentId, rev, contentType, data)
+		return client.createAttachment(documentId, attachmentId, rev, contentType, data).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 
 	override suspend fun deleteAttachment(
@@ -268,7 +270,9 @@ class DocumentDAOImpl(
 		attachmentId: String,
 	): String {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.deleteAttachment(documentId, attachmentId, rev)
+		return client.deleteAttachment(documentId, attachmentId, rev).also {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(documentId))
+		}
 	}
 
 	@View(

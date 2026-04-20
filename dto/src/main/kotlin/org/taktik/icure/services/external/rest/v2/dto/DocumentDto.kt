@@ -17,6 +17,7 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.CardinalMetadataProperty
@@ -40,6 +41,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 @Schema(
 	description = """This entity is a root level object. It represents a Document. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
+@JsonFilter("documentFilter")
 /**
  * Represents a document entity stored in CouchDB. Documents can have main and secondary data attachments,
  * and support various storage backends (CouchDB attachments, object storage).
@@ -121,6 +123,10 @@ data class DocumentDto(
 	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment")
 	@CardinalMetadataProperty
 	val otherUtis: Set<String> = emptySet(),
+	@CardinalMetadataProperty
+	val mainAttachmentStoredDataSize: Long? = null,
+	@CardinalMetadataProperty
+	val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
 	/** Secondary attachments for this document. */
 	@param:Schema(description = "Secondary attachments for this document")
 	@CardinalMetadataProperty
@@ -164,4 +170,10 @@ data class DocumentDto(
 	) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
+
+	data class ExtraMainAttachmentInfo(
+		val compressionAlgorithm: String? = null,
+		val triedCompressionAlgorithmsVersion: String? = null,
+		val realDataSize: Long? = null,
+	)
 }

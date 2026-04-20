@@ -162,6 +162,23 @@ fun InputStream.toFlow() = flow {
  */
 fun Flow<DataBuffer>.dropBytes(n: Long): Flow<DataBuffer> = if (n > 0) DataBufferUtils.skipUntilByteCount(asPublisher(), n).asFlow() else this
 
+/**
+ * Wraps this flow so that:
+ * - it throws [IllegalArgumentException] the moment the cumulative number of readable bytes exceeds [maxBytes];
+ * - once the flow is fully consumed, it throws [IllegalArgumentException] if the total is less than [maxBytes].
+ *
+ * If the flow is not fully consumed (e.g. downstream cancels early) the under-read check may not be performed.
+ */
+fun Flow<DataBuffer>.enforceSize(maxBytes: Long): Flow<DataBuffer> = flow {
+	var bytesRead = 0L
+	collect { buffer ->
+		bytesRead += buffer.readableByteCount()
+		if (bytesRead > maxBytes) throw IllegalArgumentException("Payload exceeds declared Content-Length of $maxBytes bytes")
+		emit(buffer)
+	}
+	if (bytesRead < maxBytes) throw IllegalArgumentException("Payload is smaller than declared Content-Length of $maxBytes bytes (got $bytesRead)")
+}
+
 /* TODO check if other implementation is more efficient and is also correct (does never leave trailing zeroes)
 DataBufferUtils.join(asPublisher()).awaitFirst().asByteBuffer().array()
  */
