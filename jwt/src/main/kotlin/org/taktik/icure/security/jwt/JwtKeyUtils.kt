@@ -62,4 +62,6 @@ object JwtKeyUtils {
 		val spkiBytes = x509Spec.encoded
 		return Base64.getEncoder().encodeToString(spkiBytes)
 	}
+
+	fun currentSigningKeyId(): String = "rsa-key-2026" // TODO put a proper id when we will have multiple keys
 }
