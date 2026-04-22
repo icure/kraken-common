@@ -1,6 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
@@ -52,7 +53,7 @@ sealed interface GenericTypeConfig {
 	 * @throws IllegalArgumentException if the value is not valid
 	 */
 	fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson,
 	): RawJson
 

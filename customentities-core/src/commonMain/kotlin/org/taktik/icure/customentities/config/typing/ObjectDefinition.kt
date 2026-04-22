@@ -5,6 +5,7 @@ import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
@@ -314,11 +315,11 @@ data class ObjectDefinition(
 	}
 
 	fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson.JsonObject,
 	): RawJson =
 		if (builtinExtension != null) {
-			context.builtinValidation.validateAndMapExtendedBuiltinForStore(
+			context.builtinValidation.validateAndMapExtendedBuiltinObjectForStore(
 				this,
 				value,
 				context.validation
@@ -328,7 +329,7 @@ data class ObjectDefinition(
 		}
 
 	fun validateAndMapExtensionValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
 		val mappedObjectProperties = mutableMapOf<String, RawJson>()

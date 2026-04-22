@@ -3,7 +3,7 @@ package org.taktik.icure.customentities.config.typing
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
-import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.errorreporting.addError
 import kotlin.jvm.JvmStatic
 
@@ -69,7 +69,7 @@ data class UuidTypeConfig(
 	}
 
 	override fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {

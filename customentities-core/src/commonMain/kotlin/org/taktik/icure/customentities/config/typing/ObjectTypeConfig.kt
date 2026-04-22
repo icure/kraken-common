@@ -4,6 +4,7 @@ import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.customentities.util.resolveRequiredObjectReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
@@ -40,14 +41,14 @@ data class ObjectTypeConfig(
 	}
 
 	override fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson,
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonObject) {
 			context.validation.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
 		} else if (isBuiltin) {
-			context.builtinValidation.validateAndMapPlainBuiltinForStore(objectReference, value, context.validation)
+			context.builtinValidation.validateAndMapPlainBuiltinObjectForStore(objectReference, value, context.validation)
 		} else {
 			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
 				context,

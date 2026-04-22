@@ -1,9 +1,6 @@
 package org.taktik.icure.customentities.util
 
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
-import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
-import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidator
-import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.MapperExtensionsValidationContextImpl
@@ -13,40 +10,47 @@ import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtens
 class MapperBasedExtendableBuiltinEntityValidator(
 	private val configsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	private val resolutionContext: CustomEntityConfigResolutionContext,
-	private val builtinDefinitions: BuiltinDefinitionsProvider,
 ) : ExtendableBuiltinEntityValidator {
 
-	override fun validateAndMapExtendedBuiltinForStore(
+	override fun validateAndMapExtendedBuiltinObjectForStore(
 		extendedObjectDefinition: ObjectDefinition,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject =
-		checkNotNull(
-			configsProvider.configs[
+		requireNotNull(
+			configsProvider.objectToDomain[
 				checkNotNull(extendedObjectDefinition.builtinExtension?.entityName) {
 					"Object definition does not extend a baseEntity"
 				}
 			]
 		) {
-			"Missing builtin validator for ${extendedObjectDefinition.builtinExtension?.entityName} (extended)"
+			"This version of the cardinal backend does not support builtin objects of type `${extendedObjectDefinition.builtinExtension?.entityName}`, you might need to use a more recent version or switch to a fully custom entity"
 		}.invoke(
 			value,
 			MapperExtensionsValidationContextImpl(
 				resolutionContext,
 				errorCollector,
-				builtinDefinitions,
 				configsProvider,
 				extendedObjectDefinition
 			),
 			errorCollector
 		)
 
-	override fun validateAndMapPlainBuiltinForStore(
+	override fun validateAndMapPlainBuiltinObjectForStore(
 		entityType: String,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject =
-		checkNotNull(configsProvider.configs[entityType]) {
-			"Missing builtin validator for $entityType (plain)"
+		requireNotNull(configsProvider.objectToDomain[entityType]) {
+			"This version of the cardinal backend does not support builtin objects of type `$entityType`, you might need to use a more recent version or switch to a fully custom entity"
 		}.invoke(value, null, errorCollector)
+
+	override fun validateAndMapBuiltinEnumForStore(
+		enumType: String,
+		value: RawJson.JsonString,
+		errorCollector: ScopedErrorCollector
+	): RawJson.JsonString =
+		requireNotNull(configsProvider.enumToDomain[enumType]) {
+			"This version of the cardinal backend does not support builtin enums of type `$enumType`, you might need to use a more recent version or switch to a custom enum"
+		}.invoke(value, errorCollector)
 }

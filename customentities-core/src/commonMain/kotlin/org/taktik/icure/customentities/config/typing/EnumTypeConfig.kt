@@ -4,6 +4,7 @@ import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.customentities.util.getRequiredEnumDefinition
 import org.taktik.icure.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.entities.RawJson
@@ -44,26 +45,19 @@ data class EnumTypeConfig(
 	}
 
 	override fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
 			context.validation.addError("GE-ENUM-JSON")
+		} else if (isBuiltin) {
+			context.builtinValidation.validateAndMapBuiltinEnumForStore(enumReference, value, context.validation)
 		} else {
-			val enumDefinitionEntries = if (isBuiltin) {
-				context.builtinDefinitions.getRequiredEnumDefinition(enumReference).entries.mapTo(mutableSetOf()) {
-					// Validation requires
-					it.serialName
-				}
-			} else {
-				context.resolution.resolveRequiredEnumReference(enumReference).entries
-			}
-			if (value.value !in enumDefinitionEntries) {
+			if (value.value !in context.resolution.resolveRequiredEnumReference(enumReference).entries) {
 				context.validation.addError(
 					"GE-ENUM-VALUE",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumReference),
-					"builtin" to isBuiltin
 				)
 			}
 		}

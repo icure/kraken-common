@@ -120,7 +120,6 @@ class PatientController(
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
-	private val builtinDefinitions: BuiltinDefinitionsProvider,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 ) {
@@ -137,7 +136,6 @@ class PatientController(
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient"),
 			builtinValidationConfigsProvider,
-			builtinDefinitions,
 		)
 
 	private suspend fun Patient.toDto(): PatientDto =
@@ -151,7 +149,6 @@ class PatientController(
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient"),
 			builtinValidationConfigsProvider,
-			builtinDefinitions,
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =

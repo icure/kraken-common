@@ -1,6 +1,6 @@
 package org.taktik.icure.customentities.config.typing
 
-import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
+import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.jackson.annotations.JsonInclude
@@ -24,7 +24,7 @@ class UnknownTypeConfig private constructor (override val nullable: Boolean = fa
 	}
 
 	override fun validateAndMapValueForStore(
-		context: CustomEntityConfigValidationContext,
+		context: CustomEntityValueValidationContext,
 		value: RawJson
 	): RawJson {
 		context.validation.addError("GE-UNKNOWN-VALIDATE")

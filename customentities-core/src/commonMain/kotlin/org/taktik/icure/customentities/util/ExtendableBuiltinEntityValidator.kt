@@ -5,15 +5,21 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 interface ExtendableBuiltinEntityValidator {
-	fun validateAndMapExtendedBuiltinForStore(
+	fun validateAndMapExtendedBuiltinObjectForStore(
 		extendedObjectDefinition: ObjectDefinition,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject
 
-	fun validateAndMapPlainBuiltinForStore(
+	fun validateAndMapPlainBuiltinObjectForStore(
 		entityType: String,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
 	): RawJson.JsonObject
+
+	fun validateAndMapBuiltinEnumForStore(
+		enumType: String,
+		value: RawJson.JsonString,
+		errorCollector: ScopedErrorCollector,
+	): RawJson.JsonString
 }
