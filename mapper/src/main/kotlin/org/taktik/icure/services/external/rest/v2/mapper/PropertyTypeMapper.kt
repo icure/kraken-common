@@ -31,7 +31,6 @@ import org.taktik.icure.services.external.rest.v2.dto.constants.PropertyTypeScop
 abstract class PropertyTypeV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)

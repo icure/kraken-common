@@ -35,7 +35,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.security.UnsecureAuthen
 interface UnsecureUserV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "applicationTokens", ignore = true),

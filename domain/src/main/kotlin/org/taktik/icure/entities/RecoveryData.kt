@@ -37,7 +37,6 @@ data class RecoveryData(
 	 * expire. Negative values or zero mean the data is already expired.
 	 */
 	val expirationInstant: Long? = null,
-	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,

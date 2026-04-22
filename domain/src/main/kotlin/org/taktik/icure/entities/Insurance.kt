@@ -33,9 +33,7 @@ data class Insurance(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-
-	) : StoredDocument {
+) : StoredDocument {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

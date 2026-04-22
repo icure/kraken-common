@@ -125,8 +125,6 @@ data class Device(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
-
 ) : StoredICureDocument,
 	Named,
 	CryptoActor,

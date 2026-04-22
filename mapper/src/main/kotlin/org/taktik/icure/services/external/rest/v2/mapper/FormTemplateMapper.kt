@@ -57,7 +57,6 @@ abstract class FormTemplateV2Mapper {
 		Mapping(target = "layout", ignore = true),
 		Mapping(target = "templateLayout", source = "formTemplateDto"),
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)

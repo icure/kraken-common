@@ -19,9 +19,6 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.PropertyStubMapper
 interface CryptoActorStubMapper {
 	fun map(cryptoActorStub: CryptoActorStub): CryptoActorStubDto
 
-	@Mappings(
-		Mapping(target = "revHistory", ignore = true),
-	)
 	fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub
 	fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto
 	fun map(cryptoActorStubWithTypeDto: CryptoActorStubWithTypeDto): CryptoActorStubWithType

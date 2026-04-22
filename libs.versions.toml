@@ -20,6 +20,7 @@ jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
 slf4j = "2.0.17"
+krouch = "1.2.82-feature.design-document.g7b9aebeeb6-dirty"
 
 [libraries]
 activation = { group = "javax.activation", name = "activation", version = "1.1.1" }
@@ -104,7 +105,7 @@ kotlinxSerializationJsonIo = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinxSerializationJsonIoJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io-jvm", version.ref = "kotlinxSerialization" }
 kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.0.2" } # 2FA
-krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.77-gc7905ae4a2" }
+krouch = { group = "org.taktik.couchdb", name = "krouch", version.ref = "krouch" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.8" }
 mockkJvm = { group = "io.mockk", name = "mockk-jvm", version = "1.13.8" }

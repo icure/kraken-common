@@ -249,7 +249,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 					client.create(e, entityClass)
 				} else {
 					client.update(e, entityClass)
-					//saveRevHistory(entity, null);
 				}.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
 					afterSave(datastoreInformation, it, e)

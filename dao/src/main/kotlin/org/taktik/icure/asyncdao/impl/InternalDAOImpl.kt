@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
@@ -69,13 +70,19 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(
 			client.queryView(
 				ViewQuery()
-					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
+					.designDocId(
+						designDocumentProvider.currentOrAvailableDesignDocumentId(
+							client,
+							entityClass,
+							this@InternalDAOImpl
+						)
+					)
 					.viewName("all")
 					.includeDocs(true),
 				String::class.java,
 				String::class.java,
 				entityClass,
-			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull(),
+			).mapNotNull { (it as? ViewRowWithDoc<*, *, T?>)?.doc },
 		)
 	}
 
@@ -90,7 +97,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all")
 					.includeDocs(false),
-			).map { it.id }.filterNotNull(),
+			).map { it.id },
 		)
 	}
 
