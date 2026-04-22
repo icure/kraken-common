@@ -25,7 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.CardinalMetadataProperty
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
@@ -104,10 +106,12 @@ data class ServiceDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	@CardinalMetadataProperty
 	val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	Comparable<ServiceDto>,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	ExtendableDto {
 	override fun compareTo(other: ServiceDto): Int {
 		if (this == other) {
 			return 0

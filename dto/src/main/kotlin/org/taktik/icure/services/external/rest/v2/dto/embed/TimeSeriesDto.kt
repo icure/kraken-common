@@ -1,8 +1,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+import org.taktik.icure.ExposedToCustomEntities
+
 /**
  * Represents a high-frequency time series with named fields, sample data, and statistical summaries.
  */
+@ExposedToCustomEntities
 data class TimeSeriesDto(
 	/** The names of the fields (columns) in the time series. */
 	val fields: List<String> = emptyList(),

@@ -19,6 +19,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
@@ -42,7 +44,9 @@ data class EpisodeDto(
 	var endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	/** The base64-encoded encrypted content of this episode. */
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	Serializable,
 	IdentifiableDto<String>,
-	NamedDto
+	NamedDto,
+	ExtendableDto

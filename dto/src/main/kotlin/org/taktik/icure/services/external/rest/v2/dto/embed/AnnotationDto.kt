@@ -3,6 +3,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import java.util.UUID
@@ -18,6 +19,7 @@ import java.util.UUID
  * Text node with attribution that can be attached to a medical record. Used by healthcare parties to add side notes,
  * for example to flag a faulty thermometer after taking a temperature.
  */
+@ExposedToCustomEntities
 data class AnnotationDto(
 	@param:Schema(
 		description = "The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id.",

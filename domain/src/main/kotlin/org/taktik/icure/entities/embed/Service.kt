@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
@@ -114,9 +116,11 @@ data class Service(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null
 ) : Encryptable,
 	ICureDocument<String>,
-	Comparable<Service> {
+	Comparable<Service>,
+	Extendable {
 
 	override fun compareTo(other: Service): Int {
 		if (this == other) {

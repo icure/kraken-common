@@ -64,6 +64,17 @@ interface BuiltinDefinitionsProvider {
 	)
 }
 
+class RegistryBasedBuiltinDefinitionsProvider(
+	private val enums: Map<String, BuiltinDefinitionsProvider.BuiltinEnumDefinition>,
+	private val objects: Map<String, BuiltinDefinitionsProvider.BuiltinObjectDefinition>
+): BuiltinDefinitionsProvider {
+	override fun getBuiltinEnumDefinition(name: String): BuiltinDefinitionsProvider.BuiltinEnumDefinition? =
+		enums[name]
+
+	override fun getBuiltinObjectDefinition(name: String): BuiltinDefinitionsProvider.BuiltinObjectDefinition? =
+		objects[name]
+}
+
 /**
  * Only to use when using a validated configuration, in case of illegal manipulation of the configuration that causes
  * a mandatory reference to be missing throws an IllegalEntityException.

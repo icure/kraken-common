@@ -20,7 +20,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
@@ -41,6 +43,8 @@ data class CareTeamMemberDto(
 	val quality: CodeStubDto? = null,
 	/** The base64-encoded encrypted content of this care team member. */
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	Serializable,
-	IdentifiableDto<String>
+	IdentifiableDto<String>,
+	ExtendableDto

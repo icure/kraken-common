@@ -5,6 +5,8 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
@@ -23,5 +25,7 @@ data class Insurability(
 	val endDate: Long? = null,
 	val titularyId: String? = null, // UUID of the contact person who is the titulary of the insurance
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
-	Serializable
+	Serializable,
+	Extendable

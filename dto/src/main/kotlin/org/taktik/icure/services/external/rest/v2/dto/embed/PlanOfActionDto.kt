@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkName
+import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
@@ -63,7 +65,9 @@ data class PlanOfActionDto(
 	@param:Schema(defaultValue = "true")
 	val relevant: Boolean = true,
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	NamedDto,
-	HasEndOfLifeDto
+	HasEndOfLifeDto,
+	ExtendableDto

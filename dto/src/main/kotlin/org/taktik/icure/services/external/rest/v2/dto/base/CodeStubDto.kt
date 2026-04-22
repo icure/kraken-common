@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.RequireHashable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,6 +30,7 @@ import org.taktik.icure.RequireHashable
  * A lightweight reference to a code from a codification system, used as a stub in entities that reference codes
  * without embedding the full code definition. The id is typically formatted as type|code|version.
  */
+@ExposedToCustomEntities
 data class CodeStubDto(
 	/** The unique identifier, formatted as type|code|version. */
 	override val id: String? = null, // id = type|code|version  => this must be unique

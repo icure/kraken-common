@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
 
@@ -27,6 +28,7 @@ import java.io.Serializable
 /**
  * Represents a measured value with its unit, reference value, severity, evolution, and reference ranges.
  */
+@ExposedToCustomEntities
 data class MeasureDto(
 	/** The measured numeric value. */
 	val value: Double? = null,

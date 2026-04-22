@@ -20,10 +20,12 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.ExposedToCustomEntities
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ExposedToCustomEntities
 data class ServiceLinkDto(
 	val serviceId: String? = null,
 	@get:JsonIgnore @set:JsonIgnore @Transient var service: ServiceDto? = null,

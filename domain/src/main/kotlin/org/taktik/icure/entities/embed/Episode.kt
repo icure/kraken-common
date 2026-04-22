@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
+import org.taktik.icure.entities.RawJson
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
@@ -30,7 +32,9 @@ data class Episode(
 	@field:NotNull(autoFix = AutoFix.FUZZYNOW)
 	val endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	Serializable,
 	Identifiable<String>,
-	Named
+	Named,
+	Extendable

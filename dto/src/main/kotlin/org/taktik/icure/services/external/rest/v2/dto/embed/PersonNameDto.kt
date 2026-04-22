@@ -3,6 +3,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.ExposedToCustomEntities
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  * Represents name information for a person, following FHIR HumanName conventions. Includes family name,
  * given names, prefixes, suffixes, and a validity period.
  */
+@ExposedToCustomEntities
 data class PersonNameDto(
 	/** Family name (often called 'Surname'). */
 	@param:Schema(description = "Family name (often called 'Surname')") val lastName: String? = null,

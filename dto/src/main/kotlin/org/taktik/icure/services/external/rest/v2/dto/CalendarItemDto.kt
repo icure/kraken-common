@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -113,6 +114,7 @@ data class CalendarItemDto(
 	/** The resource group of the agenda that will handle this calendar item. */
 	val resourceGroup: CodeStubDto? = null,
 	/** How this calendar item is considered by the availabilities algorithm. */
+	@CardinalMetadataProperty
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	/** The healthcare party id associated with this calendar item. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
