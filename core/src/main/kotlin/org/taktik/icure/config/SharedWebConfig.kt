@@ -129,7 +129,7 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	protected val cardinalMappers = object : CardinalMappers {
 		override val byMinVersion: TreeMap<SemanticVersion, ObjectMapper> = TreeMap<SemanticVersion, ObjectMapper>().apply {
 			put(
-				CardinalVersionConfig.minCardinalModelVersion,
+				CardinalModelInfo.minCardinalModelVersion,
 				makeCardinalObjectMapper(listOf(
 					healthElementFilter,
 					userFilter,

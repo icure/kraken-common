@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -36,8 +37,10 @@ import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Contact
 import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -102,8 +105,38 @@ class ContactController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val objectMapper: ObjectMapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val cardinalVersionConfig: CardinalVersionConfig
 ) {
+	private suspend fun ContactDto.toDomain(): Contact {
+		return contactV2Mapper.map(this, cardinalVersionConfig.getMappingContextForCurrentUser())
+	}
+
+	private suspend fun List<ContactDto>.toDomain(): List<Contact> {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return map { contactV2Mapper.map(it, versionCtx) }
+	}
+
+	private fun Flow<ContactDto>.toDomain(): Flow<Contact> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		emitAll(this@toDomain.map { contactV2Mapper.map(it, versionCtx) })
+	}
+
+	private suspend fun Contact.toDto(): ContactDto {
+		return contactV2Mapper.map(this, cardinalVersionConfig.getMappingContextForCurrentUser())
+	}
+
+	private suspend fun List<Contact>.toDto(): List<ContactDto> {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return map { contactV2Mapper.map(it, versionCtx) }
+	}
+
+	private fun Flow<Contact>.toDto(): Flow<ContactDto> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		emitAll(this@toDto.map { contactV2Mapper.map(it, versionCtx) })
+	}
+
+
 
 	@Operation(summary = "Get an empty content")
 	@GetMapping("/service/content/empty")
@@ -114,8 +147,8 @@ class ContactController(
 	fun createContact(
 		@RequestBody c: ContactDto,
 	): Mono<ContactDto> = mono {
-		val contact = contactService.createContact(contactV2Mapper.map(c))
-		contactV2Mapper.map(contact)
+		val contact = contactService.createContact(c.toDomain())
+		contact.toDto()
 	}
 
 	@Operation(summary = "Get a contact")
@@ -129,7 +162,7 @@ class ContactController(
 					HttpStatus.NOT_FOUND,
 					"Getting Contact failed. Possible reasons: no such contact exists, or server error. Please try again or read the server logger.",
 				)
-		contactV2Mapper.map(contact)
+		contact.toDto()
 	}
 
 	@Operation(summary = "Get contacts")
@@ -142,7 +175,7 @@ class ContactController(
 		}
 		return contactService
 			.getContacts(contactIds.ids)
-			.map(contactV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -169,7 +202,7 @@ class ContactController(
 		@RequestParam serviceId: String,
 	): Flux<ContactDto> = contactService
 		.listContactsByHcPartyServiceId(hcPartyId, serviceId)
-		.map(contactV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "List contacts found By externalId.")
@@ -178,7 +211,7 @@ class ContactController(
 		@RequestParam externalId: String,
 	): Flux<ContactDto> = contactService
 		.listContactsByExternalId(externalId)
-		.map(contactV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "List contacts found By Healthcare Party and form Id.")
@@ -188,7 +221,7 @@ class ContactController(
 		@RequestParam formId: String,
 	): Flux<ContactDto> {
 		val contactList = contactService.listContactsByHcPartyAndFormId(hcPartyId, formId)
-		return contactList.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
+		return contactList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "List contacts found By Healthcare Party and form Id.")
@@ -202,7 +235,7 @@ class ContactController(
 		}
 		val contactList = contactService.listContactsByHcPartyAndFormIds(hcPartyId, formIds.ids)
 
-		return contactList.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
+		return contactList.toDto().injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
@@ -218,7 +251,7 @@ class ContactController(
 		}
 		val contactList = contactService.listContactsByHCPartyAndPatient(hcPartyId, patientForeignKeys.ids)
 
-		return contactList.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
+		return contactList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find Contact ids by data owner id, patient secret keys and opening date.")
@@ -262,15 +295,14 @@ class ContactController(
 				.filter { c ->
 					(skipClosedContacts == null || !skipClosedContacts || c.closingDate == null) &&
 						!Collections.disjoint(c.subContacts.map { it.planOfActionId }, poaids)
-				}.map { contact -> contactV2Mapper.map(contact) }
+				}.toDto()
 				.injectReactorContext()
 		} else {
 			contactList
 				.filter { c ->
 					skipClosedContacts == null || !skipClosedContacts || c.closingDate == null
-				}.map { contact ->
-					contactV2Mapper.map(contact)
-				}.injectReactorContext()
+				}.toDto()
+				.injectReactorContext()
 		}
 	}
 
@@ -292,15 +324,14 @@ class ContactController(
 				.filter { c ->
 					(skipClosedContacts == null || !skipClosedContacts || c.closingDate == null) &&
 						!Collections.disjoint(c.subContacts.map { it.planOfActionId }, poaids)
-				}.map { contact -> contactV2Mapper.map(contact) }
+				}.toDto()
 				.injectReactorContext()
 		} else {
 			contactList
 				.filter { c ->
 					skipClosedContacts == null || !skipClosedContacts || c.closingDate == null
-				}.map { contact ->
-					contactV2Mapper.map(contact)
-				}.injectReactorContext()
+				}.toDto()
+				.injectReactorContext()
 		}
 	}
 
@@ -362,7 +393,7 @@ class ContactController(
 				}
 			}
 
-		return savedOrFailed.map { contact -> contactV2Mapper.map(contact) }.injectReactorContext()
+		return savedOrFailed.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Delete multiple Contacts")
@@ -401,7 +432,7 @@ class ContactController(
 		@PathVariable contactId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<ContactDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		contactV2Mapper.map(contactService.undeleteContact(contactId, rev))
+		contactService.undeleteContact(contactId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -410,7 +441,7 @@ class ContactController(
 	): Flux<ContactDto> = contactService
 		.undeleteContacts(
 			contactIds.ids.map(idWithRevV2Mapper::map),
-		).map(contactV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 
@@ -436,9 +467,7 @@ class ContactController(
 	fun modifyContact(
 		@RequestBody contactDto: ContactDto,
 	): Mono<ContactDto> = mono {
-		contactService.modifyContact(contactV2Mapper.map(contactDto)).let {
-			contactV2Mapper.map(it)
-		}
+		contactService.modifyContact(contactDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a batch of contacts", description = "Returns the modified contacts.")
@@ -446,8 +475,8 @@ class ContactController(
 	fun modifyContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> = flow {
-		val contacts = contactService.modifyContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
-		emitAll(contacts.map { f -> contactV2Mapper.map(f) })
+		val contacts = contactService.modifyContacts(contactDtos.toDomain())
+		emitAll(contacts.toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of contacts", description = "Returns the modified contacts.")
@@ -455,8 +484,8 @@ class ContactController(
 	fun createContacts(
 		@RequestBody contactDtos: List<ContactDto>,
 	): Flux<ContactDto> = flow {
-		val contacts = contactService.createContacts(contactDtos.map { f -> contactV2Mapper.map(f) })
-		emitAll(contacts.map { f -> contactV2Mapper.map(f) })
+		val contacts = contactService.createContacts(contactDtos.toDomain())
+		emitAll(contacts.toDto())
 	}.injectReactorContext()
 
 	@Operation(
@@ -475,7 +504,7 @@ class ContactController(
 
 		val contacts = contactService.filterContacts(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		contacts.paginatedList(contactV2Mapper::map, realLimit, objectMapper = objectMapper)
+		contacts.paginatedList<Contact, ContactDto>({ it.toDto() }, realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get the ids of the Contacts matching the provided filter.")
@@ -582,7 +611,7 @@ class ContactController(
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService
 			.listContactsByOpeningDate(hcPartyId, startDate, endDate, paginationOffset)
-			.mapElements(contactV2Mapper::map)
+			.mapElements<Contact, ContactDto> { it.toDto() }
 			.asPaginatedFlux()
 	}
 
@@ -591,11 +620,12 @@ class ContactController(
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<ContactDto>> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
 		emitAll(
 			contactService
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
-				).map { bulkShareResultV2Mapper.map(it) },
+				).map { bulkShareResultV2Mapper.map(it, versionCtx) },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
@@ -604,11 +634,12 @@ class ContactController(
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
 	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
 		emitAll(
 			contactService
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
-				).map { bulkShareResultV2Mapper.map(it).minimal() },
+				).map { bulkShareResultV2Mapper.map(it, versionCtx).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
@@ -621,7 +652,7 @@ class ContactController(
 		@PathVariable entityId: String,
 	): Flux<ContactDto> =
 		contactService.getConflictsFor(entityId)
-			.map(contactV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -629,10 +660,10 @@ class ContactController(
 		@RequestBody request: ConflictResolutionRequestDto<ContactDto>
 	): Mono<ConflictResolutionResultDto<ContactDto>> = mono {
 		val result = contactService.declareConflictWinner(
-			entity = contactV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, contactV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")
