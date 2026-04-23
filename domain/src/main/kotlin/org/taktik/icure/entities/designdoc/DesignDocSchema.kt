@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Versionable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DesignDocConfiguration(
+data class DesignDocSchema(
 	@param:JsonProperty("_rev") override val rev: String?,
 	val applicationId: String,
 	val version: Int,
@@ -28,7 +28,7 @@ data class DesignDocConfiguration(
 	override fun withIdRev(
 		id: String?,
 		rev: String
-	): DesignDocConfiguration {
+	): DesignDocSchema {
 		val (_, applicationId, version) = id?.split(":", limit = 3) ?: listOf("", applicationId, "$version")
 		return copy(
 			rev = rev,

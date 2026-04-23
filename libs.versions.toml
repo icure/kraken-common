@@ -20,7 +20,7 @@ jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
 slf4j = "2.0.17"
-krouch = "1.2.82-feature.design-document.g7b9aebeeb6-dirty"
+krouch = "1.2.85-feature.design-document.ga9e1824f71"
 
 [libraries]
 activation = { group = "javax.activation", name = "activation", version = "1.1.1" }
