@@ -5,36 +5,34 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Versionable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DesignDocEntityConfiguration(
+data class DesignDocConfiguration(
 	@param:JsonProperty("_rev") override val rev: String?,
 	val applicationId: String,
-	val entity: String,
 	val version: Int,
 	/**
-	 * Links the view name to the partition index.
+	 * The key of the outermost map is the entity name. In the inner map, the key is the view name and the value is
+	 * the index of the partition where that view resides.
 	 */
-	val viewsToPartition: Map<String, Int>,
+	val viewsByEntity: Map<String, Map<String, Int>>
 ) : Versionable<String> {
 
 	companion object {
 		private const val ID_PREFIX = "ddocConfig"
 
-		fun idOf(applicationId: String, entity: String, version: Int): String =
-			"$ID_PREFIX:$applicationId:$entity:$version"
+		fun idOf(applicationId: String, version: Int): String = "$ID_PREFIX:$applicationId:$version"
 	}
 
 	@JsonProperty("_id")
-	override val id = "$ID_PREFIX:$applicationId:$entity:$version"
+	override val id = "$ID_PREFIX:$applicationId:$version"
 
 	override fun withIdRev(
 		id: String?,
 		rev: String
-	): DesignDocEntityConfiguration {
-		val (_, applicationId, entity, version) = id?.split(":", limit = 4) ?: listOf("", applicationId, entity, "$version")
+	): DesignDocConfiguration {
+		val (_, applicationId, version) = id?.split(":", limit = 3) ?: listOf("", applicationId, "$version")
 		return copy(
 			rev = rev,
 			applicationId = applicationId,
-			entity = entity,
 			version = version.toInt()
 		)
 	}
