@@ -2,6 +2,8 @@ package org.taktik.icure.customentities.util
 
 import org.taktik.icure.customentities.config.migration.EnumMigration
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
+import org.taktik.icure.jackson.annotations.JsonIgnore
+import org.taktik.icure.jackson.annotations.JsonInclude
 
 interface BuiltinDefinitionsProvider {
 	fun getBuiltinEnumDefinition(name: String): BuiltinEnumDefinition?
@@ -40,14 +42,10 @@ interface BuiltinDefinitionsProvider {
 		 */
 		val properties: Map<String, ObjectDefinition.PropertyConfiguration>,
 		/**
-		 * If this object definition represens an entity that can have custom extensions added to it
+		 * Information about extendability of this type, should use [isRoot], [isExtendable] and [isSpecializable] for
+		 * easier checks on the extendability level of this type.
 		 */
-		val isExtendable: Boolean,
-		/**
-		 * If this object definition represents an extendable entity that is a root entity in the database.
-		 * These entities can't be embedded in other entities
-		 */
-		val isRoot: Boolean,
+		val extendability: ExtendabilityInfo?,
 		/**
 		 * Name of properties that are included in [properties] but have been deprecated.
 		 * They might still be useful in migrations.
@@ -61,7 +59,33 @@ interface BuiltinDefinitionsProvider {
 		 * Used only to support providing better error messages.
 		 */
 		val metadataProperties: Set<String>
-	)
+	) {
+		enum class ExtendabilityInfo {
+			Root,
+			Extendable,
+			Specializable
+		}
+
+		/**
+		 * If this object definition represents an extendable entity that is a root entity in the database.
+		 * These entities can't be embedded in other entities
+		 */
+		@get:JsonIgnore
+		val isRoot: Boolean get() = extendability == ExtendabilityInfo.Root
+		/**
+		 * If this object definition represents an entity that can have custom extensions added to it.
+		 * Should be always true if [isRoot] is true.
+		 */
+		@get:JsonIgnore
+		val isExtendable: Boolean get() = isRoot || extendability == ExtendabilityInfo.Specializable
+		/**
+		 * If this object definition represents an entity that can have specialized builtin properties (but will not
+		 * allow custom extensions itself if not also extendable).
+		 * Should be always true if [isExtendable] is true.
+		 */
+		@get:JsonIgnore
+		val isSpecializable: Boolean get() = extendability != null
+	}
 }
 
 class RegistryBasedBuiltinDefinitionsProvider(

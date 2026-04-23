@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
@@ -33,6 +34,7 @@ import java.time.Instant
  * Represents the value content of a medical service. A content can hold different types of values
  * such as strings, numbers, dates, measurements, medications, time series, or compound sub-services.
  */
+@ExposedToCustomEntities(specializable = true)
 data class ContentDto(
 	/** A string value. */
 	val stringValue: String? = null,

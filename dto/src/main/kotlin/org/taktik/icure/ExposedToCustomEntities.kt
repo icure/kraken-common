@@ -5,4 +5,9 @@ package org.taktik.icure
  */
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
-annotation class ExposedToCustomEntities
+annotation class ExposedToCustomEntities(
+	/**
+	 * If the entity should be specializable
+	 */
+	val specializable: Boolean = false
+)

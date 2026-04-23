@@ -270,15 +270,23 @@ data class ObjectDefinition(
 			val builtinDefinition = context.builtinDefinitions.getBuiltinObjectDefinition(builtinExtension.entityName)
 			if (builtinDefinition == null) {
 				context.validation.addError("GE-OBJECT-BASEENTITYREF", "entity" to builtinExtension.entityName)
-			} else if (!builtinDefinition.isExtendable) {
-				context.validation.addError("GE-OBJECT-BASEENTITYEXTENDABLE", "entity" to builtinExtension.entityName)
+			} else if (!builtinDefinition.isSpecializable) {
+				context.validation.addError("GE-OBJECT-BASEENTITYSPECIALIZABLE", "entity" to builtinExtension.entityName)
 			} else {
-				context.validation.appending(".") {
-					properties.keys.intersect(builtinDefinition.properties.keys).forEach {
-						context.validation.appending(it) {
-							context.validation.addWarning("GE-OBJECT-WBASEENTITYPROP", "prop" to it, "entity" to builtinExtension.entityName)
+				if (builtinDefinition.isExtendable) {
+					context.validation.appending(".") {
+						properties.keys.intersect(builtinDefinition.properties.keys).forEach {
+							context.validation.appending(it) {
+								context.validation.addWarning(
+									"GE-OBJECT-WBASEENTITYPROP",
+									"prop" to it,
+									"entity" to builtinExtension.entityName
+								)
+							}
 						}
 					}
+				} else if (properties.isNotEmpty()) {
+					context.validation.addError("GE-OBJECT-BASEENTITYEXTENDABLE", "entity" to builtinExtension.entityName)
 				}
 				builtinExtension.extendedBuiltinProperties.forEach { (builtinPropName, targetDefinitionRef) ->
 					val propConfig = builtinDefinition.properties[builtinPropName]
