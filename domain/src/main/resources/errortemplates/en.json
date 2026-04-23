@@ -1,4 +1,5 @@
 {
+  "GE-BUILTIN-IN-CUSTOM": "{{path}}: Currently builtin enums, builtin objects, and custom objects extending builtin are not supported in custom properties or custom entities.",
   "GE-NULL": "{{path}}: Invalid value `null` for non-nullable value",
   "GE-IDENTIFIER-LENGTH": "{{path}}: Invalid identifier `{{value}}`, length must be between {{min}} and {{max}} characters (inclusive)",
   "GE-IDENTIFIER-CHARS": "{{path}}: Invalid identifier `{{value}}`, can only contain alphanumeric characters and underscores, and must not start with a digit",

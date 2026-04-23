@@ -319,11 +319,12 @@ data class ObjectDefinition(
 		value: RawJson.JsonObject,
 	): RawJson =
 		if (builtinExtension != null) {
-			context.builtinValidation.validateAndMapExtendedBuiltinObjectForStore(
-				this,
-				value,
-				context.validation
-			) // Will take care of also mapping extensions
+			throw UnsupportedOperationException("Custom objects extending builtin in custom extension or custom object is not currently supported")
+//			context.builtinValidation.validateAndMapExtendedBuiltinObject(
+//				this,
+//				value,
+//				context.validation
+//			) // Will take care of also mapping extensions
 		} else {
 			validateAndMapExtensionValueForStore(context, value)
 		}

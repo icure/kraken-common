@@ -25,4 +25,5 @@ data class StandardRootEntityExtensionConfig(
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class StandardRootEntitiesExtensionConfig(
 	override val patient: StandardRootEntityExtensionConfig? = null,
+	override val healthcareParty: StandardRootEntityExtensionConfig? = null,
 ) : ExtendableRootEntitiesConfiguration<StandardRootEntityExtensionConfig>

@@ -12,7 +12,7 @@ class MapperBasedExtendableBuiltinEntityValidator(
 	private val resolutionContext: CustomEntityConfigResolutionContext,
 ) : ExtendableBuiltinEntityValidator {
 
-	override fun validateAndMapExtendedBuiltinObjectForStore(
+	override fun validateAndMapExtendedBuiltinObject(
 		extendedObjectDefinition: ObjectDefinition,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
@@ -36,7 +36,7 @@ class MapperBasedExtendableBuiltinEntityValidator(
 			errorCollector
 		)
 
-	override fun validateAndMapPlainBuiltinObjectForStore(
+	override fun validateAndMapPlainBuiltinObject(
 		entityType: String,
 		value: RawJson.JsonObject,
 		errorCollector: ScopedErrorCollector
@@ -45,7 +45,7 @@ class MapperBasedExtendableBuiltinEntityValidator(
 			"This version of the cardinal backend does not support builtin objects of type `$entityType`, you might need to use a more recent version or switch to a fully custom entity"
 		}.invoke(value, null, errorCollector)
 
-	override fun validateAndMapBuiltinEnumForStore(
+	override fun validateAndMapBuiltinEnum(
 		enumType: String,
 		value: RawJson.JsonString,
 		errorCollector: ScopedErrorCollector

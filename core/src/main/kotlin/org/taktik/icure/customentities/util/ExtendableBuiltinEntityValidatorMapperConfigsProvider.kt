@@ -28,78 +28,51 @@ import kotlin.collections.set
 
 interface ExtendableBuiltinEntityValidatorMapperConfigsProvider {
 	val objectToDomain: Map<String, (RawJson.JsonObject, MapperExtensionsValidationContext?, ScopedErrorCollector) -> RawJson.JsonObject>
-	val objectToDto: Map<String, (RawJson.JsonObject, ScopedErrorCollector) -> RawJson.JsonObject>
 	val enumToDomain: Map<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>
-	val enumToDto: Map<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>
 }
 
 class ExtendableBuiltinEntityValidatorMapperConfigsProviderImpl(
 	override val objectToDomain: Map<String, (RawJson.JsonObject, MapperExtensionsValidationContext?, ScopedErrorCollector) -> RawJson.JsonObject>,
-	override val objectToDto: Map<String, (RawJson.JsonObject, ScopedErrorCollector) -> RawJson.JsonObject>,
 	override val enumToDomain: Map<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>,
-	override val enumToDto: Map<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>,
 ) : ExtendableBuiltinEntityValidatorMapperConfigsProvider
 
 class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 	val objectMapper: ObjectMapper
 ) {
 	val objectToDomain = mutableMapOf<String, (RawJson.JsonObject, MapperExtensionsValidationContext?, ScopedErrorCollector) -> RawJson.JsonObject>()
-	val objectToDto = mutableMapOf<String, (RawJson.JsonObject, ScopedErrorCollector) -> RawJson.JsonObject>()
 	val enumToDomain = mutableMapOf<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>()
-	val enumToDto = mutableMapOf<String, (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString>()
 
-	inline fun <reified FROM : Enum<FROM>, reified TO : Enum<TO>> createOneEnumMapper(
+	inline fun <reified FROM : Enum<FROM>> createOneEnumMapper(
 		enumType: String
 	): (RawJson.JsonString, ScopedErrorCollector) -> RawJson.JsonString {
 		val fromClass = FROM::class.java
 		return lambda@{ value, errorCollector ->
-			val dtoValue = try {
+			try {
 				objectMapper.treeToValue(TextNode(value.value), fromClass)
+				// Enums are converted using "valueOf" only, no need to do round-trip mapping like for objects
 			} catch (e: JsonMappingException) {
 				errorCollector.addError(
 					"GE-ENUM-VALUE-BUILTIN",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumType),
 				)
-				return@lambda value
 			}
-			RawJson.JsonString(objectMapper.valueToTree<TextNode>(enumValueOf<TO>(dtoValue.name)).textValue())
+			return@lambda value // Must still use the serialized value, parse above is only for checking validity
 		}
 	}
 
-	// Does not require mappers since currently enum is always mapped by valueof
 	inline fun <reified DTO : Enum<DTO>, reified DOMAIN : Enum<DOMAIN>> addMapperForBuiltinEnum(
 		enumType: String
 	) {
 		check(!enumToDomain.containsKey(enumType)) {
 			"Mapper for enum $enumType already configured"
 		}
-		enumToDomain[enumType] = createOneEnumMapper<DTO, DOMAIN>(enumType)
-		enumToDto[enumType] = createOneEnumMapper<DOMAIN, DTO>(enumType)
+		enumToDomain[enumType] = createOneEnumMapper<DTO>(enumType)
 	}
-
-	inline fun <T : Any> tryParseFrom(
-		entityName: String,
-		value: RawJson.JsonObject,
-		collector: ScopedErrorCollector,
-		clazz: Class<T>
-	): T? = try {
-		objectMapper.treeToValue(value.toJackson(), clazz)
-	} catch (_: JsonMappingException) {
-		// Can maybe add path of jackson problem, but then becomes too implementation-dependent
-		collector.addError("GE-OBJECT-BUILTIN", "entityName" to entityName)
-		null
-	}
-
-	inline fun rewriteMapped(
-		mappedValue: Any
-	): RawJson.JsonObject =
-		objectMapper.valueToTree<JsonNode>(mappedValue).toRawJson() as RawJson.JsonObject
 
 	inline fun <DTO : Any, DOMAIN : Any> doAddMappersForBuiltinObject(
 		entityName: String,
 		dtoClass: Class<DTO>,
-		domainClass: Class<DOMAIN>,
 		checkValidationContext: (MapperExtensionsValidationContext?) -> Unit,
 		mapperToDomain: (DTO, MapperExtensionsValidationContext?, ScopedErrorCollector) -> DOMAIN,
 		mapperToDto: (DOMAIN) -> DTO,
@@ -113,17 +86,17 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 			collector: ScopedErrorCollector
 		): RawJson.JsonObject {
 			checkValidationContext(context)
-			val dto = tryParseFrom(entityName, value, collector, dtoClass) ?: return value
-			val mapped = mapperToDomain(dto, context, collector)
-			return rewriteMapped(mapped)
-		}
-		objectToDto[entityName] = fun(
-			value: RawJson.JsonObject,
-			collector: ScopedErrorCollector
-		): RawJson.JsonObject {
-			val domain = tryParseFrom(entityName, value, collector, domainClass) ?: return value
-			val mapped = mapperToDto(domain)
-			return rewriteMapped(mapped)
+			val parsedDto = try {
+				objectMapper.treeToValue(value.toJackson(), dtoClass)
+			} catch (_: JsonMappingException) {
+				// Can maybe add path of jackson problem, but then becomes too implementation-dependent
+				collector.addError("GE-OBJECT-BUILTIN", "entityName" to entityName)
+				return value
+			}
+			// Round-trip mappig to domain and back to dto, if the mapper does some normalization we ensure we get it
+			// this way
+			val remapped = mapperToDto(mapperToDomain(parsedDto, context, collector))
+			return objectMapper.valueToTree<JsonNode>(remapped).toRawJson() as RawJson.JsonObject
 		}
 	}
 
@@ -134,11 +107,9 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 	) {
 		val entityName = DOMAIN::class.simpleName!!
 		val dtoClass = DTO::class.java
-		val domainClass = DOMAIN::class.java
 		doAddMappersForBuiltinObject(
 			entityName = entityName,
 			dtoClass = dtoClass,
-			domainClass = domainClass,
 			checkValidationContext = {},
 			mapperToDomain = { dto, context, collector ->
 				mapperToDomain(
@@ -157,11 +128,9 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 	) {
 		val entityName = DOMAIN::class.simpleName!!
 		val dtoClass = DTO::class.java
-		val domainClass = DOMAIN::class.java
 		doAddMappersForBuiltinObject(
 			entityName = entityName,
 			dtoClass = dtoClass,
-			domainClass = domainClass,
 			checkValidationContext = { context ->
 				check(context == null) {
 					"Validating a non-extendable builtin entity as if it was extendable (entity: $entityName)"
@@ -175,12 +144,8 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 	fun build() = object : ExtendableBuiltinEntityValidatorMapperConfigsProvider {
 		override val objectToDomain =
 			this@ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder.objectToDomain.toMap()
-		override val objectToDto =
-			this@ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder.objectToDto.toMap()
 		override val enumToDomain =
 			this@ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder.enumToDomain.toMap()
-		override val enumToDto =
-			this@ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder.enumToDto.toMap()
 	}
 
 	companion object {

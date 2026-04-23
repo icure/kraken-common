@@ -26,9 +26,14 @@ data class ObjectTypeConfig(
 		context: CustomEntityConfigValidationContext,
 	) {
 		val definition = if (isBuiltin) {
+			context.validation.addError("GE-BUILTIN-IN-CUSTOM")
 			context.builtinDefinitions.getBuiltinObjectDefinition(objectReference)
 		} else {
-			context.resolution.resolveObjectReference(objectReference)
+			val customObjectDefinition = context.resolution.resolveObjectReference(objectReference)
+			if (customObjectDefinition?.builtinExtension != null) {
+				context.validation.addError("GE-BUILTIN-IN-CUSTOM")
+			}
+			customObjectDefinition
 		}
 		if (definition == null) {
 			context.validation.addError(
@@ -48,7 +53,8 @@ data class ObjectTypeConfig(
 			context.validation.addError("GE-OBJECT-JSON", "name" to truncateValueForErrorMessage(objectReference))
 			value
 		} else if (isBuiltin) {
-			context.builtinValidation.validateAndMapPlainBuiltinObjectForStore(objectReference, value, context.validation)
+			throw UnsupportedOperationException("Builtin enum in custom extension or custom object is not currently supported")
+			// context.builtinValidation.validateAndMapPlainBuiltinObject(objectReference, value, context.validation)
 		} else {
 			context.resolution.resolveRequiredObjectReference(objectReference).validateAndMapValueForStore(
 				context,

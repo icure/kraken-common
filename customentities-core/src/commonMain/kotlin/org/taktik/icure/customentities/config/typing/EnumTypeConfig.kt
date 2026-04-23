@@ -5,7 +5,6 @@ import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
-import org.taktik.icure.customentities.util.getRequiredEnumDefinition
 import org.taktik.icure.customentities.util.resolveRequiredEnumReference
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
@@ -30,6 +29,7 @@ data class EnumTypeConfig(
 		context: CustomEntityConfigValidationContext,
 	) {
 		val definition = if (isBuiltin) {
+			context.validation.addError("GE-BUILTIN-IN-CUSTOM")
 			context.builtinDefinitions.getBuiltinEnumDefinition(enumReference)
 		} else {
 			context.resolution.resolveEnumReference(enumReference)
@@ -50,8 +50,10 @@ data class EnumTypeConfig(
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
 			context.validation.addError("GE-ENUM-JSON")
+			value
 		} else if (isBuiltin) {
-			context.builtinValidation.validateAndMapBuiltinEnumForStore(enumReference, value, context.validation)
+			throw UnsupportedOperationException("Builtin enum in custom extension or custom object is not currently supported")
+			// context.builtinValidation.validateAndMapBuiltinEnum(enumReference, value, context.validation)
 		} else {
 			if (value.value !in context.resolution.resolveRequiredEnumReference(enumReference).entries) {
 				context.validation.addError(
@@ -60,7 +62,7 @@ data class EnumTypeConfig(
 					"ref" to truncateValueForErrorMessage(enumReference),
 				)
 			}
+			value
 		}
-		value
 	}
 }
