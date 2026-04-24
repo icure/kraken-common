@@ -20,12 +20,18 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.SubContact
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 
 @Mapper(componentModel = "spring", uses = [CodeStubV2Mapper::class, ServiceLinkV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface SubContactV2Mapper {
-	fun map(subContactDto: SubContactDto): SubContact
+	@Mappings(
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(subContactDto.extensions))"),
+	)
+	fun map(subContactDto: SubContactDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): SubContact
 	fun map(subContact: SubContact): SubContactDto
 }

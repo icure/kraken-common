@@ -20,11 +20,17 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.Episode
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
 
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface EpisodeV2Mapper {
-	fun map(episodeDto: EpisodeDto): Episode
+	@Mappings(
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(episodeDto.extensions))"),
+	)
+	fun map(episodeDto: EpisodeDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Episode
 	fun map(episode: Episode): EpisodeDto
 }

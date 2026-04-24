@@ -28,6 +28,5 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
 
 @Mapper(componentModel = "spring", uses = [DelegationV2Mapper::class, ServiceV2Mapper::class, CodeStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ResultInfoV2Mapper {
-	fun map(resultInfoDto: ResultInfoDto): ResultInfo
 	fun map(resultInfo: ResultInfo): ResultInfoDto
 }

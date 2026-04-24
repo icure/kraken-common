@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.Content
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
@@ -30,14 +31,17 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 
 @Mapper(componentModel = "spring", uses = [MeasureV2Mapper::class, MedicationV2Mapper::class, TimeSeriesV2Mapper::class, IdentifierV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AnnotationV2Mapper::class, SecurityMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-interface ServiceV2Mapper {
+interface ServiceV2Mapper : ContentV2Mapper {
 
 	@Mappings(
 		Mapping(target = "dataClassName", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(serviceDto.extensions))"),
 	)
-	fun map(serviceDto: ServiceDto): Service
+	fun map(serviceDto: ServiceDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Service
 	fun map(service: Service): ServiceDto
+}
 
-	fun map(contentDto: ContentDto): Content
+interface ContentV2Mapper {
+	fun map(contentDto: ContentDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Content
 	fun map(content: Content): ContentDto
 }

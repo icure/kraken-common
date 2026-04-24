@@ -20,11 +20,17 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.embed.CareTeamMembership
 import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMembershipDto
 
 @Mapper(componentModel = "spring", uses = [], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface CareTeamMembershipV2Mapper {
-	fun map(careTeamMembershipDto: CareTeamMembershipDto): CareTeamMembership
+	@Mappings(
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(careTeamMembershipDto.extensions))"),
+	)
+	fun map(careTeamMembershipDto: CareTeamMembershipDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): CareTeamMembership
 	fun map(careTeamMembership: CareTeamMembership): CareTeamMembershipDto
 }

@@ -61,9 +61,8 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 		}
 	}
 
-	inline fun <reified DTO : Enum<DTO>, reified DOMAIN : Enum<DOMAIN>> addMapperForBuiltinEnum(
-		enumType: String
-	) {
+	inline fun <reified DTO : Enum<DTO>, reified DOMAIN : Enum<DOMAIN>> addMapperForBuiltinEnum() {
+		val enumType = DOMAIN::class.simpleName!!
 		check(!enumToDomain.containsKey(enumType)) {
 			"Mapper for enum $enumType already configured"
 		}
@@ -100,8 +99,14 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 		}
 	}
 
-	// Add mappers for an object that is extendable (and available)
 	inline fun <reified DTO : ExtendableDto, reified DOMAIN : Extendable> addMappersForExtendableBuiltinObject(
+		mapperToDomain: (DTO, MapperExtensionsValidationContext) -> DOMAIN,
+		mapperToDto: (DOMAIN) -> DTO,
+	) {
+		addMappersForSpecializableBuiltinObject(mapperToDomain, mapperToDto)
+	}
+
+	inline fun <reified DTO : Any, reified DOMAIN : Any> addMappersForSpecializableBuiltinObject(
 		mapperToDomain: (DTO, MapperExtensionsValidationContext) -> DOMAIN,
 		mapperToDto: (DOMAIN) -> DTO,
 	) {
@@ -121,8 +126,7 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 		)
 	}
 
-	// Add mappers for an object that is available but not extendable
-	inline fun <reified DTO : Any, reified DOMAIN : Any> addMappersForAvailableBuiltinObject(
+	inline fun <reified DTO : Any, reified DOMAIN : Any> addMappersForExposedBuiltinObject(
 		mapperToDomain: (DTO) -> DOMAIN,
 		mapperToDto: (DOMAIN) -> DTO,
 	) {
@@ -179,30 +183,4 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 			else -> throw IllegalStateException("Unexpected JsonNode type: ${this::class}")
 		}
 	}
-}
-
-@Configuration
-class ExtendableBuiltinEntitiesValidationConfig {
-	@Bean
-	fun provider(
-		objectMapper: ObjectMapper,
-		addressMapper: AddressV2Mapper,
-		codeStubMapper: CodeStubV2Mapper,
-		telecomMapper: TelecomV2Mapper,
-	): ExtendableBuiltinEntityValidatorMapperConfigsProvider = ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
-		objectMapper
-	).apply {
-		addMappersForExtendableBuiltinObject(
-			mapperToDomain = addressMapper::map,
-			mapperToDto = addressMapper::map,
-		)
-		addMappersForAvailableBuiltinObject(
-			mapperToDomain = codeStubMapper::mapNotNull,
-			mapperToDto = codeStubMapper::map,
-		)
-		addMappersForExtendableBuiltinObject(
-			mapperToDomain = telecomMapper::map,
-			mapperToDto = telecomMapper::map,
-		)
-	}.build()
 }
