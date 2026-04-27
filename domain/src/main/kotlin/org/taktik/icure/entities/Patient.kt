@@ -34,6 +34,7 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SchoolingInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
+import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -167,7 +168,7 @@ data class Patient(
 	val medicalHouseContracts: List<MedicalHouseContract> = emptyList(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE)
 	val patientProfessions: List<CodeStub> = emptyList(),
-
+	@param:JsonDeserialize(contentUsing = JacksonLenientCollectionDeserializer::class)
 	val parameters: Map<String, List<String>> = emptyMap(),
 	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
 	@Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
