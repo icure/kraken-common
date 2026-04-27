@@ -19,12 +19,14 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.extensions.Extension
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.SdkNonNullable
+import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
@@ -219,6 +221,7 @@ data class PatientDto(
 	/** Codified list of professions exercised by this patient. */
 	@param:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
 	/** Extra parameters. */
+	@param:JsonDeserialize(contentUsing = JacksonLenientCollectionDeserializer::class)
 	@param:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
 	/** Extra properties. */
 	@param:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
