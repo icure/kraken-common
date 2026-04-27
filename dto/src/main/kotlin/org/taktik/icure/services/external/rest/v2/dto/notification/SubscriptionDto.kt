@@ -27,6 +27,7 @@ data class SubscriptionDto<O : IdentifiableDto<String>>(
 	/** When true, uses Cardinal model serialization for the entity payloads. */
 	val useCardinalModelSerialization: Boolean? = null,
 	val cardinalSdkVersion: String? = null,
+	val includeLegacyFields: Boolean = false
 ) : java.io.Serializable
 
 /**

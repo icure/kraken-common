@@ -25,6 +25,7 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
+import org.taktik.icure.config.SharedWebFluxConfiguration.CardinalMappers.MapperConfig
 import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
@@ -54,10 +55,51 @@ class SharedWebConfig {
 }
 
 abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
+	/**
+	 * Mappers for Cardinal SDK, selectively omit some data based on the version of cardinal sdk declared in use by the
+	 * user.
+	 *
+	 * - Version < 2.0.0 or not declared:
+	 *   - Include all data, including legacy fields
+	 * - 2.0.0 <= version < 2.4.0 :
+	 *   - Does not include DataAttachment.storedDataSize and Document.mainAttachmentStoredDataSize, as they are filled
+	 *     in automatically by the server regardless of the CardinalSDK version.
+	 * - 2.4.0 <= version, currently:
+	 *   - Everything is included (excluding legacy fields by default)
+	 *
+	 * # Legacy fields
+	 *
+	 * Many fields of the data model are considered part of the legacy data model.
+	 *
+	 * By default, these are not included in any cardinal model past version 2.0.0, unless an additional flag is used
+	 * to explicitly include them.
+	 */
 	interface CardinalMappers {
-		val byMinVersion: TreeMap<SemanticVersion, ObjectMapper>
+		/**
+		 * Mappers associated by minimum version of cardinal that can use that mapper.
+		 * All the cardinal mappers here always exclude legacy fields.
+		 */
+		val byMinVersion: TreeMap<SemanticVersion, MapperConfig>
 
-		fun getForVersion(semanticVersion: SemanticVersion): ObjectMapper? = byMinVersion.floorEntry(semanticVersion)?.value
+		data class MapperConfig(
+			/**
+			 * A mapper configuration that excludes all legacy fields.
+			 */
+			val default: ObjectMapper,
+			/**
+			 * A mapper configuration equivalent to [default] excepts it also includes the legacy fields
+			 */
+			val includingLegacyFields: ObjectMapper
+		)
+
+		/**
+		 * Get the cardinal mapper configuration to use for the provided [semanticVersion], or null if there is no
+		 * mapper supporting that as minimum version.
+		 */
+		fun getForVersion(semanticVersion: SemanticVersion, includingLegacyFields: Boolean = false): ObjectMapper? =
+			byMinVersion.floorEntry(semanticVersion)?.value?.let {
+				if (includingLegacyFields) it.includingLegacyFields else it.default
+			}
 	}
 
 	private val CLASSPATH_RESOURCE_LOCATIONS =
@@ -78,13 +120,8 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			.allowedHeaders("*")
 	}
 
-	// TODO may want to set a default filter instead of putting all explicitly at least for the legacy
 	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider()
-		.addFilter("healthElementFilter", SimpleBeanPropertyFilter.serializeAll())
-		.addFilter("userFilter", SimpleBeanPropertyFilter.serializeAll())
-		.addFilter("codeStubFilter", SimpleBeanPropertyFilter.serializeAll())
-		.addFilter("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAll())
-		.addFilter("documentFilter", SimpleBeanPropertyFilter.serializeAll())
+		.setDefaultFilter(SimpleBeanPropertyFilter.serializeAll())
 
 	protected val legacyObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
@@ -96,54 +133,57 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			setFilterProvider(legacyJacksonFilter)
 		}
 
+	/**
+	 * Object mapper that serializes always all fields
+	 */
 	@Bean
 	open fun legacyObjectMapper() = legacyObjectMapper
 
-	private val healthElementFilter = Pair("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status"))
-	private val userFilter = Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type"))
-	private val codeStubFilter = Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label"))
-	private val dataAttachmentFilterNoStoredDataSize = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize"))
-	private val dataAttachmentFilterFull = Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAll())
-	private val documentNoMainAttachmentSize = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentStoredDataSize"))
-	private val documentFull = Pair("documentFilter", SimpleBeanPropertyFilter.serializeAll())
+	// TODO will work well only as long as we have no overlap between lists
+	private val excludeLegacyMetadataFilters = listOf(
+		Pair("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status")),
+		Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type")),
+		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
+	)
+	private val pre_2_4_0_filters = listOf(
+		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),
+		Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentStoredDataSize")),
+	)
 
 	private fun makeCardinalObjectMapper(
 		filters: List<Pair<String, SimpleBeanPropertyFilter>>
-	): ObjectMapper =
-		ObjectMapper().registerModule(
-			KotlinModule.Builder()
-				.configure(KotlinFeature.NullIsSameAsDefault, true)
-				.build()
-		).apply {
-			setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
-			setFilterProvider(
-				filters.fold(SimpleFilterProvider()) { filters, (name, filter) ->
-					filters.addFilter(name, filter)
-				}
-			)
-		}
+	): MapperConfig {
+		fun includingLegacyFields(doInclude: Boolean) =
+			ObjectMapper().registerModule(
+				KotlinModule.Builder()
+					.configure(KotlinFeature.NullIsSameAsDefault, true)
+					.build()
+			).apply {
+				setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
+				val allFilters = if (doInclude) filters else (excludeLegacyMetadataFilters + filters)
+				setFilterProvider(
+					allFilters.fold(
+						SimpleFilterProvider().setDefaultFilter(SimpleBeanPropertyFilter.serializeAll())
+					) { filters, (name, filter) ->
+						filters.addFilter(name, filter)
+					}
+				)
+			}
+		return MapperConfig(
+			default = includingLegacyFields(false),
+			includingLegacyFields = includingLegacyFields(true)
+		)
+	}
 
 	protected val cardinalMappers = object : CardinalMappers {
-		override val byMinVersion: TreeMap<SemanticVersion, ObjectMapper> = TreeMap<SemanticVersion, ObjectMapper>().apply {
+		override val byMinVersion = TreeMap<SemanticVersion, MapperConfig>().apply {
 			put(
 				CardinalVersionConfig.minCardinalModelVersion,
-				makeCardinalObjectMapper(listOf(
-					healthElementFilter,
-					userFilter,
-					codeStubFilter,
-					dataAttachmentFilterNoStoredDataSize,
-					documentNoMainAttachmentSize
-				))
+				makeCardinalObjectMapper(pre_2_4_0_filters)
 			)
 			put(
 				SemanticVersion("2.4.0"),
-				makeCardinalObjectMapper(listOf(
-					healthElementFilter,
-					userFilter,
-					codeStubFilter,
-					dataAttachmentFilterFull,
-					documentFull
-				))
+				makeCardinalObjectMapper(emptyList())
 			)
 		}
 	}
