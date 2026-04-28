@@ -60,24 +60,57 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	 * user.
 	 *
 	 * - Version < 2.0.0 or not declared:
-	 *   - Include all data, including legacy fields
+	 *   - Include all data, including legacy autofilled fields
 	 * - 2.0.0 <= version < 2.4.0 :
 	 *   - Does not include DataAttachment.storedDataSize and Document.mainAttachmentStoredDataSize, as they are filled
 	 *     in automatically by the server regardless of the CardinalSDK version.
 	 * - 2.4.0 <= version, currently:
-	 *   - Everything is included (excluding legacy fields by default)
+	 *   - Everything is included except for legacy autofilled fields by default
 	 *
 	 * # Legacy fields
 	 *
 	 * Many fields of the data model are considered part of the legacy data model.
 	 *
-	 * By default, these are not included in any cardinal model past version 2.0.0, unless an additional flag is used
-	 * to explicitly include them.
+	 * Most of the fields from the legacy data model were never used by cardinal or kraken, so they always have the
+	 * default null/empty value, therefore, when we serialize the dto for Cardinal there is no entry for those fields.
+	 * However, if the user was using those fields and gave explicit values to them we will include them in the
+	 * serialized DTO, and that would cause an error when using new (standard) versions of cardinal.
+	 *
+	 * Since no one ever used explicitly the legacy fields we haven't incurred in these problems, however, some fields
+	 * of the legacy data model were given a value automatically by older versions o of Cardinal and/or older versions
+	 * of Kraken.
+	 * We are explicitly ignoring these fields, regardless of their value, when the user declares they are using
+	 * Cardinal version 2.0.0 or above, unless additional flags are used to request explicitly that they are included.
+	 *
+	 * This supports transition without migration of data for cardinal users to 2.0.0.
+	 * However, if the user ever explicitly set a value for one of these autofilled fields this would cause silent
+	 * partial loss of information, since the Cardinal SDK would not reject the data.
+	 * Again, this is not a problem for cardinal users since no user of cardinal < 2.0.0 ever used those fields, and
+	 * Cardinal >= 2.0.0 does not expose them, but it would be a problem if users of the legacy iCure SDK migrate to
+	 * cardinal without using the proper configuration.
+	 *
+	 * ## Example
+	 *
+	 * Health element has:
+	 * - MedicalLocationId, a legacy field that has been removed from Cardinal 2.0.0 and was never autofilled
+	 * - Status, a legacy field that has been removed from Cardinal 2.0.0 but was autofilled to 0
+	 *
+	 * MedicalLocationId will not be included in the serialized DTO if null, BUT will always be included if not null.
+	 * If for some reason there is data that did set the MedicalLocationId to a value the CardinalSDK would throw an
+	 * error when parsing the health element. This protects against unintentional loss of data
+	 *
+	 * Status instead, will not be included, regardless of value, otherwise users of Cardinal would get unexpected
+	 * errors even when they did not explicitly set the status value. However, if a Cardinal user had explicitly set
+	 * a Status value to let's say 2, the status would be silently reset to 0 when the user updates the HealthElement
+	 * through Cardinal 2.0.0
+	 *
+	 * This is a problem only for users that moved from the legacy iCure SDK. These users should instead use the
+	 * legacy-support version of the cardinal SDK and use a header to request that legacy autofilled fields are
+	 * included.
 	 */
 	interface CardinalMappers {
 		/**
 		 * Mappers associated by minimum version of cardinal that can use that mapper.
-		 * All the cardinal mappers here always exclude legacy fields.
 		 */
 		val byMinVersion: TreeMap<SemanticVersion, MapperConfig>
 
@@ -141,8 +174,11 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 
 	// TODO will work well only as long as we have no overlap between lists
 	private val excludeLegacyMetadataFilters = listOf(
+		// Status is by default filled to 0, and is always serialized
 		Pair("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status")),
+		// An older version of kraken used to automatically set a value for type
 		Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type")),
+		// An older version of cardinal used to automatically set label as empty map
 		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
 	)
 	private val pre_2_4_0_filters = listOf(
