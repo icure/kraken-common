@@ -112,8 +112,7 @@ data class CalendarItemDto(
 	val resourceGroup: CodeStubDto? = null,
 	/** How this calendar item is considered by the availabilities algorithm. */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
-	/** The healthcare party id associated with this calendar item. */
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	/** The healthcare party id associated with this calendar item. Deprecated: This field is scheduled for deletion */
 	val hcpId: String? = null,
 	/** An id for linking recurring calendar items. */
 	val recurrenceId: String? = null,
