@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -86,7 +85,7 @@ internal class HealthElementDAOImpl(
 						.doNotIncludeDocs(),
 					compareBy { it[0] },
 				).filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}
 
@@ -149,7 +148,7 @@ internal class HealthElementDAOImpl(
 			client
 				.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 
@@ -186,7 +185,7 @@ internal class HealthElementDAOImpl(
 			client
 				.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 
@@ -227,7 +226,7 @@ internal class HealthElementDAOImpl(
 						{ (it.components[1] as? Number)?.toLong() },
 					),
 				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 
@@ -274,7 +273,7 @@ internal class HealthElementDAOImpl(
 						it.components[0] as? String
 					}, { it.components[1] as? String }, { it.components[2] as? String }),
 				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 

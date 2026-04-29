@@ -63,7 +63,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(datastoreInformation, "by_username").includeDocs(true).key(username),
-				).mapNotNull {
+				).map {
 					it.doc
 				},
 		)
@@ -96,7 +96,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(datastoreInformation, "by_email").includeDocs(true).key(searchString),
-				).mapNotNull {
+				).map {
 					it.doc
 				},
 		)
@@ -127,7 +127,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(datastoreInformation, "by_phone").includeDocs(true).key(normalizePhone(phone)),
-				).mapNotNull {
+				).map {
 					it.doc
 				},
 		)

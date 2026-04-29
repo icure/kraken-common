@@ -276,7 +276,6 @@ class CalendarItemDAOImpl(
 		emitAll(
 			client
 				.queryView<ComplexKey, String>(query)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id },
 		)
 	}

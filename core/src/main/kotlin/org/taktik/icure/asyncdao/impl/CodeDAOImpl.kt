@@ -860,7 +860,7 @@ class CodeDAOImpl(
 					.reduce(false)
 					.startKey(from)
 					.endKey(to),
-			).mapNotNull { it.id },
+			).map { it.id },
 		)
 	}
 

@@ -358,7 +358,7 @@ class PatientDAOImpl(
 					compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
 				)
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}
 
@@ -424,7 +424,7 @@ class PatientDAOImpl(
 				viewQueries,
 				compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
 			)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().mapNotNull { it.id },
+				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().map { it.id },
 		)
 	}
 
@@ -569,7 +569,7 @@ class PatientDAOImpl(
 				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>().filter {
 					(houseNumber.isNullOrEmpty() || it.key?.components?.get(3) == houseNumber) &&
 						(postalCode.isNullOrEmpty() || it.key?.components?.get(2) == postalCode)
-				}.mapNotNull { it.id },
+				}.map { it.id },
 		)
 	}
 
