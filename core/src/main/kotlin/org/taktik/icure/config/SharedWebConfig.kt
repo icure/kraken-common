@@ -30,7 +30,7 @@ import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
-import java.util.TreeMap
+import java.util.*
 
 @Configuration
 class SharedWebConfig {
@@ -180,6 +180,8 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type")),
 		// An older version of cardinal used to automatically set label as empty map
 		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
+		// An older version of kraken use to automatically set this value
+		Pair("calendarItemFilter", SimpleBeanPropertyFilter.serializeAllExcept("hcpId"))
 	)
 	private val pre_2_4_0_filters = listOf(
 		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),
