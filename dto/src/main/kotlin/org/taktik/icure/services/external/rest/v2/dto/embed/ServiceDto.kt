@@ -49,7 +49,7 @@ data class ServiceDto(
 	val identifier: List<IdentifierDto> = emptyList(),
 	/** Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact */
 	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact") val contactId: String? = null,
-	//List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
+	/** List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact" */
 	@param:Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
 	val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
 	/** List of IDs of all plans of actions (healthcare approaches) as a part of which the Service is provided. Only used when the Service is emitted outside of its contact */
@@ -61,8 +61,8 @@ data class ServiceDto(
 	/** List of Ids of all forms linked to the Service. Only used when the Service is emitted outside of its contact. */
 	@param:Schema(description = "List of Ids of all forms linked to the Service. Only used when the Service is emitted outside of its contact.")
 	val formIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
+	/** The secret patient key, encrypted in the patient document, in clear here. */
 	@param:Schema(
-		// "The secret patient key, encrypted in the patient document, in clear here.",
 		description = "The secret patient key, encrypted in the patient document, in clear here.",
 		defaultValue = "emptySet()"
 	)
@@ -91,9 +91,9 @@ data class ServiceDto(
 	/** The date (YYYYMMDDhhmmss) marking the end of the Service */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the Service") val closingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	/** Id of the form used during the Service */
+	/** Id of the form used during the Service, should never be used and should be replaced by subcontact grouping */
 	@param:Schema(description = "Id of the form used during the Service")
-	val formId: String? = null, // Used to group logically related services
+	val formId: String? = null,
 	/** The timestamp (unix epoch in ms) of creation of the service, will be filled automatically if missing. Not enforced by the application server. */
 	override val created: Long? = null,
 	/** The date (unix epoch in ms) of the latest modification of the service, will be filled automatically if missing. Not enforced by the application server. */
