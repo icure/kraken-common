@@ -10,5 +10,5 @@ interface CardinalVersionConfig {
 
 	suspend fun getUserCardinalVersion(): SemanticVersion?
 
-	suspend fun shouldUseCardinalModel(): Boolean
+	suspend fun useLegacyDataModelCompatibility(): Boolean
 }
