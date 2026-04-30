@@ -17,6 +17,7 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -32,11 +33,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents an appointment or event in a calendar. Calendar items are linked to an agenda and can block
  * availabilities for scheduling purposes.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("calendarItemFilter")
 data class CalendarItemDto(
 	/** The Id of the calendar item. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
@@ -112,8 +114,7 @@ data class CalendarItemDto(
 	val resourceGroup: CodeStubDto? = null,
 	/** How this calendar item is considered by the availabilities algorithm. */
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
-	/** The healthcare party id associated with this calendar item. */
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	/** The healthcare party id associated with this calendar item. Deprecated: This field is scheduled for deletion */
 	val hcpId: String? = null,
 	/** An id for linking recurring calendar items. */
 	val recurrenceId: String? = null,

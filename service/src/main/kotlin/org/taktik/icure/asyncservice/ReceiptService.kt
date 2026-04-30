@@ -5,6 +5,7 @@
 package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
@@ -98,4 +99,20 @@ interface ReceiptService :
 	 */
 	suspend fun getReceipt(id: String): Receipt?
 	fun getReceipts(receiptIds: List<String>): Flow<Receipt>
+
+	/**
+	 * Add or replace receipt attachment in the new format. Attachment will be stored in couchdb, but may be moved
+	 * later by an external process.
+	 */
+	suspend fun putReceiptAttachmentInfo(
+		receiptId: String,
+		receiptRev: String,
+		blobType: ReceiptBlobType,
+		compressionAlgorithm: String?,
+		triedCompressionAlgorithmsVersion: String?,
+		realDataSize: Long?,
+		storedDataSize: Long,
+		data: Flow<DataBuffer>,
+	): Receipt
+	fun getDataAttachmentByBlobType(receiptId: String, blobType: ReceiptBlobType): Flow<DataBuffer>
 }

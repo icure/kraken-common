@@ -12,18 +12,22 @@ import org.springframework.stereotype.Service
 import org.taktik.couchdb.exception.CouchDbException
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorageMigration
 import org.taktik.icure.asynclogic.objectstorage.IcureObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.IcureObjectStorageMigration
+import org.taktik.icure.asynclogic.objectstorage.ReceiptDataAttachmentLoader
+import org.taktik.icure.asynclogic.objectstorage.ReceiptObjectStorage
+import org.taktik.icure.asynclogic.objectstorage.ReceiptObjectStorageMigration
 import org.taktik.icure.asynclogic.objectstorage.contentBytesOfNullable
 import org.taktik.icure.entities.Document
+import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.exceptions.IllegalEntityException
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.properties.ObjectStorageProperties
 import org.taktik.icure.security.CryptoUtils
 import org.taktik.icure.security.CryptoUtils.isValidAesKey
@@ -38,6 +42,7 @@ class DataAttachmentLoaderImpl<T : HasDataAttachments<T>>(
 	private val icureObjectStorageMigration: IcureObjectStorageMigration<T>,
 	private val objectStorageProperties: ObjectStorageProperties,
 	private val datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	private val overrideShouldMigrate: Boolean?
 ) : DataAttachmentLoader<T> {
 	private val migrationSizeLimit get() =
 		objectStorageProperties.migrationSizeLimit.coerceAtLeast(objectStorageProperties.sizeLimit)
@@ -96,12 +101,32 @@ class DataAttachmentLoaderImpl<T : HasDataAttachments<T>>(
 	private fun shouldMigrate(
 		target: T,
 		attachmentId: String,
-	) = objectStorageProperties.backlogToObjectStorage &&
-		target.attachments
-			?.get(attachmentId)
-			?.length
-			?.let { it >= migrationSizeLimit } == true
+	) = overrideShouldMigrate ?: (
+		objectStorageProperties.backlogToObjectStorage &&
+			target.attachments
+				?.get(attachmentId)
+				?.length
+				?.let { it >= migrationSizeLimit } == true
+		)
 }
+
+@Service("receiptDataAttachmentLoader")
+@Profile("app")
+class ReceiptDataAttachmentLoaderImpl(
+	dao: ReceiptDAO,
+	objectStorage: ReceiptObjectStorage,
+	objectStorageMigration: ReceiptObjectStorageMigration,
+	objectStorageProperties: ObjectStorageProperties,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+) : ReceiptDataAttachmentLoader,
+	DataAttachmentLoader<Receipt> by DataAttachmentLoaderImpl(
+		dao,
+		objectStorage,
+		objectStorageMigration,
+		objectStorageProperties,
+		datastoreInstanceProvider,
+		false
+	)
 
 @Service("documentDataAttachmentLoader")
 @Profile("app")
@@ -118,6 +143,7 @@ class DocumentDataAttachmentLoaderImpl(
 		objectStorageMigration,
 		objectStorageProperties,
 		datastoreInstanceProvider,
+		null
 	) {
 	override suspend fun decryptAttachment(
 		document: Document?,

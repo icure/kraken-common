@@ -181,8 +181,8 @@ fun Service.pimpWithContactInformation(contact: Contact): Service {
 		formIds = subContacts.mapNotNull { obj: SubContact -> obj.formId }.toSet(),
 		delegations = contact.delegations,
 		encryptionKeys = contact.encryptionKeys,
-		author = contact.author,
-		responsible = contact.responsible,
+		author = this.author ?: contact.author,
+		responsible = this.responsible ?: contact.responsible,
 		securityMetadata = contact.securityMetadata,
 	)
 }

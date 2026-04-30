@@ -63,7 +63,7 @@ interface ContactV2Mapper {
 			}
 
 			return contactDto.participantList.takeIf {
-				it.isNotEmpty() && !cardinalVersionConfig.shouldUseCardinalModel()
+				it.isNotEmpty() && cardinalVersionConfig.useLegacyDataModelCompatibility()
 			}?.associate { participantDto ->
 				ParticipantType.valueOf(participantDto.type.name) to participantDto.hcpId
 			}?.takeIf { it.size == contactDto.participantList.size && it.none { (type) -> type == ParticipantType.Recorder } }
@@ -76,11 +76,11 @@ interface ContactV2Mapper {
 			contactDto.participantList.takeIf {
 				it.groupingBy { participantDto -> participantDto.type }.eachCount().any { entry -> entry.value > 1 } // If there are multiple participant with the same type
 					|| it.any { (type) -> type == ParticipantTypeDto.Recorder } // or at least one participant with type "Recorder"
-					|| cardinalVersionConfig.shouldUseCardinalModel()   // or the contact was created with the Cardinal SDK
+					|| !cardinalVersionConfig.useLegacyDataModelCompatibility()   // or the contact was created with the Cardinal SDK
 			}.orEmpty().map { participantMapper.map(it) }
 
 		suspend fun mapParticipants(contact: Contact, cardinalVersionConfig: CardinalVersionConfig): Map<ParticipantTypeDto, String> =
-			if (cardinalVersionConfig.shouldUseCardinalModel()) {
+			if (!cardinalVersionConfig.useLegacyDataModelCompatibility()) {
 				emptyMap()
 			} else {
 				contact.participants.mapKeys { (k, _) -> ParticipantTypeDto.valueOf(k.name) }
@@ -91,7 +91,7 @@ interface ContactV2Mapper {
 			participantMapper: ContactParticipantV2Mapper,
 			cardinalVersionConfig: CardinalVersionConfig
 		): List<ContactParticipantDto> =
-			if (cardinalVersionConfig.shouldUseCardinalModel()) {
+			if (!cardinalVersionConfig.useLegacyDataModelCompatibility()) {
 				require(contact.participants.isEmpty() || contact.participantList.isEmpty()) {
 					"Invalid Contact: cannot have both participants map and participantList populated"
 				}

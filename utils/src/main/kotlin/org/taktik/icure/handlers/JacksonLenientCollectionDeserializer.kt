@@ -5,12 +5,16 @@ import com.fasterxml.jackson.databind.BeanProperty
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer
 import com.fasterxml.jackson.databind.node.ArrayNode
 
 /**
- * De-serializer that ignores null values in lists
+ * De-serializer that ignores null values in lists.
+ *
+ * Note:
+ * - Can't be used on collections containing generic types
+ * - Can't be used for collections that require specific types and not interfaces (ArrayList, SortedSet, ...)
+ * -
  */
 class JacksonLenientCollectionDeserializer(
 	private val collectionType: JavaType? = null,

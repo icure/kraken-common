@@ -12,11 +12,13 @@ import java.util.Date
 
 class JwtEncoder<T : Jwt>(
 	keys: Pair<RSAPublicKey, RSAPrivateKey>,
+	private val keyId: String,
 ) {
 	private val signer =
 		RSASSASigner(
 			RSAKey
 				.Builder(keys.first)
+				.keyID(keyId)
 				.privateKey(keys.second)
 				.build(),
 		)
@@ -28,7 +30,7 @@ class JwtEncoder<T : Jwt>(
 		// Create signed JWT
 		val signedJWT =
 			SignedJWT(
-				JWSHeader.Builder(JWSAlgorithm.RS256).build(),
+				JWSHeader.Builder(JWSAlgorithm.RS256).keyID(keyId).build(),
 				JWTClaimsSet
 					.Builder()
 					.apply {

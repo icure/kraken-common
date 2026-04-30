@@ -15,8 +15,8 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
-import org.taktik.icure.asynclogic.impl.ConflictResolutionLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
@@ -34,6 +34,7 @@ open class CalendarItemLogicImpl(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val agendaLogic: AgendaLogic,
 	protected val userDAO: UserDAO,
+	private val cardinalVersionConfig: CardinalVersionConfig,
 	exchangeDataMapLogic: ExchangeDataMapLogic,
 	sessionLogic: SessionInformationProvider,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -54,8 +55,8 @@ open class CalendarItemLogicImpl(
 		datastoreInformation: IDatastoreInformation,
 		fixedCalendarItem: CalendarItem,
 		agendaId: String?
-	): CalendarItem =
-		fixedCalendarItem.takeIf { it.hcpId != null } ?: fixedCalendarItem.copy(
+	): CalendarItem = if (fixedCalendarItem.hcpId == null && cardinalVersionConfig.useLegacyDataModelCompatibility()) {
+		fixedCalendarItem.copy(
 			hcpId =
 				agendaId?.let {
 					agendaLogic.getAgenda(it)?.userId?.let { uId ->
@@ -63,6 +64,9 @@ open class CalendarItemLogicImpl(
 					}
 				},
 		)
+	} else {
+		fixedCalendarItem
+	}
 
 	override suspend fun createCalendarItem(calendarItem: CalendarItem) = fix(calendarItem, isCreate = true) { fixedCalendarItem ->
 		checkValidityForCreation(fixedCalendarItem)

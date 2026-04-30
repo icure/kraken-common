@@ -18,11 +18,14 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.DeletedAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ReceiptBlobTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
@@ -60,8 +63,9 @@ data class ReceiptDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Map of blob type to attachment id for the receipt. */
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val attachmentInfos: Map<ReceiptBlobTypeDto, DataAttachmentDto> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** List of references (e.g., nipReference, errorCode, errorPath, tarification, invoice UUID). */
 	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
 	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to

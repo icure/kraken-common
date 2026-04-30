@@ -54,4 +54,7 @@ interface DocumentV2Mapper {
 		Mapping(target = "decryptedAttachment", ignore = true),
 	)
 	fun map(document: Document): DocumentDto
+
+	fun map(extraMainAttachmentInfoDto: DocumentDto.ExtraMainAttachmentInfo): Document.ExtraMainAttachmentInfo
+	fun map(extraMainAttachmentInfo: Document.ExtraMainAttachmentInfo): DocumentDto.ExtraMainAttachmentInfo
 }

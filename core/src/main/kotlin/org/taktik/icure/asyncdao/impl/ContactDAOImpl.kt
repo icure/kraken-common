@@ -66,6 +66,7 @@ import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.distinctIf
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
+import java.util.TreeSet
 
 @Repository("contactDAO")
 @Profile("app")
@@ -1479,16 +1480,22 @@ class ContactDAOImpl(
 		datastoreInformation: IDatastoreInformation,
 		services: Collection<ContactIdMandatoryServiceId>
 	): Flow<String> = flow {
-		val allServiceIds = services.mapTo(mutableSetOf()) { it.serviceId }
-		val latestContactForServices = mutableMapOf<String, String>()
-		allServiceIds.chunked(1000).forEach { chunk ->
-			val query = createQuery(datastoreInformation, "by_service_latest", BEPPE_PARTITION)
-				.reduce(true)
-				.group(true)
-				.keys(chunk)
-			client.queryView<String, ComplexKey>(query).collect {
-				latestContactForServices[it.key!!] = it.value!!.components[2] as String
-			}
+		val allServiceIds = services.mapTo(TreeSet()) { it.serviceId }
+		val latestContactForServices = coroutineScope {
+			val semaphore = Semaphore(daoConfig.viewQueryMaxConcurrency)
+			allServiceIds.chunked(daoConfig.viewQueryChunkSize).map { chunk ->
+				async {
+					semaphore.withPermit {
+						val query = createQuery(datastoreInformation, "by_service_latest", BEPPE_PARTITION)
+							.reduce(true)
+							.group(true)
+							.keys(chunk)
+						client.queryView<String, ComplexKey>(query).map {
+							it.key!! to (it.value!!.components[2] as String)
+						}.toList()
+					}
+				}
+			}.awaitAll().flatten().toMap()
 		}
 		services.forEach {
 			if (latestContactForServices[it.serviceId] == it.contactId) emit(it.serviceId)
