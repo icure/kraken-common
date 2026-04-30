@@ -1,5 +1,7 @@
 package org.taktik.icure.asyncdao
 
-interface DesignDocSchemaDAO {
+import org.taktik.icure.entities.designdoc.DesignDocSchema
 
+interface DesignDocSchemaDAO {
+	suspend fun get(applicationId: String, version: Int): DesignDocSchema?
 }
