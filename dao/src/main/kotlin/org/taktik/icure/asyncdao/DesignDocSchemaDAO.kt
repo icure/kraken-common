@@ -1,5 +1,5 @@
 package org.taktik.icure.asyncdao
 
-interface DesignDocDAO {
+interface DesignDocSchemaDAO {
 
 }
