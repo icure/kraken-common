@@ -181,7 +181,11 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		// An older version of cardinal used to automatically set label as empty map
 		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
 		// An older version of kraken use to automatically set this value
-		Pair("calendarItemFilter", SimpleBeanPropertyFilter.serializeAllExcept("hcpId"))
+		Pair("calendarItemFilter", SimpleBeanPropertyFilter.serializeAllExcept("hcpId")),
+		// Referral is by default set to false, and is always serialized
+		Pair("patientHealthCareParty", SimpleBeanPropertyFilter.serializeAllExcept("referral")),
+		// Referral and status are by default set to non-null values and so always serialized
+		Pair("planOfAction", SimpleBeanPropertyFilter.serializeAllExcept("referral", "status")),
 	)
 	private val pre_2_4_0_filters = listOf(
 		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),

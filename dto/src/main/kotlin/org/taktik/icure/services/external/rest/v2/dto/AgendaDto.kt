@@ -30,11 +30,11 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocat
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents an agenda that keeps track of appointments (calendar items) for a resource or group of resources.
  * An agenda can specify a schedule for its resources and allows managing availabilities for booking.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class AgendaDto(
 	/** The Id of the agenda. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

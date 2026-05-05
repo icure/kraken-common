@@ -17,16 +17,16 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "One or several periods of care by an hcp for this patient")
+@JsonFilter("patientHealthCareParty")
 data class PatientHealthCarePartyDto(
 	@param:Schema(description = "Type of care/relationship.") val type: PatientHealthCarePartyTypeDto? = null,
 	@param:Schema(description = "UUID of the hcp.") val healthcarePartyId: String? = null,
