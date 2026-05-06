@@ -10,14 +10,14 @@ import org.springframework.security.oauth2.jwt.JwtTimestampValidator
 import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
+import org.springframework.stereotype.Component
 import org.taktik.icure.exceptions.InvalidJwtException
 import java.security.interfaces.RSAPublicKey
 import java.time.Duration
-import java.time.Instant
-import java.util.Date
 import org.springframework.security.oauth2.jwt.Jwt as SpringJwt
 
-object JwtDecoder {
+@Component
+class JwtDecoder {
 	private val oidcJwtDecoderCache =
 		com.github.benmanes.caffeine.cache.Caffeine
 			.newBuilder()

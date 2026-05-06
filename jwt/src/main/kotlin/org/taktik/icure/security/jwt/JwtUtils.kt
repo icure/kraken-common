@@ -14,6 +14,7 @@ import java.util.Base64
 @Component
 class JwtUtils(
 	val properties: AuthProperties,
+	val jwtDecoder: JwtDecoder
 ) {
 	val authKeyPair: Pair<RSAPublicKey, RSAPrivateKey>
 	val authPublicKeySpki: String
@@ -85,7 +86,7 @@ class JwtUtils(
 		converter: JwtConverter<T>,
 		jwt: String,
 	): T = converter.fromClaims(
-		JwtDecoder.validateAndGetClaims(jwt, authKeyPair.first, properties.validationSkewSeconds, "com.icure.AuthJwt"),
+		jwtDecoder.validateAndGetClaims(jwt, authKeyPair.first, properties.validationSkewSeconds, "com.icure.AuthJwt"),
 	)
 
 	/**
@@ -114,7 +115,7 @@ class JwtUtils(
 		converter: JwtConverter<T>,
 		refreshJwt: String,
 	): T = converter.fromClaims(
-		JwtDecoder.validateAndGetClaims(refreshJwt, refreshKeyPair.first, properties.validationSkewSeconds, "com.icure.RefreshJwt"),
+		jwtDecoder.validateAndGetClaims(refreshJwt, refreshKeyPair.first, properties.validationSkewSeconds, "com.icure.RefreshJwt"),
 	)
 
 	/**
