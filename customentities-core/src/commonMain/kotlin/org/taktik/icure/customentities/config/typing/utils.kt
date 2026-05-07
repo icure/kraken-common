@@ -27,35 +27,39 @@ internal inline fun validatingNullForStore(
 private const val IDENTIFIER_ALLOWED_LENGTH_MIN = 1
 private const val IDENTIFIER_ALLOWED_LENGTH_MAX = 32 // Chosen arbitrarily, might be increased later if needed
 /**
- * For most user-provided identifiers it is not really a problem to have clashes, due to the shadowing system, so it is
- * mostly a way of discouraging usage of identifiers that the user might regret later when they start using features
- * that they didn't know.
+ * There are many properties which have some specific meaning in iCure:
+ * - Standard metadata
+ *   - "id",
+ *   - "rev",
+ *   - "created",
+ *   - "modified",
+ *   - "author",
+ *   - "responsible",
+ *   - "endOfLife",
+ *   - "deletionDate",
+ * - Encryptable entities metadata
+ *   - "encryptedSelf",
+ * - Root encryptable entities metadata
+ *   - "secretForeignKeys",
+ *   - "cryptedForeignKeys",
+ *   - "delegations",
+ *   - "encryptionKeys",
+ *   - "securityMetadata",
+ * - Entities with couchdb or object storage attachments metadata
+ *   - "dataAttachments",
+ *   - "deletedAttachments",
  *
- * `encryptedSelf` however could be a serious problem, due to the way we are currently doing recursive decryption of
- * entities.
+ * Most of them can be safely used by the user thanks to the shadowing system, however some identifiers may not be
+ * acceptable even with the shadowing system due to how they are used:
+ * - `encryptedSelf` currently decryption at the SDK scans on objects recursively for "encrytpedSelf" - this is
+ *   required because we don't know if a previous version of the user application was using different encrypted fields
+ *   manifest.
+ *
+ * If in future we need to add more fields that should go here we might want to consider using _property as a name to
+ * avoid clashing with custom properties (we don't allow identifiers starting with _ in custom entities)
  */
 private val reservedIdentifiers = setOf(
-	// Standard metadata
-	"id",
-	"rev",
-	"created",
-	"modified",
-	"author",
-	"responsible",
-	"endOfLife",
-	"deletionDate",
-	// Encryptable
-	"encryptedSelf",
-	// HasEncryptionMetadata (root encryptables)
-	"secretForeignKeys",
-	"cryptedForeignKeys",
-	"delegations",
-	"encryptionKeys",
-	"securityMetadata",
-	// HasDataAttachments (entity with couchdb or object storage attachments)
-	"dataAttachments",
-	"deletedAttachments",
-
+	"encryptedSelf"
 )
 fun validateIdentifier(validationContext: ScopedErrorCollector, identifier: String) {
 	if (identifier in reservedIdentifiers) {
