@@ -109,8 +109,8 @@ data class ObjectDefinition(
 					typeConfig: GenericTypeConfig,
 					context: CustomEntityConfigValidationContext,
 				) {
-					// Technically supported on all types even though doesn't really make sense to have a "constant" id or date
-					// For simplicity will probably just hide it on the frontend
+					// Supported on all types, even for id and date types: in those cases might want to use null or
+					// other special values.
 					typeConfig.validateAndMapValueForStore(context, value)
 				}
 
