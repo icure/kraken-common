@@ -13,7 +13,6 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ArticleDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.entities.Article

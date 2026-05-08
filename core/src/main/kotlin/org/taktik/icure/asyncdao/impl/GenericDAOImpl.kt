@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -149,7 +148,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			log.debug(entityClass.simpleName + ".getAll")
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryView(createQuery(datastoreInformation, "all").includeDocs(true), Nothing::class.java, String::class.java, entityClass).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull())
+		emitAll(
+			client.queryView(
+				createQuery(datastoreInformation, "all").includeDocs(true),
+				Nothing::class.java,
+				String::class.java,
+				entityClass
+			).mapNotNull { (it as? ViewRowWithDoc<*, *, T?>)?.doc })
 	}
 
 	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T? = get(datastoreInformation, id, null, *options)
