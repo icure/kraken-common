@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,5 +42,5 @@ data class PartnershipDto(
 	/** Deprecated. Description of the relationship from the other person to this patient. */
 	@Deprecated("use type instead")
 	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
-	override val encryptedSelf: String? = null,
+	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable, EncryptableDto
