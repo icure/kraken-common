@@ -3,7 +3,6 @@ package org.taktik.icure.customentities.util
 import org.taktik.icure.customentities.config.migration.EnumMigration
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.jackson.annotations.JsonIgnore
-import org.taktik.icure.jackson.annotations.JsonInclude
 
 interface BuiltinDefinitionsProvider {
 	fun getBuiltinEnumDefinition(name: String): BuiltinEnumDefinition?
@@ -58,7 +57,11 @@ interface BuiltinDefinitionsProvider {
 		 *
 		 * Used only to support providing better error messages.
 		 */
-		val metadataProperties: Set<String>
+		val metadataProperties: Set<String>,
+		/**
+		 * If this object definition represents an entity that can be partially encrypted.
+		 */
+		val isEncryptable: Boolean
 	) {
 		enum class ExtendabilityInfo {
 			Root,

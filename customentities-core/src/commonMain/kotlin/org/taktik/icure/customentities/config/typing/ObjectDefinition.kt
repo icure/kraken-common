@@ -1,11 +1,13 @@
 package org.taktik.icure.customentities.config.typing
 
+import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
+import org.taktik.icure.customentities.util.getRequiredObjectDefinition
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
@@ -40,6 +42,15 @@ data class ObjectDefinition(
 	 * builtin extendable properties, how its properties should be extended.
 	 */
 	val builtinExtension: BuiltinExtensionConfiguration? = null,
+	/**
+	 * If true this object definition should be considered as "Encryptable", regardless of the type of the extended
+	 * builtin entity (if any), and encryption configurations of properties.
+	 *
+	 * If false (default) the type is considered encryptable only if it extends an encryptable builtin entity, or if
+	 * it doesn't extend any entity but at least one of the properties specifies a non-null value for
+	 * [PropertyConfiguration.encryptionConfiguration].
+	 */
+	val forceEncryptable: Boolean = false
 ) {
 	data class BuiltinExtensionConfiguration(
 		/**
@@ -59,12 +70,40 @@ data class ObjectDefinition(
 		 * there are multiple levels of nesting.
 		 */
 		val extendedBuiltinProperties: Map<String, String> = emptyMap(),
+		/**
+		 * Specifies which builtin properties should be encrypted.
+		 *
+		 * If null the default encrypted fields property for that the builtin type will apply (depends on the cardinal
+		 * SDK version used).
+		 *
+		 * If empty no builtin properties will be encrypted.
+		 *
+		 * Can be not-null only if the extended builtin entity is encryptable.
+		 */
+		@property:JsonInclude(JsonIncludeValue.NON_NULL)
+		val propertiesEncryptionConfiguration: Map<String, PropertyEncryptionConfiguration>? = null
 	)
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 	data class PropertyConfiguration(
+		/**
+		 * Type of the property
+		 */
 		val type: GenericTypeConfig,
-		val defaultValue: DefaultValue? = null
+		/**
+		 * The default value for the property, if any, used when the user does not provide an explicit value to use.
+		 */
+		val defaultValue: DefaultValue? = null,
+		/**
+		 * Not null if this property should be encrypted.
+		 *
+		 * If this object definition extends a non-encryptable type through [builtinExtension], you can't use
+		 * [encryptionConfiguration].
+		 *
+		 * The value used might alter how the backend validates the properties.
+		 * For details refer to the documentation of the specific [PropertyEncryptionConfiguration] used.
+		 */
+		val encryptionConfiguration: PropertyEncryptionConfiguration? = null
 	) {
 		/**
 		 * If a property defines a default value and is not explicitly provided in the object it is implied that it
@@ -235,6 +274,57 @@ data class ObjectDefinition(
 		}
 	}
 
+	/**
+	 * Specifies how a property should be encrypted, more options might be added in future.
+	 *
+	 * # Partial encryption of object types
+	 *
+	 * To encrypt only some properties of a nested object type, you must configuring encryption at the level of that
+	 * object's definition. If you configure encryption at the level of the property containing the
+	 *
+	 * ## Example
+	 *
+	 * Consider the following object definitions
+	 * - Person
+	 *   - name: String
+	 *   - address: Address
+	 * - Address
+	 *   - city: String
+	 *   - street: String
+	 *
+	 * If you want to encrypt only the street of Address (leaving the city in clear), and you don't need to encrypt
+	 * anything else in Person you must:
+	 * - Configure the definition for Address to use Full encryption of the street property. This way your custom SDK
+	 *   will have two variants of Address: EncryptedAddress exposing only the city and a DecryptedAddress, with both
+	 *   city and street.
+	 * - Configure the definition of Person with [forceEncryptable]=true, so that Person is also generated in two
+	 *   variants, with EncryptedPerson using EncryptedAddress and DecryptedPerson using DecryptedAddress. If you
+	 *   don't only one implementation of Person is generated, depending directly on DecryptedAddress.
+	 *
+	 * If instead you set at the level of the Person.address configuration to use encryption (e.g.
+	 * [ObjectDefinition.PropertyEncryptionConfiguration.Full]) then the whole Address object will be encrypted,
+	 * ignoring its configuration, and not even city will be available in the EncryptedPerson's address.
+	 */
+	sealed interface PropertyEncryptionConfiguration {
+		/**
+		 * Encrypt the property in full. No information about this property will be available in the encrypted entity.
+		 *
+		 * # Validation of custom properties
+		 *
+		 * When a custom property is marked as requiring [Full] encryption the backend will reject any objects that
+		 * specify a value for that property, and no other verification is done, regardless of the type of the property.
+		 *
+		 * Validation is still done client side to help detect programming errors, but malicious users may still create
+		 * data that does not respect the validation.
+		 *
+		 * # Generated model
+		 *
+		 * In the generated model a property encrypted using [Full] will not be available from the encrypted variant of
+		 * the object or from the interface
+		 */
+		data object Full : PropertyEncryptionConfiguration
+	}
+
 	suspend fun validateDefinition(
 		context: CustomEntityConfigValidationContext,
 	) {
@@ -273,6 +363,23 @@ data class ObjectDefinition(
 			} else if (!builtinDefinition.isSpecializable) {
 				context.validation.addError("GE-OBJECT-BASEENTITYSPECIALIZABLE", "entity" to builtinExtension.entityName)
 			} else {
+				if (!builtinDefinition.isEncryptable) {
+					if (
+						forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension.propertiesEncryptionConfiguration != null
+					) {
+						context.validation.addError("GE-OBJECT-BASEENTITYNOTENCRYPTABLE", "entity" to builtinExtension.entityName)
+					}
+				} else {
+					builtinExtension.propertiesEncryptionConfiguration?.keys?.forEach {
+						if (!builtinDefinition.properties.contains(it)) {
+							context.validation.addError(
+								"GE-OBJECT-ENCRYPTEDPROPNOTFOUND",
+								"prop" to it,
+								"entity" to builtinExtension.entityName
+							)
+						}
+					}
+				}
 				if (builtinDefinition.isExtendable) {
 					context.validation.appending(".") {
 						properties.keys.intersect(builtinDefinition.properties.keys).forEach {
@@ -320,6 +427,28 @@ data class ObjectDefinition(
 				}
 			}
 		}
+		if (forceEncryptable) {
+			if (
+				properties.any { it.value.encryptionConfiguration != null } || (
+					builtinExtension != null &&
+					context.builtinDefinitions.getBuiltinObjectDefinition(builtinExtension.entityName)?.isEncryptable == true
+				)
+			) {
+				context.validation.addWarning("GE-OBJECT-WFORCENCRYPTABLEREDUNDANT")
+			} else if (
+				properties.none { prop ->
+					prop.value.type.objectDefinitionDependencies.any { (objectDependencyName, objectDependencyBuiltin) ->
+						if (objectDependencyBuiltin) {
+							context.builtinDefinitions.getBuiltinObjectDefinition(objectDependencyName)?.isEncryptable == true
+						} else {
+							context.resolution.resolveObjectReference(objectDependencyName)?.isEncryptable(context.builtinDefinitions) == true
+						}
+					}
+				}
+			) {
+				context.validation.addWarning("GE-OBJECT-WFORCENCRYPTABLEIDENTICAL")
+			}
+		}
 	}
 
 	fun validateAndMapValueForStore(
@@ -348,25 +477,53 @@ data class ObjectDefinition(
 				context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
 			} else {
 				val propValue: RawJson? = value.properties[propName]
-				val mappedValue = if (propValue == null) {
-					if (propConfig.defaultValue == null) {
-						context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
-						null
-					} else {
-						propConfig.defaultValue.valueForStore()
+				when (propConfig.encryptionConfiguration?.takeUnless { context.isDecryptedContext }) {
+					null -> {
+						val mappedValue = if (propValue == null) {
+							if (propConfig.defaultValue == null) {
+								context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
+								null
+							} else {
+								propConfig.defaultValue.valueForStore()
+							}
+						} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
+							null
+						} else {
+							context.validation.appending(".", propName) {
+								propConfig.type.validateAndMapValueForStore(context, propValue)
+							}
+						}
+						if (mappedValue != null) {
+							mappedObjectProperties[propName] = mappedValue
+						}
 					}
-				} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
-					null
-				} else {
-					context.validation.appending(".", propName) {
-						propConfig.type.validateAndMapValueForStore(context, propValue)
+					PropertyEncryptionConfiguration.Full -> {
+						if (propValue != null) {
+							context.validation.addError("GE-OBJECT-NOTENCRYPTEDPROP", "prop" to propName)
+						}
 					}
-				}
-				if (mappedValue != null) {
-					mappedObjectProperties[propName] = mappedValue
 				}
 			}
 		}
 		return RawJson.JsonObject(mappedObjectProperties)
 	}
+
+	/**
+	 * Specifies if this object is encryptable.
+	 * If true this object definition will exist in 2 variants, an encrypted variant and a decrypted variant (+ a shared
+	 * interface).
+	 *
+	 * When an encryptable object definition uses another encryptable object definition the variants will match, that is
+	 * if we have Person with Address, both encryptable, "EncryptedPerson" will use "EncryptedAddress" and
+	 * "DecryptedPerson" will use "DecryptedAddress".
+	 *
+	 * When a non-encryptable object definition uses an encryptable object then the Decrypted variant will be used
+	 */
+	// TODO in future we might want to allow usage of always decrypted variants in some encryptable object definitions
+	fun isEncryptable(
+		builtinDefinitionsProvider: BuiltinDefinitionsProvider
+	): Boolean =
+		forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension?.entityName?.let {
+			builtinDefinitionsProvider.getRequiredObjectDefinition(it).isEncryptable
+		} == true
 }
