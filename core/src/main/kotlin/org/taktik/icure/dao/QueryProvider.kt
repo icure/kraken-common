@@ -16,8 +16,8 @@ class QueryProvider(
 	context(dao: GenericDAOImpl<*>)
 	suspend fun createQuery(
 		client: Client,
-		viewName: String,
-		secondaryPartition: String? = null
+		legacyReference: DesignDocReference.LegacyReference? = null,
+		configurationReference: DesignDocReference.ConfigurationReference? = null
 	): ViewQuery {
 		return designDocumentProvider.createQuery(
 			client = client,
@@ -28,5 +28,9 @@ class QueryProvider(
 		)
 	}
 
+}
 
+sealed interface DesignDocReference {
+	data class LegacyReference(val viewName: String, val secondaryPartition: String?) : DesignDocReference
+	data class ConfigurationReference(val viewName: String): DesignDocReference
 }
