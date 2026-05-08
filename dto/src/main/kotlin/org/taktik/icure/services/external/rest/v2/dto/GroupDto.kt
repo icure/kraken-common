@@ -42,8 +42,10 @@ data class GroupDto(
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	/** The revision of the group in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "The revision of the group in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
-	/** Hard delete (unix epoch in ms) timestamp of the object. */
+	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
+	/** Creation timestamp of the group. It may be null for older groups **/
+	val created: Long? = null,
 	/** Tags that qualify the group as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
 	/** Tags that are publicly visible for the group. */
