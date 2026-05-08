@@ -41,4 +41,5 @@ data class PartnershipDto(
 	/** Deprecated. Description of the relationship from the other person to this patient. */
 	@Deprecated("use type instead")
 	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
-) : Serializable
+	override val encryptedSelf: String? = null,
+) : Serializable, EncryptableDto
