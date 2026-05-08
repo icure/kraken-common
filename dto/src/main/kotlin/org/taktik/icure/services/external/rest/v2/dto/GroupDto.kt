@@ -18,6 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
@@ -30,13 +31,14 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.UserTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity represents a group""")
 /**
  * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
  * that contains its own set of databases and users.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = """This entity represents a group""")
+@JsonFilter("group")
 data class GroupDto(
 	/** The id of the group. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

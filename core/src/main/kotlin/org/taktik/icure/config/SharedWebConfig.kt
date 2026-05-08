@@ -191,6 +191,9 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),
 		Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentStoredDataSize")),
 	)
+	private val pre_2_5_0_filters = listOf(
+		Pair("group", SimpleBeanPropertyFilter.serializeAllExcept("created")),
+	)
 
 	private fun makeCardinalObjectMapper(
 		filters: List<Pair<String, SimpleBeanPropertyFilter>>
@@ -221,10 +224,14 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		override val byMinVersion = TreeMap<SemanticVersion, MapperConfig>().apply {
 			put(
 				CardinalVersionConfig.minCardinalModelVersion,
-				makeCardinalObjectMapper(pre_2_4_0_filters)
+				makeCardinalObjectMapper(pre_2_4_0_filters + pre_2_5_0_filters)
 			)
 			put(
 				SemanticVersion("2.4.0"),
+				makeCardinalObjectMapper(pre_2_5_0_filters)
+			)
+			put(
+				SemanticVersion("2.5.0"),
 				makeCardinalObjectMapper(emptyList())
 			)
 		}
