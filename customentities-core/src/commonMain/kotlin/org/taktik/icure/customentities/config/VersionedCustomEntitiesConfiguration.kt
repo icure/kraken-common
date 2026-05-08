@@ -57,14 +57,21 @@ data class VersionedCustomEntitiesConfiguration(
 			}
 		}
 		sequenceOf(
-			objects.keys,
-			enums.keys,
-		).flatten().groupingBy { it }.eachCount().forEach { (identifier, occurrences) ->
-			if (occurrences > 1) {
+			objects.asSequence().flatMap {
+				sequence {
+					yield(Pair(it.key, false))
+					if (it.value.isEncryptable(builtinDefinitionsProvider)) {
+						yield(Pair("Decrypted${it.key}", true))
+						yield(Pair("Encrypted${it.key}", true))
+					}
+				}
+			},
+			enums.keys.asSequence().map { Pair(it, false) },
+		).flatten().groupBy { it.first }.forEach { (identifier, duplicates) ->
+			if (duplicates.size > 1) {
 				validationContext.addError(
-					"GE-CONFIG-DUPID",
+					if (duplicates.count { !it.second } > 1) "GE-CONFIG-DUPID" else "GE-CONFIG-DUPIDGENERATED",
 					"id" to truncateValueForErrorMessage(identifier),
-					"count" to occurrences
 				)
 			}
 		}

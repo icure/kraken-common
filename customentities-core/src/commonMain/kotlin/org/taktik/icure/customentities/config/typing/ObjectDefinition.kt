@@ -7,7 +7,6 @@ import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
-import org.taktik.icure.customentities.util.getRequiredObjectDefinition
 import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
@@ -524,6 +523,6 @@ data class ObjectDefinition(
 		builtinDefinitionsProvider: BuiltinDefinitionsProvider
 	): Boolean =
 		forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension?.entityName?.let {
-			builtinDefinitionsProvider.getRequiredObjectDefinition(it).isEncryptable
+			builtinDefinitionsProvider.getBuiltinObjectDefinition(it)?.isEncryptable
 		} == true
 }

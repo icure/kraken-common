@@ -19,5 +19,10 @@ class CustomEntityConfigValidationContext(
 	validation: ScopedErrorCollector,
 	builtinValidation: ExtendableBuiltinEntityValidator,
 	val builtinDefinitions: BuiltinDefinitionsProvider,
-	isDecryptedContext: Boolean,
-) : CustomEntityValueValidationContext(resolution, validation, builtinValidation, isDecryptedContext)
+) : CustomEntityValueValidationContext(
+	resolution,
+	validation,
+	builtinValidation,
+	// For validation of default values we need to consider as if we were in a decrypted context
+	true
+)
