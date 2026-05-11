@@ -83,6 +83,7 @@ object MappersWithCustomExtensions {
 				configsProvider = configsProvider,
 				resolutionContext = customEntityConfigResolutionContext,
 			),
+			isDecryptedContext = false // Validation on kraken does not have the decrypted context
 		)
 
 		override fun enterProperty(propertyName: String) {

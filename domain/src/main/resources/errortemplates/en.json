@@ -136,7 +136,10 @@
   "GEM-EXACT-ENUM": "{{path}}: source and target enum definitions do not match exactly and there is no explicit migration.",
   "GEM-EXACT-OBJECT": "{{path}}: source and target object definitions do not match exactly and there is no explicit migration.",
   "GEM-EXACT-OBJECT-PROPKEYS": "{{path}}: source and target object definitions have different sets of property keys.",
+  "GEM-EXACT-OBJECT-ENCRYPTABLE":  "{{path}}: one of source and target object definitions is encryptable and the other isn't.",
+  "GEM-EXACT-OBJECT-BUILTINENCRYPTION": "{{path}}: the encryption for the builtin properties encryption of the extended entity differs between source and target definitions.",
   "GEM-EXACT-OBJECT-PROPDEFAULT": "{{path}}: source and target object property have different default values.",
+  "GEM-EXACT-OBJECT-PROPENCRYPTION": "{{path}}: encryption configuration for property is different between source and target definitions.",
   "GEM-EXACT-OBJECT-EXTBUILTIN": "{{path}}: source and target define incompatible extensions definition for builtin property.",
   "GEM-EXACT-LISTNONINJ": "{{path}}: source and target cannot be an exact match; the list requires unique values but the enum element migration is non-injective and may introduce duplicate values after migration.",
   "GEM-EXACT-MAPKEYNONINJ": "{{path}}: source and target cannot be an exact match; the enum key migration is non-injective and may cause key collisions after migration.",
@@ -199,5 +202,6 @@
   "GEM-FALLBACK-DEFAULTOVERRIDE": "{{path}}: Default value on target property cannot be used as fallback because it would override the corresponding value in the source property. If you want to allow overriding for all target properties with a default value add the `UseTargetDefaultIgnoringSource` fallback behaviour, or specify an explicit mapping for this property with `Use.TargetDefault`.",
   "GEM-FALLBACK-NODEFAULT": "{{path}}: Target property has no default value, or has a non-constant default value, can't apply default-based fallback behaviour.",
   "GEM-FALLBACK-DIFFERENTDEFAULT": "{{path}}: Source and target property default values do not match.",
+  "GEM-FALLBACK-DIFFERENTENCRYPTION": "{{path}: Source and target property encryption configuration do not match.",
   "GEM-FALLBACK-NOSOURCE": "{{path}}: Target property does not have matching source property, can't apply source-based fallback behaviour."
 }

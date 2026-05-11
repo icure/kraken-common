@@ -66,6 +66,17 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
  * match
  *
+ * ### Encryptable objects exact match
+ *
+ * The exact matching will ignore differences in properties encryption configurations if an encryptable object definition
+ * is used from a context where the encryption configuration is ignored.
+ *
+ * This is the case for example of an encryptable object being used in a non-encryptable object definitions: in that
+ * case the non-encryptable object will use directly the unencrypted/decrypted definition of the encryptable object, so
+ * changes in properties encryption configurations do not affect that definition.
+ *
+ * In all other cases differences in the encryption configuration will result in no exact match.
+ *
  * ## Coercion
  *
  * Generally in the scope of custom entities migration two types are coercible if all possible values of the source type
@@ -133,6 +144,12 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  * - If the source or target define some [ObjectDefinition.BuiltinExtensionConfiguration.extendedBuiltinProperties] they
  *   match-exactly OR if the containing [ObjectMigration.allowExtendedBuiltinPropertiesCoercion] is true then the
  *   types of the extended builtin properties must be coercible.
+ *
+ * Object definition coercion ignores properties encryption configuration on the properties of the checked object, but
+ * some warnings might be raised in object migrations that require the user to be able to decrypt data before migration.
+ *
+ * Prooperties encryption configuration will still be considered if the fallback behaviours used to check object
+ * dependencies recursively require exact matching.
  *
  * ### Nested object coercion
  *
