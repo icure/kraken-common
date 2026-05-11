@@ -8,6 +8,10 @@ import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.icure.asyncdao.impl.GenericDAOImpl
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.utils.NoDocViewQueries
+import org.taktik.icure.utils.ViewQueries
+import org.taktik.icure.utils.createPagedQueries
+import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.pagedViewQuery
 
@@ -31,6 +35,24 @@ class QueryProvider(
 			.viewName(viewName)
 	}
 
+	private suspend fun createQueriesFromSchema(
+		entityClass: Class<*>,
+		viewNames: List<String>,
+	): NoDocViewQueries? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
+		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
+		NoDocViewQueries(
+			viewNames.map { viewName ->
+				val partition = requireNotNull(viewsForEntity?.get(viewName)) {
+					"$viewName not found in configuration for ${entityClass.simpleName}"
+				}
+				ViewQuery()
+					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
+					.skipIfViewDoesNotExist(false)
+					.viewName(viewName)
+			}
+		)
+	}
+
 	private suspend fun <P>  createPagedQueryFromSchema(
 		entityClass: Class<*>,
 		viewName: String,
@@ -46,6 +68,42 @@ class QueryProvider(
 		?.startDocId(pagination.startDocumentId)
 		?.limit(pagination.limit)
 		?.descending(descending)
+
+	private suspend fun <P> createPagedQueriesFromSchema(
+		entityClass: Class<*>,
+		viewNames: List<String>,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>,
+		descending: Boolean
+	): ViewQueries? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
+		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
+		ViewQueries(
+			viewNames.map { viewName ->
+				val partition = requireNotNull(viewsForEntity?.get(viewName)) {
+					"$viewName not found in configuration for ${entityClass.simpleName}"
+				}
+				ViewQuery()
+					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
+					.skipIfViewDoesNotExist(false)
+					.viewName(viewName)
+					.startKey(pagination.startKey ?: startKey ?: NullKey)
+					.endKey(endKey)
+					.includeDocs(true)
+					.reduce(false)
+					.startDocId(pagination.startDocumentId)
+					.limit(pagination.limit)
+					.descending(descending)
+			}
+		)
+	}
+
+	context(dao: GenericDAOImpl<*>)
+	suspend fun hasAllViewForCurrentEntity(): Boolean =
+		designDocSchemaCache.getOrRequestSchema()
+			?.viewsByEntity
+			?.get(dao.entityClass.simpleName)
+			?.containsKey("all") ?: false
 
 	context(dao: GenericDAOImpl<*>)
 	suspend fun createQuery(
@@ -91,9 +149,59 @@ class QueryProvider(
 			descending = descending,
 			secondaryPartition = legacyReference.secondaryPartition
 		)
+
+	context(dao: GenericDAOImpl<*>)
+	suspend fun createQueries(
+		client: Client,
+		legacyReferences: DesignDocReference.LegacyReferences,
+		configurationReferences: List<DesignDocReference.ConfigurationReference>? = null
+	): NoDocViewQueries = configurationReferences?.let { configReferences ->
+			createQueriesFromSchema(
+				entityClass = dao.entityClass,
+				viewNames = configReferences.map { it.viewName }
+			)
+		} ?: designDocumentProvider.createQueries(
+			client = client,
+			metadataSource = dao,
+			clazz = dao.entityClass,
+			useDataOwner = legacyReferences.useDataOwnerPartition,
+			*legacyReferences.viewQueries.toTypedArray()
+		)
+
+	context(dao: GenericDAOImpl<*>)
+	suspend fun <P> createPagedQueries(
+		client: Client,
+		legacyReferences: DesignDocReference.LegacyReferences,
+		configurationReferences: List<DesignDocReference.ConfigurationReference>? = null,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>,
+		descending: Boolean
+	): ViewQueries =
+		configurationReferences?.let { configReferences ->
+			createPagedQueriesFromSchema(
+				entityClass = dao.entityClass,
+				viewNames = configReferences.map { it.viewName },
+				startKey = startKey,
+				endKey = endKey,
+				pagination = pagination,
+				descending = descending,
+			)
+		} ?: designDocumentProvider.createPagedQueries(
+			client = client,
+			metadataSource = dao,
+			clazz = dao.entityClass,
+			viewQueries = legacyReferences.viewQueries,
+			startKey = startKey,
+			endKey = endKey,
+			pagination = pagination,
+			descending = descending,
+			useDataOwner = legacyReferences.useDataOwnerPartition
+		)
 }
 
 sealed interface DesignDocReference {
+	data class LegacyReferences(val useDataOwnerPartition: Boolean, val viewQueries: List<Pair<String, String?>>) : DesignDocReference
 	data class LegacyReference(val viewName: String, val secondaryPartition: String?) : DesignDocReference
 	data class ConfigurationReference(val viewName: String): DesignDocReference
 }

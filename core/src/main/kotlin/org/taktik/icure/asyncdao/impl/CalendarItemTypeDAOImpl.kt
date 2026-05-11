@@ -22,9 +22,12 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
+import org.taktik.icure.utils.main
+import org.taktik.icure.utils.queryView
 
 @Repository("calendarItemTypeDAO")
 @Profile("app")
@@ -38,15 +41,16 @@ class CalendarItemTypeDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<CalendarItemType>(
-	CalendarItemType::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = CalendarItemType::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	CalendarItemTypeDAO {
+	queryProvider = queryProvider
+), CalendarItemTypeDAO {
 	@View(
 		name = "by_agenda_id",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && doc.agendaId && !doc.deleted) emit( doc.agendaId , null )}",
@@ -57,10 +61,11 @@ class CalendarItemTypeDAOImpl(
 		agendaId: String,
 	): Flow<ViewRowWithDoc<String, Nothing, CalendarItemType>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val query =
-			createQuery(datastoreInformation, "by_agenda_id", MAURICE_PARTITION)
-				.key(agendaId)
-				.includeDocs(true)
+		val query = createQuery(
+			client = client,
+			legacyView = "by_agenda_id" to MAURICE_PARTITION,
+			configurationView = "by_agenda_id"
+		).key(agendaId).includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItemType>(query))
 	}
@@ -75,22 +80,26 @@ class CalendarItemTypeDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery =
-			pagedViewQuery(
-				datastoreInformation,
-				"all_and_deleted",
-				null,
-				null,
-				offset,
-				false,
-			)
-		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, CalendarItemType::class.java))
+		val viewQuery = pagedViewQuery(
+			client = client,
+			legacyView = "all_and_deleted".main(),
+			configurationView = "all_and_deleted",
+			startKey = null,
+			endKey = null,
+			pagination = offset,
+			descending = false,
+		)
+		emitAll(client.queryView<String, String, CalendarItemType>(viewQuery))
 	}
 
 	override fun getCalendarItemsWithDeleted(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "all_and_deleted").includeDocs(true)
+		val viewQuery = createQuery(
+			client = client,
+			legacyView = "all_and_deleted".main(),
+			configurationView = "all_and_deleted"
+		).includeDocs(true)
 
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItemType>(viewQuery).map { it.doc })
 	}

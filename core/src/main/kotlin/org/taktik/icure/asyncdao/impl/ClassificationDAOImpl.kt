@@ -28,6 +28,7 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.utils.distinctById
@@ -46,13 +47,15 @@ internal class ClassificationDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericIcureDAOImpl<Classification>(
-	Classification::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = Classification::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChainLink = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	ClassificationDAO {
 	override fun listClassificationByPatient(
@@ -89,12 +92,11 @@ internal class ClassificationDAOImpl(
 				searchKeys.map { key -> ComplexKey.of(key, fk) }
 			}
 
-		val viewQueries =
-			createQueries(
-				datastoreInformation,
-				"by_hcparty_patient".main(),
-				"by_data_owner_patient" to DATA_OWNER_PARTITION,
-			).keys(keys).includeDocs()
+		val viewQueries = createQueries(
+			client = client,
+			legacyViews = listOf("by_hcparty_patient".main(), "by_data_owner_patient" to DATA_OWNER_PARTITION),
+			configurationViews = listOf("by_all_delegates_patient"),
+		).keys(keys).includeDocs()
 		emitAll(
 			client
 				.interleave<ComplexKey, String, Classification>(
@@ -121,7 +123,8 @@ internal class ClassificationDAOImpl(
 		endDate: Long?,
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
-		views = listOf("by_hcparty_patient_date_as_value" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		legacyViews = listOf("by_hcparty_patient_date_as_value" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		configurationViews = listOf("by_all_delegates_patient"),
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,

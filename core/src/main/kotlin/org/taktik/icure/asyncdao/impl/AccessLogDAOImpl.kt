@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -28,12 +27,14 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
+import org.taktik.icure.utils.queryView
 
 @Repository("accessLogDAO")
 @Profile("app")
@@ -47,13 +48,15 @@ class AccessLogDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<AccessLog>(
-	AccessLog::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = AccessLog::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ), AccessLogDAO {
 	@View(name = "all_by_date", map = "classpath:js/accesslog/All_by_date_map.js")
 	override fun listAccessLogsByDate(
@@ -64,16 +67,15 @@ class AccessLogDAOImpl(
 		descending: Boolean,
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery =
-			pagedViewQuery(
-				datastoreInformation,
-				"all_by_date",
-				fromEpoch,
-				toEpoch,
-				paginationOffset,
-				descending,
-			)
-
+		val viewQuery = pagedViewQuery(
+			client = client,
+			legacyView = "all_by_date".main(),
+			configurationView = "by_date",
+			startKey = fromEpoch,
+			endKey = toEpoch,
+			pagination = paginationOffset,
+			descending = descending,
+		)
 		emitAll(client.queryView(viewQuery, Long::class.java, String::class.java, AccessLog::class.java))
 	}
 
@@ -85,14 +87,17 @@ class AccessLogDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery =
-			createQuery(datastoreInformation, "all_by_date")
-				.startKey(fromEpoch)
-				.endKey(toEpoch)
-				.includeDocs(false)
-				.descending(descending)
+		val viewQuery = createQuery(
+			client = client,
+			legacyView = "all_by_date".main(),
+			configurationView = "by_date",
+		)
+			.startKey(fromEpoch)
+			.endKey(toEpoch)
+			.includeDocs(false)
+			.descending(descending)
 
-		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
 	private fun getQueryKeysByUserAfterDate(
@@ -135,20 +140,17 @@ class AccessLogDAOImpl(
 
 		val (startKey, endKey) = getQueryKeysByUserAfterDate(userId, accessType, startDate, descending)
 
-		val items =
-			client.queryView(
-				pagedViewQuery(
-					datastoreInformation,
-					"all_by_user_date",
-					startKey,
-					endKey,
-					pagination,
-					descending,
-				),
-				ComplexKey::class.java,
-				String::class.java,
-				AccessLog::class.java,
-			)
+		val query = pagedViewQuery(
+			client = client,
+			legacyView = "all_by_user_date".main(),
+			configurationView = "by_user_type_and_date",
+			startKey = startKey,
+			endKey = endKey,
+			pagination = pagination,
+			descending = descending,
+		)
+
+		val items = client.queryView<ComplexKey, String, AccessLog>(query)
 		emitAll(items)
 	}
 
@@ -164,13 +166,16 @@ class AccessLogDAOImpl(
 		val (startKey, endKey) = getQueryKeysByUserAfterDate(userId, accessType, startDate, descending)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "all_by_user_date")
-				.startKey(startKey)
-				.endKey(endKey)
-				.includeDocs(false)
-				.descending(descending)
+			createQuery(
+				client = client,
+				legacyView = "all_by_user_date".main(),
+				configurationView = "by_user_type_and_date",
+			).startKey(startKey)
+			.endKey(endKey)
+			.includeDocs(false)
+			.descending(descending)
 
-		emitAll(client.queryView<ComplexKey, String>(viewQuery).mapNotNull { it.id })
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
 	}
 
 	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
@@ -195,13 +200,14 @@ class AccessLogDAOImpl(
 					searchKeys.map { key -> arrayOf(key, fk) }
 				}.sortedWith(compareBy({ it[0] }, { it[1] }))
 
-		val viewQueries =
-			createQueries(
-				datastoreInformation,
-				"by_hcparty_patient".main(),
-				"by_data_owner_patient" to DATA_OWNER_PARTITION,
-			).includeDocs()
-				.keys(keys)
+		val viewQueries = createQueries(
+				client = client,
+				legacyViews = listOf(
+					"by_hcparty_patient".main(),
+					"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				),
+				configurationViews = listOf("by_all_delegates_patient")
+			).includeDocs().keys(keys)
 		emitAll(
 			client
 				.interleave<Array<String>, String, AccessLog>(viewQueries, compareBy({ it[0] }, { it[1] }))
@@ -223,7 +229,8 @@ class AccessLogDAOImpl(
 		endDate: Long?,
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
-		views = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		legacyViews = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		configurationViews = listOf("by_all_delegates_patient"),
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,

@@ -16,6 +16,7 @@ import org.taktik.icure.asyncdao.ConflictDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.StoredDocument
 
@@ -25,8 +26,17 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 	idGenerator: IDGenerator,
 	cacheChain: EntityCacheChainLink<String, T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
-	daoConfig: DaoConfig
-) : ConflictDAO<T>, GenericDAOImpl<T>(entityClass, couchDbDispatcher, idGenerator, cacheChain, designDocumentProvider, daoConfig) {
+	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
+) : ConflictDAO<T>, GenericDAOImpl<T>(
+	entityClass = entityClass,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = cacheChain,
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+) {
 
 	protected inline fun <reified E: T> doListIdsOfEntitiesWithConflicts(
 		datastoreInformation: IDatastoreInformation,
@@ -44,7 +54,11 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 		partition: String? = null
 	): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, viewName, partition).includeDocs(true)
+		val viewQuery = createQuery(
+			client = client,
+			legacyView = viewName to partition,
+			configurationView = "conflicts"
+		).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, E>(viewQuery).map { it.doc })
 	}
 
