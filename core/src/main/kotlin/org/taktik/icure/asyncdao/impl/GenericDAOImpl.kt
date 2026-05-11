@@ -753,9 +753,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, vararg viewQueries: Pair<String, String?>) =
 		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, daoConfig.useDataOwnerPartition, *viewQueries)
 
-	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation,viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
+	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
 		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, daoConfig.useDataOwnerPartition)
-
 
 	protected suspend fun <P> pagedViewQuery(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
