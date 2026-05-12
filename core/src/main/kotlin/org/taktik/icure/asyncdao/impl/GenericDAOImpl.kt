@@ -848,7 +848,23 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
 		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueries, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
 
-	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
+	protected suspend fun <P> pagedViewQueryOfIds(
+		client: Client,
+		legacyView: Pair<String, String?>,
+		configurationView: String,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>
+	): ViewQuery = queryProvider.pagedViewQueryOfIds(
+		client = client,
+		legacyReference = DesignDocReference.LegacyReference(viewName = legacyView.first, secondaryPartition = legacyView.second),
+		configurationReference = DesignDocReference.ConfigurationReference(viewName = configurationView),
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+	)
+
+	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
 
 	private suspend fun Client.hasAllNodesUp() =

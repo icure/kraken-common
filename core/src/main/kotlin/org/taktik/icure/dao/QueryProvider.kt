@@ -14,6 +14,7 @@ import org.taktik.icure.utils.createPagedQueries
 import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.pagedViewQuery
+import org.taktik.icure.utils.pagedViewQueryOfIds
 
 @Component
 class QueryProvider(
@@ -68,6 +69,20 @@ class QueryProvider(
 		?.startDocId(pagination.startDocumentId)
 		?.limit(pagination.limit)
 		?.descending(descending)
+
+	private suspend fun <P>  createPagedQueryOfIdsFromSchema(
+		entityClass: Class<*>,
+		viewName: String,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>
+	): ViewQuery? = createQueryFromSchema(entityClass = entityClass, viewName = viewName)
+		?.startKey(pagination.startKey ?: startKey ?: NullKey)
+		?.endKey(endKey)
+		?.startDocId(pagination.startDocumentId)
+		?.includeDocs(false)
+		?.reduce(false)
+		?.limit(pagination.limit)
 
 	private suspend fun <P> createPagedQueriesFromSchema(
 		entityClass: Class<*>,
@@ -198,6 +213,33 @@ class QueryProvider(
 			descending = descending,
 			useDataOwner = legacyReferences.useDataOwnerPartition
 		)
+
+	context(dao: GenericDAOImpl<*>)
+	suspend fun <P> pagedViewQueryOfIds(
+		client: Client,
+		legacyReference: DesignDocReference.LegacyReference,
+		configurationReference: DesignDocReference.ConfigurationReference? = null,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>,
+	): ViewQuery = configurationReference?.let { configReference ->
+		createPagedQueryOfIdsFromSchema(
+			entityClass = dao.entityClass,
+			viewName = configReference.viewName,
+			startKey = startKey,
+			endKey = endKey,
+			pagination = pagination,
+		)
+	} ?: designDocumentProvider.pagedViewQueryOfIds(
+		client = client,
+		metadataSource = dao.entityClass,
+		viewName = legacyReference.viewName,
+		entityClass = dao.entityClass,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		secondaryPartition = legacyReference.secondaryPartition
+	)
 }
 
 sealed interface DesignDocReference {
