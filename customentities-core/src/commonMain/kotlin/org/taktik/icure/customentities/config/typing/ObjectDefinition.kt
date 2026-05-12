@@ -71,16 +71,9 @@ data class ObjectDefinition(
 		val extendedBuiltinProperties: Map<String, String> = emptyMap(),
 		/**
 		 * Specifies which builtin properties should be encrypted.
-		 *
-		 * If null the default encrypted fields property for that the builtin type will apply (depends on the cardinal
-		 * SDK version used).
-		 *
-		 * If empty no builtin properties will be encrypted.
-		 *
-		 * Can be not-null only if the extended builtin entity is encryptable.
+		 * Can be non-empty only if the extended builtin entity is encryptable.
 		 */
-		@property:JsonInclude(JsonIncludeValue.NON_NULL)
-		val propertiesEncryptionConfiguration: Map<String, PropertyEncryptionConfiguration>? = null
+		val propertiesEncryptionConfiguration: Map<String, PropertyEncryptionConfiguration> = emptyMap()
 	)
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
@@ -364,12 +357,12 @@ data class ObjectDefinition(
 			} else {
 				if (!builtinDefinition.isEncryptable) {
 					if (
-						forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension.propertiesEncryptionConfiguration != null
+						forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension.propertiesEncryptionConfiguration.isNotEmpty()
 					) {
 						context.validation.addError("GE-OBJECT-BASEENTITYNOTENCRYPTABLE", "entity" to builtinExtension.entityName)
 					}
 				} else {
-					builtinExtension.propertiesEncryptionConfiguration?.keys?.forEach {
+					builtinExtension.propertiesEncryptionConfiguration.keys.forEach {
 						if (!builtinDefinition.properties.contains(it)) {
 							context.validation.addError(
 								"GE-OBJECT-ENCRYPTEDPROPNOTFOUND",
