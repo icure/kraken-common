@@ -68,12 +68,18 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  *
  * ### Encryptable objects exact match
  *
- * The exact matching will ignore differences in properties encryption configurations if an encryptable object definition
- * is used from a context where the encryption configuration is ignored.
+ * The exact matching will ignore differences in *properties* encryption configurations if an encryptable object
+ * definition is used from a context where the encryption configuration is ignored.
  *
- * This is the case for example of an encryptable object being used in a non-encryptable object definitions: in that
- * case the non-encryptable object will use directly the unencrypted/decrypted definition of the encryptable object, so
- * changes in properties encryption configurations do not affect that definition.
+ * This is the case for example of an encryptable object being used in a non-encryptable object definition: in that
+ * case the non-encryptable object uses directly the decrypted variant of the encryptable object, so changes in
+ * properties encryption configurations do not affect that definition.
+ *
+ * However, if a dependency's *encryptability* itself changes (gains or loses encryptability), the parent object is
+ * still not an exact match even in a non-encryptable context. This is because the resolved generated type name
+ * changes: a non-encryptable `Baz` that references `Foo` resolves to `Foo` when it is not encryptable, but to
+ * `DecryptedFoo` when it is encryptable. That change in the generated type makes `Baz` not an exact match
+ * regardless of context.
  *
  * In all other cases differences in the encryption configuration will result in no exact match.
  *
@@ -148,7 +154,7 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  * Object definition coercion ignores properties encryption configuration on the properties of the checked object, but
  * some warnings might be raised in object migrations that require the user to be able to decrypt data before migration.
  *
- * Prooperties encryption configuration will still be considered if the fallback behaviours used to check object
+ * Properties encryption configuration will still be considered if the fallback behaviours used to check object
  * dependencies recursively require exact matching.
  *
  * ### Nested object coercion

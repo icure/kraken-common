@@ -13,6 +13,7 @@ import org.taktik.icure.errorreporting.ErrorCollector
 import org.taktik.icure.errorreporting.ScopePath
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
+import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
 
 data class VersionedCustomEntitiesConfiguration(
@@ -73,6 +74,24 @@ data class VersionedCustomEntitiesConfiguration(
 					if (duplicates.count { !it.second } > 1) "GE-CONFIG-DUPID" else "GE-CONFIG-DUPIDGENERATED",
 					"id" to truncateValueForErrorMessage(identifier),
 				)
+			}
+		}
+		val allUserIdentifiers = objects.keys + enums.keys
+		for (userIdentifier in allUserIdentifiers) {
+			for (prefix in listOf("Decrypted", "Encrypted")) {
+				if (userIdentifier.startsWith(prefix)) {
+					val potentialSource = userIdentifier.removePrefix(prefix)
+					if (potentialSource.isNotEmpty() && potentialSource in allUserIdentifiers) {
+						val sourceObj = objects[potentialSource]
+						if (sourceObj != null && !sourceObj.isEncryptable(builtinDefinitionsProvider)) {
+							validationContext.addWarning(
+								"GE-CONFIG-WPOTENTIALDUPIDGENERATED",
+								"id" to truncateValueForErrorMessage(userIdentifier),
+								"source" to truncateValueForErrorMessage(potentialSource),
+							)
+						}
+					}
+				}
 			}
 		}
 		extensions.allDefined.forEach { (krakenName, config) ->
