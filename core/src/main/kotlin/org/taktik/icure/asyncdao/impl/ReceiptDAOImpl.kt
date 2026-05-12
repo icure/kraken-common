@@ -22,8 +22,10 @@ import org.taktik.icure.asyncdao.ReceiptDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Receipt
+import org.taktik.icure.utils.main
 import java.nio.ByteBuffer
 
 @Repository("receiptDAO")
@@ -35,31 +37,70 @@ class ReceiptDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : ConflictDAOImpl<Receipt>(Receipt::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
-	ReceiptDAO {
+	queryProvider: QueryProvider,
+) : ConflictDAOImpl<Receipt>(
+	entityClass = Receipt::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+), ReceiptDAO {
 
 	@View(name = "by_reference", map = "classpath:js/receipt/By_ref.js")
 	override fun listByReference(datastoreInformation: IDatastoreInformation, ref: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_reference").startKey(ref).endKey(ref + "\ufff0").includeDocs(true)).map { it.doc })
+		val query = createQuery(
+			client = client,
+			legacyView = "by_reference".main(),
+			configurationView = "by_ref"
+		).startKey(ref).endKey(ref + "\ufff0").includeDocs(true)
+		emitAll(
+			client.queryViewIncludeDocs<String, String, Receipt>(query).map { it.doc }
+		)
 	}
 
 	@View(name = "by_date", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit(doc.created)}")
 	override fun listReceiptsAfterDate(datastoreInformation: IDatastoreInformation, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(999999999999L).endKey(date).descending(true).includeDocs(true)).map { it.doc })
+		val query = createQuery(
+			client = client,
+			legacyView = "by_date".main(),
+			configurationView = "by_date"
+		).startKey(999999999999L).endKey(date).descending(true).includeDocs(true)
+		emitAll(
+			client.queryViewIncludeDocs<String, String, Receipt>(query).map { it.doc }
+		)
 	}
 
 	@View(name = "by_category", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit([doc.category,doc.subCategory,doc.created])}")
 	override fun listReceiptsByCategory(datastoreInformation: IDatastoreInformation, category: String, subCategory: String, startDate: Long, endDate: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<Array<String>, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(ComplexKey.of(category, subCategory, startDate)).endKey(ComplexKey.of(category, subCategory, endDate)).descending(true).includeDocs(true)).map { it.doc })
+		val query = createQuery(
+			client = client,
+			legacyView = "by_category".main(),
+			configurationView = "by_category"
+		).startKey(ComplexKey.of(category, subCategory, startDate))
+			.endKey(ComplexKey.of(category, subCategory, endDate))
+			.descending(true)
+			.includeDocs(true)
+		emitAll(
+			client.queryViewIncludeDocs<Array<String>, String, Receipt>(query).map { it.doc }
+		)
 	}
 
 	@View(name = "by_doc_id", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit(doc.documentId)}")
 	override fun listReceiptsByDocId(datastoreInformation: IDatastoreInformation, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(999999999999L).endKey(date).descending(true).includeDocs(true)).map { it.doc })
+		val query = createQuery(
+			client = client,
+			legacyView = "by_doc_id".main(),
+			configurationView = "by_doc_id"
+		).startKey(999999999999L).endKey(date).descending(true).includeDocs(true)
+		emitAll(
+			client.queryViewIncludeDocs<String, String, Receipt>(query).map { it.doc }
+		)
 	}
 
 	override fun getAttachment(datastoreInformation: IDatastoreInformation, documentId: String, attachmentId: String, rev: String?): Flow<ByteBuffer> = flow {

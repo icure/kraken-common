@@ -23,6 +23,7 @@ import org.taktik.icure.asyncdao.TimeTableDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.TimeTable
 
@@ -38,15 +39,16 @@ class TimeTableDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : GenericDAOImpl<TimeTable>(
-	TimeTable::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = TimeTable::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	TimeTableDAO {
+	queryProvider = queryProvider
+), TimeTableDAO {
 	@View(name = "by_agenda", map = "classpath:js/timeTable/By_agenda.js")
 	override fun listTimeTablesByAgendaId(
 		datastoreInformation: IDatastoreInformation,
