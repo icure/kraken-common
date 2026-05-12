@@ -25,10 +25,12 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Insurance
+import org.taktik.icure.utils.main
 
 @Repository("insuranceDAO")
 @Profile("app")
@@ -42,13 +44,15 @@ class InsuranceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<Insurance>(
-	Insurance::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = Insurance::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	InsuranceDAO {
 	@View(name = "all_by_code", map = "classpath:js/insurance/All_by_code_map.js")
@@ -61,7 +65,11 @@ class InsuranceDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocs<String, String, Insurance>(
-					createQuery(datastoreInformation, "all_by_code").key(code).includeDocs(true),
+					createQuery(
+						client = client,
+						legacyView = "all_by_code".main(),
+						configurationView = "all_by_code"
+					).key(code).includeDocs(true),
 				).map {
 					it.doc
 				},
@@ -80,7 +88,11 @@ class InsuranceDAOImpl(
 		val ids =
 			client
 				.queryView<Array<String>, String>(
-					createQuery(datastoreInformation, "all_by_name")
+					createQuery(
+						client = client,
+						legacyView = "all_by_code".main(),
+						configurationView = "all_by_code"
+					)
 						.startKey(ComplexKey.of(sanitizedName))
 						.endKey(
 							ComplexKey.of(sanitizedName + "\uFFF0"),
@@ -96,7 +108,11 @@ class InsuranceDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "all")
+			createQuery(
+				client = client,
+				legacyView = "all".main(),
+				configurationView = "all"
+			)
 				.includeDocs(true)
 				.reduce(false)
 				.startKey(NullKey)

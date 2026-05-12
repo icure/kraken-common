@@ -27,8 +27,10 @@ import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.FormTemplate
+import org.taktik.icure.utils.main
 import org.taktik.icure.utils.writeTo
 import java.nio.ByteBuffer
 
@@ -41,8 +43,16 @@ internal class FormTemplateDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<FormTemplate>(FormTemplate::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
-	FormTemplateDAO {
+	queryProvider: QueryProvider,
+) : GenericDAOImpl<FormTemplate>(
+	entityClass = FormTemplate::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider,
+), FormTemplateDAO {
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FormTemplate' && !doc.deleted && doc.author) emit([doc.author,doc.guid], null )}")
 	override fun listFormTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?, loadLayout: Boolean) = flow {
@@ -52,8 +62,9 @@ internal class FormTemplateDAOImpl(
 		val to = ComplexKey.of(userId, guid ?: "\ufff0")
 		val formTemplates = client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 			createQuery(
-				datastoreInformation,
-				"by_userId_and_guid",
+				client = client,
+				legacyView = "by_userId_and_guid".main(),
+				configurationView = "by_userId_and_guid"
 			).startKey(from).endKey(to).includeDocs(true),
 		).map { it.doc }
 
@@ -75,8 +86,9 @@ internal class FormTemplateDAOImpl(
 
 		val formTemplates = client.queryViewIncludeDocsNoValue<String, FormTemplate>(
 			createQuery(
-				datastoreInformation,
-				"by_guid",
+				client = client,
+				legacyView = "by_guid".main(),
+				configurationView = "by_guid"
 			).key(guid).includeDocs(true),
 		).map { it.doc }
 
@@ -99,8 +111,9 @@ internal class FormTemplateDAOImpl(
 			val key = ComplexKey.of(specialityCode, guid)
 			client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 				createQuery(
-					datastoreInformation,
-					"by_specialty_code_and_guid",
+					client = client,
+					legacyView = "by_specialty_code_and_guid".main(),
+					configurationView = "by_specialty_code_and_guid",
 				).key(key).includeDocs(true),
 			).map { it.doc }
 		} else {
@@ -108,8 +121,9 @@ internal class FormTemplateDAOImpl(
 			val to = ComplexKey.of(specialityCode, ComplexKey.emptyObject())
 			client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 				createQuery(
-					datastoreInformation,
-					"by_specialty_code_and_guid",
+					client = client,
+					legacyView = "by_specialty_code_and_guid".main(),
+					configurationView = "by_specialty_code_and_guid",
 				).startKey(from).endKey(to).includeDocs(true),
 			).map { it.doc }
 		}
@@ -133,8 +147,9 @@ internal class FormTemplateDAOImpl(
 		emitAll(
 			client.queryView<Array<String>, String>(
 				createQuery(
-					datastoreInformation,
-					"by_specialty_code_and_guid",
+					client = client,
+					legacyView = "by_specialty_code_and_guid".main(),
+					configurationView = "by_specialty_code_and_guid",
 				).startKey(from).endKey(to).includeDocs(false),
 			).map { it.id },
 		)

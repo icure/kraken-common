@@ -16,11 +16,12 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.EntityReferenceDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.EntityReference
+import org.taktik.icure.utils.main
 
 @Repository("entityReferenceDAO")
 @Profile("app")
@@ -31,13 +32,25 @@ class EntityReferenceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<EntityReference>(EntityReference::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
-	EntityReferenceDAO {
+	queryProvider: QueryProvider
+) : GenericDAOImpl<EntityReference>(
+	entityClass = EntityReference::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+), EntityReferenceDAO {
 
 	override suspend fun getLatest(datastoreInformation: IDatastoreInformation, prefix: String): EntityReference? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = createQuery(datastoreInformation, "all").startKey(prefix + "\ufff0").descending(true).includeDocs(true).limit(1)
+		val viewQuery = createQuery(
+			client = client,
+			legacyView = "all".main(),
+			configurationView = "all"
+		).startKey(prefix + "\ufff0").descending(true).includeDocs(true).limit(1)
 		val entityReferences = client.queryViewIncludeDocsNoValue<String, EntityReference>(viewQuery).map { it.doc }
 
 		return entityReferences.firstOrNull()?.takeIf { it.id.startsWith(prefix) }

@@ -24,12 +24,14 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DocumentTemplateDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DocumentTemplate
+import org.taktik.icure.utils.main
+import org.taktik.icure.utils.queryView
 import org.taktik.icure.utils.writeTo
 import java.nio.ByteBuffer
 
@@ -45,13 +47,15 @@ class DocumentTemplateDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<DocumentTemplate>(
-	DocumentTemplate::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = DocumentTemplate::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	DocumentTemplateDAO {
 	override fun getAllDocumentTemplates(
@@ -62,14 +66,17 @@ class DocumentTemplateDAOImpl(
 
 		val viewQuery =
 			pagedViewQuery(
-				datastoreInformation,
-				"all",
-				paginationOffset.startDocumentId,
-				"\ufff0",
-				paginationOffset,
-				false,
+				client = client,
+				legacyView = "all".main(),
+				configurationView = "all",
+				startKey = paginationOffset.startDocumentId,
+				endKey = "\ufff0",
+				pagination = paginationOffset,
+				descending = false,
 			)
-		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, DocumentTemplate::class.java))
+		emitAll(
+			client.queryView<String, String, DocumentTemplate>(viewQuery)
+		)
 	}
 
 	@View(
@@ -86,7 +93,11 @@ class DocumentTemplateDAOImpl(
 
 		val from = ComplexKey.of(userId, "")
 		val to = ComplexKey.of(userId, "\ufff0")
-		val viewQuery = createQuery(datastoreInformation, "by_userId_and_guid").startKey(from).endKey(to).includeDocs(true)
+		val viewQuery = createQuery(
+			client = client,
+			legacyView = "by_userId_and_guid".main(),
+			configurationView = "by_userId_and_guid",
+		).startKey(from).endKey(to).includeDocs(true)
 		val documentTemplates = client.queryViewIncludeDocsNoValue<Array<String>, DocumentTemplate>(viewQuery).map { it.doc }
 
 		// invoke postLoad()
@@ -112,12 +123,20 @@ class DocumentTemplateDAOImpl(
 		val documentTemplates =
 			if (guid != null) {
 				val key = ComplexKey.of(healthcarePartyId, guid)
-				val viewQuery = createQuery(datastoreInformation, "by_specialty_code_and_guid").key(key).includeDocs(true)
+				val viewQuery = createQuery(
+					client = client,
+					legacyView = "by_specialty_code_and_guid".main(),
+					configurationView = "by_specialty_code_and_guid",
+				).key(key).includeDocs(true)
 				client.queryViewIncludeDocsNoValue<Array<String>, DocumentTemplate>(viewQuery).map { it.doc }
 			} else {
 				val from = ComplexKey.of(healthcarePartyId, "")
 				val to = ComplexKey.of(healthcarePartyId, "\ufff0")
-				val viewQuery = createQuery(datastoreInformation, "by_specialty_code_and_guid").startKey(from).endKey(to).includeDocs(true)
+				val viewQuery = createQuery(
+					client = client,
+					legacyView = "by_specialty_code_and_guid".main(),
+					configurationView = "by_specialty_code_and_guid",
+				).startKey(from).endKey(to).includeDocs(true)
 				client.queryViewIncludeDocsNoValue<Array<String>, DocumentTemplate>(viewQuery).map { it.doc }
 			}
 
@@ -145,15 +164,27 @@ class DocumentTemplateDAOImpl(
 		val viewQuery =
 			if (userId != null && guid != null) {
 				val key = ComplexKey.of(documentTypeCode, userId, guid)
-				createQuery(datastoreInformation, "by_document_type_code_and_user_id_and_guid").key(key).includeDocs(true)
+				createQuery(
+					client = client,
+					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
+					configurationView = "by_document_type_code_and_user_id_and_guid"
+				).key(key).includeDocs(true)
 			} else if (userId != null) {
 				val from = ComplexKey.of(documentTypeCode, userId, "")
 				val to = ComplexKey.of(documentTypeCode, userId, "\ufff0")
-				createQuery(datastoreInformation, "by_document_type_code_and_user_id_and_guid").startKey(from).endKey(to).includeDocs(true)
+				createQuery(
+					client = client,
+					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
+					configurationView = "by_document_type_code_and_user_id_and_guid"
+				).startKey(from).endKey(to).includeDocs(true)
 			} else {
 				val from = ComplexKey.of(documentTypeCode, "", "")
 				val to = ComplexKey.of(documentTypeCode, "\ufff0", "\ufff0")
-				createQuery(datastoreInformation, "by_document_type_code_and_user_id_and_guid").startKey(from).endKey(to).includeDocs(true)
+				createQuery(
+					client = client,
+					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
+					configurationView = "by_document_type_code_and_user_id_and_guid"
+				).startKey(from).endKey(to).includeDocs(true)
 			}
 		val documentTemplates = client.queryViewIncludeDocsNoValue<Array<String>, DocumentTemplate>(viewQuery).map { it.doc }
 
@@ -240,7 +271,7 @@ class DocumentTemplateDAOImpl(
 		if (preSaveEntity.isAttachmentDirty && savedEntity.attachmentId != null && savedEntity.rev != null && preSaveEntity.attachment != null) {
 			val uti = UTI.get(afterSuperSave.mainUti)
 			var mimeType = "application/xml"
-			if (uti != null && uti.mimeTypes != null && uti.mimeTypes.size > 0) {
+			if (uti != null && uti.mimeTypes != null && uti.mimeTypes.isNotEmpty()) {
 				mimeType = uti.mimeTypes[0]
 			}
 			createAttachment(
@@ -282,7 +313,7 @@ class DocumentTemplateDAOImpl(
 						it.toByteArray()
 					},
 				)
-			} catch (e: Exception) {
+			} catch (_: Exception) {
 				documentTemplate // Could not load
 			}
 		} else {

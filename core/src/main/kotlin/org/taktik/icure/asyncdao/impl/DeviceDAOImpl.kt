@@ -20,8 +20,10 @@ import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Device
+import org.taktik.icure.utils.main
 
 @Repository("deviceDAO")
 @Profile("app")
@@ -32,15 +34,16 @@ class DeviceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<Device>(
-	Device::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = Device::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	DeviceDAO {
+	queryProvider = queryProvider
+), DeviceDAO {
 	override fun findDevicesByIds(
 		datastoreInformation: IDatastoreInformation,
 		deviceIds: Flow<String>,
@@ -56,7 +59,7 @@ class DeviceDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_responsible")
+			createQuery(client = client, legacyView = "by_responsible".main(), configurationView = "by_responsible")
 				.key(healthcarePartyId)
 				.includeDocs(false)
 		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.value })
@@ -84,12 +87,11 @@ class DeviceDAOImpl(
 
 		// Not transactional aware
 		val result =
-			client
-				.queryView<String, List<String>>(
-					createQuery(datastoreInformation, "by_hcparty_delegate_keys")
-						.key(deviceId)
-						.includeDocs(false),
-				).mapNotNull { it.value }
+			client.queryView<String, List<String>>(
+				createQuery(client = client, legacyView = "by_hcparty_delegate_keys".main(), configurationView = "by_hcparty_delegate_keys")
+					.key(deviceId)
+					.includeDocs(false),
+			).mapNotNull { it.value }
 
 		val resultMap = HashMap<String, String>()
 		result.collect {
@@ -107,7 +109,7 @@ class DeviceDAOImpl(
 		val result =
 			client
 				.queryView<String, List<String>>(
-					createQuery(datastoreInformation, "by_delegate_aes_exchange_keys")
+					createQuery(client = client, legacyView = "by_delegate_aes_exchange_keys".main(), configurationView = "by_delegate_aes_exchange_keys")
 						.key(healthcarePartyId)
 						.includeDocs(false),
 				).map { it.key to it.value }

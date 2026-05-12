@@ -27,11 +27,13 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.distinct
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 
 @Repository("maintenanceTaskDAO")
 @Profile("app")
@@ -45,13 +47,15 @@ class MaintenanceTaskDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericIcureDAOImpl<MaintenanceTask>(
-	MaintenanceTask::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = MaintenanceTask::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChainLink = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	MaintenanceTaskDAO {
 	@Views(
@@ -71,9 +75,12 @@ class MaintenanceTaskDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_identifier",
-				"by_data_owner_identifier" to DATA_OWNER_PARTITION,
+				client = client,
+				legacyViews = listOf(
+					"by_hcparty_identifier".main(),
+					"by_data_owner_identifier" to DATA_OWNER_PARTITION,
+				),
+				configurationViews = listOf("by_all_delegates_identifier")
 			).keys(
 				identifiers.flatMap {
 					searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
@@ -112,9 +119,12 @@ class MaintenanceTaskDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_date",
-				"by_data_owner_date" to DATA_OWNER_PARTITION,
+				client = client,
+				legacyViews = listOf(
+					"by_hcparty_date".main(),
+					"by_data_owner_date" to DATA_OWNER_PARTITION,
+				),
+				configurationViews = listOf("by_all_delegates_date")
 			).startKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
 				.endKey(ComplexKey.of(healthcarePartyId, date))
 				.descending(true)
@@ -146,9 +156,12 @@ class MaintenanceTaskDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_type",
-				"by_data_owner_type" to DATA_OWNER_PARTITION,
+				client = client,
+				legacyViews = listOf(
+					"by_hcparty_type".main(),
+					"by_data_owner_type" to DATA_OWNER_PARTITION,
+				),
+				configurationViews = listOf("by_all_delegates_type")
 			).startKey(
 				endDate?.let { ComplexKey.of(healthcarePartyId, type, it) } ?: ComplexKey.of(
 					healthcarePartyId,
