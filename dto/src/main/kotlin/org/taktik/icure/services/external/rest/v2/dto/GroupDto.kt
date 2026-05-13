@@ -85,6 +85,10 @@ data class GroupDto(
 	@SdkName("projectId")
 	val applicationId: String? = null,
 	val templates: TemplatesConfigurationDto? = null,
+	/**
+	 * The version of the custom design doc config applied to the group.
+	 */
+	val designDocConfigVersion: Int? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(

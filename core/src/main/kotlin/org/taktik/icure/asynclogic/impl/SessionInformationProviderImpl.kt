@@ -178,14 +178,14 @@ open class SessionInformationProviderImpl(
 		 */
 		const val REQUEST_CARDINAL_VERSION_HEADER = "Icure-Request-Cardinal-Version"
 
-		private suspend fun getCurrentAuthentication() = loadSecurityContext()?.map { it.authentication }?.awaitFirstOrNull()
+		suspend fun getCurrentAuthentication() = loadSecurityContext()?.map { it.authentication }?.awaitFirstOrNull()
 
 		private suspend fun invalidateCurrentAuthentication() {
 			loadSecurityContext()?.map { it.authentication.isAuthenticated = false }?.awaitFirstOrNull()
 				?: throw AuthenticationServiceException("Could not find authentication object in ReactorContext")
 		}
 
-		private fun extractUserDetails(authentication: Authentication): UserDetails = authentication.principal?.let { it as? UserDetails }
+		fun extractUserDetails(authentication: Authentication): UserDetails = authentication.principal?.let { it as? UserDetails }
 			?: throw AuthenticationServiceException("Failed extracting user details: ${authentication.principal}")
 	}
 

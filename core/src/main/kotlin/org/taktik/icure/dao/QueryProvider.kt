@@ -8,6 +8,7 @@ import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.icure.asyncdao.impl.GenericDAOImpl
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.exceptions.MissingViewException
 import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.ViewQueries
 import org.taktik.icure.utils.createPagedQueries
@@ -22,20 +23,29 @@ class QueryProvider(
 	private val designDocSchemaCache: DesignDocSchemaCache
 ) {
 
+	/**
+	 * Instantiates a [ViewQuery] if a DesignDocSchema is defined in the group of the current user, returning null
+	 * otherwise.
+	 * If a schema is defined but no view with the specified name is defined for the entity, it throws an exception.
+	 */
 	private suspend fun createQueryFromSchema(
 		entityClass: Class<*>,
 		viewName: String,
 	): ViewQuery? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
-		val partition = requireNotNull(
-			viewsForEntity?.get(viewName)
-		) { "$viewName not found in configuration for ${entityClass.simpleName}" }
+		val partition = viewsForEntity?.get(viewName)
+			?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
 		ViewQuery()
 			.designDocId(designDocName(entityClass.simpleName, partition.toString()))
 			.skipIfViewDoesNotExist(false)
 			.viewName(viewName)
 	}
 
+	/**
+	 * Instantiates a [NoDocViewQueries] if a DesignDocSchema is defined in the group of the current user, returning null
+	 * otherwise.
+	 * If a schema is defined but any view with the specified name is not defined for the entity, it throws an exception.
+	 */
 	private suspend fun createQueriesFromSchema(
 		entityClass: Class<*>,
 		viewNames: List<String>,
@@ -43,9 +53,8 @@ class QueryProvider(
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		NoDocViewQueries(
 			viewNames.map { viewName ->
-				val partition = requireNotNull(viewsForEntity?.get(viewName)) {
-					"$viewName not found in configuration for ${entityClass.simpleName}"
-				}
+				val partition = viewsForEntity?.get(viewName)
+					?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
 				ViewQuery()
 					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
 					.skipIfViewDoesNotExist(false)
