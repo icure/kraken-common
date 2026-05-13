@@ -60,9 +60,11 @@ private suspend fun attachContext(builder: LoggingEventBuilder): LoggingEventBui
 	ctx.requestId?.let { builder.addKeyValue(KEY_REQUEST_ID, it) }
 	ctx.groupId?.let { builder.addKeyValue(KEY_GROUP_ID, it) }
 	ctx.userId?.let { builder.addKeyValue(KEY_USER_ID, it) }
+	ctx.targetGroupId?.let { builder.addKeyValue(KEY_TARGET_GROUP_ID, it) }
 	return builder
 }
 
 const val KEY_REQUEST_ID = "requestId"
 const val KEY_GROUP_ID = "groupId"
 const val KEY_USER_ID = "userId"
+const val KEY_TARGET_GROUP_ID = "targetGroupId"

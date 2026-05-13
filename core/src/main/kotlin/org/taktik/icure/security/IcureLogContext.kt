@@ -20,6 +20,7 @@ data class IcureLogContext(
 	val requestId: String?,
 	val groupId: String?,
 	val userId: String?,
+	val targetGroupId: String? = null,
 ) {
 	companion object {
 		val Key: Class<IcureLogContext> = IcureLogContext::class.java
