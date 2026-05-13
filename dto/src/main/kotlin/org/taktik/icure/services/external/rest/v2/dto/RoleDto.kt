@@ -24,22 +24,29 @@ import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import java.io.Serializable
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * The RoleDto class represents a role in the system, which can have permissions and can be inheritable up to a certain level by users in child Groups.$
  * down the group hierarchy this role can be inherited by users in child groups. A value of 0 means it cannot be inherited, while a value of -1 means it can be inherited indefinitely.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class RoleDto(
-	/** The unique identifier of the role. */
+	/** The unique identifier of the role. It is automatically set to <GROUP_ID>:<ROLE_NAME> */
 	override val id: String,
 	/** The revision identifier of the role, used for optimistic locking. */
 	override val rev: String? = null,
 	/** The timestamp of when the role was deleted, if applicable. */
 	override val deletionDate: Long? = null,
-	/** The name of the role. */
+	/** The name of the role. It can only contain uppercase letters, numbers, and underscores for a max length of 40 characters.*/
 	override val name: String? = null,
-	/** The maximum level of inheritance for this role, indicating how far */
+	/** A short description for the role. It cannot exceed 300 characters. **/
+	val description: String? = null,
+	/**
+	 * Represents the levels in the descendant groups hierarchy where this role can be used. Eg:
+	 * - null: all the users in the descendants of the group can use this role.
+	 * - 0: only the users in the group can use this role.
+	 * - 1: only the users in the group and in its children groups can use this role.
+	 */
 	val inheritableUpTo: Int? = null,
 	/** A set of permissions associated with this role, defining what actions users with this role can perform. */
 	val permissions: Set<String> = emptySet(),
