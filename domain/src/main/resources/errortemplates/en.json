@@ -119,7 +119,7 @@
   "GEM-OBJECT-DUPLICATES": "{{path}}: Duplicate object migrations for ({{sourceRefType}}) {{sourceRef}} -> ({{targetRefType}}) {{target}}, multiple definitions for the same source->target object pair are not allowed.",
   "GEM-OBJECT-WUNUSED": "{{path}}: Object migration is not used",
   "GEM-OBJECT-WUNUSEDSOURCE": "{{path}}: Object migration does not use the value of the custom source property `{{prop}}` in configured builtin migrations. Unless this value is used in a custom migration function the content will be permanently lost during migration.",
-  "GEM-OBJECT-WENCRYPTIONBUILTINSOURCE": "{{path}}: The source of this migration is a pure builtin entity with no custom extension definition. Only users with access to the entity encryption key will be able to perform the migration.",
+  "GEM-OBJECT-WENCRYPTION-BUILTINSOURCE": "{{path}}: The source of this migration is a pure builtin entity with no custom extension definition. Only users with access to the entity encryption key will be able to perform the migration.",
   "GEM-OBJECT-WENCRYPTION-READFROMBLOB": "{{path}}: Source property '{{sourcePropName}}' is encrypted but the target property is not. Only users with access to the entity encryption key will be able to perform the migration.",
   "GEM-OBJECT-WENCRYPTION-WRITETOBLOB": "{{path}}: The target property is encrypted but its source value is not. Only users with access to the entity encryption key will be able to perform the migration.",
   "GEM-OBJECT-WENCRYPTION-WRITETOBLOBFROM": "{{path}}: Source property '{{sourcePropName}}' is not encrypted but the target property is. Only users with access to the entity encryption key will be able to perform the migration.",
