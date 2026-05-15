@@ -6,7 +6,7 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
-import org.taktik.icure.asyncdao.impl.GenericDAOImpl
+import org.taktik.icure.asyncdao.DAOWithClass
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.MissingViewException
 import org.taktik.icure.utils.NoDocViewQueries
@@ -122,14 +122,14 @@ class QueryProvider(
 		)
 	}
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun hasAllViewForCurrentEntity(): Boolean =
 		designDocSchemaCache.getOrRequestSchema()
 			?.viewsByEntity
 			?.get(dao.entityClass.simpleName)
 			?.containsKey("all") ?: false
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun createQuery(
 		client: Client,
 		legacyReference: DesignDocReference.LegacyReference,
@@ -144,7 +144,7 @@ class QueryProvider(
 			secondaryPartition = legacyReference.secondaryPartition
 		)
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun <P> pagedViewQuery(
 		client: Client,
 		legacyReference: DesignDocReference.LegacyReference,
@@ -174,7 +174,7 @@ class QueryProvider(
 			secondaryPartition = legacyReference.secondaryPartition
 		)
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun createQueries(
 		client: Client,
 		legacyReferences: DesignDocReference.LegacyReferences,
@@ -192,7 +192,7 @@ class QueryProvider(
 			*legacyReferences.viewQueries.toTypedArray()
 		)
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun <P> createPagedQueries(
 		client: Client,
 		legacyReferences: DesignDocReference.LegacyReferences,
@@ -223,7 +223,7 @@ class QueryProvider(
 			useDataOwner = legacyReferences.useDataOwnerPartition
 		)
 
-	context(dao: GenericDAOImpl<*>)
+	context(dao: DAOWithClass<*>)
 	suspend fun <P> pagedViewQueryOfIds(
 		client: Client,
 		legacyReference: DesignDocReference.LegacyReference,
