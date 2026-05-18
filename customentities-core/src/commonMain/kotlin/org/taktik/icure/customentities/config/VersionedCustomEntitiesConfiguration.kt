@@ -46,6 +46,16 @@ data class VersionedCustomEntitiesConfiguration(
 							builtinDefinitionsProvider
 						)
 					)
+					if (objDef.isEncryptable(builtinDefinitionsProvider) && !objDef.idRootDefinition(builtinDefinitionsProvider)) {
+						if (
+							objects.none { (otherName, otherDef) ->
+								otherName != name && otherDef.isEncryptable(builtinDefinitionsProvider) && otherDef.directCustomObjectDependenciesContains(name)
+							}
+						) {
+							// TODO warning does not fire if there is circular reference between two encryptables... in future might want to check the dependency tree until we hit a root
+							validationContext.addWarning("GE-CONFIG-WENCRYPTABLENOTUSED")
+						}
+					}
 				}
 			}
 		}
@@ -113,4 +123,31 @@ data class VersionedCustomEntitiesConfiguration(
 		}
 		return collector.collectedErrors
 	}
+
+	/**
+	 * Check if an object definition is associated to a root db object.
+	 * Currently, this is the case only if the definition extends a root builtin entity.
+	 * With the introduction of fully custom entities then there will be additional entities that qualify as root
+	 * entities
+	 */
+	private fun ObjectDefinition.idRootDefinition(
+		builtinDefinitionsProvider: BuiltinDefinitionsProvider
+	): Boolean =
+		builtinExtension?.entityName?.let {
+			builtinDefinitionsProvider.getBuiltinObjectDefinition(it)?.isRoot
+		} == true
+
+	/**
+	 * Check if any of the direct dependencies of this definition to custom objects definitions that are coming from
+	 * either custom properties or custom extensions on the extended builtin properties use the object definition with
+	 * the provided name.
+	 */
+	private fun ObjectDefinition.directCustomObjectDependenciesContains(name: String): Boolean =
+		properties.values.any { prop ->
+			prop.type.objectDefinitionDependencies.any { (dependency, builtin) ->
+				!builtin && dependency == name
+			}
+		} || builtinExtension?.extendedBuiltinProperties?.values?.any { targetDefinitionRef ->
+			targetDefinitionRef == name
+		} ?: false
 }

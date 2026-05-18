@@ -527,14 +527,7 @@ data class ObjectDefinition(
 
 	/**
 	 * Specifies if this object is encryptable.
-	 * If true this object definition will exist in 2 variants, an encrypted variant and a decrypted variant (+ a shared
-	 * interface).
-	 *
-	 * When an encryptable object definition uses another encryptable object definition the variants will match, that is
-	 * if we have Person with Address, both encryptable, "EncryptedPerson" will use "EncryptedAddress" and
-	 * "DecryptedPerson" will use "DecryptedAddress".
-	 *
-	 * When a non-encryptable object definition uses an encryptable object then the Decrypted variant will be used
+	 * See the "Encryptable objects" section in the main [ObjectDefinition] documentation
 	 */
 	// TODO in future we might want to allow usage of always decrypted variants in some encryptable object definitions
 	fun isEncryptable(
