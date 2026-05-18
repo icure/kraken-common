@@ -16,6 +16,31 @@ import org.taktik.icure.utils.Validation
 
 /**
  * A definition of a custom or built-in object type
+ *
+ * # Encryptable objects
+ *
+ * Some object definitions can be encryptable, meaning the object's content can be partially encrypted, using a unique
+ * encryption key defined at the root object containing this definition.
+ *
+ * An object definition is encryptable if at least one of the following conditions apply:
+ * - The definition extends a builtin encryptable entity
+ * - The definition contains some custom properties with a non-null [PropertyConfiguration.encryptionConfiguration]
+ * - The definition has [forceEncryptable] set to true
+ *
+ * In the customized SDK encryptable objects are generated in two "flavors", `DecryptedX` and `EncryptedX`.
+ * The decrypted flavor will contain all defined properties, while the encrypted flavor will contain only properties
+ * that are not encrypted according to [PropertyConfiguration.encryptionConfiguration] if custom or
+ * [BuiltinExtensionConfiguration.propertiesEncryptionConfiguration] if builtin.
+ *
+ * The customised SDK will also provide a common supertype between the decrypted and encrypted flavors of the object,
+ * depending on the language this may be an interface, a union, or other.
+ *
+ * When an encryptable object definition uses another encryptable object definition the variants will match, that is if
+ * we have Person with Address, both encryptable, "EncryptedPerson" will use "EncryptedAddress" and "DecryptedPerson"
+ * will use "DecryptedAddress".
+ *
+ * It is also possible to use encryptable objects in non-encryptable object definitions, in that case only the decrypted
+ * variant will be used.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class ObjectDefinition(

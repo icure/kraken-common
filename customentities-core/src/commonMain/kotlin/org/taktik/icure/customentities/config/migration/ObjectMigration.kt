@@ -71,9 +71,13 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  * The exact matching will ignore differences in *properties* encryption configurations if an encryptable object
  * definition is used from a context where the encryption configuration is ignored.
  *
- * This is the case for example of an encryptable object being used in a non-encryptable object definition: in that
- * case the non-encryptable object uses directly the decrypted variant of the encryptable object, so changes in
- * properties encryption configurations do not affect that definition.
+ * Currently this is the case the case if and only if the encryptable object is contained in a non-encryptable object
+ * definition, since the non-encryptable objects will use directly the decrypted definition of the encryptable object,
+ * therefore changes in properties encryption configurations do not affect that definition.
+ *
+ * In future there might be additional situation that will allow to ignore the encryption configuration for exact
+ * matching, for example if a property of an encryptable object is explicitly marked as using always only the decrypted
+ * flavor.
  *
  * However, if a dependency's *encryptability* itself changes (gains or loses encryptability), the parent object is
  * still not an exact match even in a non-encryptable context. This is because the resolved generated type name
@@ -281,7 +285,24 @@ data class ObjectMigration(
 	 *
 	 * Uses the same exact-match rules as [FallbackBehavior.ExactMatchFromSourceByName] and the obje
 	 */
-	val allowExtendedBuiltinPropertiesCoercion: Boolean = false
+	val allowExtendedBuiltinPropertiesCoercion: Boolean = false,
+	/**
+	 * If true and the object being migrated could be encrypted then only clients that have access to the encryption key
+	 * of the root entity containing the object will be able to perform the migration.
+	 *
+	 * If the object being migrated is not coming from a context where it could possibly be encrypted (for example if it
+	 * is reached through a non-encryptable entity) then this requirement does not apply.
+	 *
+	 * When set to true this has two effects:
+	 * - All warnings about the migration requiring access to an encryption key are silenced
+	 * - Custom migration methods will be given always the decrypted source entity as input (if false, the custom
+	 *   migration might get either the encrypted or decrypted source entity as input, depending on which request
+	 *   triggered the migration and on the containing object)
+	 *
+	 * This flag has an effect only if at least one of the source or target definitions is an encryptable object
+	 * definition.
+	 */
+	val forceRequireEncryption: Boolean = false,
 ) {
 	init {
 		require (fallbackBehavior.toSet().size == fallbackBehavior.size) {
