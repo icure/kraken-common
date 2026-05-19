@@ -104,9 +104,8 @@ class QueryProvider(
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		ViewQueries(
 			viewNames.map { viewName ->
-				val partition = requireNotNull(viewsForEntity?.get(viewName)) {
-					"$viewName not found in configuration for ${entityClass.simpleName}"
-				}
+				val partition = viewsForEntity?.get(viewName)
+					?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
 				ViewQuery()
 					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
 					.skipIfViewDoesNotExist(false)
