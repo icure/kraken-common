@@ -182,7 +182,7 @@ class CalendarItemDAOImpl(
 					"by_hcparty_and_enddate".main(),
 					"by_data_owner_and_enddate" to DATA_OWNER_PARTITION
 				),
-				configurationViews = listOf("by_all_delegates_and_startdate")
+				configurationViews = listOf("by_all_delegates_and_enddate")
 			).startKey(from).endKey(to).includeDocs()
 		emitAll(
 			client
@@ -233,7 +233,7 @@ class CalendarItemDAOImpl(
 					"by_hcparty_and_startdate".main(),
 					"by_data_owner_and_startdate" to DATA_OWNER_PARTITION
 				),
-				configurationViews = listOf("by_all_delegates_and_enddate")
+				configurationViews = listOf("by_all_delegates_and_startdate")
 			)
 		val idsByEndDate =
 			listCalendarItemIdsByDateAndDataOwnerId(

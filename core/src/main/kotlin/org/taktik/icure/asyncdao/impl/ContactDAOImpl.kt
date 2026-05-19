@@ -748,10 +748,10 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			client = client,
 			legacyViews = listOf(
-				"service_by_hcparty_tag".main(),
-				"service_by_data_owner_tag" to DATA_OWNER_PARTITION
+				"by_hcparty_tag".main(),
+				"by_data_owner_tag" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_tag"),
+			configurationViews = listOf("by_all_delegates_tag"),
 		)
 			.startKey(from)
 			.endKey(to)
@@ -865,10 +865,10 @@ class ContactDAOImpl(
 		val viewQueries = createQueries(
 			client = client,
 			legacyViews = listOf(
-				"service_by_hcparty_code".main(),
-				"service_by_data_owner_code" to DATA_OWNER_PARTITION
+				"by_hcparty_code".main(),
+				"by_data_owner_code" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_code"),
+			configurationViews = listOf("by_all_delegates_code"),
 		)
 			.startKey(from)
 			.endKey(to)

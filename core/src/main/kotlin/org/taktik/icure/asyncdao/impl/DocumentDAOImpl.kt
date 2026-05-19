@@ -178,7 +178,7 @@ class DocumentDAOImpl(
 					"by_type_hcparty_message".main(),
 					"by_type_data_owner_message" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_message"),
+				configurationViews = listOf("by_document_type_delegate_message"),
 			).keys(keys).includeDocs()
 		emitAll(
 			client

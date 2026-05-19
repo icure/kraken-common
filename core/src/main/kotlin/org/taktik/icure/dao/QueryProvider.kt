@@ -145,6 +145,11 @@ class QueryProvider(
 		)
 
 	context(dao: DAOWithClass<*>)
+	suspend fun createQueryFromSchemaOrNull(
+		configurationReference: DesignDocReference.ConfigurationReference
+	): ViewQuery? = createQueryFromSchema(entityClass = dao.entityClass, viewName = configurationReference.viewName)
+
+	context(dao: DAOWithClass<*>)
 	suspend fun <P> pagedViewQuery(
 		client: Client,
 		legacyReference: DesignDocReference.LegacyReference,

@@ -780,6 +780,12 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	): ViewQuery =
 		designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, secondaryPartition)
 
+	protected suspend fun createConfigurationQueryOrNull(
+		configurationView: String
+	): ViewQuery? = queryProvider.createQueryFromSchemaOrNull(
+		configurationReference = DesignDocReference.ConfigurationReference(configurationView),
+	)
+
 	protected suspend fun createQueries(
 		client: Client,
 		legacyViews: List<Pair<String, String?>>,
