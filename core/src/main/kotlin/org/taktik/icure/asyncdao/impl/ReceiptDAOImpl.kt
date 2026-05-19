@@ -45,9 +45,23 @@ class ReceiptDAOImpl(
 	}
 
 	@View(name = "by_date", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit(doc.created)}")
-	override fun listReceiptsAfterDate(datastoreInformation: IDatastoreInformation, date: Long) = flow {
+	override fun listReceiptsBetweenDates(datastoreInformation: IDatastoreInformation, start: Long?, end: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(999999999999L).endKey(date).descending(true).includeDocs(true)).map { it.doc })
+
+		val startKey =
+			if (descending) {
+				end ?: ComplexKey.emptyObject()
+			} else {
+				start
+			}
+		val endKey =
+			if (descending) {
+				start
+			} else {
+				end ?: ComplexKey.emptyObject()
+			}
+
+		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(startKey).endKey(endKey).descending(descending).includeDocs(true)).map { it.doc })
 	}
 
 	@View(name = "by_category", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit([doc.category,doc.subCategory,doc.created])}")
