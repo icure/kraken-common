@@ -23,9 +23,9 @@ data class DesignDocSchema(
 ) : StoredDocument {
 
 	companion object {
-		private const val ID_PREFIX = "ddocConfig"
+		private const val ID_PREFIX = "ddc"
 
-		fun idOf(applicationId: String, version: Int): String = "$ID_PREFIX:$applicationId:$version"
+		fun idOf(applicationGroupId: String, version: Int): String = "$ID_PREFIX:$applicationGroupId:$version"
 	}
 
 	@JsonProperty("_id")

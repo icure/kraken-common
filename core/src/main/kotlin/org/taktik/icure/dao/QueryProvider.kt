@@ -20,7 +20,7 @@ import org.taktik.icure.utils.pagedViewQueryOfIds
 @Component
 class QueryProvider(
 	private val designDocumentProvider: DesignDocumentProvider,
-	private val designDocSchemaCache: DesignDocSchemaCache
+	private val designDocSchemaProvider: DesignDocSchemaProvider
 ) {
 
 	/**
@@ -31,7 +31,7 @@ class QueryProvider(
 	private suspend fun createQueryFromSchema(
 		entityClass: Class<*>,
 		viewName: String,
-	): ViewQuery? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
+	): ViewQuery? = designDocSchemaProvider.getOrRequestSchema()?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		val partition = viewsForEntity?.get(viewName)
 			?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
@@ -49,7 +49,7 @@ class QueryProvider(
 	private suspend fun createQueriesFromSchema(
 		entityClass: Class<*>,
 		viewNames: List<String>,
-	): NoDocViewQueries? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
+	): NoDocViewQueries? = designDocSchemaProvider.getOrRequestSchema()?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		NoDocViewQueries(
 			viewNames.map { viewName ->
@@ -100,7 +100,7 @@ class QueryProvider(
 		endKey: P?,
 		pagination: PaginationOffset<P>,
 		descending: Boolean
-	): ViewQueries? = designDocSchemaCache.getOrRequestSchema()?.let { schema ->
+	): ViewQueries? = designDocSchemaProvider.getOrRequestSchema()?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		ViewQueries(
 			viewNames.map { viewName ->
@@ -123,7 +123,7 @@ class QueryProvider(
 
 	context(dao: DAOWithClass<*>)
 	suspend fun hasAllViewForCurrentEntity(): Boolean =
-		designDocSchemaCache.getOrRequestSchema()
+		designDocSchemaProvider.getOrRequestSchema()
 			?.viewsByEntity
 			?.get(dao.entityClass.simpleName)
 			?.containsKey("all") ?: false
