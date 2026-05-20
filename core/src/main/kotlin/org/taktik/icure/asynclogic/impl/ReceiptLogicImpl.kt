@@ -65,6 +65,11 @@ open class ReceiptLogicImpl(
 		emitAll(receiptDAO.listByReference(datastoreInformation, ref))
 	}
 
+	override fun listReceiptsBetweenDates(start: Long?, end: Long?, descending: Boolean): Flow<Receipt> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(receiptDAO.listReceiptsBetweenDates(datastoreInformation, start, end, descending))
+	}
+
 	override fun getAttachment(
 		receiptId: String,
 		attachmentId: String,

@@ -18,6 +18,7 @@ interface ReceiptLogic :
 {
 	suspend fun createReceipt(receipt: Receipt): Receipt
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
+	fun listReceiptsBetweenDates(start: Long?, end: Long?, descending: Boolean): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>
 
 	/**

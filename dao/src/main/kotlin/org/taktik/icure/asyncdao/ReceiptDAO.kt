@@ -13,7 +13,7 @@ interface ReceiptDAO :
 	AttachmentManagementDAO<Receipt> {
 	fun listByReference(datastoreInformation: IDatastoreInformation, ref: String): Flow<Receipt>
 
-	fun listReceiptsAfterDate(datastoreInformation: IDatastoreInformation, date: Long): Flow<Receipt>
+	fun listReceiptsBetweenDates(datastoreInformation: IDatastoreInformation, start: Long?, end: Long?, descending: Boolean): Flow<Receipt>
 
 	fun listReceiptsByCategory(datastoreInformation: IDatastoreInformation, category: String, subCategory: String, startDate: Long, endDate: Long): Flow<Receipt>
 

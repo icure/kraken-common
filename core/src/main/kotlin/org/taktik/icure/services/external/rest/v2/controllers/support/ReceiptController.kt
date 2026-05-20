@@ -275,6 +275,17 @@ class ReceiptController(
 		@PathVariable ref: String,
 	): Flux<ReceiptDto> = receiptService.listReceiptsByReference(ref).map { receiptV2Mapper.map(it) }.injectReactorContext()
 
+	@Operation(summary = "List Receipts created within the provided date range")
+	@GetMapping("/byCreated")
+	fun listReceiptsBetweenDates(
+		@Parameter(description = "The start search epoch (inclusive)") @RequestParam(required = false) startDate: Long?,
+		@Parameter(description = "The end search epoch (inclusive)") @RequestParam(required = false) endDate: Long?,
+		@Parameter(description = "Descending order") @RequestParam(required = false) descending: Boolean?,
+	): Flux<ReceiptDto> = receiptService
+		.listReceiptsBetweenDates(startDate, endDate, descending ?: false)
+		.map(receiptV2Mapper::map)
+		.injectReactorContext()
+
 	@Operation(summary = "Update a Receipt")
 	@PutMapping
 	fun modifyReceipt(
