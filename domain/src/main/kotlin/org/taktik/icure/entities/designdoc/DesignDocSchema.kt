@@ -3,14 +3,13 @@ package org.taktik.icure.entities.designdoc
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
-import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.RevisionInfo
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DesignDocSchema(
 	@param:JsonProperty("_rev") override val rev: String?,
-	val applicationId: String,
+	val applicationGroupId: String,
 	val version: Int,
 	/**
 	 * The key of the outermost map is the entity name. In the inner map, the key is the view name and the value is
@@ -30,16 +29,16 @@ data class DesignDocSchema(
 	}
 
 	@JsonProperty("_id")
-	override val id = "$ID_PREFIX:$applicationId:$version"
+	override val id = "$ID_PREFIX:$applicationGroupId:$version"
 
 	override fun withIdRev(
 		id: String?,
 		rev: String
 	): DesignDocSchema {
-		val (_, applicationId, version) = id?.split(":", limit = 3) ?: listOf("", applicationId, "$version")
+		val (_, applicationId, version) = id?.split(":", limit = 3) ?: listOf("", applicationGroupId, "$version")
 		return copy(
 			rev = rev,
-			applicationId = applicationId,
+			applicationGroupId = applicationId,
 			version = version.toInt()
 		)
 	}
