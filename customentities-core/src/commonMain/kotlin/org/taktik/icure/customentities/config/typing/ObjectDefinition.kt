@@ -143,15 +143,32 @@ data class ObjectDefinition(
 
 			/**
 			 * If the provided value should be ignored according to this default configuration.
+			 * Always false if [isConstant] is false
 			 */
 			fun shouldIgnoreForStore(value: RawJson): Boolean
 
+			/**
+			 * Specifies if this default value is a constant.
+			 */
 			@get:JsonIgnore
 			val isConstant: Boolean
 
+			// The main reason for restrictions is the complexity that comes from checking if the value is really going
+			// to be constant.
+			// Imagine we have Foo(bar: ObjectTypeConfig(Bar) = Constant({})) then:
+			// - If Bar was Bar(x: IntTypeConfig = Constant(0)) there is no issue, but
+			// - If Bar was Bar(x: UuidTypeConfig = GenerateUuidV4) then the value of Foo.bar would not be really
+			//   constant, even if the value of Foo.bar is always the default one, so we disallow it.
+			// Similar issue happens with list / map: we would have to check the content. In future we might be able
+			// to relax these restrictions if the needs arise, by recursively applying the validation
 			/**
 			 * Represents a constant default value.
-			 * Properties with values equal to the default value are not included in the serialized representation
+			 * Properties with values equal to the default value are not included in the serialized representation.
+			 *
+			 * This can be used with all type configurations, but there are some restrictions for allowed types on
+			 * certain configurations:
+			 * - if applied to a object type config only null is accepted as a value (the object type config must be nullable)
+			 * - if applied to a list or map type config only an empty value is accepted
 			 */
 			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
 			data class Constant(
@@ -165,8 +182,30 @@ data class ObjectDefinition(
 					typeConfig: GenericTypeConfig,
 					context: CustomEntityConfigValidationContext,
 				) {
-					// Supported on all types, even for id and date types: in those cases might want to use null or
-					// other special values.
+					// Check restricted values are not being used
+					when (typeConfig) {
+						is MapTypeConfig -> {
+							if (value is RawJson.JsonObject && value.properties.isNotEmpty()) {
+								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTMAP")
+							}
+						}
+
+						is ListTypeConfig -> {
+							if (value is RawJson.JsonArray && value.items.isNotEmpty()) {
+								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTLIST")
+							}
+						}
+
+						is ObjectTypeConfig -> {
+							if (value is RawJson.JsonObject) {
+								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTOBJECT")
+							}
+						}
+
+						else -> { /* No extra validation needed for other types */ }
+					}
+					// Otherwise supported on all types, even for id and date types (in those cases might want to use
+					// null or other special values), must only validate the value
 					typeConfig.validateAndMapValueForStore(context, value)
 				}
 
@@ -533,7 +572,14 @@ data class ObjectDefinition(
 	fun isEncryptable(
 		builtinDefinitionsProvider: BuiltinDefinitionsProvider
 	): Boolean =
-		forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension?.entityName?.let {
+		isCustomEncryptable() || builtinExtension?.entityName?.let {
 			builtinDefinitionsProvider.getBuiltinObjectDefinition(it)?.isEncryptable
 		} == true
+
+	/**
+	 * If the configuration of this object definition would make it encryptable, regardless of the type of extended
+	 * builtin entity, if any.
+	 */
+	fun isCustomEncryptable(): Boolean =
+		forceEncryptable || properties.any { it.value.encryptionConfiguration != null }
 }
