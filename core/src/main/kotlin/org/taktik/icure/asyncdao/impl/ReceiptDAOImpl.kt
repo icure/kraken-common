@@ -52,7 +52,7 @@ class ReceiptDAOImpl(
 	override fun listByReference(datastoreInformation: IDatastoreInformation, ref: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_reference".main(),
 			configurationView = "by_ref"
 		).startKey(ref).endKey(ref + "\ufff0").includeDocs(true)
@@ -65,7 +65,7 @@ class ReceiptDAOImpl(
 	override fun listReceiptsAfterDate(datastoreInformation: IDatastoreInformation, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_date".main(),
 			configurationView = "by_date"
 		).startKey(999999999999L).endKey(date).descending(true).includeDocs(true)
@@ -78,7 +78,7 @@ class ReceiptDAOImpl(
 	override fun listReceiptsByCategory(datastoreInformation: IDatastoreInformation, category: String, subCategory: String, startDate: Long, endDate: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_category".main(),
 			configurationView = "by_category"
 		).startKey(ComplexKey.of(category, subCategory, startDate))
@@ -94,7 +94,7 @@ class ReceiptDAOImpl(
 	override fun listReceiptsByDocId(datastoreInformation: IDatastoreInformation, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_doc_id".main(),
 			configurationView = "by_doc_id"
 		).startKey(999999999999L).endKey(date).descending(true).includeDocs(true)

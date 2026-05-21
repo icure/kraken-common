@@ -78,7 +78,10 @@ internal class HealthElementDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val configurationQuery = createConfigurationQueryOrNull("by_all_delegates")
+		val configurationQuery = createConfigurationQueryOrNull(
+			datastoreInformation = datastoreInformation,
+			configurationView = "by_all_delegates"
+		)
 
 		if (configurationQuery != null) {
 			emitAll(client.queryView<String, String>(
@@ -117,12 +120,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patient_date" to MAURICE_PARTITION,
 					"by_data_owner_patient" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patient")
+				configurationView = "by_all_delegates_patient"
 			).keys(keys).doNotIncludeDocs()
 		emitAll(
 			client
@@ -143,7 +146,10 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val configurationQuery = createConfigurationQueryOrNull(configurationView)
+		val configurationQuery = createConfigurationQueryOrNull(
+			datastoreInformation = datastoreInformation,
+			configurationView = configurationView
+		)
 
 		if (configurationQuery != null) {
 			emitAll(
@@ -249,12 +255,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_and_status".main(),
 					"by_data_owner_and_status" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_status")
+				configurationView = "by_all_delegates_status"
 			).keys(searchKeys.map { ComplexKey.of(it, status) })
 				.doNotIncludeDocs()
 
@@ -297,12 +303,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_and_identifiers" to MAURICE_PARTITION,
 					"by_data_owner_and_identifiers" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_identifiers")
+				configurationView = "by_all_delegates_identifiers"
 			).keys(
 				identifiers.flatMap {
 					searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
@@ -354,12 +360,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patient".main(),
 					"by_data_owner_patient" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patient")
+				configurationView = "by_all_delegates_patient"
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -379,7 +385,7 @@ internal class HealthElementDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patient"),
+		configurationView = "by_all_delegates_patient",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -434,8 +440,10 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			healthElements = queryByHcPartyTagOrCodeDateSortedQuery(
+				datastoreInformation = datastoreInformation,
 				client = client,
 				dateInKeyViewName = "by_all_delegates_code_date_map",
 				dateInValueViewName = "by_all_delegates_code_map",
@@ -465,8 +473,10 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			healthElements = queryByHcPartyTagOrCodeDateSortedQuery(
+				datastoreInformation = datastoreInformation,
 				client = client,
 				dateInKeyViewName = "by_all_delegates_tag_date_map",
 				dateInValueViewName = "by_all_delegates_tag_map",
@@ -477,7 +487,7 @@ internal class HealthElementDAOImpl(
 				endDate = endValueDate,
 				descending = false,
 			),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
@@ -487,6 +497,7 @@ internal class HealthElementDAOImpl(
 	) : Serializable
 
 	private suspend fun queryByHcPartyTagOrCodeDateSortedQuery(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		dateInKeyViewName: String,
 		dateInValueViewName: String,
@@ -510,7 +521,7 @@ internal class HealthElementDAOImpl(
 			endDate ?: ComplexKey.emptyObject(),
 		)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = dateInKeyViewName to BEPPE_PARTITION,
 			configurationView = dateInKeyViewName,
 		)
@@ -536,7 +547,7 @@ internal class HealthElementDAOImpl(
 			)
 		}
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = dateInValueViewName to BEPPE_PARTITION,
 			configurationView = dateInValueViewName,
 		)
@@ -580,10 +591,11 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			healthElements = client.queryView<ComplexKey, String>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_all_delegates_status" to BEPPE_PARTITION,
 					configurationView = "by_all_delegates_status",
 				)
@@ -595,7 +607,7 @@ internal class HealthElementDAOImpl(
 					healthElementId = it.value
 				)
 			}.toList(),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
@@ -608,10 +620,11 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			healthElements = client.queryView<ComplexKey, String>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_all_delegates_identifiers" to BEPPE_PARTITION,
 					configurationView = "by_all_delegates_identifiers",
 				)
@@ -627,21 +640,23 @@ internal class HealthElementDAOImpl(
 					healthElementId = it.value
 				)
 			}.toList(),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
 	private suspend fun FlowCollector<String>.emitFilteringVersions(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		healthElements: Collection<DocumentIdHealthElementId>,
 		filterVersion: VersionFiltering
 	): Unit = when (filterVersion) {
-		VersionFiltering.LATEST -> emitLatestHealthElements(client, healthElements)
+		VersionFiltering.LATEST -> emitLatestHealthElements(datastoreInformation, client, healthElements)
 		VersionFiltering.ANY -> healthElements.forEach { emit(it.documentId) }
 	}
 
 	@View(name = "by_health_element_id_latest", map = "classpath:js/healthelement/By_health_element_id_latest_map.js", reduce = "classpath:js/healthelement/By_health_element_id_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
 	private suspend fun FlowCollector<String>.emitLatestHealthElements(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		healthElements: Collection<DocumentIdHealthElementId>
 	) {
@@ -649,7 +664,7 @@ internal class HealthElementDAOImpl(
 		val latestDocForHealthElement = mutableMapOf<String, String>()
 		allHealthElementIds.chunked(1000).takeIf { it.isNotEmpty() }?.forEach { chunk ->
 			val query = createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_health_element_id_latest" to BEPPE_PARTITION,
 				configurationView = "by_health_element_id_latest",
 			)

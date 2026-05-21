@@ -66,13 +66,13 @@ class FrontEndMigrationDAOImpl(
 				val endKey = ComplexKey.of(userId, ComplexKey.emptyObject())
 
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_userid_name".main(),
 					configurationView = "by_userid_name"
 				).startKey(startKey).endKey(endKey).includeDocs(true)
 			} else {
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_userid_name".main(),
 					configurationView = "by_userid_name"
 				).key(ComplexKey.of(userId, name)).includeDocs(true)

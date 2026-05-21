@@ -68,7 +68,7 @@ class AccessLogDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all_by_date".main(),
 			configurationView = "by_date",
 			startKey = fromEpoch,
@@ -88,7 +88,7 @@ class AccessLogDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all_by_date".main(),
 			configurationView = "by_date",
 		)
@@ -141,7 +141,7 @@ class AccessLogDAOImpl(
 		val (startKey, endKey) = getQueryKeysByUserAfterDate(userId, accessType, startDate, descending)
 
 		val query = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all_by_user_date".main(),
 			configurationView = "by_user_type_and_date",
 			startKey = startKey,
@@ -167,7 +167,7 @@ class AccessLogDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "all_by_user_date".main(),
 				configurationView = "by_user_type_and_date",
 			).startKey(startKey)
@@ -201,12 +201,12 @@ class AccessLogDAOImpl(
 				}.sortedWith(compareBy({ it[0] }, { it[1] }))
 
 		val viewQueries = createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patient".main(),
 					"by_data_owner_patient" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patient")
+				configurationView = "by_all_delegates_patient"
 			).includeDocs().keys(keys)
 		emitAll(
 			client
@@ -230,7 +230,7 @@ class AccessLogDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patient"),
+		configurationView = "by_all_delegates_patient",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,

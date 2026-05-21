@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
-import org.taktik.couchdb.Client
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
@@ -62,7 +61,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_user".main(), configurationView = "by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_user".main(), configurationView = "by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(true)
@@ -77,7 +76,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_user".main(), configurationView = "by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_user".main(), configurationView = "by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(false)
@@ -93,7 +92,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(true)
@@ -108,7 +107,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(false)
@@ -125,7 +124,7 @@ class AgendaDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "readable_by_user_rights" to MAURICE_PARTITION,
 				configurationView = "readable_by_user_rights"
 			).startKey(userId)
@@ -142,7 +141,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
 			client.queryViewIncludeDocsNoValue<ComplexKey, Agenda>(
-				viewQueryByTypedProperty(client, property, includeDocs = true)
+				viewQueryByTypedProperty(datastoreInformation, property, includeDocs = true)
 			).map { it.doc }
 		)
 	}
@@ -154,12 +153,12 @@ class AgendaDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(client.queryViewNoValue<ComplexKey>(
-			viewQueryByTypedProperty(client, property, includeDocs = false)
+			viewQueryByTypedProperty(datastoreInformation, property, includeDocs = false)
 		).map { it.id })
 	}
 
 	private suspend fun viewQueryByTypedProperty(
-		client: Client,
+		datastoreInformation: IDatastoreInformation,
 		property: PropertyStub,
 		includeDocs: Boolean,
 	): ViewQuery {
@@ -179,7 +178,7 @@ class AgendaDAOImpl(
 			}.first()
 
 		return createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_typed_property" to MAURICE_PARTITION,
 			configurationView = "by_typed_property"
 		).key(key).includeDocs(includeDocs)
@@ -191,7 +190,7 @@ class AgendaDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_typed_property" to MAURICE_PARTITION, configurationView = "by_typed_property")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_typed_property" to MAURICE_PARTITION, configurationView = "by_typed_property")
 				.startKey(ComplexKey.of(propertyId, null, null))
 				.endKey(ComplexKey.of(propertyId, ComplexKey.emptyObject(), ComplexKey.emptyObject()))
 				.includeDocs(false)

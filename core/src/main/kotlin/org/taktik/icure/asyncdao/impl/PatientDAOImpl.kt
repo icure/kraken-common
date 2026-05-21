@@ -101,12 +101,12 @@ class PatientDAOImpl(
 		val endKey = ComplexKey.of(healthcarePartyId, normalizedSsin + "\ufff0")
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_ssin".main(),
 				"by_data_owner_ssin" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_ssin")
+			configurationView = "by_all_delegates_ssin"
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -139,7 +139,7 @@ class PatientDAOImpl(
 		active = active,
 		searchKeys = searchKeys,
 		legacyViews = listOf("by_hcparty_active".main(), "by_data_owner_active" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_active")
+		configurationView = "by_all_delegates_active"
 	)
 
 	@Views(
@@ -158,7 +158,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_tag" to MAURICE_PARTITION,
 			configurationView = "by_all_delegates_tag"
 		)
@@ -179,7 +179,7 @@ class PatientDAOImpl(
 	override fun listOfMergesAfter(datastoreInformation: IDatastoreInformation, date: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "merged_by_date".main(),
 			configurationView = "merged_by_date"
 		).startKey(date).includeDocs(true)
@@ -190,12 +190,12 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_ssin".main(),
 				"by_data_owner_ssin" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_ssin")
+			configurationView = "by_all_delegates_ssin"
 		).reduce(true)
 			.startKey(ComplexKey.of(healthcarePartyId, null))
 			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
@@ -214,7 +214,7 @@ class PatientDAOImpl(
 	override suspend fun countOfHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "of_hcparty_ssin".main(),
 			configurationView = "of_hcparty_ssin"
 		)
@@ -241,12 +241,12 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_date_of_birth".main(),
 				"by_data_owner_date_of_birth" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_date_of_birth")
+			configurationView = "by_all_delegates_date_of_birth"
 		).startKey(ComplexKey.of(healthcarePartyId, null))
 			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
 			.doNotIncludeDocs()
@@ -266,12 +266,12 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_date_of_birth".main(),
 				"by_data_owner_date_of_birth" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_date_of_birth")
+			configurationView = "by_all_delegates_date_of_birth"
 		).keys(searchKeys.map { ComplexKey.of(it, date) })
 			.doNotIncludeDocs()
 		emitAll(
@@ -290,12 +290,12 @@ class PatientDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_date_of_birth".main(),
 				"by_data_owner_date_of_birth" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_date_of_birth")
+			configurationView = "by_all_delegates_date_of_birth"
 		).startKey(ComplexKey.of(healthcarePartyId, startDate))
 			.endKey(ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject()))
 			.doNotIncludeDocs()
@@ -335,12 +335,12 @@ class PatientDAOImpl(
 		)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_gender_education_profession".main(),
 				"by_data_owner_gender_education_profession" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_gender_education_profession")
+			configurationView = "by_all_delegates_gender_education_profession"
 		)
 			.startKey(ComplexKey.of(healthcarePartyId, gender?.name, education, profession))
 			.endKey(endKey)
@@ -377,12 +377,12 @@ class PatientDAOImpl(
 
 		val name = if (searchString != null) sanitizeString(searchString) else null
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_contains_name".main(),
 				"by_data_owner_contains_name" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_contains_name")
+			configurationView = "by_all_delegates_contains_name"
 		)
 			.startKey(ComplexKey.of(healthcarePartyId, name))
 			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0"))
@@ -405,13 +405,13 @@ class PatientDAOImpl(
 		active: Boolean,
 		searchKeys: Set<String>,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>
+		configurationView: String
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 		)
 			.keys(searchKeys.map { ComplexKey.of(it, if (active) 1 else 0) })
 			.reduce(false)
@@ -453,12 +453,12 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_externalid".main(),
 				"by_data_owner_externalid" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_externalid")
+			configurationView = "by_all_delegates_externalid"
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -500,12 +500,12 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_telecom".main(),
 				"by_data_owner_telecom" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_telecom")
+			configurationView = "by_all_delegates_telecom"
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -547,12 +547,12 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_address".main(),
 				"by_data_owner_address" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_address")
+			configurationView = "by_all_delegates_address"
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -603,12 +603,12 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_address_postalcode_housenumber".main(),
 				"by_data_owner_address_postalcode_housenumber" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_address_postalcode_housenumber")
+			configurationView = "by_all_delegates_address_postalcode_housenumber"
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -633,7 +633,7 @@ class PatientDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQueryOfIds(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = if (daoConfig.useObsoleteViews) {
 				"by_hcparty_name".main()
 			} else {
@@ -678,7 +678,7 @@ class PatientDAOImpl(
 			if (daoConfig.useObsoleteViews) "by_hcparty_name".main() else "by_hcparty_name_id_as_value" to MAURICE_PARTITION,
 			"by_data_owner_name" to DATA_OWNER_PARTITION,
 		),
-		configurationViews = listOf("by_all_delegates_name"),
+		configurationView = "by_all_delegates_name",
 	)
 
 	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
@@ -695,7 +695,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("of_hcparty_name".main()),
-		configurationViews = listOf("of_hcparty_name"),
+		configurationView = "of_hcparty_name",
 	)
 
 	override fun findPatientsByHcPartyAndSsin(
@@ -711,7 +711,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_ssin"),
+		configurationView = "by_all_delegates_ssin",
 	)
 
 	@View(name = "of_hcparty_ssin", map = "classpath:js/patient/Of_hcparty_ssin_map.js", reduce = "_count")
@@ -728,7 +728,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("of_hcparty_ssin".main()),
-		configurationViews = listOf("of_hcparty_ssin"),
+		configurationView = "of_hcparty_ssin",
 	)
 
 	override fun findPatientsByHcPartyDateOfBirth(
@@ -746,7 +746,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("by_hcparty_date_of_birth".main(), "by_data_owner_date_of_birth" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_date_of_birth"),
+		configurationView = "by_all_delegates_date_of_birth",
 	)
 
 	@View(name = "of_hcparty_date_of_birth", map = "classpath:js/patient/Of_hcparty_date_of_birth_map.js")
@@ -765,7 +765,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("of_hcparty_date_of_birth".main()),
-		configurationViews = listOf("of_hcparty_date_of_birth"),
+		configurationView = "of_hcparty_date_of_birth",
 	)
 
 	override fun findPatientsByHcPartyNameContainsFuzzy(
@@ -781,7 +781,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("by_hcparty_contains_name".main(), "by_data_owner_contains_name" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_contains_name")
+		configurationView = "by_all_delegates_contains_name"
 	)
 
 	@View(name = "of_hcparty_contains_name", map = "classpath:js/patient/Of_hcparty_contains_name_map.js")
@@ -798,7 +798,7 @@ class PatientDAOImpl(
 		pagination = pagination,
 		descending = descending,
 		legacyViews = listOf("of_hcparty_contains_name".main()),
-		configurationViews = listOf("of_hcparty_contains_name")
+		configurationView = "of_hcparty_contains_name"
 	)
 
 	private fun findPatientsForHcPartyNameContainsFuzzy(
@@ -808,7 +808,7 @@ class PatientDAOImpl(
 		pagination: PaginationOffset<ComplexKey>,
 		descending: Boolean,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>,
+		configurationView: String,
 	): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -823,9 +823,9 @@ class PatientDAOImpl(
 			endKey = ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")
 		}
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 			startKey = startKey,
 			endKey = endKey,
 			pagination = pagination,
@@ -847,7 +847,7 @@ class PatientDAOImpl(
 		pagination: PaginationOffset<ComplexKey>,
 		descending: Boolean,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>
+		configurationView: String
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -867,9 +867,9 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 			startKey = startKey,
 			endKey = endKey,
 			pagination = pagination,
@@ -890,7 +890,7 @@ class PatientDAOImpl(
 		pagination: PaginationOffset<ComplexKey>,
 		descending: Boolean,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>
+		configurationView: String
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -911,9 +911,9 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 			startKey = startKey,
 			endKey = endKey,
 			pagination = pagination,
@@ -935,7 +935,7 @@ class PatientDAOImpl(
 		pagination: PaginationOffset<ComplexKey>,
 		descending: Boolean,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>
+		configurationView: String
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from: ComplexKey
@@ -949,9 +949,9 @@ class PatientDAOImpl(
 		}
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 			startKey = from,
 			endKey = to,
 			pagination = pagination,
@@ -987,12 +987,12 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_modification_date" to MAURICE_PARTITION,
 				"by_data_owner_modification_date" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_modification_date")
+			configurationView = "by_all_delegates_modification_date"
 		).keys(searchKeys)
 
 		client.interleave<String, Long>(viewQueries, compareBy { it })
@@ -1027,7 +1027,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queryView = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_user_id".main(),
 			configurationView = "by_user_id"
 		).includeDocs(true).key(id)
@@ -1049,7 +1049,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queryView = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_external_id".main(),
 			configurationView = "by_external_id"
 		).includeDocs(true).key(externalId)
@@ -1073,7 +1073,7 @@ class PatientDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "deleted_by_delete_date".main(),
 			configurationView = "deleted_by_delete_date",
 			startKey = if (descending) end else start,
@@ -1113,7 +1113,7 @@ class PatientDAOImpl(
 
 		val queryView =
 			createQuery(
-				client  = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "deleted_by_names".main(),
 				configurationView = "deleted_by_names",
 			).startKey(startKey).endKey(endKey).includeDocs(true)
@@ -1151,7 +1151,7 @@ class PatientDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_modification_date".main(),
 			configurationView = "by_modification_date",
 			startKey = date,
@@ -1173,12 +1173,12 @@ class PatientDAOImpl(
 		}.map { ComplexKey.of(healthcarePartyId, it) }
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_ssin".main(),
 				"by_data_owner_ssin" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_ssin")
+			configurationView = "by_all_delegates_ssin"
 		)
 			.keys(keys)
 			.reduce(false)
@@ -1223,7 +1223,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val result = client.queryView<String, List<String>>(
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_delegate_aes_exchange_keys".main(),
 				configurationView = "by_delegate_aes_exchange_keys"
 			)
@@ -1262,7 +1262,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queryView = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_identifier" to DATA_OWNER_PARTITION,
 			configurationView = "by_all_delegates_identifier"
 		).includeDocs(true)
@@ -1277,7 +1277,7 @@ class PatientDAOImpl(
 	): Flow<ViewQueryResultEvent> = getDuplicatesFromView(
 		datastoreInformation = datastoreInformation,
 		legacyViews = listOf("by_hcparty_ssin".main(), "by_data_owner_ssin" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_ssin"),
+		configurationView = "by_all_delegates_ssin",
 		healthcarePartyId = healthcarePartyId,
 		paginationOffset = paginationOffset,
 	)
@@ -1292,7 +1292,7 @@ class PatientDAOImpl(
 			if (daoConfig.useObsoleteViews) "by_hcparty_name".main() else "by_hcparty_name_id_as_value" to MAURICE_PARTITION,
 			"by_data_owner_name" to DATA_OWNER_PARTITION,
 		),
-		configurationViews = listOf("by_all_delegates_name"),
+		configurationView = "by_all_delegates_name",
 		healthcarePartyId = healthcarePartyId,
 		paginationOffset = paginationOffset,
 	)
@@ -1336,7 +1336,7 @@ class PatientDAOImpl(
 		}
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_identifier" to DATA_OWNER_PARTITION,
 			configurationView = "by_all_delegates_identifier"
 		).keys(keys).includeDocs(false)
@@ -1347,7 +1347,7 @@ class PatientDAOImpl(
 	private fun getDuplicatesFromView(
 		datastoreInformation: IDatastoreInformation,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>,
+		configurationView: String,
 		healthcarePartyId: String,
 		paginationOffset: PaginationOffset<ComplexKey>,
 	): Flow<ViewQueryResultEvent> = flow {
@@ -1356,9 +1356,9 @@ class PatientDAOImpl(
 		val from = paginationOffset.startKey ?: ComplexKey.of(healthcarePartyId, "")
 		val to = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 		)
 			.startKey(from)
 			.endKey(to)
@@ -1391,9 +1391,9 @@ class PatientDAOImpl(
 		var lastVisited: ViewRowWithDoc<ComplexKey, String, Patient>? = null
 		val duplicatePatients = client.interleave<ComplexKey, String, Patient>(
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = legacyViews,
-				configurationViews = configurationViews,
+				configurationView = configurationView,
 			).keys(keysWithDuplicates).reduce(false).includeDocs(),
 			compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
 		).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Patient>>()
@@ -1412,7 +1412,7 @@ class PatientDAOImpl(
 						getDuplicatesFromView(
 							datastoreInformation = datastoreInformation,
 							legacyViews = legacyViews,
-							configurationViews = configurationViews,
+							configurationView = configurationView,
 							healthcarePartyId = healthcarePartyId,
 							paginationOffset = paginationOffset.copy(
 								startKey = lastVisited.key,

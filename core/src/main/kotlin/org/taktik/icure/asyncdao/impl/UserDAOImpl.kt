@@ -66,7 +66,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_username".main(),
 						configurationView = "by_username"
 					).includeDocs(true).key(username),
@@ -85,7 +85,7 @@ open class UserDAOImpl(
 		emitAll(
 			client.queryViewNoValue<String>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_username".main(),
 					configurationView = "by_username"
 				).includeDocs(false).keys(usernames)
@@ -107,7 +107,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_email".main(),
 						configurationView = "by_email"
 					).includeDocs(true).key(searchString),
@@ -124,7 +124,7 @@ open class UserDAOImpl(
 		emitAll(
 			client.queryViewNoValue<String>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_email".main(),
 					configurationView = "by_email"
 				).includeDocs(false).keys(emails)
@@ -150,7 +150,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_phone".main(),
 						configurationView = "by_phone"
 					).includeDocs(true).key(normalizePhone(phone)),
@@ -167,7 +167,7 @@ open class UserDAOImpl(
 			client
 				.queryViewNoValue<String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_phone".main(),
 						configurationView = "by_phone"
 					).includeDocs(false).key(
@@ -211,7 +211,7 @@ open class UserDAOImpl(
 
 		val viewQuery =
 			pagedViewQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "allForPagination".main(),
 				configurationView = "allForPagination",
 				startKey = null,
@@ -286,7 +286,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_hcp_id".main(),
 						configurationView = "by_hcp_id",
 					).key(hcPartyId).includeDocs(true),
@@ -304,7 +304,7 @@ open class UserDAOImpl(
 			client
 				.queryView<String, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_hcp_id".main(),
 						configurationView = "by_hcp_id",
 					).key(hcPartyId).includeDocs(false),
@@ -323,7 +323,7 @@ open class UserDAOImpl(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_patient_id".main(),
 						configurationView = "by_patient_id",
 					).key(patientId).includeDocs(true),
@@ -341,7 +341,7 @@ open class UserDAOImpl(
 			client
 				.queryView<String, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_patient_id".main(),
 						configurationView = "by_patient_id",
 					).key(patientId).includeDocs(false),
@@ -359,7 +359,7 @@ open class UserDAOImpl(
 			client
 				.queryView<String, Int>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_name_email_phone".main(),
 						configurationView = "by_name_email_phone",
 					).startKey(searchString).endKey("$searchString\ufff0").includeDocs(false),
@@ -375,7 +375,7 @@ open class UserDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_name_email_phone".main(),
 			configurationView = "by_name_email_phone",
 			startKey = searchString,

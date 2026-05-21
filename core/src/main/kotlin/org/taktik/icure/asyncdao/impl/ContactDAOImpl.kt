@@ -115,12 +115,12 @@ class ContactDAOImpl(
 		val endKey = ComplexKey.of(hcPartyId, endOpeningDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_openingdate".main(),
 				"by_data_owner_openingdate" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_openingdate"),
+			configurationView = "by_all_delegates_openingdate",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = pagination,
@@ -146,12 +146,12 @@ class ContactDAOImpl(
 			}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_openingdate".main(),
 				"by_data_owner_openingdate" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_openingdate"),
+			configurationView = "by_all_delegates_openingdate",
 		)
 			.startKey(startKey)
 			.endKey(endKey)
@@ -175,12 +175,12 @@ class ContactDAOImpl(
 	override fun findContactsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String, pagination: PaginationOffset<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty".main(),
 				"by_data_owner" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates"),
+			configurationView = "by_all_delegates",
 			startKey = hcPartyId,
 			endKey = hcPartyId,
 			pagination = pagination,
@@ -201,12 +201,12 @@ class ContactDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_identifier".main(),
 				"by_data_owner_identifier" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_identifier"),
+			configurationView = "by_all_delegates_identifier",
 		).keys(keys).doNotIncludeDocs()
 		emitAll(
 			client.interleave<Array<String>, String>(
@@ -230,12 +230,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty".main(),
 				"by_data_owner" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates"),
+			configurationView = "by_all_delegates",
 		).startKey(hcPartyId).endKey(hcPartyId).doNotIncludeDocs()
 		emitAll(
 			client.interleave<String, String>(viewQueries, compareBy { it })
@@ -258,12 +258,12 @@ class ContactDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_patientfk".main(),
 				"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_patientfk"),
+			configurationView = "by_all_delegates_patientfk",
 		).keys(keys).includeDocs()
 		emitAll(
 			relink(
@@ -283,7 +283,7 @@ class ContactDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patientfk_openingdate" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patientfk"),
+		configurationView = "by_all_delegates_patientfk",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -304,12 +304,12 @@ class ContactDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_patientfk".main(),
 				"by_data_owner_patientfk" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_patientfk"),
+			configurationView = "by_all_delegates_patientfk",
 		).keys(keys).doNotIncludeDocs()
 		emitAll(
 			client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
@@ -319,16 +319,16 @@ class ContactDAOImpl(
 	}.distinct()
 
 	private suspend fun createQueriesForSearchKeysAndFormIds(
-		client: Client,
+		datastoreInformation: IDatastoreInformation,
 		formIds: List<String>,
 		searchKeys: Set<String>,
 	) = createQueries(
-		client = client,
+		datastoreInformation = datastoreInformation,
 		legacyViews = listOf(
 			"by_hcparty_formid".main(),
 			"by_data_owner_formid" to DATA_OWNER_PARTITION
 		),
-		configurationViews = listOf("by_all_delegates_formid"),
+		configurationView = "by_all_delegates_formid",
 	).keys(
 		formIds.flatMap { k ->
 			searchKeys.map { arrayOf(it, k) }
@@ -342,7 +342,7 @@ class ContactDAOImpl(
 	override fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueriesForSearchKeysAndFormIds(client, listOf(formId), searchKeys).includeDocs()
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, listOf(formId), searchKeys).includeDocs()
 		emitAll(
 			relink(
 				client.interleave<Array<String>, String, Contact>(viewQueries, compareBy({ it[0] }, { it[1] }))
@@ -354,7 +354,7 @@ class ContactDAOImpl(
 	override fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueriesForSearchKeysAndFormIds(client, ids, searchKeys).doNotIncludeDocs()
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, ids, searchKeys).doNotIncludeDocs()
 		val result = client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>().map { it.id }.distinct()
 
@@ -368,7 +368,7 @@ class ContactDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueriesForSearchKeysAndFormIds(client, formIds, searchKeys).doNotIncludeDocs()
+		val viewQueries = createQueriesForSearchKeysAndFormIds(datastoreInformation, formIds, searchKeys).doNotIncludeDocs()
 		client.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
 			.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
 			.map { it.id }
@@ -385,12 +385,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_serviceid".main(),
 				"by_data_owner_serviceid" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_serviceid"),
+			configurationView = "by_all_delegates_serviceid",
 		).keys(searchKeys.map { arrayOf(it, serviceId) }).includeDocs()
 		emitAll(
 			relink(
@@ -405,12 +405,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_serviceid".main(),
 				"by_data_owner_serviceid" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_serviceid"),
+			configurationView = "by_all_delegates_serviceid",
 		).key(ComplexKey.of(hcPartyId, serviceId)).includeDocs()
 		emitAll(
 			relink(
@@ -424,7 +424,11 @@ class ContactDAOImpl(
 	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
 	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, linkValues: List<String>, linkQualification: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(client = client, legacyView = "service_by_linked_id" to MAURICE_PARTITION, configurationView = "service_by_linked_id")
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "service_by_linked_id" to MAURICE_PARTITION,
+			configurationView = "service_by_linked_id"
+		)
 			.keys(linkValues)
 			.includeDocs(false)
 		val res = client.queryView<String, Array<String>>(viewQuery)
@@ -437,7 +441,11 @@ class ContactDAOImpl(
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun listServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(client = client, legacyView = "service_by_association_id".main(), configurationView = "service_by_association_id")
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "service_by_association_id".main(),
+			configurationView = "service_by_association_id"
+		)
 			.key(associationId)
 			.includeDocs(false)
 		emitAll(
@@ -454,12 +462,12 @@ class ContactDAOImpl(
 	override fun listServiceIdsByHcParty(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty".main(),
 				"service_by_data_owner" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("service_by_all_delegates"),
+			configurationView = "service_by_all_delegates",
 		).keys(searchKeys).doNotIncludeDocs()
 		emitAll(
 			client
@@ -473,7 +481,11 @@ class ContactDAOImpl(
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
 	override fun listServicesByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(client = client, legacyView = "service_by_association_id".main(), configurationView = "service_by_association_id")
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "service_by_association_id".main(),
+			configurationView = "service_by_association_id"
+		)
 			.key(associationId)
 			.includeDocs(true)
 
@@ -489,9 +501,9 @@ class ContactDAOImpl(
 	}
 
 	private suspend fun createByHcPartyTagDateQueries(
-		client: Client,
+		datastoreInformation: IDatastoreInformation,
 		legacyViews: List<Pair<String, String?>>,
-		configurationViews: List<String>,
+		configurationView: String,
 		hcPartyId: String,
 		type: String?,
 		code: String?,
@@ -513,9 +525,9 @@ class ContactDAOImpl(
 		)
 
 		return createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = legacyViews,
-			configurationViews = configurationViews,
+			configurationView = configurationView,
 		)
 			.startKey(if (descending) to else from)
 			.endKey(if (descending) from else to)
@@ -532,12 +544,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createByHcPartyTagDateQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty_tag".main(),
 				"service_by_data_owner_tag" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_tag"),
+			configurationView = "service_by_all_delegates_tag",
 			hcPartyId = hcPartyId,
 			type = tagType,
 			code = tagCode,
@@ -565,12 +577,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createByHcPartyTagDateQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty_tag".main(),
 				"service_by_data_owner_tag" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_tag"),
+			configurationView = "service_by_all_delegates_tag",
 			hcPartyId = hcPartyId,
 			type = tagType,
 			code = tagCode,
@@ -619,12 +631,12 @@ class ContactDAOImpl(
 			)
 
 			val viewQueries = createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"service_by_hcparty_patient_tag".main(),
 					"service_by_data_owner_patient_tag" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("service_by_all_delegates_patient_tag"),
+				configurationView = "service_by_all_delegates_patient_tag",
 			)
 				.startKey(if (descending) to else from)
 				.endKey(if (descending) from else to)
@@ -657,12 +669,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createByHcPartyTagDateQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty_code".main(),
 				"service_by_data_owner_code" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_code"),
+			configurationView = "service_by_all_delegates_code",
 			hcPartyId = hcPartyId,
 			type = codeType,
 			code = codeCode,
@@ -690,12 +702,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createByHcPartyTagDateQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty_code".main(),
 				"service_by_data_owner_code" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("service_by_all_delegates_code"),
+			configurationView = "service_by_all_delegates_code",
 			hcPartyId = hcPartyId,
 			type = codeType,
 			code = codeCode,
@@ -746,12 +758,12 @@ class ContactDAOImpl(
 		)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_tag".main(),
 				"by_data_owner_tag" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_tag"),
+			configurationView = "by_all_delegates_tag",
 		)
 			.startKey(from)
 			.endKey(to)
@@ -779,12 +791,12 @@ class ContactDAOImpl(
 	override fun listServiceIdsByHcPartyHealthElementIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, healthElementIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_id_by_hcparty_helements".main(),
 				"service_id_by_data_owner_helements" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("service_id_by_all_delegates_helement_ids"),
+			configurationView = "service_id_by_all_delegates_helement_ids",
 		).keys(
 			healthElementIds.flatMap {
 				searchKeys.map { key ->
@@ -811,12 +823,12 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"service_by_hcparty_identifier".main(),
 				"service_by_data_owner_identifier" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("service_by_all_delegates_identifier")
+			configurationView = "service_by_all_delegates_identifier"
 		).keys(
 			identifiers.flatMap {
 				searchKeys.map { key ->
@@ -863,12 +875,12 @@ class ContactDAOImpl(
 		)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_code".main(),
 				"by_data_owner_code" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_code"),
+			configurationView = "by_all_delegates_code",
 		)
 			.startKey(from)
 			.endKey(to)
@@ -897,7 +909,7 @@ class ContactDAOImpl(
 		)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "service_by_hcparty_code".main(),
 			configurationView = "service_by_all_delegates_code"
 		).startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(3)
@@ -934,12 +946,12 @@ class ContactDAOImpl(
 			)
 
 			val viewQueries = createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"service_by_hcparty_patient_code".main(),
 					"service_by_data_owner_patient_code" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("service_by_all_delegates_patient_code"),
+				configurationView = "service_by_all_delegates_patient_code",
 			)
 				.startKey(if (descending) to else from)
 				.endKey(if (descending) from else to)
@@ -980,12 +992,12 @@ class ContactDAOImpl(
 			}
 
 			val viewQueries = createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patientfk_openingdate" to MAURICE_PARTITION,
 					"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patientfk"),
+				configurationView = "by_all_delegates_patientfk",
 			).keys(keys).includeDocs()
 			emitAll(
 				relink(
@@ -1035,12 +1047,12 @@ class ContactDAOImpl(
 		}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_patientfk".main(),
 				"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_patientfk"),
+			configurationView = "by_all_delegates_patientfk",
 		).keys(keys).includeDocs()
 		emitAll(
 			relink(
@@ -1058,7 +1070,7 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_service_emit_modified".main(),
 			configurationView = "by_service_emit_modified"
 		).keys(services).includeDocs(false)
@@ -1091,7 +1103,7 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_externalid".main(),
 			configurationView = "by_externalid"
 		).key(externalId).includeDocs(true)
@@ -1106,7 +1118,7 @@ class ContactDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_externalid".main(),
 			configurationView = "by_externalid"
 		).key(externalId).includeDocs(false)
@@ -1195,7 +1207,7 @@ class ContactDAOImpl(
 					codePrefix + "\ufff0"
 				)
 				val query = createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = legacyView to BEPPE_PARTITION,
 					configurationView = configurationView
 				)
@@ -1216,6 +1228,7 @@ class ContactDAOImpl(
 			}
 		}
 		emitAll(filterLatestServices(
+			datastoreInformation,
 			client,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
@@ -1278,6 +1291,7 @@ class ContactDAOImpl(
 			}
 		}
 		val results = queryViewByKeysInChunks(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			legacyView = legacyView to BEPPE_PARTITION,
 			configurationView = configurationView,
@@ -1285,7 +1299,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(client, results))
+		emitAll(filterLatestServices(datastoreInformation, client, results))
 	}
 
 	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1348,7 +1362,7 @@ class ContactDAOImpl(
 				type,
 				codePrefix + "\ufff0"
 			)
-			val query = createQuery(client = client, legacyView = legacyView to BEPPE_PARTITION, configurationView = configurationView)
+			val query = createQuery(datastoreInformation = datastoreInformation, legacyView = legacyView to BEPPE_PARTITION, configurationView = configurationView)
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
@@ -1362,6 +1376,7 @@ class ContactDAOImpl(
 		}
 		emitAll(
 			filterLatestServices(
+				datastoreInformation,
 				client,
 				allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 			)
@@ -1418,6 +1433,7 @@ class ContactDAOImpl(
 			}
 		}
 		val results = queryViewByKeysInChunks(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			legacyView = legacyView to BEPPE_PARTITION,
 			configurationView = configurationView,
@@ -1425,7 +1441,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(client, results))
+		emitAll(filterLatestServices(datastoreInformation, client, results))
 	}
 
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1543,6 +1559,7 @@ class ContactDAOImpl(
 			}
 		}
 		val results = queryViewByKeysInChunks(
+			datastoreInformation = datastoreInformation,
 			client = client,
 			legacyView = legacyView to BEPPE_PARTITION,
 			configurationView = configurationView,
@@ -1550,7 +1567,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(client, results))
+		emitAll(filterLatestServices(datastoreInformation, client, results))
 	}
 
 	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
@@ -1590,7 +1607,7 @@ class ContactDAOImpl(
 				type,
 				codePrefix + "\ufff0"
 			)
-			val query = createQuery(client = client, legacyView = legacyView to BEPPE_PARTITION, configurationView = configurationView)
+			val query = createQuery(datastoreInformation = datastoreInformation, legacyView = legacyView to BEPPE_PARTITION, configurationView = configurationView)
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
@@ -1603,12 +1620,14 @@ class ContactDAOImpl(
 			}
 		}
 		emitAll(filterLatestServices(
+			datastoreInformation,
 			client,
 			allQueries.flatMapTo(mutableSetOf()) { it.toList() }
 		))
 	}
 
 	private suspend fun queryViewByKeysInChunks(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		legacyView: Pair<String, String>,
 		configurationView: String,
@@ -1620,7 +1639,7 @@ class ContactDAOImpl(
 		keys.chunked(daoConfig.viewQueryChunkSize).map { chunkKeys ->
 			async {
 				semaphore.withPermit {
-					val query = createQuery(client = client, legacyView = legacyView, configurationView = configurationView)
+					val query = createQuery(datastoreInformation = datastoreInformation, legacyView = legacyView, configurationView = configurationView)
 						.keys(chunkKeys)
 						.includeDocs(false)
 					client.queryView<ComplexKey, ServiceIdAndDateValue>(query).let { f ->
@@ -1637,6 +1656,7 @@ class ContactDAOImpl(
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
 	private fun filterLatestServices(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		services: Collection<ContactIdMandatoryServiceId>
 	): Flow<String> = flow {
@@ -1647,7 +1667,7 @@ class ContactDAOImpl(
 				async {
 					semaphore.withPermit {
 						val query = createQuery(
-							client = client,
+							datastoreInformation = datastoreInformation,
 							legacyView = "by_service_latest" to  BEPPE_PARTITION,
 							configurationView = "by_service_latest"
 						)

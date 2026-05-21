@@ -47,7 +47,7 @@ class EntityReferenceDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all".main(),
 			configurationView = "all"
 		).startKey(prefix + "\ufff0").descending(true).includeDocs(true).limit(1)

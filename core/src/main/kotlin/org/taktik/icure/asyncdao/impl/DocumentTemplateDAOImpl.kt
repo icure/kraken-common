@@ -66,7 +66,7 @@ class DocumentTemplateDAOImpl(
 
 		val viewQuery =
 			pagedViewQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "all".main(),
 				configurationView = "all",
 				startKey = paginationOffset.startDocumentId,
@@ -94,7 +94,7 @@ class DocumentTemplateDAOImpl(
 		val from = ComplexKey.of(userId, "")
 		val to = ComplexKey.of(userId, "\ufff0")
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_userId_and_guid".main(),
 			configurationView = "by_userId_and_guid",
 		).startKey(from).endKey(to).includeDocs(true)
@@ -124,7 +124,7 @@ class DocumentTemplateDAOImpl(
 			if (guid != null) {
 				val key = ComplexKey.of(healthcarePartyId, guid)
 				val viewQuery = createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_specialty_code_and_guid".main(),
 					configurationView = "by_specialty_code_and_guid",
 				).key(key).includeDocs(true)
@@ -133,7 +133,7 @@ class DocumentTemplateDAOImpl(
 				val from = ComplexKey.of(healthcarePartyId, "")
 				val to = ComplexKey.of(healthcarePartyId, "\ufff0")
 				val viewQuery = createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_specialty_code_and_guid".main(),
 					configurationView = "by_specialty_code_and_guid",
 				).startKey(from).endKey(to).includeDocs(true)
@@ -165,7 +165,7 @@ class DocumentTemplateDAOImpl(
 			if (userId != null && guid != null) {
 				val key = ComplexKey.of(documentTypeCode, userId, guid)
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
 					configurationView = "by_document_type_code_and_user_id_and_guid"
 				).key(key).includeDocs(true)
@@ -173,7 +173,7 @@ class DocumentTemplateDAOImpl(
 				val from = ComplexKey.of(documentTypeCode, userId, "")
 				val to = ComplexKey.of(documentTypeCode, userId, "\ufff0")
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
 					configurationView = "by_document_type_code_and_user_id_and_guid"
 				).startKey(from).endKey(to).includeDocs(true)
@@ -181,7 +181,7 @@ class DocumentTemplateDAOImpl(
 				val from = ComplexKey.of(documentTypeCode, "", "")
 				val to = ComplexKey.of(documentTypeCode, "\ufff0", "\ufff0")
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_document_type_code_and_user_id_and_guid".main(),
 					configurationView = "by_document_type_code_and_user_id_and_guid"
 				).startKey(from).endKey(to).includeDocs(true)

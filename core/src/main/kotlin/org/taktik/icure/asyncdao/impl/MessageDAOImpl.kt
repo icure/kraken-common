@@ -82,12 +82,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(partyId, fromAddress, if (reverse) null else ComplexKey.emptyObject())
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_from_address".main(),
 				"by_data_owner_from_address" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_from_address"),
+			configurationView = "by_all_delegates_from_address",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -117,12 +117,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(dataOwnerId, fromAddress, ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_from_address".main(),
 				"by_data_owner_from_address" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_from_address"),
+			configurationView = "by_all_delegates_from_address",
 		).startKey(startKey)
 			.endKey(endKey)
 			.doNotIncludeDocs()
@@ -160,12 +160,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(partyId, toAddress, if (reverse) null else ComplexKey.emptyObject())
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_to_address".main(),
 				"by_data_owner_to_address" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_to_address"),
+			configurationView = "by_all_delegates_to_address",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -190,12 +190,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(dataOwnerId, toAddress, ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_to_address".main(),
 				"by_data_owner_to_address" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_to_address"),
+			configurationView = "by_all_delegates_to_address",
 		).startKey(startKey)
 			.endKey(endKey)
 			.doNotIncludeDocs()
@@ -235,12 +235,12 @@ open class MessageDAOImpl(
 		} ?: ComplexKey.of(partyId, transportGuid)
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_transport_guid".main(),
 				"by_data_owner_transport_guid" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid"),
+			configurationView = "by_all_delegates_transport_guid",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -275,12 +275,12 @@ open class MessageDAOImpl(
 		} ?: ComplexKey.of(partyId, transportGuid, ComplexKey.emptyObject())
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_transport_guid_received".main(),
 				"by_data_owner_transport_guid_received" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid_received"),
+			configurationView = "by_all_delegates_transport_guid_received",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -311,12 +311,12 @@ open class MessageDAOImpl(
 		} ?: ComplexKey.of(dataOwnerId, transportGuid, ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_transport_guid_received".main(),
 				"by_data_owner_transport_guid_received" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid_received"),
+			configurationView = "by_all_delegates_transport_guid_received",
 		).let {
 			if (descending) {
 				it.startKey(endKey).endKey(startKey)
@@ -345,12 +345,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(partyId, transportGuid, toDate)
 
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty_transport_guid_sent_date".main(),
 				"by_data_owner_transport_guid_sent_date" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid_sent_date"),
+			configurationView = "by_all_delegates_transport_guid_sent_date",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -377,12 +377,12 @@ open class MessageDAOImpl(
 		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: ComplexKey.emptyObject())
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_transport_guid_sent_date".main(),
 				"by_data_owner_transport_guid_sent_date" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid_sent_date"),
+			configurationView = "by_all_delegates_transport_guid_sent_date",
 		).let {
 			if (descending) {
 				it.startKey(endKey).endKey(startKey)
@@ -415,12 +415,12 @@ open class MessageDAOImpl(
 		val startKey: ComplexKey = ComplexKey.of(partyId, null)
 		val endKey: ComplexKey = ComplexKey.of(partyId, ComplexKey.emptyObject())
 		val viewQueries = createPagedQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
 				"by_hcparty".main(),
 				"by_data_owner" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates"),
+			configurationView = "by_all_delegates",
 			startKey = startKey,
 			endKey = endKey,
 			pagination = paginationOffset,
@@ -446,12 +446,12 @@ open class MessageDAOImpl(
 			searchKeys.map { ComplexKey.of(it, fk) }
 		}
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_patientfk".main(),
 				"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_patientfk"),
+			configurationView = "by_all_delegates_patientfk",
 		).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -470,7 +470,7 @@ open class MessageDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patientfk_sent" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patientfk"),
+		configurationView = "by_all_delegates_patientfk",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -486,7 +486,7 @@ open class MessageDAOImpl(
 			client
 				.queryViewIncludeDocs<String, Int, Message>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_parent_id".main(),
 						configurationView = "by_parent_id"
 					).includeDocs(true).key(messageId)
@@ -497,7 +497,7 @@ open class MessageDAOImpl(
 	override fun getMessagesChildren(datastoreInformation: IDatastoreInformation, parentIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_parent_id".main(),
 			configurationView = "by_parent_id"
 		).includeDocs(true).keys(parentIds)
@@ -507,7 +507,7 @@ open class MessageDAOImpl(
 	override fun listMessageIdsByParents(datastoreInformation: IDatastoreInformation, parentIds: List<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_parent_id".main(),
 			configurationView = "by_parent_id"
 		).includeDocs(false).keys(parentIds)
@@ -528,7 +528,7 @@ open class MessageDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, Int, Message>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_invoice_id".main(),
 					configurationView = "by_invoice_id"
 				).includeDocs(true).keys(invoiceIds)
@@ -541,7 +541,7 @@ open class MessageDAOImpl(
 		emitAll(
 			client.queryView<String, Int>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_invoice_id".main(),
 					configurationView = "by_invoice_id"
 				).includeDocs(false).keys(invoiceIds)
@@ -556,12 +556,12 @@ open class MessageDAOImpl(
 	override fun getMessagesByTransportGuids(datastoreInformation: IDatastoreInformation, hcPartyId: String, transportGuids: Collection<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_transport_guid".main(),
 				"by_data_owner_transport_guid" to DATA_OWNER_PARTITION,
 			),
-			configurationViews = listOf("by_all_delegates_transport_guid")
+			configurationView = "by_all_delegates_transport_guid"
 		).keys(HashSet(transportGuids).map { ComplexKey.of(hcPartyId, it) }).includeDocs()
 		emitAll(
 			client
@@ -600,7 +600,7 @@ open class MessageDAOImpl(
 		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, startTimestamp)
 		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_and_last_update" to DATA_OWNER_PARTITION,
 			configurationView = "by_all_delegates_and_last_update"
 		).startKey(from).endKey(to).descending(descending).includeDocs(false)
@@ -620,7 +620,7 @@ open class MessageDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = legacyView to MAURICE_PARTITION,
 			configurationView = configurationView,
 		)

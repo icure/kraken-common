@@ -85,12 +85,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createPagedQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViewQueries = listOf(
 					"by_hcparty_date".main(),
 					"by_data_owner_date" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_date"),
+				configurationView = "by_all_delegates_date",
 				startKey = startKey,
 				endKey = endKey,
 				pagination = paginationOffset,
@@ -123,12 +123,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_contact".main(),
 					"by_data_owner_contact" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_contact"),
+				configurationView = "by_all_delegates_contact",
 			).keys(
 				contactId.flatMap {
 					searchKeys.map { key -> ComplexKey.of(key, it) }
@@ -159,7 +159,7 @@ class InvoiceDAOImpl(
 			client
 				.queryView<ComplexKey, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_data_owner_decision_reference_map" to DATA_OWNER_PARTITION,
 						configurationView = "by_all_delegates_decision_reference"
 					)
@@ -187,12 +187,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_reference".main(),
 					"by_data_owner_reference" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_reference"),
+				configurationView = "by_all_delegates_reference",
 			).let { viewQuery ->
 				if (invoiceReferences != null) {
 					viewQuery.keys(invoiceReferences.map { ComplexKey.of(hcParty, it) })
@@ -232,12 +232,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_reference".main(),
 					"by_data_owner_reference" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_reference"),
+				configurationView = "by_all_delegates_reference",
 			).startKey(startKey)
 				.startKey(endKey)
 				.includeDocs()
@@ -269,12 +269,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_groupid".main(),
 					"by_data_owner_groupid" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_groupid"),
+				configurationView = "by_all_delegates_groupid",
 			).key(ComplexKey.of(hcParty, inputGroupId))
 				.includeDocs()
 		emitAll(
@@ -302,12 +302,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_recipient".main(),
 					"by_data_owner_recipient" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_recipient"),
+				configurationView = "by_all_delegates_recipient",
 			).keys(
 				recipientIds.flatMap { id ->
 					searchKeys.map { ComplexKey.of(it, id) }
@@ -339,12 +339,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patientfk".main(),
 					"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patientfk"),
+				configurationView = "by_all_delegates_patientfk",
 			).keys(
 				secretPatientKeys.flatMap { fk ->
 					searchKeys.map { ComplexKey.of(it, fk) }
@@ -372,7 +372,7 @@ class InvoiceDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patientfk"),
+		configurationView = "by_all_delegates_patientfk",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -398,12 +398,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_recipient_unsent".main(),
 					"by_data_owner_recipient_unsent" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_recipient_unsent"),
+				configurationView = "by_all_delegates_recipient_unsent",
 			).keys(
 				recipientIds.flatMap { id ->
 					searchKeys.map { ComplexKey.of(it, id) }
@@ -434,12 +434,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patientfk_unsent".main(),
 					"by_data_owner_patientfk_unsent" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patientfk_unsent"),
+				configurationView = "by_all_delegates_patientfk_unsent",
 			).keys(
 				secretPatientKeys.flatMap { fk ->
 					searchKeys.map { ComplexKey.of(it, fk) }
@@ -480,12 +480,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_sentmediumtype_invoicetype_sent_date".main(),
 					"by_data_owner_sentmediumtype_invoicetype_sent_date" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_sentmediumtype_invoicetype_sent_date"),
+				configurationView = "by_all_delegates_sentmediumtype_invoicetype_sent_date",
 			).startKey(startKey)
 				.endKey(endKey)
 				.includeDocs()
@@ -538,12 +538,12 @@ class InvoiceDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_sending_mode_status_date".main(),
 					"by_data_owner_sending_mode_status_date" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_sending_mode_status_date"),
+				configurationView = "by_all_delegates_sending_mode_status_date",
 			).startKey(startKey)
 				.endKey(endKey)
 				.includeDocs()
@@ -573,7 +573,7 @@ class InvoiceDAOImpl(
 			client
 				.queryViewIncludeDocs<String, String, Invoice>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_serviceid".main(),
 						configurationView = "by_serviceid"
 					).includeDocs(true).keys(serviceIds),
@@ -600,7 +600,7 @@ class InvoiceDAOImpl(
 					client
 						.queryView<Array<String>, String>(
 							createQuery(
-								client = client,
+								datastoreInformation = datastoreInformation,
 								legacyView = "by_status_hcps_sentdate".main(),
 								configurationView = "by_status_hcps_sentdate"
 							)
@@ -669,7 +669,7 @@ class InvoiceDAOImpl(
 			client
 				.queryView<Array<String>, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "tarification_by_data_owner" to DATA_OWNER_PARTITION,
 						configurationView = "tarification_by_all_delegates_code"
 					).includeDocs(false).startKey(from).endKey(to).reduce(false),
@@ -716,7 +716,7 @@ class InvoiceDAOImpl(
 			client
 				.queryView<Array<String>, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "tarification_by_data_owner" to DATA_OWNER_PARTITION,
 						configurationView = "tarification_by_all_delegates_code"
 					).includeDocs(false).startKey(from).endKey(to).reduce(false),
@@ -744,7 +744,7 @@ class InvoiceDAOImpl(
 		emitAll(
 			client.queryView<ComplexKey, Long>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "tarification_by_data_owner" to DATA_OWNER_PARTITION,
 					configurationView = "tarification_by_all_delegates_code"
 				).startKey(from)

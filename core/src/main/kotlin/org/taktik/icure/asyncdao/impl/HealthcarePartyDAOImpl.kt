@@ -68,7 +68,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_public" to MAURICE_PARTITION,
 					configurationView = "by_public"
 				).key(public).includeDocs(true),
@@ -87,7 +87,7 @@ internal class HealthcarePartyDAOImpl(
 				val key = if (nihii.length > 8) nihii.substring(0, 8) else nihii
 				client.queryViewIncludeDocs<String, String, HealthcareParty>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "by_nihii".main(),
 						configurationView = "by_nihii"
 					).key(key).includeDocs(true),
@@ -103,7 +103,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_ssin".main(),
 					configurationView = "by_ssin"
 				).key(ssin).includeDocs(true),
@@ -116,7 +116,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_speciality_postcode".main(),
 			configurationView = "by_speciality_postcode",
 			startKey = ComplexKey.of(type, spec, firstCode),
@@ -137,7 +137,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_speciality_postcode".main(),
 			configurationView = "by_speciality_postcode",
 		)
@@ -154,7 +154,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "allForPagination".main(),
 			configurationView = "all",
 			startKey = if (pagination.startKey != null) {
@@ -179,7 +179,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_name".main(),
 					configurationView = "by_name",
 				).key(name).includeDocs(true),
@@ -195,7 +195,7 @@ internal class HealthcarePartyDAOImpl(
 		val to = if (searchValue != null) searchValue.takeIf { desc ?: false } ?: (searchValue + "\ufff0") else "\ufff0"
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_ssin_or_nihii".main(),
 			configurationView = "by_ssin_or_nihii",
 			startKey = from,
@@ -218,7 +218,7 @@ internal class HealthcarePartyDAOImpl(
 		val to = if (searchValue != null) searchValue.takeIf { desc } ?: (searchValue + "\ufff0") else "\ufff0"
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_ssin_or_nihii".main(),
 			configurationView = "by_ssin_or_nihii",
 		)
@@ -244,7 +244,7 @@ internal class HealthcarePartyDAOImpl(
 		}
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_hcParty_name".main(),
 			configurationView = "by_hcparty_name",
 			startKey = from,
@@ -265,7 +265,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_hcParty_name".main(),
 					configurationView = "by_hcparty_name",
 				).startKey(from).endKey(to).includeDocs(true).limit(limit + offset),
@@ -282,7 +282,7 @@ internal class HealthcarePartyDAOImpl(
 		// Not transactional aware
 		val result = client.queryView<String, List<String>>(
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_hcparty_delegate_keys".main(),
 				configurationView = "by_hcparty_delegate_keys",
 			).key(healthcarePartyId).includeDocs(false),
@@ -300,7 +300,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val result = client.queryView<String, List<String>>(
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_delegate_aes_exchange_keys".main(),
 				configurationView = "by_delegate_aes_exchange_keys",
 			)
@@ -337,7 +337,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_parent".main(),
 					configurationView = "by_parent",
 				).key(parentId).includeDocs(true),
@@ -352,7 +352,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_parent".main(),
 			configurationView = "by_parent",
 		)
@@ -372,7 +372,7 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val queryView = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_identifiers".main(),
 			configurationView = "by_identifier"
 		)
@@ -408,7 +408,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_codes".main(),
 			configurationView = "by_codes",
 		)
@@ -433,7 +433,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_tags".main(),
 			configurationView = "by_tags",
 		)
@@ -452,7 +452,7 @@ internal class HealthcarePartyDAOImpl(
 		val to = if (desc) r else r + "\ufff0"
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_hcParty_name".main(),
 			configurationView = "by_hcparty_name",
 		)

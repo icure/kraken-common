@@ -59,7 +59,7 @@ class DeviceDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_responsible".main(), configurationView = "by_responsible")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_responsible".main(), configurationView = "by_responsible")
 				.key(healthcarePartyId)
 				.includeDocs(false)
 		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.value })
@@ -88,7 +88,7 @@ class DeviceDAOImpl(
 		// Not transactional aware
 		val result =
 			client.queryView<String, List<String>>(
-				createQuery(client = client, legacyView = "by_hcparty_delegate_keys".main(), configurationView = "by_hcparty_delegate_keys")
+				createQuery(datastoreInformation = datastoreInformation, legacyView = "by_hcparty_delegate_keys".main(), configurationView = "by_hcparty_delegate_keys")
 					.key(deviceId)
 					.includeDocs(false),
 			).mapNotNull { it.value }
@@ -109,7 +109,11 @@ class DeviceDAOImpl(
 		val result =
 			client
 				.queryView<String, List<String>>(
-					createQuery(client = client, legacyView = "by_delegate_aes_exchange_keys".main(), configurationView = "by_delegate_aes_exchange_keys")
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_delegate_aes_exchange_keys".main(),
+						configurationView = "by_delegate_aes_exchange_keys"
+					)
 						.key(healthcarePartyId)
 						.includeDocs(false),
 				).map { it.key to it.value }

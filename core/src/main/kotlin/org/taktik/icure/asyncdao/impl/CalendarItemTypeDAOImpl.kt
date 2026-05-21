@@ -62,7 +62,7 @@ class CalendarItemTypeDAOImpl(
 	): Flow<ViewRowWithDoc<String, Nothing, CalendarItemType>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_agenda_id" to MAURICE_PARTITION,
 			configurationView = "by_agenda_id"
 		).key(agendaId).includeDocs(true)
@@ -81,7 +81,7 @@ class CalendarItemTypeDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all_and_deleted".main(),
 			configurationView = "all_and_deleted",
 			startKey = null,
@@ -96,7 +96,7 @@ class CalendarItemTypeDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all_and_deleted".main(),
 			configurationView = "all_and_deleted"
 		).includeDocs(true)

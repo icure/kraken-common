@@ -217,7 +217,7 @@ class CodeDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(client = client, legacyView = "by_type_code_version".main(), configurationView = "by_type_code_version")
+				createQuery(datastoreInformation = datastoreInformation, legacyView = "by_type_code_version".main(), configurationView = "by_type_code_version")
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(
@@ -259,7 +259,11 @@ class CodeDAOImpl(
 		var lastAcc = CodeAccumulator()
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(client = client, legacyView = "by_region_type_code_version".main(), configurationView = "by_region_type_code_version")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_region_type_code_version".main(),
+					configurationView = "by_region_type_code_version"
+				)
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(startKey)
@@ -311,7 +315,11 @@ class CodeDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
 			client.queryView<List<String>, String>(
-				createQuery(client = client, legacyView = "by_region_type_code_version".main(), configurationView = "by_region_type_code_version")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_region_type_code_version".main(),
+					configurationView = "by_region_type_code_version"
+				)
 					.includeDocs(false)
 					.group(true)
 					.groupLevel(2)
@@ -362,7 +370,7 @@ class CodeDAOImpl(
 		val extendedLimit = (paginationOffset.limit * (extensionFactor ?: 1f)).toInt()
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_region_type_code_version".main(),
 			configurationView = "by_region_type_code_version",
 			startKey = from,
@@ -421,7 +429,11 @@ class CodeDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
 
-		val viewQuery = createQuery(client = client, legacyView = "by_region_type_code_version".main(), configurationView = "by_region_type_code_version")
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_region_type_code_version".main(),
+			configurationView = "by_region_type_code_version"
+		)
 			.startKey(from)
 			.endKey(to)
 			.includeDocs(false)
@@ -472,14 +484,14 @@ class CodeDAOImpl(
 	}
 
 	private suspend fun buildByLabelPageQuery(
-		client: Client,
+		datastoreInformation: IDatastoreInformation,
 		language: String,
 		type: String,
 		sanitizedLabel: String,
 		limit: Int,
 		paginationOffset: PaginationOffset<List<String?>>,
 	): ViewQuery = pagedViewQuery(
-		client = client,
+		datastoreInformation = datastoreInformation,
 		legacyView = "by_language_type_label" to MAURICE_PARTITION,
 		configurationView = "by_language_type_label",
 		startKey = ComplexKey.of(language, type, sanitizedLabel, SMALLEST_CHAR),
@@ -506,12 +518,12 @@ class CodeDAOImpl(
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		val extendedLimit = (paginationOffset.limit * extensionFactor).toInt()
 		val viewQuery = buildByLabelPageQuery(
-			client,
-			language,
-			type,
-			sanitizedLabel,
-			extendedLimit,
-			paginationOffset,
+			datastoreInformation = datastoreInformation,
+			language = language,
+			type = type,
+			sanitizedLabel = sanitizedLabel,
+			limit = extendedLimit,
+			paginationOffset = paginationOffset,
 		)
 		val versionAccumulator = QueryResultAccumulator()
 		client.queryView<Array<String>, Array<String>, Code>(viewQuery).scan(versionAccumulator) { acc, it ->
@@ -594,12 +606,12 @@ class CodeDAOImpl(
 			val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 			val extendedLimit = if (offset.limit > 0) (offset.limit * extensionFactor).toInt() else 10
 			val viewQuery = buildByLabelPageQuery(
-				client,
-				language,
-				type,
-				sanitizedLabel,
-				extendedLimit,
-				offset,
+				datastoreInformation = datastoreInformation,
+				language = language,
+				type = type,
+				sanitizedLabel = sanitizedLabel,
+				limit = extendedLimit,
+				paginationOffset = offset,
 			)
 			var seenElements = 0
 			var sentElements = 0
@@ -670,7 +682,11 @@ class CodeDAOImpl(
 		// to get all the versions of each code, returning always the one that will be the next key for the page, if any.
 		emitAll(
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(client = client, legacyView = "by_type_code" to MAURICE_PARTITION, configurationView = "by_type_code")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_type_code" to MAURICE_PARTITION,
+					configurationView = "by_type_code"
+				)
 					.includeDocs(true)
 					.reduce(false)
 					.keys(validCodes.keys),
@@ -701,6 +717,7 @@ class CodeDAOImpl(
 
 	// Returns all the versions for the codes that match the label, calling itself recursively until the page is filled.
 	private fun findCodesByLabel(
+		datastoreInformation: IDatastoreInformation,
 		client: Client,
 		region: String?,
 		language: String,
@@ -713,12 +730,12 @@ class CodeDAOImpl(
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		val extendedLimit = (paginationOffset.limit * extensionFactor).toInt()
 		val viewQuery = buildByLabelPageQuery(
-			client,
-			language,
-			type,
-			sanitizedLabel,
-			extendedLimit,
-			paginationOffset,
+			datastoreInformation = datastoreInformation,
+			language = language,
+			type = type,
+			sanitizedLabel = sanitizedLabel,
+			limit = extendedLimit,
+			paginationOffset = paginationOffset,
 		)
 		var seenElements = 0
 		var sentElements = 0
@@ -743,24 +760,25 @@ class CodeDAOImpl(
 			if (seenElements >= extendedLimit && sentElements < paginationOffset.limit) {
 				emitAll(
 					findCodesByLabel(
-						client,
-						region,
-						language,
-						type,
-						label,
-						paginationOffset.copy(
+						datastoreInformation = datastoreInformation,
+						client = client,
+						region = region,
+						language = language,
+						type = type,
+						label = label,
+						paginationOffset = paginationOffset.copy(
 							startKey = (lastVisited?.key as? Array<*>)?.filterIsInstance<String>(),
 							startDocumentId = lastVisited?.id,
 							limit = paginationOffset.limit - sentElements,
 						),
-						seenElements.let {
+						extensionFactor = seenElements.let {
 							if (it == 0) {
 								extensionFactor * 2
 							} else {
 								seenElements.toFloat() / sentElements
 							}
 						}.coerceAtMost(100f),
-						sentElements + prevTotalCount,
+						prevTotalCount = sentElements + prevTotalCount,
 					),
 				)
 			} else {
@@ -786,7 +804,7 @@ class CodeDAOImpl(
 				label,
 				paginationOffset,
 			)
-			null -> findCodesByLabel(client, region, language, type, label, paginationOffset)
+			null -> findCodesByLabel(datastoreInformation, client, region, language, type, label, paginationOffset)
 			else -> findSpecificVersionOfCodesByLabel(
 				datastoreInformation,
 				client,
@@ -814,7 +832,7 @@ class CodeDAOImpl(
 		)
 
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_qualifiedlink_id".main(),
 			configurationView = "by_qualifiedlink_id",
 			startKey = from,
@@ -843,7 +861,7 @@ class CodeDAOImpl(
 		)
 
 		val query = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_language_type_label" to MAURICE_PARTITION,
 			configurationView = "by_language_type_label"
 		).includeDocs(false).reduce(false).startKey(from).endKey(to)
@@ -869,7 +887,11 @@ class CodeDAOImpl(
 		)
 		emitAll(
 			client.queryView<Array<String>, String>(
-				createQuery(client = client, legacyView = "by_type_code_version".main(), configurationView = "by_type_code_version")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_type_code_version".main(),
+					configurationView = "by_type_code_version"
+				)
 					.includeDocs(false)
 					.reduce(false)
 					.startKey(from)
@@ -891,7 +913,11 @@ class CodeDAOImpl(
 
 		emitAll(
 			client.queryView<ComplexKey, String>(
-				createQuery(client = client, legacyView = "by_qualifiedlink_id".main(), configurationView = "by_qualifiedlink_id")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_qualifiedlink_id".main(),
+					configurationView = "by_qualifiedlink_id"
+				)
 					.includeDocs(false)
 					.startKey(from)
 					.endKey(to),
@@ -912,7 +938,11 @@ class CodeDAOImpl(
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
 		return languages.firstNotNullOfOrNull { lang ->
 			client.queryViewIncludeDocsNoValue<Array<String>, Code>(
-				createQuery(client = client, legacyView = "by_language_type_label" to MAURICE_PARTITION, configurationView = "by_language_type_label")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_language_type_label" to MAURICE_PARTITION,
+					configurationView = "by_language_type_label"
+				)
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(ComplexKey.of(lang, type, sanitizedLabel, SMALLEST_CHAR))

@@ -93,9 +93,9 @@ internal class ClassificationDAOImpl(
 			}
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf("by_hcparty_patient".main(), "by_data_owner_patient" to DATA_OWNER_PARTITION),
-			configurationViews = listOf("by_all_delegates_patient"),
+			configurationView = "by_all_delegates_patient"
 		).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -124,7 +124,7 @@ internal class ClassificationDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patient_date_as_value" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patient"),
+		configurationView = "by_all_delegates_patient",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,

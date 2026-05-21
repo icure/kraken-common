@@ -61,7 +61,11 @@ class EntityTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val descr = if (searchString != null) sanitizeString(searchString) else null
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_user_type_descr".main(), configurationView = "by_user_type_descr")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_user_type_descr".main(),
+				configurationView = "by_user_type_descr"
+			)
 				.startKey(ComplexKey.of(userId, type, descr))
 				.endKey(
 					ComplexKey.of(
@@ -91,7 +95,11 @@ class EntityTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val descr = if (searchString != null) sanitizeString(searchString) else null
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_type_descr".main(), configurationView = "by_type_descr")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_type_descr".main(),
+				configurationView = "by_type_descr"
+			)
 				.startKey(ComplexKey.of(type, descr))
 				.endKey(
 					ComplexKey.of(
@@ -120,7 +128,11 @@ class EntityTemplateDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_user_type_keyword".main(), configurationView = "by_user_type_keyword")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_user_type_keyword".main(),
+				configurationView = "by_user_type_keyword"
+			)
 				.startKey(ComplexKey.of(userId, type, keyword))
 				.endKey(
 					ComplexKey.of(
@@ -149,7 +161,11 @@ class EntityTemplateDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_type_keyword".main(), configurationView = "by_type_keyword")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_type_keyword".main(),
+				configurationView = "by_type_keyword"
+			)
 				.startKey(ComplexKey.of(type, keyword))
 				.endKey(
 					ComplexKey.of(

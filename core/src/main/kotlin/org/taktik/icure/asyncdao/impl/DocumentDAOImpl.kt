@@ -94,12 +94,12 @@ class DocumentDAOImpl(
 			}
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_message".main(),
 					"by_data_owner_message" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_message")
+				configurationView = "by_all_delegates_message"
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -123,7 +123,7 @@ class DocumentDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_message_date" to MAURICE_PARTITION, "by_data_owner_message" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_message"),
+		configurationView = "by_all_delegates_message",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -143,7 +143,7 @@ class DocumentDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "without_delegations".main(), configurationView = "without_delegations")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "without_delegations".main(), configurationView = "without_delegations")
 				.limit(limit)
 				.includeDocs(true)
 
@@ -173,12 +173,12 @@ class DocumentDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_type_hcparty_message".main(),
 					"by_type_data_owner_message" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_document_type_delegate_message"),
+				configurationView = "by_document_type_delegate_message",
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -207,12 +207,12 @@ class DocumentDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_type_hcparty_message".main(),
 					"by_type_data_owner_message" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_message"),
+				configurationView = "by_all_delegates_message",
 			).keys(keys).doNotIncludeDocs()
 
 		emitAll(
@@ -236,7 +236,7 @@ class DocumentDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(client = client, legacyView = "by_externalUuid".main(), configurationView = "by_external_uuid")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_externalUuid".main(), configurationView = "by_external_uuid")
 				.key(externalUuid)
 				.includeDocs(true)
 
@@ -301,7 +301,7 @@ class DocumentDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_tag" to BEPPE_PARTITION,
 			configurationView = "by_all_delegates_tag"
 		)
@@ -332,7 +332,7 @@ class DocumentDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_code" to BEPPE_PARTITION,
 			configurationView = "by_all_delegates_code"
 		)

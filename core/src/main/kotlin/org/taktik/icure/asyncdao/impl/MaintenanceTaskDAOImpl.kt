@@ -75,12 +75,12 @@ class MaintenanceTaskDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_identifier".main(),
 					"by_data_owner_identifier" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_identifier")
+				configurationView = "by_all_delegates_identifier"
 			).keys(
 				identifiers.flatMap {
 					searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
@@ -119,12 +119,12 @@ class MaintenanceTaskDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_date".main(),
 					"by_data_owner_date" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_date")
+				configurationView = "by_all_delegates_date"
 			).startKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
 				.endKey(ComplexKey.of(healthcarePartyId, date))
 				.descending(true)
@@ -156,12 +156,12 @@ class MaintenanceTaskDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_type".main(),
 					"by_data_owner_type" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_type")
+				configurationView = "by_all_delegates_type"
 			).startKey(
 				endDate?.let { ComplexKey.of(healthcarePartyId, type, it) } ?: ComplexKey.of(
 					healthcarePartyId,

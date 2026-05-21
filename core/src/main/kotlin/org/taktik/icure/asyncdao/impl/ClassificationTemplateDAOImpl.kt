@@ -58,7 +58,7 @@ internal class ClassificationTemplateDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all".main(),
 			configurationView = "all",
 			startKey = null,

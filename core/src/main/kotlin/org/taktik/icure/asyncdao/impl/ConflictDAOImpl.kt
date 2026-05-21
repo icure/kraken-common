@@ -55,7 +55,7 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 	): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = viewName to partition,
 			configurationView = "conflicts"
 		).includeDocs(true)

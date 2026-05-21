@@ -82,12 +82,12 @@ internal class FormDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_patientfk".main(),
 					"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_patientfk"),
+				configurationView = "by_all_delegates_patientfk",
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -111,7 +111,7 @@ internal class FormDAOImpl(
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
 		legacyViews = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
-		configurationViews = listOf("by_all_delegates_patientfk"),
+		configurationView = "by_all_delegates_patientfk",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -132,12 +132,12 @@ internal class FormDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQueries = createQueries(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyViews = listOf(
 				"by_hcparty_parentId".main(),
 				"by_data_owner_parentId" to DATA_OWNER_PARTITION
 			),
-			configurationViews = listOf("by_all_delegates_parent_id"),
+			configurationView = "by_all_delegates_parent_id",
 		)
 			.keys(searchKeys.map { arrayOf(it, formId) })
 			.includeDocs()
@@ -161,12 +161,12 @@ internal class FormDAOImpl(
 
 		val queries =
 			createQueries(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyViews = listOf(
 					"by_hcparty_parentId".main(),
 					"by_data_owner_parentId" to DATA_OWNER_PARTITION,
 				),
-				configurationViews = listOf("by_all_delegates_parent_id"),
+				configurationView = "by_all_delegates_parent_id",
 			).keys(searchKeys.map { arrayOf(it, formId) }).doNotIncludeDocs()
 
 		emitAll(
@@ -185,7 +185,7 @@ internal class FormDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = pagedViewQuery(
-			client = client,
+			datastoreInformation = datastoreInformation,
 			legacyView = "all".main(),
 			configurationView = "all",
 			startKey = null,
@@ -222,7 +222,7 @@ internal class FormDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_logical_uuid_created" to MAURICE_PARTITION,
 				configurationView = "by_logical_uuid_created"
 			)
@@ -243,7 +243,7 @@ internal class FormDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_logical_uuid_created" to MAURICE_PARTITION,
 				configurationView = "by_logical_uuid_created"
 			)
@@ -271,7 +271,7 @@ internal class FormDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_unique_id_created" to MAURICE_PARTITION,
 				configurationView = "by_unique_id_created"
 			)
@@ -292,7 +292,7 @@ internal class FormDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_unique_id_created" to MAURICE_PARTITION,
 				configurationView = "by_unique_id_created"
 			)

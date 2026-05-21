@@ -62,7 +62,7 @@ internal class FormTemplateDAOImpl(
 		val to = ComplexKey.of(userId, guid ?: "\ufff0")
 		val formTemplates = client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_userId_and_guid".main(),
 				configurationView = "by_userId_and_guid"
 			).startKey(from).endKey(to).includeDocs(true),
@@ -86,7 +86,7 @@ internal class FormTemplateDAOImpl(
 
 		val formTemplates = client.queryViewIncludeDocsNoValue<String, FormTemplate>(
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "by_guid".main(),
 				configurationView = "by_guid"
 			).key(guid).includeDocs(true),
@@ -111,7 +111,7 @@ internal class FormTemplateDAOImpl(
 			val key = ComplexKey.of(specialityCode, guid)
 			client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_specialty_code_and_guid".main(),
 					configurationView = "by_specialty_code_and_guid",
 				).key(key).includeDocs(true),
@@ -121,7 +121,7 @@ internal class FormTemplateDAOImpl(
 			val to = ComplexKey.of(specialityCode, ComplexKey.emptyObject())
 			client.queryViewIncludeDocsNoValue<Array<String>, FormTemplate>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_specialty_code_and_guid".main(),
 					configurationView = "by_specialty_code_and_guid",
 				).startKey(from).endKey(to).includeDocs(true),
@@ -147,7 +147,7 @@ internal class FormTemplateDAOImpl(
 		emitAll(
 			client.queryView<Array<String>, String>(
 				createQuery(
-					client = client,
+					datastoreInformation = datastoreInformation,
 					legacyView = "by_specialty_code_and_guid".main(),
 					configurationView = "by_specialty_code_and_guid",
 				).startKey(from).endKey(to).includeDocs(false),

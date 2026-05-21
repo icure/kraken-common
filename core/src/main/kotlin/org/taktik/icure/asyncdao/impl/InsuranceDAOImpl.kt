@@ -66,7 +66,7 @@ class InsuranceDAOImpl(
 			client
 				.queryViewIncludeDocs<String, String, Insurance>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "all_by_code".main(),
 						configurationView = "all_by_code"
 					).key(code).includeDocs(true),
@@ -89,7 +89,7 @@ class InsuranceDAOImpl(
 			client
 				.queryView<Array<String>, String>(
 					createQuery(
-						client = client,
+						datastoreInformation = datastoreInformation,
 						legacyView = "all_by_code".main(),
 						configurationView = "all_by_code"
 					)
@@ -109,7 +109,7 @@ class InsuranceDAOImpl(
 
 		val viewQuery =
 			createQuery(
-				client = client,
+				datastoreInformation = datastoreInformation,
 				legacyView = "all".main(),
 				configurationView = "all"
 			)
