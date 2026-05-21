@@ -1,6 +1,5 @@
 package org.taktik.icure.dao
 
-import org.springframework.stereotype.Component
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.entity.ViewQuery
@@ -11,9 +10,9 @@ import org.taktik.icure.exceptions.MissingViewException
 import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.ViewQueries
 
-@Component
 class QueryProvider(
-	private val designDocSchemaProvider: DesignDocSchemaProvider
+	private val designDocSchemaProvider: DesignDocSchemaProvider,
+	private val failOnMissingView: Boolean
 ) {
 
 	/**
@@ -28,34 +27,34 @@ class QueryProvider(
 	): ViewQuery? = designDocSchemaProvider.getOrRequestSchema(datastore)?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
 		val partition = viewsForEntity?.get(viewName)
-			?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
-		ViewQuery()
-			.designDocId(designDocName(entityClass.simpleName, partition.toString()))
-			.skipIfViewDoesNotExist(false)
-			.viewName(viewName)
+		when {
+			partition != null -> ViewQuery()
+				.designDocId(designDocName(entityClass.simpleName, partition.toString()))
+				.skipIfViewDoesNotExist(false)
+				.viewName(viewName)
+			failOnMissingView -> throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
+			else -> null
+		}
 	}
 
 	/**
 	 * Instantiates a [NoDocViewQueries] if a DesignDocSchema is defined in the group of the current user, returning null
 	 * otherwise.
 	 * If a schema is defined but any view with the specified name is not defined for the entity, it throws an exception.
+	 * The [NoDocViewQueries] created with this method will always have only one query inside: this is intentional to
+	 * maintain compatibility with the legacy interleave mechanism (that is also optimized not to interleave view queries
+	 * with a single query)
 	 */
 	private suspend fun createQueriesFromSchema(
 		datastore: IDatastoreInformation,
 		entityClass: Class<*>,
-		viewNames: List<String>,
-	): NoDocViewQueries? = designDocSchemaProvider.getOrRequestSchema(datastore)?.let { schema ->
-		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
-		NoDocViewQueries(
-			viewNames.map { viewName ->
-				val partition = viewsForEntity?.get(viewName)
-					?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
-				ViewQuery()
-					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
-					.skipIfViewDoesNotExist(false)
-					.viewName(viewName)
-			}
-		)
+		viewName: String,
+	): NoDocViewQueries? = createQueryFromSchema(
+		datastore = datastore,
+		entityClass = entityClass,
+		viewName = viewName
+	)?.let {
+		NoDocViewQueries(listOf(it))
 	}
 
 	private suspend fun <P>  createPagedQueryFromSchema(
@@ -93,38 +92,44 @@ class QueryProvider(
 	private suspend fun <P> createPagedQueriesFromSchema(
 		datastore: IDatastoreInformation,
 		entityClass: Class<*>,
-		viewNames: List<String>,
+		viewName: String,
 		startKey: P?,
 		endKey: P?,
 		pagination: PaginationOffset<P>,
 		descending: Boolean
 	): ViewQueries? = designDocSchemaProvider.getOrRequestSchema(datastore)?.let { schema ->
 		val viewsForEntity = schema.viewsByEntity[entityClass.simpleName]
-		ViewQueries(
-			viewNames.map { viewName ->
-				val partition = viewsForEntity?.get(viewName)
-					?: throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
-				ViewQuery()
-					.designDocId(designDocName(entityClass.simpleName, partition.toString()))
-					.skipIfViewDoesNotExist(false)
-					.viewName(viewName)
-					.startKey(pagination.startKey ?: startKey ?: NullKey)
-					.endKey(endKey)
-					.includeDocs(true)
-					.reduce(false)
-					.startDocId(pagination.startDocumentId)
-					.limit(pagination.limit)
-					.descending(descending)
-			}
-		)
+		val partition = viewsForEntity?.get(viewName)
+		when {
+			partition != null -> ViewQueries(
+				listOf(
+					ViewQuery()
+						.designDocId(designDocName(entityClass.simpleName, partition.toString()))
+						.skipIfViewDoesNotExist(false)
+						.viewName(viewName)
+						.startKey(pagination.startKey ?: startKey ?: NullKey)
+						.endKey(endKey)
+						.includeDocs(true)
+						.reduce(false)
+						.startDocId(pagination.startDocumentId)
+						.limit(pagination.limit)
+						.descending(descending)
+				)
+			)
+			failOnMissingView -> throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
+			else -> null
+		}
 	}
 
 	context(dao: DAOWithClass<*>)
 	suspend fun hasAllViewForCurrentEntity(datastore: IDatastoreInformation): Boolean? =
 		designDocSchemaProvider.getOrRequestSchema(datastore)?.let { schema ->
 			val viewsForEntity = schema.viewsByEntity[dao.entityClass.simpleName]
-			viewsForEntity?.containsKey("all")
-				?: throw MissingViewException(viewName = "all", entity = dao.entityClass.simpleName, schema.id)
+			when {
+				viewsForEntity?.containsKey("all") == true -> true
+				failOnMissingView -> throw MissingViewException(viewName = "all", entity = dao.entityClass.simpleName, schema.id)
+				else -> false
+			}
 		}
 
 	context(dao: DAOWithClass<*>)
@@ -171,7 +176,7 @@ class QueryProvider(
 		configurationView: String,
 	): NoDocViewQueries? = createQueriesFromSchema(
 		entityClass = dao.entityClass,
-		viewNames = listOf(configurationView),
+		viewName = configurationView,
 		datastore = datastore
 	)
 
@@ -185,7 +190,7 @@ class QueryProvider(
 		descending: Boolean
 	): ViewQueries? = createPagedQueriesFromSchema(
 		entityClass = dao.entityClass,
-		viewNames = listOf(configurationView),
+		viewName = configurationView,
 		datastore = datastore,
 		startKey = startKey,
 		endKey = endKey,
