@@ -18,7 +18,11 @@ class QueryProvider(
 	/**
 	 * Instantiates a [ViewQuery] if a DesignDocSchema is defined in the group of the current user, returning null
 	 * otherwise.
-	 * If a schema is defined but no view with the specified name is defined for the entity, it throws an exception.
+	 * If a schema is defined but no view with the specified name is defined for the entity and [failOnMissingView] is
+	 * true, it throws an exception. If the view is missing and [failOnMissingView] is false, it returns null that will
+	 * make the query fall back to the default design doc.
+	 * [failOnMissingView] can be true to allow a progressive migration of the view for the database that are already indexed,
+	 * to allow a fallback to default in case a specific view was not migrated yet.
 	 */
 	private suspend fun createQueryFromSchema(
 		datastore: IDatastoreInformation,
