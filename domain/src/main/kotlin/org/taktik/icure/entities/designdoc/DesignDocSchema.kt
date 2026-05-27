@@ -20,7 +20,7 @@ data class DesignDocSchema(
 	 * the index of the partition where that view resides.
 	 */
 	val viewsByEntity: Map<String, Map<String, Int>>,
-	override val deletionDate: Long? = null,
+	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = mapOf(),
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = listOf(),
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = listOf(),
