@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.config.typing
 
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
@@ -79,4 +80,21 @@ sealed interface GenericTypeConfig {
 	 * Check if this type configuration is equal to another one, but ignoring the value of [nullable]
 	 */
 	fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean
+
+	/**
+	 * Check if two raw JSON values are semantically equivalent according to this type configuration.
+	 *
+	 * If the JSON values are equal always returns true.
+	 * If the JSON values are not equal and are not structurally valid for this type, returns false without failing,
+	 * the caller should validate separately.
+	 *
+	 * [resolutionContext] is used by [ObjectTypeConfig] to resolve the object definition and compare
+	 * properties accounting for their constant default values. Pass null when no context is available;
+	 * the implementation will fall back to structural equality for object types in that case.
+	 *
+	 * The default implementation is plain structural equality on [RawJson], which is correct for all
+	 * primitive type configurations. Collection and object types override this to recurse with
+	 * type-aware comparison.
+	 */
+	fun areEquivalent(a: RawJson, b: RawJson, resolutionContext: CustomEntityConfigResolutionContext? = null): Boolean = a == b
 }

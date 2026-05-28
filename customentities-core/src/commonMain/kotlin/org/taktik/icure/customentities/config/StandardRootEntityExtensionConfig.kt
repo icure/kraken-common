@@ -17,7 +17,8 @@ data class StandardRootEntityExtensionConfig(
 	/**
 	 * Version of the configuration for this specific entity.
 	 * If an update to a [VersionedCustomEntitiesConfiguration] changes nothing in the definitions of this entity
-	 * extension, and on types this extension depends on, this version must be kept the same.
+	 * extension, and on types this extension depends on, this version should be kept the same, else it must be
+	 * incremented.
 	 */
 	val version: Int,
 )

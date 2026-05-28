@@ -5,6 +5,7 @@ import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.errorreporting.addError
@@ -145,7 +146,7 @@ data class ObjectDefinition(
 			 * If the provided value should be ignored according to this default configuration.
 			 * Always false if [isConstant] is false
 			 */
-			fun shouldIgnoreForStore(value: RawJson): Boolean
+			fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean
 
 			/**
 			 * Specifies if this default value is a constant.
@@ -196,6 +197,12 @@ data class ObjectDefinition(
 							}
 						}
 
+						is SetTypeConfig -> {
+							if (value is RawJson.JsonArray && value.items.isNotEmpty()) {
+								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTSET")
+							}
+						}
+
 						is ObjectTypeConfig -> {
 							if (value is RawJson.JsonObject) {
 								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTOBJECT")
@@ -211,8 +218,19 @@ data class ObjectDefinition(
 
 				override fun valueForStore(): RawJson? = null
 
-				override fun shouldIgnoreForStore(value: RawJson): Boolean =
-					value == this.value
+				override fun shouldIgnoreForStore(
+					value: RawJson,
+					typeConfig: GenericTypeConfig,
+					resolutionContext: CustomEntityConfigResolutionContext?
+				): Boolean =
+					/*
+					 * Guaranteed that when it is called this.value is valid -> if the json is equal then we return true
+					 * and no issue.
+					 * If the param value json is not valid for the type config areEquivalent will return false for
+					 * sure (can't be equal to this.value which is valid), so the value will be validated by the
+					 * validateAndMapExtensionValueForStore through the type's validateAndMapValueForStore.
+					 */
+					typeConfig.areEquivalent(value, this.value, resolutionContext)
 
 				@get:JsonIgnore
 				override val isConstant: Boolean = true
@@ -233,7 +251,7 @@ data class ObjectDefinition(
 				override fun valueForStore(): RawJson =
 					RawJson.JsonString(UuidMP.randomCryptoSafeUuidString())
 
-				override fun shouldIgnoreForStore(value: RawJson): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
 				@get:JsonIgnore
@@ -263,7 +281,7 @@ data class ObjectDefinition(
 				override fun valueForStore(): RawJson =
 					RawJson.JsonInteger(FuzzyDates.getNowFuzzyDateTime(zoneId))
 
-				override fun shouldIgnoreForStore(value: RawJson): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
 				@get:JsonIgnore
@@ -293,7 +311,7 @@ data class ObjectDefinition(
 				override fun valueForStore(): RawJson =
 					RawJson.JsonInteger(FuzzyDates.getNowFuzzyDate(zoneId).toLong())
 
-				override fun shouldIgnoreForStore(value: RawJson): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
 				override val isConstant: Boolean = false
@@ -322,7 +340,7 @@ data class ObjectDefinition(
 				override fun valueForStore(): RawJson =
 					RawJson.JsonInteger(FuzzyDates.getNowFuzzyTime(zoneId).toLong())
 
-				override fun shouldIgnoreForStore(value: RawJson): Boolean =
+				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
 				override val isConstant: Boolean = false
@@ -507,6 +525,30 @@ data class ObjectDefinition(
 		}
 	}
 
+	/**
+	 * Checks if two object JSON values are semantically equivalent representations of this object definition.
+	 * A missing property in one object is treated as the constant default value for that property (if one
+	 * is configured); if no constant default exists, a missing property is only equivalent to another
+	 * missing property. Unknown properties (not in this definition) are compared structurally.
+	 */
+	fun areEquivalent(a: RawJson.JsonObject, b: RawJson.JsonObject, resolutionContext: CustomEntityConfigResolutionContext?): Boolean {
+		val allKeys = a.properties.keys + b.properties.keys + properties.keys
+		return allKeys.all { key ->
+			val propConfig = properties[key]
+			val realA = a.properties[key]
+			val realB = b.properties[key]
+			if (realA == null && realB == null) return@all true
+			val constantDefault = (propConfig?.defaultValue as? PropertyConfiguration.DefaultValue.Constant)?.value
+			val effectiveA = realA ?: constantDefault
+			val effectiveB = realB ?: constantDefault
+			when {
+				effectiveA == null || effectiveB == null -> false
+				propConfig != null -> propConfig.type.areEquivalent(effectiveA, effectiveB, resolutionContext)
+				else -> effectiveA == effectiveB
+			}
+		}
+	}
+
 	fun validateAndMapValueForStore(
 		context: CustomEntityValueValidationContext,
 		value: RawJson.JsonObject,
@@ -542,7 +584,7 @@ data class ObjectDefinition(
 							} else {
 								propConfig.defaultValue.valueForStore()
 							}
-						} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue) == true) {
+						} else if (propConfig.defaultValue?.shouldIgnoreForStore(propValue, propConfig.type, context.resolution) == true) {
 							null
 						} else {
 							context.validation.appending(".", propName) {

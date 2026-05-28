@@ -3,6 +3,7 @@ package org.taktik.icure.customentities.config.typing
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
@@ -17,6 +18,13 @@ data class MapTypeConfig(
 ) : GenericTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is MapTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
+	override fun areEquivalent(a: RawJson, b: RawJson, resolutionContext: CustomEntityConfigResolutionContext?): Boolean {
+		if (a == b) return true
+		if (a !is RawJson.JsonObject || b !is RawJson.JsonObject) return false
+		if (a.properties.keys != b.properties.keys) return false
+		return a.properties.all { (key, aVal) -> valueType.areEquivalent(aVal, b.properties[key] ?: return false, resolutionContext) }
+	}
 
 	@get:JsonIgnore
 	override val objectDefinitionDependencies: Set<Pair<String, Boolean>> get() =

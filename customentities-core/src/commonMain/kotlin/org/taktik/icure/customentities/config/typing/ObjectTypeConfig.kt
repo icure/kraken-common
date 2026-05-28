@@ -3,6 +3,7 @@ package org.taktik.icure.customentities.config.typing
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
+import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.customentities.util.resolveRequiredObjectReference
@@ -17,6 +18,13 @@ data class ObjectTypeConfig(
 ) : GenericTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ObjectTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
+
+	override fun areEquivalent(a: RawJson, b: RawJson, resolutionContext: CustomEntityConfigResolutionContext?): Boolean {
+		if (a == b) return true
+		if (a !is RawJson.JsonObject || b !is RawJson.JsonObject) return false
+		val definition = resolutionContext?.resolveObjectReference(objectReference) ?: return false
+		return definition.areEquivalent(a, b, resolutionContext)
+	}
 
 	@get:JsonIgnore
 	override val objectDefinitionDependencies: Set<Pair<String, Boolean>> get() =

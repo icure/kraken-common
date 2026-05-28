@@ -20,6 +20,7 @@ import org.taktik.icure.customentities.config.typing.IntTypeConfig
 import org.taktik.icure.customentities.config.typing.JsonTypeConfig
 import org.taktik.icure.customentities.config.typing.ListTypeConfig
 import org.taktik.icure.customentities.config.typing.MapTypeConfig
+import org.taktik.icure.customentities.config.typing.SetTypeConfig
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.customentities.config.typing.ObjectTypeConfig
 import org.taktik.icure.customentities.config.typing.StringTypeConfig
@@ -39,6 +40,7 @@ import org.taktik.icure.customentities.config.typing.UuidTypeConfig
 	JsonSubTypes.Type(value = JsonTypeConfig::class, name = "Json"),
 	JsonSubTypes.Type(value = ListTypeConfig::class, name = "List"),
 	JsonSubTypes.Type(value = MapTypeConfig::class, name = "Map"),
+	JsonSubTypes.Type(value = SetTypeConfig::class, name = "Set"),
 	JsonSubTypes.Type(value = ObjectTypeConfig::class, name = "Object"),
 	JsonSubTypes.Type(value = StringTypeConfig::class, name = "String"),
 	JsonSubTypes.Type(value = UuidTypeConfig::class, name = "Uuid"),

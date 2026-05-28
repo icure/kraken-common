@@ -4,6 +4,7 @@ import org.taktik.icure.customentities.config.typing.FloatTypeConfig
 import org.taktik.icure.customentities.config.typing.IntTypeConfig
 import org.taktik.icure.customentities.config.typing.ListTypeConfig
 import org.taktik.icure.customentities.config.typing.MapTypeConfig
+import org.taktik.icure.customentities.config.typing.SetTypeConfig
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
@@ -61,9 +62,9 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  *   maxLength validation 20 on target
  * - A non-nullable StringTypeConfig "name" on source and a nullable StringTypeConfig "name" on target
  *
- * ### Enum migration with unique lists and maps
+ * ### Enum migration with sets and maps
  *
- * Enums used in "unique lists" and as map keys that use a non-injective migration can't be considered an exact
+ * Enums used in sets and as map keys that use a non-injective migration can't be considered an exact
  * match
  *
  * ### Encryptable objects exact match
@@ -108,10 +109,11 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  *   the maxLength of the target is greater than or equal to the maxLength of the source, and the minLength of
  *   the target is less than or equal to the minLength of the source.
  * - List type to list type if the element type of the target can be coerced and all the validation rules in the
- *   target list are less restrictive than or equal to the rules in the source. In the case of a target list
- *   with unique value requirement, the source list must also have unique value requirement; additionally, for
- *   enum element types it is also required that if a custom migration is used the migration is injective (refer
- *   to the [EnumMigration] documentation for more information).
+ *   target list are less restrictive than or equal to the rules in the source.
+ * - Set type to set type if the element type of the target can be coerced and all the validation rules in the
+ *   target set are less restrictive than or equal to the rules in the source. For enum element types it is also
+ *   required that if a custom migration is used the migration is injective (refer to the [EnumMigration]
+ *   documentation for more information).
  * - Map type to map type if: the values can be coerced, the equivalent key type from the key validation can be
  *   coerced and the general validation rules of the target map are less restrictive than or equal to the rules
  *   of the source map. If using enum keys and there is a custom migration for the corresponding enum that is
@@ -636,28 +638,14 @@ data class ObjectMigration(
 		 * Transformation that applies from a list to a list, applying the following transformation:
 		 * - If [mapElement] is not null apply the specified transformation to each element of the source list.
 		 *   [mapElement] is required if the source and target list types don't match exactly.
-		 * - Perform elements deduplication if the target list doesn't allow duplicates.
-		 * - Slice the list according to the specified [slicingBehaviour] when needed (after deduplication if
-		 *   applicable). If the max length of the target list is smaller than the max length of the source list, the
-		 *   slicing behavior is required.
-		 *
-		 * # Elements deduplication
-		 *
-		 * If the target configuration doesn't allow duplicates this transformation will remove duplicate elements after
-		 * mapping the source list elements.
-		 *
-		 * Note that even if the source list also doesn't allow duplicates deduplication might be needed: the
-		 * [mapElement] transformation might not be injective, and it is possible that after mapping a source list of
-		 * unique values the target list contains duplicate values, which need to be deduplicated.
-		 *
-		 * The configuration validation will raise a warning in case the migration might have to deduplicate mapped
-		 * elements to inform about potential data loss.
-		 * This warning might be raised even in some situations where the map element transformation is injective.
+		 * - Slice the list according to the specified [slicingBehaviour] when needed. If the max length of the target
+		 *   list is smaller than the max length of the source list, the slicing behavior is required.
 		 */
 		data class TransformList(
 			/**
 			 * Map the elements from the source list to the target list using the provided transformation.
 			 */
+
 			val mapElement: ValueTransformer? = null,
 			/**
 			 * If not null allow transforming a list with max length greater than the target max length constraint
@@ -691,6 +679,38 @@ data class ObjectMigration(
 			}
 		}
 
+		/**
+		 * Transformation that applies from a [SetTypeConfig] to a [SetTypeConfig], applying the following:
+		 * - If [mapElement] is not null apply the specified transformation to each element of the source set.
+		 *   [mapElement] is required if the source and target element types don't match exactly.
+		 * - After transformation, duplicate elements are removed (the specific element kept among duplicates is
+		 *   unspecified). This can only occur when [mapElement] is non-injective, or when the type is an enum with a
+		 *   non-injective migration.
+		 * - If the resulting set exceeds the target set's maximum length constraint after deduplication, elements are
+		 *   removed to satisfy the constraint; the logic used to decide which elements should be removed is unspecified
+		 *   and may change between versions. The configuration validation will raise a warning if truncation might be
+		 *   needed.
+		 *
+		 * # Element deduplication
+		 *
+		 * If [mapElement] maps multiple distinct source values to the same target value, those elements are collapsed
+		 * into one. The validation will raise a warning when [mapElement] is provided, since it may cause data loss.
+		 */
+		data class TransformSet(
+			/**
+			 * Map the elements from the source set to the target set using the provided transformation.
+			 */
+			val mapElement: ValueTransformer? = null,
+			/**
+			 * Specify how a null element in the source set should be mapped in the target set.
+			 * If not provided, null elements in the source set will be mapped to null values in the target set,
+			 * which is only allowed if the target set element type is nullable.
+			 * If the source set element type is not nullable, this is always ignored since null values are not
+			 * possible in the source set.
+			 */
+			val nullElementMapping: CollectionNullMapping? = null,
+		) : ValueTransformer
+
 
 		/**
 		 * Transformation that applies from a map to a map, applying the following transformation:
@@ -703,8 +723,9 @@ data class ObjectMigration(
 		 *   the same target key; when a collision occurs only one of the conflicting entries is kept, but the specific
 		 *   entry kept is unspecified and may change between versions.
 		 * - If the resulting map exceeds the target map's maximum entry count constraint after deduplication, entries
-		 *   are removed to satisfy the constraint; the specific entries removed are unspecified and may change between
-		 *   versions. The configuration validation will raise a warning if slicing might be needed.
+		 *   are removed to satisfy the constraint; the logic used to decide which entries should be removed is
+		 *   unspecified and may change between versions. The configuration validation will raise a warning if slicing
+		 *   might be needed.
 		 *
 		 * # Entries deduplication
 		 *
