@@ -27,7 +27,7 @@ class UnknownTypeConfig private constructor (override val nullable: Boolean = fa
 		context: CustomEntityValueValidationContext,
 		value: RawJson
 	): RawJson {
-		context.validation.addError("GE-UNKNOWN-VALIDATE")
+		context.validation.addError("GEV-UNKNOWN-VALIDATE")
 		return value
 	}
 

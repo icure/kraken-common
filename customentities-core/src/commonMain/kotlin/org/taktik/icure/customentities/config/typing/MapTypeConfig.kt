@@ -85,18 +85,18 @@ data class MapTypeConfig(
 		}
 		validation?.apply {
 			if (minSize != null && minSize < 0) {
-				context.validation.addError("GE-MAP-MIN")
+				context.validation.addError("GED-MAP-MIN")
 			}
 			if (maxSize != null && maxSize < 0) {
-				context.validation.addError("GE-MAP-MAX")
+				context.validation.addError("GED-MAP-MAX")
 			}
 			if (minSize != null && maxSize != null && maxSize < minSize) {
-				context.validation.addError("GE-MAP-NORANGE")
+				context.validation.addError("GED-MAP-NORANGE")
 			} else if (maxSize == 0) {
-				context.validation.addWarning("GE-MAP-WEMPTY")
+				context.validation.addWarning("GED-MAP-WEMPTY")
 			}
 			if (minSize == 0) {
-				context.validation.addWarning("GE-MAP-WMIN")
+				context.validation.addWarning("GED-MAP-WMIN")
 			}
 			if (keyValidation != null) {
 				context.validation.appending(".keyValidation") {
@@ -111,7 +111,7 @@ data class MapTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonObject) {
-			context.validation.addError("GE-MAP-JSON")
+			context.validation.addError("GEV-MAP-JSON")
 			value
 		} else {
 			val res =
@@ -131,7 +131,7 @@ data class MapTypeConfig(
 						|| (validation.maxSize != null && res.size > validation.maxSize)
 				) {
 					context.validation.addError(
-						"GE-MAP-OUTRANGE",
+						"GEV-MAP-OUTRANGE",
 						"size" to res.size,
 						"min" to (validation.minSize ?: "0"),
 						"max" to (validation.maxSize ?: "*"),

@@ -24,17 +24,17 @@ data class FuzzyDateTimeTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonInteger) {
-			context.validation.addError("GE-FUZZYDATETIME-JSON")
+			context.validation.addError("GEV-FUZZYDATETIME-JSON")
 		} else {
 			val parsed = FuzzyDates.getLocalDateTimeWithPrecision(value.value, false)
 			if (parsed == null) {
 				context.validation.addError(
-					"GE-FUZZYDATETIME-PARSE",
+					"GEV-FUZZYDATETIME-PARSE",
 					"value" to value.value,
 				)
 			} else if (!allowPrecisionEncoding) {
 				if (parsed.second != ChronoUnitMP.SECONDS) context.validation.addError(
-					"GE-FUZZYDATETIME-PRECISION",
+					"GEV-FUZZYDATETIME-PRECISION",
 					"value" to value.value,
 					"precision" to parsed.second.name,
 				)

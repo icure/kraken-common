@@ -15,7 +15,7 @@ internal inline fun validatingNullForStore(
 	validateNonNull: () -> RawJson
 ): RawJson =
 	if (value === RawJson.JsonNull) {
-		if (!nullable) validationContext.addError("GE-NULL")
+		if (!nullable) validationContext.addError("GEV-NULL")
 		value
 	} else {
 		validateNonNull()
@@ -64,12 +64,12 @@ private val reservedIdentifiers = setOf(
 fun validateIdentifier(validationContext: ScopedErrorCollector, identifier: String) {
 	if (identifier in reservedIdentifiers) {
 		validationContext.addError(
-			"GE-IDENTIFIER-RESERVED",
+			"GED-IDENTIFIER-RESERVED",
 			"value" to truncateValueForErrorMessage(identifier)
 		)
 	}
 	if (identifier.length !in IDENTIFIER_ALLOWED_LENGTH_MIN..IDENTIFIER_ALLOWED_LENGTH_MAX) validationContext.addError(
-		"GE-IDENTIFIER-LENGTH",
+		"GED-IDENTIFIER-LENGTH",
 		"value" to truncateValueForErrorMessage(identifier, IDENTIFIER_ALLOWED_LENGTH_MAX),
 		"min" to IDENTIFIER_ALLOWED_LENGTH_MIN,
 		"max" to IDENTIFIER_ALLOWED_LENGTH_MAX,
@@ -80,7 +80,7 @@ fun validateIdentifier(validationContext: ScopedErrorCollector, identifier: Stri
 		}
 	) {
 		validationContext.addError(
-			"GE-IDENTIFIER-CHARS",
+			"GED-IDENTIFIER-CHARS",
 			"value" to truncateValueForErrorMessage(identifier),
 		)
 	}

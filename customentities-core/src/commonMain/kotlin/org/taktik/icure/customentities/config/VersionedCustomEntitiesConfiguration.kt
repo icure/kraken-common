@@ -53,7 +53,7 @@ data class VersionedCustomEntitiesConfiguration(
 							}
 						) {
 							// TODO warning does not fire if there is circular reference between two encryptables... in future might want to check the dependency tree until we hit a root
-							validationContext.addWarning("GE-CONFIG-WENCRYPTABLENOTUSED")
+							validationContext.addWarning("GED-CONFIG-WENCRYPTABLENOTUSED")
 						}
 					}
 				}
@@ -81,7 +81,7 @@ data class VersionedCustomEntitiesConfiguration(
 		).flatten().groupBy { it.first }.forEach { (identifier, duplicates) ->
 			if (duplicates.size > 1) {
 				validationContext.addError(
-					if (duplicates.count { !it.second } > 1) "GE-CONFIG-DUPID" else "GE-CONFIG-DUPIDGENERATED",
+					if (duplicates.count { !it.second } > 1) "GED-CONFIG-DUPID" else "GED-CONFIG-DUPIDGENERATED",
 					"id" to truncateValueForErrorMessage(identifier),
 				)
 			}
@@ -95,7 +95,7 @@ data class VersionedCustomEntitiesConfiguration(
 						val sourceObj = objects[potentialSource]
 						if (sourceObj != null && !sourceObj.isEncryptable(builtinDefinitionsProvider)) {
 							validationContext.addWarning(
-								"GE-CONFIG-WPOTENTIALDUPIDGENERATED",
+								"GED-CONFIG-WPOTENTIALDUPIDGENERATED",
 								"id" to truncateValueForErrorMessage(userIdentifier),
 								"source" to truncateValueForErrorMessage(potentialSource),
 							)
@@ -109,13 +109,13 @@ data class VersionedCustomEntitiesConfiguration(
 				val rootDef = objects[config.objectDefinitionReference]
 				if (rootDef == null) {
 					validationContext.addError(
-						"GE-CONFIG-EXT-ROOTREF",
+						"GED-CONFIG-EXT-ROOTREF",
 						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
 						"expectedBaseEntity" to krakenName
 					)
 				} else if (rootDef.builtinExtension?.entityName != krakenName) {
 					validationContext.addError(
-						"GE-CONFIG-EXT-ROOTBASE",
+						"GED-CONFIG-EXT-ROOTBASE",
 						"ref" to truncateValueForErrorMessage(config.objectDefinitionReference),
 					)
 				}

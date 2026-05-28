@@ -187,25 +187,25 @@ data class ObjectDefinition(
 					when (typeConfig) {
 						is MapTypeConfig -> {
 							if (value is RawJson.JsonObject && value.properties.isNotEmpty()) {
-								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTMAP")
+								context.validation.addError("GED-OBJECT-DEFAULT-CONSTANTMAP")
 							}
 						}
 
 						is ListTypeConfig -> {
 							if (value is RawJson.JsonArray && value.items.isNotEmpty()) {
-								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTLIST")
+								context.validation.addError("GED-OBJECT-DEFAULT-CONSTANTLIST")
 							}
 						}
 
 						is SetTypeConfig -> {
 							if (value is RawJson.JsonArray && value.items.isNotEmpty()) {
-								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTSET")
+								context.validation.addError("GED-OBJECT-DEFAULT-CONSTANTSET")
 							}
 						}
 
 						is ObjectTypeConfig -> {
 							if (value is RawJson.JsonObject) {
-								context.validation.addError("GE-OBJECT-DEFAULT-CONSTANTOBJECT")
+								context.validation.addError("GED-OBJECT-DEFAULT-CONSTANTOBJECT")
 							}
 						}
 
@@ -244,7 +244,7 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is UuidTypeConfig
 					) {
-						context.validation.addError("GE-OBJECT-DEFAULT-UUIDV4TYPE")
+						context.validation.addError("GED-OBJECT-DEFAULT-UUIDV4TYPE")
 					}
 				}
 
@@ -269,11 +269,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTimeTypeConfig
 					) {
-						context.validation.addError("GE-OBJECT-DEFAULT-NOWDATETIMETYPE")
+						context.validation.addError("GED-OBJECT-DEFAULT-NOWDATETIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.validation.addError("GE-ZONEID",  "value" to it)
+							context.validation.addError("GED-ZONEID",  "value" to it)
 						}
 					}
 				}
@@ -299,11 +299,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyDateTypeConfig
 					) {
-						context.validation.addError("GE-OBJECT-DEFAULT-NOWDATETYPE")
+						context.validation.addError("GED-OBJECT-DEFAULT-NOWDATETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.validation.addError("GE-ZONEID", "value" to it)
+							context.validation.addError("GED-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -328,11 +328,11 @@ data class ObjectDefinition(
 					if (
 						typeConfig !is FuzzyTimeTypeConfig
 					) {
-						context.validation.addError("GE-OBJECT-DEFAULT-NOWTIMETYPE")
+						context.validation.addError("GED-OBJECT-DEFAULT-NOWTIMETYPE")
 					}
 					zoneId?.let {
 						if (!Validation.validZoneId(it)) {
-							context.validation.addError("GE-ZONEID", "value" to it)
+							context.validation.addError("GED-ZONEID", "value" to it)
 						}
 					}
 				}
@@ -403,7 +403,7 @@ data class ObjectDefinition(
 		context: CustomEntityConfigValidationContext,
 	) {
 		if (properties.isEmpty() && builtinExtension?.extendedBuiltinProperties.isNullOrEmpty()) {
-			context.validation.addWarning("GE-OBJECT-WEMPTY")
+			context.validation.addWarning("GED-OBJECT-WEMPTY")
 		}
 		context.validation.appending(".") {
 			properties.forEach { (propName, propConfig) ->
@@ -421,7 +421,7 @@ data class ObjectDefinition(
 						if (builtinEntityDependencyName?.let { context.builtinDefinitions.getBuiltinObjectDefinition(it)?.isRoot } == true) {
 							// Probably no real implementation complexity or other limitation in allowing it, but root
 							// entities also include access control and other metadata that does not work when embedded
-							context.validation.addError("GE-OBJECT-EMBEDROOT", "object" to definitionName, "entity" to builtinEntityDependencyName)
+							context.validation.addError("GED-OBJECT-EMBEDROOT", "object" to definitionName, "entity" to builtinEntityDependencyName)
 						}
 					}
 					context.validation.appending("<DEFAULT>") {
@@ -433,21 +433,21 @@ data class ObjectDefinition(
 		if (builtinExtension != null) {
 			val builtinDefinition = context.builtinDefinitions.getBuiltinObjectDefinition(builtinExtension.entityName)
 			if (builtinDefinition == null) {
-				context.validation.addError("GE-OBJECT-BASEENTITYREF", "entity" to builtinExtension.entityName)
+				context.validation.addError("GED-OBJECT-BASEENTITYREF", "entity" to builtinExtension.entityName)
 			} else if (!builtinDefinition.isSpecializable) {
-				context.validation.addError("GE-OBJECT-BASEENTITYSPECIALIZABLE", "entity" to builtinExtension.entityName)
+				context.validation.addError("GED-OBJECT-BASEENTITYSPECIALIZABLE", "entity" to builtinExtension.entityName)
 			} else {
 				if (!builtinDefinition.isEncryptable) {
 					if (
 						forceEncryptable || properties.any { it.value.encryptionConfiguration != null } || builtinExtension.propertiesEncryptionConfiguration.isNotEmpty()
 					) {
-						context.validation.addError("GE-OBJECT-BASEENTITYNOTENCRYPTABLE", "entity" to builtinExtension.entityName)
+						context.validation.addError("GED-OBJECT-BASEENTITYNOTENCRYPTABLE", "entity" to builtinExtension.entityName)
 					}
 				} else {
 					builtinExtension.propertiesEncryptionConfiguration.keys.forEach {
 						if (!builtinDefinition.properties.contains(it)) {
 							context.validation.addError(
-								"GE-OBJECT-ENCRYPTEDPROPNOTFOUND",
+								"GED-OBJECT-ENCRYPTEDPROPNOTFOUND",
 								"prop" to it,
 								"entity" to builtinExtension.entityName
 							)
@@ -459,7 +459,7 @@ data class ObjectDefinition(
 						properties.keys.intersect(builtinDefinition.properties.keys).forEach {
 							context.validation.appending(it) {
 								context.validation.addWarning(
-									"GE-OBJECT-WBASEENTITYPROP",
+									"GED-OBJECT-WBASEENTITYPROP",
 									"prop" to it,
 									"entity" to builtinExtension.entityName
 								)
@@ -467,7 +467,7 @@ data class ObjectDefinition(
 						}
 					}
 				} else if (properties.isNotEmpty()) {
-					context.validation.addError("GE-OBJECT-BASEENTITYEXTENDABLE", "entity" to builtinExtension.entityName)
+					context.validation.addError("GED-OBJECT-BASEENTITYEXTENDABLE", "entity" to builtinExtension.entityName)
 				}
 				builtinExtension.extendedBuiltinProperties.forEach { (builtinPropName, targetDefinitionRef) ->
 					val propConfig = builtinDefinition.properties[builtinPropName]
@@ -480,23 +480,23 @@ data class ObjectDefinition(
 							}
 						}
 						if (objectReferenceDependency.isEmpty()) {
-							context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPNOTOBJ", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
+							context.validation.addError("GED-OBJECT-EXTENDBUILTINPROPNOTOBJ", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
 						} else {
 							val extendedBuiltinPropObjectDefinition = checkNotNull(context.builtinDefinitions.getBuiltinObjectDefinition(objectReferenceDependency.first().first)) {
 								"Can't resolve builtin object reference for $builtinPropName of entity ${builtinExtension.entityName} at path ${context.validation.path ?: "<unknown>"}"
 							}
 							if (!extendedBuiltinPropObjectDefinition.isExtendable) {
-								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPEXTENDABLE", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to objectReferenceDependency.first().first)
+								context.validation.addError("GED-OBJECT-EXTENDBUILTINPROPEXTENDABLE", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to objectReferenceDependency.first().first)
 							}
 							val targetDefinition = context.resolution.resolveObjectReference(targetDefinitionRef)
 							if (targetDefinition == null) {
-								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPDEFREF", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
+								context.validation.addError("GED-OBJECT-EXTENDBUILTINPROPDEFREF", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
 							} else if (targetDefinition.builtinExtension?.entityName != objectReferenceDependency.first().first) {
-								context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPDEFREFBUILTIN", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
+								context.validation.addError("GED-OBJECT-EXTENDBUILTINPROPDEFREFBUILTIN", "prop" to builtinPropName, "entity" to builtinExtension.entityName, "ref" to targetDefinitionRef)
 							}
 						}
 					} else {
-						context.validation.addError("GE-OBJECT-EXTENDBUILTINPROPNOTFOUND", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
+						context.validation.addError("GED-OBJECT-EXTENDBUILTINPROPNOTFOUND", "prop" to builtinPropName, "entity" to builtinExtension.entityName)
 					}
 				}
 			}
@@ -508,7 +508,7 @@ data class ObjectDefinition(
 					context.builtinDefinitions.getBuiltinObjectDefinition(builtinExtension.entityName)?.isEncryptable == true
 				)
 			) {
-				context.validation.addWarning("GE-OBJECT-WFORCENCRYPTABLEREDUNDANT")
+				context.validation.addWarning("GED-OBJECT-WFORCENCRYPTABLEREDUNDANT")
 			} else if (
 				properties.none { prop ->
 					prop.value.type.objectDefinitionDependencies.any { (objectDependencyName, objectDependencyBuiltin) ->
@@ -520,7 +520,7 @@ data class ObjectDefinition(
 					}
 				}
 			) {
-				context.validation.addWarning("GE-OBJECT-WFORCENCRYPTABLEIDENTICAL")
+				context.validation.addWarning("GED-OBJECT-WFORCENCRYPTABLEIDENTICAL")
 			}
 		}
 	}
@@ -572,14 +572,14 @@ data class ObjectDefinition(
 		(properties.keys + value.properties.keys).forEach { propName ->
 			val propConfig = properties[propName]
 			if (propConfig == null) {
-				context.validation.addError("GE-OBJECT-UNKNOWNPROP", "prop" to propName)
+				context.validation.addError("GEV-OBJECT-UNKNOWNPROP", "prop" to propName)
 			} else {
 				val propValue: RawJson? = value.properties[propName]
 				when (propConfig.encryptionConfiguration?.takeUnless { context.isDecryptedContext }) {
 					null -> {
 						val mappedValue = if (propValue == null) {
 							if (propConfig.defaultValue == null) {
-								context.validation.addError("GE-OBJECT-MISSINGPROP", "prop" to propName)
+								context.validation.addError("GEV-OBJECT-MISSINGPROP", "prop" to propName)
 								null
 							} else {
 								propConfig.defaultValue.valueForStore()
@@ -597,7 +597,7 @@ data class ObjectDefinition(
 					}
 					PropertyEncryptionConfiguration.Full -> {
 						if (propValue != null) {
-							context.validation.addError("GE-OBJECT-NOTENCRYPTEDPROP", "prop" to propName)
+							context.validation.addError("GEV-OBJECT-NOTENCRYPTEDPROP", "prop" to propName)
 						}
 					}
 				}

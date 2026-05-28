@@ -58,22 +58,22 @@ data class SetTypeConfig(
 				&& elementType !is IntTypeConfig
 				&& elementType !is EnumTypeConfig
 		) {
-			context.validation.addError("GE-SET-ELEMENTTYPE")
+			context.validation.addError("GED-SET-ELEMENTTYPE")
 		}
 		validation?.apply {
 			if (minLength != null && minLength < 0) {
-				context.validation.addError("GE-SET-MIN")
+				context.validation.addError("GED-SET-MIN")
 			}
 			if (maxLength != null && maxLength < 0) {
-				context.validation.addError("GE-SET-MAX")
+				context.validation.addError("GED-SET-MAX")
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				context.validation.addError("GE-SET-NORANGE")
+				context.validation.addError("GED-SET-NORANGE")
 			} else if (maxLength == 0) {
-				context.validation.addWarning("GE-SET-WEMPTY")
+				context.validation.addWarning("GED-SET-WEMPTY")
 			}
 			if (minLength == 0) {
-				context.validation.addWarning("GE-SET-WMIN")
+				context.validation.addWarning("GED-SET-WMIN")
 			}
 		}
 	}
@@ -83,7 +83,7 @@ data class SetTypeConfig(
 		value: RawJson,
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonArray) {
-			context.validation.addError("GE-SET-JSON")
+			context.validation.addError("GEV-SET-JSON")
 			value
 		} else {
 			val res =
@@ -95,7 +95,7 @@ data class SetTypeConfig(
 					}
 				}
 			if (res.toSet().size != res.size) {
-				context.validation.addError("GE-SET-DUPLICATES")
+				context.validation.addError("GEV-SET-DUPLICATES")
 			}
 			if (validation != null) {
 				if (
@@ -103,7 +103,7 @@ data class SetTypeConfig(
 					|| (validation.maxLength != null && res.size > validation.maxLength)
 				) {
 					context.validation.addError(
-						"GE-SET-OUTRANGE",
+						"GEV-SET-OUTRANGE",
 						"length" to res.size,
 						"min" to (validation.minLength ?: "0"),
 						"max" to (validation.maxLength ?: "*"),

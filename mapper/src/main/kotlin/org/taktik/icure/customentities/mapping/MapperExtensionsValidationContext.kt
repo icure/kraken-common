@@ -139,7 +139,7 @@ interface MapperExtensionsValidationContext {
 
 		override fun validateAndMapCurrentExtension(extensionValue: RawJson.JsonObject?): RawJson.JsonObject? {
 			if (extensionValue != null) {
-				errorCollector.addError("GE-OBJECT-EXTENSIONS")
+				errorCollector.addError("GEV-OBJECT-EXTENSIONS")
 			}
 			return null
 		}

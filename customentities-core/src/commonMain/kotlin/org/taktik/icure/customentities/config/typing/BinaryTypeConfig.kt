@@ -30,7 +30,7 @@ data class BinaryTypeConfig(
 	override fun validateConfig(context: CustomEntityConfigValidationContext) {
 		validation?.apply {
 			maxSize?.also {
-				if (it <= 0) context.validation.addError("GE-BINARY-MAXSIZE-NONPOSITIVE")
+				if (it <= 0) context.validation.addError("GED-BINARY-MAXSIZE-NONPOSITIVE")
 			}
 		}
 	}
@@ -40,21 +40,21 @@ data class BinaryTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			context.validation.addError("GE-BINARY-JSON")
+			context.validation.addError("GEV-BINARY-JSON")
 		} else {
 			validation?.maxSize?.also {
 				if (value.value.length > (it + 2) / 3 * 4) {
-					context.validation.addError("GE-BINARY-TOOBIG", "maxSize" to it)
+					context.validation.addError("GEV-BINARY-TOOBIG", "maxSize" to it)
 					return@validatingNullForStore value
 				}
 			}
 			val decodedSize = validBase64DecodedSize(value.value)
 			if (decodedSize == null) {
-				context.validation.addError("GE-BINARY-INVALID")
+				context.validation.addError("GEV-BINARY-INVALID")
 			} else {
 				validation?.maxSize?.also {
 					if (decodedSize > it) {
-						context.validation.addError("GE-BINARY-TOOBIG", "maxSize" to it)
+						context.validation.addError("GEV-BINARY-TOOBIG", "maxSize" to it)
 					}
 				}
 			}

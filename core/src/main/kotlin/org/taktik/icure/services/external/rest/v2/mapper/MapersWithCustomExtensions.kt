@@ -139,7 +139,7 @@ object MappersWithCustomExtensions {
 				val currentExtensionDefinition = extensionValidationContext.getLastDefinition()
 				if (currentExtensionDefinition == null) {
 					if (extensionValue != null) {
-						fullContext.validation.addError("GE-BUILTIN-EXTENSIONNOTALLOWED")
+						fullContext.validation.addError("GEV-BUILTIN-EXTENSIONNOTALLOWED")
 					}
 					return extensionValue
 				} else {

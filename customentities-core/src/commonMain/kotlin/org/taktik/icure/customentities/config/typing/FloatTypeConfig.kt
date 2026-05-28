@@ -43,30 +43,30 @@ data class FloatTypeConfig(
 	) {
 		validation?.apply {
 			if (validation.min != null && !validation.min.isFinite()) {
-				context.validation.addError("GE-FLOAT-MIN")
+				context.validation.addError("GED-FLOAT-MIN")
 			}
 			if (validation.max != null && !validation.max.isFinite()) {
-				context.validation.addError("GE-FLOAT-MAX")
+				context.validation.addError("GED-FLOAT-MAX")
 			}
 			val minOrDefault = validation.min ?: -Double.MAX_VALUE
 			val maxOrDefault = validation.max ?: Double.MAX_VALUE
 			if (minOrDefault > maxOrDefault) {
-				context.validation.addError("GE-FLOAT-NORANGE")
+				context.validation.addError("GED-FLOAT-NORANGE")
 			} else if (minOrDefault == maxOrDefault) {
 				if (exclusiveMin || exclusiveMax) {
-					context.validation.addError("GE-FLOAT-NORANGE")
+					context.validation.addError("GED-FLOAT-NORANGE")
 				} else {
 					context.validation.addWarning(
-						"GE-FLOAT-WONE",
+						"GED-FLOAT-WONE",
 						"value" to minOrDefault
 					)
 				}
 			}
 			if (validation.min == -Double.MAX_VALUE && !validation.exclusiveMin) { // do not use minOrDefault here
-				context.validation.addWarning("GE-FLOAT-WMIN")
+				context.validation.addWarning("GED-FLOAT-WMIN")
 			}
 			if (validation.max == Double.MAX_VALUE && !validation.exclusiveMax) { // do not use maxOrDefault here
-				context.validation.addWarning("GE-FLOAT-WMAX")
+				context.validation.addWarning("GED-FLOAT-WMAX")
 			}
 		}
 	}
@@ -76,12 +76,12 @@ data class FloatTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonNumber) {
-			context.validation.addError("GE-FLOAT-JSON")
+			context.validation.addError("GEV-FLOAT-JSON")
 			value
 		} else {
 			val valueDouble = value.asDouble()
 			if (!valueDouble.isFinite()) {
-				context.validation.addError("GE-FLOAT-INFINITE")
+				context.validation.addError("GEV-FLOAT-INFINITE")
 			}
 			if (validation != null) {
 				if (
@@ -89,7 +89,7 @@ data class FloatTypeConfig(
 					|| validation.max?.let { max -> if (validation.exclusiveMax) valueDouble >= max else valueDouble > max } ?: false
 				) {
 					context.validation.addError(
-						"GE-FLOAT-OUTRANGE",
+						"GEV-FLOAT-OUTRANGE",
 						"value" to valueDouble,
 					)
 				}

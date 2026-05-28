@@ -24,7 +24,7 @@ data class BooleanTypeConfig(
 			value,
 			nullable
 		) {
-			if (value !is RawJson.JsonBoolean) context.validation.addError("GE-BOOL-JSON")
+			if (value !is RawJson.JsonBoolean) context.validation.addError("GEV-BOOL-JSON")
 			value
 		}
 }

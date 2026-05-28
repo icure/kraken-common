@@ -48,18 +48,18 @@ data class ListTypeConfig(
 		}
 		validation?.apply {
 			if (minLength != null && minLength < 0) {
-				context.validation.addError("GE-LIST-MIN")
+				context.validation.addError("GED-LIST-MIN")
 			}
 			if (maxLength != null && maxLength < 0) {
-				context.validation.addError("GE-LIST-MAX")
+				context.validation.addError("GED-LIST-MAX")
 			}
 			if (minLength != null && maxLength != null && maxLength < minLength) {
-				context.validation.addError("GE-LIST-NORANGE")
+				context.validation.addError("GED-LIST-NORANGE")
 			} else if (maxLength == 0) {
-				context.validation.addWarning("GE-LIST-WEMPTY")
+				context.validation.addWarning("GED-LIST-WEMPTY")
 			}
 			if (minLength == 0) {
-				context.validation.addWarning("GE-LIST-WMIN")
+				context.validation.addWarning("GED-LIST-WMIN")
 			}
 		}
 	}
@@ -69,7 +69,7 @@ data class ListTypeConfig(
 		value: RawJson,
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonArray) {
-			context.validation.addError("GE-LIST-JSON")
+			context.validation.addError("GEV-LIST-JSON")
 			value
 		} else {
 			val res =
@@ -89,7 +89,7 @@ data class ListTypeConfig(
 					|| (validation.maxLength != null && res.size > validation.maxLength)
 				) {
 					context.validation.addError(
-						"GE-LIST-OUTRANGE",
+						"GEV-LIST-OUTRANGE",
 						"length" to res.size,
 						"min" to (validation.minLength ?: "0"),
 						"max" to (validation.maxLength ?: "*"),

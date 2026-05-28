@@ -73,12 +73,12 @@ data class UuidTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			context.validation.addError("GE-UUID-JSON")
+			context.validation.addError("GEV-UUID-JSON")
 		} else {
 			val formatOrDefault = format ?: Format.LOWER_DASHED
 			if (!formatOrDefault.validate(value.value)) {
 				context.validation.addError(
-					"GE-UUID-FORMAT",
+					"GEV-UUID-FORMAT",
 					"format" to formatOrDefault.name,
 					"value" to truncateValueForErrorMessage(value.value)
 				)

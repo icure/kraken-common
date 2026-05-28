@@ -29,14 +29,14 @@ data class EnumTypeConfig(
 		context: CustomEntityConfigValidationContext,
 	) {
 		val definition = if (isBuiltin) {
-			context.validation.addError("GE-BUILTIN-IN-CUSTOM")
+			context.validation.addError("GED-BUILTIN-IN-CUSTOM")
 			context.builtinDefinitions.getBuiltinEnumDefinition(enumReference)
 		} else {
 			context.resolution.resolveEnumReference(enumReference)
 		}
 		if (definition == null) {
 			context.validation.addError(
-				"GE-ENUM-MISSINGREF",
+				"GED-ENUM-MISSINGREF",
 				"ref" to truncateValueForErrorMessage(enumReference),
 				"builtin" to isBuiltin
 			)
@@ -49,7 +49,7 @@ data class EnumTypeConfig(
 		value: RawJson
 	): RawJson = validatingNullForStore(context.validation, value, nullable) {
 		if (value !is RawJson.JsonString) {
-			context.validation.addError("GE-ENUM-JSON")
+			context.validation.addError("GEV-ENUM-JSON")
 			value
 		} else if (isBuiltin) {
 			throw UnsupportedOperationException("Builtin enum in custom extension or custom object is not currently supported")
@@ -57,7 +57,7 @@ data class EnumTypeConfig(
 		} else {
 			if (value.value !in context.resolution.resolveRequiredEnumReference(enumReference).entries) {
 				context.validation.addError(
-					"GE-ENUM-VALUE",
+					"GEV-ENUM-VALUE",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumReference),
 				)

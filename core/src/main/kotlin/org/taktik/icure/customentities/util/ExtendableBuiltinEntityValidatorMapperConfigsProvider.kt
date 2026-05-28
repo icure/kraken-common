@@ -52,7 +52,7 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 				// Enums are converted using "valueOf" only, no need to do round-trip mapping like for objects
 			} catch (e: JsonMappingException) {
 				errorCollector.addError(
-					"GE-ENUM-VALUE-BUILTIN",
+					"GEV-ENUM-VALUE-BUILTIN",
 					"value" to truncateValueForErrorMessage(value.value),
 					"ref" to truncateValueForErrorMessage(enumType),
 				)
@@ -89,7 +89,7 @@ class ExtendableBuiltinEntityValidatorMapperObjectProviderBuilder(
 				objectMapper.treeToValue(value.toJackson(), dtoClass)
 			} catch (_: JsonMappingException) {
 				// Can maybe add path of jackson problem, but then becomes too implementation-dependent
-				collector.addError("GE-OBJECT-BUILTIN", "entityName" to entityName)
+				collector.addError("GEV-OBJECT-BUILTIN", "entityName" to entityName)
 				return value
 			}
 			// Round-trip mappig to domain and back to dto, if the mapper does some normalization we ensure we get it
