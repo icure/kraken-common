@@ -12,10 +12,10 @@ import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class ListTypeConfig(
-	val elementType: GenericTypeConfig,
+	override val elementType: GenericTypeConfig,
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null,
-) : GenericTypeConfig {
+) : CollectionTypeConfig {
 	override fun equalsIgnoringNullability(other: GenericTypeConfig): Boolean =
 		other is ListTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
