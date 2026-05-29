@@ -80,11 +80,9 @@ abstract class AbstractAuthenticationManager<
 	): Pair<JWT, Long?>
 
 	/**
-	 * Throws an exception if the username and password provided are unable to provide a valid token if passed to authentication methods.
-	 *
-	 * The purpose of the method is to validate if a user can still login after the addition of the 2FA to their user account.
+	 * IMPORTANT: this method checks the validity of authentication only against the local user, not safe for login.
 	 */
-	abstract suspend fun checkAuthentication(
+	abstract suspend fun checkAuthenticationLocal(
 		fullGroupAndId: String,
 		password: String,
 	)
@@ -240,4 +238,21 @@ abstract class AbstractAuthenticationManager<
 		.takeIf { it.size > 1 && it.last().length >= 6 && it.last().toLongOrNull() != null }
 		?.dropLast(1)
 		?.joinToString("|")
+
+	protected class ParsedTotpSecret(
+		val expectedCount: Int,
+		val secret: String,
+		val algorithm: ShaVersion
+	) {
+		companion object {
+			fun tryParse(secretString: String): ParsedTotpSecret? {
+				val parts = secretString.split(":")
+				if (parts.size != 3) return null
+				val expectedCount = parts[0].toIntOrNull() ?: return null
+				val secret = parts[1]
+				val algorithm = kotlin.runCatching { ShaVersion.valueOf(parts[2]) }.getOrNull() ?: return null
+				return ParsedTotpSecret(expectedCount, secret, algorithm)
+			}
+		}
+	}
 }

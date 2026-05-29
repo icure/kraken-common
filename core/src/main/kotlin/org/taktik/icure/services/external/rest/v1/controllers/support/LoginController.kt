@@ -50,7 +50,6 @@ import reactor.core.publisher.Mono
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
-import kotlin.time.Duration.Companion.seconds
 
 @RestController
 @Profile("app")
@@ -149,7 +148,7 @@ class LoginController(
 		@RequestBody loginCredentials: LoginCredentials,
 	) = mono {
 		try {
-			authenticationManager.checkAuthentication(
+			authenticationManager.checkAuthenticationLocal(
 				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
 				loginCredentials.password ?: throw IllegalArgumentException("Password is required"),
 			)
