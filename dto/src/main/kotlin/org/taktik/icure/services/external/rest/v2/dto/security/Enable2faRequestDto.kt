@@ -11,4 +11,16 @@ data class Enable2faRequestDto(
 	val secret: String,
 	/** The number of digits in each generated one-time password. */
 	val otpLength: Int,
-)
+	/**
+	 * The otp at the current time for the provided configuration
+	 */
+	val otp: String,
+	/**
+	 * If null defaults to SHA1 as many authenticator apps still do not support different algorithms
+	 */
+	val algorithm: Algorithm? = null,
+) {
+	enum class Algorithm {
+		SHA1, SHA256, SHA512
+	}
+}
