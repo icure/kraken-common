@@ -54,7 +54,7 @@ guavaFailureAccess = { group = "com.google.guava", name = "failureaccess", versi
 hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator" }
 hibernateValidatorAnnotationProcessor = { group = "org.hibernate.validator", name = "hibernate-validator-annotation-processor", version.ref = "hibernateValidator" }
 hibernateValidatorCdi = { group = "org.hibernate.validator", name = "hibernate-validator-cdi", version.ref = "hibernateValidator" }
-jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version = "jackson" }
+jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref@ = "jackson" }
 jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
 jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jacksonDataformatYaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
