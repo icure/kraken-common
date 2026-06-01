@@ -14,7 +14,8 @@ data class ContactByServiceIdsFilter(
 	org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter {
 
 	override val canBeUsedInWebsocket = true
-	override val requiresSecurityPrecondition: Boolean = true
+	// False, as you need the service ids (that are generally non-guessable) to get the contact
+	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
 	override fun matches(item: Contact, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean = item.services.stream().filter { (id) -> ids!!.contains(id) }.findAny().isPresent

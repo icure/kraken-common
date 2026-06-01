@@ -25,6 +25,7 @@ interface ReceiptService :
 	fun modifyReceipts(receipts: List<Receipt>): Flow<Receipt>
 
 	fun listReceiptsByReference(ref: String): Flow<Receipt>
+	fun listReceiptsBetweenDates(start: Long?, end: Long?, descending: Boolean): Flow<Receipt>
 	fun getAttachment(receiptId: String, attachmentId: String): Flow<ByteBuffer>
 
 	suspend fun addReceiptAttachment(receipt: Receipt, blobType: ReceiptBlobType, payload: ByteArray): Receipt

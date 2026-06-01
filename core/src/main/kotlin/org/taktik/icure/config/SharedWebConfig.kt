@@ -31,7 +31,7 @@ import org.taktik.icure.serialization.IcureDomainObjectMapper.registerMultiplatf
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
-import java.util.TreeMap
+import java.util.*
 
 @Configuration
 class SharedWebConfig {
@@ -181,6 +181,12 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 		Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type")),
 		// An older version of cardinal used to automatically set label as empty map
 		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
+		// An older version of kraken use to automatically set this value
+		Pair("calendarItemFilter", SimpleBeanPropertyFilter.serializeAllExcept("hcpId")),
+		// Referral is by default set to false, and is always serialized
+		Pair("patientHealthCareParty", SimpleBeanPropertyFilter.serializeAllExcept("referral")),
+		// Referral and status are by default set to non-null values and so always serialized
+		Pair("planOfAction", SimpleBeanPropertyFilter.serializeAllExcept("referral", "status")),
 	)
 	private val pre_2_4_0_filters = listOf(
 		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),

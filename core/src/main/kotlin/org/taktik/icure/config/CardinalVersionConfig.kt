@@ -7,17 +7,23 @@ interface CardinalVersionConfig {
 
 	companion object {
 		class ModelMappingVersionContextImpl(
-			override val cardinalModelVersion: SemanticVersion?
+			override val cardinalModelVersion: SemanticVersion?,
+			private val forceLegacyDataModelCompatibility: Boolean,
 		) : ModelMappingVersionContext {
-			override fun shouldUseCardinalModel(): Boolean =
-				cardinalModelVersion != null && cardinalModelVersion >= CardinalModelInfo.minCardinalModelVersion
+			override fun useLegacyDataModelCompatibility(): Boolean =
+				forceLegacyDataModelCompatibility
+					|| cardinalModelVersion == null
+					|| cardinalModelVersion < CardinalModelInfo.minCardinalModelVersion
 		}
 	}
 
 	suspend fun getUserCardinalVersion(): SemanticVersion?
 
-	suspend fun shouldUseCardinalModel(): Boolean
+	suspend fun forceLegacyDataModelCompatibility(): Boolean
 
 	suspend fun getMappingContextForCurrentUser(): ModelMappingVersionContext =
-		ModelMappingVersionContextImpl(getUserCardinalVersion())
+		ModelMappingVersionContextImpl(
+			getUserCardinalVersion(),
+			forceLegacyDataModelCompatibility()
+		)
 }
