@@ -185,6 +185,10 @@ data class User(
 		 * True if the user mobile phone has been verified
 		 */
 		val verifiedMobilePhone: Boolean? = null,
+		/**
+		 * True if the user has 2fa enabled for login with password
+		 */
+		val uses2fa: Boolean? = null,
 	) : Serializable
 
 	/**

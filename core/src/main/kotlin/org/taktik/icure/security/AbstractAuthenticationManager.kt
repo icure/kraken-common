@@ -22,6 +22,7 @@ import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.jwt.JwtRefreshDetails
 import org.taktik.icure.security.jwt.JwtUtils
 import reactor.core.publisher.Mono
+import kotlin.time.ExperimentalTime
 
 abstract class AbstractAuthenticationManager<
 	out JWT : JwtDetails,
@@ -80,11 +81,9 @@ abstract class AbstractAuthenticationManager<
 	): Pair<JWT, Long?>
 
 	/**
-	 * Throws an exception if the username and password provided are unable to provide a valid token if passed to authentication methods.
-	 *
-	 * The purpose of the method is to validate if a user can still login after the addition of the 2FA to their user account.
+	 * IMPORTANT: this method checks the validity of authentication only against the local user, not safe for login.
 	 */
-	abstract suspend fun checkAuthentication(
+	abstract suspend fun checkAuthenticationLocal(
 		fullGroupAndId: String,
 		password: String,
 	)
@@ -162,6 +161,7 @@ abstract class AbstractAuthenticationManager<
 	 * - [PasswordValidationStatus.Missing2fa]: Password validated, but 2FA verification code is missing
 	 * - [PasswordValidationStatus.Failed2fa]: Password validated, but 2FA verification code is wrong
 	 */
+	@OptIn(ExperimentalTime::class)
 	protected suspend fun isPasswordValid(
 		u: BaseUser,
 		password: String,
@@ -192,13 +192,9 @@ abstract class AbstractAuthenticationManager<
                  */
 				val strippedPw = strip2fa(password)
 				if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
-					val (expectedLength, secret) =
-						u.secret?.split(":")?.takeIf { it.size == 2 }?.let { (lenAsStr, s) ->
-							lenAsStr.toIntOrNull()?.let { it to s }
-						} ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
+					val parsedSecret = u.secret?.let { ParsedTotpSecret.tryParse(it) } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
 					val verificationCode = password.split("|").last()
-					if (Totp(secret, shaVersion = ShaVersion.Sha256).verify(verificationCode, expectedLength = expectedLength)) {
-						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+					if (Totp(parsedSecret.secret, parsedSecret.algorithm).verify(verificationCode, expectedLength = parsedSecret.expectedCount)) {						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
 					} else {
 						PasswordValidationStatus.Failed2fa
 					}
@@ -240,4 +236,21 @@ abstract class AbstractAuthenticationManager<
 		.takeIf { it.size > 1 && it.last().length >= 6 && it.last().toLongOrNull() != null }
 		?.dropLast(1)
 		?.joinToString("|")
+
+	protected class ParsedTotpSecret(
+		val expectedCount: Int,
+		val secret: String,
+		val algorithm: ShaVersion
+	) {
+		companion object {
+			fun tryParse(secretString: String): ParsedTotpSecret? {
+				val parts = secretString.split(":")
+				if (parts.size != 3) return null
+				val expectedCount = parts[1].toIntOrNull() ?: return null
+				val secret = parts[2]
+				val algorithm = kotlin.runCatching { ShaVersion.valueOf(parts[0]) }.getOrNull() ?: return null
+				return ParsedTotpSecret(expectedCount, secret, algorithm)
+			}
+		}
+	}
 }

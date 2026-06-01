@@ -49,7 +49,6 @@ import org.taktik.icure.spring.asynccache.AsyncCacheManager
 import reactor.core.publisher.Mono
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration.Companion.seconds
 
 @RestController("loginControllerV2")
 @Profile("app")
@@ -151,7 +150,7 @@ class LoginController(
 		@RequestBody loginCredentials: LoginCredentials,
 	) = mono {
 		try {
-			authenticationManager.checkAuthentication(
+			authenticationManager.checkAuthenticationLocal(
 				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
 				loginCredentials.password ?: throw IllegalArgumentException("Password is required"),
 			)

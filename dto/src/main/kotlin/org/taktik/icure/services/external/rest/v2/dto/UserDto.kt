@@ -138,5 +138,9 @@ data class UserDto(
 		@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val loginIdentifiers: List<LoginIdentifierDto> = emptyList(),
 		val verifiedEmail: Boolean? = null,
 		val verifiedMobilePhone: Boolean? = null,
+		/**
+		 * True if the user has 2fa enabled for login with password
+		 */
+		val uses2fa: Boolean? = null,
 	) : Serializable
 }

@@ -96,5 +96,9 @@ data class UserDto(
 		val loginIdentifiers: List<IdentifierDto>,
 		val verifiedEmail: Boolean? = null,
 		val verifiedMobilePhone: Boolean? = null,
+		/**
+		 * True if the user has 2fa enabled for login with password
+		 */
+		val uses2fa: Boolean? = null,
 	) : Serializable
 }
