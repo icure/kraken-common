@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -37,13 +37,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 	componentModel = "spring",
 	uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 abstract class CalendarItemV2Mapper {
 	@Mappings(
@@ -52,9 +45,9 @@ abstract class CalendarItemV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "tentativeTimestamp", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(calendarItemDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
+	abstract fun map(calendarItemDto: CalendarItemDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
 		return doMap(calendarItem)

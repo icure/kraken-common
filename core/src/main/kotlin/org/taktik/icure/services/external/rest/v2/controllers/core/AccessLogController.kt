@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -46,8 +47,15 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.AccessLog
+import org.taktik.icure.errorreporting.MapperScopePathProvider
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.AccessLogV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
@@ -77,23 +85,55 @@ class AccessLogController(
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
+	private suspend fun AccessLogDto.toDomain(): AccessLog =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::accessLog,
+			accessLogV2Mapper::map,
+			scopePathProvider.getScopePathFor("AccessLog"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<AccessLogDto>.toDomain(): List<AccessLog> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::accessLog,
+			accessLogV2Mapper::map,
+			scopePathProvider.getScopePathFor("AccessLog"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun AccessLog.toDto(): AccessLogDto = accessLogV2Mapper.map(this)
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
+		mapElements<AccessLog, AccessLogDto> { it.toDto() }
+
+	private fun Flow<AccessLog>.toDto(): Flow<AccessLogDto> =
+		map { it.toDto() }
+
 	@Operation(summary = "Creates an access log")
 	@PostMapping
 	fun createAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	): Mono<AccessLogDto> = mono {
-		accessLogV2Mapper.map(accessLogService.createAccessLog(accessLogV2Mapper.map(accessLogDto)))
+		accessLogService.createAccessLog(accessLogDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Create a batch of access logs", description = "Returns the created access logs.")
 	@PostMapping("/batch")
 	fun createAccessLogs(
 		@RequestBody accessLogDtos: List<AccessLogDto>,
-	): Flux<AccessLogDto> = accessLogService.createAccessLogs(
-		accessLogDtos.map(accessLogV2Mapper::map)
-	).map(accessLogV2Mapper::map).injectReactorContext()
+	): Flux<AccessLogDto> = flow {
+		emitAll(accessLogService.createAccessLogs(accessLogDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Deletes multiple access logs")
 	@PostMapping("/delete/batch")
@@ -131,9 +171,7 @@ class AccessLogController(
 		@PathVariable accessLogId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<AccessLogDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		accessLogV2Mapper.map(
-			accessLogService.undeleteAccessLog(accessLogId, rev)
-		)
+		accessLogService.undeleteAccessLog(accessLogId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -142,7 +180,7 @@ class AccessLogController(
 	): Flux<AccessLogDto> = accessLogService
 		.undeleteAccessLogs(
 			accessLogIds.ids.map(idWithRevV2Mapper::map),
-		).map(accessLogV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{accessLogId}")
@@ -171,7 +209,7 @@ class AccessLogController(
 			accessLogService.getAccessLog(accessLogId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "AccessLog fetching failed")
 
-		accessLogV2Mapper.map(accessLog)
+		accessLog.toDto()
 	}
 
 	@Operation(summary = "Get Paginated List of Access logs")
@@ -198,7 +236,7 @@ class AccessLogController(
 
 		return accessLogService
 			.listAccessLogsBy(from, to, paginationOffset, descending == true)
-			.mapElements(accessLogV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -222,7 +260,7 @@ class AccessLogController(
 				startDate,
 				paginationOffset,
 				descending ?: false,
-			).mapElements(accessLogV2Mapper::map)
+			).toDto()
 			.asPaginatedFlux()
 	}
 
@@ -235,7 +273,7 @@ class AccessLogController(
 		@RequestParam("secretFKeys") secretFKeys: String,
 	): Flux<AccessLogDto> = flow {
 		val secretPatientKeys = HashSet(secretFKeys.split(",")).toList()
-		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
+		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Retrieves Access Logs ids by Data Owner id and Patient Foreign keys.")
@@ -263,7 +301,7 @@ class AccessLogController(
 		require(accessLogIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return accessLogService
 			.getAccessLogs(accessLogIds.ids)
-			.map(accessLogV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -275,7 +313,7 @@ class AccessLogController(
 		@RequestParam("hcPartyId") hcPartyId: String,
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<AccessLogDto> = flow {
-		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).map { accessLogV2Mapper.map(it) })
+		emitAll(accessLogService.listAccessLogsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys).toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Modifies an access log")
@@ -283,17 +321,17 @@ class AccessLogController(
 	fun modifyAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
 	): Mono<AccessLogDto> = mono {
-		val accessLog = accessLogService.modifyAccessLog(accessLogV2Mapper.map(accessLogDto))
-		accessLogV2Mapper.map(accessLog)
+		val accessLog = accessLogService.modifyAccessLog(accessLogDto.toDomain())
+		accessLog.toDto()
 	}
 
 	@Operation(summary = "Modifies a batch of access logs", description = "Returns the modified access logs.")
 	@PutMapping("/batch")
 	fun modifyAccessLogs(
 		@RequestBody accessLogDtos: List<AccessLogDto>,
-	): Flux<AccessLogDto> = accessLogService.modifyAccessLogs(
-		accessLogDtos.map(accessLogV2Mapper::map)
-	).map(accessLogV2Mapper::map).injectReactorContext()
+	): Flux<AccessLogDto> = flow {
+		emitAll(accessLogService.modifyAccessLogs(accessLogDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(description = "Shares one or more patients with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
@@ -326,7 +364,7 @@ class AccessLogController(
 		@PathVariable entityId: String,
 	): Flux<AccessLogDto> =
 		accessLogService.getConflictsFor(entityId)
-			.map(accessLogV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -334,10 +372,10 @@ class AccessLogController(
 		@RequestBody request: ConflictResolutionRequestDto<AccessLogDto>
 	): Mono<ConflictResolutionResultDto<AccessLogDto>> = mono {
 		val result = accessLogService.declareConflictWinner(
-			entity = accessLogV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, accessLogV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

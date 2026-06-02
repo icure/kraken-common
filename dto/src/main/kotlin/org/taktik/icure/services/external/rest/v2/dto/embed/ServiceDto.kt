@@ -134,6 +134,7 @@ data class ServiceDto(
 	@CardinalMetadataProperty
 	val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	val contactExtensionsVersions: Int? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	Comparable<ServiceDto>,

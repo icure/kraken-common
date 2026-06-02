@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -46,8 +47,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.HealthElement
+import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -82,9 +89,38 @@ class HealthElementController(
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
+
+	private suspend fun HealthElementDto.toDomain(): HealthElement =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::healthElement,
+			healthElementV2Mapper::map,
+			scopePathProvider.getScopePathFor("HealthElement"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<HealthElementDto>.toDomain(): List<HealthElement> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::healthElement,
+			healthElementV2Mapper::map,
+			scopePathProvider.getScopePathFor("HealthElement"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun HealthElement.toDto(): HealthElementDto = healthElementV2Mapper.map(this)
+
+	private fun Flow<HealthElement>.toDto(): Flow<HealthElementDto> = map { it.toDto() }
+
+	private fun toDtoLambda(): (HealthElement) -> HealthElementDto = { it.toDto() }
 
 	@Operation(
 		summary = "Create a health element with the current user",
@@ -94,7 +130,7 @@ class HealthElementController(
 	fun createHealthElement(
 		@RequestBody c: HealthElementDto,
 	): Mono<HealthElementDto> = mono {
-		healthElementV2Mapper.map(healthElementService.createHealthElement(healthElementV2Mapper.map(c)))
+		healthElementService.createHealthElement(c.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Get a health element")
@@ -109,7 +145,7 @@ class HealthElementController(
 					"Getting health element failed. Possible reasons: no such health element exists, or server error. Please try again or read the server log.",
 				)
 
-		healthElementV2Mapper.map(element)
+		element.toDto()
 	}
 
 	@Operation(summary = "Get healthElements by batch", description = "Get a list of healthElement by ids/keys.")
@@ -118,7 +154,7 @@ class HealthElementController(
 		@RequestBody healthElementIds: ListOfIdsDto,
 	): Flux<HealthElementDto> {
 		require(healthElementIds.ids.isNotEmpty()) { "You must specify at least one id." }
-		return healthElementService.getHealthElements(healthElementIds.ids).map(healthElementV2Mapper::map).injectReactorContext()
+		return healthElementService.getHealthElements(healthElementIds.ids).toDto().injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
@@ -136,7 +172,7 @@ class HealthElementController(
 		val elementList = healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
 		return elementList
-			.map { element -> healthElementV2Mapper.map(element) }
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -173,7 +209,7 @@ class HealthElementController(
 		val elementList = healthElementService.listHealthElementsByHcPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys)
 
 		return elementList
-			.map { element -> healthElementV2Mapper.map(element) }
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -252,7 +288,7 @@ class HealthElementController(
 		@PathVariable healthElementId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<HealthElementDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		healthElementV2Mapper.map(healthElementService.undeleteHealthElement(healthElementId, rev))
+		healthElementService.undeleteHealthElement(healthElementId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -261,7 +297,7 @@ class HealthElementController(
 	): Flux<HealthElementDto> = healthElementService
 		.undeleteHealthElements(
 			healthElementIds.ids.map(idWithRevV2Mapper::map),
-		).map(healthElementV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{healthElementId}")
@@ -288,31 +324,37 @@ class HealthElementController(
 		@RequestBody healthElementDto: HealthElementDto,
 	): Mono<HealthElementDto> = mono {
 		val modifiedHealthElement =
-			healthElementService.modifyHealthElement(healthElementV2Mapper.map(healthElementDto))
-		healthElementV2Mapper.map(modifiedHealthElement)
+			healthElementService.modifyHealthElement(healthElementDto.toDomain())
+		modifiedHealthElement.toDto()
 	}
 
 	@Operation(summary = "Modify a batch of health elements", description = "Returns the modified health elements.")
 	@PutMapping("/batch")
 	fun modifyHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
-	): Flux<HealthElementDto> = try {
-		val hes = healthElementService.modifyEntities(
-			healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
-		)
-		hes.map { healthElementV2Mapper.map(it) }.injectReactorContext()
-	} catch (e: Exception) {
-		logger.warn(e.message, e)
-		throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-	}
+	): Flux<HealthElementDto> = flow {
+		try {
+			val hes = healthElementService.modifyEntities(
+				healthElementDtos.toDomain().asFlow()
+			)
+			emitAll(hes.toDto())
+		} catch (e: Exception) {
+			logger.warn(e.message, e)
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
+		}
+	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of healthcare elements", description = "Returns the created healthcare elements.")
 	@PostMapping("/batch")
 	fun createHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
-	): Flux<HealthElementDto> = healthElementService.createEntities(
-		healthElementDtos.map { f -> healthElementV2Mapper.map(f) }.asFlow()
-	).map { healthElementV2Mapper.map(it) }.injectReactorContext()
+	): Flux<HealthElementDto> = flow {
+		emitAll(
+			healthElementService.createEntities(
+				healthElementDtos.toDomain().asFlow()
+			).toDto()
+		)
+	}.injectReactorContext()
 
 	@Operation(
 		summary = "Filter health elements for the current user (HcParty)",
@@ -329,7 +371,7 @@ class HealthElementController(
 
 		val healthElements = healthElementService.filter(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		healthElements.paginatedList(healthElementV2Mapper::map, realLimit, objectMapper = objectMapper)
+		healthElements.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(description = "Shares one or more health elements with one or more data owners")
@@ -376,7 +418,7 @@ class HealthElementController(
 		@PathVariable entityId: String,
 	): Flux<HealthElementDto> =
 		healthElementService.getConflictsFor(entityId)
-			.map(healthElementV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -384,10 +426,10 @@ class HealthElementController(
 		@RequestBody request: ConflictResolutionRequestDto<HealthElementDto>
 	): Mono<ConflictResolutionResultDto<HealthElementDto>> = mono {
 		val result = healthElementService.declareConflictWinner(
-			entity = healthElementV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, healthElementV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

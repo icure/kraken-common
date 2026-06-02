@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -31,9 +32,15 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.utils.PaginatedList
+import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
@@ -49,6 +56,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -82,8 +90,41 @@ class CalendarItemController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
+	private suspend fun CalendarItemDto.toDomain(): CalendarItem =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::calendarItem,
+			calendarItemV2Mapper::map,
+			scopePathProvider.getScopePathFor("CalendarItem"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<CalendarItemDto>.toDomain(): List<CalendarItem> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::calendarItem,
+			calendarItemV2Mapper::map,
+			scopePathProvider.getScopePathFor("CalendarItem"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun CalendarItem.toDto(): CalendarItemDto = calendarItemV2Mapper.map(this)
+
+	private fun Flow<CalendarItem>.toDto(): Flow<CalendarItemDto> = map { it.toDto() }
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
+		mapElements<CalendarItem, CalendarItemDto> { it.toDto() }
+
+	private fun toDtoLambda(): (CalendarItem) -> CalendarItemDto = { it.toDto() }
+
 	@Operation(summary = "Gets all calendarItems")
 	@GetMapping
 	fun getCalendarItems(
@@ -93,7 +134,7 @@ class CalendarItemController(
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemService
 			.getAllCalendarItems(offset)
-			.mapElements(calendarItemV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -102,16 +143,16 @@ class CalendarItemController(
 	fun createCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
-		calendarItemV2Mapper.map(calendarItemService.createCalendarItem(calendarItemV2Mapper.map(calendarItemDto)))
+		calendarItemService.createCalendarItem(calendarItemDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Creates a batch of CalendarItems")
 	@PostMapping("/batch")
 	fun createCalendarItems(
 		@RequestBody calendarItemDtos: List<CalendarItemDto>,
-	): Flux<CalendarItemDto> = calendarItemService.createCalendarItems(
-		calendarItemDtos.map(calendarItemV2Mapper::map)
-	).map(calendarItemV2Mapper::map).injectReactorContext()
+	): Flux<CalendarItemDto> = flow {
+		emitAll(calendarItemService.createCalendarItems(calendarItemDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Deletes multiple CalendarItems")
 	@PostMapping("/delete/batch")
@@ -149,7 +190,7 @@ class CalendarItemController(
 		@PathVariable calendarItemId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<CalendarItemDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		calendarItemV2Mapper.map(calendarItemService.undeleteCalendarItem(calendarItemId, rev))
+		calendarItemService.undeleteCalendarItem(calendarItemId, rev).toDto()
 	}
 
 	@Operation(summary = "Undelete multiple CalendarItems if they match the provided revs")
@@ -159,7 +200,7 @@ class CalendarItemController(
 	): Flux<CalendarItemDto> = calendarItemService
 		.undeleteCalendarItems(
 			calendarItemIds.ids.map(idWithRevV2Mapper::map),
-		).map { calendarItemV2Mapper.map(it) }
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{calendarItemId}")
@@ -189,7 +230,7 @@ class CalendarItemController(
 			calendarItemService.getCalendarItem(calendarItemId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItem fetching failed")
 
-		calendarItemV2Mapper.map(calendarItem)
+		calendarItem.toDto()
 	}
 
 	@Operation(summary = "Modifies a CalendarItem")
@@ -197,17 +238,17 @@ class CalendarItemController(
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
 	): Mono<CalendarItemDto> = mono {
-		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemV2Mapper.map(calendarItemDto))
-		calendarItemV2Mapper.map(calendarItem)
+		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemDto.toDomain())
+		calendarItem.toDto()
 	}
 
 	@Operation(summary = "Modifies a batch of CalendarItems")
 	@PutMapping("/batch")
 	fun modifyCalendarItems(
 		@RequestBody calendarItemDtos: List<CalendarItemDto>,
-	): Flux<CalendarItemDto> = calendarItemService.modifyCalendarItems(
-		calendarItemDtos.map(calendarItemV2Mapper::map)
-	).map(calendarItemV2Mapper::map).injectReactorContext()
+	): Flux<CalendarItemDto> = flow {
+		emitAll(calendarItemService.modifyCalendarItems(calendarItemDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Get CalendarItems by Period and HcPartyId")
 	@PostMapping("/byPeriodAndHcPartyId")
@@ -220,7 +261,7 @@ class CalendarItemController(
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "hcPartyId was empty")
 		}
 		val calendars = calendarItemService.getCalendarItemByPeriodAndHcPartyId(startDate, endDate, hcPartyId)
-		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+		return calendars.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Get CalendarItems by Period and AgendaId")
@@ -234,7 +275,7 @@ class CalendarItemController(
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
 		}
 		val calendars = calendarItemService.getCalendarItemByPeriodAndAgendaId(startDate, endDate, agendaId)
-		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+		return calendars.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Get calendarItems by ids")
@@ -244,7 +285,7 @@ class CalendarItemController(
 	): Flux<CalendarItemDto> {
 		require(calendarItemIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		val calendars = calendarItemService.getCalendarItems(calendarItemIds.ids)
-		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+		return calendars.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find CalendarItems by hcparty and patient", description = "")
@@ -256,7 +297,7 @@ class CalendarItemController(
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val elementList = calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
 
-		return elementList.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+		return elementList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find CalendarItems by hcparty and patient")
@@ -267,7 +308,7 @@ class CalendarItemController(
 	): Flux<CalendarItemDto> {
 		val elementList = calendarItemService.listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, ArrayList(secretPatientKeys))
 
-		return elementList.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+		return elementList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find CalendarItems by hcparty and patient", description = "")
@@ -288,7 +329,7 @@ class CalendarItemController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit + 1)
 		val elementList = calendarItemService.findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys, paginationOffset)
 
-		elementList.paginatedList(calendarItemV2Mapper::map, limit)
+		elementList.paginatedList(toDtoLambda(), limit)
 	}
 
 	@Operation(summary = "Find CalendarItems by hcparty and patient")
@@ -308,7 +349,7 @@ class CalendarItemController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit + 1)
 		val elementList = calendarItemService.findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId, secretPatientKeys, paginationOffset)
 
-		elementList.paginatedList(calendarItemV2Mapper::map, limit)
+		elementList.paginatedList(toDtoLambda(), limit)
 	}
 
 	@Operation(summary = "Find CalendarItems ids by data owner id, patient secret keys and start time")
@@ -365,7 +406,7 @@ class CalendarItemController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<CalendarItemDto> = calendarItemService
 		.getCalendarItemsByRecurrenceId(recurrenceId, PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit))
-		.mapElements(calendarItemV2Mapper::map)
+		.toDto()
 		.asPaginatedFlux()
 
 	@Operation(summary = "Get the ids of the CalendarItems matching the provided filter.")
@@ -412,7 +453,7 @@ class CalendarItemController(
 		@PathVariable entityId: String,
 	): Flux<CalendarItemDto> =
 		calendarItemService.getConflictsFor(entityId)
-			.map(calendarItemV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -420,10 +461,10 @@ class CalendarItemController(
 		@RequestBody request: ConflictResolutionRequestDto<CalendarItemDto>
 	): Mono<ConflictResolutionResultDto<CalendarItemDto>> = mono {
 		val result = calendarItemService.declareConflictWinner(
-			entity = calendarItemV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, calendarItemV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

@@ -18,12 +18,12 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.PassOnParameter
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.embed.ContactParticipant
@@ -55,13 +55,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SubContactV2Mappe
 		ContactParticipantV2Mapper::class,
 	],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface ContactV2Mapper {
 	@Mappings(
@@ -71,9 +64,9 @@ interface ContactV2Mapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "participants", expression = """kotlin(ContactV2Mapper.mapParticipants(contactDto, modelMappingVersionContext))"""),
 		Mapping(target = "participantList", expression = """kotlin(ContactV2Mapper.mapParticipantList(contactDto, contactParticipantV2Mapper, modelMappingVersionContext))"""),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(contactDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(contactDto: ContactDto, @PassOnParameter modelMappingVersionContext: ModelMappingVersionContext): Contact
+	fun map(contactDto: ContactDto, @PassOnParameter modelMappingVersionContext: ModelMappingVersionContext, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Contact
 
 	@Mappings(
 		Mapping(target = "participants", expression = """kotlin(ContactV2Mapper.mapParticipants(contact, modelMappingVersionContext))"""),

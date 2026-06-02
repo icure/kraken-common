@@ -7,6 +7,9 @@ package org.taktik.icure.services.external.rest.v2.controllers.extra
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -29,6 +32,7 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto
@@ -38,8 +42,14 @@ import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResoluti
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.CalendarItemType
+import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemTypeV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
@@ -60,9 +70,40 @@ class CalendarItemTypeController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
+
+	private suspend fun CalendarItemTypeDto.toDomain(): CalendarItemType =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::calendarItemType,
+			calendarItemTypeV2Mapper::map,
+			scopePathProvider.getScopePathFor("CalendarItemType"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<CalendarItemTypeDto>.toDomain(): List<CalendarItemType> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::calendarItemType,
+			calendarItemTypeV2Mapper::map,
+			scopePathProvider.getScopePathFor("CalendarItemType"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun CalendarItemType.toDto(): CalendarItemTypeDto = calendarItemTypeV2Mapper.map(this)
+
+	private fun Flow<CalendarItemType>.toDto(): Flow<CalendarItemTypeDto> = map { it.toDto() }
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
+		mapElements<CalendarItemType, CalendarItemTypeDto> { it.toDto() }
 
 	@Operation(summary = "Gets all calendarItemTypes")
 	@GetMapping
@@ -73,7 +114,7 @@ class CalendarItemTypeController(
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
 			.getAllCalendarItemTypes(offset)
-			.mapElements(calendarItemTypeV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -82,7 +123,7 @@ class CalendarItemTypeController(
 		@RequestBody calendarItemTypeIds: ListOfIdsDto,
 	): Flux<CalendarItemTypeDto> = calendarItemTypeService.getCalendarItemTypes(
 		calendarItemTypeIds.ids
-	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
+	).toDto().injectReactorContext()
 
 	@Operation(summary = "Gets calendarItemTypes for agendaId")
 	@GetMapping("/byAgenda/{agendaId}")
@@ -90,7 +131,7 @@ class CalendarItemTypeController(
 		@Parameter(description = "The CalendarItemType agenda ID") @PathVariable agendaId: String,
 	): Flux<CalendarItemTypeDto> = calendarItemTypeService
 		.listCalendarItemTypesByAgendId(agendaId)
-		.map(calendarItemTypeV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Gets all calendarItemTypes including deleted entities")
@@ -103,7 +144,7 @@ class CalendarItemTypeController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return calendarItemTypeService
 			.getAllEntitiesIncludeDeleted(offset)
-			.mapElements(calendarItemTypeV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -112,18 +153,16 @@ class CalendarItemTypeController(
 	fun createCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
 	): Mono<CalendarItemTypeDto> = mono {
-		calendarItemTypeV2Mapper.map(
-			calendarItemTypeService.createCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))
-		)
+		calendarItemTypeService.createCalendarItemType(calendarItemTypeDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Creates a batch of CalendarItemTypes")
 	@PostMapping("/batch")
 	fun createCalendarItemTypes(
 		@RequestBody calendarItemTypeDtos: List<CalendarItemTypeDto>
-	): Flux<CalendarItemTypeDto> = calendarItemTypeService.createCalendarItemTypes(
-		calendarItemTypeDtos.map(calendarItemTypeV2Mapper::map)
-	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
+	): Flux<CalendarItemTypeDto> = flow {
+		emitAll(calendarItemTypeService.createCalendarItemTypes(calendarItemTypeDtos.toDomain()).toDto())
+	 }.injectReactorContext()
 
 	@Operation(summary = "Deletes a batch of CalendarItemTypes")
 	@PostMapping("/delete/batch")
@@ -166,7 +205,7 @@ class CalendarItemTypeController(
 		@PathVariable calendarItemTypeId: String,
 		@RequestParam rev: String,
 	): Mono<CalendarItemTypeDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		calendarItemTypeService.undeleteCalendarItemType(calendarItemTypeId, rev).let(calendarItemTypeV2Mapper::map)
+		calendarItemTypeService.undeleteCalendarItemType(calendarItemTypeId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -174,7 +213,7 @@ class CalendarItemTypeController(
 		@RequestBody calendarItemTypeIds: ListOfIdsAndRevDto,
 	): Flux<CalendarItemTypeDto> = calendarItemTypeService
 		.undeleteCalendarItemTypes(calendarItemTypeIds.ids.map(idWithRevV2Mapper::map))
-		.map(calendarItemTypeV2Mapper::map)
+		.toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{calendarItemTypeId}")
@@ -198,7 +237,7 @@ class CalendarItemTypeController(
 	fun getCalendarItemType(
 		@PathVariable calendarItemTypeId: String,
 	): Mono<CalendarItemTypeDto> = mono {
-		calendarItemTypeService.getCalendarItemType(calendarItemTypeId)?.let { calendarItemTypeV2Mapper.map(it) }
+		calendarItemTypeService.getCalendarItemType(calendarItemTypeId)?.toDto()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "CalendarItemType fetching failed")
 	}
 
@@ -208,17 +247,18 @@ class CalendarItemTypeController(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
 	): Mono<CalendarItemTypeDto> = mono {
 		calendarItemTypeService
-			.modifyCalendarItemType(calendarItemTypeV2Mapper.map(calendarItemTypeDto))
-			.let { calendarItemTypeV2Mapper.map(it) }
+		.modifyCalendarItemType(calendarItemTypeDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modifies a batch of CalendarItemTypes")
 	@PutMapping("/batch")
 	fun modifyCalendarItemTypes(
 		@RequestBody calendarItemTypeDtos: List<CalendarItemTypeDto>,
-	): Flux<CalendarItemTypeDto> = calendarItemTypeService.modifyCalendarItemTypes(
-		calendarItemTypeDtos.map(calendarItemTypeV2Mapper::map)
-	).map(calendarItemTypeV2Mapper::map).injectReactorContext()
+	): Flux<CalendarItemTypeDto> = flow {
+		emitAll(calendarItemTypeService.modifyCalendarItemTypes(
+			calendarItemTypeDtos.toDomain()
+		).toDto())
+	}.injectReactorContext()
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
 	fun getConflictingEntitiesIds(): Flux<String> =
@@ -229,7 +269,7 @@ class CalendarItemTypeController(
 		@PathVariable entityId: String,
 	): Flux<CalendarItemTypeDto> =
 		calendarItemTypeService.getConflictsFor(entityId)
-			.map(calendarItemTypeV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -237,10 +277,10 @@ class CalendarItemTypeController(
 		@RequestBody request: ConflictResolutionRequestDto<CalendarItemTypeDto>
 	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = mono {
 		val result = calendarItemTypeService.declareConflictWinner(
-			entity = calendarItemTypeV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, calendarItemTypeV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

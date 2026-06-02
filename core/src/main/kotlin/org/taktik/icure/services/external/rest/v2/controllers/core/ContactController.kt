@@ -62,8 +62,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.errorreporting.MapperScopePathProvider
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -106,24 +112,54 @@ class ContactController(
 	private val objectMapper: ObjectMapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val cardinalVersionConfig: CardinalVersionConfig
+	private val cardinalVersionConfig: CardinalVersionConfig,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private suspend fun ContactDto.toDomain(): Contact {
-		return contactV2Mapper.map(this, cardinalVersionConfig.getMappingContextForCurrentUser())
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::contact,
+			{ dto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
+			scopePathProvider.getScopePathFor("Contact"),
+			builtinValidationConfigsProvider,
+		)
 	}
 
 	private suspend fun List<ContactDto>.toDomain(): List<Contact> {
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
-		return map { contactV2Mapper.map(it, versionCtx) }
+		return mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::contact,
+			{ dto: ContactDto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
+			scopePathProvider.getScopePathFor("Contact"),
+			builtinValidationConfigsProvider,
+		)
 	}
 
 	private fun Flow<ContactDto>.toDomain(): Flow<Contact> = flow {
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
-		emitAll(this@toDomain.map { contactV2Mapper.map(it, versionCtx) })
+		emitAll(mapFromDtoWithExtension(
+			this@toDomain,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::contact,
+			{ dto: ContactDto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
+			scopePathProvider.getScopePathFor("Contact"),
+			builtinValidationConfigsProvider,
+		))
 	}
 
 	private suspend fun Contact.toDto(): ContactDto {
 		return contactV2Mapper.map(this, cardinalVersionConfig.getMappingContextForCurrentUser())
+	}
+
+	private suspend fun toDtoLambda(): (Contact) -> ContactDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return { contactV2Mapper.map(it, versionCtx) }
 	}
 
 	private suspend fun List<Contact>.toDto(): List<ContactDto> {
@@ -134,6 +170,12 @@ class ContactController(
 	private fun Flow<Contact>.toDto(): Flow<ContactDto> = flow {
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
 		emitAll(this@toDto.map { contactV2Mapper.map(it, versionCtx) })
+	}
+
+	@JvmName("toDtoPagintion")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		emitAll(this@toDto.mapElements<Contact, ContactDto> { contactV2Mapper.map(it, versionCtx) })
 	}
 
 
@@ -504,7 +546,7 @@ class ContactController(
 
 		val contacts = contactService.filterContacts(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		contacts.paginatedList<Contact, ContactDto>({ it.toDto() }, realLimit, objectMapper = objectMapper)
+		contacts.paginatedList<Contact, ContactDto>(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get the ids of the Contacts matching the provided filter.")
@@ -611,7 +653,7 @@ class ContactController(
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService
 			.listContactsByOpeningDate(hcPartyId, startDate, endDate, paginationOffset)
-			.mapElements<Contact, ContactDto> { it.toDto() }
+			.toDto()
 			.asPaginatedFlux()
 	}
 

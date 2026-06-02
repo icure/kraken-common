@@ -1,10 +1,12 @@
 package org.taktik.icure.security
 
 import org.taktik.icure.asynclogic.UserLogic
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions
 
 interface SecureUserMapper<UserDto> {
 	/**
@@ -16,16 +18,27 @@ interface SecureUserMapper<UserDto> {
 	 * @throws NotFoundRequestException if [userDto] represents an existing user that does not exist
 	 * @throws ConflictRequestException if [userDto] represents an existing user but the revision is outdated
 	 */
-	suspend fun mapFillingOmittedSecrets(userDto: UserDto, isCreate: Boolean = false): User
+	suspend fun mapFillingOmittedSecrets(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+		isCreate: Boolean = false
+	): User
 
 	/**
 	 * Maps a user entity to a user DTO, omitting any secret data.
 	 * Differently from [mapOmittingSecrets] this operation will return null if the user is not found on the db and
 	 * will not check that the revision of the user on the db matches the one on [userDto].
 	 */
-	suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean = false): User?
+	suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+		isCreate: Boolean = false
+	): User?
 
-	suspend fun mapFillingOmittedSecretsFromRev(userDto: UserDto): User
+	suspend fun mapFillingOmittedSecretsFromRev(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext
+	): User
 
 	/**
 	 * Maps a user entity to a user DTO, omitting any secret data.
@@ -39,37 +52,96 @@ abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 ) : SecureUserMapper<UserDto> {
 	protected abstract fun getUserRev(userDto: UserDto): String
 
-	override suspend fun mapFillingOmittedSecrets(userDto: UserDto, isCreate: Boolean): User =
-		mapFillingOmittedSecrets(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }
+	override suspend fun mapFillingOmittedSecrets(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+		isCreate: Boolean,
+	): User =
+		mapFillingOmittedSecrets(
+			userDto = userDto,
+			isCreate = isCreate,
+			mapperExtensionsValidationContext = mapperExtensionsValidationContext
+		) {
+			userLogic.getUser(
+				id = it,
+				includeMetadataFromGlobalUser = false
+			)
+		}
 
-	override suspend fun mapFillingOmittedSecretsFromRev(userDto: UserDto): User =
-		mapFillingOmittedSecrets(userDto, isCreate = false) { userLogic.getUser(it, includeMetadataFromGlobalUser = false, rev = getUserRev(userDto)) }
+	override suspend fun mapFillingOmittedSecretsFromRev(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): User =
+		mapFillingOmittedSecrets(
+			userDto = userDto,
+			isCreate = false,
+			mapperExtensionsValidationContext = mapperExtensionsValidationContext
+		) {
+			userLogic.getUser(
+				id = it,
+				includeMetadataFromGlobalUser = false,
+				rev = getUserRev(userDto)
+			)
+		}
 
-	override suspend fun mapFillingOmittedSecretsOrNull(userDto: UserDto, isCreate: Boolean): User? =
-		mapFillingOmittedSecretsOrNull(userDto, isCreate) { userLogic.getUser(it, includeMetadataFromGlobalUser = false) }
+	override suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+		isCreate: Boolean,
+	): User? =
+		mapFillingOmittedSecretsOrNull(
+			userDto = userDto,
+			isCreate = isCreate,
+			mapperExtensionsValidationContext = mapperExtensionsValidationContext
+		) {
+			userLogic.getUser(
+				id = it,
+				includeMetadataFromGlobalUser = false
+			)
+		}
 
 	protected suspend fun mapFillingOmittedSecrets(
 		userDto: UserDto,
 		isCreate: Boolean,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
 		getExistingUser: suspend (id: String) -> User?,
-	): User = checkNotNull(mapFillingOmittedSecretsOrNull(userDto, getExistingUser, failOnMissingUser = true, failOnMismatchedRev = true, isCreate = isCreate)) {
+	): User = checkNotNull(
+		mapFillingOmittedSecretsOrNull(
+			userDto = userDto,
+			getExistingUser = getExistingUser,
+			failOnMissingUser = true,
+			failOnMismatchedRev = true,
+			isCreate = isCreate,
+			mapperExtensionsValidationContext = mapperExtensionsValidationContext
+		)
+	) {
 		"Mapping returned null when failure was expected"
 	}
 
 	protected suspend fun mapFillingOmittedSecretsOrNull(
 		userDto: UserDto,
 		isCreate: Boolean,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
 		getExistingUser: suspend (id: String) -> User?,
-	): User? = mapFillingOmittedSecretsOrNull(userDto, getExistingUser, failOnMissingUser = false, failOnMismatchedRev = false, isCreate = isCreate)
+	): User? = mapFillingOmittedSecretsOrNull(
+		userDto = userDto,
+		getExistingUser = getExistingUser,
+		failOnMissingUser = false,
+		failOnMismatchedRev = false,
+		isCreate = isCreate,
+		mapperExtensionsValidationContext = mapperExtensionsValidationContext
+	)
 
 	protected suspend fun mapFillingOmittedSecretsOrNull(
 		userDto: UserDto,
 		getExistingUser: suspend (id: String) -> User?,
 		failOnMissingUser: Boolean,
 		failOnMismatchedRev: Boolean,
-		isCreate: Boolean
+		isCreate: Boolean,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
 	): User? {
-		val modifiedUser = unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto)
+		val modifiedUser =
+			unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto, mapperExtensionsValidationContext)
 		return if (modifiedUser.rev != null && !isCreate) {
 			val existingUser = getExistingUser(modifiedUser.id)
 				?: if (failOnMissingUser) throw NotFoundRequestException("User ${modifiedUser.id} does not exist") else return null
@@ -78,7 +150,8 @@ abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 			} else if (existingUser.rev != modifiedUser.rev) {
 				return null
 			}
-			val filledPassword = if (modifiedUser.passwordHash == "*") existingUser.passwordHash else modifiedUser.passwordHash
+			val filledPassword =
+				if (modifiedUser.passwordHash == "*") existingUser.passwordHash else modifiedUser.passwordHash
 			if (modifiedUser.use2fa == true) {
 				requireNotNull(modifiedUser.secret ?: existingUser.secret) {
 					"Secret is required when 2FA is enabled"
@@ -117,7 +190,10 @@ abstract class AbstractSecureUserMapper<UserDto, AuthenticationTokenDto>(
 	 * Dtos accept null value for authentication tokens, but the real entity no: this mapping should ignore all tokens
 	 * with null value
 	 */
-	protected abstract fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto: UserDto): User
+	protected abstract fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): User
 
 	/**
 	 * Map an authentication token to the dto counterpart but omitting the token value

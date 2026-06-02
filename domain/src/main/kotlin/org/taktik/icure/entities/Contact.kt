@@ -189,5 +189,6 @@ fun Service.pimpWithContactInformation(contact: Contact): Service {
 		author = this.author ?: contact.author,
 		responsible = this.responsible ?: contact.responsible,
 		securityMetadata = contact.securityMetadata,
+		contactExtensionsVersions = contact.extensionsVersion,
 	)
 }

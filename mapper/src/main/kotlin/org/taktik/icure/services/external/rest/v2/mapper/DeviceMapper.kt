@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Device
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -33,13 +33,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapp
 	componentModel = "spring",
 	uses = [CodeStubV2Mapper::class, IdentifierV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface DeviceV2Mapper {
 	@Mappings(
@@ -47,8 +40,8 @@ interface DeviceV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(deviceDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(deviceDto: DeviceDto): Device
+	fun map(deviceDto: DeviceDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Device
 	fun map(device: Device): DeviceDto
 }

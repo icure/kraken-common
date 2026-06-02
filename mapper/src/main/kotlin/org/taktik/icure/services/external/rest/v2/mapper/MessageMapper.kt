@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Message
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -36,13 +36,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 	componentModel = "spring",
 	uses = [CodeStubV2Mapper::class, DelegationV2Mapper::class, MessageReadStatusV2Mapper::class, SecurityMetadataV2Mapper::class, MessageAttachmentV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface MessageV2Mapper {
 	@Mappings(
@@ -50,8 +43,8 @@ interface MessageV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(messageDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(messageDto: MessageDto): Message
+	fun map(messageDto: MessageDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Message
 	fun map(message: Message): MessageDto
 }

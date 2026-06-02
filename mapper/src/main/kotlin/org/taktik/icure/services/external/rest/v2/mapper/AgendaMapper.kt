@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -35,13 +35,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.RightV2Mapper
 	componentModel = "spring",
 	uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface AgendaV2Mapper {
 	@Mappings(
@@ -49,8 +42,8 @@ interface AgendaV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(agendaDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(agendaDto: AgendaDto): Agenda
+	fun map(agendaDto: AgendaDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Agenda
 	fun map(agenda: Agenda): AgendaDto
 }

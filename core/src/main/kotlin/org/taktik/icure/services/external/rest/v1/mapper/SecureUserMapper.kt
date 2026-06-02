@@ -1,6 +1,7 @@
 package org.taktik.icure.services.external.rest.v1.mapper
 
 import org.taktik.icure.asynclogic.UserLogic
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.security.AbstractSecureUserMapper
@@ -9,7 +10,21 @@ import org.taktik.icure.services.external.rest.v1.dto.UserDto
 import org.taktik.icure.services.external.rest.v1.dto.security.AuthenticationTokenDto
 import org.taktik.icure.services.external.rest.v1.mapper.security.UnsecureAuthenticationTokenMapper
 
-interface SecureUserV1Mapper : SecureUserMapper<UserDto>
+interface SecureUserV1Mapper : SecureUserMapper<UserDto> {
+	suspend fun mapFillingOmittedSecrets(
+		userDto: UserDto,
+		isCreate: Boolean = false
+	): User
+
+	suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		isCreate: Boolean = false
+	): User?
+
+	suspend fun mapFillingOmittedSecretsFromRev(
+		userDto: UserDto,
+	): User
+}
 
 open class SecureUserV1MapperImpl(
 	userLogic: UserLogic,
@@ -20,10 +35,37 @@ open class SecureUserV1MapperImpl(
 
 	override fun getUserRev(userDto: UserDto): String = checkNotNull(userDto.rev) { "User ${userDto.rev} has no rev" }
 
-	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto: UserDto): User = unsecureMapper.map(
+	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): User = unsecureMapper.map(
 		userDto.copy(
 			authenticationTokens = userDto.authenticationTokens.filterValues { it.token != null },
 		),
+	)
+
+	override suspend fun mapFillingOmittedSecrets(
+		userDto: UserDto,
+		isCreate: Boolean
+	): User = mapFillingOmittedSecrets(
+		userDto = userDto,
+		mapperExtensionsValidationContext = MapperExtensionsValidationContext.Empty,
+		isCreate = isCreate,
+	)
+
+	override suspend fun mapFillingOmittedSecretsFromRev(userDto: UserDto): User =
+		mapFillingOmittedSecretsFromRev(
+			userDto = userDto,
+			mapperExtensionsValidationContext = MapperExtensionsValidationContext.Empty,
+		)
+
+	override suspend fun mapFillingOmittedSecretsOrNull(
+		userDto: UserDto,
+		isCreate: Boolean
+	): User? = mapFillingOmittedSecretsOrNull(
+		userDto = userDto,
+		mapperExtensionsValidationContext = MapperExtensionsValidationContext.Empty,
+		isCreate = isCreate,
 	)
 
 	override fun mapTokenOmittingValue(token: AuthenticationToken): AuthenticationTokenDto = unsecureTokenMapper.map(token).copy(token = null)

@@ -116,7 +116,8 @@ data class Service(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
-	override val extensions: RawJson.JsonObject? = null
+	override val extensions: RawJson.JsonObject? = null,
+	val contactExtensionsVersions: Int? = null, // Filled only when service is emitted as standalone, required to do proper migration on client side
 ) : Encryptable,
 	ICureDocument<String>,
 	Comparable<Service>,

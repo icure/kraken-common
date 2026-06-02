@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -38,13 +38,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 	componentModel = "spring",
 	uses = [AnnotationV2Mapper::class, IdentifierV2Mapper::class, PlanOfActionV2Mapper::class, EpisodeV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, CareTeamMemberV2Mapper::class, SecurityMetadataV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface HealthElementV2Mapper {
 	@Mappings(
@@ -52,8 +45,8 @@ interface HealthElementV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(healthElementDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(healthElementDto: HealthElementDto): HealthElement
+	fun map(healthElementDto: HealthElementDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthElement
 	fun map(healthElement: HealthElement): HealthElementDto
 }

@@ -7,7 +7,10 @@ package org.taktik.icure.services.external.rest.v2.controllers.extra
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
@@ -40,8 +43,15 @@ import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResoluti
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
+import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.Agenda
+import org.taktik.icure.errorreporting.MapperScopePathProvider
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
@@ -65,8 +75,39 @@ class AgendaController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
+	private suspend fun AgendaDto.toDomain(): Agenda =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::agenda,
+			agendaV2Mapper::map,
+			scopePathProvider.getScopePathFor("Agenda"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<AgendaDto>.toDomain(): List<Agenda> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::agenda,
+			agendaV2Mapper::map,
+			scopePathProvider.getScopePathFor("Agenda"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Agenda.toDto(): AgendaDto = agendaV2Mapper.map(this)
+
+	private fun Flow<Agenda>.toDto(): Flow<AgendaDto> = map { it.toDto() }
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
+		mapElements<Agenda, AgendaDto> { it.toDto() }
+
 	@Operation(summary = "Gets all agendas")
 	@GetMapping
 	fun getAgendas(
@@ -76,7 +117,7 @@ class AgendaController(
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return agendaService
 			.getAllAgendas(offset)
-			.mapElements(agendaV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -85,16 +126,14 @@ class AgendaController(
 	fun createAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = mono {
-		agendaV2Mapper.map(agendaService.createAgenda(agendaV2Mapper.map(agendaDto)))
+		agendaService.createAgenda(agendaDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Creates a batch of agendas")
 	@PostMapping("/batch")
 	fun createAgendas(
 		@RequestBody agendasDto: List<AgendaDto>,
-	): Flux<AgendaDto> = agendaService.createAgendas(
-		agendasDto.map(agendaV2Mapper::map)
-	).map(agendaV2Mapper::map).injectReactorContext()
+	): Flux<AgendaDto> = mono { agendasDto.toDomain() }.flatMapMany { agendaService.createAgendas(it).toDto().injectReactorContext() }
 
 	@Operation(summary = "Deletes multiple Agendas")
 	@PostMapping("/delete/batch")
@@ -132,7 +171,7 @@ class AgendaController(
 		@PathVariable agendaId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<AgendaDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		agendaV2Mapper.map(agendaService.undeleteAgenda(agendaId, rev))
+		agendaService.undeleteAgenda(agendaId, rev).toDto()
 	}
 
 	@Operation(summary = "Undelete multiple Agendas if they match the provided revs")
@@ -142,7 +181,7 @@ class AgendaController(
 	): Flux<AgendaDto> = agendaService
 		.undeleteAgendas(
 			agendaIds.ids.map(idWithRevV2Mapper::map),
-		).map(agendaV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{agendaId}")
@@ -171,7 +210,7 @@ class AgendaController(
 		val agenda =
 			agendaService.getAgenda(agendaId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Agenda fetching failed")
-		agendaV2Mapper.map(agenda)
+		agenda.toDto()
 	}
 
 	@Operation(summary = "Gets all agendas for user")
@@ -179,7 +218,7 @@ class AgendaController(
 	fun getAgendasForUser(
 		@RequestParam userId: String,
 	): Mono<AgendaDto> = mono {
-		agendaService.getAgendasByUser(userId).firstOrNull()?.let { agendaV2Mapper.map(it) }
+		agendaService.getAgendasByUser(userId).firstOrNull()?.toDto()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Agendas fetching failed")
 	}
 
@@ -190,7 +229,7 @@ class AgendaController(
 		@RequestParam userId: String,
 	): Flux<AgendaDto> {
 		val agendas = agendaService.getReadableAgendaForUser(userId)
-		return agendas.map { agendaV2Mapper.map(it) }.injectReactorContext()
+		return agendas.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Modifies an agenda")
@@ -198,17 +237,19 @@ class AgendaController(
 	fun modifyAgenda(
 		@RequestBody agendaDto: AgendaDto,
 	): Mono<AgendaDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		val agenda = agendaService.modifyAgenda(agendaV2Mapper.map(agendaDto))
-		agendaV2Mapper.map(agenda)
+		val agenda = agendaService.modifyAgenda(agendaDto.toDomain())
+		agenda.toDto()
 	}
 
 	@Operation(summary = "Modifies a batch of agendas")
 	@PutMapping("/batch")
 	fun modifyAgendas(
 		@RequestBody agendaDtos: List<AgendaDto>,
-	): Flux<AgendaDto> = agendaService.modifyAgendas(
-		agendaDtos.map(agendaV2Mapper::map)
-	).map(agendaV2Mapper::map).injectCachedReactorContext(reactorCacheInjector, 10)
+	): Flux<AgendaDto> = flow {
+		emitAll(agendaService.modifyAgendas(
+			agendaDtos.toDomain()
+		).toDto())
+	}.injectCachedReactorContext(reactorCacheInjector, 10)
 
 	@Operation(summary = "Get the ids of the Agendas matching the provided filter")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
@@ -225,7 +266,7 @@ class AgendaController(
 		@RequestBody agendaIds: ListOfIdsDto,
 	): Flux<AgendaDto> {
 		require(agendaIds.ids.isNotEmpty()) { "You must specify at least one id" }
-		return agendaService.getAgendas(agendaIds.ids).map(agendaV2Mapper::map).injectReactorContext()
+		return agendaService.getAgendas(agendaIds.ids).toDto().injectReactorContext()
 	}
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
@@ -237,7 +278,7 @@ class AgendaController(
 		@PathVariable entityId: String,
 	): Flux<AgendaDto> =
 		agendaService.getConflictsFor(entityId)
-			.map(agendaV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -245,10 +286,10 @@ class AgendaController(
 		@RequestBody request: ConflictResolutionRequestDto<AgendaDto>
 	): Mono<ConflictResolutionResultDto<AgendaDto>> = mono {
 		val result = agendaService.declareConflictWinner(
-			entity = agendaV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, agendaV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

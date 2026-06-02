@@ -18,11 +18,11 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
-import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -38,13 +38,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.PersonNameV2Mappe
 	componentModel = "spring",
 	uses = [IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-	defaultPassOnParameters = [
-		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
-			parameterName = "mapperExtensionsValidationContext",
-		)
-	]
 )
 interface HealthcarePartyV2Mapper {
 	@Mappings(
@@ -52,8 +45,8 @@ interface HealthcarePartyV2Mapper {
 		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(healthcarePartyDto.extensions))"),
 	)
-	// TODO update with proper validation context in future
-	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
+	fun map(healthcarePartyDto: HealthcarePartyDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthcareParty
 	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
 }

@@ -10,8 +10,8 @@ data class StandardRootEntityExtensionConfig(
 	 * Reference to the object definition (i.e. key of [VersionedCustomEntitiesConfiguration.objects]) for this entity
 	 * extensions.
 	 * This value is also used as the name for the type in the generated custom SDK.
-	 * The referenced object definition must have a [ObjectDefinition.baseEntity] that is equal to the root builtin
-	 * entity being extended.
+	 * The referenced object definition must have a [ObjectDefinition.builtinExtension] that is equal to the root
+	 * builtin entity being extended.
 	 */
 	val objectDefinitionReference: String,
 	/**
@@ -25,6 +25,18 @@ data class StandardRootEntityExtensionConfig(
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
 data class StandardRootEntitiesExtensionConfig(
-	override val patient: StandardRootEntityExtensionConfig? = null,
+	override val accessLog: StandardRootEntityExtensionConfig? = null,
+	override val agenda: StandardRootEntityExtensionConfig? = null,
+	override val calendarItem: StandardRootEntityExtensionConfig? = null,
+	override val calendarItemType: StandardRootEntityExtensionConfig? = null,
+	override val contact: StandardRootEntityExtensionConfig? = null,
+	override val device: StandardRootEntityExtensionConfig? = null,
+	override val document: StandardRootEntityExtensionConfig? = null,
 	override val healthcareParty: StandardRootEntityExtensionConfig? = null,
+	override val healthElement: StandardRootEntityExtensionConfig? = null,
+	override val message: StandardRootEntityExtensionConfig? = null,
+	override val patient: StandardRootEntityExtensionConfig? = null,
+	override val place: StandardRootEntityExtensionConfig? = null,
+	override val user: StandardRootEntityExtensionConfig? = null,
+	override val topic: StandardRootEntityExtensionConfig? = null,
 ) : ExtendableRootEntitiesConfiguration<StandardRootEntityExtensionConfig>

@@ -1,6 +1,7 @@
 package org.taktik.icure.services.external.rest.v2.mapper
 
 import org.taktik.icure.asynclogic.UserLogic
+import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.security.AbstractSecureUserMapper
@@ -20,10 +21,14 @@ open class SecureUserV2MapperImpl(
 
 	override fun getUserRev(userDto: UserDto): String = checkNotNull(userDto.rev) { "User ${userDto.rev} has no rev" }
 
-	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(userDto: UserDto): User = unsecureMapper.map(
+	override fun unsecureMapDtoToUserIgnoringAuthenticationTokensWithNullValue(
+		userDto: UserDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): User = unsecureMapper.map(
 		userDto.copy(
 			authenticationTokens = userDto.authenticationTokens.filterValues { it.token != null },
-		)
+		),
+		mapperExtensionsValidationContext
 	)
 
 	override fun mapTokenOmittingValue(token: AuthenticationToken): AuthenticationTokenDto = unsecureTokenMapper.map(token).copy(token = null)
