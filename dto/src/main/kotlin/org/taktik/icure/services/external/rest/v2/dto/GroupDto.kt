@@ -86,13 +86,17 @@ data class GroupDto(
 	val applicationId: String? = null,
 	val templates: TemplatesConfigurationDto? = null,
 	/**
-	 * The version of the custom design doc config applied to the group.
+	 * The version of the custom design doc schema applied to the group.
 	 */
-	val designDocConfigVersion: Int? = null,
+	val designDocSchemaVersion: Int? = null,
 	/**
 	 * The id of the group at the application level. Used to determine the design doc schema and custom entity version.
 	 */
 	val applicationGroupId: String? = null,
+	/**
+	 * The version of the custom design doc schema to apply by default children groups on creation.
+	 */
+	val defaultChildrenSchemaVersion: Int? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
