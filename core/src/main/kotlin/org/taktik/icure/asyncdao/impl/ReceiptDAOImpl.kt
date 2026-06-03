@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -50,7 +51,7 @@ class ReceiptDAOImpl(
 
 		val startKey =
 			if (descending) {
-				end ?: ComplexKey.emptyObject()
+				end ?: EmptyObjectKey
 			} else {
 				start
 			}
@@ -58,7 +59,7 @@ class ReceiptDAOImpl(
 			if (descending) {
 				start
 			} else {
-				end ?: ComplexKey.emptyObject()
+				end ?: EmptyObjectKey
 			}
 
 		emitAll(client.queryViewIncludeDocs<String, String, Receipt>(createQuery(datastoreInformation, "by_date").startKey(startKey).endKey(endKey).descending(descending).includeDocs(true)).map { it.doc })

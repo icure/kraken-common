@@ -43,8 +43,6 @@ data class ReplicatorDocumentDto(
 	val errorCount: Int? = null,
 	/** Information about the document revisions. */
 	val revsInfo: List<Map<String, String>>? = null,
-	/** A map of the document revision history. */
-	val revHistory: Map<String, String>? = null,
 ) : VersionableDto<String> {
 	override fun withIdRev(
 		id: String?,
