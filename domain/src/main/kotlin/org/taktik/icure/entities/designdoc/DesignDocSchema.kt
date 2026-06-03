@@ -15,9 +15,11 @@ data class DesignDocSchema(
 	val applicationGroupId: String,
 	@JsonIgnore
 	val version: Int,
+	val committed: Boolean = false,
 	/**
 	 * The key of the outermost map is the entity name. In the inner map, the key is the view name and the value is
 	 * the index of the partition where that view resides.
+	 * The partition index will be 0 until the schema is committed and the indexation process is started.
 	 */
 	val viewsByEntity: Map<String, Map<String, Int>>,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
