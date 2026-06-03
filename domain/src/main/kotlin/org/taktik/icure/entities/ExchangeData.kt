@@ -81,7 +81,6 @@ data class ExchangeData(
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
 	 */
 	@MergeStrategyChooseLeft val sharedSignature: Base64String,
-	@param:JsonProperty("rev_history") override val revHistory: Map<String, String>? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,

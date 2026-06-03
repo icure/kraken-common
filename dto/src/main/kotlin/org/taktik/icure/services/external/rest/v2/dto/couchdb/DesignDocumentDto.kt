@@ -9,8 +9,6 @@ data class DesignDocumentDto(
 	val id: String,
 	/** The current revision of the design document. */
 	val rev: String? = null,
-	/** A map of revision history entries. */
-	val revHistory: Map<String, String> = mapOf(),
 	/** The programming language used for the design document functions. */
 	val language: String? = null,
 	/** A map of view names to their definitions. */

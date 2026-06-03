@@ -27,7 +27,6 @@ data class ReplicatorDocumentDto(
 	val replicationStats: ReplicationStatsDto? = null,
 	val errorCount: Int? = null,
 	val revsInfo: List<Map<String, String>>? = null,
-	val revHistory: Map<String, String>? = null,
 ) : VersionableDto<String> {
 	override fun withIdRev(
 		id: String?,
