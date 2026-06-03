@@ -20,7 +20,6 @@ data class CryptoActorStub(
 	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(),
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
-	override val revHistory: Map<String, String>? = null,
 	override val parentId: String? = null,
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 ) : Versionable<String>,

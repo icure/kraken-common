@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.taktik.couchdb.entity.View
-import org.taktik.couchdb.support.views.ExternalViewRepository
+import org.taktik.couchdb.support.repositories.ExternalViewRepository
 import reactor.netty.http.client.HttpClient
 import java.net.URI
 import java.nio.charset.StandardCharsets
