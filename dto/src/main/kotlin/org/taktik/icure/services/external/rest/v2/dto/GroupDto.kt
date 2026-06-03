@@ -86,9 +86,9 @@ data class GroupDto(
 	val applicationId: String? = null,
 	val templates: TemplatesConfigurationDto? = null,
 	/**
-	 * The version of the custom design doc schema applied to the group.
+	 * The versions of the custom design doc schema applied to the group.
 	 */
-	val designDocSchemaVersion: Int? = null,
+	val designDocSchemaVersions: Set<Int> = emptySet(),
 	/**
 	 * The id of the group at the application level. Used to determine the design doc schema and custom entity version.
 	 */
