@@ -1,5 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
+    id("com.google.devtools.ksp") version coreLibs.versions.ksp
 }
 
 group = "org.taktik.icure"
@@ -37,4 +38,8 @@ kotlin {
         val jsMain by getting
         val jsTest by getting
     }
+}
+
+dependencies {
+    add("kspJvm", "com.icure:ksp-json-processor")
 }
