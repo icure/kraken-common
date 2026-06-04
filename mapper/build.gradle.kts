@@ -70,7 +70,7 @@ tasks.register("KspPreCheck") {
     }
 }
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
+tasks.withType<com.google.devtools.ksp.gradle.KspAATask> {
     dependsOn("KspPreCheck")
 }
 

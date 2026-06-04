@@ -1,4 +1,4 @@
-import com.google.devtools.ksp.gradle.KspTask
+import com.google.devtools.ksp.gradle.KspAATask
 
 plugins {
     id("com.icure.kotlin-library-conventions")
@@ -45,7 +45,7 @@ dependencies {
     implementation(coreLibs.guava)
 }
 
-tasks.withType<KspTask> {
+tasks.withType<KspAATask> {
     onlyIf {
         gradle.startParameter.taskNames.contains(":kraken-common:dto:kspKotlin")
     }

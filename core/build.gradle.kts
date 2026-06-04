@@ -80,7 +80,7 @@ dependencies {
     testImplementation(coreLibs.bundles.hibernateValidatorLibs)
 }
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
+tasks.withType<com.google.devtools.ksp.gradle.KspAATask> {
     onlyIf {
         gradle.startParameter.taskNames.contains(":kraken-common:core:kspKotlin")
     }
