@@ -44,6 +44,7 @@ interface UnsecureUserV2Mapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "applicationTokens", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(userDto.extensions))"),
 	)
 	fun map(userDto: UserDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): User
 
