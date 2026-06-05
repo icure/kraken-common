@@ -80,7 +80,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
-	private val designDocumentProvider: DesignDocumentProvider,
+	protected val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig,
 	protected val queryProvider: QueryProvider
 ) : GenericDAO<T> {
@@ -95,18 +95,26 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
+	protected open suspend fun createAllQuery(datastoreInformation: IDatastoreInformation): ViewQuery =
+		createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
+
+	protected open suspend fun <K> createAllPaginatedQuery(
+		datastoreInformation: IDatastoreInformation,
+		offset: PaginationOffset<K>
+	): ViewQuery = pagedViewQuery(
+		datastoreInformation = datastoreInformation,
+		legacyView = "all".main(),
+		configurationView = "all",
+		startKey = null,
+		endKey = null,
+		pagination = offset,
+		descending = false
+	)
+
 	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = pagedViewQuery(
-			datastoreInformation = datastoreInformation,
-			legacyView = "all".main(),
-			configurationView = "all",
-			startKey = null,
-			endKey = null,
-			pagination = offset,
-			descending = false
-		)
+		val viewQuery = createAllPaginatedQuery(datastoreInformation, offset)
 		emitAll(client.queryView(viewQuery, keyClass, String::class.java, entityClass))
 	}
 
@@ -123,11 +131,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return designDocContainsAllView(datastoreInformation) &&
 			client.queryView<String, String>(
-				createQuery(
-					datastoreInformation = datastoreInformation,
-					legacyView = "all".main(),
-					configurationView = "all",
-				).limit(1)
+				createAllQuery(datastoreInformation).limit(1)
 			).count() > 0
 	}
 
@@ -136,7 +140,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @return true if the view exists, false otherwise.
 	 */
-	private suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
+	protected open suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return queryProvider.hasAllViewForCurrentEntity(datastoreInformation) ?: client.get<DesignDocument>(
 			designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this)
@@ -150,9 +154,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		if (designDocContainsAllView(datastoreInformation)) {
 			val client = couchDbDispatcher.getClient(datastoreInformation)
 			val query = if (limit != null) {
-				createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all").limit(limit)
+				createAllQuery(datastoreInformation).limit(limit)
 			} else {
-				createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
+				createAllQuery(datastoreInformation)
 			}
 			client.queryView<String, String>(query).onEach { emit(it.id) }.collect()
 		}
@@ -166,7 +170,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
 			client.queryView(
-				createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all").includeDocs(true),
+				createAllQuery(datastoreInformation).includeDocs(true),
 				Nothing::class.java,
 				String::class.java,
 				entityClass

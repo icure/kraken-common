@@ -34,6 +34,7 @@ class AsyncSessionLogicImpl(
 		groupId: String?,
 		applicationId: String?,
 		scopeDataOwner: String?,
+		requestedSchemaVersion: Int?,
 	): JwtAuthentication {
 		val token = UsernamePasswordAuthenticationToken(username, password)
 		val authentication = authenticationManager.authenticateWithUsernameAndPassword(
@@ -41,7 +42,8 @@ class AsyncSessionLogicImpl(
 			groupId = groupId,
 			applicationId = applicationId,
 			scopeDataOwner = scopeDataOwner,
-			cacheJwtRefreshDetails = true
+			cacheJwtRefreshDetails = true,
+			requestedSchemaVersion = requestedSchemaVersion,
 		)
 		if (session != null) session.attributes[SESSION_LOCALE_ATTRIBUTE] = "fr" // TODO MB : add locale support
 		return authentication

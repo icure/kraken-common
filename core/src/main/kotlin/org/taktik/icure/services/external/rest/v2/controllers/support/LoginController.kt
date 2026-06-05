@@ -7,6 +7,7 @@ package org.taktik.icure.services.external.rest.v2.controllers.support
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.mono
@@ -84,25 +85,27 @@ class LoginController(
 		@Parameter(description = "If the credentials are valid for the provided data owner scope the token created will be already with that scope, without requiring a scoped call after") @RequestParam(
 			required = false
 		) scopeDataOwner: String? = null,
+		@RequestHeader(name = "Schema-Version", required = false) requestedSchemaVersion: Int? = null,
 	): Mono<JwtResponseDto> = mono {
 		try {
 			val authentication =
 				sessionLogic.login(
-					loginCredentials.username!!,
-					loginCredentials.password!!,
-					if (sessionEnabled) session else null,
-					groupId,
-					applicationId,
-					scopeDataOwner,
+					username = loginCredentials.username!!,
+					password = loginCredentials.password!!,
+					session = if (sessionEnabled) session else null,
+					groupId = groupId,
+					applicationId = applicationId,
+					scopeDataOwner = scopeDataOwner,
+					requestedSchemaVersion = requestedSchemaVersion,
 				)
 			if (authentication.isAuthenticated && sessionEnabled) {
 				val secContext = SecurityContextImpl(authentication)
 				val securityContext =
-					kotlin.coroutines.coroutineContext[ReactorContext]?.context?.put(
+					currentCoroutineContext()[ReactorContext]?.context?.put(
 						SecurityContext::class.java,
 						Mono.just(secContext),
 					)
-				withContext(kotlin.coroutines.coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
+				withContext(currentCoroutineContext().plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
 					authentication
 						.toJwtResponse(jwtUtils, duration)
 						.also {

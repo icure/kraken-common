@@ -97,7 +97,8 @@ abstract class AbstractAuthenticationManager<
 						groupId = null,
 						applicationId = null,
 						scopeDataOwner = null,
-						cacheJwtRefreshDetails = false
+						cacheJwtRefreshDetails = false,
+						requestedSchemaVersion = null,
 					)
 				} else {
 					encodedJwtToAuthentication(authentication?.credentials as String)
