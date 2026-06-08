@@ -57,7 +57,6 @@ import org.taktik.icure.utils.pagedViewQueryOfIds
 open class InternalDAOImpl<T : StoredDocument>(
 	val entityClass: Class<T>,
 	val couchDbDispatcher: CouchDbDispatcher,
-	val idGenerator: IDGenerator,
 	val datastoreInstanceProvider: DatastoreInstanceProvider,
 	val designDocumentProvider: DesignDocumentProvider,
 ) : InternalDAO<T> {
@@ -138,7 +137,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(client.get(ids, entityClass))
 	}
 
-	override suspend fun save(entity: T): T? {
+	override suspend fun save(entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save: " + entity.id + ":" + entity.rev)
