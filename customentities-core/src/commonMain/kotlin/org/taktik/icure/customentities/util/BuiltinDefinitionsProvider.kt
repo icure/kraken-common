@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.util
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.config.migration.EnumMigration
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.jackson.annotations.JsonIgnore
@@ -8,6 +9,7 @@ interface BuiltinDefinitionsProvider {
 	fun getBuiltinEnumDefinition(name: String): BuiltinEnumDefinition?
 	fun getBuiltinObjectDefinition(name: String): BuiltinObjectDefinition?
 
+	@Serializable
 	data class BuiltinEnumDefinition(
 		val entries: Set<Entry>
 	) {
@@ -16,6 +18,7 @@ interface BuiltinDefinitionsProvider {
 		 * Unlike custom enum definition there might be a distinction between serial name of an entry and the name
 		 * displayed to a user.
 		 */
+		@Serializable
 		data class Entry(
 			/**
 			 * The user-facing name of the entry, what it is used in the SDK code and displayed by the cockpit UI.
@@ -35,6 +38,7 @@ interface BuiltinDefinitionsProvider {
 		)
 	}
 
+	@Serializable
 	data class BuiltinObjectDefinition(
 		/**
 		 * Properties of the builtin object, excluding metadata properties
@@ -80,14 +84,14 @@ interface BuiltinDefinitionsProvider {
 		 * Should be always true if [isRoot] is true.
 		 */
 		@get:JsonIgnore
-		val isExtendable: Boolean get() = isRoot || extendability == ExtendabilityInfo.Specializable
+		val isExtendable: Boolean get() = isRoot || extendability == ExtendabilityInfo.Extendable
 		/**
 		 * If this object definition represents an entity that can have specialized builtin properties (but will not
 		 * allow custom extensions itself if not also extendable).
 		 * Should be always true if [isExtendable] is true.
 		 */
 		@get:JsonIgnore
-		val isSpecializable: Boolean get() = extendability != null
+		val isSpecializable: Boolean get() = isExtendable || extendability == ExtendabilityInfo.Specializable
 	}
 }
 
