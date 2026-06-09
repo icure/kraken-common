@@ -3,7 +3,7 @@ import com.github.jk1.license.render.ReportRenderer
 
 plugins {
     id("com.icure.kotlin-library-conventions")
-    kotlin("plugin.serialization")
+    alias(coreLibs.plugins.kotlinxSerialization)
 
     alias(coreLibs.plugins.springBootPlugin) apply (true)
     alias(coreLibs.plugins.springBootDependenciesManagement) apply (true)

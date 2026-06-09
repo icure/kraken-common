@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.google.devtools.ksp") version coreLibs.versions.ksp
+    alias(coreLibs.plugins.kotlinxSerialization)
 }
 
 group = "org.taktik.icure"
@@ -26,6 +27,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project("$projectPrefix:utils-multiplatform"))
+                implementation(coreLibs.kotlinxSerializationCore)
             }
         }
         val commonTest by getting

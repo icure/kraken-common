@@ -23,5 +23,4 @@ java {
 }
 
 dependencies {
-    implementation(coreLibs.kotlinxSerializationPlugin)
 }

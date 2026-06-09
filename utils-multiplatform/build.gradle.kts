@@ -22,6 +22,10 @@ kotlin {
     }
     sourceSets {
         val commonMain by getting {
+            dependencies {
+                implementation(coreLibs.kotlinxSerializationCore)
+                implementation(coreLibs.kotlinxSerializationJson)
+            }
         }
         val commonTest by getting {
             dependencies {
@@ -41,7 +45,7 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(coreLibs.kotlinDateTime)
+                api(coreLibs.kotlinDateTime)
             }
         }
         val jsTest by getting

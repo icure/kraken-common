@@ -1,11 +1,16 @@
 package org.taktik.icure.entities
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.entities.serialization.MultiplatformJsonGenerator
+import org.taktik.icure.entities.serialization.RawJsonObjectSerializer
+import org.taktik.icure.entities.serialization.RawJsonSerializer
 import kotlin.collections.iterator
 
+@Serializable(with = RawJsonSerializer::class)
 sealed interface RawJson {
 	fun writeTo(generator: MultiplatformJsonGenerator): Unit
 
+	@Serializable(with = RawJsonObjectSerializer::class)
 	data class JsonObject(val properties: Map<String, RawJson>) : RawJson {
 		override fun writeTo(generator: MultiplatformJsonGenerator) {
 			generator.writeStartObject()

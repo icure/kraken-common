@@ -6,7 +6,7 @@ springSession = "3.4.5"
 jackson = "2.21.2"
 caffeine = "3.2.3"
 kotlinxCoroutines = "1.10.2"
-kotlinxSerialization = "1.9.0"
+kotlinxSerialization = "1.11.0"
 kotest = "6.1.9"
 hibernateValidator = "8.0.3.Final"
 kmap = "0.1.107-gaa8642e8ea-dirty"
@@ -104,7 +104,6 @@ kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-se
 kotlinxSerializationJsonJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-jvm", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJsonIo = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJsonIoJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json-io-jvm", version.ref = "kotlinxSerialization" }
-kotlinxSerializationPlugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "kotlin" }
 kotp = { group = "com.icure.kotp", name = "kotp", version = "1.2.0" } # 2FA
 krouch = { group = "org.taktik.couchdb", name = "krouch", version = "1.2.86-g34d42cc4ce" }
 libRecur = { group = "org.dmfs", name = "lib-recur", version = "0.13.0" }
@@ -175,7 +174,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 mavenRepository = { id = "com.taktik.gradle.maven-repository", version = "1.0.7" }
 gitVersion = { id = "com.taktik.gradle.git-version", version = "2.0.8-gb47b2d0e35" }
 helmRepository = { id = "com.taktik.gradle.helm-repository", version = "0.2.24-g9f69211aad" }
-kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 licenceReport = { id = "com.github.jk1.dependency-license-report", version = "2.0"}
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0" }
 gradleTestLogger = { id = "com.adarshr.test-logger", version  = "4.0.0" }
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
