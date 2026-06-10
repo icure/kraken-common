@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
@@ -11,6 +13,8 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Object")
+@Serializable
 data class ObjectTypeConfig(
 	val objectReference: String,
 	override val nullable: Boolean = false,

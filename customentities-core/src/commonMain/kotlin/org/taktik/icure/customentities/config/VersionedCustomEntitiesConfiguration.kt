@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.config
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.config.typing.EnumDefinition
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 import org.taktik.icure.customentities.config.typing.truncateValueForErrorMessage
@@ -16,6 +17,7 @@ import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 import org.taktik.icure.errorreporting.appending
 
+@Serializable
 data class VersionedCustomEntitiesConfiguration(
 	val rev: String? = null,
 	val owningGroup: String,

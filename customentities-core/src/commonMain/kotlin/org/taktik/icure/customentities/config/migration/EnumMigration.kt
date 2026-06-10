@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.migration
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider.BuiltinEnumDefinition
@@ -129,6 +131,7 @@ import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider.BuiltinEn
  *   inputs.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@Serializable
 data class EnumMigration(
 	/**
 	 * Reference to an enum definition in the source configuration, or a builtin enum class name if [builtinSource] is true.
@@ -180,17 +183,22 @@ data class EnumMigration(
 	/**
 	 * Specifies how to get a value for the target enum.
 	 */
+	@Serializable
 	sealed interface TargetValue {
 		/**
 		 * Use [value] of the target enum.
 		 * [value] must be a valid entry name in the target enum.
 		 */
+		@SerialName("Use")
+		@Serializable
 		data class Use(val value: String) : TargetValue
 		/**
 		 * Map value to null.
 		 * This value is valid only if in all cases where this migration would be used the target allows for nullable
 		 * values (according [org.taktik.icure.customentities.config.typing.EnumTypeConfig.nullable]).
 		 */
+		@SerialName("Null")
+		@Serializable
 		data object Null : TargetValue
 		/**
 		 * The mapping should use custom logic, to be implemented on the custom SDK side.
@@ -215,6 +223,8 @@ data class EnumMigration(
 		 * same object, or if an object is not saved after migration, and must be migrated again a second time.
 		 */
 		// TODO don't think there is a use case for that, but if ever needed consider adding a boolean flag that says to divide the custom implementation in a custom for non-nullable target and a custom for nullable target.
+		@SerialName("Custom")
+		@Serializable
 		data object Custom : TargetValue
 	}
 }

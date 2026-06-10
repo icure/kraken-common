@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
@@ -12,6 +14,8 @@ import org.taktik.icure.utils.FuzzyDates
  * Type for fuzzy time, with or without precision encoding.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("FuzzyTime")
+@Serializable
 data class FuzzyTimeTypeConfig(
 	override val nullable: Boolean = false,
 	val allowPrecisionEncoding: Boolean = false

@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
@@ -44,6 +46,7 @@ import org.taktik.icure.utils.Validation
  * variant will be used.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@Serializable
 data class ObjectDefinition(
 	/**
 	 * The "data" properties of the object.
@@ -77,6 +80,7 @@ data class ObjectDefinition(
 	 */
 	val forceEncryptable: Boolean = false
 ) {
+	@Serializable
 	data class BuiltinExtensionConfiguration(
 		/**
 		 * The name of the builtin entity being extended.
@@ -103,6 +107,7 @@ data class ObjectDefinition(
 	)
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class PropertyConfiguration(
 		/**
 		 * Type of the property
@@ -127,6 +132,7 @@ data class ObjectDefinition(
 		 * If a property defines a default value and is not explicitly provided in the object it is implied that it
 		 * should use the default value
 		 */
+		@Serializable
 		sealed interface DefaultValue {
 			/**
 			 * Checks if this default value is valid for the configured property
@@ -172,6 +178,8 @@ data class ObjectDefinition(
 			 * - if applied to a list or map type config only an empty value is accepted
 			 */
 			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+			@SerialName("Constant")
+			@Serializable
 			data class Constant(
 				/**
 				 * The default value
@@ -236,6 +244,8 @@ data class ObjectDefinition(
 				override val isConstant: Boolean = true
 			}
 
+			@SerialName("GenerateUuidV4")
+			@Serializable
 			data object GenerateUuidV4 : DefaultValue {
 				override suspend fun validateFor(
 					typeConfig: GenericTypeConfig,
@@ -259,6 +269,8 @@ data class ObjectDefinition(
 			}
 
 			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+			@SerialName("NowDateTime")
+			@Serializable
 			class NowDateTime(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -289,6 +301,8 @@ data class ObjectDefinition(
 			}
 
 			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+			@SerialName("NowDate")
+			@Serializable
 			class NowDate(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -314,10 +328,13 @@ data class ObjectDefinition(
 				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
+				@get:JsonIgnore
 				override val isConstant: Boolean = false
 			}
 
 			@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+			@SerialName("NowTime")
+			@Serializable
 			class NowTime(
 				val zoneId: String? = null
 			) : DefaultValue {
@@ -343,6 +360,7 @@ data class ObjectDefinition(
 				override fun shouldIgnoreForStore(value: RawJson, typeConfig: GenericTypeConfig, resolutionContext: CustomEntityConfigResolutionContext?): Boolean =
 					false
 
+				@get:JsonIgnore
 				override val isConstant: Boolean = false
 			}
 		}
@@ -379,6 +397,7 @@ data class ObjectDefinition(
 	 * [ObjectDefinition.PropertyEncryptionConfiguration.Full]) then the whole Address object will be encrypted,
 	 * ignoring its configuration, and not even city will be available in the EncryptedPerson's address.
 	 */
+	@Serializable
 	sealed interface PropertyEncryptionConfiguration {
 		/**
 		 * Encrypt the property in full. No information about this property will be available in the encrypted entity.
@@ -396,6 +415,8 @@ data class ObjectDefinition(
 		 * In the generated model a property encrypted using [Full] will not be available from the encrypted variant of
 		 * the object or from the interface
 		 */
+		@SerialName("Full")
+		@Serializable
 		data object Full : PropertyEncryptionConfiguration
 	}
 
@@ -622,6 +643,7 @@ data class ObjectDefinition(
 	 * If the configuration of this object definition would make it encryptable, regardless of the type of extended
 	 * builtin entity, if any.
 	 */
+	@JsonIgnore
 	fun isCustomEncryptable(): Boolean =
 		forceEncryptable || properties.any { it.value.encryptionConfiguration != null }
 }

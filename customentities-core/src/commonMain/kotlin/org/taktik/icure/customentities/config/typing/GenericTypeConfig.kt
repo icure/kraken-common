@@ -1,5 +1,6 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
@@ -31,6 +32,7 @@ import org.taktik.icure.jackson.annotations.JsonInclude
  *
  * Note: even if a configuration allows for null values, unless a default
  */
+@Serializable
 sealed interface GenericTypeConfig {
 	val nullable: Boolean
 

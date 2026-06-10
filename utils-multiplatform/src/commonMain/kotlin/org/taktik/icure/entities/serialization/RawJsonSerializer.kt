@@ -28,8 +28,8 @@ import kotlinx.serialization.json.longOrNull
 import org.taktik.icure.entities.RawJson
 
 object RawJsonSerializer : KSerializer<RawJson> {
-	override val descriptor: SerialDescriptor get() =
-		throw UnsupportedOperationException("RawJson does not have a serial descriptor")
+	override val descriptor: SerialDescriptor =
+		PrimitiveSerialDescriptor("ignored", PrimitiveKind.SHORT)
 
 	override fun serialize(encoder: Encoder, value: RawJson) {
 		if (encoder !is JsonEncoder) throw SerializationException("RawJson can only be serialized with a Json encoder")
@@ -45,8 +45,8 @@ object RawJsonSerializer : KSerializer<RawJson> {
 }
 
 object RawJsonObjectSerializer : KSerializer<RawJson.JsonObject> {
-	override val descriptor: SerialDescriptor
-		get() = throw UnsupportedOperationException("RawJson does not have a serial descriptor")
+	override val descriptor: SerialDescriptor =
+		PrimitiveSerialDescriptor("ignored", PrimitiveKind.SHORT)
 
 	override fun serialize(encoder: Encoder, value: RawJson.JsonObject) {
 		RawJsonSerializer.serialize(encoder, value)

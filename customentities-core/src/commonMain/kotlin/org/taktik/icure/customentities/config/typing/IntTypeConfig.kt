@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
@@ -9,6 +11,8 @@ import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.addWarning
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Int")
+@Serializable
 data class IntTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -28,6 +32,7 @@ data class IntTypeConfig(
 	}
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		/**
 		 * Minimum acceptable value, always inclusive.

@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
@@ -13,6 +15,8 @@ import org.taktik.icure.errorreporting.addError
  * A reference to a custom enum definition
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Enum")
+@Serializable
 data class EnumTypeConfig(
 	val enumReference: String,
 	val isBuiltin: Boolean = false,

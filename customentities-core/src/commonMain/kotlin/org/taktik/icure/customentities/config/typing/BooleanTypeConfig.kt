@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
@@ -9,6 +11,8 @@ import org.taktik.icure.entities.RawJson
  * Represents a configuration for a boolean type.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Boolean")
+@Serializable
 data class BooleanTypeConfig(
 	override val nullable: Boolean = false,
 ) : GenericTypeConfig {

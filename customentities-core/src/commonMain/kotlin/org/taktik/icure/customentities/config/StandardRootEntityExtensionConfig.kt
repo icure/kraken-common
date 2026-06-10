@@ -1,10 +1,12 @@
 package org.taktik.icure.customentities.config
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.config.typing.ObjectDefinition
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@Serializable
 data class StandardRootEntityExtensionConfig(
 	/**
 	 * Reference to the object definition (i.e. key of [VersionedCustomEntitiesConfiguration.objects]) for this entity
@@ -24,6 +26,7 @@ data class StandardRootEntityExtensionConfig(
 )
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@Serializable
 data class StandardRootEntitiesExtensionConfig(
 	override val accessLog: StandardRootEntityExtensionConfig? = null,
 	override val agenda: StandardRootEntityExtensionConfig? = null,

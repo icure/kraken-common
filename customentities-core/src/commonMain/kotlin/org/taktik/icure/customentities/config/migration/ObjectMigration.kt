@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.migration
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.config.typing.FloatTypeConfig
 import org.taktik.icure.customentities.config.typing.IntTypeConfig
 import org.taktik.icure.customentities.config.typing.ListTypeConfig
@@ -196,6 +198,7 @@ import org.taktik.icure.customentities.config.typing.ObjectDefinition
  * ##### Valid migration 2 (equivalent)
  * - ObjV1 -> ObjV2 with mappings { foo: FromSource(transform: CoerceValue) }, fallbackBehavior [ UseTargetDefault ]
  */
+@Serializable
 data class ObjectMigration(
 	/**
 	 * Reference to the object to be migrated.
@@ -312,11 +315,13 @@ data class ObjectMigration(
 		}
 	}
 
+	@Serializable
 	data class DefinitionReference(
 		val objectReference: String,
 		val isBuiltin: Boolean
 	)
 
+	@Serializable
 	enum class FallbackBehavior {
 		/**
 		 * Automatically get the target property value if there is a source property with the same name and:
@@ -381,16 +386,20 @@ data class ObjectMigration(
 	 * - When migrating from an entirely different object definition (the source object)
 	 * - When adding a new extension to a standard entity that was not using any extension before (no source object)
 	 */
+	@Serializable
 	sealed interface PropertyValueProvider {
 		/**
 		 * Use a constant value as the value for the target property.
 		 */
+		@Serializable
 		sealed interface Use : PropertyValueProvider {
 
 			/**
 			 * Use the default value of the target property as defined in the target object configuration.
 			 * This is allowed only if the target property has a default value and that value is a constant.
 			 */
+			@SerialName("TargetDefault")
+			@Serializable
 			data object TargetDefault : Use
 
 			/**
@@ -398,6 +407,8 @@ data class ObjectMigration(
 			 * values for the target property, if any.
 			 * The value must be compatible with the target property type configuration.
 			 */
+			@SerialName("Value")
+			@Serializable
 			data class Value(
 				val value: RawJson
 			) : Use
@@ -417,12 +428,16 @@ data class ObjectMigration(
 		 * This could cause inconsistencies, for example, if you have two different processes that are migrating the
 		 * same object, or if an object is not saved after migration, and must be migrated again a second time.
 		 */
+		@SerialName("Custom")
+		@Serializable
 		data object Custom : PropertyValueProvider
 
 		/**
 		 * Transform the value from a property in the source object to use as the target property value.
 		 * Note that it is possible to reuse the same source property for multiple target properties.
 		 */
+		@SerialName("FromSource")
+		@Serializable
 		data class FromSource(
 			/**
 			 * The name of the property in the source object to use as the source value for the target property,
@@ -472,11 +487,14 @@ data class ObjectMigration(
 	 * - [ValueTransformer.TransformList.nullElementMapping]
 	 * - [ValueTransformer.TransformMap.nullValueMapping]
 	 */
+	@Serializable
 	sealed interface ValueTransformer {
 		/**
 		 * Automatically convert the source type to the target type if they are coercible (as explained in the root
 		 * [ObjectMigration] documentation).
 		 */
+		@SerialName("CoerceType")
+		@Serializable
 		data object CoerceType : ValueTransformer
 
 		/**
@@ -493,6 +511,8 @@ data class ObjectMigration(
 		 * The [mapElement] transformation must be applicable for the conversion from the source type to the target
 		 * [ListTypeConfig.elementType].
 		 */
+		@SerialName("WrapToSingletonList")
+		@Serializable
 		data class WrapToSingletonList(
 			val mapElement: ValueTransformer? = null,
 		) : ValueTransformer
@@ -513,6 +533,8 @@ data class ObjectMigration(
 		 * The [mapValue] transformation must be applicable for the conversion from the source type to the target
 		 * [MapTypeConfig.valueType].
 		 */
+		@SerialName("WrapToSingletonMap")
+		@Serializable
 		data class WrapToSingletonMap(
 			val key: String,
 			val mapValue: ValueTransformer? = null,
@@ -534,6 +556,8 @@ data class ObjectMigration(
 		 * If the range of the source type does not intersect with the range of the target type, this transformation
 		 * will result in all source values being mapped to the same target value.
 		 */
+		@SerialName("ClampToRange")
+		@Serializable
 		data class ClampToRange(
 			val roundingMode: Rounding.Mode? = null,
 		) : ValueTransformer
@@ -547,6 +571,8 @@ data class ObjectMigration(
 		 * If the target type is a [FloatTypeConfig] the [roundingMode] is ignored.
 		 * Note that the scaling is subject to precision limitations of 64 bit floating point numbers.
 		 */
+		@SerialName("ScaleToRange")
+		@Serializable
 		data class ScaleToRange(
 			val roundingMode: Rounding.Mode? = null,
 		) : ValueTransformer
@@ -562,6 +588,8 @@ data class ObjectMigration(
 		 * - For [FloatTypeConfig] the range is implicitly [-1.7976931348623157E308, 1.7976931348623157E308] (inclusive)
 		 * - For [IntTypeConfig] the maximum (and implicit) range is [-9007199254740991, 9007199254740991] (inclusive)
 		 */
+		@SerialName("Rounding")
+		@Serializable
 		data class Rounding(
 			val mode: Mode? = null
 		): ValueTransformer {
@@ -630,6 +658,8 @@ data class ObjectMigration(
 		 * instead.
 		 * If the source is shorter than or equal to the target max length, the value is unchanged.
 		 */
+		@SerialName("SliceString")
+		@Serializable
 		data class SliceString(
 			val fromEnd: Boolean = false,
 		) : ValueTransformer
@@ -641,6 +671,8 @@ data class ObjectMigration(
 		 * - Slice the list according to the specified [slicingBehaviour] when needed. If the max length of the target
 		 *   list is smaller than the max length of the source list, the slicing behavior is required.
 		 */
+		@SerialName("TransformList")
+		@Serializable
 		data class TransformList(
 			/**
 			 * Map the elements from the source list to the target list using the provided transformation.
@@ -696,6 +728,8 @@ data class ObjectMigration(
 		 * If [mapElement] maps multiple distinct source values to the same target value, those elements are collapsed
 		 * into one. The validation will raise a warning when [mapElement] is provided, since it may cause data loss.
 		 */
+		@SerialName("TransformSet")
+		@Serializable
 		data class TransformSet(
 			/**
 			 * Map the elements from the source set to the target set using the provided transformation.
@@ -737,6 +771,8 @@ data class ObjectMigration(
 		 * to inform about potential data loss. This warning might be raised even in some situations where the
 		 * [mapKey] transformation is injective.
 		 */
+		@SerialName("TransformMap")
+		@Serializable
 		data class TransformMap(
 			/**
 			 * Map each value of the source map to the target map using the provided transformation.
@@ -765,15 +801,20 @@ data class ObjectMigration(
 		 * Specify how to handle a null entry in a collection (an item in a list or a value in a map; null map keys are
 		 * not allowed).
 		 */
+		@Serializable
 		sealed interface CollectionNullMapping {
 			/**
 			 * The null entry / element will be omitted from the result.
 			 */
+			@SerialName("Filter")
+			@Serializable
 			data object Filter : CollectionNullMapping
 			/**
 			 * The null entry / element will be mapped to the specified [value].
 			 * The value must be compatible with the target collection element type configuration.
 			 */
+			@SerialName("UseValue")
+			@Serializable
 			data class UseValue(val value: RawJson) : CollectionNullMapping
 		}
 	}

@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
@@ -11,6 +13,8 @@ import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Map")
+@Serializable
 data class MapTypeConfig(
 	val valueType: GenericTypeConfig,
 	override val nullable: Boolean = false,
@@ -35,6 +39,7 @@ data class MapTypeConfig(
 		valueType.enumDefinitionDependencies + validation?.keyValidation?.equivalentTypeConfig()?.enumDefinitionDependencies.orEmpty()
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		val minSize: Int? = null,
 		val maxSize: Int? = null,
@@ -44,6 +49,7 @@ data class MapTypeConfig(
 		 */
 		val keyValidation: KeyValidation? = null,
 	) {
+		@Serializable
 		sealed interface KeyValidation {
 			/**
 			 * Get a [GenericTypeConfig] with validation rules equivalent to this key validation rules.
@@ -57,6 +63,8 @@ data class MapTypeConfig(
 			/**
 			 * Each key must be an entry of the referenced enum
 			 */
+			@SerialName("Enum")
+			@Serializable
 			data class EnumKeyValidation(
 				val enumReference: String,
 				val isBuiltin: Boolean = false,
@@ -68,6 +76,8 @@ data class MapTypeConfig(
 			/**
 			 * Each key must validate against the specified string validation configuration
 			 */
+			@SerialName("String")
+			@Serializable
 			data class StringKeyValidation(
 				val validation: StringTypeConfig.ValidationConfig,
 			) : KeyValidation {

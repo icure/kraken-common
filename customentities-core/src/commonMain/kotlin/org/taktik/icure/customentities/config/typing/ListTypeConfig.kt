@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
@@ -11,6 +13,8 @@ import org.taktik.icure.errorreporting.addError
 import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("List")
+@Serializable
 data class ListTypeConfig(
 	override val elementType: GenericTypeConfig,
 	override val nullable: Boolean = false,
@@ -35,6 +39,7 @@ data class ListTypeConfig(
 		elementType.enumDefinitionDependencies
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,

@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.entities.RawJson
@@ -15,6 +17,8 @@ import kotlin.jvm.JvmStatic
 // uuid should be independent of representation. Should maybe not allow to specify format, and enforce one of our chosing (maybe even Base64),
 // Could be annoying for debug and could prohibit certain queries by range if we use a base64 though.
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Uuid")
+@Serializable
 data class UuidTypeConfig(
 	override val nullable: Boolean = false,
 	val format: Format? = null,

@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
@@ -9,6 +11,8 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("String")
+@Serializable
 data class StringTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -17,6 +21,7 @@ data class StringTypeConfig(
 		other is StringTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		/**
 		 * Minimum length of the string (inclusive).

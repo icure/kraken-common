@@ -1,11 +1,13 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.appending
 
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@Serializable
 data class EnumDefinition(
 	val entries: Set<String>
 ) {

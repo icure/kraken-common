@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonInclude
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
@@ -23,6 +25,8 @@ import org.taktik.icure.errorreporting.addWarning
  * ```
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Float")
+@Serializable
 data class FloatTypeConfig(
 	override val nullable: Boolean = false,
 	val validation: ValidationConfig? = null
@@ -31,6 +35,7 @@ data class FloatTypeConfig(
 		other is FloatTypeConfig && (if (other.nullable == this.nullable) this == other else this == other.copy(nullable = this.nullable))
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		val min: Double? = null,
 		val max: Double? = null,

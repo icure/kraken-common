@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.jackson.annotations.JsonIgnore
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
@@ -13,6 +15,8 @@ import org.taktik.icure.entities.RawJson
  * - Floating point numbers within the limit of 64-bit floating point representation will be accepted, but may lose
  * precision or change representation when stored, as described in [FloatTypeConfig].
  */
+@SerialName("Json")
+@Serializable
 data object JsonTypeConfig : GenericTypeConfig {
 	override fun validateAndMapValueForStore(
 		context: CustomEntityValueValidationContext,

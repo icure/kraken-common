@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
@@ -15,11 +17,14 @@ import org.taktik.icure.jackson.annotations.JsonIncludeValue
  * using the attachments system.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Binary")
+@Serializable
 data class BinaryTypeConfig(
 	val validation: ValidationConfig? = null,
 	override val nullable: Boolean = false
 ) : GenericTypeConfig {
 
+	@Serializable
 	data class ValidationConfig(
 		/**
 		 * Max size in bytes

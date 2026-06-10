@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.taktik.icure.customentities.config.migration.EnumMigration
+import org.taktik.icure.customentities.config.migration.ObjectMigration
 import org.taktik.icure.customentities.config.typing.BinaryTypeConfig
 import org.taktik.icure.customentities.config.typing.BooleanTypeConfig
 import org.taktik.icure.customentities.config.typing.EnumTypeConfig
@@ -73,6 +74,50 @@ private abstract class KeyValidationMixin
 )
 private abstract class TargetValueMixin
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = ObjectDefinition.PropertyEncryptionConfiguration.Full::class, name = "Full"),
+)
+private abstract class PropertyEncryptionConfigurationMixin
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.Use.TargetDefault::class, name = "TargetDefault"),
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.Use.Value::class, name = "Value"),
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.Custom::class, name = "Custom"),
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.FromSource::class, name = "FromSource"),
+)
+private abstract class PropertyValueProviderMixin
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.Use.TargetDefault::class, name = "TargetDefault"),
+	JsonSubTypes.Type(value = ObjectMigration.PropertyValueProvider.Use.Value::class, name = "Value"),
+)
+private abstract class PropertyValueProviderUseMixin
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.CoerceType::class, name = "CoerceType"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.WrapToSingletonList::class, name = "WrapToSingletonList"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.WrapToSingletonMap::class, name = "WrapToSingletonMap"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.ClampToRange::class, name = "ClampToRange"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.ScaleToRange::class, name = "ScaleToRange"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.Rounding::class, name = "Rounding"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.SliceString::class, name = "SliceString"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.TransformList::class, name = "TransformList"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.TransformSet::class, name = "TransformSet"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.TransformMap::class, name = "TransformMap"),
+)
+private abstract class ValueTransformerMixin
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.CollectionNullMapping.Filter::class, name = "Filter"),
+	JsonSubTypes.Type(value = ObjectMigration.ValueTransformer.CollectionNullMapping.UseValue::class, name = "UseValue"),
+)
+private abstract class CollectionNullMappingMixin
+
 private class JsonTypeConfigDeserializer : StdDeserializer<JsonTypeConfig>(JsonTypeConfig::class.java) {
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): JsonTypeConfig {
 		var token = p.currentToken()
@@ -108,8 +153,13 @@ class CustomEntitiesJacksonModule : SimpleModule("CustomEntities") {
 	init {
 		setMixInAnnotation(GenericTypeConfig::class.java, GenericTypeConfigMixin::class.java)
 		setMixInAnnotation(ObjectDefinition.PropertyConfiguration.DefaultValue::class.java, DefaultValueMixin::class.java)
+		setMixInAnnotation(ObjectDefinition.PropertyEncryptionConfiguration::class.java, PropertyEncryptionConfigurationMixin::class.java)
 		setMixInAnnotation(MapTypeConfig.ValidationConfig.KeyValidation::class.java, KeyValidationMixin::class.java)
 		setMixInAnnotation(EnumMigration.TargetValue::class.java, TargetValueMixin::class.java)
+		setMixInAnnotation(ObjectMigration.PropertyValueProvider::class.java, PropertyValueProviderMixin::class.java)
+		setMixInAnnotation(ObjectMigration.PropertyValueProvider.Use::class.java, PropertyValueProviderUseMixin::class.java)
+		setMixInAnnotation(ObjectMigration.ValueTransformer::class.java, ValueTransformerMixin::class.java)
+		setMixInAnnotation(ObjectMigration.ValueTransformer.CollectionNullMapping::class.java, CollectionNullMappingMixin::class.java)
 		addDeserializer(JsonTypeConfig::class.java, JsonTypeConfigDeserializer())
 		addDeserializer(UnknownTypeConfig::class.java, UnknownTypeConfigDeserializer())
 	}

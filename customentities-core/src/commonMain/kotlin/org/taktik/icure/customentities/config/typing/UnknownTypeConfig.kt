@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.jackson.annotations.JsonIncludeValue
@@ -14,6 +16,8 @@ import org.taktik.icure.jackson.annotations.JsonInclude
  * and custom extensions on builtin entities.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Unknown")
+@Serializable
 class UnknownTypeConfig private constructor (override val nullable: Boolean = false) : GenericTypeConfig {
 	companion object {
 		fun of(nullable: Boolean): UnknownTypeConfig =

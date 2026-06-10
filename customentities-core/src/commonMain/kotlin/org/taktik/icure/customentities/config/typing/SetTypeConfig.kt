@@ -1,5 +1,7 @@
 package org.taktik.icure.customentities.config.typing
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.taktik.icure.customentities.util.CustomEntityConfigResolutionContext
 import org.taktik.icure.customentities.util.CustomEntityConfigValidationContext
 import org.taktik.icure.customentities.util.CustomEntityValueValidationContext
@@ -19,6 +21,8 @@ import org.taktik.icure.jackson.annotations.JsonIncludeValue
  * Duplicate elements are rejected at store time.
  */
 @JsonInclude(JsonIncludeValue.NON_DEFAULT)
+@SerialName("Set")
+@Serializable
 data class SetTypeConfig(
 	override val elementType: GenericTypeConfig,
 	override val nullable: Boolean = false,
@@ -42,6 +46,7 @@ data class SetTypeConfig(
 		elementType.enumDefinitionDependencies
 
 	@JsonInclude(JsonIncludeValue.NON_DEFAULT)
+	@Serializable
 	data class ValidationConfig(
 		val minLength: Int? = null,
 		val maxLength: Int? = null,
