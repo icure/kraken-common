@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.message.MessageByDataOwnerFromAddressFilter
 import org.taktik.icure.entities.Message
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -20,6 +21,8 @@ class MessageByDataOwnerFromAddressFilter(
 	private val messageDAO: MessageDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerFromAddressFilter> {
+	override val configurationViews = listOf(ConfigurationView("Message", "by_all_delegates_from_address"))
+
 	override fun resolve(
 		filter: MessageByDataOwnerFromAddressFilter,
 		context: Filters,

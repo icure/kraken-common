@@ -15,6 +15,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyTagCodeDateFilter
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -26,6 +27,13 @@ class ServiceByHcPartyTagCodeDateFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyTagCodeDateFilter> {
+	override val configurationViews = listOf(
+		ConfigurationView("Contact", "service_by_all_delegates_tag"),
+		ConfigurationView("Contact", "service_by_all_delegates_patient_tag"),
+		ConfigurationView("Contact", "service_by_all_delegates_code"),
+		ConfigurationView("Contact", "service_by_all_delegates_patient_code"),
+	)
+
 	override fun resolve(
 		filter: ServiceByHcPartyTagCodeDateFilter,
 		context: Filters,

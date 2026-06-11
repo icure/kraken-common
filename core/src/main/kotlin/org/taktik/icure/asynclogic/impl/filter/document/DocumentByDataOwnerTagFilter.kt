@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.document.DocumentByDataOwnerPatientDateFilter
 import org.taktik.icure.domain.filter.document.DocumentByDataOwnerTagFilter
 import org.taktik.icure.entities.Document
@@ -20,6 +21,8 @@ class DocumentByDataOwnerTagFilter(
 	private val documentDAO: DocumentDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Document, DocumentByDataOwnerTagFilter> {
+	override val configurationViews = listOf(ConfigurationView("Document", "by_all_delegates_tag"))
+
 	override fun resolve(
 		filter: DocumentByDataOwnerTagFilter,
 		context: Filters,

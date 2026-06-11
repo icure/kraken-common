@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerPatientStartTimeFilter
 import org.taktik.icure.entities.CalendarItem
 
@@ -19,6 +20,8 @@ class CalendarItemByDataOwnerPatientStartTimeFilter(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByDataOwnerPatientStartTimeFilter> {
+	override val configurationViews = listOf(ConfigurationView("CalendarItem", "by_all_delegates_patient_start_time"))
+
 	override fun resolve(
 		filter: CalendarItemByDataOwnerPatientStartTimeFilter,
 		context: Filters,

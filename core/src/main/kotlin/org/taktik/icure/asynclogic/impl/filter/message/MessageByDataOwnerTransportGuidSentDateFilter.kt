@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.message.MessageByDataOwnerTransportGuidSentDateFilter
 import org.taktik.icure.entities.Message
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.Message
 class MessageByDataOwnerTransportGuidSentDateFilter(
 	private val messageDAO: MessageDAO,
 ) : Filter<String, Message, MessageByDataOwnerTransportGuidSentDateFilter> {
+	override val configurationViews = listOf(ConfigurationView("Message", "by_all_delegates_transport_guid_sent_date"))
+
 	override fun resolve(
 		filter: MessageByDataOwnerTransportGuidSentDateFilter,
 		context: Filters,

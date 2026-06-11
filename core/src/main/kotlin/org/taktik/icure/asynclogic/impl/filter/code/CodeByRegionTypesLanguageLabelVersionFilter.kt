@@ -14,6 +14,7 @@ import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.code.CodeByRegionTypesLanguageLabelVersionFilter
 import org.taktik.icure.entities.base.Code
 
@@ -22,6 +23,11 @@ import org.taktik.icure.entities.base.Code
 class CodeByRegionTypesLanguageLabelVersionFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByRegionTypesLanguageLabelVersionFilter> {
+	override val configurationViews = listOf(
+		ConfigurationView("Code", "by_language_type_label"),
+		ConfigurationView("Code", "by_type_code"),
+	)
+
 	override fun resolve(
 		filter: CodeByRegionTypesLanguageLabelVersionFilter,
 		context: Filters,

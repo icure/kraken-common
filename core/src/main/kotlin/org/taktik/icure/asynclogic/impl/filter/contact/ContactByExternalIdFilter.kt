@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.contact.ContactByExternalIdFilter
 import org.taktik.icure.entities.Contact
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.Contact
 class ContactByExternalIdFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Contact, ContactByExternalIdFilter> {
+	override val configurationViews = listOf(ConfigurationView("Contact", "by_externalid"))
+
 	override fun resolve(
 		filter: ContactByExternalIdFilter,
 		context: Filters,

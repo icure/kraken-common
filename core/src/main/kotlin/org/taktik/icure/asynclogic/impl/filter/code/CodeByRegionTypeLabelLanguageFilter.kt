@@ -11,6 +11,7 @@ import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter
 import org.taktik.icure.entities.base.Code
 
@@ -19,6 +20,8 @@ import org.taktik.icure.entities.base.Code
 class CodeByRegionTypeLabelLanguageFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByRegionTypeLabelLanguageFilter> {
+	override val configurationViews = listOf(ConfigurationView("Code", "by_language_type_label"))
+
 	override fun resolve(
 		filter: CodeByRegionTypeLabelLanguageFilter,
 		context: Filters,

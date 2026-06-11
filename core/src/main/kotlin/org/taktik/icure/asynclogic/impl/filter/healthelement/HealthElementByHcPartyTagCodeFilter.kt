@@ -13,6 +13,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.entities.HealthElement
 import javax.security.auth.login.LoginException
@@ -23,6 +24,12 @@ class HealthElementByHcPartyTagCodeFilter(
 	private val healthElementDAO: HealthElementDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByHcPartyTagCodeFilter> {
+	override val configurationViews = listOf(
+		ConfigurationView("HealthElement", "by_all_delegates_tag_map"),
+		ConfigurationView("HealthElement", "by_all_delegates_code_map"),
+		ConfigurationView("HealthElement", "by_all_delegates_status"),
+	)
+
 	override fun resolve(
 		filter: HealthElementByHcPartyTagCodeFilter,
 		context: Filters,

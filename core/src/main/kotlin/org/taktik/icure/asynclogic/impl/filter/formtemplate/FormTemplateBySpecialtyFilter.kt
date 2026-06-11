@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.FormTemplateDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.formtemplate.FormTemplateBySpecialtyFilter
 import org.taktik.icure.entities.FormTemplate
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.FormTemplate
 class FormTemplateBySpecialtyFilter(
 	private val formTemplateDAO: FormTemplateDAO,
 ) : Filter<String, FormTemplate, FormTemplateBySpecialtyFilter> {
+	override val configurationViews = listOf(ConfigurationView("FormTemplate", "by_specialty_code_and_guid"))
+
 	override fun resolve(
 		filter: FormTemplateBySpecialtyFilter,
 		context: Filters,

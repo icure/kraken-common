@@ -14,6 +14,7 @@ import org.taktik.icure.asynclogic.HealthcarePartyLogic
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.invoice.InvoiceByHcPartyCodeDateFilter
 import org.taktik.icure.entities.Invoice
 
@@ -23,6 +24,8 @@ class InvoiceByHcPartyCodeDateFilter(
 	private val invoiceDAO: InvoiceDAO,
 	private val healthcarePartyLogic: HealthcarePartyLogic,
 ) : Filter<String, Invoice, InvoiceByHcPartyCodeDateFilter> {
+	override val configurationViews = listOf(ConfigurationView("Invoice", "tarification_by_all_delegates_code"))
+
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
 		filter: InvoiceByHcPartyCodeDateFilter,

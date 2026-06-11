@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.message.MessageByParentIdsFilter
 import org.taktik.icure.entities.Message
 
@@ -14,6 +15,8 @@ import org.taktik.icure.entities.Message
 class MessageByParentIdsFilter(
 	private val messageDAO: MessageDAO,
 ) : Filter<String, Message, MessageByParentIdsFilter> {
+	override val configurationViews = listOf(ConfigurationView("Message", "by_parent_id"))
+
 	override fun resolve(
 		filter: MessageByParentIdsFilter,
 		context: org.taktik.icure.asynclogic.impl.filter.Filters,

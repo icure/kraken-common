@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.FormDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.form.FormByLogicalUuidFilter
 import org.taktik.icure.entities.Form
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.Form
 class FormByLogicalUuidFilter(
 	private val formDAO: FormDAO,
 ) : Filter<String, Form, FormByLogicalUuidFilter> {
+	override val configurationViews = listOf(ConfigurationView("Form", "by_logical_uuid_created"))
+
 	override fun resolve(
 		filter: FormByLogicalUuidFilter,
 		context: Filters,

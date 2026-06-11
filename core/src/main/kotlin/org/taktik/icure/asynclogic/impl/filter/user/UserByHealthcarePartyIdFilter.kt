@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.user.UserByHealthcarePartyIdFilter
 import org.taktik.icure.entities.User
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.User
 class UserByHealthcarePartyIdFilter(
 	private val userDAO: UserDAO,
 ) : Filter<String, User, UserByHealthcarePartyIdFilter> {
+	override val configurationViews = listOf(ConfigurationView("User", "by_hcp_id"))
+
 	override fun resolve(
 		filter: UserByHealthcarePartyIdFilter,
 		context: Filters,

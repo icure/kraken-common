@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.agenda.AgendaByTypedPropertyFilter
 import org.taktik.icure.entities.Agenda
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.Agenda
 data class AgendaByTypedPropertyFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, AgendaByTypedPropertyFilter> {
+	override val configurationViews = listOf(ConfigurationView("Agenda", "by_typed_property"))
+
 	override fun resolve(
 		filter: AgendaByTypedPropertyFilter,
 		context: Filters,

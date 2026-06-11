@@ -12,6 +12,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -23,6 +24,8 @@ class MaintenanceTaskByHcPartyAndTypeFilter(
 	private val maintenanceTaskDAO: MaintenanceTaskDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, MaintenanceTask, MaintenanceTaskByHcPartyAndTypeFilter> {
+	override val configurationViews = listOf(ConfigurationView("MaintenanceTask", "by_all_delegates_type"))
+
 	override fun resolve(
 		filter: MaintenanceTaskByHcPartyAndTypeFilter,
 		context: Filters,

@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.contact.ContactByDataOwnerPatientOpeningDateFilter
 import org.taktik.icure.entities.Contact
 
@@ -19,6 +20,8 @@ class ContactByDataOwnerPatientOpeningDateFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByDataOwnerPatientOpeningDateFilter> {
+	override val configurationViews = listOf(ConfigurationView("Contact", "by_all_delegates_patientfk"))
+
 	override fun resolve(
 		filter: ContactByDataOwnerPatientOpeningDateFilter,
 		context: Filters,

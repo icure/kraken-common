@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.code.CodeByQualifiedLinkFilter
 import org.taktik.icure.entities.base.Code
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.base.Code
 class CodeByQualifiedLinkFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByQualifiedLinkFilter> {
+	override val configurationViews = listOf(ConfigurationView("Code", "by_qualifiedlink_id"))
+
 	override fun resolve(
 		filter: CodeByQualifiedLinkFilter,
 		context: Filters,

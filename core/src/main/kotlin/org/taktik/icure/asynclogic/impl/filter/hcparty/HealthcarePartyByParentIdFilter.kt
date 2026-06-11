@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.hcparty.HealthcarePartyByParentIdFilter
 import org.taktik.icure.entities.HealthcareParty
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.HealthcareParty
 class HealthcarePartyByParentIdFilter(
 	private val healthcarePartyDAO: HealthcarePartyDAO,
 ) : Filter<String, HealthcareParty, HealthcarePartyByParentIdFilter> {
+	override val configurationViews = listOf(ConfigurationView("HealthcareParty", "by_parent"))
+
 	override fun resolve(
 		filter: HealthcarePartyByParentIdFilter,
 		context: Filters,

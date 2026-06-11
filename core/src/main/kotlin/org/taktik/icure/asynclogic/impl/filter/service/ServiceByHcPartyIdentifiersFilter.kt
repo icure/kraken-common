@@ -8,6 +8,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyIdentifiersFilter
 import org.taktik.icure.entities.embed.Service
 import javax.security.auth.login.LoginException
@@ -18,6 +19,8 @@ class ServiceByHcPartyIdentifiersFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyIdentifiersFilter> {
+	override val configurationViews = listOf(ConfigurationView("Contact", "service_by_all_delegates_identifier"))
+
 	override fun resolve(
 		filter: ServiceByHcPartyIdentifiersFilter,
 		context: Filters,

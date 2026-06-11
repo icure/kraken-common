@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.AccessLogDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.accesslog.AccessLogByUserIdUserTypeDateFilter
 import org.taktik.icure.entities.AccessLog
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.AccessLog
 data class AccessLogByUserIdUserTypeDateFilter(
 	private val accessLogDAO: AccessLogDAO,
 ) : Filter<String, AccessLog, AccessLogByUserIdUserTypeDateFilter> {
+	override val configurationViews = listOf(ConfigurationView("AccessLog", "by_user_type_and_date"))
+
 	override fun resolve(
 		filter: AccessLogByUserIdUserTypeDateFilter,
 		context: Filters,

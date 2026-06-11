@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.CalendarItemDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.calendaritem.CalendarItemByRecurrenceIdFilter
 import org.taktik.icure.entities.CalendarItem
 
@@ -15,6 +16,8 @@ import org.taktik.icure.entities.CalendarItem
 class CalendarItemByRecurrenceIdFilter(
 	val calendarItemDAO: CalendarItemDAO,
 ) : Filter<String, CalendarItem, CalendarItemByRecurrenceIdFilter> {
+	override val configurationViews = listOf(ConfigurationView("CalendarItem", "by_recurrence_id"))
+
 	override fun resolve(
 		filter: CalendarItemByRecurrenceIdFilter,
 		context: Filters,

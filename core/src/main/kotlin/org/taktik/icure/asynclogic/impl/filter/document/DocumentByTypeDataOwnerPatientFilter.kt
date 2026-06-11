@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.document.DocumentByTypeDataOwnerPatientFilter
 import org.taktik.icure.entities.Document
 
@@ -19,6 +20,8 @@ class DocumentByTypeDataOwnerPatientFilter(
 	private val documentDAO: DocumentDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Document, DocumentByTypeDataOwnerPatientFilter> {
+	override val configurationViews = listOf(ConfigurationView("Document", "by_all_delegates_message"))
+
 	override fun resolve(
 		filter: DocumentByTypeDataOwnerPatientFilter,
 		context: Filters,

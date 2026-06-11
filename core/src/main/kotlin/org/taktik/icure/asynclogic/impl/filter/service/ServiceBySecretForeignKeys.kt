@@ -11,6 +11,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceBySecretForeignKeys
 import org.taktik.icure.entities.embed.Service
 import javax.security.auth.login.LoginException
@@ -21,6 +22,8 @@ class ServiceBySecretForeignKeys(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceBySecretForeignKeys> {
+	override val configurationViews = listOf(ConfigurationView("Contact", "by_all_delegates_patientfk"))
+
 	override fun resolve(
 		filter: ServiceBySecretForeignKeys,
 		context: Filters,

@@ -10,6 +10,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.classification.ClassificationByDataOwnerPatientCreatedDateFilter
 import org.taktik.icure.entities.Classification
 
@@ -19,6 +20,8 @@ class ClassificationByDataOwnerPatientCreatedDateFilter(
 	val classificationDAO: ClassificationDAO,
 	val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Classification, ClassificationByDataOwnerPatientCreatedDateFilter> {
+	override val configurationViews = listOf(ConfigurationView("Classification", "by_all_delegates_patient"))
+
 	override fun resolve(
 		filter: ClassificationByDataOwnerPatientCreatedDateFilter,
 		context: Filters,
