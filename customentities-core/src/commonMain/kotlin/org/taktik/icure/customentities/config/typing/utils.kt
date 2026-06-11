@@ -51,15 +51,33 @@ private const val IDENTIFIER_ALLOWED_LENGTH_MAX = 32 // Chosen arbitrarily, migh
  *
  * Most of them can be safely used by the user thanks to the shadowing system, however some identifiers may not be
  * acceptable even with the shadowing system due to how they are used:
- * - `encryptedSelf` currently decryption at the SDK scans on objects recursively for "encrytpedSelf" - this is
+ * - `encryptedSelf`: currently decryption at the SDK scans on objects recursively for "encrytpedSelf" - this is
  *   required because we don't know if a previous version of the user application was using different encrypted fields
  *   manifest.
+ * - `id`: some api classes require Identifiable<String> types, so we need to either relax this restriction on cardinal,
+ *   or make sure generated custom entities are implementing the interface
  *
  * If in future we need to add more fields that should go here we might want to consider using _property as a name to
  * avoid clashing with custom properties (we don't allow identifiers starting with _ in custom entities)
  */
 private val reservedIdentifiers = setOf(
-	"encryptedSelf"
+	"encryptedSelf",
+	"id",
+	"rev",
+	"created",
+	"modified",
+	"author",
+	"responsible",
+	"endOfLife",
+	"deletionDate",
+	"encryptedSelf",
+	"secretForeignKeys",
+	"cryptedForeignKeys",
+	"delegations",
+	"encryptionKeys",
+	"securityMetadata",
+	"dataAttachments",
+	"deletedAttachments",
 )
 fun validateIdentifier(validationContext: ScopedErrorCollector, identifier: String) {
 	if (identifier in reservedIdentifiers) {
