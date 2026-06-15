@@ -9,7 +9,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyStatusVersioningFilter
 import org.taktik.icure.entities.HealthElement
@@ -21,7 +20,8 @@ class HealthElementByHcPartyStatusVersioningFilter(
 	private val healthElementDAO: HealthElementDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByHcPartyStatusVersioningFilter> {
-	override val configurationViews = listOf(ConfigurationView("HealthElement", "by_all_delegates_status"))
+	override val entity get() = healthElementDAO.entityClass
+	override val views = listOf("by_all_delegates_status")
 
 	override fun resolve(
 		filter: HealthElementByHcPartyStatusVersioningFilter,

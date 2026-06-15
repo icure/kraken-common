@@ -9,7 +9,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByDataOwnerPatientDateFilter
 import org.taktik.icure.entities.embed.Service
 import org.springframework.stereotype.Service as SpringService
@@ -20,7 +19,8 @@ class ServiceByDataOwnerPatientDateFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByDataOwnerPatientDateFilter> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "by_all_delegates_patientfk"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("by_all_delegates_patientfk")
 
 	override fun resolve(
 		filter: ServiceByDataOwnerPatientDateFilter,

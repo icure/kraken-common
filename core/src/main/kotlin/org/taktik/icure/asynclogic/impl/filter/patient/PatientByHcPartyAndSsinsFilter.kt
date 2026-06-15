@@ -12,7 +12,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndSsinsFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -24,7 +23,8 @@ class PatientByHcPartyAndSsinsFilter(
 	private val patientDAO: PatientDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndSsinsFilter> {
-	override val configurationViews = listOf(ConfigurationView("Patient", "by_all_delegates_ssin"))
+	override val entity get() = patientDAO.entityClass
+	override val views = listOf("by_all_delegates_ssin")
 
 	override fun resolve(
 		filter: PatientByHcPartyAndSsinsFilter,

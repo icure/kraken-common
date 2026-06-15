@@ -12,7 +12,6 @@ import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.contact.ContactByServiceIdsFilter
 import org.taktik.icure.entities.Contact
 
@@ -21,7 +20,8 @@ import org.taktik.icure.entities.Contact
 class ContactByServiceIdsFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Contact, ContactByServiceIdsFilter> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "by_service_emit_modified"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("by_service_emit_modified")
 
 	override fun resolve(
 		filter: ContactByServiceIdsFilter,

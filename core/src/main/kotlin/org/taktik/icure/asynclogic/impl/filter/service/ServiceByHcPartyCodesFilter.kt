@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyCodesFilter
 import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.utils.FuzzyDates
@@ -30,10 +29,8 @@ class ServiceByHcPartyCodesFilter(
 		private const val MAX_MONTHS = 24
 	}
 
-	override val configurationViews = listOf(
-		ConfigurationView("Contact", "service_by_all_delegates_month_code_prefix"),
-		ConfigurationView("Contact", "service_by_all_delegates_code_prefix"),
-	)
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_all_delegates_month_code_prefix", "service_by_all_delegates_code_prefix")
 
 	override fun resolve(
 		filter: ServiceByHcPartyCodesFilter,

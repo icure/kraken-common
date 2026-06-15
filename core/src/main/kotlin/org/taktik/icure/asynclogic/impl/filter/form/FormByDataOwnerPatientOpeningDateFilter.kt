@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.form.FormByDataOwnerPatientOpeningDateFilter
 import org.taktik.icure.entities.Form
 
@@ -20,7 +19,8 @@ class FormByDataOwnerPatientOpeningDateFilter(
 	private val formDAO: FormDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Form, FormByDataOwnerPatientOpeningDateFilter> {
-	override val configurationViews = listOf(ConfigurationView("Form", "by_all_delegates_patientfk"))
+	override val entity get() = formDAO.entityClass
+	override val views = listOf("by_all_delegates_patientfk")
 
 	override fun resolve(
 		filter: FormByDataOwnerPatientOpeningDateFilter,

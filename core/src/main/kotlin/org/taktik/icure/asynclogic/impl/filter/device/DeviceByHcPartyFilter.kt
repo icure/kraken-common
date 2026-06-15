@@ -9,7 +9,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.device.DeviceByHcPartyFilter
 import org.taktik.icure.entities.Device
 import javax.security.auth.login.LoginException
@@ -20,7 +19,8 @@ class DeviceByHcPartyFilter(
 	private val deviceDAO: DeviceDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Device, DeviceByHcPartyFilter> {
-	override val configurationViews = listOf(ConfigurationView("Device", "by_responsible"))
+	override val entity get() = deviceDAO.entityClass
+	override val views = listOf("by_responsible")
 
 	override fun resolve(
 		filter: DeviceByHcPartyFilter,

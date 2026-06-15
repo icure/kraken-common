@@ -6,7 +6,6 @@ import org.taktik.icure.asyncdao.ContactDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByQualifiedLinkFilter
 import org.taktik.icure.entities.embed.Service
 
@@ -15,7 +14,8 @@ import org.taktik.icure.entities.embed.Service
 class ServiceByQualifiedLinkFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Service, ServiceByQualifiedLinkFilter> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "service_by_linked_id"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_linked_id")
 
 	override fun resolve(
 		filter: ServiceByQualifiedLinkFilter,

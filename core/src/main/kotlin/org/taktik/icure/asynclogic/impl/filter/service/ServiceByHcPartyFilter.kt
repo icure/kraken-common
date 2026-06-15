@@ -25,7 +25,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.entities.embed.Service
 
 @org.springframework.stereotype.Service
@@ -34,7 +33,8 @@ class ServiceByHcPartyFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Service, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Service>> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "service_by_all_delegates"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_all_delegates")
 
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Service>,

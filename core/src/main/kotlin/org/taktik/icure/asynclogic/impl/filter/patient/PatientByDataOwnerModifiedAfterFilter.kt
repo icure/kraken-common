@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.patient.PatientByDataOwnerModifiedAfterFilter
 import org.taktik.icure.entities.Patient
 
@@ -20,7 +19,8 @@ class PatientByDataOwnerModifiedAfterFilter(
 	private val patientDAO: PatientDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByDataOwnerModifiedAfterFilter> {
-	override val configurationViews = listOf(ConfigurationView("Patient", "by_all_delegates_modification_date"))
+	override val entity get() = patientDAO.entityClass
+	override val views = listOf("by_all_delegates_modification_date")
 
 	override fun resolve(
 		filter: PatientByDataOwnerModifiedAfterFilter,

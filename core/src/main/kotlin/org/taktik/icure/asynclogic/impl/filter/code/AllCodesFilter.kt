@@ -24,7 +24,6 @@ import org.taktik.icure.asyncdao.CodeDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.entities.base.Code
 
 @Service
@@ -32,7 +31,8 @@ import org.taktik.icure.entities.base.Code
 class AllCodesFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>> {
-	override val configurationViews = listOf(ConfigurationView("Code", "all"))
+	override val entity get() = codeDAO.entityClass
+	override val views = listOf("all")
 
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>,

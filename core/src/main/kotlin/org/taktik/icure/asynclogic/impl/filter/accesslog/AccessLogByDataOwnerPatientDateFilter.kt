@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
 import org.taktik.icure.entities.AccessLog
 
@@ -20,7 +19,8 @@ data class AccessLogByDataOwnerPatientDateFilter(
 	private val accessLogDAO: AccessLogDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, AccessLog, AccessLogByDataOwnerPatientDateFilter> {
-	override val configurationViews = listOf(ConfigurationView("AccessLog", "by_all_delegates_patient"))
+	override val entity get() = accessLogDAO.entityClass
+	override val views = listOf("by_all_delegates_patient")
 
 	override fun resolve(
 		filter: AccessLogByDataOwnerPatientDateFilter,

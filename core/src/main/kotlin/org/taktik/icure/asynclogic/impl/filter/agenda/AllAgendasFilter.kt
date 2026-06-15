@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.Filters
 import org.taktik.icure.entities.Agenda
 
@@ -15,7 +14,8 @@ import org.taktik.icure.entities.Agenda
 class AllAgendasFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, Filters.AllFilter<String, Agenda>> {
-	override val configurationViews = listOf(ConfigurationView("Agenda", "all"))
+	override val entity get() = agendaDAO.entityClass
+	override val views = listOf("all")
 
 	override fun resolve(
 		filter: Filters.AllFilter<String, Agenda>,

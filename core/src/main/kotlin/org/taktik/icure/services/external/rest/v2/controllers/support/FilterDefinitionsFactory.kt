@@ -3,10 +3,9 @@ package org.taktik.icure.services.external.rest.v2.controllers.support
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asynclogic.impl.filter.Filter
-import org.taktik.icure.domain.filter.ConfigurationView
 
 /**
- * Builds the [FilterDefinitions] exposed by the filter controller, associating each filter DTO with the
+ * Builds the [FilterDefinitions] exposed by the filter controller, associating each filter DTO with the entity and
  * configuration view(s) declared on its corresponding logic [Filter] bean.
  *
  * The logic beans (including cloud-only ones) are injected as a list, so no compile-time dependency on specific
@@ -17,11 +16,13 @@ import org.taktik.icure.domain.filter.ConfigurationView
 class FilterDefinitionsFactory(
 	filterBeans: List<Filter<*, *, *>>,
 ) {
-	private val viewsByLogicName: Map<String, List<ConfigurationView>> =
-		filterBeans.associate { (it::class.simpleName ?: "") to it.configurationViews }
+	private val infoByLogicName: Map<String, Pair<String?, List<String>>> =
+		filterBeans.associate { (it::class.simpleName ?: "") to (it.entity?.simpleName to it.views) }
 
-	private fun def(logicName: String, deprecated: Boolean = false): FilterDefinition<Nothing> =
-		FilterDefinition(filter = null, deprecated = deprecated, configurationViews = viewsByLogicName[logicName] ?: emptyList())
+	private fun def(logicName: String, deprecated: Boolean = false): FilterDefinition<Nothing> {
+		val (entity, views) = infoByLogicName[logicName] ?: (null to emptyList())
+		return FilterDefinition(filter = null, deprecated = deprecated, entity = entity, views = views)
+	}
 
 	val definitions: FilterDefinitions = FilterDefinitions(
 		accessLogByDataOwnerPatientDateFilter = def("AccessLogByDataOwnerPatientDateFilter"),

@@ -1,6 +1,5 @@
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDateFilter
@@ -144,12 +143,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatient
  * @property filter present only to carry the concrete filter DTO type so that it appears in the generated API
  * schema; it is always null in the response.
  * @property deprecated whether this filter is deprecated and should no longer be used.
- * @property configurationViews the design-doc configuration view(s) this filter relies on (empty if none).
+ * @property entity the simple name of the entity owning the configuration view(s) this filter relies on (null if none).
+ * @property views the design-doc configuration view(s) this filter relies on, all defined on [entity] (empty if none).
  */
 data class FilterDefinition<out T : AbstractFilterDto<*>>(
 	val filter: T? = null,
 	val deprecated: Boolean = false,
-	val configurationViews: List<ConfigurationView> = emptyList(),
+	val entity: String? = null,
+	val views: List<String> = emptyList(),
 )
 
 /**

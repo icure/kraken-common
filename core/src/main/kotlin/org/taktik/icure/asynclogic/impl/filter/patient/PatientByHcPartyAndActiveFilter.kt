@@ -12,7 +12,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.patient.PatientByHcPartyAndActiveFilter
 import org.taktik.icure.entities.Patient
 import javax.security.auth.login.LoginException
@@ -23,7 +22,8 @@ class PatientByHcPartyAndActiveFilter(
 	private val patientDAO: PatientDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndActiveFilter> {
-	override val configurationViews = listOf(ConfigurationView("Patient", "by_all_delegates_active"))
+	override val entity get() = patientDAO.entityClass
+	override val views = listOf("by_all_delegates_active")
 
 	override fun resolve(
 		filter: PatientByHcPartyAndActiveFilter,

@@ -11,7 +11,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.service.ServiceByHcPartyPatientTagPrefixFilter
 import org.taktik.icure.entities.embed.Service
 
@@ -21,7 +20,8 @@ class ServiceByHcPartyPatientTagPrefixFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyPatientTagPrefixFilter> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "service_by_all_delegates_patient_tag_prefix"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_all_delegates_patient_tag_prefix")
 
 	override fun resolve(
 		filter: ServiceByHcPartyPatientTagPrefixFilter,

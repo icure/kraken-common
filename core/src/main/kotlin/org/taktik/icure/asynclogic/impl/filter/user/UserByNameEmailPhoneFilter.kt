@@ -23,7 +23,6 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter
 import org.taktik.icure.entities.User
 
@@ -32,7 +31,8 @@ import org.taktik.icure.entities.User
 class UserByNameEmailPhoneFilter(
 	private val userDAO: UserDAO,
 ) : Filter<String, User, UserByNameEmailPhoneFilter> {
-	override val configurationViews = listOf(ConfigurationView("User", "by_name_email_phone"))
+	override val entity get() = userDAO.entityClass
+	override val views = listOf("by_name_email_phone")
 
 	override fun resolve(
 		filter: UserByNameEmailPhoneFilter,

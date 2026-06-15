@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.calendaritem.CalendarItemByDataOwnerLifecycleBetween
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -21,7 +20,8 @@ class CalendarItemByDataOwnerLifecycleBetween(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByDataOwnerLifecycleBetween> {
-	override val configurationViews = listOf(ConfigurationView("CalendarItem", "by_all_delegates_and_last_update"))
+	override val entity get() = calendarItemDAO.entityClass
+	override val views = listOf("by_all_delegates_and_last_update")
 
 	override fun resolve(
 		filter: CalendarItemByDataOwnerLifecycleBetween,

@@ -10,7 +10,6 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.domain.filter.ConfigurationView
 import org.taktik.icure.domain.filter.contact.ContactByDataOwnerServiceTagFilter
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
@@ -21,7 +20,8 @@ class ContactByDataOwnerServiceTagFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByDataOwnerServiceTagFilter> {
-	override val configurationViews = listOf(ConfigurationView("Contact", "service_by_all_delegates_tag"))
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_all_delegates_tag")
 
 	override fun resolve(
 		filter: ContactByDataOwnerServiceTagFilter,
