@@ -34,7 +34,7 @@ interface InternalDAO<T : Identifiable<String>> {
 	suspend fun get(id: String, vararg options: Option): T?
 	suspend fun get(id: String, rev: String?, vararg options: Option): T?
 	fun getEntities(ids: Collection<String>): Flow<T>
-	suspend fun save(entity: T): T?
+	suspend fun save(entity: T): T
 	fun save(entities: Flow<T>): Flow<BulkSaveResult<T>>
 	suspend fun update(entity: T): T?
 

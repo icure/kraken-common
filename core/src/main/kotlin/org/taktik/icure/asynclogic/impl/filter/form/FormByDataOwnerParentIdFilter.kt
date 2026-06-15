@@ -19,6 +19,9 @@ class FormByDataOwnerParentIdFilter(
 	private val formDAO: FormDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Form, FormByDataOwnerParentIdFilter> {
+	override val entity get() = formDAO.entityClass
+	override val views = listOf("by_all_delegates_parent_id")
+
 	override fun resolve(
 		filter: FormByDataOwnerParentIdFilter,
 		context: Filters,

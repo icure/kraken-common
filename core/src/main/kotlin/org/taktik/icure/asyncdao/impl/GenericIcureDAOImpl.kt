@@ -11,6 +11,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -29,7 +30,16 @@ open class GenericIcureDAOImpl<T : StoredICureDocument>(
 	cacheChainLink: EntityCacheChainLink<String, T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<T>(entityClass, couchDbDispatcher, idGenerator, cacheChainLink, designDocumentProvider, daoConfig = daoConfig) {
+	queryProvider: QueryProvider
+) : GenericDAOImpl<T>(
+	entityClass = entityClass,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = cacheChainLink,
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+) {
 	override suspend fun save(
 		datastoreInformation: IDatastoreInformation,
 		newEntity: Boolean?,

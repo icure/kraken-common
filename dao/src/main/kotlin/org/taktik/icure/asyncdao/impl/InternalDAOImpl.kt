@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
@@ -56,7 +57,6 @@ import org.taktik.icure.utils.pagedViewQueryOfIds
 open class InternalDAOImpl<T : StoredDocument>(
 	val entityClass: Class<T>,
 	val couchDbDispatcher: CouchDbDispatcher,
-	val idGenerator: IDGenerator,
 	val datastoreInstanceProvider: DatastoreInstanceProvider,
 	val designDocumentProvider: DesignDocumentProvider,
 ) : InternalDAO<T> {
@@ -69,13 +69,19 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(
 			client.queryView(
 				ViewQuery()
-					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
+					.designDocId(
+						designDocumentProvider.currentOrAvailableDesignDocumentId(
+							client,
+							entityClass,
+							this@InternalDAOImpl
+						)
+					)
 					.viewName("all")
 					.includeDocs(true),
 				String::class.java,
 				String::class.java,
 				entityClass,
-			).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull(),
+			).mapNotNull { (it as? ViewRowWithDoc<*, *, T?>)?.doc },
 		)
 	}
 
@@ -90,7 +96,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 					.designDocId(designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this@InternalDAOImpl))
 					.viewName("all")
 					.includeDocs(false),
-			).map { it.id }.filterNotNull(),
+			).map { it.id },
 		)
 	}
 
@@ -131,7 +137,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 		emitAll(client.get(ids, entityClass))
 	}
 
-	override suspend fun save(entity: T): T? {
+	override suspend fun save(entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save: " + entity.id + ":" + entity.rev)

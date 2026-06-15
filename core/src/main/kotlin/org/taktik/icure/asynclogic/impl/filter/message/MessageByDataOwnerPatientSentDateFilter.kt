@@ -19,6 +19,9 @@ class MessageByDataOwnerPatientSentDateFilter(
 	private val messageDAO: MessageDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerPatientSentDateFilter> {
+	override val entity get() = messageDAO.entityClass
+	override val views = listOf("by_all_delegates_patientfk")
+
 	override fun resolve(
 		filter: MessageByDataOwnerPatientSentDateFilter,
 		context: Filters,

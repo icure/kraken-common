@@ -85,6 +85,14 @@ data class GroupDto(
 	@SdkName("projectId")
 	val applicationId: String? = null,
 	val templates: TemplatesConfigurationDto? = null,
+	/**
+	 * The versions of the custom design doc schema applied to the group.
+	 */
+	val designDocSchemaVersions: Set<Int> = emptySet(),
+	/**
+	 * The version of the custom design doc schema to apply by default children groups on creation.
+	 */
+	val defaultChildrenSchemaVersion: Int? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(

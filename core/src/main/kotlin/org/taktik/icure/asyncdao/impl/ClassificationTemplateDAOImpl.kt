@@ -14,15 +14,15 @@ import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ClassificationTemplateDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
-import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
-import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ClassificationTemplate
+import org.taktik.icure.utils.main
+import org.taktik.icure.utils.queryView
 
 @Repository("classificationTemplateDAO")
 @Profile("app")
@@ -36,13 +36,15 @@ internal class ClassificationTemplateDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericIcureDAOImpl<ClassificationTemplate>(
-	ClassificationTemplate::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = ClassificationTemplate::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChainLink = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	ClassificationTemplateDAO {
 	override suspend fun getClassificationTemplate(
@@ -55,7 +57,15 @@ internal class ClassificationTemplateDAOImpl(
 		paginationOffset: PaginationOffset<String>,
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = pagedViewQuery(datastoreInformation, "all", null, "\ufff0", paginationOffset, false)
-		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, ClassificationTemplate::class.java))
+		val viewQuery = pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "all".main(),
+			configurationView = "all",
+			startKey = null,
+			endKey = "\ufff0",
+			pagination = paginationOffset,
+			descending = false
+		)
+		emitAll(client.queryView<String, String, ClassificationTemplate>(viewQuery))
 	}
 }

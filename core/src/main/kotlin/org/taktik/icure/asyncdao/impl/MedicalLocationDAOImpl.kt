@@ -19,6 +19,7 @@ import org.taktik.icure.asyncdao.MedicalLocationDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.MedicalLocation
 
@@ -33,13 +34,15 @@ open class MedicalLocationDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<MedicalLocation>(
-	MedicalLocation::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = MedicalLocation::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	MedicalLocationDAO {
 	@View(name = "by_post_code", map = "classpath:js/medicallocation/By_post_code_map.js")

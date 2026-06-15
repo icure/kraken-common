@@ -20,6 +20,7 @@ import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.RecoveryData
 
@@ -32,15 +33,16 @@ class RecoveryDataDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<RecoveryData>(
-	RecoveryData::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = RecoveryData::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	RecoveryDataDAO {
+	queryProvider = queryProvider
+), RecoveryDataDAO {
 
 	companion object {
 		private val log = LoggerFactory.getLogger(this::class.java)

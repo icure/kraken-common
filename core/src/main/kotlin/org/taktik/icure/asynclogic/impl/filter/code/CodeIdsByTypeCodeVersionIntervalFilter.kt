@@ -15,6 +15,9 @@ import org.taktik.icure.entities.base.Code
 class CodeIdsByTypeCodeVersionIntervalFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeIdsByTypeCodeVersionIntervalFilter> {
+	override val entity get() = codeDAO.entityClass
+	override val views = listOf("by_type_code_version")
+
 	override fun resolve(
 		filter: CodeIdsByTypeCodeVersionIntervalFilter,
 		context: Filters,

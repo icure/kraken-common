@@ -19,6 +19,9 @@ class FormByDataOwnerPatientOpeningDateFilter(
 	private val formDAO: FormDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Form, FormByDataOwnerPatientOpeningDateFilter> {
+	override val entity get() = formDAO.entityClass
+	override val views = listOf("by_all_delegates_patientfk")
+
 	override fun resolve(
 		filter: FormByDataOwnerPatientOpeningDateFilter,
 		context: Filters,

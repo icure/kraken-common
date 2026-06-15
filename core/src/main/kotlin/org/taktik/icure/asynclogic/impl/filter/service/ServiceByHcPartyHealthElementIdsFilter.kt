@@ -19,6 +19,9 @@ class ServiceByHcPartyHealthElementIdsFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyHealthElementIdsFilter> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_id_by_all_delegates_helement_ids")
+
 	override fun resolve(
 		filter: ServiceByHcPartyHealthElementIdsFilter,
 		context: Filters,

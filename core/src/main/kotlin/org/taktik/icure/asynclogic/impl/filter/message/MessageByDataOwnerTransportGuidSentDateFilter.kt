@@ -15,6 +15,9 @@ import org.taktik.icure.entities.Message
 class MessageByDataOwnerTransportGuidSentDateFilter(
 	private val messageDAO: MessageDAO,
 ) : Filter<String, Message, MessageByDataOwnerTransportGuidSentDateFilter> {
+	override val entity get() = messageDAO.entityClass
+	override val views = listOf("by_all_delegates_transport_guid_sent_date")
+
 	override fun resolve(
 		filter: MessageByDataOwnerTransportGuidSentDateFilter,
 		context: Filters,

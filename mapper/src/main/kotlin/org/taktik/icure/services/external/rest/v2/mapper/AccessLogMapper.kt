@@ -18,7 +18,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 interface AccessLogV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)

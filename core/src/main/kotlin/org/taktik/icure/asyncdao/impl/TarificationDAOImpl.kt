@@ -22,6 +22,7 @@ import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
@@ -36,8 +37,16 @@ class TarificationDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : GenericDAOImpl<Tarification>(Tarification::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
-	TarificationDAO {
+	queryProvider: QueryProvider
+) : GenericDAOImpl<Tarification>(
+	entityClass = Tarification::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+), TarificationDAO {
 
 	@View(name = "by_type_code_version", map = "classpath:js/tarif/By_type_code_version.js", reduce = "_count")
 	override fun listTarificationsBy(datastoreInformation: IDatastoreInformation, type: String?, code: String?, version: String?) = flow {

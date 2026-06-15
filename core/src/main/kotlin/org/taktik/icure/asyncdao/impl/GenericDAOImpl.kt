@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -53,6 +52,7 @@ import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.base.StoredDocument
@@ -61,11 +61,13 @@ import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.PersistenceException
 import org.taktik.icure.security.error
+import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.ViewQueries
 import org.taktik.icure.utils.createPagedQueries
 import org.taktik.icure.utils.createQueries
 import org.taktik.icure.utils.createQuery
 import org.taktik.icure.utils.interleave
+import org.taktik.icure.utils.main
 import org.taktik.icure.utils.pagedViewQuery
 import org.taktik.icure.utils.pagedViewQueryOfIds
 import org.taktik.icure.utils.queryView
@@ -78,8 +80,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
-	private val designDocumentProvider: DesignDocumentProvider,
-	protected val daoConfig: DaoConfig
+	protected val designDocumentProvider: DesignDocumentProvider,
+	protected val daoConfig: DaoConfig,
+	protected val queryProvider: QueryProvider
 ) : GenericDAO<T> {
 	companion object {
 		// Maximum number of items we are willing to filter kraken-side
@@ -92,12 +95,26 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
+	protected open suspend fun createAllQuery(datastoreInformation: IDatastoreInformation): ViewQuery =
+		createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
+
+	protected open suspend fun <K> createAllPaginatedQuery(
+		datastoreInformation: IDatastoreInformation,
+		offset: PaginationOffset<K>
+	): ViewQuery = pagedViewQuery(
+		datastoreInformation = datastoreInformation,
+		legacyView = "all".main(),
+		configurationView = "all",
+		startKey = null,
+		endKey = null,
+		pagination = offset,
+		descending = false
+	)
+
 	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery = pagedViewQuery(
-			datastoreInformation, "all", null, null, offset, false
-		)
+		val viewQuery = createAllPaginatedQuery(datastoreInformation, offset)
 		emitAll(client.queryView(viewQuery, keyClass, String::class.java, entityClass))
 	}
 
@@ -112,10 +129,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	override suspend fun hasAny(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return designDocContainsAllView(datastoreInformation) && client.queryView<String, String>(createQuery(
-			datastoreInformation,
-			"all"
-		).limit(1)).count() > 0
+		return designDocContainsAllView(datastoreInformation) &&
+			client.queryView<String, String>(
+				createAllQuery(datastoreInformation).limit(1)
+			).count() > 0
 	}
 
 	/**
@@ -123,9 +140,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
 	 * @return true if the view exists, false otherwise.
 	 */
-	private suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
+	protected open suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return client.get<DesignDocument>(
+		return queryProvider.hasAllViewForCurrentEntity(datastoreInformation) ?: client.get<DesignDocument>(
 			designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this)
 		)?.views?.containsKey("all") ?: false
 	}
@@ -136,10 +153,12 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		if (designDocContainsAllView(datastoreInformation)) {
 			val client = couchDbDispatcher.getClient(datastoreInformation)
-			client.queryView<String, String>(if (limit != null) createQuery(datastoreInformation, "all").limit(limit) else createQuery(
-				datastoreInformation,
-				"all"
-			)).onEach { emit(it.id) }.collect()
+			val query = if (limit != null) {
+				createAllQuery(datastoreInformation).limit(limit)
+			} else {
+				createAllQuery(datastoreInformation)
+			}
+			client.queryView<String, String>(query).onEach { emit(it.id) }.collect()
 		}
 	}
 
@@ -149,10 +168,17 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			log.debug(entityClass.simpleName + ".getAll")
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryView(createQuery(datastoreInformation, "all").includeDocs(true), Nothing::class.java, String::class.java, entityClass).map { (it as? ViewRowWithDoc<*, *, T?>)?.doc }.filterNotNull())
+		emitAll(
+			client.queryView(
+				createAllQuery(datastoreInformation).includeDocs(true),
+				Nothing::class.java,
+				String::class.java,
+				entityClass
+			).mapNotNull { (it as? ViewRowWithDoc<*, *, T?>)?.doc })
 	}
 
-	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T? = get(datastoreInformation, id, null, *options)
+	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, vararg options: Option): T? =
+		get(datastoreInformation, id, null, *options)
 
 	override suspend fun get(datastoreInformation: IDatastoreInformation, id: String, rev: String?, vararg options: Option): T? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -249,7 +275,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 					client.create(e, entityClass)
 				} else {
 					client.update(e, entityClass)
-					//saveRevHistory(entity, null);
 				}.let {
 					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
 					afterSave(datastoreInformation, it, e)
@@ -640,7 +665,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 * date (as timestamp or fuzzy date).
 	 */
 	protected fun getEntityIdsByDataOwnerPatientDate(
-		views: List<Pair<String, String>>,
+		legacyViews: List<Pair<String, String>>,
+		configurationView: String,
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
 		secretForeignKeys: Set<String>,
@@ -655,8 +681,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}.sortedWith(compareBy({ it.components[0] as String }, { it.components[1] as String }))
 
 		val viewQueries = createQueries(
-			datastoreInformation,
-			*views.toTypedArray()
+			datastoreInformation = datastoreInformation,
+			legacyViews = legacyViews,
+			configurationView = configurationView
 		).doNotIncludeDocs().keys(keys)
 
 		client.interleave<ComplexKey, Long>(viewQueries, compareBy({ it.components[0] as String }, { it.components[1] as String }))
@@ -741,17 +768,69 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	protected suspend fun createQuery(
 		datastoreInformation: IDatastoreInformation,
+		legacyView: Pair<String, String?>,
+		configurationView: String,
+	): ViewQuery = queryProvider.createQuery(datastore = datastoreInformation, configurationView = configurationView)
+		?: createQuery(
+			datastoreInformation = datastoreInformation,
+			viewName = legacyView.first,
+			secondaryPartition = legacyView.second,
+		)
+
+	protected suspend fun createQuery(
+		datastoreInformation: IDatastoreInformation,
 		viewName: String,
 		secondaryPartition: String? = null
 	): ViewQuery =
 		designDocumentProvider.createQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, secondaryPartition)
 
+	protected suspend fun createConfigurationQueryOrNull(
+		datastoreInformation: IDatastoreInformation,
+		configurationView: String
+	): ViewQuery? = queryProvider.createQueryFromSchemaOrNull(
+		datastore = datastoreInformation,
+		configurationView = configurationView,
+	)
+
+	protected suspend fun createQueries(
+		datastoreInformation: IDatastoreInformation,
+		legacyViews: List<Pair<String, String?>>,
+		configurationView: String
+	): NoDocViewQueries = queryProvider.createQueries(
+		datastore = datastoreInformation,
+		configurationView = configurationView
+	) ?: createQueries(datastoreInformation, *legacyViews.toTypedArray())
+
 	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, vararg viewQueries: Pair<String, String?>) =
 		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, daoConfig.useDataOwnerPartition, *viewQueries)
 
-	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation,viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
+	protected suspend fun createQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>) =
 		designDocumentProvider.createQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, daoConfig.useDataOwnerPartition)
 
+	protected suspend fun <P> pagedViewQuery(
+		datastoreInformation: IDatastoreInformation,
+		legacyView: Pair<String, String?>,
+		configurationView: String,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>,
+		descending: Boolean
+	): ViewQuery = queryProvider.pagedViewQuery(
+		datastore = datastoreInformation,
+		configurationView = configurationView,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		descending = descending
+	) ?: pagedViewQuery(
+		datastoreInformation = datastoreInformation,
+		viewName = legacyView.first,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		descending = descending,
+		secondaryPartition = legacyView.second,
+	)
 
 	protected suspend fun <P> pagedViewQuery(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQuery(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, descending, secondaryPartition)
@@ -759,10 +838,56 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueryOnMain: String, viewQueryOnSecondary: Pair<String, String?>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean) =
 		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueryOnMain, viewQueryOnSecondary, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
 
+	protected suspend fun <P> createPagedQueries(
+		datastoreInformation: IDatastoreInformation,
+		legacyViewQueries: List<Pair<String, String?>>,
+		configurationView: String,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>,
+		descending: Boolean
+	): ViewQueries = queryProvider.createPagedQueries(
+		datastore = datastoreInformation,
+		configurationView = configurationView,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		descending = descending
+	) ?: createPagedQueries(
+		datastoreInformation = datastoreInformation,
+		viewQueries = legacyViewQueries,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		descending = descending
+	)
+
 	protected suspend fun <P> createPagedQueries(datastoreInformation: IDatastoreInformation, viewQueries: List<Pair<String, String?>>, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, descending: Boolean): ViewQueries =
 		designDocumentProvider.createPagedQueries(couchDbDispatcher.getClient(datastoreInformation), this, entityClass, viewQueries, startKey, endKey, pagination, descending, daoConfig.useDataOwnerPartition)
 
-	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null) =
+	protected suspend fun <P> pagedViewQueryOfIds(
+		datastoreInformation: IDatastoreInformation,
+		legacyView: Pair<String, String?>,
+		configurationView: String,
+		startKey: P?,
+		endKey: P?,
+		pagination: PaginationOffset<P>
+	): ViewQuery = queryProvider.pagedViewQueryOfIds(
+		datastore = datastoreInformation,
+		configurationView = configurationView,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+	) ?: pagedViewQueryOfIds(
+		datastoreInformation = datastoreInformation,
+		viewName = legacyView.first,
+		startKey = startKey,
+		endKey = endKey,
+		pagination = pagination,
+		secondaryPartition = legacyView.second,
+	)
+
+	protected suspend fun <P> pagedViewQueryOfIds(datastoreInformation: IDatastoreInformation, viewName: String, startKey: P?, endKey: P?, pagination: PaginationOffset<P>, secondaryPartition: String? = null): ViewQuery =
 		designDocumentProvider.pagedViewQueryOfIds(couchDbDispatcher.getClient(datastoreInformation), this, viewName, entityClass, startKey, endKey, pagination, secondaryPartition)
 
 	private suspend fun Client.hasAllNodesUp() =

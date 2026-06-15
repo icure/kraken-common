@@ -25,6 +25,9 @@ class ContactByHcPartyPatientTagCodeDateFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByHcPartyPatientTagCodeDateFilter> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("by_all_delegates_tag", "by_all_delegates_code", "by_all_delegates_patientfk")
+
 	override fun resolve(
 		filter: ContactByHcPartyPatientTagCodeDateFilter,
 		context: Filters,

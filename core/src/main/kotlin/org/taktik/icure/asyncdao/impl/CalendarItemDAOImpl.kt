@@ -40,6 +40,7 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
@@ -63,13 +64,15 @@ class CalendarItemDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : ConflictDAOImpl<CalendarItem>(
-	CalendarItem::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = CalendarItem::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	CalendarItemDAO {
 	@View(name = "by_agenda_period", map = "classpath:js/calendarItem/By_agenda_period.js", secondaryPartition = MAURICE_PARTITION)
@@ -95,7 +98,7 @@ class CalendarItemDAOImpl(
 			)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda_period", MAURICE_PARTITION)
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_agenda_period" to MAURICE_PARTITION, configurationView = "by_agenda_period")
 				.startKey(from)
 				.endKey(to)
 				.includeDocs(false)
@@ -138,9 +141,12 @@ class CalendarItemDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_startdate",
-				"by_data_owner_and_startdate" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_and_startdate".main(),
+					"by_data_owner_and_startdate" to DATA_OWNER_PARTITION
+				),
+				configurationView = "by_all_delegates_and_startdate"
 			).startKey(from).endKey(to).includeDocs()
 		emitAll(
 			client
@@ -171,9 +177,12 @@ class CalendarItemDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_enddate",
-				"by_data_owner_and_enddate" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_and_enddate".main(),
+					"by_data_owner_and_enddate" to DATA_OWNER_PARTITION
+				),
+				configurationView = "by_all_delegates_and_enddate"
 			).startKey(from).endKey(to).includeDocs()
 		emitAll(
 			client
@@ -188,7 +197,8 @@ class CalendarItemDAOImpl(
 		startDate: Long?,
 		endDate: Long?,
 		dataOwnerId: String,
-		vararg views: Pair<String, String?>,
+		legacyViews: List<Pair<String, String?>>,
+		configurationView: String
 	): Set<String> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -196,7 +206,7 @@ class CalendarItemDAOImpl(
 		val to = ComplexKey.of(dataOwnerId, endDate ?: ComplexKey.emptyObject())
 
 		val viewQueries =
-			createQueries(datastoreInformation, *views)
+			createQueries(datastoreInformation = datastoreInformation, legacyViews = legacyViews, configurationView = configurationView)
 				.startKey(from)
 				.endKey(to)
 				.doNotIncludeDocs()
@@ -215,21 +225,27 @@ class CalendarItemDAOImpl(
 	): Flow<String> = flow {
 		val idsByStartDate =
 			listCalendarItemIdsByDateAndDataOwnerId(
-				datastoreInformation,
-				startDate,
-				endDate,
-				dataOwnerId,
-				"by_hcparty_and_startdate".main(),
-				"by_data_owner_and_startdate" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				startDate = startDate,
+				endDate = endDate,
+				dataOwnerId = dataOwnerId,
+				legacyViews = listOf(
+					"by_hcparty_and_startdate".main(),
+					"by_data_owner_and_startdate" to DATA_OWNER_PARTITION
+				),
+				configurationView = "by_all_delegates_and_startdate"
 			)
 		val idsByEndDate =
 			listCalendarItemIdsByDateAndDataOwnerId(
-				datastoreInformation,
-				startDate,
-				endDate,
-				dataOwnerId,
-				"by_hcparty_and_enddate".main(),
-				"by_data_owner_and_enddate" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				startDate = startDate,
+				endDate = endDate,
+				dataOwnerId = dataOwnerId,
+				legacyViews = listOf(
+					"by_hcparty_and_enddate".main(),
+					"by_data_owner_and_enddate" to DATA_OWNER_PARTITION
+				),
+				configurationView = "by_all_delegates_and_enddate"
 			)
 		emitAll(idsByStartDate.union(idsByEndDate).asFlow())
 	}
@@ -269,14 +285,13 @@ class CalendarItemDAOImpl(
 		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
 		val query =
 			createQuery(
-				datastoreInformation,
-				"by_data_owner_and_last_update",
-				DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_data_owner_and_last_update" to DATA_OWNER_PARTITION,
+				configurationView = "by_all_delegates_and_last_update"
 			).startKey(from).endKey(to).descending(descending).includeDocs(false)
 		emitAll(
 			client
 				.queryView<ComplexKey, String>(query)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
 				.map { it.id },
 		)
 	}
@@ -303,7 +318,11 @@ class CalendarItemDAOImpl(
 			)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda_and_startdate")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_agenda_and_startdate".main(),
+				configurationView = "by_agenda_and_startdate"
+			)
 				.startKey(from)
 				.endKey(to)
 				.descending(descending)
@@ -360,9 +379,12 @@ class CalendarItemDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_patient",
-				"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_patient".main(),
+					"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_patient"
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -392,12 +414,13 @@ class CalendarItemDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries =
 			createPagedQueries(
-				datastoreInformation,
-				listOf("by_hcparty_patient_start_time".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
-				ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),
-				ComplexKey.of(hcPartyId, secretPatientKey, null),
-				pagination,
-				true,
+				datastoreInformation = datastoreInformation,
+				legacyViewQueries = listOf("by_hcparty_patient_start_time".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
+				configurationView = "by_all_delegates_patient_start_time",
+				startKey = ComplexKey.of(hcPartyId, secretPatientKey, ComplexKey.emptyObject()),
+				endKey = ComplexKey.of(hcPartyId, secretPatientKey, null),
+				pagination = pagination,
+				descending = true,
 			)
 		emitAll(
 			client.interleave<ComplexKey, String, CalendarItem>(
@@ -429,14 +452,14 @@ class CalendarItemDAOImpl(
 						)
 					}
 				}.flatMap {
-					listOf(
-						createQuery(datastoreInformation, "by_hcparty_patient_start_time").startKey(it.first).endKey(it.second).includeDocs(false),
-						createQuery(
-							datastoreInformation,
-							"by_data_owner_patient_start_time_desc",
-							DATA_OWNER_PARTITION,
-						).startKey(it.first).endKey(it.second).includeDocs(false),
-					)
+					createQueries(
+						datastoreInformation = datastoreInformation,
+						legacyViews = listOf("by_hcparty_patient_start_time".main(), "by_data_owner_patient_start_time_desc" to DATA_OWNER_PARTITION),
+						configurationView = "by_all_delegates_patient_start_time"
+					).startKey(it.first)
+						.endKey(it.second)
+						.doNotIncludeDocs()
+						.queries
 				}
 
 		queries
@@ -494,9 +517,9 @@ class CalendarItemDAOImpl(
 				emitAll(
 					client.interleave<ComplexKey, String, CalendarItem>(
 						createQueries(
-							datastoreInformation,
-							"by_hcparty_patient",
-							"by_data_owner_patient" to DATA_OWNER_PARTITION,
+							datastoreInformation = datastoreInformation,
+							legacyViews = listOf("by_hcparty_patient".main(), "by_data_owner_patient" to DATA_OWNER_PARTITION),
+							configurationView = "by_all_delegates_patient"
 						).keys(constrainedKeys)
 							.startDocId(pagination.startDocumentId)
 							.includeDocs()
@@ -512,9 +535,9 @@ class CalendarItemDAOImpl(
 					client
 						.interleave<ComplexKey, String, CalendarItem>(
 							createQueries(
-								datastoreInformation,
-								"by_hcparty_patient",
-								"by_data_owner_patient" to DATA_OWNER_PARTITION,
+								datastoreInformation = datastoreInformation,
+								legacyViews = listOf("by_hcparty_patient".main(), "by_data_owner_patient" to DATA_OWNER_PARTITION),
+								configurationView = "by_all_delegates_patient"
 							).key(constrainedKeys[0])
 								.startDocId(pagination.startDocumentId)
 								.includeDocs()
@@ -528,9 +551,9 @@ class CalendarItemDAOImpl(
 					emitAll(
 						client.interleave<ComplexKey, String, CalendarItem>(
 							createQueries(
-								datastoreInformation,
-								"by_hcparty_patient",
-								"by_data_owner_patient" to DATA_OWNER_PARTITION,
+								datastoreInformation = datastoreInformation,
+								legacyViews = listOf("by_hcparty_patient".main(), "by_data_owner_patient" to DATA_OWNER_PARTITION),
+								configurationView = "by_all_delegates_patient"
 							).keys(constrainedKeys.subList(1, constrainedKeys.size))
 								.includeDocs()
 								.reduce(false)
@@ -550,15 +573,15 @@ class CalendarItemDAOImpl(
 		offset: PaginationOffset<String>,
 	): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery =
-			pagedViewQuery(
-				datastoreInformation,
-				"by_recurrence_id",
-				recurrenceId,
-				recurrenceId,
-				offset,
-				false,
-			)
+		val viewQuery = pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_recurrence_id".main(),
+			configurationView = "by_recurrence_id",
+			startKey = recurrenceId,
+			endKey = recurrenceId,
+			pagination = offset,
+			descending = false,
+		)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery))
 	}
 
@@ -567,7 +590,11 @@ class CalendarItemDAOImpl(
 		recurrenceId: String,
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(true)
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_recurrence_id".main(),
+			configurationView = "by_recurrence_id"
+		).key(recurrenceId).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
 	}
 
@@ -576,7 +603,11 @@ class CalendarItemDAOImpl(
 		recurrenceId: String,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = createQuery(datastoreInformation, "by_recurrence_id").key(recurrenceId).includeDocs(false)
+		val viewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_recurrence_id".main(),
+			configurationView = "by_recurrence_id"
+		).key(recurrenceId).includeDocs(false)
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 

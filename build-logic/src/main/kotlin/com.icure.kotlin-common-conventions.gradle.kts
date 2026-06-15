@@ -12,7 +12,7 @@ plugins {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
+        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xcontext-parameters")
     }
 }
 

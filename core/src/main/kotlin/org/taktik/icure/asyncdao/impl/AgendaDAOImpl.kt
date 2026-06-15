@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -27,10 +26,12 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.utils.distinct
+import org.taktik.icure.utils.main
 
 @Repository("AgendaDAO")
 @Profile("app")
@@ -41,13 +42,15 @@ class AgendaDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<Agenda>(
-	Agenda::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = Agenda::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
+	queryProvider = queryProvider
 ),
 	AgendaDAO {
 	@View(name = "by_user", map = "classpath:js/agenda/By_user.js")
@@ -58,7 +61,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_user".main(), configurationView = "by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(true)
@@ -73,12 +76,12 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_user".main(), configurationView = "by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(false)
 
-		emitAll(client.queryView<String, String>(viewQuery).mapNotNull { it.id })
+		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
 	@View(name = "readable_by_user", map = "classpath:js/agenda/Readable_by_user.js")
@@ -89,7 +92,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "readable_by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(true)
@@ -104,7 +107,7 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "readable_by_user")
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "readable_by_user".main(), configurationView = "readable_by_user")
 				.startKey(userId)
 				.endKey(userId)
 				.includeDocs(false)
@@ -120,10 +123,13 @@ class AgendaDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "readable_by_user_rights", MAURICE_PARTITION)
-				.startKey(userId)
-				.endKey(userId)
-				.includeDocs(false)
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "readable_by_user_rights" to MAURICE_PARTITION,
+				configurationView = "readable_by_user_rights"
+			).startKey(userId)
+			.endKey(userId)
+			.includeDocs(false)
 
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
@@ -134,9 +140,9 @@ class AgendaDAOImpl(
 	): Flow<Agenda> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
-			client.queryViewIncludeDocsNoValue<ComplexKey, Agenda>(viewQueryByTypedProperty(datastoreInformation, property, true)).map {
-				it.doc
-			},
+			client.queryViewIncludeDocsNoValue<ComplexKey, Agenda>(
+				viewQueryByTypedProperty(datastoreInformation, property, includeDocs = true)
+			).map { it.doc }
 		)
 	}
 
@@ -146,7 +152,9 @@ class AgendaDAOImpl(
 		property: PropertyStub,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		emitAll(client.queryViewNoValue<ComplexKey>(viewQueryByTypedProperty(datastoreInformation, property, false)).map { it.id })
+		emitAll(client.queryViewNoValue<ComplexKey>(
+			viewQueryByTypedProperty(datastoreInformation, property, includeDocs = false)
+		).map { it.id })
 	}
 
 	private suspend fun viewQueryByTypedProperty(
@@ -169,9 +177,11 @@ class AgendaDAOImpl(
 				require(it.size == 1) { "Key property must have only one non-null value" }
 			}.first()
 
-		return createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
-			.key(key)
-			.includeDocs(includeDocs)
+		return createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_typed_property" to MAURICE_PARTITION,
+			configurationView = "by_typed_property"
+		).key(key).includeDocs(includeDocs)
 	}
 
 	override fun listAgendasWithProperty(
@@ -180,7 +190,7 @@ class AgendaDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_typed_property", MAURICE_PARTITION)
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "by_typed_property" to MAURICE_PARTITION, configurationView = "by_typed_property")
 				.startKey(ComplexKey.of(propertyId, null, null))
 				.endKey(ComplexKey.of(propertyId, ComplexKey.emptyObject(), ComplexKey.emptyObject()))
 				.includeDocs(false)

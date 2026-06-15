@@ -28,9 +28,11 @@ import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.User
+import org.taktik.icure.utils.main
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) emit( null, doc._rev )}")
@@ -40,15 +42,16 @@ open class UserDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : ConflictDAOImpl<User>(
-	User::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = User::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	UserDAO {
+	queryProvider = queryProvider
+), UserDAO {
 	@View(
 		name = "by_username",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}",
@@ -62,8 +65,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
-					createQuery(datastoreInformation, "by_username").includeDocs(true).key(username),
-				).mapNotNull {
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_username".main(),
+						configurationView = "by_username"
+					).includeDocs(true).key(username),
+				).map {
 					it.doc
 				},
 		)
@@ -76,9 +83,13 @@ open class UserDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(
-			client.queryViewNoValue<String>(createQuery(datastoreInformation, "by_username").includeDocs(false).keys(usernames)).mapNotNull {
-				it.key
-			},
+			client.queryViewNoValue<String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_username".main(),
+					configurationView = "by_username"
+				).includeDocs(false).keys(usernames)
+			).mapNotNull { it.key },
 		)
 	}
 
@@ -95,10 +106,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
-					createQuery(datastoreInformation, "by_email").includeDocs(true).key(searchString),
-				).mapNotNull {
-					it.doc
-				},
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_email".main(),
+						configurationView = "by_email"
+					).includeDocs(true).key(searchString),
+				).map { it.doc },
 		)
 	}
 
@@ -109,13 +122,23 @@ open class UserDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(
-			client.queryViewNoValue<String>(createQuery(datastoreInformation, "by_email").includeDocs(false).keys(emails)).mapNotNull {
-				it.key
-			},
+			client.queryViewNoValue<String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_email".main(),
+					configurationView = "by_email"
+				).includeDocs(false).keys(emails)
+			).mapNotNull { it.key },
 		)
 	}
 
-	private fun normalizePhone(phone: String): String = phone.trim().let { if (it.startsWith("+")) "+${it.substring(1).replace(Regex("[^0-9]"), "")}" else it.replace(Regex("[^0-9]"), "") }
+	private fun normalizePhone(phone: String): String = phone.trim().let {
+		if (it.startsWith("+")) {
+			"+${it.substring(1).replace(Regex("[^0-9]"), "")}"
+		} else {
+			it.replace(Regex("[^0-9]"), "")
+		}
+	}
 
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
 	override fun listUsersByPhone(
@@ -126,10 +149,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
-					createQuery(datastoreInformation, "by_phone").includeDocs(true).key(normalizePhone(phone)),
-				).mapNotNull {
-					it.doc
-				},
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_phone".main(),
+						configurationView = "by_phone"
+					).includeDocs(true).key(normalizePhone(phone)),
+				).map { it.doc },
 		)
 	}
 
@@ -141,7 +166,11 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewNoValue<String>(
-					createQuery(datastoreInformation, "by_phone").includeDocs(false).key(
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_phone".main(),
+						configurationView = "by_phone"
+					).includeDocs(false).key(
 						phones.map {
 							normalizePhone(it)
 						},
@@ -182,12 +211,13 @@ open class UserDAOImpl(
 
 		val viewQuery =
 			pagedViewQuery(
-				datastoreInformation,
-				"allForPagination",
-				null,
-				"\ufff0",
-				pagination.copy(limit = extendedLimit),
-				false,
+				datastoreInformation = datastoreInformation,
+				legacyView = "allForPagination".main(),
+				configurationView = "allForPagination",
+				startKey = null,
+				endKey = "\ufff0",
+				pagination = pagination.copy(limit = extendedLimit),
+				descending = false,
 			)
 		emitAll(
 			client.queryView(viewQuery, String::class.java, Nothing::class.java, User::class.java).let { flw ->
@@ -255,10 +285,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
-					createQuery(datastoreInformation, "by_hcp_id").key(hcPartyId).includeDocs(true),
-				).map {
-					it.doc
-				},
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_hcp_id".main(),
+						configurationView = "by_hcp_id",
+					).key(hcPartyId).includeDocs(true),
+				).map { it.doc },
 		)
 	}
 
@@ -271,9 +303,11 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryView<String, String>(
-					createQuery(datastoreInformation, "by_hcp_id")
-						.key(hcPartyId)
-						.includeDocs(false),
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_hcp_id".main(),
+						configurationView = "by_hcp_id",
+					).key(hcPartyId).includeDocs(false),
 				).map { it.id },
 		)
 	}
@@ -288,10 +322,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryViewIncludeDocsNoValue<String, User>(
-					createQuery(datastoreInformation, "by_patient_id").key(patientId).includeDocs(true),
-				).map {
-					it.doc
-				},
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_patient_id".main(),
+						configurationView = "by_patient_id",
+					).key(patientId).includeDocs(true),
+				).map { it.doc },
 		)
 	}
 
@@ -304,9 +340,11 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryView<String, String>(
-					createQuery(datastoreInformation, "by_patient_id")
-						.key(patientId)
-						.includeDocs(false),
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_patient_id".main(),
+						configurationView = "by_patient_id",
+					).key(patientId).includeDocs(false),
 				).map { it.id },
 		)
 	}
@@ -320,10 +358,12 @@ open class UserDAOImpl(
 		emitAll(
 			client
 				.queryView<String, Int>(
-					createQuery(datastoreInformation, "by_name_email_phone").startKey(searchString).endKey("$searchString\ufff0").includeDocs(false),
-				).map {
-					it.id
-				},
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_name_email_phone".main(),
+						configurationView = "by_name_email_phone",
+					).startKey(searchString).endKey("$searchString\ufff0").includeDocs(false),
+				).map { it.id },
 		)
 	}
 
@@ -334,15 +374,15 @@ open class UserDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQuery =
-			pagedViewQuery(
-				datastoreInformation,
-				"by_name_email_phone",
-				searchString,
-				"$searchString\ufff0",
-				pagination,
-				false,
-			)
+		val viewQuery = pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_name_email_phone".main(),
+			configurationView = "by_name_email_phone",
+			startKey = searchString,
+			endKey = "$searchString\ufff0",
+			pagination = pagination,
+			descending = false,
+		)
 		emitAll(client.queryView(viewQuery, String::class.java, Nothing::class.java, User::class.java))
 	}
 

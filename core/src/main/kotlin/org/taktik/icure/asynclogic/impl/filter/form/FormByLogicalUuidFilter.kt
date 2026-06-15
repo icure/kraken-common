@@ -15,6 +15,9 @@ import org.taktik.icure.entities.Form
 class FormByLogicalUuidFilter(
 	private val formDAO: FormDAO,
 ) : Filter<String, Form, FormByLogicalUuidFilter> {
+	override val entity get() = formDAO.entityClass
+	override val views = listOf("by_logical_uuid_created")
+
 	override fun resolve(
 		filter: FormByLogicalUuidFilter,
 		context: Filters,

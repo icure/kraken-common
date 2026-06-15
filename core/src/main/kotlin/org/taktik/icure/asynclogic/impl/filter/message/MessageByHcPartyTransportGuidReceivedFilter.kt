@@ -14,6 +14,9 @@ import org.taktik.icure.entities.Message
 class MessageByHcPartyTransportGuidReceivedFilter(
 	private val messageDAO: MessageDAO,
 ) : Filter<String, Message, MessageByHcPartyTransportGuidReceivedFilter> {
+	override val entity get() = messageDAO.entityClass
+	override val views = listOf("by_all_delegates_transport_guid_received")
+
 	override fun resolve(
 		filter: MessageByHcPartyTransportGuidReceivedFilter,
 		context: org.taktik.icure.asynclogic.impl.filter.Filters,

@@ -15,6 +15,9 @@ import org.taktik.icure.entities.base.Code
 class CodeByRegionTypeCodeVersionFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByRegionTypeCodeVersionFilter> {
+	override val entity get() = codeDAO.entityClass
+	override val views = listOf("by_region_type_code_version")
+
 	override fun resolve(
 		filter: CodeByRegionTypeCodeVersionFilter,
 		context: Filters,

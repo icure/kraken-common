@@ -14,6 +14,9 @@ import org.taktik.icure.entities.embed.Service
 class ServiceByAssociationIdFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Service, ServiceByAssociationIdFilter> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_association_id")
+
 	override fun resolve(
 		filter: ServiceByAssociationIdFilter,
 		context: Filters,

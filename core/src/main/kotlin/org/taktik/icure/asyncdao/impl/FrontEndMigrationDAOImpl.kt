@@ -18,8 +18,10 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.FrontEndMigrationDAO
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.FrontEndMigration
+import org.taktik.icure.utils.main
 
 @Repository("frontEndMigrationDAO")
 @Profile("app")
@@ -32,14 +34,15 @@ class FrontEndMigrationDAOImpl(
 	idGenerator: IDGenerator,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<FrontEndMigration>(
-	FrontEndMigration::class.java,
-	couchDbDispatcher,
-	idGenerator,
+	entityClass = FrontEndMigration::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	FrontEndMigrationDAO {
+	queryProvider = queryProvider
+), FrontEndMigrationDAO {
 	@View(
 		name = "by_userid_name",
 		map =
@@ -62,9 +65,17 @@ class FrontEndMigrationDAOImpl(
 				val startKey = ComplexKey.of(userId)
 				val endKey = ComplexKey.of(userId, ComplexKey.emptyObject())
 
-				createQuery(datastoreInformation, "by_userid_name").startKey(startKey).endKey(endKey).includeDocs(true)
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_userid_name".main(),
+					configurationView = "by_userid_name"
+				).startKey(startKey).endKey(endKey).includeDocs(true)
 			} else {
-				createQuery(datastoreInformation, "by_userid_name").key(ComplexKey.of(userId, name)).includeDocs(true)
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_userid_name".main(),
+					configurationView = "by_userid_name"
+				).key(ComplexKey.of(userId, name)).includeDocs(true)
 			}
 		emitAll(client.queryViewIncludeDocs<ComplexKey, String, FrontEndMigration>(viewQuery).map { it.doc })
 	}

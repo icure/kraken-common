@@ -37,6 +37,9 @@ class ContactByHcPartyFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Contact>> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("by_all_delegates")
+
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, Contact>,
 		context: Filters,
