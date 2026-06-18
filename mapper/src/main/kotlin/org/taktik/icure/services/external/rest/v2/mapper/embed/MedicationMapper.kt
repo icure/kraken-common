@@ -43,5 +43,8 @@ interface MedicationV2Mapper {
 	fun map(contentDto: ContentDto): Content
 
 	fun map(service: Service): ServiceDto
+	@Mappings(
+		Mapping(target = "dataClassName", ignore = true),
+	)
 	fun map(serviceDto: ServiceDto): Service
 }
