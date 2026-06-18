@@ -24,11 +24,14 @@ import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.taktik.icure.entities.embed.Content
 import org.taktik.icure.entities.embed.Medication
+import org.taktik.icure.entities.embed.Service
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MedicationDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 
-@Mapper(componentModel = "spring", uses = [RenewalV2Mapper::class, MedicinalproductV2Mapper::class, CodeStubV2Mapper::class, RegimenItemV2Mapper::class, SuspensionV2Mapper::class, ParagraphAgreementV2Mapper::class, SubstanceproductV2Mapper::class, DurationV2Mapper::class, AddressV2Mapper::class, ServiceV2Mapper::class, MeasureV2Mapper::class, TimeSeriesV2Mapper::class, ], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [RenewalV2Mapper::class, MedicinalproductV2Mapper::class, CodeStubV2Mapper::class, RegimenItemV2Mapper::class, SuspensionV2Mapper::class, ParagraphAgreementV2Mapper::class, SubstanceproductV2Mapper::class, DurationV2Mapper::class, AddressV2Mapper::class, MeasureV2Mapper::class, TimeSeriesV2Mapper::class, IdentifierV2Mapper::class, DelegationV2Mapper::class, AnnotationV2Mapper::class, SecurityMetadataV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface MedicationV2Mapper {
 	@Mappings(
 		Mapping(target = "options", ignore = true),
@@ -38,4 +41,10 @@ interface MedicationV2Mapper {
 
 	fun map(content: Content): ContentDto
 	fun map(contentDto: ContentDto): Content
+
+	fun map(service: Service): ServiceDto
+	@Mappings(
+		Mapping(target = "dataClassName", ignore = true),
+	)
+	fun map(serviceDto: ServiceDto): Service
 }
