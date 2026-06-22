@@ -46,7 +46,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents an invoice. An invoice is used to bill patients, mutual funds, or paying agencies for healthcare
  * services rendered. It is serialized in JSON and saved in the underlying iCure CouchDB database.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.InvoiceDto")
 data class InvoiceDto(
 	/** The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

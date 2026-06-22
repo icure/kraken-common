@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a section within a form template layout, containing a set of structure elements (fields and groups).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.Section")
 data class Section(
 	/** The name or identifier of this section. */
 	@param:Schema(required = true)

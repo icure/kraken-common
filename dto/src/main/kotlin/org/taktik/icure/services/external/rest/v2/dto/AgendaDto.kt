@@ -37,7 +37,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * An agenda can specify a schedule for its resources and allows managing availabilities for booking.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AgendaDto")
 data class AgendaDto(
 	/** The Id of the agenda. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

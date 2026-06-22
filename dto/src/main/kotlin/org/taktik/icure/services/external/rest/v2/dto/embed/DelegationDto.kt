@@ -26,7 +26,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto")
 data class DelegationDto(
 	// This is not the owner of a piece of date (patient, contact). It is the owner of the delegation.
 	@ActiveField var owner: String? = null, // owner id

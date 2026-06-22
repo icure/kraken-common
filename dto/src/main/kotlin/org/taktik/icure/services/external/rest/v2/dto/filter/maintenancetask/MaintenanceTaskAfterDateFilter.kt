@@ -21,7 +21,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches maintenance tasks created after a specific date.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskAfterDateFilter")
 data class MaintenanceTaskAfterDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

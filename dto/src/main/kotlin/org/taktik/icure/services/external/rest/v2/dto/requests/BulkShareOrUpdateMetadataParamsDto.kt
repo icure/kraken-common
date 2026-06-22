@@ -9,15 +9,13 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto")
 data class BulkShareOrUpdateMetadataParamsDto(
 	@param:Schema(required = true)
 	@ActiveField val requestsByEntityId: Map<String, EntityRequestInformationDto>,
 ) {
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	@JsonIgnoreProperties(ignoreUnknown = false)
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto.EntityRequestInformationDto")
-	data class EntityRequestInformationDto(
+		data class EntityRequestInformationDto(
 		@param:Schema(required = true)
 		@ActiveField val requests: Map<String, EntityShareOrMetadataUpdateRequestDto>,
 		/**

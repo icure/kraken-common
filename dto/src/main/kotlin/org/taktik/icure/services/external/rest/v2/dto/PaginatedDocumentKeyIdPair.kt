@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing a key-document ID pair used for cursor-based pagination in CouchDB views.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair")
 data class PaginatedDocumentKeyIdPair(
 	/** The view key to start the next page from. */
 	@ActiveField var startKey: JsonNode? = null,

@@ -23,7 +23,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO representing an entity identifier paired with its optional revision. Commonly used in
  * bulk operations and responses to identify stored documents.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto")
 data class IdWithRevDto(
 	/** The unique identifier of the entity. */
 	@ActiveField val id: String,

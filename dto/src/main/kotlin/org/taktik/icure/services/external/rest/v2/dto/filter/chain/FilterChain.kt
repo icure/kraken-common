@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * A chain that combines a filter with an optional predicate for post-filtering results.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain")
 data class FilterChain<O : IdentifiableDto<String>>(
 	/** The filter to apply. */
 	@param:Schema(required = true)

@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a subword within a keyword hierarchy. Subwords can be nested recursively to form a tree structure.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.KeywordSubwordDto")
 data class KeywordSubwordDto(
 	/** The string value of this subword. */
 	@ActiveField val value: String? = null,

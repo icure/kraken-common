@@ -24,7 +24,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO providing information about the current indexing status of the database views.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.IndexingInfoDto")
 data class IndexingInfoDto(
 	/** A map of indexing statuses, keyed by view name, where the value represents the indexing progress percentage. */
 	@ActiveField val statuses: Map<String, Int>? = null,

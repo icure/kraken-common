@@ -40,7 +40,6 @@ data confidentiality. For hcps instead the best choice depends is likely to chan
  * the access control level. Created by a delegator data owner and usable by a delegate data owner, using
  * exchange data for encryption and access control.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SecureDelegationDto")
 data class SecureDelegationDto(
 	@param:Schema(
 		description = """Optionally the id of the delegator data owner for this [SecureDelegation]. May be null if this information must

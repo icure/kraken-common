@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a type of calendar item, defining properties like duration, color, and name for appointments.
  * Calendar item types are used to categorize calendar items within an agenda.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto")
 data class CalendarItemTypeDto(
 	/** The Id of the calendar item type. */
 	override val id: String,
@@ -76,9 +75,7 @@ data class CalendarItemTypeDto(
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, property = "type")
 	sealed interface DurationConfigDto {
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto.DurationConfigDto.Set")
-		data class Set(@ActiveField val durations: kotlin.collections.Set<Int> = emptySet()) : DurationConfigDto
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto.DurationConfigDto.Formula")
-		data class Formula(@ActiveField val min: Int, @ActiveField val max: Int, @ActiveField val step: Int) : DurationConfigDto
+				data class Set(@ActiveField val durations: kotlin.collections.Set<Int> = emptySet()) : DurationConfigDto
+				data class Formula(@ActiveField val min: Int, @ActiveField val max: Int, @ActiveField val step: Int) : DurationConfigDto
 	}
 }

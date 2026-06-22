@@ -13,7 +13,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Data transfer object representing a CouchDB replication command, used to configure and trigger
  * database replication between a source and a target.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.ReplicateCommandDto")
 data class ReplicateCommandDto(
 	/** The unique identifier of this replication command. */
 	override val id: String,

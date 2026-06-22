@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO representing a stored property with a type and typed value. Properties are used to
  * attach configurable key-value data to entities.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PropertyDto")
 data class PropertyDto(
 	/** The unique identifier of the property. */
 	override val id: String,

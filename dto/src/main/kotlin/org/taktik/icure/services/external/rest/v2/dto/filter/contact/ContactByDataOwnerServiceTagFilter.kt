@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches contacts by data owner and service tag.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerServiceTagFilter")
 data class ContactByDataOwnerServiceTagFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

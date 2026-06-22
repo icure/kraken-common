@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a keyword used for indexing and searching medical data. A keyword can contain
  * sub-words to enable more flexible search matching.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.KeywordDto")
 data class KeywordDto(
 	/** The unique identifier of the keyword. */
 	override val id: String,

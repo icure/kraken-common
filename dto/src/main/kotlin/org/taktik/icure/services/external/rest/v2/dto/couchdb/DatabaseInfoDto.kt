@@ -14,7 +14,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object containing information about a CouchDB database, including size metrics and cluster configuration.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.DatabaseInfoDto")
 data class DatabaseInfoDto(
 	/** The database identifier. */
 	@ActiveField val id: String,

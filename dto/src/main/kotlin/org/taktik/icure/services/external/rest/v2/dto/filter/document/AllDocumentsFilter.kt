@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches all documents without any filtering criteria.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.document.AllDocumentsFilter")
 data class AllDocumentsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Data transfer object aggregating database information for all databases belonging to a specific group,
  * including their storage sizes and GCP storage usage.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.GroupDatabasesInfoDto")
 data class GroupDatabasesInfoDto(
 	/** The identifier of the group. */
 	@param:Schema(required = true)

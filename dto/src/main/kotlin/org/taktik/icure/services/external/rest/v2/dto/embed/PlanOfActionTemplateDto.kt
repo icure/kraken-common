@@ -33,7 +33,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a template for a plan of action, defining a reusable structure of forms and metadata
  * that can be applied to healthcare elements.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionTemplateDto")
 data class PlanOfActionTemplateDto(
 	/** The unique identifier of this plan of action template. */
 	override val id: String,

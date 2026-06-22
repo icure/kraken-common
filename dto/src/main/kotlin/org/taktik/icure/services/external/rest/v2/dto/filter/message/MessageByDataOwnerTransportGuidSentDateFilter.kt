@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches messages by data owner, transport guid, and sent date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerTransportGuidSentDateFilter")
 data class MessageByDataOwnerTransportGuidSentDateFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

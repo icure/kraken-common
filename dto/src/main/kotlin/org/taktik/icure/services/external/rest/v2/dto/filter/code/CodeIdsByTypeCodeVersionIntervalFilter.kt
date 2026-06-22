@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches code identifiers within an interval defined by start and end type, code, and version.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeIdsByTypeCodeVersionIntervalFilter")
 data class CodeIdsByTypeCodeVersionIntervalFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

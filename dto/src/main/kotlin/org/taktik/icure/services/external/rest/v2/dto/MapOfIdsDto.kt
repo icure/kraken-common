@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO wrapping a map of entity identifiers to lists of associated identifiers, used for expressing
  * relationships between entities in bulk operations.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MapOfIdsDto")
 data class MapOfIdsDto(
 	/** A map where each key is an entity identifier and the value is a list of related entity identifiers. */
 	@ActiveField val mapOfIds: Map<String, List<String>> = emptyMap(),

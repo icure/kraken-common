@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.FormDto")
 data class FormDto(
 	@param:Schema(description = "the Id of the form. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	@param:Schema(description = "the revision of the form in the database, used for conflict management / optimistic locking.") override val rev: String? = null,

@@ -41,7 +41,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 Services include subjective information provided by the patient, such as complaints, reason for visit, feelings, etc. or objective information like bio-metric measures (blood pressure, temperature, heart beat, etc.), or physical exam description, diagnosis, prescription, integration of lab reports from another healthcare party, action plan, etc.
 Any action performed by the healthcare party which is relevant for the healthcare element of a patient is considered a service. The services can be linked to healthcare elements or other structuring elements of the medical record""",
 )
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto")
 data class ServiceDto(
 	/** The Id of the Service. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.")

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches timetables by their associated agenda identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.timetable.TimeTableByAgendaIdFilter")
 data class TimeTableByAgendaIdFilter(
 	/** The identifier of the agenda. */
 	@ActiveField val agendaId: String,

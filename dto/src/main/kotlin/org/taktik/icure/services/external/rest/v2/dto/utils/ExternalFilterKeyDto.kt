@@ -27,8 +27,7 @@ sealed interface ExternalFilterKeyDto {
 	/**
 	 * A filter key backed by a string value.
 	 */
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterStringKeyDto")
-	data class ExternalFilterStringKeyDto(
+		data class ExternalFilterStringKeyDto(
 		/** The string key value. */
 		override val key: String,
 	) : ExternalFilterKeyDto
@@ -36,8 +35,7 @@ sealed interface ExternalFilterKeyDto {
 	/**
 	 * A filter key backed by a long integer value.
 	 */
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterLongKeyDto")
-	data class ExternalFilterLongKeyDto(
+		data class ExternalFilterLongKeyDto(
 		/** The long key value. */
 		override val key: Long,
 	) : ExternalFilterKeyDto
@@ -45,8 +43,7 @@ sealed interface ExternalFilterKeyDto {
 	/**
 	 * A filter key backed by an arbitrary JSON node, suitable for composite or structured keys.
 	 */
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterComplexKeyDto")
-	data class ExternalFilterComplexKeyDto(
+		data class ExternalFilterComplexKeyDto(
 		/** The JSON node representing the complex key value. */
 		override val key: JsonNode,
 	) : ExternalFilterKeyDto

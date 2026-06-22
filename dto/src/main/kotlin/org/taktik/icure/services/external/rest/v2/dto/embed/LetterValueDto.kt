@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a letter-based value used in tarification, associating a letter key with an index, coefficient, and numeric value.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.LetterValueDto")
 data class LetterValueDto(
 	/** The letter key identifier. */
 	@ActiveField val letter: String? = null,

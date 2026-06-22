@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a payment record with date, type, and amount.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PaymentDto")
 data class PaymentDto(
 	/** The date of the payment (unix epoch in ms). */
 	@param:Schema(defaultValue = "0") @ActiveField val paymentDate: Long = 0,

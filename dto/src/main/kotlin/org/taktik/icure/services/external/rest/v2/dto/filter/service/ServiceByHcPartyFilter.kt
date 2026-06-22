@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches services associated with a specific healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyFilter")
 data class ServiceByHcPartyFilter(
 	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)

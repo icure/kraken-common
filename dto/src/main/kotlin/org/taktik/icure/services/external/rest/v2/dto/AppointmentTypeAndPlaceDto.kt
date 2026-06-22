@@ -8,7 +8,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing an appointment type along with its associated place information.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AppointmentTypeAndPlaceDto")
 data class AppointmentTypeAndPlaceDto(
 	/** The unique identifier of the calendar item type for this appointment. */
 	@param:Schema(required = true) @ActiveField val calendarItemTypeId: String,

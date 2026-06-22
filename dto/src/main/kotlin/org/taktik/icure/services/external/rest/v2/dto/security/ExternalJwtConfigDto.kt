@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Configuration for authenticating users via an externally-issued JWT. Specifies how the token
  * should be validated and which JWT field is used to locate the matching iCure user.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto")
 data class ExternalJwtConfigDto(
 	/** The method used to verify the external JWT signature (public-key or OIDC discovery). */
 	@param:Schema(description = "Specifies how the external jwt should be validated at login")
@@ -41,8 +40,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Validates the JWT using a static public key.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.ValidationMethodDto.PublicKey")
-		data class PublicKey(
+				data class PublicKey(
 			/** The PEM-encoded or Base64-encoded public key material. */
 			@ActiveField val key: String,
 			/** The signature algorithm to use; defaults to the algorithm declared in the JWT header when null. */
@@ -54,8 +52,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Validates the JWT using OIDC discovery from the specified issuer location.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.ValidationMethodDto.Oidc")
-		data class Oidc(
+				data class Oidc(
 			/** The OIDC issuer URL used to retrieve the JWKS for signature verification. */
 			@SdkName("issuerLocation")
 			@param:JsonAlias("issuerLocation")
@@ -73,8 +70,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Selects users by matching a JWT field against the user's local identifier.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.FieldSelectorDto.LocalId")
-		data class LocalId(
+				data class LocalId(
 			/** The name of the JWT claim containing the local identifier value. */
 			@ActiveField val fieldName: String,
 		) : FieldSelectorDto
@@ -82,8 +78,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Selects users by matching a JWT field against the user's email address.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.FieldSelectorDto.Email")
-		data class Email(
+				data class Email(
 			/** The name of the JWT claim containing the email value. */
 			@ActiveField val fieldName: String,
 		) : FieldSelectorDto
@@ -91,8 +86,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Selects users by matching a JWT field against the user's mobile phone number.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.FieldSelectorDto.MobilePhone")
-		data class MobilePhone(
+				data class MobilePhone(
 			/** The name of the JWT claim containing the mobile phone value. */
 			@ActiveField val fieldName: String,
 		) : FieldSelectorDto
@@ -100,8 +94,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Selects users by matching a JWT field against the user's username.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.FieldSelectorDto.Username")
-		data class Username(
+				data class Username(
 			/** The name of the JWT claim containing the username value. */
 			@ActiveField val fieldName: String,
 		) : FieldSelectorDto
@@ -109,8 +102,7 @@ data class ExternalJwtConfigDto(
 		/**
 		 * Selects users by matching a JWT field against a structured identifier with a specific assigner.
 		 */
-		@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto.FieldSelectorDto.Identifier")
-		data class Identifier(
+				data class Identifier(
 			/** The assigner system for the identifier to match against. */
 			@ActiveField val identifierAssigner: String,
 			/** The name of the JWT claim containing the identifier value. */

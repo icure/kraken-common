@@ -36,7 +36,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Deprecated filter that matches services by healthcare party, contacts, sub-contacts, and value date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByContactsAndSubcontactsFilter")
 data class ServiceByContactsAndSubcontactsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

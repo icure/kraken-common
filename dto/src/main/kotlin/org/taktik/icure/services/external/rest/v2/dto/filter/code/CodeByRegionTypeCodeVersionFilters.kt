@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches codes by region, type, code value, and version.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByRegionTypeCodeVersionFilters")
 data class CodeByRegionTypeCodeVersionFilters(
 	/** The region to filter codes by. */
 	@ActiveField val region: String,

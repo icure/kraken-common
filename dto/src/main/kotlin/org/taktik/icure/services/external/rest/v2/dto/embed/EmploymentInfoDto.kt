@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents employment information for a patient, including the period, profession type, and employer details.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.EmploymentInfoDto")
 data class EmploymentInfoDto(
 	/** The start date (unix epoch in ms) of the employment. */
 	@ActiveField val startDate: Long? = null,

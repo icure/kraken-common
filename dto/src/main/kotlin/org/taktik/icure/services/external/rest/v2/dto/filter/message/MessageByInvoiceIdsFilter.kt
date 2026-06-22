@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches messages associated with specific invoice identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByInvoiceIdsFilter")
 data class MessageByInvoiceIdsFilter(
 	/** The set of invoice identifiers to match. */
 	@ActiveField val invoiceIds: Set<String>,

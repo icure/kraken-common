@@ -9,7 +9,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Options for performing a bulk update of document attachments in a single request.
  * Allows specifying metadata for new or updated attachments and keys of attachments to delete.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions")
 data class BulkAttachmentUpdateOptions(
 	@param:Schema(
 		description = "Metadata for new attachments or attachments which will be updated, by key. The key for the main attachment is the document id.",
@@ -23,8 +22,7 @@ data class BulkAttachmentUpdateOptions(
 	/**
 	 * Metadata describing a single attachment within a bulk update operation.
 	 */
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions.AttachmentMetadata")
-	data class AttachmentMetadata(
+		data class AttachmentMetadata(
 		@param:Schema(
 			description = "The Uniform Type Identifiers (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE) of the attachment. This is a list to allow representing a priority, but each UTI must be unique.",
 		)

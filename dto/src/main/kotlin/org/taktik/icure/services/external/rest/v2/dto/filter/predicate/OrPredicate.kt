@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Predicate that evaluates to true when any sub-predicate evaluates to true (logical OR).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.predicate.OrPredicate")
 data class OrPredicate(
 	/** The list of predicates where at least one must be satisfied. */
 	@ActiveField val predicates: List<Predicate> = emptyList(),

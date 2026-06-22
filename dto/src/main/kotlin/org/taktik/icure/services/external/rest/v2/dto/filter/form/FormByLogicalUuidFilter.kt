@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches forms by their logical UUID.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByLogicalUuidFilter")
 data class FormByLogicalUuidFilter(
 	/** The logical UUID to match. */
 	@ActiveField val logicalUuid: String,

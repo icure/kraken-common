@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a medical code from a terminology system (e.g., ICD, SNOMED). The code id is composed of
  * type|code|version and must be unique.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CodeDto")
 data class CodeDto(
 	/** The Id of the code, formatted as type|code|version. Must be unique. */
 	override val id: String, // id = type|code|version  => this must be unique

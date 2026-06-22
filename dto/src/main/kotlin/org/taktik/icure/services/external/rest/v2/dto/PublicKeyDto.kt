@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing the public key of a healthcare party, used for end-to-end encryption.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto")
 data class PublicKeyDto(
 	/** The identifier of the healthcare party that owns this public key. */
 	@ActiveField val hcPartyId: String? = null,

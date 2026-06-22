@@ -12,7 +12,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents metadata about an attachment that has been deleted, preserving its former storage identifiers and deletion time.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DeletedAttachmentDto")
 data class DeletedAttachmentDto(
 	/** The former CouchDB attachment identifier, if the attachment was stored as a CouchDB attachment. */
 	@param:Schema(description = "If the attachment was stored as a couchdb attachment this holds the id of the attachment, else null.")

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches codes by their qualified link type and optionally by linked entity identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByQualifiedLinkFilter")
 data class CodeByQualifiedLinkFilter(
 	/** The type of qualified link to match. */
 	@ActiveField val linkType: String,

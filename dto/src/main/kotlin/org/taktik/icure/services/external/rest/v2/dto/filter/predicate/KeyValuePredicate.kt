@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Predicate that evaluates a comparison between an entity property and a value using an operator.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate")
 data class KeyValuePredicate(
 	/** The property key to compare. */
 	@ActiveField val key: String? = null,

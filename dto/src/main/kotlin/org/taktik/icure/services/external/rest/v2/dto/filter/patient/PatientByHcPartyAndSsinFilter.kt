@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by healthcare party and social security identification number (SSIN).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndSsinFilter")
 data class PatientByHcPartyAndSsinFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

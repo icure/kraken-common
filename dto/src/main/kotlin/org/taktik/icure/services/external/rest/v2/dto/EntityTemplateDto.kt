@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a reusable template for creating entities. Entity templates store a JSON-based entity definition
  * that can be used as a starting point for creating new entities of a given type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.EntityTemplateDto")
 data class EntityTemplateDto(
 	/** The Id of the entity template. */
 	override val id: String,

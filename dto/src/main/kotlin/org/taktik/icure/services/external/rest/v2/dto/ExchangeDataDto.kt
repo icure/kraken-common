@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Holds the cryptographic data necessary for the secure sharing of entities between data owners.
  * Exchange data enables a delegator to share encrypted medical data with a delegate.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto")
 data class ExchangeDataDto(
 	/** The Id of the exchange data. */
 	override val id: String,

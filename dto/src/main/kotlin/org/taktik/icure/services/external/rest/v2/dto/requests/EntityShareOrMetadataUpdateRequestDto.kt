@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * A request that combines an optional entity share operation with an optional shared-metadata update into a single payload.
  * Exactly one of the two fields should be populated for each entry in a bulk request.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.EntityShareOrMetadataUpdateRequestDto")
 data class EntityShareOrMetadataUpdateRequestDto(
 	/** The share request to grant access to an entity, if applicable. */
 	@ActiveField val share: EntityShareRequestDto? = null,

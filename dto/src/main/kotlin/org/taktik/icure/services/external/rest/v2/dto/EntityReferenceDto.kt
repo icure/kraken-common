@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a reference to another entity by its document id. Entity references provide a lightweight
  * way to create links between entities.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.EntityReferenceDto")
 data class EntityReferenceDto(
 	/** The Id of the entity reference. */
 	override val id: String,

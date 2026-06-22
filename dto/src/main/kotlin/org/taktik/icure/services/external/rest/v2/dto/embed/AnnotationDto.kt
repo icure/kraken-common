@@ -20,7 +20,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Text node with attribution that can be attached to a medical record. Used by healthcare parties to add side notes,
  * for example to flag a faulty thermometer after taking a temperature.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto")
 data class AnnotationDto(
 	@param:Schema(
 		description = "The Id of the Annotation. We encourage using either a v4 UUID or a HL7 Id.",

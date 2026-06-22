@@ -6,7 +6,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Data transfer object representing a CouchDB design document, which contains views, lists, shows, filters,
  * and update handlers used for querying and transforming data.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.DesignDocumentDto")
 data class DesignDocumentDto(
 	/** The identifier of the design document. */
 	@ActiveField val id: String,

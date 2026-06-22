@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches agendas readable by a user based on their access rights.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaReadableByUserRightsFilter")
 data class AgendaReadableByUserRightsFilter(
 	/** The identifier of the user whose rights determine readable agendas. */
 	@ActiveField val userId: String,

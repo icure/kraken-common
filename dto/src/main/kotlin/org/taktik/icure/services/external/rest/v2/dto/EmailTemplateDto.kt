@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing an email template with a subject and body.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.EmailTemplateDto")
 data class EmailTemplateDto(
 	/** The subject line of the email template. */
 	@ActiveField val subject: String? = null,

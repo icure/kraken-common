@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Request object used to add a form for a patient.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AddFormRequest")
 data class AddFormRequest(
 	/** The unique identifier of the patient to associate the form with. */
 	@ActiveField val patientId: String? = null,

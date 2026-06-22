@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto")
 data class EntityBulkShareResultDto<T>(
 	/**
 	 * The updated entity. Non-null if at least one of the requests succeeded.
@@ -38,8 +37,7 @@ data class EntityBulkShareResultDto<T>(
 	 */
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	@JsonIgnoreProperties(ignoreUnknown = false)
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto.RejectedShareOrMetadataUpdateRequestDto")
-	data class RejectedShareOrMetadataUpdateRequestDto(
+		data class RejectedShareOrMetadataUpdateRequestDto(
 		/**
 		 * Code of the error, mimics an http status code (400 general user error, 409 conflict, ...).
 		 */

@@ -15,7 +15,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = false)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.EntitySharedMetadataUpdateRequestDto")
 data class EntitySharedMetadataUpdateRequestDto(
 	/**
 	 * Access control hash of the metadata to update.

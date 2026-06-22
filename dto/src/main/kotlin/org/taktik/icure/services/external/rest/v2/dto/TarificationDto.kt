@@ -38,7 +38,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a tarification code used for billing and invoicing healthcare services. Tarifications define
  * the pricing and conditions for medical acts and are identified by a combination of type, code, and version.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.TarificationDto")
 data class TarificationDto(
 	/** The unique identifier of the tarification, formatted as type|code|version. */
 	override val id: String, // id = type|code|version  => this must be unique

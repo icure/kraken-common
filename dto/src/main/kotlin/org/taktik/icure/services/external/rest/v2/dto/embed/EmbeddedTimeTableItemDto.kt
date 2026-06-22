@@ -15,7 +15,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a recurring time table item with scheduling rules, availability slots, and access control.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.EmbeddedTimeTableItemDto")
 data class EmbeddedTimeTableItemDto(
 	/** The recurrence rule (RFC 5545 RRULE format) defining the schedule pattern. */
 	@ActiveField val rrule: String,

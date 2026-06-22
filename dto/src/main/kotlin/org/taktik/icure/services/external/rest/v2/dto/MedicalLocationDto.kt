@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a medical location such as a clinic, office, or hospital ward where healthcare services are provided.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MedicalLocationDto")
 data class MedicalLocationDto(
 	/** The unique identifier of the medical location. */
 	override val id: String,

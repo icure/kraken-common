@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches healthcare parties by tag and/or code.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTagCodeFilter")
 data class HealthcarePartyByTagCodeFilter(
 	/** The type of the tag to filter on. */
 	@ActiveField val tagType: String? = null,

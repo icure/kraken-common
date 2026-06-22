@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches health elements by healthcare party and a list of identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter")
 data class HealthElementByHcPartyIdentifiersFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO providing status information about an ongoing or configured database replication.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReplicationInfoDto")
 data class ReplicationInfoDto(
 	/** Whether the replication is currently active. */
 	@ActiveField val active: Boolean = false,

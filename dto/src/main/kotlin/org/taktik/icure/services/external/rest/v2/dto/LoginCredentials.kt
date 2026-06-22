@@ -26,7 +26,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO containing the credentials for user authentication.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.LoginCredentials")
 data class LoginCredentials(
 	/** The username or login identifier. */
 	@ActiveField val username: String? = null,

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches contacts by their external identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByExternalIdFilter")
 data class ContactByExternalIdFilter(
 	/** The external identifier to match. */
 	@ActiveField val externalId: String,

@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches access logs within a date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDateFilter")
 data class AccessLogByDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

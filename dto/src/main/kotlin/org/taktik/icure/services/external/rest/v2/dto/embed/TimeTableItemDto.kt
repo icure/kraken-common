@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableItemDto")
 data class TimeTableItemDto(
 	@ActiveField val rruleStartDate: Long? = null, // YYYYMMDD
 	/** a RFC-5545 recurrence rule specifying the days and recurrence type of the timetable item. ("RRULE:FREQ=WEEKLY;UNTIL=20220930T150400Z;COUNT=30;INTERVAL=2;WKST=MO;BYDAY=TH" = every 2 weeks on Thursday until 30 September 2022.) */

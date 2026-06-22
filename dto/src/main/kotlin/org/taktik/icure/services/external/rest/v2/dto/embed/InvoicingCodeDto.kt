@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents an invoicing code within an invoice, containing tarification details, amounts, prescriber information,
  * and lifecycle status flags. Each invoicing code corresponds to a billable medical act or service.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.InvoicingCodeDto")
 data class InvoicingCodeDto(
 	/** The unique identifier of this invoicing code. */
 	@ActiveField val id: String?,

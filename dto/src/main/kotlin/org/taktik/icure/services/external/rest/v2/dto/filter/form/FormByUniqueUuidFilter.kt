@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches forms by their unique identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByUniqueUuidFilter")
 data class FormByUniqueUuidFilter(
 	/** The unique identifier to match. */
 	@ActiveField val uniqueId: String,

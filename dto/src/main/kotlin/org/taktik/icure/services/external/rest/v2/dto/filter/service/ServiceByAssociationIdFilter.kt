@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches services by their association identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByAssociationIdFilter")
 data class ServiceByAssociationIdFilter(
 	/** The association identifier to match. */
 	@ActiveField val associationId: String,

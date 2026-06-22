@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a flat rate tarification used in medical house contracts, linking a code to its valorisations.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto")
 data class FlatRateTarificationDto(
 	/** The tarification code. */
 	@ActiveField val code: String? = null,

@@ -7,7 +7,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a reference range for a measurement, including bounds, applicable age range, tags, codes, and notes.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ReferenceRangeDto")
 data class ReferenceRangeDto(
 	/** The lower bound of the reference range. */
 	@ActiveField val low: Double? = null,

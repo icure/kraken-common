@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a front-end migration task. A front-end migration tracks the progress of data migration operations
  * initiated from the front-end application.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.FrontEndMigrationDto")
 data class FrontEndMigrationDto(
 	/** The unique identifier of the front-end migration. */
 	override val id: String,

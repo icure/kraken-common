@@ -20,7 +20,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by data owner and tag.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByDataOwnerTagFilter")
 data class PatientByDataOwnerTagFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

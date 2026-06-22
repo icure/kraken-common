@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches pricing entries by region, types, language, and label.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.pricing.PricingByRegionTypesLanguageLabelFilter")
 data class PricingByRegionTypesLanguageLabelFilter(
 	/** The region to filter pricing entries by. */
 	@ActiveField val region: String? = null,

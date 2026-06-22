@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by healthcare party and date of birth range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyDateOfBirthBetweenFilter")
 data class PatientByHcPartyDateOfBirthBetweenFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

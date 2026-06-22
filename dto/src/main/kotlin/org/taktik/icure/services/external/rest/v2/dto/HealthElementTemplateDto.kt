@@ -33,7 +33,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a template for creating healthcare elements. Health element templates provide a predefined structure
  * for commonly used healthcare elements, including plans of action and default status values.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.HealthElementTemplateDto")
 data class HealthElementTemplateDto(
 	/** The unique identifier of the health element template. */
 	override val id: String,

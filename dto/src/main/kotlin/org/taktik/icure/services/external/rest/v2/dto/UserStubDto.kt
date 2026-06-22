@@ -36,7 +36,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Lightweight stub representation of a user, containing only the essential identification and
  * status fields. Used when the full user payload is not needed.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserStubDto")
 data class UserStubDto(
 	/** The unique identifier of the user. */
 	override val id: String,

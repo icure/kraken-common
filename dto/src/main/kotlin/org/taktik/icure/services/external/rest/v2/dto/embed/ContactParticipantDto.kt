@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a healthcare party participating in a contact, along with their participation type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto")
 data class ContactParticipantDto(
 	/** The type of participation in the contact. */
 	@ActiveField val type: ParticipantTypeDto,

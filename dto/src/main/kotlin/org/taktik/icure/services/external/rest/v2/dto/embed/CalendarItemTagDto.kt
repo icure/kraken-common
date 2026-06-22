@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a tag associated with a calendar item, carrying metadata about who tagged it and when.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CalendarItemTagDto")
 data class CalendarItemTagDto(
 	/** The code identifying this tag. */
 	@ActiveField val code: String? = null,

@@ -22,7 +22,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO wrapping a list of entity identifiers, used for bulk operations.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto")
 data class ListOfIdsDto(
 	/** The list of entity identifiers. */
 	@ActiveField val ids: List<String> = emptyList(),

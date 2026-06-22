@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a weekday reference used in medication regimens, optionally specifying a week number.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.Weekday")
 data class Weekday(
 	/** The coded weekday (CD-WEEKDAY). */
 	@ActiveField val weekday: CodeStubDto? = null, // CD-WEEKDAY

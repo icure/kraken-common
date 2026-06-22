@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents the layout of a form template, defining the form name, its actions, sections, and metadata.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.FormTemplateLayout")
 data class FormTemplateLayout(
 	/** The name or identifier of the form. */
 	@param:Schema(required = true)

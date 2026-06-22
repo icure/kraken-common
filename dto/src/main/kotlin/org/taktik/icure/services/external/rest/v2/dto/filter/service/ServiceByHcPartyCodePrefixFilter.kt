@@ -20,7 +20,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches services by healthcare party and code prefix.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyCodePrefixFilter")
 data class ServiceByHcPartyCodePrefixFilter(
 	/** The identifier of the healthcare party. */
 	@ActiveField val healthcarePartyId: String,

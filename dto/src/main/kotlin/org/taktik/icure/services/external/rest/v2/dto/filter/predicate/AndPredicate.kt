@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Predicate that evaluates to true only when all sub-predicates evaluate to true (logical AND).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AndPredicate")
 data class AndPredicate(
 	/** The list of predicates that must all be satisfied. */
 	@ActiveField val predicates: List<Predicate> = emptyList(),

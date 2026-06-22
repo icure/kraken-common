@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a pair of measures, typically used for range values or comparative measurements.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.MeasurePairDto")
 data class MeasurePairDto(
 	/** The first measure in the pair. */
 	private @ActiveField val first: MeasureDto? = null,

@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a periodicity linking a code to its related periodicity code, used in medication regimens.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PeriodicityDto")
 data class PeriodicityDto(
 	/** The code associated with this periodicity. */
 	@ActiveField val relatedCode: CodeStubDto? = null,

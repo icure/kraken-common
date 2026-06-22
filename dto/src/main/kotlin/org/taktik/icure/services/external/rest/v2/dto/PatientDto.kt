@@ -82,7 +82,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * This entity stores personal, administrative, and medical information about the patient, and supports
  * end-to-end encryption of sensitive data.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PatientDto")
 data class PatientDto(
 	/** The Id of the patient. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches forms by data owner and parent form identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerParentIdFilter")
 data class FormByDataOwnerParentIdFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

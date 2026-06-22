@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches services by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByIdsFilter")
 data class ServiceByIdsFilter(
 	/** The set of service identifiers to match. */
 	@param:Schema(required = true)

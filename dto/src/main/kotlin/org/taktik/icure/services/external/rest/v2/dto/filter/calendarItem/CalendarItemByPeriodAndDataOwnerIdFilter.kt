@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches calendar items within a time period for a specific data owner.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndDataOwnerIdFilter")
 data class CalendarItemByPeriodAndDataOwnerIdFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

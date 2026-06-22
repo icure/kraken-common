@@ -28,20 +28,17 @@ sealed interface DataOwnerWithTypeDto : Serializable {
 	@ActiveField val dataOwner: CryptoActorDto
 
 	@JsonSerialize
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto.HcpDataOwner")
-	data class HcpDataOwner(
+		data class HcpDataOwner(
 		override val dataOwner: HealthcarePartyDto,
 	) : DataOwnerWithTypeDto
 
 	@JsonSerialize
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto.PatientDataOwner")
-	data class PatientDataOwner(
+		data class PatientDataOwner(
 		@AlwaysEncrypted override val dataOwner: PatientDto,
 	) : DataOwnerWithTypeDto
 
 	@JsonSerialize
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto.DeviceDataOwner")
-	data class DeviceDataOwner(
+		data class DeviceDataOwner(
 		override val dataOwner: DeviceDto,
 	) : DataOwnerWithTypeDto
 }

@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a time-bounded membership of a care team member, specifying the period and type of involvement.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMembershipDto")
 data class CareTeamMembershipDto(
 	/** The start date (unix epoch in ms) of this membership. */
 	@ActiveField val startDate: Long? = null,

@@ -13,7 +13,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO containing the information required to register a new user and group in the iCure platform.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.RegistrationInformationDto")
 data class RegistrationInformationDto(
 	/** The identifier of the application or project for this registration. */
 	@param:JsonAlias("projectId")

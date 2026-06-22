@@ -14,7 +14,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a group of structure elements within a form template section, used to organize fields logically.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.Group")
 data class Group(
 	/** The name or identifier of this group. */
 	@param:Schema(required = true)

@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an appendix attached to an agreement, referencing a specific document and its location within a structured path.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AgreementAppendixDto")
 data class AgreementAppendixDto(
 	/** The sequence number of the document. */
 	@ActiveField val docSeq: Int? = null,

@@ -33,7 +33,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a timetable for scheduling appointments and availability. A timetable is linked to an agenda
  * and defines time slots within a given period.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.TimeTableDto")
 data class TimeTableDto(
 	/** The unique identifier of the timetable. */
 	override val id: String,

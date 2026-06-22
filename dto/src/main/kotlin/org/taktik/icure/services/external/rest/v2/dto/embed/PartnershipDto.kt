@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a relationship between a patient and another person (contact person or another patient).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PartnershipDto")
 data class PartnershipDto(
 	/** The type of relationship (from CD-CONTACT-PERSON codes). */
 	@param:Schema(description = "Type of relationship.") @ActiveField val type: PartnershipTypeDto? = null, // codes are from CD-CONTACT-PERSON

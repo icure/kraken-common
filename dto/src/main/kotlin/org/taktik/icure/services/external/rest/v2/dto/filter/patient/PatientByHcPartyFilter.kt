@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients associated with a specific healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyFilter")
 data class PatientByHcPartyFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

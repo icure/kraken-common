@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * A filter that matches users whose identifiers are contained in the provided set.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByIdsFilter")
 data class UserByIdsFilter(
 	/** The set of user identifiers to match against. */
 	@param:Schema(required = true)

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches messages by their parent message identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByParentIdsFilter")
 data class MessageByParentIdsFilter(
 	/** The list of parent message identifiers to match. */
 	@ActiveField val parentIds: List<String>,

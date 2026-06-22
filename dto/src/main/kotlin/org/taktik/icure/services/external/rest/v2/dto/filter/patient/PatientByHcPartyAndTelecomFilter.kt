@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by healthcare party and telecom (phone/email) search string.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndTelecomFilter")
 data class PatientByHcPartyAndTelecomFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

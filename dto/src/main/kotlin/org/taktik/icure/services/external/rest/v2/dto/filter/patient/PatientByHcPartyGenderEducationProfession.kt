@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by healthcare party, gender, education, and profession.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyGenderEducationProfession")
 data class PatientByHcPartyGenderEducationProfession(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

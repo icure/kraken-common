@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a duration with a numeric value and a time unit code.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DurationDto")
 data class DurationDto(
 	/** The numeric value of the duration. */
 	@ActiveField val value: Double? = null,

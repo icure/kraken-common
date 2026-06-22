@@ -33,7 +33,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a notification event with a timestamp and delivery status.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.NotificationEventDto")
 data class NotificationEventDto(
 	/** The instant when the notification event occurred. */
 	@param:JsonSerialize(using = InstantSerializer::class)

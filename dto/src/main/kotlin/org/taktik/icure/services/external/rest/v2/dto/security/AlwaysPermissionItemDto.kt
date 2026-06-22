@@ -13,7 +13,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * A permission item whose predicate always evaluates to true, unconditionally granting or revoking the specified permission type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.AlwaysPermissionItemDto")
 data class AlwaysPermissionItemDto(
 	/** The permission type that is always granted or revoked by this item. */
 	@param:Schema(required = true)

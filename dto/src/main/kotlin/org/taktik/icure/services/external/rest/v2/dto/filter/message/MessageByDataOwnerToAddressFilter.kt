@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches messages by data owner and recipient address.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerToAddressFilter")
 data class MessageByDataOwnerToAddressFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches contacts containing services with the specified identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByServiceIdsFilter")
 data class ContactByServiceIdsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

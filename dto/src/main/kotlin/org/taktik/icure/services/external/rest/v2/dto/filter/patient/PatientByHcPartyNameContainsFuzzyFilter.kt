@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Deprecated filter that matches patients by healthcare party and a fuzzy name search string.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyNameContainsFuzzyFilter")
 data class PatientByHcPartyNameContainsFuzzyFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

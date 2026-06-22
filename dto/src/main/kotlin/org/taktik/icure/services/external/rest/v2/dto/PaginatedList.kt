@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  *
  * @param T The type of elements in the paginated list.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PaginatedList")
 data class PaginatedList<T>(
 	/** The list of results for the current page. */
 	@ActiveField val rows: List<T> = emptyList(),

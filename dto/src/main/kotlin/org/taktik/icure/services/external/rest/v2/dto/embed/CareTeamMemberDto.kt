@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a member of a care team involved in a patient's care, linking a healthcare party with their role.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto")
 data class CareTeamMemberDto(
 	/** The unique identifier of this care team member. */
 	override val id: String,

@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
  * such as identifiers, timestamps, tags, codes, and encryption metadata. Used when the full entity
  * payload is not needed.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.IcureStubDto")
 data class IcureStubDto(
 	/** The unique identifier of the entity. */
 	override val id: String,

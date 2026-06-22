@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches agendas owned by a specific user.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter")
 data class AgendaByUserIdFilter(
 	/** The identifier of the user whose agendas to retrieve. */
 	@ActiveField val userId: String,

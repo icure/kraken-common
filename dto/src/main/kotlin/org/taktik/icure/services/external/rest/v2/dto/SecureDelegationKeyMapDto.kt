@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.SecureDelegationKeyMapDto")
 data class SecureDelegationKeyMapDto(
 	override val id: String,
 	override val rev: String? = null,

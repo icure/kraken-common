@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches all groups without any filtering criteria.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.group.AllGroupsFilter")
 data class AllGroupsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

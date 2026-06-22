@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO representing a replication configuration, defining how databases are synchronized between
  * CouchDB instances.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReplicationDto")
 data class ReplicationDto(
 	/** The unique identifier of the replication. */
 	override val id: String,

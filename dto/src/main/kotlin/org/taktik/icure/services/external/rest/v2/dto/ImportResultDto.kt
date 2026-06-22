@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO containing the results of a data import operation, including all the entities that were
  * imported and any warnings or errors encountered during the process.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ImportResultDto")
 data class ImportResultDto(
 	/** The patient that was imported or matched during the import. */
 	@ActiveField val patient: PatientDto? = null,

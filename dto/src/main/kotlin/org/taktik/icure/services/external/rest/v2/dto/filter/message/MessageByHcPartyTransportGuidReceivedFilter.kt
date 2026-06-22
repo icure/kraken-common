@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches messages by healthcare party and transport guid, ordered by received date.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByHcPartyTransportGuidReceivedFilter")
 data class MessageByHcPartyTransportGuidReceivedFilter(
 	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)

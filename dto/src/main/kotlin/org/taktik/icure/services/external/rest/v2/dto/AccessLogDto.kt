@@ -40,7 +40,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an access log entry that records access to medical data or resources within the system.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AccessLogDto")
 data class AccessLogDto(
 	/** The Id of the access log. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,

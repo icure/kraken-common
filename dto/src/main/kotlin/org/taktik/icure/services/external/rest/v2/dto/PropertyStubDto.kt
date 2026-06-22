@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Lightweight stub representation of a property, used when the full stored property is not needed.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto")
 data class PropertyStubDto(
 	/** The unique identifier of the property stub. */
 	@ActiveField val id: String? = null,

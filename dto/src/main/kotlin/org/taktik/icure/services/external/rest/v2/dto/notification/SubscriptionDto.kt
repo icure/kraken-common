@@ -15,7 +15,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a real-time event subscription for a specific entity class. Clients use this DTO to
  * declare which event types and optional filter criteria they want to be notified about.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.notification.SubscriptionDto")
 data class SubscriptionDto<O : IdentifiableDto<String>>(
 	/** The list of event types (CREATE, UPDATE, DELETE) to subscribe to. */
 	@param:Schema(required = true)

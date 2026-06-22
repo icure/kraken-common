@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents an insurance entity. An insurance can be a mutual fund, a private insurance company,
  * or any other type of insurance organization that covers healthcare costs.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.InsuranceDto")
 data class InsuranceDto(
 	/** The unique identifier of the insurance. */
 	override val id: String,

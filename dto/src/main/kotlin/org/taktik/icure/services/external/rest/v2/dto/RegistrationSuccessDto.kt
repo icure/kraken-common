@@ -12,7 +12,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO returned upon successful user and group registration, containing the identifiers and
  * initial authentication token needed to access the newly created environment.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.RegistrationSuccessDto")
 data class RegistrationSuccessDto(
 	/** The identifier of the newly created group. */
 	@param:Schema(required = true) @ActiveField val groupId: String,

@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a time-bounded referral period between a patient and a healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ReferralPeriodDto")
 data class ReferralPeriodDto(
 	/** The date when the referral period started. */
 	@param:JsonSerialize(using = InstantSerializer::class)

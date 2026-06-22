@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by healthcare party and exact date of birth.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyDateOfBirthFilter")
 data class PatientByHcPartyDateOfBirthFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

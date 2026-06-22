@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that returns only elements that match all of the provided sub-filters (logical AND).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.IntersectionFilter")
 data class IntersectionFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

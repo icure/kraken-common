@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents the value content of a medical service. A content can hold different types of values
  * such as strings, numbers, dates, measurements, medications, time series, or compound sub-services.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ContentDto")
 data class ContentDto(
 	/** A string value. */
 	@ActiveField val stringValue: String? = null,

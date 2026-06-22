@@ -34,7 +34,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that returns all elements matching the superSet filter but not matching the subSet filter.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.ComplementFilter")
 data class ComplementFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

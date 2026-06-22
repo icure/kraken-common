@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches services by healthcare party, patient secret foreign keys, tag, code, and value date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodeDateFilter")
 data class ServiceByHcPartyTagCodeDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

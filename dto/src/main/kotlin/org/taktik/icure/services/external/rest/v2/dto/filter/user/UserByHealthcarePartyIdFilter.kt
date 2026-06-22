@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * A filter that matches users linked to a specific healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByHealthcarePartyIdFilter")
 data class UserByHealthcarePartyIdFilter(
 	/** The identifier of the healthcare party whose associated users should be returned. */
 	@ActiveField val healthcarePartyId: String,

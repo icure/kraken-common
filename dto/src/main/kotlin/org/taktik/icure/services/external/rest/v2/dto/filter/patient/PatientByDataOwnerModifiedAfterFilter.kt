@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches patients by data owner and modification date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByDataOwnerModifiedAfterFilter")
 data class PatientByDataOwnerModifiedAfterFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

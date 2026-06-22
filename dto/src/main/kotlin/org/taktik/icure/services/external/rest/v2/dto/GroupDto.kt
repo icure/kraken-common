@@ -39,7 +39,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
  * that contains its own set of databases and users.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.GroupDto")
 data class GroupDto(
 	/** The id of the group. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
@@ -105,8 +104,7 @@ data class GroupDto(
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.GroupDto.TemplatesConfigurationDto")
-	data class TemplatesConfigurationDto(
+		data class TemplatesConfigurationDto(
 		@ActiveField val specId: String,
 		@ActiveField val emailSender: String? = null,
 		@ActiveField val smsSender: String? = null,

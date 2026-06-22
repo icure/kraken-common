@@ -39,15 +39,15 @@ import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
 
+/**
+ * Represents a user that can log in to the iCure platform. A user can be linked to a healthcare party,
+ * a patient, or a device, and holds authentication credentials, roles, and permissions.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents an user that can log in to the iCure platform. It is serialized in JSON and saved in the underlying icure-base CouchDB database.""",
 )
 @JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserDto")
-/**
- * Represents a user that can log in to the iCure platform. A user can be linked to a healthcare party,
- * a patient, or a device, and holds authentication credentials, roles, and permissions.
- */
 data class UserDto(
 	/** The Id of the user. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the user. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
@@ -127,8 +127,7 @@ data class UserDto(
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserDto.SystemMetadata")
-	data class SystemMetadata(
+		data class SystemMetadata(
 		@param:Schema(description = "The roles that the user for acting on the cloud environment.", required = true)
 		@ActiveField val roles: Set<String>,
 		@param:Schema(

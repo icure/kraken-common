@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches medical locations by postal code.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.medicallocation.MedicalLocationByPostCodeFilter")
 data class MedicalLocationByPostCodeFilter(
 	/** The postal code to match. */
 	@ActiveField val postCode: String,

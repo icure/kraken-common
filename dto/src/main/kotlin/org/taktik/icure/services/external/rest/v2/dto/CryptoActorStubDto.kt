@@ -16,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubDto")
 data class CryptoActorStubDto(
 	override val id: String,
 	@param:Schema(required = true) override val rev: String, // Stubs can't be created, but only updated or retrieved: rev is never null.

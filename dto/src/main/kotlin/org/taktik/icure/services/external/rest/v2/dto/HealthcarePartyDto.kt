@@ -54,7 +54,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * such as a physician, nurse, hospital, or medical practice. It is serialized in JSON and saved in the underlying
  * icure-healthdata CouchDB database.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto")
 data class HealthcarePartyDto(
 	/** The Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the healthcare party. We encourage using either a v4 UUID or a HL7 Id.")

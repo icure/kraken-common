@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an action in a form template, combining launchers, a conditional expression, and target states.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.Action")
 data class Action(
 	/** The list of launchers that can trigger this action. */
 	@param:Schema(defaultValue = "emptyList()") @ActiveField val launchers: List<Launcher>? = emptyList(),

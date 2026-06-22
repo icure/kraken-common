@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a database synchronization configuration between a source and a target, with optional filtering.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DatabaseSynchronizationDto")
 data class DatabaseSynchronizationDto(
 	/** The source database URL or identifier. */
 	@ActiveField val source: String? = null,

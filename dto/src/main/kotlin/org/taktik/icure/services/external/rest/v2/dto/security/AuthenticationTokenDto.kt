@@ -14,7 +14,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents an authentication token associated with a user, including its creation time and validity period.
  * The token value is stored in encrypted form.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto")
 data class AuthenticationTokenDto(
 	/** The encrypted token string. */
 	@param:Schema(description = "Encrypted token") @ActiveField val token: String? = null,

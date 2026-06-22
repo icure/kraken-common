@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches all insurances without any filtering criteria.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.insurance.AllInsurancesFilter")
 data class AllInsurancesFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

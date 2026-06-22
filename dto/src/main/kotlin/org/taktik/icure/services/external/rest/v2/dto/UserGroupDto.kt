@@ -17,14 +17,12 @@
  */
 
 package org.taktik.icure.services.external.rest.v2.dto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * DTO representing a user within the context of a specific group, including the group hierarchy
  * and the user's associated data owner identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserGroupDto")
 data class UserGroupDto(
 	/** The identifier of the group this user belongs to. */
 	@ActiveField val groupId: String? = null,

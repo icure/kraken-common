@@ -43,7 +43,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a device that sends medical data. This is a root-level entity stored in the icure-device CouchDB database.
  * A device can act as a data owner and crypto actor for secure data exchange.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DeviceDto")
 data class DeviceDto(
 	/** The Id of the device. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

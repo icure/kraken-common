@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches health elements by healthcare party, status, and version filtering.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyStatusVersioningFilter")
 data class HealthElementByHcPartyStatusVersioningFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents the renewal information for a medication prescription, including the number of renewals and their duration.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RenewalDto")
 data class RenewalDto(
 	/** The number of authorized renewals. */
 	@ActiveField val decimal: Int? = null,

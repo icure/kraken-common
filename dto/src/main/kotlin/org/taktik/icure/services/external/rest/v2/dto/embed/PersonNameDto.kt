@@ -13,7 +13,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents name information for a person, following FHIR HumanName conventions. Includes family name,
  * given names, prefixes, suffixes, and a validity period.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PersonNameDto")
 data class PersonNameDto(
 	/** Family name (often called 'Surname'). */
 	@param:Schema(description = "Family name (often called 'Surname')") @ActiveField val lastName: String? = null,

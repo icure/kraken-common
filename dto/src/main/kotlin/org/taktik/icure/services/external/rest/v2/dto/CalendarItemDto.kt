@@ -39,7 +39,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * availabilities for scheduling purposes.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto")
 data class CalendarItemDto(
 	/** The Id of the calendar item. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

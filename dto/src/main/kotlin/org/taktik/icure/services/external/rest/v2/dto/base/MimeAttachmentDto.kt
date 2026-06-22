@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a MIME attachment with binary data, a file name, and a content type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto")
 data class MimeAttachmentDto(
 	/** The binary content of the attachment. */
 	@param:Schema(type = "string", format = "byte") @ActiveField val data: ByteArray? = null,

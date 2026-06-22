@@ -10,7 +10,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO that pairs a crypto actor stub with its data owner type, used for identifying data owners
  * and their cryptographic metadata.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto")
 data class CryptoActorStubWithTypeDto(
 	/** The type of data owner (healthcare party, device, or patient). */
 	@param:Schema(required = true) @ActiveField val type: DataOwnerTypeDto,

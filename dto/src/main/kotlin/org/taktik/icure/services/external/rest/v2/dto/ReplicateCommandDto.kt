@@ -12,7 +12,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing a command to set up database replication between a source and target CouchDB instance.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReplicateCommandDto")
 data class ReplicateCommandDto(
 	/** The URL of the source CouchDB database. */
 	@param:JsonProperty("source_url") @param:Schema(required = true) @ActiveField val sourceUrl: String,

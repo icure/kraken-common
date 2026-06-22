@@ -14,7 +14,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Holds the security metadata for user-based access control and encryption of entities.
  * Maps access control key hashes to their corresponding secure delegations.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto")
 data class SecurityMetadataDto(
 	@param:Schema(
 		description = """This maps the hex-encoded sha256 hash of a key created by the client using a certain [ExchangeData.accessControlSecret] to the

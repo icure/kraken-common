@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.RoleDto")
 data class RoleDto(
 	/** The unique identifier of the role. It is automatically set to <GROUP_ID>:<ROLE_NAME> */
 	override val id: String,

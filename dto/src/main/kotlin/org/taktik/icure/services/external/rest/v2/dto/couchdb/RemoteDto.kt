@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a remote CouchDB endpoint with its URL and optional authentication.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.RemoteDto")
 data class RemoteDto(
 	/** The URL of the remote CouchDB instance. */
 	@param:Schema(required = true)

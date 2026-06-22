@@ -21,8 +21,7 @@ sealed interface AgendaSlottingAlgorithmDto {
 	 * - Calendar item type duration = 15
 	 * The returned slots for that time table item are 10:10, 10:20, 10:30, 13:05, 13:15
 	 */
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto.FixedIntervals")
-	data class FixedIntervals(
+		data class FixedIntervals(
 		@ActiveField val intervalMinutes: Int,
 	) : AgendaSlottingAlgorithmDto,
 		Serializable

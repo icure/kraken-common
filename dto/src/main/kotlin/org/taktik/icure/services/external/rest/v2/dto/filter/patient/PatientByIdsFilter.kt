@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches patients by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByIdsFilter")
 data class PatientByIdsFilter(
 	/** The set of patient identifiers to match. */
 	@param:Schema(required = true)

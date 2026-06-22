@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches codes by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeByIdsFilter")
 data class CodeByIdsFilter(
 	/** The set of code identifiers to match. */
 	@param:Schema(required = true)

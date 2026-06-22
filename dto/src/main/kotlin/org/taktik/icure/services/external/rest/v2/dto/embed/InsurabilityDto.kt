@@ -32,7 +32,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.InsurabilityDto")
 data class InsurabilityDto(
 	@param:Schema(description = "Insurance extra parameters.") @ActiveField val parameters: Map<String, String> = emptyMap(),
 	@param:Schema(description = "Is hospitalization covered.") @ActiveField val hospitalisation: Boolean? = null,

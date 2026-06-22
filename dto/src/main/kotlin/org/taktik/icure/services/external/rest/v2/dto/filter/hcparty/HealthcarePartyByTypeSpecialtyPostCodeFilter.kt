@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches healthcare parties by specialty type and postal code range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByTypeSpecialtyPostCodeFilter")
 data class HealthcarePartyByTypeSpecialtyPostCodeFilter(
 	/** The specialty category to match. */
 	@ActiveField val specialty: String,

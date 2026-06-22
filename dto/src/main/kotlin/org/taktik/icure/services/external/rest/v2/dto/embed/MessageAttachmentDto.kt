@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an attachment associated with a message, specifying its location type and document identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MessageAttachmentDto")
 data class MessageAttachmentDto(
 	/** The location type of the attachment (annex or body). */
 	@ActiveField val type: DocumentLocationDto? = null,

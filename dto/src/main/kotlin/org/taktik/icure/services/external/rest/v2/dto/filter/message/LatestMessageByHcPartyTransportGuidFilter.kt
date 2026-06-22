@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches the latest message for a healthcare party and transport guid combination.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.LatestMessageByHcPartyTransportGuidFilter")
 data class LatestMessageByHcPartyTransportGuidFilter(
 	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)

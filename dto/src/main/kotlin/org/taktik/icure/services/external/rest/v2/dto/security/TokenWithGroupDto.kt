@@ -7,7 +7,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Associates a JWT or authentication token with the group context in which it is valid.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.TokenWithGroupDto")
 data class TokenWithGroupDto(
 	/** The authentication token string. */
 	@param:Schema(required = true) @ActiveField val token: String,

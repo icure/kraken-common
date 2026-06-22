@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches health elements by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter")
 data class HealthElementByIdsFilter(
 	/** The set of health element identifiers to match. */
 	@param:Schema(required = true)

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyCodesFilter")
 data class ServiceByHcPartyCodesFilter(
 	@ActiveField val healthcarePartyId: String,
 	@ActiveField val codeCodes: Map<String, Collection<String>>,

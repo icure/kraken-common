@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents schooling information for a patient, including the period, school name, and type of education.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SchoolingInfoDto")
 data class SchoolingInfoDto(
 	/** The start date (unix epoch in ms) of the schooling period. */
 	@ActiveField val startDate: Long? = null,

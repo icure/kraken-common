@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches health elements by healthcare party and patient secret foreign keys.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartySecretForeignKeysFilter")
 data class HealthElementByHcPartySecretForeignKeysFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

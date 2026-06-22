@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO representing the definition of a property type, including its value type, scope, and
  * uniqueness constraints.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PropertyTypeDto")
 data class PropertyTypeDto(
 	/** The unique identifier of the property type. */
 	override val id: String,

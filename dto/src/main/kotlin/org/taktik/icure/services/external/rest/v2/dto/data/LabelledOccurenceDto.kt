@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a labelled occurrence count, typically used for aggregation results.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto")
 data class LabelledOccurenceDto(
 	/** The label identifying what is being counted. */
 	@param:Schema(required = true)

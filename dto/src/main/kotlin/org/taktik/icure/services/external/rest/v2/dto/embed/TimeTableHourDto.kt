@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a time range within a time table, defined by start and end hours.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableHourDto")
 data class TimeTableHourDto(
 	/** The start hour encoded as a long (hh:mm:ss). */
 	@ActiveField val startHour: Long? = null, // hh:mm:ss

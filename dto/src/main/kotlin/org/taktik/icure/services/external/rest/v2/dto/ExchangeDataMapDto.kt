@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Links the public keys of a data owner to their exchange data. This entity associates secure delegation keys
  * to the encrypted id of the exchange data used for the creation of the secure delegation.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ExchangeDataMapDto")
 data class ExchangeDataMapDto(
 	/** The id of this entity, which is the Secure Delegation Key. */
 	override val id: String,

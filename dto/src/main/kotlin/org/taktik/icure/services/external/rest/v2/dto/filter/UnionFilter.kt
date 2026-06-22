@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that returns elements matching any of the provided sub-filters (logical OR).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter")
 data class UnionFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

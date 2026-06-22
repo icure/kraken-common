@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents the combined set of granted and revoked permissions for a user or role.
  * Revocations take precedence over grants when both apply to the same permission type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.PermissionDto")
 data class PermissionDto(
 	/** The set of permission items that are explicitly granted. */
 	@param:Schema(description = "Granted permissions.") @ActiveField val grants: Set<PermissionItemDto> = emptySet(),

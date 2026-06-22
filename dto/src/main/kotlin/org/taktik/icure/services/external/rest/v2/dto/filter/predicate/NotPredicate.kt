@@ -33,7 +33,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Predicate that negates another predicate (logical NOT).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.predicate.NotPredicate")
 data class NotPredicate(
 	/** The predicate to negate. */
 	@param:Schema(required = true) @ActiveField val predicate: Predicate,

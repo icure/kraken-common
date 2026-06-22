@@ -22,7 +22,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO used to update the read status of one or more messages for a specific user.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate")
 data class MessagesReadStatusUpdate(
 	/** The list of message identifiers to update. */
 	@ActiveField val ids: List<String>? = null,

@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents the financial valorisation of a flat rate tarification, including validity period and amount breakdown.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ValorisationDto")
 data class ValorisationDto(
 	/** The start of the validity period (yyyyMMdd). */
 	@ActiveField val startOfValidity: Long? = null, // yyyyMMdd

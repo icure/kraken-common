@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches agendas having a specific typed property.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByTypedPropertyFilter")
 data class AgendaByTypedPropertyFilter(
 	/** The property stub to match against agenda properties. */
 	@ActiveField val property: PropertyStubDto,

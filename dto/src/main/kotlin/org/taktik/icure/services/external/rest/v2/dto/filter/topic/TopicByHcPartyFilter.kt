@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches topics associated with a specific healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.topic.TopicByHcPartyFilter")
 data class TopicByHcPartyFilter(
 	/** The identifier of the healthcare party. */
 	@param:Schema(required = true)

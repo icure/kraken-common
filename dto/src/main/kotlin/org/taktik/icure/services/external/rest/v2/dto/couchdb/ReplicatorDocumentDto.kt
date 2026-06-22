@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a CouchDB replicator document that tracks the state of a replication task.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.ReplicatorDocumentDto")
 data class ReplicatorDocumentDto(
 	/** The unique identifier of this replicator document. */
 	override val id: String,

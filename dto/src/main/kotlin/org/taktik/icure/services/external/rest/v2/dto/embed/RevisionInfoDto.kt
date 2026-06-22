@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents revision information for a CouchDB document, including the revision identifier and its status.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RevisionInfoDto")
 data class RevisionInfoDto(
 	/** The revision identifier. */
 	@ActiveField val rev: String? = null,

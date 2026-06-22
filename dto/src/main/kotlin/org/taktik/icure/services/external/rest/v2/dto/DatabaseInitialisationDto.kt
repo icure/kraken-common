@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO containing the initial data required to set up a new database environment, including
  * seed users, healthcare parties, and replication configuration.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DatabaseInitialisationDto")
 data class DatabaseInitialisationDto(
 	/** The list of initial users to create during database initialisation. */
 	@param:Schema(defaultValue = "emptyList()") @ActiveField val users: List<UserDto>? = emptyList(),

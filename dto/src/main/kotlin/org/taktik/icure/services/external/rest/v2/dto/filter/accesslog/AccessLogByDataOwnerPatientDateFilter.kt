@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches access logs by data owner, patient, and date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter")
 data class AccessLogByDataOwnerPatientDateFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

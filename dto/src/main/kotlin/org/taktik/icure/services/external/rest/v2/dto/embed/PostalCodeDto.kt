@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a postal code with its code value and localized labels.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PostalCodeDto")
 data class PostalCodeDto(
 	/** The postal code value. */
 	@ActiveField val code: String? = null,

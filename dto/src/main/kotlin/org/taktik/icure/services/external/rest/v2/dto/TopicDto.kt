@@ -43,7 +43,6 @@ enum class TopicRoleDto {
  * Represents a topic for secure messaging between healthcare parties. A topic groups messages in a conversation
  * and can be linked to health elements and services for medical context.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.TopicDto")
 data class TopicDto(
 	/** The unique identifier of the topic. */
 	override val id: String,

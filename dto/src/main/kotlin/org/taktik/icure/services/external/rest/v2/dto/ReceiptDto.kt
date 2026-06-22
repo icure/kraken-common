@@ -39,7 +39,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * from external systems such as eFact, eAttest, or other healthcare messaging platforms. They can be linked
  * to invoices or other documents.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReceiptDto")
 data class ReceiptDto(
 	/** The unique identifier of the receipt. */
 	override val id: String,

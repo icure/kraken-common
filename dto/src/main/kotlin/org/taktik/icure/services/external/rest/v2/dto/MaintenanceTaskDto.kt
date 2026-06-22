@@ -26,7 +26,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a maintenance task in the iCure system. Maintenance tasks are used to track background operations
  * such as key exchange requests, data migrations, or other administrative operations that require asynchronous processing.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto")
 data class MaintenanceTaskDto(
 	/** The unique identifier of the maintenance task. */
 	override val id: String,

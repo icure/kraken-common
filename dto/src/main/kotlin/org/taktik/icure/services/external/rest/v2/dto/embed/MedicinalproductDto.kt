@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a medicinal product with its intended and actually delivered codes and names.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MedicinalproductDto")
 data class MedicinalproductDto(
 	/** The list of coded identifiers for the intended medicinal product. */
 	@ActiveField val intendedcds: List<CodeStubDto> = emptyList(),

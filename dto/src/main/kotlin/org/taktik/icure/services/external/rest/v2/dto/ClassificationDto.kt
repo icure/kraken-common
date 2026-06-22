@@ -37,7 +37,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a classification used to organize and categorize medical data. Classifications can be nested
  * through parent-child relationships and linked to classification templates.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ClassificationDto")
 data class ClassificationDto(
 	/** The Id of the classification. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

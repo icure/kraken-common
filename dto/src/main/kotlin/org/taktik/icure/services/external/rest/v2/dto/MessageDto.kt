@@ -41,7 +41,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a message exchanged between healthcare parties. Messages can be used for internal communication,
  * eHealth box messages, eFact batches, and other types of healthcare-related communications.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MessageDto")
 data class MessageDto(
 	/** The ID of the message. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The ID of the message. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

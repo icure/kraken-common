@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents an agreement on a specific paragraph of a regulation, including approval status,
  * validity period, quantities, and any refusal justification.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ParagraphAgreementDto")
 data class ParagraphAgreementDto(
 	/** The timestamp (unix epoch in ms) of the agreement. */
 	@ActiveField val timestamp: Long? = null,

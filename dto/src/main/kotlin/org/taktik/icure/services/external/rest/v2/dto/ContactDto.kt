@@ -61,7 +61,6 @@ The main sub-element of the contact is the service. Each atomic piece of informa
  * A contact can occur with or without direct interaction between the patient and the healthcare party. For example,
  * when a healthcare party encodes data received from laboratory's test result, this is done in the absence of a patient.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ContactDto")
 data class ContactDto(
 	/** The Id of the contact. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

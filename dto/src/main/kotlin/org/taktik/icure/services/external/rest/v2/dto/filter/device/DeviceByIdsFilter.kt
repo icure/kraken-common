@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches devices by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByIdsFilter")
 data class DeviceByIdsFilter(
 	/** The set of device identifiers to match. */
 	@param:Schema(required = true)

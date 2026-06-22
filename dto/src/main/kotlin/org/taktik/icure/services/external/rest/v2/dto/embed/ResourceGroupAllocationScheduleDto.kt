@@ -12,7 +12,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an allocation schedule for a resource group, defining time table items within a date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto")
 data class ResourceGroupAllocationScheduleDto(
 	/** The code identifying the resource group. */
 	@ActiveField val resourceGroup: CodeStubDto? = null,

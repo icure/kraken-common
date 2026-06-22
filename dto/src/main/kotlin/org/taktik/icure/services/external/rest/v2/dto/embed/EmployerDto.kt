@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents an employer with a name and address.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.EmployerDto")
 data class EmployerDto(
 	/** The name of the employer. */
 	override val name: String? = null,

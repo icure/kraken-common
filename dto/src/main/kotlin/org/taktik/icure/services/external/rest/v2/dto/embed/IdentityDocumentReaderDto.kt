@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents information about how an identity document (such as a Belgian eID) was read,
  * including the document number, support serial number, and encoding details.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.IdentityDocumentReaderDto")
 data class IdentityDocumentReaderDto(
 	/** The justification document number. */
 	@ActiveField val justificatifDocumentNumber: String? = null,

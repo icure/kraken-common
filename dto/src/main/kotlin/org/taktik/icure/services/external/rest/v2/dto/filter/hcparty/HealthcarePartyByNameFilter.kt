@@ -22,7 +22,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches healthcare parties by name.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByNameFilter")
 data class HealthcarePartyByNameFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

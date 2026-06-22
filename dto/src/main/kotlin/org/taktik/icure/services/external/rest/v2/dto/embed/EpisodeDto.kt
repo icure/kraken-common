@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a medical episode, which is a time-bounded grouping of healthcare elements related to a specific concern.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto")
 data class EpisodeDto(
 	/** The unique identifier of this episode. */
 	override val id: String,

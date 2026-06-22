@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a substance product with its intended and actually delivered codes and names.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SubstanceproductDto")
 data class SubstanceproductDto(
 	/** The list of coded identifiers for the intended substance product. */
 	@ActiveField val intendedcds: List<CodeStubDto> = emptyList(),

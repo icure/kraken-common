@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a group of forms, identified by a GUID and a human-readable name.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FormGroupDto")
 data class FormGroupDto(
 	/** The globally unique identifier for this form group. */
 	@ActiveField val guid: String? = null,

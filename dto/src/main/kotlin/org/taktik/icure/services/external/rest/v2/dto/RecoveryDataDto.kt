@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * The id of recovery data should be derived from the encryption key the data was encrypted with,
  * so that only the encryption key is needed to find and use the recovery data.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.RecoveryDataDto")
 data class RecoveryDataDto(
 	/** The unique identifier of the recovery data, derived from the encryption key. */
 	override val id: String,

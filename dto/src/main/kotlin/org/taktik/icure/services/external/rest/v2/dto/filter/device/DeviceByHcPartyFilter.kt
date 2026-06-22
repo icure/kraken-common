@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches devices by their responsible healthcare party.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByHcPartyFilter")
 data class DeviceByHcPartyFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

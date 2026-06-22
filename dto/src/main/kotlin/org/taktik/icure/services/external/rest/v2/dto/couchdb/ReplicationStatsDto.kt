@@ -16,7 +16,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object containing statistics about a CouchDB replication process.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.ReplicationStatsDto")
 data class ReplicationStatsDto(
 	/** The number of revisions checked during replication. */
 	@ActiveField val revisionsChecked: Int? = null,

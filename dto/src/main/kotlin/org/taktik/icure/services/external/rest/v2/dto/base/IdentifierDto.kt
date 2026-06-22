@@ -14,7 +14,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto")
 data class IdentifierDto(
 	/**
 	 * Unique id for inter-element referencing

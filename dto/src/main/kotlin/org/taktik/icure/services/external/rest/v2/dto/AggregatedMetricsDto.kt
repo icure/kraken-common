@@ -10,7 +10,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO containing aggregated metrics information for a group or environment.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AggregatedMetricsDto")
 data class AggregatedMetricsDto(
 	/** The number of currently active entities. */
 	@ActiveField val activeEntitiesCount: Long? = null,

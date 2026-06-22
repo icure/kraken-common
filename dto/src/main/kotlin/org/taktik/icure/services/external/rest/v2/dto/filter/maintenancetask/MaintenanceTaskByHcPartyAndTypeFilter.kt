@@ -21,7 +21,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches maintenance tasks by healthcare party and task type.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter")
 data class MaintenanceTaskByHcPartyAndTypeFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches calendar items by their recurrence identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByRecurrenceIdFilter")
 data class CalendarItemByRecurrenceIdFilter(
 	/** The recurrence identifier to match. */
 	@ActiveField val recurrenceId: String,

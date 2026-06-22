@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches healthcare parties by their parent identifier.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByParentIdFilter")
 data class HealthcarePartyByParentIdFilter(
 	/** The identifier of the parent healthcare party. */
 	@ActiveField val parentId: String,

@@ -13,7 +13,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a short-lived token that authorizes a single privileged operation (e.g. group transfer).
  * The token is stored as a hash rather than in plain text.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto")
 data class OperationTokenDto(
 	/** The hash of the operation token. */
 	@param:Schema(description = "The hash of the token", required = true) @ActiveField val tokenHash: String,

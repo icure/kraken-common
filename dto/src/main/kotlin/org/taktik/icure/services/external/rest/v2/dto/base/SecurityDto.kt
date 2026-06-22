@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing the security configuration of a CouchDB database, defining admin and member access rights.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.SecurityDto")
 data class SecurityDto(
 	/** The access rights for database administrators. */
 	@param:Schema(defaultValue = "RightDto()") @ActiveField val admins: RightDto = RightDto(),

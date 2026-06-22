@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * A filter that matches users linked to a specific patient entity.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.UsersByPatientIdFilter")
 data class UsersByPatientIdFilter(
 	/** The identifier of the patient whose associated users should be returned. */
 	@param:Schema(required = true)

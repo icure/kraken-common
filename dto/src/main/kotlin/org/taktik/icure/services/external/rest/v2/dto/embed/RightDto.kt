@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents the access rights of a user, specifying read, write, and administration permissions.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RightDto")
 data class RightDto(
 	/** The identifier of the user these rights apply to. */
 	@ActiveField val userId: String? = null,

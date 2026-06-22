@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches invoices by healthcare party, code, and invoice date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter")
 data class InvoiceByHcPartyCodeDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

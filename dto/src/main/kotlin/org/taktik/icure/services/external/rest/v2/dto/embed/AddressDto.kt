@@ -36,7 +36,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents an Address""")
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto")
 data class AddressDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),

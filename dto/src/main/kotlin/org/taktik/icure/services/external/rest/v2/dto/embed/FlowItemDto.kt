@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a flow item in a waiting room or patient flow management system, tracking reception,
  * processing, and cancellation of patient visits including location and contact details.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto")
 data class FlowItemDto(
 	/** The unique identifier of this flow item. */
 	@ActiveField val id: String? = null,

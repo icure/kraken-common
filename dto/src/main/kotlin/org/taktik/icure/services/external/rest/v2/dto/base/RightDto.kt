@@ -10,7 +10,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing a set of access rights defined by user names and roles.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.RightDto")
 data class RightDto(
 	/** The set of user names that have this right. */
 	@ActiveField val names: Set<String> = emptySet(),

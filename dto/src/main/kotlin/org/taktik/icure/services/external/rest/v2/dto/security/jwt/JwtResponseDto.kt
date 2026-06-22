@@ -5,7 +5,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Response returned by JWT-based authentication endpoints, containing the issued tokens upon successful login.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.jwt.JwtResponseDto")
 data class JwtResponseDto(
 	/** The short-lived JWT access token, or null if authentication was not successful. */
 	@ActiveField val token: String? = null,

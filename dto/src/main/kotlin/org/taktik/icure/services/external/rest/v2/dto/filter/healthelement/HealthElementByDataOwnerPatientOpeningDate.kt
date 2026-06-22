@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches health elements by data owner, patient, and opening date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate")
 data class HealthElementByDataOwnerPatientOpeningDate(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

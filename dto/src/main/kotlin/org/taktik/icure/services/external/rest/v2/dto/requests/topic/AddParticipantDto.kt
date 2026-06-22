@@ -8,7 +8,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Request payload to add a new participant to a topic with a specified role.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.requests.topic.AddParticipantDto")
 data class AddParticipantDto(
 	/** The identifier of the data owner (user or healthcare party) to add as a participant. */
 	@param:Schema(required = true)

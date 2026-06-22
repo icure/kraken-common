@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a single item in a medication regimen, defining when and how much medication should be administered.
  * The day can be specified as a specific date, day number in treatment, or weekday. The time can be a day period or exact time.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RegimenItemDto")
 data class RegimenItemDto(
 	// Day definition (One and only one of the three following should be not null)
 	// The three are null if it applies to every day

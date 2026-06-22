@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a grouping of documents, identified by a GUID and a human-readable name.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto")
 data class DocumentGroupDto(
 	/** The globally unique identifier for this document group. */
 	@ActiveField val guid: String? = null,

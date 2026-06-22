@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches calendar items by data owner, patient, and start time range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter")
 data class CalendarItemByDataOwnerPatientStartTimeFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

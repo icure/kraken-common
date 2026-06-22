@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches topics by a specific participant.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.topic.TopicByParticipantFilter")
 data class TopicByParticipantFilter(
 	/** The identifier of the participant. */
 	@param:Schema(required = true)

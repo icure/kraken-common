@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches healthcare parties by their national identifier (e.g., NIHII, INAMI).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByNationalIdentifierFilter")
 data class HealthcarePartyByNationalIdentifierFilter(
 	/** The national identifier value to search for. */
 	@ActiveField val searchValue: String,

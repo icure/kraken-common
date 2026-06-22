@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches maintenance tasks by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByIdsFilter")
 data class MaintenanceTaskByIdsFilter(
 	/** The set of maintenance task identifiers to match. */
 	@param:Schema(required = true)

@@ -10,7 +10,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a numeric value paired with its precision (number of significant digits).
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ValueWithPrecisionDto")
 data class ValueWithPrecisionDto(
 	/** The numeric value. */
 	@ActiveField val value: Int,

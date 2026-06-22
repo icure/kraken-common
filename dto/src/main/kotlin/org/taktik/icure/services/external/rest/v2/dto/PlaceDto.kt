@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing a physical place or location, such as a clinic or office.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PlaceDto")
 data class PlaceDto(
 	/** The unique identifier of the place. */
 	override val id: String,

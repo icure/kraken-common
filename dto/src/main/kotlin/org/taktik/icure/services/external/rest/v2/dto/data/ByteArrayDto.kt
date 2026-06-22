@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object wrapping a raw byte array for use in API requests and responses.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.data.ByteArrayDto")
 data class ByteArrayDto(
 	/** The byte array content. */
 	@param:Schema(required = true) @ActiveField val data: ByteArray,

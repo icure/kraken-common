@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches access logs by user identifier, access type, and start date.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter")
 data class AccessLogByUserIdUserTypeDateFilter(
 	/** The identifier of the user who created the access log. */
 	@ActiveField val userId: String,

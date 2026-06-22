@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * DTO that embeds a user and its linked healthcare party, used when both entities
  * need to be returned together.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserAndHealthcarePartyDto")
 data class UserAndHealthcarePartyDto(
 	/** The user entity. */
 	@param:Schema(required = true) @ActiveField val user: UserDto,

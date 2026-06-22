@@ -27,7 +27,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a batch update request for the read status of multiple messages.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MessagesReadStatusUpdateDto")
 data class MessagesReadStatusUpdateDto(
 	/** The list of message identifiers to update. */
 	@ActiveField val ids: List<String>? = null,

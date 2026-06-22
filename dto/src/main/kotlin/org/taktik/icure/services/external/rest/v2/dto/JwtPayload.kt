@@ -7,7 +7,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO wrapping a JSON Web Token (JWT) string.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.JwtPayload")
 data class JwtPayload(
 	/** The encoded JWT string. */
 	@param:Schema(required = true) @ActiveField val jwt: String,

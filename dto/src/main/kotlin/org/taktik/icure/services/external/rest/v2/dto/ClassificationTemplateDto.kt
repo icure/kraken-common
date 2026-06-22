@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a template for classifications, defining a reusable structure that classifications can be based on.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ClassificationTemplateDto")
 data class ClassificationTemplateDto(
 	/** The Id of the classification template. */
 	override val id: String,

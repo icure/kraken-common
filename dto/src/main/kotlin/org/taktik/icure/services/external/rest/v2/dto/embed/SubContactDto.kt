@@ -31,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @Schema(
 	description = """This entity represents a sub-contact. It is serialized in JSON and saved in the underlying icure-contact CouchDB database.""",
 )
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto")
 data class SubContactDto(
 	@param:Schema(description = "The Id of the sub-contact. We encourage using either a v4 UUID or a HL7 Id.") override val id: String? = null,
 	override val created: Long? = null,

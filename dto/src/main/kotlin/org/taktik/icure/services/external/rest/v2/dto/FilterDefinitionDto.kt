@@ -12,7 +12,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * @property views the design-doc configuration view(s) this filter relies on, all defined on [entity] (empty if none).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.FilterDefinitionDto")
 data class FilterDefinitionDto(
 	@ActiveField val filter: String,
 	@ActiveField val entity: String? = null,

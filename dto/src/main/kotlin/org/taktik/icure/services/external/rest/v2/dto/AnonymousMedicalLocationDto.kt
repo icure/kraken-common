@@ -15,7 +15,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO representing a medical location with only publicly accessible information, stripped of sensitive data.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AnonymousMedicalLocationDto")
 data class AnonymousMedicalLocationDto(
 	/** The unique identifier of the medical location. */
 	@ActiveField val id: String,

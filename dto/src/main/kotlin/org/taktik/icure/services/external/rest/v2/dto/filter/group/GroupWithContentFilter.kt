@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches groups within a super group whose content matches a search string.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.group.GroupWithContentFilter")
 data class GroupWithContentFilter(
 	/** The identifier of the super group to search within. */
 	@ActiveField val superGroupId: String,

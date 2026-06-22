@@ -36,7 +36,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a template for generating documents. Document templates define the structure, type, and content
  * that can be used to produce actual documents.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DocumentTemplateDto")
 data class DocumentTemplateDto(
 	/** The Id of the document template. */
 	override val id: String,

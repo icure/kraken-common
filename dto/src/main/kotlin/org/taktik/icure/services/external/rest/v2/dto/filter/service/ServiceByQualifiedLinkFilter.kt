@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches services by their qualified links.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByQualifiedLinkFilter")
 data class ServiceByQualifiedLinkFilter(
 	/** The list of link values to match. */
 	@ActiveField val linkValues: List<String>,

@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a suspension period for a medication, including start and end moments, reason, and lifecycle state.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SuspensionDto")
 data class SuspensionDto(
 	/** The start moment of the suspension (fuzzy date). */
 	@ActiveField val beginMoment: Long? = null,

@@ -18,7 +18,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches documents by data owner, patient, and date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerPatientDateFilter")
 data class DocumentByDataOwnerPatientDateFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

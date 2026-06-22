@@ -30,7 +30,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a quantity for medication administration, including the numeric amount and the unit of administration.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AdministrationQuantity")
 data class AdministrationQuantity(
 	/** The numeric quantity to administer. */
 	@ActiveField val quantity: Double? = null,

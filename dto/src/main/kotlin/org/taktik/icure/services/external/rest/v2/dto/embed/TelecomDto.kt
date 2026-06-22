@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents available contact details of a user, reachable by telecom methods""")
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.TelecomDto")
 data class TelecomDto(
 	@param:Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") @ActiveField val telecomType: TelecomTypeDto? = null,
 	@ActiveField val telecomNumber: String? = null,

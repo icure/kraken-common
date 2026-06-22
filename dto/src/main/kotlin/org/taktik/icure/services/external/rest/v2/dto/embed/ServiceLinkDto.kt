@@ -26,7 +26,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ServiceLinkDto")
 data class ServiceLinkDto(
 	@ActiveField val serviceId: String? = null,
 	@get:JsonIgnore @set:JsonIgnore @Transient @ActiveField var service: ServiceDto? = null,

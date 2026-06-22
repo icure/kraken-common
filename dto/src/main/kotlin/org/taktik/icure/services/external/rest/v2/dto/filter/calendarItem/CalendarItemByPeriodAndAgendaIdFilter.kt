@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches calendar items within a time period for a specific agenda.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByPeriodAndAgendaIdFilter")
 data class CalendarItemByPeriodAndAgendaIdFilter(
 	/** The identifier of the agenda. */
 	@ActiveField val agendaId: String,

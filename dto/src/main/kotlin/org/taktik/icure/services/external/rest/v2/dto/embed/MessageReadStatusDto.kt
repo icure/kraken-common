@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents the read status of a message for a specific user, tracking whether it has been read and when.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MessageReadStatusDto")
 data class MessageReadStatusDto(
 	/** The timestamp (unix epoch in ms) when the message was read. */
 	@ActiveField val time: Long? = null,

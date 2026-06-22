@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a skeleton reference to a form template, used for defining form structure.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FormSkeletonDto")
 data class FormSkeletonDto(
 	/** A description of the form skeleton. */
 	@ActiveField val descr: String? = null,

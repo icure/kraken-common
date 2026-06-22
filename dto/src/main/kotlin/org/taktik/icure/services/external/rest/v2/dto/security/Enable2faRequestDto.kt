@@ -7,7 +7,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Request payload for enabling two-factor authentication (2FA) for a user account.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.Enable2faRequestDto")
 data class Enable2faRequestDto(
 	/** The shared TOTP secret used to generate one-time passwords. */
 	@param:Schema(required = true)

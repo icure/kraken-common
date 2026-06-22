@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a measured value with its unit, reference value, severity, evolution, and reference ranges.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MeasureDto")
 data class MeasureDto(
 	/** The measured numeric value. */
 	@ActiveField val value: Double? = null,

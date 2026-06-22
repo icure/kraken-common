@@ -10,7 +10,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Data transfer object representing authentication configuration for a remote CouchDB instance.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.couchdb.RemoteAuthenticationDto")
 data class RemoteAuthenticationDto(
 	/** The basic authentication credentials, if applicable. */
 	@ActiveField val basic: BasicDto? = null,

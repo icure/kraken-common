@@ -6,7 +6,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFin
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ExchangeDataMapCreationBatch")
 data class ExchangeDataMapCreationBatch(
 	/**
 	 * Each entry of this map can be used to create a new ExchangeDataMap. Each key is the hex-encoded access control

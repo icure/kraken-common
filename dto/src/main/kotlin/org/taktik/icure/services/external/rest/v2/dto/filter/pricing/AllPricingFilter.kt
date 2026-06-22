@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches all pricing (tarification) entries without any filtering criteria.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.pricing.AllPricingFilter")
 data class AllPricingFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

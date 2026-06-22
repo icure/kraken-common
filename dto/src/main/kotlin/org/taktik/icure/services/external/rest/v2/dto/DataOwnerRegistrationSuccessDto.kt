@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * DTO returned upon successful registration of a data owner, containing the credentials needed for initial login.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DataOwnerRegistrationSuccessDto")
 data class DataOwnerRegistrationSuccessDto(
 	/** The login identifier of the newly registered user. */
 	@param:Schema(required = true) @ActiveField val userLogin: String,

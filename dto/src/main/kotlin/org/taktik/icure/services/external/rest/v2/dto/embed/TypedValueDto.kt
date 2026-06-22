@@ -36,7 +36,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a typed value that can hold one of several primitive types (boolean, integer, double, string, or date).
  * The actual value is stored in the corresponding typed field based on the [type].
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto")
 data class TypedValueDto(
 	/** The type of the value stored. */
 	@ActiveField val type: TypedValuesTypeDto? = null,

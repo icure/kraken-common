@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches forms by data owner, patient, and opening date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.form.FormByDataOwnerPatientOpeningDateFilter")
 data class FormByDataOwnerPatientOpeningDateFilter(
 	/** The identifier of the data owner. */
 	@ActiveField val dataOwnerId: String,

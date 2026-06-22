@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents information about a financial institution, including bank account details and proxy account configuration.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto")
 data class FinancialInstitutionInformationDto(
 	/** The name of the financial institution. */
 	@ActiveField val name: String? = null,

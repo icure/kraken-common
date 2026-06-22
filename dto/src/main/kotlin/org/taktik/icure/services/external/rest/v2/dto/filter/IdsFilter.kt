@@ -34,7 +34,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * Filter that matches entities by their unique identifiers.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.IdsFilter")
 data class IdsFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

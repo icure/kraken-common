@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents a medical house contract (inscription period) for a patient, including coverage details,
  * suspension periods, and signature information.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MedicalHouseContractDto")
 data class MedicalHouseContractDto(
 	/** The identifier of the contract. */
 	@ActiveField val contractId: String? = null,

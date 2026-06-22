@@ -34,7 +34,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that matches contacts by healthcare party, tag, code, and opening date range.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByHcPartyTagCodeDateFilter")
 data class ContactByHcPartyTagCodeDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

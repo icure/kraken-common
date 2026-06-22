@@ -17,7 +17,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Filter that queries an external CouchDB view to retrieve matching entities.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.ExternalViewFilter")
 data class ExternalViewFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

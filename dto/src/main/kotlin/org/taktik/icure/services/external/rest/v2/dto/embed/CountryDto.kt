@@ -28,7 +28,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a country with its ISO code and localized names.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CountryDto")
 data class CountryDto(
 	/** The ISO country code. */
 	@ActiveField val code: String? = null,

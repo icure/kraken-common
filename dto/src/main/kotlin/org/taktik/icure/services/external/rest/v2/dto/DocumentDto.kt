@@ -147,8 +147,7 @@ data class DocumentDto(
 
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 
-	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DocumentDto.ExtraMainAttachmentInfo")
-	data class ExtraMainAttachmentInfo(
+		data class ExtraMainAttachmentInfo(
 		@ActiveField val compressionAlgorithm: String? = null,
 		@ActiveField val triedCompressionAlgorithmsVersion: String? = null,
 		@ActiveField val realDataSize: Long? = null,

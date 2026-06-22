@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonFilter
 /**
  * A filter that matches all users without any additional criteria.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.AllUsersFilter")
 data class AllUsersFilter(
 	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,

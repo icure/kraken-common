@@ -11,7 +11,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents a historical status record for a healthcare party, tracking changes in status over time for a given specialisation.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.HealthcarePartyHistoryStatusDto")
 data class HealthcarePartyHistoryStatusDto(
 	/** The healthcare party status at this point in time. */
 	@param:Schema(required = true)

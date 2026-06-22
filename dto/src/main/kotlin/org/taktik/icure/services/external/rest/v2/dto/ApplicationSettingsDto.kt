@@ -35,7 +35,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 /**
  * Represents application-level settings stored as key-value pairs. Settings can be stored in plaintext or encrypted form.
  */
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ApplicationSettingsDto")
 data class ApplicationSettingsDto(
 	/** The Id of the application settings. */
 	override val id: String,
