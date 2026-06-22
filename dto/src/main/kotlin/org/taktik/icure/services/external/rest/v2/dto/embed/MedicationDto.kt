@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FieldIntroducedIn
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
 
@@ -56,7 +56,7 @@ data class MedicationDto(
 	@ActiveField val regimen: List<RegimenItemDto>? = null,
 	@ActiveField val posology: String? = null, // replace structured posology by text
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@FieldIntroducedIn("2.6.0")
+	@FilterBeforeSdkVersion("2.6.0")
 	val options: Map<String, ContentDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val agreements: Map<String, ParagraphAgreementDto>? = null,

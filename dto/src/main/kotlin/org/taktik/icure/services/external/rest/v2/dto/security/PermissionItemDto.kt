@@ -18,6 +18,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * The predicate defines the condition under which the permission applies.
  */
 sealed interface PermissionItemDto : Serializable {
+	@ActiveField
 	val itemType: String
 		get() = this::class.simpleName!!
 	@ActiveField val type: PermissionTypeDto

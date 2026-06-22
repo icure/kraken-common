@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.LegacyField
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -36,8 +38,6 @@ import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
-import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.LegacyField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -61,9 +61,12 @@ data class UserDto(
 	@ActiveField val identifier: List<IdentifierDto> = listOf(),
 	/** Last name of the user. */
 	@param:Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.")
+	@ActiveField
 	override val name: String? = null,
 	/** Extra properties for the user. Those properties are typed (see class Property). */
-	@param:Schema(description = "Extra properties for the user. Those properties are typed (see class Property)") override val properties: Set<PropertyStubDto> = emptySet(),
+	@param:Schema(description = "Extra properties for the user. Those properties are typed (see class Property)")
+	@ActiveField
+	override val properties: Set<PropertyStubDto> = emptySet(),
 	/** Local permissions specified for the user. */
 	@param:Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system")
 	@ActiveField val permissions: Set<PermissionDto> = emptySet(),

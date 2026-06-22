@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FieldIntroducedIn
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,7 +39,7 @@ data class DataAttachmentDto(
 	/**
 	 * Value computed by the backend, the actual size of the data stored for the attachment, in bytes.
 	 */
-	@FieldIntroducedIn("2.4.0") val storedDataSize: Long? = null,
+	@FilterBeforeSdkVersion("2.4.0") val storedDataSize: Long? = null,
 	/**
 	 * Value provided by the client, the real size of the data after it has been decrypted and decompressed, in bytes.
 	 * This value is not used or verified by the backend.

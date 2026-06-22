@@ -34,7 +34,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FieldIntroducedIn
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -110,7 +110,7 @@ data class DocumentDto(
 	) @ActiveField val mainUti: String? = null,
 	/** Extra Uniform Type Identifiers for the main attachment. */
 	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") @ActiveField val otherUtis: Set<String> = emptySet(),
-	@FieldIntroducedIn("2.4.0") val mainAttachmentStoredDataSize: Long? = null,
+	@FilterBeforeSdkVersion("2.4.0") val mainAttachmentStoredDataSize: Long? = null,
 	@ActiveField val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
 	/** Secondary attachments for this document. */
 	@param:Schema(description = "Secondary attachments for this document") @ActiveField val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),

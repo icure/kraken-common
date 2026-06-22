@@ -41,7 +41,8 @@ data class RoleDto(
 	/** The timestamp of when the role was deleted, if applicable. */
 	override val deletionDate: Long? = null,
 	/** The name of the role. It can only contain uppercase letters, numbers, and underscores for a max length of 40 characters.*/
-	override val name: String? = null,
+	// Needs to be annotated with ActiveField even if is override because of a limitation in the generator
+	@ActiveField override val name: String? = null,
 	/** A short description for the role. It cannot exceed 300 characters. **/
 	@ActiveField val description: String? = null,
 	/**

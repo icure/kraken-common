@@ -35,6 +35,7 @@ sealed interface Field : StructureElement {
 	@ActiveField val now: Boolean?
 	@ActiveField val translate: Boolean?
 
+	@ActiveField
 	val type: FieldType
 		get() = FieldType.fromClass(this::class)
 }
