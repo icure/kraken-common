@@ -26,6 +26,7 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -34,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.FilterDto
 /**
  * Filter that matches healthcare parties by their unique identifiers.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.hcparty.HealthcarePartyByIdsFilter")
 data class HealthcarePartyByIdsFilter(
 	/** The set of healthcare party identifiers to match. */
 	@param:Schema(required = true)

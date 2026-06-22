@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -16,13 +18,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches documents by document type, data owner, and patient.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByTypeDataOwnerPatientFilter")
 data class DocumentByTypeDataOwnerPatientFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The type of document to match. */
-	val documentType: DocumentTypeDto,
+	@ActiveField val documentType: DocumentTypeDto,
 	/** The set of secret patient keys used for secure delegation matching. */
-	val secretPatientKeys: Set<String>,
+	@ActiveField val secretPatientKeys: Set<String>,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<DocumentDto>

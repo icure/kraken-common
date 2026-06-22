@@ -21,15 +21,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Data transfer object representing the security configuration of a CouchDB database, defining admin and member access rights.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.SecurityDto")
 data class SecurityDto(
 	/** The access rights for database administrators. */
-	@param:Schema(defaultValue = "RightDto()") val admins: RightDto = RightDto(),
+	@param:Schema(defaultValue = "RightDto()") @ActiveField val admins: RightDto = RightDto(),
 	/** The access rights for database members. */
-	@param:Schema(defaultValue = "RightDto()") val members: RightDto = RightDto(),
+	@param:Schema(defaultValue = "RightDto()") @ActiveField val members: RightDto = RightDto(),
 ) : Serializable

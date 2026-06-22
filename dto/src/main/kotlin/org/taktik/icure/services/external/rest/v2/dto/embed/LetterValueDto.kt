@@ -20,19 +20,22 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a letter-based value used in tarification, associating a letter key with an index, coefficient, and numeric value.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.LetterValueDto")
 data class LetterValueDto(
 	/** The letter key identifier. */
-	val letter: String? = null,
+	@ActiveField val letter: String? = null,
 	/** The index associated with this letter value. */
-	val index: String? = null,
+	@ActiveField val index: String? = null,
 	/** The coefficient multiplier. */
-	val coefficient: Double? = null,
+	@ActiveField val coefficient: Double? = null,
 	/** The numeric value. */
-	val value: Double? = null,
+	@ActiveField val value: Double? = null,
 )

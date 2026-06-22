@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,19 +17,20 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches code identifiers within an interval defined by start and end type, code, and version.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.code.CodeIdsByTypeCodeVersionIntervalFilter")
 data class CodeIdsByTypeCodeVersionIntervalFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The type at the start of the interval. */
-	val startType: String? = null,
+	@ActiveField val startType: String? = null,
 	/** The code value at the start of the interval. */
-	val startCode: String? = null,
+	@ActiveField val startCode: String? = null,
 	/** The version at the start of the interval. */
-	val startVersion: String? = null,
+	@ActiveField val startVersion: String? = null,
 	/** The type at the end of the interval. */
-	val endType: String? = null,
+	@ActiveField val endType: String? = null,
 	/** The code value at the end of the interval. */
-	val endCode: String? = null,
+	@ActiveField val endCode: String? = null,
 	/** The version at the end of the interval. */
-	val endVersion: String? = null,
+	@ActiveField val endVersion: String? = null,
 ) : AbstractFilterDto<CodeDto>

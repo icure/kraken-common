@@ -19,6 +19,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,71 +28,72 @@ import com.fasterxml.jackson.annotation.JsonInclude
  * Represents a flow item in a waiting room or patient flow management system, tracking reception,
  * processing, and cancellation of patient visits including location and contact details.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto")
 data class FlowItemDto(
 	/** The unique identifier of this flow item. */
-	val id: String? = null,
+	@ActiveField val id: String? = null,
 	/** The title or summary of the flow item. */
-	val title: String? = null,
+	@ActiveField val title: String? = null,
 	/** A comment associated with the flow item. */
-	val comment: String? = null,
+	@ActiveField val comment: String? = null,
 	/** The timestamp (unix epoch in ms) when the patient was received. */
-	val receptionDate: Long? = null,
+	@ActiveField val receptionDate: Long? = null,
 	/** The timestamp (unix epoch in ms) when processing started. */
-	val processingDate: Long? = null,
+	@ActiveField val processingDate: Long? = null,
 	/** The identifier of the person processing this flow item. */
-	val processer: String? = null,
+	@ActiveField val processer: String? = null,
 	/** The timestamp (unix epoch in ms) when this flow item was cancelled. */
-	val cancellationDate: Long? = null,
+	@ActiveField val cancellationDate: Long? = null,
 	/** The identifier of the person who cancelled this flow item. */
-	val canceller: String? = null,
+	@ActiveField val canceller: String? = null,
 	/** The reason for cancellation. */
-	val cancellationReason: String? = null,
+	@ActiveField val cancellationReason: String? = null,
 	/** Additional notes about the cancellation. */
-	val cancellationNote: String? = null,
+	@ActiveField val cancellationNote: String? = null,
 	/** The current status of the flow item. */
-	val status: String? = null,
+	@ActiveField val status: String? = null,
 	/** Whether this flow item represents a home visit. */
-	val homeVisit: Boolean? = null,
+	@ActiveField val homeVisit: Boolean? = null,
 	/** The municipality for the visit location. */
-	val municipality: String? = null,
+	@ActiveField val municipality: String? = null,
 	/** The town for the visit location. */
-	val town: String? = null,
+	@ActiveField val town: String? = null,
 	/** The postal code for the visit location. */
-	val zipCode: String? = null,
+	@ActiveField val zipCode: String? = null,
 	/** The street name for the visit location. */
-	val street: String? = null,
+	@ActiveField val street: String? = null,
 	/** The building name for the visit location. */
-	val building: String? = null,
+	@ActiveField val building: String? = null,
 	/** The building number for the visit location. */
-	val buildingNumber: String? = null,
+	@ActiveField val buildingNumber: String? = null,
 	/** The doorbell name at the visit location. */
-	val doorbellName: String? = null,
+	@ActiveField val doorbellName: String? = null,
 	/** The floor at the visit location. */
-	val floor: String? = null,
+	@ActiveField val floor: String? = null,
 	/** The letter box identifier at the visit location. */
-	val letterBox: String? = null,
+	@ActiveField val letterBox: String? = null,
 	/** Operational notes. */
-	val notesOps: String? = null,
+	@ActiveField val notesOps: String? = null,
 	/** Contact notes. */
-	val notesContact: String? = null,
+	@ActiveField val notesContact: String? = null,
 	/** The latitude coordinate of the visit location. */
-	val latitude: String? = null,
+	@ActiveField val latitude: String? = null,
 	/** The longitude coordinate of the visit location. */
-	val longitude: String? = null,
+	@ActiveField val longitude: String? = null,
 	/** The type of flow item. */
-	val type: String? = null,
+	@ActiveField val type: String? = null,
 	/** Whether this is an emergency visit. */
-	val emergency: Boolean? = null,
+	@ActiveField val emergency: Boolean? = null,
 	/** The phone number of the patient. */
-	val phoneNumber: String? = null,
+	@ActiveField val phoneNumber: String? = null,
 	/** The identifier of the patient. */
-	val patientId: String? = null,
+	@ActiveField val patientId: String? = null,
 	/** The last name of the patient. */
-	val patientLastName: String? = null,
+	@ActiveField val patientLastName: String? = null,
 	/** The first name of the patient. */
-	val patientFirstName: String? = null,
+	@ActiveField val patientFirstName: String? = null,
 	/** A description of the flow item. */
-	val description: String? = null,
+	@ActiveField val description: String? = null,
 	/** The intervention code associated with the flow item. */
-	val interventionCode: String? = null,
+	@ActiveField val interventionCode: String? = null,
 )

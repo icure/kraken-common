@@ -3,6 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.utils
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
@@ -20,11 +22,12 @@ import com.fasterxml.jackson.databind.JsonNode
  * Implementations cover string, long, and complex (JSON node) key types.
  */
 sealed interface ExternalFilterKeyDto {
-	val key: Any
+	@ActiveField val key: Any
 
 	/**
 	 * A filter key backed by a string value.
 	 */
+	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterStringKeyDto")
 	data class ExternalFilterStringKeyDto(
 		/** The string key value. */
 		override val key: String,
@@ -33,6 +36,7 @@ sealed interface ExternalFilterKeyDto {
 	/**
 	 * A filter key backed by a long integer value.
 	 */
+	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterLongKeyDto")
 	data class ExternalFilterLongKeyDto(
 		/** The long key value. */
 		override val key: Long,
@@ -41,6 +45,7 @@ sealed interface ExternalFilterKeyDto {
 	/**
 	 * A filter key backed by an arbitrary JSON node, suitable for composite or structured keys.
 	 */
+	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto.ExternalFilterComplexKeyDto")
 	data class ExternalFilterComplexKeyDto(
 		/** The JSON node representing the complex key value. */
 		override val key: JsonNode,

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -32,6 +33,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 /**
  * Filter that returns elements matching any of the provided sub-filters (logical OR).
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.UnionFilter")
 data class UnionFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -16,10 +18,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * A filter that matches users by a free-text search string applied against name, email, and phone fields.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByNameEmailPhoneFilter")
 data class UserByNameEmailPhoneFilter(
 	/** The search string to match against user name, email address, or phone number. */
 	@param:Schema(required = true)
-	val searchString: String,
+	@ActiveField val searchString: String,
 	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

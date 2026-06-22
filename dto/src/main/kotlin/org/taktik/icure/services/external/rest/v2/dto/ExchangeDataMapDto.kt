@@ -7,6 +7,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,6 +17,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFin
  * Links the public keys of a data owner to their exchange data. This entity associates secure delegation keys
  * to the encrypted id of the exchange data used for the creation of the secure delegation.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ExchangeDataMapDto")
 data class ExchangeDataMapDto(
 	/** The id of this entity, which is the Secure Delegation Key. */
 	override val id: String,
@@ -26,7 +29,7 @@ data class ExchangeDataMapDto(
     """,
 	)
 	/** A map where each key is a public key fingerprint and the value is an encrypted exchange data id. */
-	val encryptedExchangeDataIds: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
+	@ActiveField val encryptedExchangeDataIds: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

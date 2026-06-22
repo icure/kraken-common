@@ -30,6 +30,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ReceiptBlobTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -37,6 +39,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
  * from external systems such as eFact, eAttest, or other healthcare messaging platforms. They can be linked
  * to invoices or other documents.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReceiptDto")
 data class ReceiptDto(
 	/** The unique identifier of the receipt. */
 	override val id: String,
@@ -59,22 +62,22 @@ data class ReceiptDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Map of blob type to attachment id for the receipt. */
-	val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val attachmentInfos: Map<ReceiptBlobTypeDto, DataAttachmentDto> = emptyMap(),
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
+	@ActiveField val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val attachmentInfos: Map<ReceiptBlobTypeDto, DataAttachmentDto> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** List of references (e.g., nipReference, errorCode, errorPath, tarification, invoice UUID). */
-	val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
+	@ActiveField val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
 	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to
 	/** The id of the document (InvoiceDto, ContactDto, ...) this receipt is linked to. */
-	val documentId: String? = null,
+	@ActiveField val documentId: String? = null,
 	/** The category of the receipt. */
-	val category: String? = null,
+	@ActiveField val category: String? = null,
 	/** The sub-category of the receipt. */
-	val subCategory: String? = null,
+	@ActiveField val subCategory: String? = null,
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */

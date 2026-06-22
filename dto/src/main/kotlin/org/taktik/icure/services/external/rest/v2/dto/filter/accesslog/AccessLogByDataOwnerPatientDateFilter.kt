@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -16,17 +18,18 @@ import java.time.Instant
 /**
  * Filter that matches access logs by data owner, patient, and date range.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByDataOwnerPatientDateFilter")
 data class AccessLogByDataOwnerPatientDateFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The start of the date range (inclusive). */
-	val startDate: Instant?,
+	@ActiveField val startDate: Instant?,
 	/** The end of the date range (inclusive). */
-	val endDate: Instant?,
+	@ActiveField val endDate: Instant?,
 	/** The set of secret patient identifiers used for secure delegation matching. */
-	val secretPatientIds: Set<String>,
+	@ActiveField val secretPatientIds: Set<String>,
 	/** Whether to return results in descending order. */
-	val descending: Boolean?,
+	@ActiveField val descending: Boolean?,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AccessLogDto>

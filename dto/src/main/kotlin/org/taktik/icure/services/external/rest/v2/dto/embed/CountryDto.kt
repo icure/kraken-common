@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a country with its ISO code and localized names.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CountryDto")
 data class CountryDto(
 	/** The ISO country code. */
-	val code: String? = null,
+	@ActiveField val code: String? = null,
 	/** A map of localized country names, keyed by language code. */
-	val name: Map<String, String>? = null,
+	@ActiveField val name: Map<String, String>? = null,
 ) : Serializable

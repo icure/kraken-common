@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -16,11 +18,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches health elements by healthcare party and a list of identifiers.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersFilter")
 data class HealthElementByHcPartyIdentifiersFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val hcPartyId: String,
+	@ActiveField val hcPartyId: String,
 	/** The list of identifiers to match. */
-	val identifiers: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifiers: List<IdentifierDto> = emptyList(),
 ) : AbstractFilterDto<HealthElementDto>

@@ -3,6 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * An identifier intended for computation
@@ -12,37 +14,38 @@ import java.io.Serializable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto")
 data class IdentifierDto(
 	/**
 	 * Unique id for inter-element referencing
 	 */
-	val id: String? = null,
+	@ActiveField val id: String? = null,
 	/**
 	 * Organization that issued id (may be just text)
 	 */
-	val assigner: String? = null,
+	@ActiveField val assigner: String? = null,
 	/**
 	 * Unique id for inter-element referencing
 	 */
 	/**
 	 * Time period when id is/was valid for use
 	 */
-	val start: String? = null,
-	val end: String? = null,
+	@ActiveField val start: String? = null,
+	@ActiveField val end: String? = null,
 	/**
 	 * The namespace for the identifier value
 	 */
-	val system: String? = null,
+	@ActiveField val system: String? = null,
 	/**
 	 * Description of identifier
 	 */
-	val type: CodeStubDto? = null,
+	@ActiveField val type: CodeStubDto? = null,
 	/**
 	 * usual | official | temp | secondary | old (If known)
 	 */
-	val use: String? = null,
+	@ActiveField val use: String? = null,
 	/**
 	 * The value that is unique
 	 */
-	val value: String? = null,
+	@ActiveField val value: String? = null,
 ) : Serializable

@@ -22,21 +22,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a tag associated with a calendar item, carrying metadata about who tagged it and when.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.CalendarItemTagDto")
 data class CalendarItemTagDto(
 	/** The code identifying this tag. */
-	val code: String? = null,
+	@ActiveField val code: String? = null,
 	/** The timestamp (unix epoch in ms) when the tag was applied. */
-	val date: Long? = null,
+	@ActiveField val date: Long? = null,
 	/** The identifier of the user who applied the tag. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** The display name of the user who applied the tag. */
-	val userName: String? = null,
+	@ActiveField val userName: String? = null,
 	/** The base64-encoded encrypted content of this tag. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,

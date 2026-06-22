@@ -19,6 +19,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,7 +28,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
  * DTO wrapping a map of entity identifiers to lists of associated identifiers, used for expressing
  * relationships between entities in bulk operations.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MapOfIdsDto")
 data class MapOfIdsDto(
 	/** A map where each key is an entity identifier and the value is a list of related entity identifiers. */
-	val mapOfIds: Map<String, List<String>> = emptyMap(),
+	@ActiveField val mapOfIds: Map<String, List<String>> = emptyMap(),
 )

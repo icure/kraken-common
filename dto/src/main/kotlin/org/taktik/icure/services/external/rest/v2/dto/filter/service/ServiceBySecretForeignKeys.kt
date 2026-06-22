@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -33,12 +35,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches services by healthcare party and patient secret foreign keys.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceBySecretForeignKeys")
 data class ServiceBySecretForeignKeys(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** The set of patient secret foreign keys to match. */
 	@param:Schema(required = true)
-	val patientSecretForeignKeys: Set<String>,
+	@ActiveField val patientSecretForeignKeys: Set<String>,
 ) : AbstractFilterDto<ServiceDto>

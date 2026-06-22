@@ -20,17 +20,20 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a postal code with its code value and localized labels.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PostalCodeDto")
 data class PostalCodeDto(
 	/** The postal code value. */
-	val code: String? = null,
+	@ActiveField val code: String? = null,
 	/** Localized labels for this postal code, keyed by language code. */
-	val label: Map<String, String> = emptyMap(),
+	@ActiveField val label: Map<String, String> = emptyMap(),
 ) : Serializable {
 	override fun toString(): String = code ?: "N/A"
 }

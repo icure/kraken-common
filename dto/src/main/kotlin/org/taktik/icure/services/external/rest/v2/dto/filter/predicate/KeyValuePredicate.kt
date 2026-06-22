@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimitive
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(Predicate::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -32,13 +34,14 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AnyPrimiti
 /**
  * Predicate that evaluates a comparison between an entity property and a value using an operator.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.predicate.KeyValuePredicate")
 data class KeyValuePredicate(
 	/** The property key to compare. */
-	val key: String? = null,
+	@ActiveField val key: String? = null,
 	/** The comparison operator. */
-	val operator: Operator? = null,
+	@ActiveField val operator: Operator? = null,
 	/** The value to compare against. */
-	val value: AnyPrimitive? = null,
+	@ActiveField val value: AnyPrimitive? = null,
 ) : Predicate
 
 /**

@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.TopicDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -33,10 +35,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches topics by a specific participant.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.topic.TopicByParticipantFilter")
 data class TopicByParticipantFilter(
 	/** The identifier of the participant. */
 	@param:Schema(required = true)
-	val participantId: String,
+	@ActiveField val participantId: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<TopicDto>

@@ -21,15 +21,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents the read status of a message for a specific user, tracking whether it has been read and when.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MessageReadStatusDto")
 data class MessageReadStatusDto(
 	/** The timestamp (unix epoch in ms) when the message was read. */
-	val time: Long? = null,
+	@ActiveField val time: Long? = null,
 	/** Whether the message has been read. */
-	@param:Schema(defaultValue = "false") val read: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val read: Boolean = false,
 ) : Serializable

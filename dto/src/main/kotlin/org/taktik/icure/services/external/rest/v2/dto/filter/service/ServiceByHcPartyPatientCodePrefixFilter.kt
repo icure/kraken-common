@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -18,19 +20,20 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches services by healthcare party, patient, code prefix, and value date range.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyPatientCodePrefixFilter")
 data class ServiceByHcPartyPatientCodePrefixFilter(
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String,
+	@ActiveField val healthcarePartyId: String,
 	/** The set of secret foreign keys for patient matching. */
-	val patientSecretForeignKeys: Set<String>,
+	@ActiveField val patientSecretForeignKeys: Set<String>,
 	/** The type of the code to match. */
-	val codeType: String,
+	@ActiveField val codeType: String,
 	/** The code prefix to match. */
-	val codeCodePrefix: String,
+	@ActiveField val codeCodePrefix: String,
 	/** The start of the value date range. */
-	val startValueDate: Long? = null,
+	@ActiveField val startValueDate: Long? = null,
 	/** The end of the value date range. */
-	val endValueDate: Long? = null,
+	@ActiveField val endValueDate: Long? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

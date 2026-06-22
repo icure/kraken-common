@@ -19,19 +19,22 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a batch update request for the read status of multiple messages.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MessagesReadStatusUpdateDto")
 data class MessagesReadStatusUpdateDto(
 	/** The list of message identifiers to update. */
-	val ids: List<String>? = null,
+	@ActiveField val ids: List<String>? = null,
 	/** The identifier of the user whose read status is being updated. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** The timestamp (unix epoch in ms) of the status update. */
-	val time: Long? = null,
+	@ActiveField val time: Long? = null,
 	/** The new read status (true for read, false for unread). */
-	val status: Boolean? = null,
+	@ActiveField val status: Boolean? = null,
 )

@@ -16,17 +16,20 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * DTO used to update the read status of one or more messages for a specific user.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MessagesReadStatusUpdate")
 data class MessagesReadStatusUpdate(
 	/** The list of message identifiers to update. */
-	val ids: List<String>? = null,
+	@ActiveField val ids: List<String>? = null,
 	/** The timestamp in epoch milliseconds when the messages were read. */
-	val time: Long? = null,
+	@ActiveField val time: Long? = null,
 	/** The new read status to set (true for read, false for unread). */
-	val status: Boolean? = null,
+	@ActiveField val status: Boolean? = null,
 	/** The identifier of the user whose read status is being updated. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 )

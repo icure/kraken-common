@@ -21,35 +21,38 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a measured value with its unit, reference value, severity, evolution, and reference ranges.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MeasureDto")
 data class MeasureDto(
 	/** The measured numeric value. */
-	val value: Double? = null,
+	@ActiveField val value: Double? = null,
 	/** The reference value for comparison. */
-	val ref: Double? = null,
+	@ActiveField val ref: Double? = null,
 	/** The severity level as an integer. */
-	val severity: Int? = null,
+	@ActiveField val severity: Int? = null,
 	/** The severity code as a string. */
-	val severityCode: String? = null,
+	@ActiveField val severityCode: String? = null,
 	/** The evolution indicator as an integer. */
-	val evolution: Int? = null,
+	@ActiveField val evolution: Int? = null,
 	/** The unit of measurement as a string. */
-	val unit: String? = null,
+	@ActiveField val unit: String? = null,
 	/** The coded units of measurement. */
-	val unitCodes: Set<CodeStubDto>? = null,
+	@ActiveField val unitCodes: Set<CodeStubDto>? = null,
 	/** A comment about the measurement. */
-	val comment: String? = null,
+	@ActiveField val comment: String? = null,
 	/** A comparator string (e.g., "<", ">", "<="). */
-	val comparator: String? = null,
+	@ActiveField val comparator: String? = null,
 	/** The sign of the value. */
-	val sign: String? = null,
+	@ActiveField val sign: String? = null,
 	/** The list of reference ranges for this measurement. */
-	val referenceRanges: List<ReferenceRangeDto> = emptyList(),
+	@ActiveField val referenceRanges: List<ReferenceRangeDto> = emptyList(),
 	/** The value with its precision information. */
-	val valueWithPrecision: ValueWithPrecisionDto? = null,
+	@ActiveField val valueWithPrecision: ValueWithPrecisionDto? = null,
 ) : Serializable

@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -32,28 +34,29 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches services by healthcare party, patient secret foreign keys, tag, code, and value date range.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodeDateFilter")
 data class ServiceByHcPartyTagCodeDateFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** Deprecated. Use patientSecretForeignKeys instead. */
 	@Deprecated("Use patientSecretForeignKeys instead")
-	val patientSecretForeignKey: String? = null,
+	@ActiveField val patientSecretForeignKey: String? = null,
 	/** The list of secret foreign keys for patient matching. */
-	val patientSecretForeignKeys: List<String>? = null,
+	@ActiveField val patientSecretForeignKeys: List<String>? = null,
 	/** The type of the tag to filter on. */
-	val tagType: String? = null,
+	@ActiveField val tagType: String? = null,
 	/** The tag code value to match. */
-	val tagCode: String? = null,
+	@ActiveField val tagCode: String? = null,
 	/** The type of the code to filter on. */
-	val codeType: String? = null,
+	@ActiveField val codeType: String? = null,
 	/** The code value to match. */
-	val codeCode: String? = null,
+	@ActiveField val codeCode: String? = null,
 	/** The start of the value date range. */
-	val startValueDate: Long? = null,
+	@ActiveField val startValueDate: Long? = null,
 	/** The end of the value date range. */
-	val endValueDate: Long? = null,
+	@ActiveField val endValueDate: Long? = null,
 	/** Whether to return results in descending order. */
-	val descending: Boolean = false,
+	@ActiveField val descending: Boolean = false,
 ) : AbstractFilterDto<ServiceDto>

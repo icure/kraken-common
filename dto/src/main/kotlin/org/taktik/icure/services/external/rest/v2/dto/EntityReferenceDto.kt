@@ -21,6 +21,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,6 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
  * Represents a reference to another entity by its document id. Entity references provide a lightweight
  * way to create links between entities.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.EntityReferenceDto")
 data class EntityReferenceDto(
 	/** The Id of the entity reference. */
 	override val id: String,
@@ -36,7 +39,7 @@ data class EntityReferenceDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The id of the referenced document. */
-	val docId: String? = null,
+	@ActiveField val docId: String? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(
 		id: String?,

@@ -21,20 +21,23 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Lightweight stub representation of a property, used when the full stored property is not needed.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto")
 data class PropertyStubDto(
 	/** The unique identifier of the property stub. */
-	val id: String? = null,
+	@ActiveField val id: String? = null,
 	/** The type stub definition of this property. */
-	val type: PropertyTypeStubDto? = null,
+	@ActiveField val type: PropertyTypeStubDto? = null,
 	/** The typed value held by this property. */
-	val typedValue: TypedValueDto? = null,
+	@ActiveField val typedValue: TypedValueDto? = null,
 	/** The soft-delete timestamp in epoch milliseconds. Deprecated: remove from list instead. */
-	@Deprecated("Remove from list instead") val deletionDate: Long? = null,
+	@Deprecated("Remove from list instead") @ActiveField val deletionDate: Long? = null,
 	/** The encrypted content of this property, encoded as a Base64 string. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto

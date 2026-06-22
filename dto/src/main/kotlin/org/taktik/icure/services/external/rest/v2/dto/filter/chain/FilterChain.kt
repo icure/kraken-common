@@ -23,16 +23,19 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * A chain that combines a filter with an optional predicate for post-filtering results.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain")
 data class FilterChain<O : IdentifiableDto<String>>(
 	/** The filter to apply. */
 	@param:Schema(required = true)
-	val filter: AbstractFilterDto<O>,
+	@ActiveField val filter: AbstractFilterDto<O>,
 	/** An optional predicate to further refine the filter results. */
-	val predicate: Predicate? = null,
+	@ActiveField val predicate: Predicate? = null,
 )

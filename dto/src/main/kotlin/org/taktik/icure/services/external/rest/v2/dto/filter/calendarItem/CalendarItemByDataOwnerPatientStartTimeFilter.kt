@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,17 +17,18 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches calendar items by data owner, patient, and start time range.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.calendarItem.CalendarItemByDataOwnerPatientStartTimeFilter")
 data class CalendarItemByDataOwnerPatientStartTimeFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The start of the date range (inclusive). */
-	val startDate: Long?,
+	@ActiveField val startDate: Long?,
 	/** The end of the date range (inclusive). */
-	val endDate: Long?,
+	@ActiveField val endDate: Long?,
 	/** The set of secret patient identifiers used for secure delegation matching. */
-	val secretPatientIds: Set<String>,
+	@ActiveField val secretPatientIds: Set<String>,
 	/** Whether to return results in descending order. */
-	val descending: Boolean?,
+	@ActiveField val descending: Boolean?,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<CalendarItemDto>

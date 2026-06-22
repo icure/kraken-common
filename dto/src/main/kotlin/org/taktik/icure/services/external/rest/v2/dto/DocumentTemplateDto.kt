@@ -27,6 +27,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ReportVersionDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,6 +36,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
  * Represents a template for generating documents. Document templates define the structure, type, and content
  * that can be used to produce actual documents.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DocumentTemplateDto")
 data class DocumentTemplateDto(
 	/** The Id of the document template. */
 	override val id: String,
@@ -59,31 +62,31 @@ data class DocumentTemplateDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The binary content of the template attachment. */
-	@param:Schema(type = "string", format = "byte") val attachment: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") @ActiveField val attachment: ByteArray? = null,
 	/** The type of document (e.g., admission, clinical path, document report, invoice). */
-	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") val documentType: DocumentTypeDto? = null,
+	@param:Schema(description = "The type of document, ex: admission, clinical path, document report,invoice, etc.") @ActiveField val documentType: DocumentTypeDto? = null,
 	/** The main Uniform Type Identifier of the template attachment. */
-	val mainUti: String? = null,
+	@ActiveField val mainUti: String? = null,
 	/** The name of the document template. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** Extra Uniform Type Identifiers for the template attachment. */
-	val otherUtis: Set<String> = emptySet(),
+	@ActiveField val otherUtis: Set<String> = emptySet(),
 	/** The id of the CouchDB attachment for the template. */
-	val attachmentId: String? = null,
+	@ActiveField val attachmentId: String? = null,
 	/** The version of the report template. */
-	val version: ReportVersionDto? = null,
+	@ActiveField val version: ReportVersionDto? = null,
 	/** The owner of the document template. */
-	val owner: String? = null,
+	@ActiveField val owner: String? = null,
 	/** A globally unique identifier for the template. */
-	val guid: String? = null,
+	@ActiveField val guid: String? = null,
 	/** The document group this template belongs to. */
-	val group: DocumentGroupDto? = null,
+	@ActiveField val group: DocumentGroupDto? = null,
 	/** A description of the document template. */
-	val descr: String? = null,
+	@ActiveField val descr: String? = null,
 	/** Whether this template is disabled. */
-	val disabled: String? = null,
+	@ActiveField val disabled: String? = null,
 	/** The medical specialty associated with this template. */
-	val specialty: CodeStubDto? = null,
+	@ActiveField val specialty: CodeStubDto? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {

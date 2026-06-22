@@ -9,6 +9,8 @@ import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.VersionFilteringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -17,14 +19,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.VersionFilteringDto
 /**
  * Filter that matches health elements by healthcare party, identifiers, and version filtering.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyIdentifiersVersioningFilter")
 data class HealthElementByHcPartyIdentifiersVersioningFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val hcPartyId: String,
+	@ActiveField val hcPartyId: String,
 	/** The list of identifiers to match. */
-	val identifiers: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifiers: List<IdentifierDto> = emptyList(),
 	/** Optional version filtering criteria. */
-	val versionFiltering: VersionFilteringDto? = null,
+	@ActiveField val versionFiltering: VersionFilteringDto? = null,
 ) : AbstractFilterDto<HealthElementDto>
 

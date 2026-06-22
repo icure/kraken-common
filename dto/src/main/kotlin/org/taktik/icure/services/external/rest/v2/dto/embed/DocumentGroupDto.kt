@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a grouping of documents, identified by a GUID and a human-readable name.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto")
 data class DocumentGroupDto(
 	/** The globally unique identifier for this document group. */
-	val guid: String? = null,
+	@ActiveField val guid: String? = null,
 	/** The human-readable name of the document group. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 ) : Serializable

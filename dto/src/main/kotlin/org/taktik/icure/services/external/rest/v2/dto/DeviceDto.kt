@@ -32,6 +32,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -41,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
  * Represents a device that sends medical data. This is a root-level entity stored in the icure-device CouchDB database.
  * A device can act as a data owner and crypto actor for secure data exchange.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DeviceDto")
 data class DeviceDto(
 	/** The Id of the device. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
@@ -49,7 +52,7 @@ data class DeviceDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The device's identifiers used for client-side identification. */
-	val identifiers: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifiers: List<IdentifierDto> = emptyList(),
 	/** The timestamp (unix epoch in ms) of creation of this entity. */
 	override val created: Long? = null,
 	/** The timestamp (unix epoch in ms) of the latest modification of this entity. */
@@ -64,28 +67,28 @@ data class DeviceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** The medical location where this entity was created. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	/** A non-official external id for the device, not guaranteed to be unique. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val externalId: String? = null,
+	@ActiveField val externalId: String? = null,
 	/** The name of the device. */
 	override val name: String? = null,
 	/** The type of the device (e.g., smartphone, medical device sort). */
-	val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
+	@ActiveField val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
 	/** The brand of the device (e.g., Samsung, Apple, Philips). */
-	val brand: String? = null,
+	@ActiveField val brand: String? = null,
 	/** The model of the device (e.g., Galaxy S10). */
-	val model: String? = null,
+	@ActiveField val model: String? = null,
 	/** The serial number of the device. */
-	val serialNumber: String? = null,
+	@ActiveField val serialNumber: String? = null,
 	/** The id of the parent of the user representing the device. */
 	override val parentId: String? = null,
 	/** A picture of the device, usually in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val picture: ByteArray? = null,
+	@ActiveField val picture: ByteArray? = null,
 	/** Typed properties related to the device (e.g., version, specific device information). */
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	/** The exchange keys with other healthcare parties, encrypted using public keys. */

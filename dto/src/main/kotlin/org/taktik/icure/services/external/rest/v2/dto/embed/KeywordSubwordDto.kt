@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a subword within a keyword hierarchy. Subwords can be nested recursively to form a tree structure.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.KeywordSubwordDto")
 data class KeywordSubwordDto(
 	/** The string value of this subword. */
-	val value: String? = null,
+	@ActiveField val value: String? = null,
 	/** The list of child subwords forming a tree. */
-	val subWords: List<KeywordSubwordDto>? = null,
+	@ActiveField val subWords: List<KeywordSubwordDto>? = null,
 ) : Serializable

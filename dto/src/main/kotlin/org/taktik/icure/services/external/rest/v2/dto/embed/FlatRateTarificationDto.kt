@@ -22,21 +22,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a flat rate tarification used in medical house contracts, linking a code to its valorisations.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto")
 data class FlatRateTarificationDto(
 	/** The tarification code. */
-	val code: String? = null,
+	@ActiveField val code: String? = null,
 	/** The type of flat rate (physician, physiotherapist, nurse, or ptd). */
-	val flatRateType: FlatRateTypeDto? = null,
+	@ActiveField val flatRateType: FlatRateTypeDto? = null,
 	/** Localized labels for this tarification, keyed by language code. */
-	val label: Map<String, String>? = null,
+	@ActiveField val label: Map<String, String>? = null,
 	/** The list of valorisations associated with this tarification. */
-	val valorisations: List<ValorisationDto> = emptyList(),
+	@ActiveField val valorisations: List<ValorisationDto> = emptyList(),
 	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,

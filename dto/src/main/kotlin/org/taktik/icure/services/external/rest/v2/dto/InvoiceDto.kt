@@ -35,6 +35,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.PaymentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PaymentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -44,6 +46,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
  * Represents an invoice. An invoice is used to bill patients, mutual funds, or paying agencies for healthcare
  * services rendered. It is serialized in JSON and saved in the underlying iCure CouchDB database.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.InvoiceDto")
 data class InvoiceDto(
 	/** The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Invoice. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
@@ -51,7 +54,7 @@ data class InvoiceDto(
 	@param:Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
 	/** The identifiers of the invoice. */
-	val identifier: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifier: List<IdentifierDto> = emptyList(),
 	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
 	/** The timestamp (unix epoch in ms) of the latest modification. */
@@ -69,138 +72,138 @@ data class InvoiceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The timestamp (unix epoch in ms) when the invoice was drafted. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice was drafted, will be filled automatically if missing. Not enforced by the application server.")
-	val invoiceDate: Long? = null, // yyyyMMdd
+	@ActiveField val invoiceDate: Long? = null, // yyyyMMdd
 	/** The timestamp (unix epoch in ms) when the invoice was sent. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice was sent, will be filled automatically if missing. Not enforced by the application server.")
-	val sentDate: Long? = null,
+	@ActiveField val sentDate: Long? = null,
 	/** The timestamp (unix epoch in ms) when the invoice was printed. */
 	@param:Schema(description = "The timestamp (unix epoch in ms) when the invoice is printed, will be filled automatically if missing. Not enforced by the application server.")
-	val printedDate: Long? = null,
+	@ActiveField val printedDate: Long? = null,
 	/** The list of invoicing codes associated with this invoice. */
-	val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
+	@ActiveField val invoicingCodes: List<InvoicingCodeDto> = emptyList(),
 	/** Map of receipt references. */
-	@param:Schema(description = "") val receipts: Map<String, String> = emptyMap(),
+	@param:Schema(description = "") @ActiveField val receipts: Map<String, String> = emptyMap(),
 	/** The type of user who is the recipient of this invoice (patient or healthcare party). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") val recipientType: String? = null, // org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto,
+	@param:Schema(description = "The type of user that receives the invoice, a patient or a healthcare party") @ActiveField val recipientType: String? = null, // org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto,
 	// org.taktik.icure.services.external.rest.v2.dto.InsuranceDto, org.taktik.icure.services.external.rest.v2.dto.PatientDto
 	/** Id of the recipient of the invoice. */
 	@param:Schema(description = "Id of the recipient of the invoice. For healthcare party and insurance, patient link happens through secretForeignKeys")
-	val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
+	@ActiveField val recipientId: String? = null, // for hcps and insurance, patient link happens through secretForeignKeys
 	/** The invoice reference number. */
-	val invoiceReference: String? = null,
+	@ActiveField val invoiceReference: String? = null,
 	/** The decision reference number. */
-	val decisionReference: String? = null,
+	@ActiveField val decisionReference: String? = null,
 	/** The third party reference. */
-	val thirdPartyReference: String? = null,
+	@ActiveField val thirdPartyReference: String? = null,
 	/** Justification for third party payment. */
-	val thirdPartyPaymentJustification: String? = null,
+	@ActiveField val thirdPartyPaymentJustification: String? = null,
 	/** Reason for third party payment. */
-	val thirdPartyPaymentReason: String? = null,
+	@ActiveField val thirdPartyPaymentReason: String? = null,
 	/** The reason for the invoice. */
-	val reason: String? = null,
+	@ActiveField val reason: String? = null,
 	/** The format the invoice should follow based on the recipient. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The format the invoice should follow based on the recipient which could be a patient, mutual fund or paying agency such as the CPAS")
-	val invoiceType: InvoiceTypeDto? = null,
+	@ActiveField val invoiceType: InvoiceTypeDto? = null,
 	/** Medium of the invoice: CD ROM, Email, paper, etc. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "Medium of the invoice: CD ROM, Email, paper, etc.")
-	val sentMediumType: MediumTypeDto? = null,
+	@ActiveField val sentMediumType: MediumTypeDto? = null,
 	/** The type of intervention. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val interventionType: InvoiceInterventionTypeDto? = null,
+	@ActiveField val interventionType: InvoiceInterventionTypeDto? = null,
 	/** The group id for grouping related invoices. */
-	val groupId: String? = null,
+	@ActiveField val groupId: String? = null,
 	/** Type of payment (cash, wired, insurance, debit card, etc.). */
 	@param:Schema(description = "Type of payment, ex: cash, wired, insurance, debit card, etc.")
-	val paymentType: PaymentTypeDto? = null,
+	@ActiveField val paymentType: PaymentTypeDto? = null,
 	/** The amount paid. */
-	val paid: Double? = null,
+	@ActiveField val paid: Double? = null,
 	/** List of payments made for this invoice. */
-	val payments: List<PaymentDto>? = null,
+	@ActiveField val payments: List<PaymentDto>? = null,
 	/** NIHII number of the gnotion. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val gnotionNihii: String? = null,
+	@ActiveField val gnotionNihii: String? = null,
 	/** SSIN of the gnotion. */
-	val gnotionSsin: String? = null,
+	@ActiveField val gnotionSsin: String? = null,
 	/** Last name of the gnotion. */
-	val gnotionLastName: String? = null,
+	@ActiveField val gnotionLastName: String? = null,
 	/** First name of the gnotion. */
-	val gnotionFirstName: String? = null,
+	@ActiveField val gnotionFirstName: String? = null,
 	/** CD-HCPARTY code of the gnotion. */
-	val gnotionCdHcParty: String? = null,
+	@ActiveField val gnotionCdHcParty: String? = null,
 	/** The invoicing period. */
-	val invoicePeriod: Int? = null,
+	@ActiveField val invoicePeriod: Int? = null,
 	/** The type of care provider. */
-	val careProviderType: String? = null,
+	@ActiveField val careProviderType: String? = null,
 	/** NIHII number of the internship. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val internshipNihii: String? = null,
+	@ActiveField val internshipNihii: String? = null,
 	/** SSIN of the internship. */
-	val internshipSsin: String? = null,
+	@ActiveField val internshipSsin: String? = null,
 	/** Last name of the internship supervisor. */
-	val internshipLastName: String? = null,
+	@ActiveField val internshipLastName: String? = null,
 	/** First name of the internship supervisor. */
-	val internshipFirstName: String? = null,
+	@ActiveField val internshipFirstName: String? = null,
 	/** CD-HCPARTY code of the internship. */
-	val internshipCdHcParty: String? = null,
+	@ActiveField val internshipCdHcParty: String? = null,
 	/** CBE number of the internship. */
-	val internshipCbe: String? = null,
+	@ActiveField val internshipCbe: String? = null,
 	/** NIHII number of the supervisor. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val supervisorNihii: String? = null,
+	@ActiveField val supervisorNihii: String? = null,
 	/** SSIN of the supervisor. */
-	val supervisorSsin: String? = null,
+	@ActiveField val supervisorSsin: String? = null,
 	/** Last name of the supervisor. */
-	val supervisorLastName: String? = null,
+	@ActiveField val supervisorLastName: String? = null,
 	/** First name of the supervisor. */
-	val supervisorFirstName: String? = null,
+	@ActiveField val supervisorFirstName: String? = null,
 	/** CD-HCPARTY code of the supervisor. */
-	val supervisorCdHcParty: String? = null,
+	@ActiveField val supervisorCdHcParty: String? = null,
 	/** CBE number of the supervisor. */
-	val supervisorCbe: String? = null,
+	@ActiveField val supervisorCbe: String? = null,
 	/** Error message if any. */
-	val error: String? = null,
+	@ActiveField val error: String? = null,
 	/** Name of the encounter location. */
-	val encounterLocationName: String? = null,
+	@ActiveField val encounterLocationName: String? = null,
 	/** NIHII number of the encounter location. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val encounterLocationNihii: String? = null,
+	@ActiveField val encounterLocationNihii: String? = null,
 	/** Norm of the encounter location. */
-	val encounterLocationNorm: Int? = null,
+	@ActiveField val encounterLocationNorm: Int? = null,
 	/** Justification for long delay. */
-	val longDelayJustification: Int? = null,
+	@ActiveField val longDelayJustification: Int? = null,
 	/** Id of the corrective invoice. */
-	val correctiveInvoiceId: String? = null,
+	@ActiveField val correctiveInvoiceId: String? = null,
 	/** Id of the corrected invoice. */
-	val correctedInvoiceId: String? = null,
+	@ActiveField val correctedInvoiceId: String? = null,
 	/** Whether this invoice is a credit note. */
-	val creditNote: Boolean? = null,
+	@ActiveField val creditNote: Boolean? = null,
 	/** Id of the related invoice for the credit note. */
-	val creditNoteRelatedInvoiceId: String? = null,
+	@ActiveField val creditNoteRelatedInvoiceId: String? = null,
 	/** Identity document reader information. */
-	val idDocument: IdentityDocumentReaderDto? = null,
+	@ActiveField val idDocument: IdentityDocumentReaderDto? = null,
 	// efact hospitalization
 	/** The admission date for hospitalization invoices. */
-	val admissionDate: Long? = null,
+	@ActiveField val admissionDate: Long? = null,
 	/** NIHII number of the location. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val locationNihii: String? = null,
+	@ActiveField val locationNihii: String? = null,
 	/** Service code of the location. */
-	val locationService: Int? = null,
+	@ActiveField val locationService: Int? = null,
 	// eattest cancel
 	/** The reason for cancellation. */
-	val cancelReason: String? = null,
+	@ActiveField val cancelReason: String? = null,
 	/** The date of cancellation. */
-	val cancelDate: Long? = null,
+	@ActiveField val cancelDate: Long? = null,
 	/** Extra options for the invoice. */
-	val options: Map<String, String> = emptyMap(),
+	@ActiveField val options: Map<String, String> = emptyMap(),
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */

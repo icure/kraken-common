@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -19,12 +21,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches maintenance tasks by healthcare party and task type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndTypeFilter")
 data class MaintenanceTaskByHcPartyAndTypeFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The type of maintenance task to match. */
 	@param:Schema(required = true)
-	val type: String,
+	@ActiveField val type: String,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<MaintenanceTaskDto>

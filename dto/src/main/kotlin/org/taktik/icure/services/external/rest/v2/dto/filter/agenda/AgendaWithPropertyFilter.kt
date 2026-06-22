@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,9 +17,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches agendas that have a specific property.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaWithPropertyFilter")
 data class AgendaWithPropertyFilter(
 	/** The identifier of the property to match. */
-	val propertyId: String,
+	@ActiveField val propertyId: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AgendaDto>

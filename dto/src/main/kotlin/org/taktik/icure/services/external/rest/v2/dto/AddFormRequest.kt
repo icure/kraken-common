@@ -20,17 +20,20 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Request object used to add a form for a patient.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AddFormRequest")
 data class AddFormRequest(
 	/** The unique identifier of the patient to associate the form with. */
-	val patientId: String? = null,
+	@ActiveField val patientId: String? = null,
 	/** The unique identifier of the form to add. */
-	val formId: String? = null,
+	@ActiveField val formId: String? = null,
 	/** The GUID of the form template to use for creating the form. */
-	val formTemplateGuid: String? = null,
+	@ActiveField val formTemplateGuid: String? = null,
 ) : Serializable

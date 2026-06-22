@@ -22,19 +22,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents the access rights of a user, specifying read, write, and administration permissions.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RightDto")
 data class RightDto(
 	/** The identifier of the user these rights apply to. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** Whether the user has read permission. */
-	@param:Schema(defaultValue = "false") val read: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val read: Boolean = false,
 	/** Whether the user has write permission. */
-	@param:Schema(defaultValue = "false") val write: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val write: Boolean = false,
 	/** Whether the user has administration permission. */
-	@param:Schema(defaultValue = "false") val administration: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val administration: Boolean = false,
 ) : Serializable

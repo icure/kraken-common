@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,13 +17,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches contacts by data owner and service tag.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.contact.ContactByDataOwnerServiceTagFilter")
 data class ContactByDataOwnerServiceTagFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The type of the service tag. */
-	val tagType: String,
+	@ActiveField val tagType: String,
 	/** The tag code value to match. */
-	val tagCode: String?,
+	@ActiveField val tagCode: String?,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ContactDto>

@@ -17,81 +17,86 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.FieldIntroducedIn
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.MedicationDto")
 data class MedicationDto(
-	val compoundPrescription: String? = null,
-	val substanceProduct: SubstanceproductDto? = null,
-	val medicinalProduct: MedicinalproductDto? = null,
-	val numberOfPackages: Int? = null,
-	val batch: String? = null,
+	@ActiveField val compoundPrescription: String? = null,
+	@ActiveField val substanceProduct: SubstanceproductDto? = null,
+	@ActiveField val medicinalProduct: MedicinalproductDto? = null,
+	@ActiveField val numberOfPackages: Int? = null,
+	@ActiveField val batch: String? = null,
 	/**
 	 * The expiration date of the medication. Format: yyyyMMdd
 	 */
-	val expirationDate: Long? = null,
-	val instructionForPatient: String? = null,
-	val instructionForReimbursement: String? = null,
-	val commentForDelivery: String? = null,
-	val drugRoute: String? = null, // CD-DRUG-ROUTE
-	val temporality: String? = null, // CD-TEMPORALITY : chronic, acute, oneshot
-	val frequency: CodeStubDto? = null, // CD-PERIODICITY
-	val reimbursementReason: CodeStubDto? = null,
-	val substitutionAllowed: Boolean? = null,
-	val beginMoment: Long? = null,
-	val endMoment: Long? = null,
-	val deliveryMoment: Long? = null,
-	val endExecutionMoment: Long? = null,
-	val duration: DurationDto? = null,
-	val renewal: RenewalDto? = null,
-	val knownUsage: Boolean? = null,
-	val regimen: List<RegimenItemDto>? = null,
-	val posology: String? = null, // replace structured posology by text
+	@ActiveField val expirationDate: Long? = null,
+	@ActiveField val instructionForPatient: String? = null,
+	@ActiveField val instructionForReimbursement: String? = null,
+	@ActiveField val commentForDelivery: String? = null,
+	@ActiveField val drugRoute: String? = null, // CD-DRUG-ROUTE
+	@ActiveField val temporality: String? = null, // CD-TEMPORALITY : chronic, acute, oneshot
+	@ActiveField val frequency: CodeStubDto? = null, // CD-PERIODICITY
+	@ActiveField val reimbursementReason: CodeStubDto? = null,
+	@ActiveField val substitutionAllowed: Boolean? = null,
+	@ActiveField val beginMoment: Long? = null,
+	@ActiveField val endMoment: Long? = null,
+	@ActiveField val deliveryMoment: Long? = null,
+	@ActiveField val endExecutionMoment: Long? = null,
+	@ActiveField val duration: DurationDto? = null,
+	@ActiveField val renewal: RenewalDto? = null,
+	@ActiveField val knownUsage: Boolean? = null,
+	@ActiveField val regimen: List<RegimenItemDto>? = null,
+	@ActiveField val posology: String? = null, // replace structured posology by text
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@FieldIntroducedIn("2.6.0")
 	val options: Map<String, ContentDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val agreements: Map<String, ParagraphAgreementDto>? = null,
+	@ActiveField val agreements: Map<String, ParagraphAgreementDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationSchemeIdOnSafe: String? = null,
+	@ActiveField val medicationSchemeIdOnSafe: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationSchemeSafeVersion: Int? = null,
+	@ActiveField val medicationSchemeSafeVersion: Int? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationSchemeTimeStampOnSafe: Long? = null,
+	@ActiveField val medicationSchemeTimeStampOnSafe: Long? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationSchemeDocumentId: String? = null,
+	@ActiveField val medicationSchemeDocumentId: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val safeIdName: String? = null, // can be: vitalinkuri, RSWID, RSBID
+	@ActiveField val safeIdName: String? = null, // can be: vitalinkuri, RSWID, RSBID
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val idOnSafes: String? = null, // medicationschemeelement : value of vitalinkuri, RSBID, RSWID
+	@ActiveField val idOnSafes: String? = null, // medicationschemeelement : value of vitalinkuri, RSBID, RSWID
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val timestampOnSafe: Long? = null, // transaction date+time
+	@ActiveField val timestampOnSafe: Long? = null, // transaction date+time
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val changeValidated: Boolean? = null, // accept change on safe
+	@ActiveField val changeValidated: Boolean? = null, // accept change on safe
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val newSafeMedication: Boolean? = null, // new medication on safe
+	@ActiveField val newSafeMedication: Boolean? = null, // new medication on safe
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationUse: String? = null, // free text
+	@ActiveField val medicationUse: String? = null, // free text
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val beginCondition: String? = null, // free text
+	@ActiveField val beginCondition: String? = null, // free text
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endCondition: String? = null, // free text
+	@ActiveField val endCondition: String? = null, // free text
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val origin: String? = null, // regularprocess, recorded
+	@ActiveField val origin: String? = null, // regularprocess, recorded
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val medicationChanged: Boolean? = null,
+	@ActiveField val medicationChanged: Boolean? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val posologyChanged: Boolean? = null,
+	@ActiveField val posologyChanged: Boolean? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val suspension: List<SuspensionDto>? = null,
+	@ActiveField val suspension: List<SuspensionDto>? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val prescriptionRID: String? = null,
+	@ActiveField val prescriptionRID: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val status: Int? = null,
-	val stockLocation: AddressDto? = null,
+	@ActiveField val status: Int? = null,
+	@ActiveField val stockLocation: AddressDto? = null,
 ) : Serializable {
 	companion object {
 		const val REIMBURSED = "REIMBURSED"

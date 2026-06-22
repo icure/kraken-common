@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a time range within a time table, defined by start and end hours.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableHourDto")
 data class TimeTableHourDto(
 	/** The start hour encoded as a long (hh:mm:ss). */
-	val startHour: Long? = null, // hh:mm:ss
+	@ActiveField val startHour: Long? = null, // hh:mm:ss
 	/** The end hour encoded as a long (hh:mm:ss). */
-	val endHour: Long? = null, // hh:mm:ss
+	@ActiveField val endHour: Long? = null, // hh:mm:ss
 ) : Serializable

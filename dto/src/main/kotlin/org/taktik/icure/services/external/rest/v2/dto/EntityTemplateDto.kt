@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonNode
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,6 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
  * Represents a reusable template for creating entities. Entity templates store a JSON-based entity definition
  * that can be used as a starting point for creating new entities of a given type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.EntityTemplateDto")
 data class EntityTemplateDto(
 	/** The Id of the entity template. */
 	override val id: String,
@@ -36,19 +39,19 @@ data class EntityTemplateDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The id of the user who owns this entity template. */
-	var userId: String? = null,
+	@ActiveField var userId: String? = null,
 	/** A description of the entity template. */
-	val descr: String? = null,
+	@ActiveField val descr: String? = null,
 	/** A set of keywords for searching and categorizing the template. */
-	val keywords: Set<String>? = null,
+	@ActiveField val keywords: Set<String>? = null,
 	/** The type of entity this template is for. */
-	var entityType: String? = null,
+	@ActiveField var entityType: String? = null,
 	/** The sub-type of entity this template is for. */
-	var subType: String? = null,
+	@ActiveField var subType: String? = null,
 	/** Whether this is the default template for its entity type and sub-type. */
-	var defaultTemplate: Boolean? = null,
+	@ActiveField var defaultTemplate: Boolean? = null,
 	/** The JSON representation of the template entity content. */
-	var entity: List<JsonNode> = emptyList(),
+	@ActiveField var entity: List<JsonNode> = emptyList(),
 ) : StoredDocumentDto {
 	override fun withIdRev(
 		id: String?,

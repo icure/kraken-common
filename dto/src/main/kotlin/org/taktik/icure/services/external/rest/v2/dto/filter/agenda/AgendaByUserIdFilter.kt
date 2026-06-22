@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,9 +17,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches agendas owned by a specific user.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.agenda.AgendaByUserIdFilter")
 data class AgendaByUserIdFilter(
 	/** The identifier of the user whose agendas to retrieve. */
-	val userId: String,
+	@ActiveField val userId: String,
 	/** Optional description of this filter. */
 	override val desc: String?,
 ) : AbstractFilterDto<AgendaDto>

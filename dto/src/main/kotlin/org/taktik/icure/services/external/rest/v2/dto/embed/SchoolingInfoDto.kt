@@ -23,21 +23,24 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents schooling information for a patient, including the period, school name, and type of education.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SchoolingInfoDto")
 data class SchoolingInfoDto(
 	/** The start date (unix epoch in ms) of the schooling period. */
-	val startDate: Long? = null,
+	@ActiveField val startDate: Long? = null,
 	/** The end date (unix epoch in ms) of the schooling period. */
-	val endDate: Long? = null,
+	@ActiveField val endDate: Long? = null,
 	/** The name of the school. */
-	val school: String? = null,
+	@ActiveField val school: String? = null,
 	/** A code describing the type of education. */
-	val typeOfEducation: CodeStubDto? = null,
+	@ActiveField val typeOfEducation: CodeStubDto? = null,
 	/** The base64-encoded encrypted content of this schooling info. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,

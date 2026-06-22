@@ -17,6 +17,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TaskStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,13 +26,14 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
  * Represents a maintenance task in the iCure system. Maintenance tasks are used to track background operations
  * such as key exchange requests, data migrations, or other administrative operations that require asynchronous processing.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto")
 data class MaintenanceTaskDto(
 	/** The unique identifier of the maintenance task. */
 	override val id: String,
 	/** The revision of the maintenance task in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
 	/** The identifiers of the maintenance task. */
-	val identifier: List<IdentifierDto> = listOf(),
+	@ActiveField val identifier: List<IdentifierDto> = listOf(),
 	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
 	/** The timestamp (unix epoch in ms) of the latest modification. */
@@ -51,12 +54,12 @@ data class MaintenanceTaskDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The type of the maintenance task. */
-	val taskType: String? = null,
+	@ActiveField val taskType: String? = null,
 	/** Extra properties for the maintenance task. */
-	val properties: Set<PropertyStubDto> = emptySet(),
+	@ActiveField val properties: Set<PropertyStubDto> = emptySet(),
 	/** The current status of the maintenance task (pending, ongoing, cancelled, completed). */
 	@param:Schema(defaultValue = "TaskStatusDto.pending")
-	val status: TaskStatusDto = TaskStatusDto.pending,
+	@ActiveField val status: TaskStatusDto = TaskStatusDto.pending,
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */

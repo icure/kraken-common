@@ -21,10 +21,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ServiceLinkDto")
 data class ServiceLinkDto(
-	val serviceId: String? = null,
-	@get:JsonIgnore @set:JsonIgnore @Transient var service: ServiceDto? = null,
+	@ActiveField val serviceId: String? = null,
+	@get:JsonIgnore @set:JsonIgnore @Transient @ActiveField var service: ServiceDto? = null,
 ) : Serializable

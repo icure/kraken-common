@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,15 +17,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches messages by data owner and lifecycle timestamp range.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByDataOwnerLifecycleBetween")
 data class MessageByDataOwnerLifecycleBetween(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The start of the lifecycle timestamp range (inclusive). */
-	val startTimestamp: Long? = null,
+	@ActiveField val startTimestamp: Long? = null,
 	/** The end of the lifecycle timestamp range (inclusive). */
-	val endTimestamp: Long? = null,
+	@ActiveField val endTimestamp: Long? = null,
 	/** Whether to return results in descending order. */
-	val descending: Boolean = false,
+	@ActiveField val descending: Boolean = false,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

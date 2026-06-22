@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,9 +17,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches devices by their responsible healthcare party.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.device.DeviceByHcPartyFilter")
 data class DeviceByHcPartyFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the responsible healthcare party. */
-	val responsibleId: String? = null,
+	@ActiveField val responsibleId: String? = null,
 ) : AbstractFilterDto<DeviceDto>

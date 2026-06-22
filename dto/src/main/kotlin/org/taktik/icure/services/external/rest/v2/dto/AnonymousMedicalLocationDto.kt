@@ -7,15 +7,18 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * DTO representing a medical location with only publicly accessible information, stripped of sensitive data.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.AnonymousMedicalLocationDto")
 data class AnonymousMedicalLocationDto(
 	/** The unique identifier of the medical location. */
-	val id: String,
+	@ActiveField val id: String,
 	/** A map of publicly available information about the medical location, keyed by information type. */
-	val publicInformations: Map<String, String> = emptyMap(),
+	@ActiveField val publicInformations: Map<String, String> = emptyMap(),
 ) : Serializable

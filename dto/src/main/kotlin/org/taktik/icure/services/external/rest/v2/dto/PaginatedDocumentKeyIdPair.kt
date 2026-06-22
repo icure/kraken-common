@@ -21,15 +21,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonNode
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * DTO representing a key-document ID pair used for cursor-based pagination in CouchDB views.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair")
 data class PaginatedDocumentKeyIdPair(
 	/** The view key to start the next page from. */
-	var startKey: JsonNode? = null,
+	@ActiveField var startKey: JsonNode? = null,
 	/** The document identifier to start the next page from, used to disambiguate when multiple documents share the same key. */
-	var startKeyDocId: String? = null,
+	@ActiveField var startKeyDocId: String? = null,
 ) : Serializable

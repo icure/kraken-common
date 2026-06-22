@@ -3,6 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -19,8 +21,9 @@ sealed interface AgendaSlottingAlgorithmDto {
 	 * - Calendar item type duration = 15
 	 * The returned slots for that time table item are 10:10, 10:20, 10:30, 13:05, 13:15
 	 */
+	@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto.FixedIntervals")
 	data class FixedIntervals(
-		val intervalMinutes: Int,
+		@ActiveField val intervalMinutes: Int,
 	) : AgendaSlottingAlgorithmDto,
 		Serializable
 }

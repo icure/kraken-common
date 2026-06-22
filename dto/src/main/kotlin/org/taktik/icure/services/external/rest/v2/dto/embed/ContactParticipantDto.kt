@@ -3,15 +3,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a healthcare party participating in a contact, along with their participation type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto")
 data class ContactParticipantDto(
 	/** The type of participation in the contact. */
-	val type: ParticipantTypeDto,
+	@ActiveField val type: ParticipantTypeDto,
 	/** The identifier of the participating healthcare party. */
-	val hcpId: String,
+	@ActiveField val hcpId: String,
 )

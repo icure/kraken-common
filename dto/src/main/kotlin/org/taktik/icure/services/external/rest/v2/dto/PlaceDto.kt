@@ -23,12 +23,15 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * DTO representing a physical place or location, such as a clinic or office.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PlaceDto")
 data class PlaceDto(
 	/** The unique identifier of the place. */
 	override val id: String,
@@ -39,7 +42,7 @@ data class PlaceDto(
 	/** The display name of the place. */
 	override val name: String? = null,
 	/** The address of the place. */
-	val address: AddressDto? = null,
+	@ActiveField val address: AddressDto? = null,
 ) : StoredDocumentDto,
 	NamedDto {
 	override fun withIdRev(

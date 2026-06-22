@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.TarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,15 +17,16 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches pricing entries by region, types, language, and label.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.pricing.PricingByRegionTypesLanguageLabelFilter")
 data class PricingByRegionTypesLanguageLabelFilter(
 	/** The region to filter pricing entries by. */
-	val region: String? = null,
+	@ActiveField val region: String? = null,
 	/** The list of pricing types to match. */
-	val types: List<String>,
+	@ActiveField val types: List<String>,
 	/** The language of the label to match. */
-	val language: String,
+	@ActiveField val language: String,
 	/** The label text to match. */
-	val label: String,
+	@ActiveField val label: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<TarificationDto>

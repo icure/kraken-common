@@ -16,17 +16,18 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Response object returned after an authentication attempt.
  */
 class AuthenticationResponse(
 	/** The unique identifier of the healthcare party associated with the authenticated user. */
-	var healthcarePartyId: String? = null,
+	@ActiveField var healthcarePartyId: String? = null,
 	/** The reason for authentication failure, if applicable. */
-	var reason: String? = null,
+	@ActiveField var reason: String? = null,
 	/** Whether the authentication attempt was successful. */
-	var successful: Boolean = false,
+	@ActiveField var successful: Boolean = false,
 	/** The username of the authenticated user. */
-	var username: String? = null,
+	@ActiveField var username: String? = null,
 )

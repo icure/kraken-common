@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -16,15 +18,16 @@ import java.time.Instant
 /**
  * Filter that matches access logs by user identifier, access type, and start date.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.accesslog.AccessLogByUserIdUserTypeDateFilter")
 data class AccessLogByUserIdUserTypeDateFilter(
 	/** The identifier of the user who created the access log. */
-	val userId: String,
+	@ActiveField val userId: String,
 	/** The type of access to filter on. */
-	val accessType: String?,
+	@ActiveField val accessType: String?,
 	/** The start date from which to retrieve access logs. */
-	val startDate: Instant?,
+	@ActiveField val startDate: Instant?,
 	/** Whether to return results in descending order. */
-	val descending: Boolean?,
+	@ActiveField val descending: Boolean?,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<AccessLogDto>

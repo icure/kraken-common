@@ -22,17 +22,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a payment record with date, type, and amount.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PaymentDto")
 data class PaymentDto(
 	/** The date of the payment (unix epoch in ms). */
-	@param:Schema(defaultValue = "0") val paymentDate: Long = 0,
+	@param:Schema(defaultValue = "0") @ActiveField val paymentDate: Long = 0,
 	/** The type of payment method used. */
-	val paymentType: PaymentTypeDto? = null,
+	@ActiveField val paymentType: PaymentTypeDto? = null,
 	/** The amount paid. */
-	val paid: Double? = null,
+	@ActiveField val paid: Double? = null,
 ) : Serializable

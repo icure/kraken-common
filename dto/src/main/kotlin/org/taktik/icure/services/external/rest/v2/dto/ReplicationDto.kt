@@ -23,6 +23,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DatabaseSynchronizationDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,6 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DatabaseSynchronizat
  * DTO representing a replication configuration, defining how databases are synchronized between
  * CouchDB instances.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.ReplicationDto")
 data class ReplicationDto(
 	/** The unique identifier of the replication. */
 	override val id: String,
@@ -40,9 +43,9 @@ data class ReplicationDto(
 	/** The display name of this replication configuration. */
 	override val name: String? = null,
 	/** The context or environment for this replication. */
-	var context: String? = null,
+	@ActiveField var context: String? = null,
 	/** The list of database synchronization rules defined in this replication. */
-	var databaseSynchronizations: List<DatabaseSynchronizationDto> = emptyList(),
+	@ActiveField var databaseSynchronizations: List<DatabaseSynchronizationDto> = emptyList(),
 ) : StoredDocumentDto,
 	IdentifiableDto<String>,
 	NamedDto {

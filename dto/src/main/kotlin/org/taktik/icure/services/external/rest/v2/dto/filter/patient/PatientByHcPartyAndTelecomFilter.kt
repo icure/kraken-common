@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -32,11 +34,12 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches patients by healthcare party and telecom (phone/email) search string.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.patient.PatientByHcPartyAndTelecomFilter")
 data class PatientByHcPartyAndTelecomFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The telecom value to search for. */
-	val searchString: String? = null,
+	@ActiveField val searchString: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

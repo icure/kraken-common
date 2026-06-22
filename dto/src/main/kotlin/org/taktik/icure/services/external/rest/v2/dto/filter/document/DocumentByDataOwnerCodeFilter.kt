@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,13 +17,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches documents by data owner and code.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.document.DocumentByDataOwnerCodeFilter")
 data class DocumentByDataOwnerCodeFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The type of the code to match. */
-	val codeType: String,
+	@ActiveField val codeType: String,
 	/** The code value to match. */
-	val codeCode: String? = null,
+	@ActiveField val codeCode: String? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<DocumentDto>

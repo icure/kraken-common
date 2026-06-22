@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,10 +30,11 @@ import java.io.Serializable
  * Represents the combined set of granted and revoked permissions for a user or role.
  * Revocations take precedence over grants when both apply to the same permission type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.PermissionDto")
 data class PermissionDto(
 	/** The set of permission items that are explicitly granted. */
-	@param:Schema(description = "Granted permissions.") val grants: Set<PermissionItemDto> = emptySet(),
+	@param:Schema(description = "Granted permissions.") @ActiveField val grants: Set<PermissionItemDto> = emptySet(),
 	/** The set of permission items that are explicitly revoked. */
-	@param:Schema(description = "Revoked permissions.") val revokes: Set<PermissionItemDto> = emptySet(),
+	@param:Schema(description = "Revoked permissions.") @ActiveField val revokes: Set<PermissionItemDto> = emptySet(),
 ) : Cloneable,
 	Serializable

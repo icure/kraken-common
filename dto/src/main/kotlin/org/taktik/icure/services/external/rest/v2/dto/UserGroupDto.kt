@@ -17,34 +17,37 @@
  */
 
 package org.taktik.icure.services.external.rest.v2.dto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * DTO representing a user within the context of a specific group, including the group hierarchy
  * and the user's associated data owner identifiers.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.UserGroupDto")
 data class UserGroupDto(
 	/** The identifier of the group this user belongs to. */
-	val groupId: String? = null,
+	@ActiveField val groupId: String? = null,
 	/** The name of the group this user belongs to. */
-	val groupName: String? = null,
+	@ActiveField val groupName: String? = null,
 	/** The list of groups forming the hierarchy from the topmost group down to this group. */
-	val groupsHierarchy: List<GroupDto> = emptyList(),
+	@ActiveField val groupsHierarchy: List<GroupDto> = emptyList(),
 	/** The identifier of the user. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** The login identifier of the user. */
-	val login: String? = null,
+	@ActiveField val login: String? = null,
 	/** The display name of the user. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The email address of the user. */
-	val email: String? = null,
+	@ActiveField val email: String? = null,
 	/** The phone number of the user. */
-	val phone: String? = null,
+	@ActiveField val phone: String? = null,
 	/** The identifier of the patient linked to this user, if any. */
-	val patientId: String? = null,
+	@ActiveField val patientId: String? = null,
 	/** The identifier of the healthcare party linked to this user, if any. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** The identifier of the device linked to this user, if any. */
-	val deviceId: String? = null,
+	@ActiveField val deviceId: String? = null,
 	/** The name of the parent group of the topmost group in the hierarchy. */
-	val nameOfParentOfTopmostGroupInHierarchy: String? = null,
+	@ActiveField val nameOfParentOfTopmostGroupInHierarchy: String? = null,
 )

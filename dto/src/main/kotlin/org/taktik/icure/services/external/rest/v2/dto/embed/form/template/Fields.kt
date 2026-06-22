@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonStructureElementDeserializer
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonDeserialize(using = JacksonStructureElementDeserializer::class)
 /**
@@ -23,6 +24,7 @@ sealed interface StructureElement
 /**
  * A text input field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.TextField")
 data class TextField(
 	/** The field identifier. */
 	@param:Schema(required = true)
@@ -69,6 +71,7 @@ data class TextField(
 /**
  * A measurement input field in a form template, used for capturing numeric values with units.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.MeasureField")
 data class MeasureField(
 	@param:Schema(required = true)
 	override val field: String,
@@ -98,6 +101,7 @@ data class MeasureField(
 /**
  * A numeric input field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.NumberField")
 data class NumberField(
 	@param:Schema(required = true)
 	override val field: String,
@@ -127,6 +131,7 @@ data class NumberField(
 /**
  * A date picker field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.DatePicker")
 data class DatePicker(
 	@param:Schema(required = true)
 	override val field: String,
@@ -156,6 +161,7 @@ data class DatePicker(
 /**
  * A time picker field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.TimePicker")
 data class TimePicker(
 	@param:Schema(required = true)
 	override val field: String,
@@ -185,6 +191,7 @@ data class TimePicker(
 /**
  * A multiple choice field in a form template, allowing selection of multiple options.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.MultipleChoice")
 data class MultipleChoice(
 	@param:Schema(required = true)
 	override val field: String,
@@ -214,6 +221,7 @@ data class MultipleChoice(
 /**
  * A dropdown selection field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.DropdownField")
 data class DropdownField(
 	@param:Schema(required = true)
 	override val field: String,
@@ -243,6 +251,7 @@ data class DropdownField(
 /**
  * A radio button field in a form template, allowing selection of a single option.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.RadioButton")
 data class RadioButton(
 	@param:Schema(required = true)
 	override val field: String,
@@ -272,6 +281,7 @@ data class RadioButton(
 /**
  * A checkbox field in a form template.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.CheckBox")
 data class CheckBox(
 	@param:Schema(required = true)
 	override val field: String,
@@ -301,6 +311,7 @@ data class CheckBox(
 /**
  * A date-time picker field in a form template, combining date and time selection.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.form.template.DateTimePicker")
 data class DateTimePicker(
 	@param:Schema(required = true)
 	override val field: String,

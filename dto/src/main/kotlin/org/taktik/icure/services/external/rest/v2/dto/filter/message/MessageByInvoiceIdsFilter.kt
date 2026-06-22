@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,9 +17,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * Filter that matches messages associated with specific invoice identifiers.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.message.MessageByInvoiceIdsFilter")
 data class MessageByInvoiceIdsFilter(
 	/** The set of invoice identifiers to match. */
-	val invoiceIds: Set<String>,
+	@ActiveField val invoiceIds: Set<String>,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

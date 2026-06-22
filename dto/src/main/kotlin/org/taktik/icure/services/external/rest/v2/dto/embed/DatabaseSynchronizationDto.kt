@@ -20,21 +20,24 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a database synchronization configuration between a source and a target, with optional filtering.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DatabaseSynchronizationDto")
 data class DatabaseSynchronizationDto(
 	/** The source database URL or identifier. */
-	val source: String? = null,
+	@ActiveField val source: String? = null,
 	/** The target database URL or identifier. */
-	val target: String? = null,
+	@ActiveField val target: String? = null,
 	/** A filter expression to apply during synchronization. */
-	val filter: String? = null,
+	@ActiveField val filter: String? = null,
 	/** The local target type for the synchronization (base, healthdata, or patient). */
-	val localTarget: Target? = null,
+	@ActiveField val localTarget: Target? = null,
 ) : Serializable {
 	enum class Target {
 		base,

@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * DTO representing the public key of a healthcare party, used for end-to-end encryption.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PublicKeyDto")
 data class PublicKeyDto(
 	/** The identifier of the healthcare party that owns this public key. */
-	val hcPartyId: String? = null,
+	@ActiveField val hcPartyId: String? = null,
 	/** The public key encoded as a hexadecimal string. */
-	val hexString: String? = null,
+	@ActiveField val hexString: String? = null,
 ) : Serializable

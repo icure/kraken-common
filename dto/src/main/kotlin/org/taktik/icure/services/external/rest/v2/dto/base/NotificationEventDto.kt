@@ -25,20 +25,23 @@ import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Data transfer object representing a notification event with a timestamp and delivery status.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.NotificationEventDto")
 data class NotificationEventDto(
 	/** The instant when the notification event occurred. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	val date: Instant? = null,
+	@ActiveField val date: Instant? = null,
 	/** The delivery status of the notification (SENT, RECEIVED, or ERROR). */
-	val status: Status? = null,
+	@ActiveField val status: Status? = null,
 ) : Serializable {
 	enum class Status {
 		SENT,

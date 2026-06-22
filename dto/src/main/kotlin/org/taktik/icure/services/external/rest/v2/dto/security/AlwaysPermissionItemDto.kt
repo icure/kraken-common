@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AlwaysPredicate
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonDiscriminated("AlwaysPermissionItemDto")
 /**
  * A permission item whose predicate always evaluates to true, unconditionally granting or revoking the specified permission type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.security.AlwaysPermissionItemDto")
 data class AlwaysPermissionItemDto(
 	/** The permission type that is always granted or revoked by this item. */
 	@param:Schema(required = true)

@@ -30,26 +30,29 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents an Address""")
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto")
 data class AddressDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
-	@param:Schema(description = "The identifiers of the Address") val identifier: List<IdentifierDto> = emptyList(),
-	@param:Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") val addressType: AddressTypeDto? = null,
-	@param:Schema(description = "Descriptive notes about the address") val descr: String? = null,
-	@param:Schema(description = "Street name") val street: String? = null,
-	@param:Schema(description = "Building / house number") val houseNumber: String? = null,
-	@param:Schema(description = "Post / PO box number") val postboxNumber: String? = null,
-	@param:Schema(description = "Postal/PIN/ZIP/Area code") val postalCode: String? = null,
-	@param:Schema(description = "Name of city in the address") val city: String? = null,
-	@param:Schema(description = "Name of state in the Address") val state: String? = null,
-	@param:Schema(description = "Name / code of country in the address") val country: String? = null,
-	@param:Schema(description = "Additional notes", deprecated = true) val note: String? = null,
-	@param:Schema(description = "Additional notes") val notes: List<AnnotationDto> = emptyList(),
-	@param:Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") val telecoms: List<TelecomDto> = emptyList(),
+	@param:Schema(description = "The identifiers of the Address") @ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@param:Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") @ActiveField val addressType: AddressTypeDto? = null,
+	@param:Schema(description = "Descriptive notes about the address") @ActiveField val descr: String? = null,
+	@param:Schema(description = "Street name") @ActiveField val street: String? = null,
+	@param:Schema(description = "Building / house number") @ActiveField val houseNumber: String? = null,
+	@param:Schema(description = "Post / PO box number") @ActiveField val postboxNumber: String? = null,
+	@param:Schema(description = "Postal/PIN/ZIP/Area code") @ActiveField val postalCode: String? = null,
+	@param:Schema(description = "Name of city in the address") @ActiveField val city: String? = null,
+	@param:Schema(description = "Name of state in the Address") @ActiveField val state: String? = null,
+	@param:Schema(description = "Name / code of country in the address") @ActiveField val country: String? = null,
+	@param:Schema(description = "Additional notes", deprecated = true) @ActiveField val note: String? = null,
+	@param:Schema(description = "Additional notes") @ActiveField val notes: List<AnnotationDto> = emptyList(),
+	@param:Schema(description = "List of other contact details available through telecom services, ex: email, phone number, fax, etc.") @ActiveField val telecoms: List<TelecomDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable,

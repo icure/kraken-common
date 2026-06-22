@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessControlKeyHexStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,21 +15,22 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AccessCont
  * Represents a real-time event subscription for a specific entity class. Clients use this DTO to
  * declare which event types and optional filter criteria they want to be notified about.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.notification.SubscriptionDto")
 data class SubscriptionDto<O : IdentifiableDto<String>>(
 	/** The list of event types (CREATE, UPDATE, DELETE) to subscribe to. */
 	@param:Schema(required = true)
-	val eventTypes: List<SubscriptionEventType>,
+	@ActiveField val eventTypes: List<SubscriptionEventType>,
 	/** The fully-qualified or short class name of the entity to observe. */
 	@param:Schema(required = true)
-	val entityClass: String,
+	@ActiveField val entityClass: String,
 	/** An optional filter chain that narrows which entity instances trigger notifications. */
-	val filter: FilterChain<O>?,
+	@ActiveField val filter: FilterChain<O>?,
 	/** Optional access-control keys used to scope the subscription to specific encrypted data. */
-	val accessControlKeys: List<AccessControlKeyHexStringDto>?,
+	@ActiveField val accessControlKeys: List<AccessControlKeyHexStringDto>?,
 	/** When true, uses Cardinal model serialization for the entity payloads. */
-	val useCardinalModelSerialization: Boolean? = null,
-	val cardinalSdkVersion: String? = null,
-	val includeLegacyFields: Boolean = false
+	@ActiveField val useCardinalModelSerialization: Boolean? = null,
+	@ActiveField val cardinalSdkVersion: String? = null,
+	@ActiveField val includeLegacyFields: Boolean = false
 ) : java.io.Serializable
 
 /**

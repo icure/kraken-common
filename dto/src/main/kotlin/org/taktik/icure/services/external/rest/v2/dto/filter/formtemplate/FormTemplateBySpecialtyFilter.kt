@@ -7,12 +7,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.formtemplate.FormTemplateBySpecialtyFilter")
 data class FormTemplateBySpecialtyFilter(
-	val specialtyCode: String,
+	@ActiveField val specialtyCode: String,
 	override val desc: String? = null,
 ) : AbstractFilterDto<FormTemplateDto>

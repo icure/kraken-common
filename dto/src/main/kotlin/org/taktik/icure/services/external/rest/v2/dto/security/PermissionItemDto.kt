@@ -7,6 +7,7 @@ import org.taktik.icure.handlers.JsonDiscriminator
 import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.Predicate
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonPermissionItemDeserializer
 import java.io.Serializable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,6 +20,6 @@ import java.io.Serializable
 sealed interface PermissionItemDto : Serializable {
 	val itemType: String
 		get() = this::class.simpleName!!
-	val type: PermissionTypeDto
-	val predicate: Predicate
+	@ActiveField val type: PermissionTypeDto
+	@ActiveField val predicate: Predicate
 }

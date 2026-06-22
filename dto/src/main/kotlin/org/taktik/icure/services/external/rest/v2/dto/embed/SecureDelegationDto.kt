@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -38,46 +40,47 @@ data confidentiality. For hcps instead the best choice depends is likely to chan
  * the access control level. Created by a delegator data owner and usable by a delegate data owner, using
  * exchange data for encryption and access control.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.SecureDelegationDto")
 data class SecureDelegationDto(
 	@param:Schema(
 		description = """Optionally the id of the delegator data owner for this [SecureDelegation]. May be null if this information must
 be hidden to prevent data leakages (see class documentation for more details).""",
 	)
 	/** Optionally the id of the delegator data owner. May be null to prevent data leakages. */
-	val delegator: String? = null,
+	@ActiveField val delegator: String? = null,
 	@param:Schema(
 		description = """Optionally the id of the delegate data owner for this [SecureDelegation]. May be null if this information must
 be hidden to prevent data leakages (see class documentation for more details).""",
 	)
 	/** Optionally the id of the delegate data owner. May be null to prevent data leakages. */
-	val delegate: String? = null,
+	@ActiveField val delegate: String? = null,
 	@param:Schema(
 		description = """Secret id of the entity holding this [SecureDelegation] (formerly `delegation`). The id will appear in plaintext in the
 `secretForeignKeys` field of children entities.""",
 	)
 	/** Encrypted secret ids of the entity holding this delegation. */
-	val secretIds: Set<Base64StringDto> = emptySet(),
+	@ActiveField val secretIds: Set<Base64StringDto> = emptySet(),
 	/** Encrypted AES keys used for the encryption of the entity's data. */
 	@param:Schema(description = """Encrypted aes key used for the encryption of the entity's data (data stored in `encryptedSelf`).""")
-	val encryptionKeys: Set<Base64StringDto> = emptySet(),
+	@ActiveField val encryptionKeys: Set<Base64StringDto> = emptySet(),
 	@param:Schema(
 		description = """Encrypted id of the entity which owns the entity holding this [SecureDelegation] (formerly `cryptedForeignKey`),
 such as the id of the patient for a contact or healthcare element.""",
 	)
 	/** Encrypted ids of the owning entity (e.g., patient id for a contact). */
-	val owningEntityIds: Set<Base64StringDto> = emptySet(),
+	@ActiveField val owningEntityIds: Set<Base64StringDto> = emptySet(),
 	@param:Schema(
 		description = """Key of the parent delegation in the [SecurityMetadata.secureDelegations]. Users are allowed to modify/delete
 only [SecureDelegation] that they can directly access or any children delegations.""",
 	)
 	/** Keys of parent delegations in the security metadata. */
-	val parentDelegations: Set<SecureDelegationKeyStringDto> = emptySet(),
+	@ActiveField val parentDelegations: Set<SecureDelegationKeyStringDto> = emptySet(),
 	@param:Schema(
 		description = """If both the [delegator] and [delegate] are explicit in this secure delegation this field will hold the id of the exchange
 data used for the encryption of this delegation. Otherwise, this will be null.""",
 	)
 	/** The id of the exchange data used for encryption, if both delegator and delegate are explicit. */
-	val exchangeDataId: String? = null,
+	@ActiveField val exchangeDataId: String? = null,
 	@param:Schema(
 		description = """Permissions of users with access to this [SecureDelegation] on the corresponding entity. Each entry represents
 a field or group of fields of the entity that the user can read and/or modify; any field not covered by this map
@@ -96,5 +99,5 @@ transition when fine-grained permissions will be implemented.""",
 		required = true,
 	)
 	/** The access level permissions for users with access to this delegation. */
-	val permissions: AccessLevelDto,
+	@ActiveField val permissions: AccessLevelDto,
 )

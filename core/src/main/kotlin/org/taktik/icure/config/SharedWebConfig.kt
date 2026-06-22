@@ -135,6 +135,10 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			}
 	}
 
+	interface CardinalMappersProvider {
+		fun getCardinalMappers(mapperProvider: () -> ObjectMapper): CardinalMappers
+	}
+
 	private val CLASSPATH_RESOURCE_LOCATIONS =
 		arrayOf("classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/")
 

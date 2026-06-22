@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -15,9 +17,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 /**
  * A filter that matches users linked to a specific healthcare party.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.user.UserByHealthcarePartyIdFilter")
 data class UserByHealthcarePartyIdFilter(
 	/** The identifier of the healthcare party whose associated users should be returned. */
-	val healthcarePartyId: String,
+	@ActiveField val healthcarePartyId: String,
 	/** Optional human-readable description of this filter instance. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<UserDto>

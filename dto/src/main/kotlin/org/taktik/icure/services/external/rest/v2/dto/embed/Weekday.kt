@@ -22,15 +22,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents a weekday reference used in medication regimens, optionally specifying a week number.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.Weekday")
 data class Weekday(
 	/** The coded weekday (CD-WEEKDAY). */
-	val weekday: CodeStubDto? = null, // CD-WEEKDAY
+	@ActiveField val weekday: CodeStubDto? = null, // CD-WEEKDAY
 	/** The week number within a cycle, or null if not applicable. */
-	val weekNumber: Int? = null, // Can be null
+	@ActiveField val weekNumber: Int? = null, // Can be null
 ) : Serializable

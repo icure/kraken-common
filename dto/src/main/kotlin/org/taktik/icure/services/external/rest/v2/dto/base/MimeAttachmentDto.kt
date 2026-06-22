@@ -22,17 +22,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Data transfer object representing a MIME attachment with binary data, a file name, and a content type.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto")
 data class MimeAttachmentDto(
 	/** The binary content of the attachment. */
-	@param:Schema(type = "string", format = "byte") val data: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") @ActiveField val data: ByteArray? = null,
 	/** The name of the attached file. */
-	val fileName: String? = null,
+	@ActiveField val fileName: String? = null,
 	/** The MIME type of the attachment (e.g. application/pdf, image/png). */
-	val mimeType: String? = null,
+	@ActiveField val mimeType: String? = null,
 ) : Serializable

@@ -26,6 +26,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
  * such as identifiers, timestamps, tags, codes, and encryption metadata. Used when the full entity
  * payload is not needed.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.IcureStubDto")
 data class IcureStubDto(
 	/** The unique identifier of the entity. */
 	override val id: String,

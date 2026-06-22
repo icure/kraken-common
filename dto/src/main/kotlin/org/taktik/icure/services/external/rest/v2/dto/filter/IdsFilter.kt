@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -33,6 +34,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 /**
  * Filter that matches entities by their unique identifiers.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.filter.IdsFilter")
 data class IdsFilter<O : IdentifiableDto<String>>(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

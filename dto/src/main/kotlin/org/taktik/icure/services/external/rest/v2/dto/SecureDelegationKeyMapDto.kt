@@ -26,28 +26,31 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.SecureDelegationKeyMapDto")
 data class SecureDelegationKeyMapDto(
 	override val id: String,
 	override val rev: String? = null,
 	/**
 	 * The secure delegation key this map refers to.
 	 */
-	@param:Schema(required = true) val delegationKey: String,
+	@param:Schema(required = true) @ActiveField val delegationKey: String,
 	/**
 	 * The delegator of the secure delegation key this map refers to, if the delegator is anonymous in the delegation,
 	 * and if not encrypted.
 	 * On the server side this value should always be encrypted.
 	 */
-	val delegator: String? = null,
+	@ActiveField val delegator: String? = null,
 	/**
 	 * The delegate of the secure delegation key this map refers to, if the delegate is anonymous in the delegation,
 	 * and if not encrypted.
 	 * On the server side this value should always be encrypted.
 	 */
-	val delegate: String? = null,
+	@ActiveField val delegate: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

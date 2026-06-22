@@ -20,15 +20,18 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents revision information for a CouchDB document, including the revision identifier and its status.
  */
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.RevisionInfoDto")
 data class RevisionInfoDto(
 	/** The revision identifier. */
-	val rev: String? = null,
+	@ActiveField val rev: String? = null,
 	/** The status of this revision (e.g., available, missing, deleted). */
-	val status: String? = null,
+	@ActiveField val status: String? = null,
 ) : Serializable
