@@ -88,7 +88,7 @@ data class GroupDto(
 	/**
 	 * The versions of the custom design doc schema applied to the group.
 	 */
-	val designDocSchemaVersions: Set<Int> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val designDocSchemaVersions: Set<Int> = emptySet(),
 	/**
 	 * The version of the custom design doc schema to apply by default children groups on creation.
 	 */
