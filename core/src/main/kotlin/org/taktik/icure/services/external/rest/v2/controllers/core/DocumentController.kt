@@ -627,9 +627,9 @@ class DocumentController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		documentService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<DocumentDto> =
 		documentService.getConflictsFor(entityId)
 			.map(documentV2Mapper::map)

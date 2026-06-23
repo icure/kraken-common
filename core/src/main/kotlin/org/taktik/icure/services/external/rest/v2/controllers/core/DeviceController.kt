@@ -232,9 +232,9 @@ class DeviceController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		deviceService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<DeviceDto> =
 		deviceService.getConflictsFor(entityId)
 			.map(deviceV2Mapper::map)
