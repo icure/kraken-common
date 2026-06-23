@@ -321,9 +321,9 @@ class AccessLogController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		accessLogService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<AccessLogDto> =
 		accessLogService.getConflictsFor(entityId)
 			.map(accessLogV2Mapper::map)

@@ -407,9 +407,9 @@ class CalendarItemController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		calendarItemService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<CalendarItemDto> =
 		calendarItemService.getConflictsFor(entityId)
 			.map(calendarItemV2Mapper::map)

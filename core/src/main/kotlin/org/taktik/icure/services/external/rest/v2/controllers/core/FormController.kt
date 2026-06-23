@@ -622,9 +622,9 @@ class  FormController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		formService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<FormDto> =
 		formService.getConflictsFor(entityId)
 			.map(formV2Mapper::map)

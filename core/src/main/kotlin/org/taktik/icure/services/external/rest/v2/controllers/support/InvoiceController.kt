@@ -655,9 +655,9 @@ class InvoiceController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		invoiceService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<InvoiceDto> =
 		invoiceService.getConflictsFor(entityId)
 			.map(invoiceV2Mapper::map)

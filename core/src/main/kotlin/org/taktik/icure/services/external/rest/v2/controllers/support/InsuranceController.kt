@@ -209,9 +209,9 @@ class InsuranceController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		insuranceService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<InsuranceDto> =
 		insuranceService.getConflictsFor(entityId)
 			.map(insuranceV2Mapper::map)

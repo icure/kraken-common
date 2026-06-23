@@ -616,9 +616,9 @@ class ContactController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		contactService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<ContactDto> =
 		contactService.getConflictsFor(entityId)
 			.map(contactV2Mapper::map)

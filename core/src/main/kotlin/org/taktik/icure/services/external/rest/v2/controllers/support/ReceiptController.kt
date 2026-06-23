@@ -322,9 +322,9 @@ class ReceiptController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		receiptService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<ReceiptDto> =
 		receiptService.getConflictsFor(entityId)
 			.map(receiptV2Mapper::map)
