@@ -31,6 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfig
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -90,11 +91,14 @@ data class GroupDto(
 	/**
 	 * The versions of the custom design doc schema applied to the group.
 	 */
-	@ActiveField val designDocSchemaVersions: Set<Int> = emptySet(),
+	@FilterBeforeSdkVersion("2.7.0") // filtered because it can be set by the cockpit / ddoc manager
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	val designDocSchemaVersions: Set<Int> = emptySet(),
 	/**
 	 * The version of the custom design doc schema to apply by default children groups on creation.
 	 */
-	@ActiveField val defaultChildrenSchemaVersion: Int? = null,
+	@FilterBeforeSdkVersion("2.7.0") // filtered because it can be set by the cockpit / ddoc manager
+	val defaultChildrenSchemaVersion: Int? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
