@@ -397,9 +397,9 @@ class UserController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		userService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<UserDto> =
 		userService.getConflictsFor(entityId)
 			.map(userV2Mapper::mapOmittingSecrets)

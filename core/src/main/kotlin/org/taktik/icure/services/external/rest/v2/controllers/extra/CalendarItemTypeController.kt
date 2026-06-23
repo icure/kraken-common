@@ -224,9 +224,9 @@ class CalendarItemTypeController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		calendarItemTypeService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<CalendarItemTypeDto> =
 		calendarItemTypeService.getConflictsFor(entityId)
 			.map(calendarItemTypeV2Mapper::map)

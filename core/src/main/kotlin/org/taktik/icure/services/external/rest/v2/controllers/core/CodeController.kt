@@ -417,9 +417,9 @@ class CodeController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		codeService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<CodeDto> =
 		codeService.getConflictsFor(entityId)
 			.map(codeV2Mapper::map)

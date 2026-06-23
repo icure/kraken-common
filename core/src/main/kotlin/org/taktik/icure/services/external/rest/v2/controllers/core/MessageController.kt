@@ -447,9 +447,9 @@ class MessageController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		messageService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<MessageDto> =
 		messageService.getConflictsFor(entityId)
 			.map(messageV2Mapper::map)

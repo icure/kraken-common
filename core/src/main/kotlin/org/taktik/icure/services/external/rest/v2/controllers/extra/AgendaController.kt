@@ -232,9 +232,9 @@ class AgendaController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		agendaService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<AgendaDto> =
 		agendaService.getConflictsFor(entityId)
 			.map(agendaV2Mapper::map)

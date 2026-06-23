@@ -413,9 +413,9 @@ class HealthcarePartyController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		healthcarePartyService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<HealthcarePartyDto> =
 		healthcarePartyService.getConflictsFor(entityId)
 			.map(healthcarePartyV2Mapper::map)
