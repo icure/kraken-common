@@ -63,7 +63,7 @@ data class PlanOfActionDto(
 	@ActiveField val careTeamMemberships: List<CareTeamMembershipDto> = emptyList(),
 	@Deprecated("Use status")
 	@param:Schema(defaultValue = "true")
-	@ActiveField val relevant: Boolean = true,
+	@LegacyField val relevant: Boolean = true,
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
