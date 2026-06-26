@@ -35,6 +35,7 @@ import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -472,9 +473,15 @@ class MessageController(
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
 		@RequestBody entityIds: List<String>,
-		@RequestParam(required = false, defaultValue = "FullMergeability") strategy: ConflictResolutionStrategyDto
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = messageService
-		.solveConflicts(limit = null, ids = entityIds, strategy = conflictResolutionStrategyV2Mapper.map(strategy))
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }
