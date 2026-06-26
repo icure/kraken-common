@@ -33,13 +33,14 @@ import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity represents a group""")
 /**
  * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
  * that contains its own set of databases and users.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = """This entity represents a group""")
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.GroupDto")
 data class GroupDto(
 	/** The id of the group. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

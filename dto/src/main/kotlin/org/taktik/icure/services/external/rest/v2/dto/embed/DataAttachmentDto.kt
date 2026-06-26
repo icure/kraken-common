@@ -8,12 +8,12 @@ import java.io.Serializable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto")
 /**
  * Represents a data attachment that can be stored either as a CouchDB attachment or via object storage.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto")
 data class DataAttachmentDto(
 	/** The identifier of the attachment if stored as a CouchDB attachment. */
 	@param:Schema(description = "Id of the attachment, if stored as a couchdb attachment") @ActiveField val couchDbAttachmentId: String? = null,

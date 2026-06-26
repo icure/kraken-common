@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.conflicts.ConflictResolutionResult
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.conflicts.MergeResult
 
 /**
@@ -39,8 +40,14 @@ interface EntityWithConflictResolutionService<E : StoredDocument> {
 	 *
 	 * @param limit the maximum number of conflicts to solve. If null, all conflicts will be solved.
 	 * @param ids the ids of the entities to solve the conflicts for. If null, all entities will be treated.
+	 * @param strategy the [ConflictResolutionStrategy] to use to solve the conflicts. Defaults to
+	 * [ConflictResolutionStrategy.FullMergeability].
 	 *
 	 * @return a [Flow] of [MergeResult] of the entities which have been updated.
 	 */
-	fun solveConflicts(limit: Int? = null, ids: List<String>? = null): Flow<MergeResult>
+	fun solveConflicts(
+		limit: Int? = null,
+		ids: List<String>? = null,
+		strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.FullMergeability,
+	): Flow<MergeResult>
 }
