@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,11 +32,11 @@ import java.io.Serializable
  */
 data class DatabaseInitialisationDto(
 	/** The list of initial users to create during database initialisation. */
-	@param:Schema(defaultValue = "emptyList()") val users: List<UserDto>? = emptyList(),
+	@param:Schema(defaultValue = "emptyList()") @ActiveField val users: List<UserDto>? = emptyList(),
 	/** The list of initial healthcare parties to create during database initialisation. */
-	@param:Schema(defaultValue = "emptyList()") val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
+	@param:Schema(defaultValue = "emptyList()") @ActiveField val healthcareParties: List<HealthcarePartyDto>? = emptyList(),
 	/** The replication configuration to apply during database initialisation. */
-	val replication: ReplicationDto? = null,
+	@ActiveField val replication: ReplicationDto? = null,
 	/** The minimum required Kraken version for this database configuration. */
-	val minimumKrakenVersion: String? = null,
+	@ActiveField val minimumKrakenVersion: String? = null,
 ) : Serializable

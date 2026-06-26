@@ -9,6 +9,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
 
 /**
  * Holds only data specific for crypto actors without any additional information (from patient, hcparty, device).

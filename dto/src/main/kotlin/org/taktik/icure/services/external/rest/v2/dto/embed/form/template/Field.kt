@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonDiscriminator
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonFieldDeserializer
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonDeserialize(using = JacksonFieldDeserializer::class)
 @JsonDiscriminator("type")
@@ -16,24 +17,25 @@ import org.taktik.icure.services.external.rest.v2.handlers.JacksonFieldDeseriali
  * validation rules, and optional codification and tagging.
  */
 sealed interface Field : StructureElement {
-	val field: String
-	val shortLabel: String?
-	val rows: Int?
-	val columns: Int?
-	val grows: Boolean?
-	val schema: String?
-	val tags: List<String>?
-	val codifications: List<String>?
-	val options: Map<String, String>?
-	val hideCondition: String?
-	val required: Boolean?
-	val multiline: Boolean?
-	val value: String?
-	val labels: Map<String, String>?
-	val unit: String?
-	val now: Boolean?
-	val translate: Boolean?
+	@ActiveField val field: String
+	@ActiveField val shortLabel: String?
+	@ActiveField val rows: Int?
+	@ActiveField val columns: Int?
+	@ActiveField val grows: Boolean?
+	@ActiveField val schema: String?
+	@ActiveField val tags: List<String>?
+	@ActiveField val codifications: List<String>?
+	@ActiveField val options: Map<String, String>?
+	@ActiveField val hideCondition: String?
+	@ActiveField val required: Boolean?
+	@ActiveField val multiline: Boolean?
+	@ActiveField val value: String?
+	@ActiveField val labels: Map<String, String>?
+	@ActiveField val unit: String?
+	@ActiveField val now: Boolean?
+	@ActiveField val translate: Boolean?
 
+	@ActiveField
 	val type: FieldType
 		get() = FieldType.fromClass(this::class)
 }

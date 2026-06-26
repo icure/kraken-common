@@ -23,6 +23,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentGroupDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.form.template.FormTemplateLayout
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,29 +32,29 @@ data class FormTemplateDto(
 	override val id: String,
 	override val rev: String? = null,
 	override val deletionDate: Long? = null,
-	val templateLayout: FormTemplateLayout? = null,
-	val rawTemplateLayout: ByteArray? = null, // Base64 representation of a form template layout
-	val name: String? = null,
+	@ActiveField val templateLayout: FormTemplateLayout? = null,
+	@ActiveField val rawTemplateLayout: ByteArray? = null, // Base64 representation of a form template layout
+	@ActiveField val name: String? = null,
 	// Globally unique and consistent accross all DBs that get their formTemplate from a icure cloud library
 	// The id is not guaranteed to be consistent accross dbs
-	val guid: String? = null,
-	val group: DocumentGroupDto? = null,
-	val descr: String? = null,
-	val disabled: String? = null,
-	val specialty: CodeStubDto? = null,
-	val author: String? = null,
+	@ActiveField val guid: String? = null,
+	@ActiveField val group: DocumentGroupDto? = null,
+	@ActiveField val descr: String? = null,
+	@ActiveField val disabled: String? = null,
+	@ActiveField val specialty: CodeStubDto? = null,
+	@ActiveField val author: String? = null,
 	// Location in the form of a gpath/xpath like location with an optional action
 	// ex: healthElements[codes[type == 'ICD' and code == 'I80']].plansOfAction[descr='Follow-up'] : add inside the follow-up plan of action of a specific healthElement
 	// ex: healthElements[codes[type == 'ICD' and code == 'I80']].plansOfAction += [descr:'Follow-up'] : create a new planOfAction and add inside it
-	val formInstancePreferredLocation: String? = null,
-	val keyboardShortcut: String? = null,
-	val shortReport: String? = null,
-	val mediumReport: String? = null,
-	val longReport: String? = null,
-	val reports: Set<String> = emptySet(),
-	val tags: Set<CodeStubDto> = emptySet(),
-	val layoutAttachmentId: String? = null,
-	val templateLayoutAttachmentId: String? = null,
+	@ActiveField val formInstancePreferredLocation: String? = null,
+	@ActiveField val keyboardShortcut: String? = null,
+	@ActiveField val shortReport: String? = null,
+	@ActiveField val mediumReport: String? = null,
+	@ActiveField val longReport: String? = null,
+	@ActiveField val reports: Set<String> = emptySet(),
+	@ActiveField val tags: Set<CodeStubDto> = emptySet(),
+	@ActiveField val layoutAttachmentId: String? = null,
+	@ActiveField val templateLayoutAttachmentId: String? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(
 		id: String?,

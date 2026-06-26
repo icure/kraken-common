@@ -25,6 +25,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -37,11 +39,11 @@ data class PatientByHcPartyGenderEducationProfession(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** The gender to match. */
-	val gender: GenderDto? = null,
+	@ActiveField val gender: GenderDto? = null,
 	/** The education level to match. */
-	val education: String? = null,
+	@ActiveField val education: String? = null,
 	/** The profession to match. */
-	val profession: String? = null,
+	@ActiveField val profession: String? = null,
 ) : AbstractFilterDto<PatientDto>

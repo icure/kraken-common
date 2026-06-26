@@ -28,6 +28,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -58,9 +60,9 @@ data class ApplicationSettingsDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** A map of plaintext application settings as key-value pairs. */
-	val settings: Map<String, String> = emptyMap(),
+	@ActiveField val settings: Map<String, String> = emptyMap(),
 	/** A map of encrypted application settings as key-value pairs. */
-	val encryptedSettings: Map<String, String> = emptyMap(),
+	@ActiveField val encryptedSettings: Map<String, String> = emptyMap(),
 	/** The secret foreign keys, used for secure linking. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */

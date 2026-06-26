@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.ContactDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -36,5 +38,5 @@ data class ContactByServiceIdsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The list of service identifiers to match. */
-	val ids: List<String>? = null,
+	@ActiveField val ids: List<String>? = null,
 ) : AbstractFilterDto<ContactDto>

@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,13 +22,13 @@ data class RecoveryDataDto(
 	/** The revision of the recovery data in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
 	/** The id of the data owner that this recovery data is meant for. */
-	@param:Schema(required = true) val recipient: String,
+	@param:Schema(required = true) @ActiveField val recipient: String,
 	/** The encrypted content of the recovery data. */
-	@param:Schema(required = true) val encryptedSelf: Base64StringDto,
+	@param:Schema(required = true) @ActiveField val encryptedSelf: Base64StringDto,
 	/** The type of recovery data (keypair recovery or exchange key recovery). */
-	@param:Schema(required = true) val type: Type,
+	@param:Schema(required = true) @ActiveField val type: Type,
 	/** The expiration timestamp (unix epoch in ms) after which this recovery data is no longer valid. */
-	val expirationInstant: Long? = null,
+	@ActiveField val expirationInstant: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

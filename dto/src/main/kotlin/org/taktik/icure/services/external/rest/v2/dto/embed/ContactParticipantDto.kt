@@ -3,6 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -11,7 +13,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
  */
 data class ContactParticipantDto(
 	/** The type of participation in the contact. */
-	val type: ParticipantTypeDto,
+	@ActiveField val type: ParticipantTypeDto,
 	/** The identifier of the participating healthcare party. */
-	val hcpId: String,
+	@ActiveField val hcpId: String,
 )

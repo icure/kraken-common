@@ -24,6 +24,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -55,15 +57,15 @@ data class PlanOfActionTemplateDto(
 	/** The name of this plan of action template. */
 	override val name: String? = null,
 	/** A description of the template. */
-	val descr: String? = null,
+	@ActiveField val descr: String? = null,
 	/** A note associated with the template. */
-	val note: String? = null,
+	@ActiveField val note: String? = null,
 	/** Whether this template is relevant. */
-	@param:Schema(defaultValue = "true") val relevant: Boolean = true,
+	@param:Schema(defaultValue = "true") @ActiveField val relevant: Boolean = true,
 	/** A bitmask status (bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2: present/absent). */
-	@param:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@param:Schema(defaultValue = "0") @ActiveField val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	/** The list of form skeletons that compose this template. */
-	var forms: List<FormSkeletonDto> = emptyList(),
+	@ActiveField var forms: List<FormSkeletonDto> = emptyList(),
 ) : ICureDocumentDto<String>,
 	NamedDto,
 	HasEndOfLifeDto

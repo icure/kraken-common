@@ -26,6 +26,8 @@ import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,16 +39,16 @@ data class ReferralPeriodDto(
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	@param:Schema(description = "The date (unix epoch in ms) when the referral period initiated, will be filled instantaneously.") val startDate: Instant? = null,
+	@param:Schema(description = "The date (unix epoch in ms) when the referral period initiated, will be filled instantaneously.") @ActiveField val startDate: Instant? = null,
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
 	@param:Schema(
 		description = "The date (unix epoch in ms) the referral period ended, will be instantaneously filled.",
 	/** The date when the referral period ended. */
-	) val endDate: Instant? = null,
+	) @ActiveField val endDate: Instant? = null,
 	/** Comments made during the referral. */
-	@param:Schema(description = "Comments made during the referral.") val comment: String? = null,
+	@param:Schema(description = "Comments made during the referral.") @ActiveField val comment: String? = null,
 ) : Serializable,
 	Comparable<ReferralPeriodDto> {
 	override fun compareTo(other: ReferralPeriodDto): Int = when {

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,7 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class Group(
 	/** The name or identifier of this group. */
 	@param:Schema(required = true)
-	val group: String,
+	@ActiveField val group: String,
 	/** The list of structure elements (fields or nested groups) in this group. */
-	val fields: List<StructureElement>? = null,
+	@ActiveField val fields: List<StructureElement>? = null,
 ) : StructureElement

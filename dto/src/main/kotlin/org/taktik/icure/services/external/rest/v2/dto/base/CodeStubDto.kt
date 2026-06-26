@@ -21,14 +21,16 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.taktik.icure.RequireHashable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.LegacyField
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@RequireHashable
-@JsonFilter("codeStubFilter")
 /**
  * A lightweight reference to a code from a codification system, used as a stub in entities that reference codes
  * without embedding the full code definition. The id is typically formatted as type|code|version.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@RequireHashable
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto")
 data class CodeStubDto(
 	/** The unique identifier, formatted as type|code|version. */
 	override val id: String? = null, // id = type|code|version  => this must be unique
@@ -41,10 +43,11 @@ data class CodeStubDto(
 	/** The version of the codification system. */
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	/** A human-readable label for the context. */
-	val contextLabel: String? = null,
+	@ActiveField val contextLabel: String? = null,
 	/** A map of language codes to localized labels for this code. */
 	@Deprecated("label shouldn't be included in code stub but only in full codes")
-	val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	@LegacyField("An older version of cardinal used to automatically set label as empty map")
+	@ActiveField val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
 
 	override fun normalizeIdentification(): CodeStubDto {

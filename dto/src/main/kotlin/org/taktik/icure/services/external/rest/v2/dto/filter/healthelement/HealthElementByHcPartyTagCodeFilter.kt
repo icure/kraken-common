@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -37,15 +39,15 @@ data class HealthElementByHcPartyTagCodeFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String,
+	@ActiveField val healthcarePartyId: String,
 	/** The type of the code to filter on. */
-	val codeType: String? = null,
+	@ActiveField val codeType: String? = null,
 	/** The code value to match. */
-	val codeCode: String? = null,
+	@ActiveField val codeCode: String? = null,
 	/** The type of the tag to filter on. */
-	val tagType: String? = null,
+	@ActiveField val tagType: String? = null,
 	/** The tag code value to match. */
-	val tagCode: String? = null,
+	@ActiveField val tagCode: String? = null,
 	/** The status value to match. */
-	val status: Int? = null,
+	@ActiveField val status: Int? = null,
 ) : AbstractFilterDto<HealthElementDto>

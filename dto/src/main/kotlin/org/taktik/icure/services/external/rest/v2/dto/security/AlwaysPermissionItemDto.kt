@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.services.external.rest.v2.dto.filter.predicate.AlwaysPredicate
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonDiscriminated("AlwaysPermissionItemDto")
@@ -17,5 +19,6 @@ data class AlwaysPermissionItemDto(
 	override val type: PermissionTypeDto,
 ) : PermissionItemDto {
 	@Schema(defaultValue = "AlwaysPredicate()")
+	@ActiveField
 	override val predicate = AlwaysPredicate()
 }

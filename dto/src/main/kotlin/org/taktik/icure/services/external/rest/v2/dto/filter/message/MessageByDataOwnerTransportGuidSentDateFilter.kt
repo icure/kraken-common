@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -18,15 +20,15 @@ import java.time.Instant
  */
 data class MessageByDataOwnerTransportGuidSentDateFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The transport guid to match. */
-	val transportGuid: String,
+	@ActiveField val transportGuid: String,
 	/** The start of the sent date range (inclusive). */
-	val fromDate: Instant?,
+	@ActiveField val fromDate: Instant?,
 	/** The end of the sent date range (inclusive). */
-	val toDate: Instant?,
+	@ActiveField val toDate: Instant?,
 	/** Whether to return results in descending order. */
-	val descending: Boolean? = null,
+	@ActiveField val descending: Boolean? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MessageDto>

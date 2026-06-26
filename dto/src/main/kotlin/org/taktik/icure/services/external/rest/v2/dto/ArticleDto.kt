@@ -19,6 +19,8 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.LegacyField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -58,9 +60,9 @@ data class ArticleDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The name of the article. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The classification category of the article. */
-	val classification: String? = null,
+	@ActiveField val classification: String? = null,
 	/** The secret foreign keys, used for secure linking. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */

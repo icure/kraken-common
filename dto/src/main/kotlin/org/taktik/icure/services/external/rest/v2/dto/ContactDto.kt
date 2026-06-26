@@ -36,6 +36,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -80,7 +82,7 @@ data class ContactDto(
 	/** Codes that identify or qualify this particular contact. */
 	@param:Schema(description = "Codes that identify or qualify this particular contact.") override val codes: Set<CodeStubDto> = emptySet(),
 	/** The identifiers of the Contact. */
-	@param:Schema(description = "The identifiers of the Contact") val identifier: List<IdentifierDto> = emptyList(),
+	@param:Schema(description = "The identifiers of the Contact") @ActiveField val identifier: List<IdentifierDto> = emptyList(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.") override val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
@@ -88,39 +90,39 @@ data class ContactDto(
 	@param:Schema(
 		description = "Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId",
 	/** Separate contacts can be merged in one logical contact if they share the same groupId. When a contact must be split to selectively assign rights to healthcare parties, the split contacts all share the same groupId. */
-	) val groupId: String? = null,
+	) @ActiveField val groupId: String? = null,
 	/** The date (YYYYMMDDhhmmss) of the start of the contact. */
-	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") val openingDate: Long? = null,
+	@param:Schema(description = "The date (YYYYMMDDhhmmss) of the start of the contact.") @ActiveField val openingDate: Long? = null,
 	/** The date (YYYYMMDDhhmmss) marking the end of the contact. */
-	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") val closingDate: Long? = null,
+	@param:Schema(description = "The date (YYYYMMDDhhmmss) marking the end of the contact.") @ActiveField val closingDate: Long? = null,
 	/** Description of the contact. */
-	@param:Schema(description = "Description of the contact") val descr: String? = null,
+	@param:Schema(description = "Description of the contact") @ActiveField val descr: String? = null,
 	/** Location where the contact was recorded. */
-	@param:Schema(description = "Location where the contact was recorded.") val location: String? = null,
+	@param:Schema(description = "Location where the contact was recorded.") @ActiveField val location: String? = null,
 	/** An external (from another source) id with no guarantee or requirement for unicity. Deprecated for use with Cardinal SDK. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") val externalId: String? = null,
+	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity.") @ActiveField val externalId: String? = null,
 	/** The type of encounter made for the contact. */
-	@param:Schema(description = "The type of encounter made for the contact") val encounterType: CodeStubDto? = null,
+	@param:Schema(description = "The type of encounter made for the contact") @ActiveField val encounterType: CodeStubDto? = null,
 	/** The location where the encounter took place. */
-	@param:Schema(description = "The location where the encounter took place") val encounterLocation: AddressDto? = null,
+	@param:Schema(description = "The location where the encounter took place") @ActiveField val encounterLocation: AddressDto? = null,
 	@param:Schema(
 		description = "Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms.",
 	/** Set of all sub-contacts recorded during the given contact. Sub-contacts are used to link services embedded inside this contact to healthcare elements, healthcare approaches and/or forms. */
-	) val subContacts: Set<SubContactDto> = emptySet(),
+	) @ActiveField val subContacts: Set<SubContactDto> = emptySet(),
 	/** Set of all services provided to the patient during the contact. */
-	@param:Schema(description = "Set of all services provided to the patient during the contact.") val services: Set<ServiceDto> = emptySet(),
+	@param:Schema(description = "Set of all services provided to the patient during the contact.") @ActiveField val services: Set<ServiceDto> = emptySet(),
 	/** The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id. Deprecated: use [participantList] instead. */
 	@param:Schema(description = "The participants to the contact. The key is the type of participant, the value is the id of the participant data owner id")
 	@Deprecated("Use participantList", replaceWith = ReplaceWith("participantList"))
-	val participants: Map<ParticipantTypeDto, String> = emptyMap(),
+	@ActiveField val participants: Map<ParticipantTypeDto, String> = emptyMap(),
 	/** The list of participants to the contact, with their type and data owner id. */
 	@param:Schema(description = "The list of participants to the contact, with their type and data owner id.")
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val participantList: List<ContactParticipantDto> = emptyList(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val participantList: List<ContactParticipantDto> = emptyList(),
 	/** Deprecated: use [responsible] instead. */
-	@Deprecated("Use responsible") val healthcarePartyId: String? = null,
+	@Deprecated("Use responsible") @ActiveField val healthcarePartyId: String? = null,
 	/** Deprecated: use [groupId] instead. */
-	@Deprecated("Use groupId") val modifiedContactId: String? = null,
+	@Deprecated("Use groupId") @ActiveField val modifiedContactId: String? = null,
 	/** The secret patient key, encrypted in the patient document, in clear here. */
 	@param:Schema(description = "The secret patient key, encrypted in the patient document, in clear here.") override val secretForeignKeys: Set<String> = emptySet(),
 	/** The public patient key, encrypted here for separate Crypto Actors. */
@@ -134,7 +136,7 @@ data class ContactDto(
 	/** The security metadata of this contact, tracking access control information. */
 	@param:Schema(description = "The security metadata of this contact, tracking access control information.") override val securityMetadata: SecurityMetadataDto? = null,
 	/** Comments and notes recorded by a healthcare party about this contact. */
-	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") val notes: List<AnnotationDto> = emptyList(),
+	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") @ActiveField val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,

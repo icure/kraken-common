@@ -18,6 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for iCure document entities that track creation and modification metadata.
@@ -30,29 +31,29 @@ interface ICureDocumentDto<T> :
 	@get:Schema(
 		description = "The timestamp (unix epoch in ms) of creation of this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
-	val created:
+	@ActiveField val created:
 		Long?
 
 	@get:Schema(
 		description = "The date (unix epoch in ms) of the latest modification of this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
-	val modified:
+	@ActiveField val modified:
 		Long?
 
 	@get:Schema(
 		description = "The id of the User that has created this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
-	val author:
+	@ActiveField val author:
 		String?
 
 	@get:Schema(
 		description = "The id of the HealthcareParty that is responsible for this entity, will be filled automatically if missing. Not enforced by the application server.",
 	)
-	val responsible:
+	@ActiveField val responsible:
 		String?
 
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@get:Schema(description = "The id of the medical location where this entity was created.")
-	val medicalLocationId: String?
+	@ActiveField val medicalLocationId: String?
 
 }

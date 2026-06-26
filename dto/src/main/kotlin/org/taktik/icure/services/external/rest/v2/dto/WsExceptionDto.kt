@@ -19,12 +19,13 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 class WsExceptionDto(
 	@param:Schema(required = true)
-	val level: String,
+	@ActiveField val level: String,
 	@param:Schema(required = true)
-	val error: String,
+	@ActiveField val error: String,
 	@param:Schema(required = true)
-	val translations: Map<String, String>,
+	@ActiveField val translations: Map<String, String>,
 )

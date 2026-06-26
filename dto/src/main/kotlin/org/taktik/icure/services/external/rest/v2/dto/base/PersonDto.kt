@@ -21,6 +21,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PersonNameDto
 import java.io.Serializable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that represent a person with personal details and contact information.
@@ -28,12 +29,12 @@ import java.io.Serializable
 interface PersonDto :
 	Serializable,
 	IdentifiableDto<String> {
-	val civility: String?
-	val gender: GenderDto?
-	val firstName: String?
-	val lastName: String?
-	val companyName: String?
-	val names: List<PersonNameDto>
-	val addresses: List<AddressDto>
-	val languages: List<String>
+	@ActiveField val civility: String?
+	@ActiveField val gender: GenderDto?
+	@ActiveField val firstName: String?
+	@ActiveField val lastName: String?
+	@ActiveField val companyName: String?
+	@ActiveField val names: List<PersonNameDto>
+	@ActiveField val addresses: List<AddressDto>
+	@ActiveField val languages: List<String>
 }

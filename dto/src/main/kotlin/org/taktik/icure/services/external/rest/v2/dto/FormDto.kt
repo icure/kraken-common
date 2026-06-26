@@ -27,6 +27,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FormDto(
@@ -41,23 +43,23 @@ data class FormDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	override val deletionDate: Long? = null,
-	val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
-	val status: String? = null,
-	val version: Int? = null,
+	@ActiveField val openingDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val status: String? = null,
+	@ActiveField val version: Int? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val logicalUuid: String? = null,
-	@param:Schema(description = "Name/basic description of the form") val descr: String? = null,
-	@param:Schema(description = "A unique external id (from another external source).") val uniqueId: String? = null,
-	@param:Schema(description = "Id of the form template being used to display the form") val formTemplateId: String? = null,
-	@param:Schema(description = "Id of the contact for which the form is being used.") val contactId: String? = null,
-	@param:Schema(description = "The healthcare element to which this form is attached.") val healthElementId: String? = null,
-	@param:Schema(description = "The healthcare approach to which this form is attached.") val planOfActionId: String? = null,
-	@param:Schema(description = "The parent of this form, used to determine the forms hierarchy") val parent: String? = null,
+	@ActiveField val logicalUuid: String? = null,
+	@param:Schema(description = "Name/basic description of the form") @ActiveField val descr: String? = null,
+	@param:Schema(description = "A unique external id (from another external source).") @ActiveField val uniqueId: String? = null,
+	@param:Schema(description = "Id of the form template being used to display the form") @ActiveField val formTemplateId: String? = null,
+	@param:Schema(description = "Id of the contact for which the form is being used.") @ActiveField val contactId: String? = null,
+	@param:Schema(description = "The healthcare element to which this form is attached.") @ActiveField val healthElementId: String? = null,
+	@param:Schema(description = "The healthcare approach to which this form is attached.") @ActiveField val planOfActionId: String? = null,
+	@param:Schema(description = "The parent of this form, used to determine the forms hierarchy") @ActiveField val parent: String? = null,
 	@param:Schema(
 		description = "Id of the anchor inside a parent form. When a form can have several series of sub-forms, the anchor is used to identify the series.",
-	) val anchorId: String? = null,
+	) @ActiveField val anchorId: String? = null,
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val delegations: Map<String, Set<DelegationDto>> = emptyMap(),

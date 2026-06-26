@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
  */
 data class FormSkeletonDto(
 	/** A description of the form skeleton. */
-	val descr: String? = null,
+	@ActiveField val descr: String? = null,
 	/** The identifier of the associated form template. */
-	val formTemplateId: String? = null,
+	@ActiveField val formTemplateId: String? = null,
 )
