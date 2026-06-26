@@ -1,7 +1,6 @@
 package org.taktik.icure.asynclogic.impl.conflict
 
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.impl.ConflictResolutionLogicImpl
 import org.taktik.icure.datastore.IDatastoreInformation
@@ -13,8 +12,8 @@ import org.taktik.icure.entities.conflicts.MergeResult
  *
  * It does not attempt any merge: among all the conflicting revisions (including the current main one) it keeps the
  * revision with the greatest ordinal (the leading number of the CouchDB revision, e.g. `3` in `3-abc...`) and purges
- * all the others. If more than one revision shares the greatest ordinal a single winner cannot be chosen and the
- * resolution fails. The outcome is:
+ * all the others. If more than one revision shares the greatest ordinal, the one coming first lexicographically will be
+ * chosen.
  * - [MergeResult.Success] if all the losing revisions were purged;
  * - [MergeResult.PartialSuccess] if only some of the losing revisions could be purged;
  * - [MergeResult.Failure] if no losing revision could be purged or a single winner could not be determined.
@@ -32,11 +31,9 @@ object LatestRevisionConflictSolver : ConflictSolver {
 			return MergeResult.Success(id = entity.id, rev = checkNotNull(entity.rev))
 		}
 		val revisions = (entity.conflicts ?: emptyList()) + checkNotNull(entity.rev)
-		val winnerRev = revisions.maxBy { it.ordinal() }
-		// If there are multiple revisions with the greatest ordinal, this strategy cannot choose
-		if (revisions.filter { it.ordinal() == winnerRev.ordinal() }.size != 1) {
-			MergeResult.Failure(id = entity.id)
-		}
+		val winnerRev = revisions.groupBy { it.ordinal() }.maxBy { (ordinal, _) ->
+			ordinal
+		}.value.max()
 		val revsToBePurged = revisions.filter { it != winnerRev }
 		val purgedRevs = if (revsToBePurged.isNotEmpty()) {
 			logic.dao.purgeConflictingRevisions(
