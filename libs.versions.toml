@@ -20,7 +20,8 @@ jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
 slf4j = "2.0.17"
-krouch = "1.2.86-g34d42cc4ce"
+krouch = "1.2.87-feature.update-jackson.gf4a8c55181"
+asyncJacksonHttpClient = "0.2.24-feature.update-timing.g24b052240f"
 
 [libraries]
 activation = { group = "javax.activation", name = "activation", version = "1.1.1" }
@@ -29,7 +30,7 @@ apacheCommonsCompress = { group = "org.apache.commons", name = "commons-compress
 apacheCommonsLang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.16.0" }
 apacheCommonsMath3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 apacheCommonsText = { group = "org.apache.commons", name = "commons-text", version = "1.12.0" }
-asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version = "0.2.23-g050f3d219b" }
+asyncJacksonHttpClient = { group = "io.icure", name = "async-jackson-http-client", version.ref = "asyncJacksonHttpClient" }
 betterParse = { group = "com.github.h0tk3y.betterParse", name = "better-parse", version = "0.4.4" }
 bouncyCastleBcmail = { group = "org.bouncycastle", name = "bcmail-jdk18on", version.ref = "bouncyCastle" }
 bouncyCastleBcprov = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
