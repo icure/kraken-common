@@ -38,6 +38,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -347,9 +348,15 @@ class ReceiptController(
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
 		@RequestBody entityIds: List<String>,
-		@RequestParam(required = false, defaultValue = "FullMergeability") strategy: ConflictResolutionStrategyDto
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = receiptService
-		.solveConflicts(limit = null, ids = entityIds, strategy = conflictResolutionStrategyV2Mapper.map(strategy))
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

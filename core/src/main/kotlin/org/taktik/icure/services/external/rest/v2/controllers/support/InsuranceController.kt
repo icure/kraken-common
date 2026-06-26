@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -234,9 +235,15 @@ class InsuranceController(
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
 		@RequestBody entityIds: List<String>,
-		@RequestParam(required = false, defaultValue = "FullMergeability") strategy: ConflictResolutionStrategyDto
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = insuranceService
-		.solveConflicts(limit = null, ids = entityIds, strategy = conflictResolutionStrategyV2Mapper.map(strategy))
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }
