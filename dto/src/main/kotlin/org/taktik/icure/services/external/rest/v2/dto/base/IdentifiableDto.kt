@@ -18,10 +18,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import java.io.Serializable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Base interface for all entities that have a unique identifier.
  */
 interface IdentifiableDto<T> : Serializable {
-	val id: T
+	@ActiveField val id: T
 }

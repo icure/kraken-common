@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,9 +32,9 @@ import java.io.Serializable
  */
 data class AdministrationQuantity(
 	/** The numeric quantity to administer. */
-	val quantity: Double? = null,
+	@ActiveField val quantity: Double? = null,
 	/** The coded unit of administration (CD-ADMINISTRATIONUNIT). */
-	val administrationUnit: CodeStubDto? = null, // CD-ADMINISTRATIONUNIT
+	@ActiveField val administrationUnit: CodeStubDto? = null, // CD-ADMINISTRATIONUNIT
 	/** A textual representation of the unit. */
-	val unit: String? = null, // Should be null
+	@ActiveField val unit: String? = null, // Should be null
 ) : Serializable

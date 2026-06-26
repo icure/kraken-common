@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(Predicate::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,5 +34,5 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
  */
 data class AndPredicate(
 	/** The list of predicates that must all be satisfied. */
-	val predicates: List<Predicate> = emptyList(),
+	@ActiveField val predicates: List<Predicate> = emptyList(),
 ) : Predicate

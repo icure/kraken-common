@@ -24,6 +24,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TimeTableItemDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -56,15 +58,15 @@ data class TimeTableDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The name of the timetable. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The id of the agenda this timetable belongs to. */
-	val agendaId: String? = null,
+	@ActiveField val agendaId: String? = null,
 	/** The start time of the timetable period (format: YYYYMMDDHHMMSS). */
-	val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The end time of the timetable period (format: YYYYMMDDHHMMSS). */
-	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The list of time table items defining individual time slots. */
-	val items: List<TimeTableItemDto> = emptyList(),
+	@ActiveField val items: List<TimeTableItemDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {

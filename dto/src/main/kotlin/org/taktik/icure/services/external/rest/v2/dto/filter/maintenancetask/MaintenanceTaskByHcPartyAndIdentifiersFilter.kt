@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -18,9 +20,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class MaintenanceTaskByHcPartyAndIdentifiersFilter(
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** The list of identifiers to match. */
-	val identifiers: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifiers: List<IdentifierDto> = emptyList(),
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<MaintenanceTaskDto>

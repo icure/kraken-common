@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.GroupDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -17,7 +18,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 class GroupBySuperGroupFilter(
 	/** The identifier of the super group. */
-	val superGroupId: String,
+	@ActiveField val superGroupId: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<GroupDto>

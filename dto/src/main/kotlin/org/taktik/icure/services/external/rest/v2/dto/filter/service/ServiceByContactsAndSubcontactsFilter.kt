@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -38,14 +40,14 @@ data class ServiceByContactsAndSubcontactsFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 	/** The set of contact identifiers to match. */
 	@param:Schema(required = true)
-	val contacts: Set<String>,
+	@ActiveField val contacts: Set<String>,
 	/** The set of sub-contact identifiers to match. */
-	val subContacts: Set<String>? = null,
+	@ActiveField val subContacts: Set<String>? = null,
 	/** The start of the value date range. */
-	val startValueDate: Long? = null,
+	@ActiveField val startValueDate: Long? = null,
 	/** The end of the value date range. */
-	val endValueDate: Long? = null,
+	@ActiveField val endValueDate: Long? = null,
 ) : AbstractFilterDto<ServiceDto>

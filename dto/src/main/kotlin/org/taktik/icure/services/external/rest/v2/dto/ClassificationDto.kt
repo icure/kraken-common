@@ -29,6 +29,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -60,11 +62,11 @@ data class ClassificationDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The id of the parent classification, for nesting. */
-	val parentId: String? = null,
+	@ActiveField val parentId: String? = null,
 	/** A human-readable label for this classification. */
-	@param:Schema(defaultValue = "\"\"") val label: String = "",
+	@param:Schema(defaultValue = "\"\"") @ActiveField val label: String = "",
 	/** The id of the classification template this classification is based on. */
-	val templateId: String? = null,
+	@ActiveField val templateId: String? = null,
 	/** The secret foreign keys, used for secure linking to patients. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */

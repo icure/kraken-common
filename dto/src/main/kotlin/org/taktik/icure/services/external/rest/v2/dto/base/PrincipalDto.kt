@@ -18,6 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that represent a security principal with an identity, a name, and a set of properties.
@@ -25,5 +26,5 @@ import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 interface PrincipalDto :
 	IdentifiableDto<String>,
 	NamedDto {
-	val properties: Set<PropertyStubDto>
+	@ActiveField val properties: Set<PropertyStubDto>
 }

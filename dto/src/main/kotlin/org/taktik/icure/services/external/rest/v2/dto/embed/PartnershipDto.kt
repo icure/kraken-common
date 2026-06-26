@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,16 +33,16 @@ import java.io.Serializable
  */
 data class PartnershipDto(
 	/** The type of relationship (from CD-CONTACT-PERSON codes). */
-	@param:Schema(description = "Type of relationship.") val type: PartnershipTypeDto? = null, // codes are from CD-CONTACT-PERSON
+	@param:Schema(description = "Type of relationship.") @ActiveField val type: PartnershipTypeDto? = null, // codes are from CD-CONTACT-PERSON
 	/** The status of the relationship. */
-	@param:Schema(description = "Status of the relationship.") val status: PartnershipStatusDto? = null,
+	@param:Schema(description = "Status of the relationship.") @ActiveField val status: PartnershipStatusDto? = null,
 	/** The UUID of the contact person or patient in this relationship. */
-	@param:Schema(description = "UUID of the contact person or patient in this relationship.") val partnerId: String? = null, // PersonDto: can either be a patient or a hcp
+	@param:Schema(description = "UUID of the contact person or patient in this relationship.") @ActiveField val partnerId: String? = null, // PersonDto: can either be a patient or a hcp
 	/** Deprecated. Description of the relationship from this patient to the other person. */
 	@Deprecated("use type instead")
-	val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
+	@ActiveField val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
 	/** Deprecated. Description of the relationship from the other person to this patient. */
 	@Deprecated("use type instead")
-	val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
+	@ActiveField val otherToMeRelationshipDescription: String? = null, // father/mother if partnerId is my son
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable, EncryptableDto

@@ -21,6 +21,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,11 +31,11 @@ import java.io.Serializable
  */
 data class SuspensionDto(
 	/** The start moment of the suspension (fuzzy date). */
-	val beginMoment: Long? = null,
+	@ActiveField val beginMoment: Long? = null,
 	/** The end moment of the suspension (fuzzy date). */
-	val endMoment: Long? = null,
+	@ActiveField val endMoment: Long? = null,
 	/** The reason for the suspension. */
-	val suspensionReason: String? = null,
+	@ActiveField val suspensionReason: String? = null,
 	/** The lifecycle state of the suspension. */
-	val lifecycle: String? = null,
+	@ActiveField val lifecycle: String? = null,
 ) : Serializable

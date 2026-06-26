@@ -7,6 +7,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,7 +28,7 @@ data class ExchangeDataMapDto(
     """,
 	)
 	/** A map where each key is a public key fingerprint and the value is an encrypted exchange data id. */
-	val encryptedExchangeDataIds: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
+	@ActiveField val encryptedExchangeDataIds: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

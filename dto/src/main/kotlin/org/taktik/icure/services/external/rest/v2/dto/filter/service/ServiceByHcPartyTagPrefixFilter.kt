@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -20,15 +22,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class ServiceByHcPartyTagPrefixFilter(
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String,
+	@ActiveField val healthcarePartyId: String,
 	/** The type of the tag to match. */
-	val tagType: String,
+	@ActiveField val tagType: String,
 	/** The tag code prefix to match. */
-	val tagCodePrefix: String,
+	@ActiveField val tagCodePrefix: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** Optional start of a range of date for the value date of the service */
-	val startValueDate: Long? = null,
+	@ActiveField val startValueDate: Long? = null,
 	/** Optional end of a range of date for the value date of the service */
-	val endValueDate: Long? = null,
+	@ActiveField val endValueDate: Long? = null,
 ) : AbstractFilterDto<ServiceDto>

@@ -23,6 +23,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -40,21 +42,21 @@ data class SubContactDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
-	@param:Schema(description = "Description of the sub-contact") val descr: String? = null,
-	@param:Schema(description = "Protocol based on which the sub-contact was used for linking services to structuring elements") val protocol: String? = null,
+	@ActiveField val endOfLife: Long? = null,
+	@param:Schema(description = "Description of the sub-contact") @ActiveField val descr: String? = null,
+	@param:Schema(description = "Protocol based on which the sub-contact was used for linking services to structuring elements") @ActiveField val protocol: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val status: Int? = null, // To be refactored
+	@ActiveField val status: Int? = null, // To be refactored
 	@param:Schema(description = "Id of the form used in the sub-contact. Several sub-contacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID")
-	val formId: String? = null, // form or subform unique ID. Several subcontacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID
+	@ActiveField val formId: String? = null, // form or subform unique ID. Several subcontacts with the same form ID can coexist as long as they are in different contacts or they relate to a different planOfActionID
 	@param:Schema(description = "Id of the plan of action (healthcare approach) that is linked by the sub-contact to a service.")
-	val planOfActionId: String? = null,
+	@ActiveField val planOfActionId: String? = null,
 	@param:Schema(description = "Id of the healthcare element that is linked by the sub-contact to a service")
-	val healthElementId: String? = null,
+	@ActiveField val healthElementId: String? = null,
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val classificationId: String? = null,
+	@ActiveField val classificationId: String? = null,
 	@param:Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.")
-	val services: List<ServiceLinkDto> = emptyList(),
+	@ActiveField val services: List<ServiceLinkDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String?>

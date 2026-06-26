@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,19 +31,19 @@ import java.io.Serializable
  */
 data class FinancialInstitutionInformationDto(
 	/** The name of the financial institution. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The key identifying this financial institution information entry. */
-	val key: String? = null,
+	@ActiveField val key: String? = null,
 	/** The bank account number (e.g., IBAN). */
-	val bankAccount: String? = null,
+	@ActiveField val bankAccount: String? = null,
 	/** The BIC/SWIFT code of the bank. */
-	val bic: String? = null,
+	@ActiveField val bic: String? = null,
 	/** The proxy bank account number. */
-	val proxyBankAccount: String? = null,
+	@ActiveField val proxyBankAccount: String? = null,
 	/** The BIC/SWIFT code for the proxy bank. */
-	val proxyBic: String? = null,
+	@ActiveField val proxyBic: String? = null,
 	/** Set of insurance or healthcare party identifiers that prefer this financial institution. */
-	val preferredFiiForPartners: Set<String> = emptySet(), // InsuranceDto Id, Hcp Id
+	@ActiveField val preferredFiiForPartners: Set<String> = emptySet(), // InsuranceDto Id, Hcp Id
 	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,

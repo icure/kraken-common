@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,13 +31,13 @@ import java.io.Serializable
  */
 data class SubstanceproductDto(
 	/** The list of coded identifiers for the intended substance product. */
-	val intendedcds: List<CodeStubDto> = emptyList(),
+	@ActiveField val intendedcds: List<CodeStubDto> = emptyList(),
 	/** The list of coded identifiers for the actually delivered substance product. */
-	val deliveredcds: List<CodeStubDto> = emptyList(),
+	@ActiveField val deliveredcds: List<CodeStubDto> = emptyList(),
 	/** The name of the intended substance product. */
-	val intendedname: String? = null,
+	@ActiveField val intendedname: String? = null,
 	/** The name of the actually delivered substance product. */
-	val deliveredname: String? = null,
+	@ActiveField val deliveredname: String? = null,
 	/** The product identifier. */
-	val productId: String? = null,
+	@ActiveField val productId: String? = null,
 ) : Serializable

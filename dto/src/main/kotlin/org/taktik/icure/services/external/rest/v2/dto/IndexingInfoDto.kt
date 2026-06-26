@@ -18,13 +18,15 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * DTO providing information about the current indexing status of the database views.
  */
 data class IndexingInfoDto(
 	/** A map of indexing statuses, keyed by view name, where the value represents the indexing progress percentage. */
-	val statuses: Map<String, Int>? = null,
+	@ActiveField val statuses: Map<String, Int>? = null,
 ) : Serializable {
 	companion object {
 		private const val serialVersionUID = 1L

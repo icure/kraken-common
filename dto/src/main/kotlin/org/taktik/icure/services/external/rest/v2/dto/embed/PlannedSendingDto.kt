@@ -16,11 +16,12 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Represents a planned sending schedule defined by a cron expression.
  */
 class PlannedSendingDto(
 	/** The cron expression defining the sending schedule. */
-	val cronExpression: String? = null,
+	@ActiveField val cronExpression: String? = null,
 )

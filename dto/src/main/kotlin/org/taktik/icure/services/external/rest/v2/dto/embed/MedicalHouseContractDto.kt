@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,71 +33,71 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
  */
 data class MedicalHouseContractDto(
 	/** The identifier of the contract. */
-	val contractId: String? = null,
+	@ActiveField val contractId: String? = null,
 	/** The start of the contract period (yyyyMMdd). */
-	val validFrom: Long? = null, // yyyyMMdd : start of contract period
+	@ActiveField val validFrom: Long? = null, // yyyyMMdd : start of contract period
 	/** The end of the contract period (yyyyMMdd). */
-	val validTo: Long? = null, // yyyyMMdd : end of contract period
+	@ActiveField val validTo: Long? = null, // yyyyMMdd : end of contract period
 	/** The NIHII number of the medical house. */
-	val mmNihii: String? = null,
+	@ActiveField val mmNihii: String? = null,
 	/** The identifier of the healthcare party. */
-	val hcpId: String? = null,
+	@ActiveField val hcpId: String? = null,
 	/** The type of contract change (inscription, coverageChange, suspension). */
-	val changeType: ContractChangeTypeDto? = null, // inscription, coverageChange, suspension
+	@ActiveField val changeType: ContractChangeTypeDto? = null, // inscription, coverageChange, suspension
 	/** The identifier of the parent contract. */
-	val parentContractId: String? = null,
+	@ActiveField val parentContractId: String? = null,
 	/** Who changed the contract (user or mcn). */
-	val changedBy: String? = null, // user, mcn
+	@ActiveField val changedBy: String? = null, // user, mcn
 	// Coverage specific data (coverage = forfait-inscription)
 	/** The contract signature date (yyyyMMdd). */
-	val startOfContract: Long? = null, // yyyyMMdd : signdate
+	@ActiveField val startOfContract: Long? = null, // yyyyMMdd : signdate
 	/** The start of coverage date (yyyyMMdd). */
-	val startOfCoverage: Long? = null, // yyyyMMdd
+	@ActiveField val startOfCoverage: Long? = null, // yyyyMMdd
 	/** The contract end signature date (yyyyMMdd). */
-	val endOfContract: Long? = null, // yyyyMMdd : signdate
+	@ActiveField val endOfContract: Long? = null, // yyyyMMdd : signdate
 	/** The end of coverage date (yyyyMMdd). */
-	val endOfCoverage: Long? = null, // yyyyMMdd
+	@ActiveField val endOfCoverage: Long? = null, // yyyyMMdd
 	/** Whether kinesitherapy is covered. */
-	@param:Schema(defaultValue = "false") val kine: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val kine: Boolean = false,
 	/** Whether general practitioner care is covered. */
-	@param:Schema(defaultValue = "false") val gp: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val gp: Boolean = false,
 	/** Whether PTD is covered. */
-	@param:Schema(defaultValue = "false") val ptd: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val ptd: Boolean = false,
 	/** Whether nursing care is covered. */
-	@param:Schema(defaultValue = "false") val nurse: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val nurse: Boolean = false,
 	/** Whether kinesitherapy is excluded. */
-	@param:Schema(defaultValue = "false") val noKine: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val noKine: Boolean = false,
 	/** Whether general practitioner care is excluded. */
-	@param:Schema(defaultValue = "false") val noGp: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val noGp: Boolean = false,
 	/** Whether nursing care is excluded. */
-	@param:Schema(defaultValue = "false") val noNurse: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val noNurse: Boolean = false,
 	/** The reason identifier for unsubscription. */
-	val unsubscriptionReasonId: Int? = null,
+	@ActiveField val unsubscriptionReasonId: Int? = null,
 	/** The start date of PTD coverage. */
-	val ptdStart: Long? = null,
+	@ActiveField val ptdStart: Long? = null,
 	/** The end date of PTD coverage. */
-	val ptdEnd: Long? = null,
+	@ActiveField val ptdEnd: Long? = null,
 	/** The date PTD was last invoiced. */
-	val ptdLastInvoiced: Long? = null,
+	@ActiveField val ptdLastInvoiced: Long? = null,
 	// SuspensionDto specific data:
 	/** The start of suspension date (yyyyMMdd). */
-	val startOfSuspension: Long? = null, // yyyyMMdd
+	@ActiveField val startOfSuspension: Long? = null, // yyyyMMdd
 	/** The end of suspension date (yyyyMMdd). */
-	val endOfSuspension: Long? = null, // yyyyMMdd
+	@ActiveField val endOfSuspension: Long? = null, // yyyyMMdd
 	/** The reason for suspension. */
-	val suspensionReason: SuspensionReasonDto? = null,
+	@ActiveField val suspensionReason: SuspensionReasonDto? = null,
 	/** The source of the suspension. */
-	val suspensionSource: String? = null,
+	@ActiveField val suspensionSource: String? = null,
 	/** Whether the suspension is forced (no automatic unsuspension). */
-	@param:Schema(defaultValue = "false") val forcedSuspension: Boolean = false, // no automatic unSuspension = false
+	@param:Schema(defaultValue = "false") @ActiveField val forcedSuspension: Boolean = false, // no automatic unSuspension = false
 	/** The type of signature used for the contract. */
-	val signatureType: MhcSignatureTypeDto? = null,
+	@ActiveField val signatureType: MhcSignatureTypeDto? = null,
 	/** The contract status. */
-	val status: Int? = null,
+	@ActiveField val status: Int? = null,
 	/** Additional options as key-value pairs. */
-	val options: Map<String, String> = HashMap(),
+	@ActiveField val options: Map<String, String> = HashMap(),
 	/** Receipt identifiers as key-value pairs. */
-	val receipts: Map<String, String> = emptyMap(),
+	@ActiveField val receipts: Map<String, String> = emptyMap(),
 	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto

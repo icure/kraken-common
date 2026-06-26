@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.RequireHashable
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,7 +34,7 @@ import java.io.Serializable
  */
 data class PeriodicityDto(
 	/** The code associated with this periodicity. */
-	val relatedCode: CodeStubDto? = null,
+	@ActiveField val relatedCode: CodeStubDto? = null,
 	/** The periodicity code defining the recurrence pattern. */
-	val relatedPeriodicity: CodeStubDto? = null,
+	@ActiveField val relatedPeriodicity: CodeStubDto? = null,
 ) : Serializable

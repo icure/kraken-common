@@ -21,6 +21,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,21 +32,21 @@ import org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto
  */
 data class ImportResultDto(
 	/** The patient that was imported or matched during the import. */
-	val patient: PatientDto? = null,
+	@ActiveField val patient: PatientDto? = null,
 	/** The list of health elements imported. */
-	val hes: List<HealthElementDto> = listOf(),
+	@ActiveField val hes: List<HealthElementDto> = listOf(),
 	/** The list of contacts imported. */
-	val ctcs: List<ContactDto> = listOf(),
+	@ActiveField val ctcs: List<ContactDto> = listOf(),
 	/** The list of warning messages generated during import. */
-	val warnings: List<String> = listOf(),
+	@ActiveField val warnings: List<String> = listOf(),
 	/** The list of error messages generated during import. */
-	val errors: List<String> = listOf(),
+	@ActiveField val errors: List<String> = listOf(),
 	/** The list of forms imported. */
-	val forms: List<FormDto> = listOf(),
+	@ActiveField val forms: List<FormDto> = listOf(),
 	/** The list of healthcare parties imported. */
-	val hcps: List<HealthcarePartyDto> = listOf(),
+	@ActiveField val hcps: List<HealthcarePartyDto> = listOf(),
 	/** The list of documents imported. */
-	val documents: List<DocumentDto> = listOf(),
+	@ActiveField val documents: List<DocumentDto> = listOf(),
 	/** A map of MIME attachments associated with the import, keyed by attachment identifier. */
-	val attachments: Map<String, MimeAttachmentDto> = mapOf(),
+	@ActiveField val attachments: Map<String, MimeAttachmentDto> = mapOf(),
 )

@@ -23,6 +23,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValueDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -38,9 +40,9 @@ data class PropertyDto(
 	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
 	/** The type definition of this property. */
-	val type: PropertyTypeDto? = null,
+	@ActiveField val type: PropertyTypeDto? = null,
 	/** The typed value held by this property. */
-	val typedValue: TypedValueDto? = null,
+	@ActiveField val typedValue: TypedValueDto? = null,
 	/** The encrypted content of this property, encoded as a Base64 string. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : StoredDocumentDto,

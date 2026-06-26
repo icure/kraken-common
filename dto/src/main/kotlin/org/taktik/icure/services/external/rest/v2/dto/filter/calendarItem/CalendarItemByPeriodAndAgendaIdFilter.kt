@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -17,13 +19,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class CalendarItemByPeriodAndAgendaIdFilter(
 	/** The identifier of the agenda. */
-	val agendaId: String,
+	@ActiveField val agendaId: String,
 	/** The start of the time period. */
-	val startTime: Long,
+	@ActiveField val startTime: Long,
 	/** The end of the time period. */
-	val endTime: Long,
+	@ActiveField val endTime: Long,
 	/** Whether to return results in descending order. */
-	val descending: Boolean? = null,
+	@ActiveField val descending: Boolean? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<CalendarItemDto>

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonFilterDeserializer
 import java.io.Serializable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonDeserialize(using = JacksonFilterDeserializer::class)
 interface AbstractFilterDto<O : IdentifiableDto<String>> : FilterDto<O> {
@@ -31,30 +32,30 @@ interface AbstractFilterDto<O : IdentifiableDto<String>> : FilterDto<O> {
 	@JsonProperty("\$type") // Fix serialization from kotlin
 	fun includeDiscriminator(): String = this::class.simpleName!!
 
-	val desc: String?
+	@ActiveField val desc: String?
 }
 
 sealed interface FilterDto<O : IdentifiableDto<*>> : Serializable {
 	interface IdsFilter<T : Serializable, O : IdentifiableDto<T>> : FilterDto<O> {
-		val ids: Set<T>
+		@ActiveField val ids: Set<T>
 	}
 
 	interface UnionFilter<O : IdentifiableDto<*>> : FilterDto<O> {
-		val filters: List<FilterDto<O>>
+		@ActiveField val filters: List<FilterDto<O>>
 	}
 
 	interface IntersectionFilter<O : IdentifiableDto<*>> : FilterDto<O> {
-		val filters: List<FilterDto<O>>
+		@ActiveField val filters: List<FilterDto<O>>
 	}
 
 	interface ComplementFilter<O : IdentifiableDto<*>> : FilterDto<O> {
-		val superSet: FilterDto<O>
-		val subSet: FilterDto<O>
+		@ActiveField val superSet: FilterDto<O>
+		@ActiveField val subSet: FilterDto<O>
 	}
 
 	interface AllFilter<O : IdentifiableDto<*>> : FilterDto<O>
 
 	interface ByHcpartyFilter<O : IdentifiableDto<*>> : FilterDto<O> {
-		val hcpId: String
+		@ActiveField val hcpId: String
 	}
 }

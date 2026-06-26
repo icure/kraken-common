@@ -26,7 +26,7 @@ dependencies {
 
     implementation(project("$projectPrefix:utils"))
 
-    if (rootProject.name == "kraken-cloud") {
+    if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
         ksp("com.icure:ksp-json-processor")
     }
 
