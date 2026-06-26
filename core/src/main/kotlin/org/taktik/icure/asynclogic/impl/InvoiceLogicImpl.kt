@@ -69,7 +69,7 @@ open class InvoiceLogicImpl(
 	ConflictResolutionLogic<Invoice> by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
 	InvoiceLogic {
 	override suspend fun createInvoice(invoice: Invoice) = fix(invoice, isCreate = true) { fixedInvoice ->
-		if (fixedInvoice.rev != null) throw IllegalArgumentException("A new entity should not have a rev")
+		checkValidityForCreation(fixedInvoice)
 		val datastoreInformation = getInstanceAndGroup()
 		invoiceDAO.create(datastoreInformation, fixedInvoice)
 	}

@@ -17,6 +17,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.asynclogic.TarificationLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Tarification
@@ -27,11 +28,14 @@ import org.taktik.icure.validation.aspect.Fixer
 
 open class TarificationLogicImpl(
 	val tarificationDAO: TarificationDAO,
+	protected val cardinalVersionConfig: CardinalVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
 ) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters),
 	TarificationLogic {
+
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
 
 	private fun validateIdFields(code: Tarification) {
 		requireNotNull(code.code) { "Element with id ${code.id} has a null code field." }

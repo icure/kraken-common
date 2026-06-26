@@ -142,9 +142,11 @@ open class UserLogicImpl(
 		return userEnhancer.enhance(globalUserUpdater.tryUpdate(created), false)
 	}
 
-	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> {
+	override fun createEntities(entities: Collection<User>): Flow<EnhancedUser> = flow {
 		entities.forEach { checkValidityForCreation(it) }
-		return createOrModifyEntities(entities)
+		emitAll(
+			createOrModifyEntities(entities)
+		)
 	}
 
 	protected fun ensureContactsAreUnique(users: Collection<User>) {
