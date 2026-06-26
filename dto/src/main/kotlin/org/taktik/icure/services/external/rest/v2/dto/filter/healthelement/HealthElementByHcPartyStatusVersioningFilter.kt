@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.VersionFilteringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -20,10 +22,10 @@ data class HealthElementByHcPartyStatusVersioningFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val hcPartyId: String,
+	@ActiveField val hcPartyId: String,
 	/** The status value to match. */
-	val status: Int,
+	@ActiveField val status: Int,
 	/** Optional version filtering criteria. */
-	val versionFiltering: VersionFilteringDto? = null,
+	@ActiveField val versionFiltering: VersionFilteringDto? = null,
 ) : AbstractFilterDto<HealthElementDto>
 

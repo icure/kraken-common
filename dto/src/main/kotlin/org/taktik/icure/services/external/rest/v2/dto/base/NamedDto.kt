@@ -16,10 +16,11 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that have a human-readable name.
  */
 interface NamedDto {
-	val name: String?
+	@ActiveField val name: String?
 }

@@ -6,6 +6,8 @@ package org.taktik.icure.services.external.rest.v2.dto.couchdb
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,23 +16,23 @@ import java.io.Serializable
  */
 data class DatabaseInfoDto(
 	/** The database identifier. */
-	val id: String,
+	@ActiveField val id: String,
 	/** The current update sequence for the database. */
-	val updateSeq: String? = null,
+	@ActiveField val updateSeq: String? = null,
 	/** The size of the database file on disk in bytes. */
-	val fileSize: Long? = null,
+	@ActiveField val fileSize: Long? = null,
 	/** The uncompressed size of the database contents in bytes. */
-	val externalSize: Long? = null,
+	@ActiveField val externalSize: Long? = null,
 	/** The size of live data in the database in bytes. */
-	val activeSize: Long? = null,
+	@ActiveField val activeSize: Long? = null,
 	/** The number of documents in the database. */
-	val docs: Long? = null,
+	@ActiveField val docs: Long? = null,
 	/** The number of shards for the database. */
-	val q: Int? = null,
+	@ActiveField val q: Int? = null,
 	/** The number of replicas of each shard. */
-	val n: Int? = null,
+	@ActiveField val n: Int? = null,
 	/** The number of copies that must be written before a write is considered successful. */
-	val w: Int? = null,
+	@ActiveField val w: Int? = null,
 	/** The number of copies that must be read before a read is considered successful. */
-	val r: Int? = null,
+	@ActiveField val r: Int? = null,
 ) : Serializable

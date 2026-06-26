@@ -19,6 +19,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -26,7 +28,7 @@ import java.io.Serializable
  */
 data class LoginCredentials(
 	/** The username or login identifier. */
-	val username: String? = null,
+	@ActiveField val username: String? = null,
 	/** The password for authentication. */
-	val password: String? = null,
+	@ActiveField val password: String? = null,
 ) : Serializable

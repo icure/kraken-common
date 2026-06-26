@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,118 +32,118 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
  */
 data class InvoicingCodeDto(
 	/** The unique identifier of this invoicing code. */
-	val id: String?,
+	@ActiveField val id: String?,
 	/** The date of the invoicing code as a long (yyyyMMdd format). */
-	val dateCode: Long? = null,
+	@ActiveField val dateCode: Long? = null,
 	/** A logical identifier that remains stable when a code is resent to the insuring organization. */
-	val logicalId: String? = null, // Stays the same when a code is resent to the IO
+	@ActiveField val logicalId: String? = null, // Stays the same when a code is resent to the IO
 	/** The label of the invoicing code. */
-	val label: String? = null,
+	@ActiveField val label: String? = null,
 	/** The identifier of the user who created this invoicing code. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** The identifier of the associated contact. */
-	val contactId: String? = null,
+	@ActiveField val contactId: String? = null,
 	/** The identifier of the associated service. */
-	val serviceId: String? = null,
+	@ActiveField val serviceId: String? = null,
 	/** The identifier of the associated tarification. */
 	@SdkName("pricingId")
-	val tarificationId: String? = null,
+	@ActiveField val tarificationId: String? = null,
 	// For obsolete codes or codes not linked to a tarification
 	/** The code value, for obsolete codes or codes not linked to a tarification. */
-	val code: String? = null,
+	@ActiveField val code: String? = null,
 	/** The type of payment. */
-	val paymentType: PaymentTypeDto? = null,
+	@ActiveField val paymentType: PaymentTypeDto? = null,
 	/** The amount already paid. */
-	val paid: Double? = null,
+	@ActiveField val paid: Double? = null,
 	/** The total amount (reimbursement + doctor supplement + intervention). */
-	val totalAmount: Double? = null, // =reimbursement+doctorSupplement+intervention,
+	@ActiveField val totalAmount: Double? = null, // =reimbursement+doctorSupplement+intervention,
 	/** The reimbursement amount. */
-	val reimbursement: Double? = null,
+	@ActiveField val reimbursement: Double? = null,
 	/** The patient intervention amount. */
-	val patientIntervention: Double? = null,
+	@ActiveField val patientIntervention: Double? = null,
 	/** The AMI (insurance) intervention amount. */
-	val amiIntervention: Double? = null,
+	@ActiveField val amiIntervention: Double? = null,
 	/** The doctor supplement amount. */
-	val doctorSupplement: Double? = null,
+	@ActiveField val doctorSupplement: Double? = null,
 	/** The convention amount (reimbursement + intervention). */
-	val conventionAmount: Double? = null, // Should be reimbursement+intervention,
+	@ActiveField val conventionAmount: Double? = null, // Should be reimbursement+intervention,
 	/** The VAT amount. */
-	val vat: Double? = null,
+	@ActiveField val vat: Double? = null,
 	/** The error message from eTarif, if any. */
-	val error: String? = null, // Etarif
+	@ActiveField val error: String? = null, // Etarif
 	// TODO... Might want to encrypt this as it could be used to identify the patient
 	/** The contract identifier. */
-	val contract: String? = null,
+	@ActiveField val contract: String? = null,
 	/** The contract date. */
-	val contractDate: Long? = null,
+	@ActiveField val contractDate: Long? = null,
 	/** The number of units. */
-	val units: Int? = null,
+	@ActiveField val units: Int? = null,
 	/** The side indicator. */
-	val side: Int? = null,
+	@ActiveField val side: Int? = null,
 	/** The time of day. */
-	val timeOfDay: Int? = null,
+	@ActiveField val timeOfDay: Int? = null,
 	/** The hour when the eID was read. */
-	val eidReadingHour: Int? = null,
+	@ActiveField val eidReadingHour: Int? = null,
 	/** The value read from the eID. */
-	val eidReadingValue: String? = null,
+	@ActiveField val eidReadingValue: String? = null,
 	/** The override code for third-party payer. */
-	val override3rdPayerCode: Int? = null,
+	@ActiveField val override3rdPayerCode: Int? = null,
 	/** The reason for overriding the third-party payer. */
-	val override3rdPayerReason: String? = null,
+	@ActiveField val override3rdPayerReason: String? = null,
 	/** The transplantation code. */
-	val transplantationCode: Int? = null,
+	@ActiveField val transplantationCode: Int? = null,
 	/** The prescriber norm code. */
-	val prescriberNorm: Int? = null,
+	@ActiveField val prescriberNorm: Int? = null,
 	/** The label of the product. */
-	val productLabel: String? = null,
+	@ActiveField val productLabel: String? = null,
 	/** The percent norm. */
-	val percentNorm: Int? = null,
+	@ActiveField val percentNorm: Int? = null,
 	/** The NIHII number of the prescriber. */
-	val prescriberNihii: String? = null,
+	@ActiveField val prescriberNihii: String? = null,
 	/** A related code. */
-	val relatedCode: String? = null,
+	@ActiveField val relatedCode: String? = null,
 	/** The prescription date (yyyyMMdd). */
-	val prescriptionDate: Long? = null, // yyyyMMdd
+	@ActiveField val prescriptionDate: Long? = null, // yyyyMMdd
 	/** The maximum derogation number. */
-	val derogationMaxNumber: Int? = null,
+	@ActiveField val derogationMaxNumber: Int? = null,
 	/** The SSIN of the prescriber. */
-	val prescriberSsin: String? = null,
+	@ActiveField val prescriberSsin: String? = null,
 	/** The last name of the prescriber. */
-	val prescriberLastName: String? = null,
+	@ActiveField val prescriberLastName: String? = null,
 	/** The first name of the prescriber. */
-	val prescriberFirstName: String? = null,
+	@ActiveField val prescriberFirstName: String? = null,
 	/** The CD-HCPARTY code of the prescriber. */
-	val prescriberCdHcParty: String? = null,
+	@ActiveField val prescriberCdHcParty: String? = null,
 	/** The NIHII number of the location. */
-	val locationNihii: String? = null,
+	@ActiveField val locationNihii: String? = null,
 	/** The CD-HCPARTY code of the location. */
-	val locationCdHcParty: String? = null,
+	@ActiveField val locationCdHcParty: String? = null,
 	/** The service code of the location. */
-	val locationService: Int? = null,
+	@ActiveField val locationService: Int? = null,
 	/** The admission date. */
-	val admissionDate: Long? = null,
+	@ActiveField val admissionDate: Long? = null,
 	/** Whether this code has been canceled. */
-	val canceled: Boolean? = null,
+	@ActiveField val canceled: Boolean? = null,
 	/** Whether this code has been accepted. */
-	val accepted: Boolean? = null,
+	@ActiveField val accepted: Boolean? = null,
 	/** Whether this code is pending. */
-	val pending: Boolean? = null,
+	@ActiveField val pending: Boolean? = null,
 	/** Whether this code has been resent. */
-	val resent: Boolean? = null,
+	@ActiveField val resent: Boolean? = null,
 	/** Whether this code has been archived. */
-	val archived: Boolean? = null,
+	@ActiveField val archived: Boolean? = null,
 	/** Whether this code has been lost. */
-	val lost: Boolean? = null,
+	@ActiveField val lost: Boolean? = null,
 	/** The insurance justification code. */
-	val insuranceJustification: Int? = null,
+	@ActiveField val insuranceJustification: Int? = null,
 	/** The reason for canceling patient intervention. */
-	val cancelPatientInterventionReason: Int? = null,
+	@ActiveField val cancelPatientInterventionReason: Int? = null,
 	/** The status bitmask of this invoicing code. */
-	val status: Long? = null,
+	@ActiveField val status: Long? = null,
 	/** The label of the code. */
-	val codeLabel: String? = null,
+	@ActiveField val codeLabel: String? = null,
 	/** Additional options as key-value pairs. */
-	val options: Map<String, String> = emptyMap(),
+	@ActiveField val options: Map<String, String> = emptyMap(),
 	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,

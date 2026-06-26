@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.utils.ExternalFilterKeyDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -19,13 +21,13 @@ data class ExternalViewFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The name of the external view to query. */
-	val view: String,
+	@ActiveField val view: String,
 	/** The partition of the view. */
-	val partition: String,
+	@ActiveField val partition: String,
 	/** The fully qualified name of the entity type to filter. */
-	val entityQualifiedName: String,
+	@ActiveField val entityQualifiedName: String,
 	/** The start key for the view query range. */
-	val startKey: ExternalFilterKeyDto?,
+	@ActiveField val startKey: ExternalFilterKeyDto?,
 	/** The end key for the view query range. */
-	val endKey: ExternalFilterKeyDto?,
+	@ActiveField val endKey: ExternalFilterKeyDto?,
 ) : AbstractFilterDto<IdentifiableDto<String>>

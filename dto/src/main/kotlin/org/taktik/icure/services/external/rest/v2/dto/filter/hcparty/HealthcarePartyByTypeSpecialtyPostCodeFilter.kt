@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -17,13 +19,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class HealthcarePartyByTypeSpecialtyPostCodeFilter(
 	/** The specialty category to match. */
-	val specialty: String,
+	@ActiveField val specialty: String,
 	/** The specialty code to match. */
-	val specCode: String,
+	@ActiveField val specCode: String,
 	/** The start of the postal code range (inclusive). */
-	val startPostCode: String,
+	@ActiveField val startPostCode: String,
 	/** The end of the postal code range (inclusive). */
-	val endPostCode: String,
+	@ActiveField val endPostCode: String,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

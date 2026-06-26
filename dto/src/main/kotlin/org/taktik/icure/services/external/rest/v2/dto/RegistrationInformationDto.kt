@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkName
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,21 +17,21 @@ data class RegistrationInformationDto(
 	/** The identifier of the application or project for this registration. */
 	@param:JsonAlias("projectId")
 	@SdkName("projectId")
-	val applicationId: String? = null,
+	@ActiveField val applicationId: String? = null,
 	/** The first name of the person registering. */
-	val firstName: String? = null,
+	@ActiveField val firstName: String? = null,
 	/** The last name of the person registering. */
-	val lastName: String? = null,
+	@ActiveField val lastName: String? = null,
 	/** The name of the company or organization. */
-	val companyName: String? = null,
+	@ActiveField val companyName: String? = null,
 	/** The email address of the person registering. */
-	@param:Schema(required = true) val emailAddress: String,
+	@param:Schema(required = true) @ActiveField val emailAddress: String,
 	/** Additional user options serialized as a string. */
-	val userOptions: String? = null,
+	@ActiveField val userOptions: String? = null,
 	/** The set of roles to assign to the newly created user. */
-	val userRoles: Set<String> = emptySet(),
+	@ActiveField val userRoles: Set<String> = emptySet(),
 	/** The minimum required Kraken version for this registration. */
-	val minimumKrakenVersion: String? = null,
+	@ActiveField val minimumKrakenVersion: String? = null,
 	/** The target cluster for the registration. */
-	val cluster: String? = null,
+	@ActiveField val cluster: String? = null,
 )

@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
  */
 data class EmailTemplateDto(
 	/** The subject line of the email template. */
-	val subject: String? = null,
+	@ActiveField val subject: String? = null,
 	/** The body content of the email template. */
-	val body: String? = null,
+	@ActiveField val body: String? = null,
 )

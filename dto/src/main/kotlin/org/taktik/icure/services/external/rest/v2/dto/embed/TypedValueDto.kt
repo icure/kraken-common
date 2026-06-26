@@ -27,6 +27,8 @@ import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
 import java.util.Date
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -36,20 +38,20 @@ import java.util.Date
  */
 data class TypedValueDto(
 	/** The type of the value stored. */
-	val type: TypedValuesTypeDto? = null,
+	@ActiveField val type: TypedValuesTypeDto? = null,
 	/** The boolean value, if type is BOOLEAN. */
-	val booleanValue: Boolean? = null,
+	@ActiveField val booleanValue: Boolean? = null,
 	/** The integer value, if type is INTEGER. */
-	val integerValue: Long? = null,
+	@ActiveField val integerValue: Long? = null,
 	/** The double value, if type is DOUBLE. */
-	val doubleValue: Double? = null,
+	@ActiveField val doubleValue: Double? = null,
 	/** The string value, if type is STRING, JSON, or CLOB. */
-	val stringValue: String? = null,
+	@ActiveField val stringValue: String? = null,
 	/** The date value as an Instant, if type is DATE. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	val dateValue: Instant? = null,
+	@ActiveField val dateValue: Instant? = null,
 	/** The base64-encoded encrypted content. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Comparable<TypedValueDto>,

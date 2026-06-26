@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.icure.AlwaysEncrypted
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
@@ -23,20 +25,20 @@ import java.io.Serializable
  * kind of data owner (healthcare party, patient, or device) as a polymorphic type.
  */
 sealed interface DataOwnerWithTypeDto : Serializable {
-	val dataOwner: CryptoActorDto
+	@ActiveField val dataOwner: CryptoActorDto
 
 	@JsonSerialize
-	data class HcpDataOwner(
+		data class HcpDataOwner(
 		override val dataOwner: HealthcarePartyDto,
 	) : DataOwnerWithTypeDto
 
 	@JsonSerialize
-	data class PatientDataOwner(
+		data class PatientDataOwner(
 		@AlwaysEncrypted override val dataOwner: PatientDto,
 	) : DataOwnerWithTypeDto
 
 	@JsonSerialize
-	data class DeviceDataOwner(
+		data class DeviceDataOwner(
 		override val dataOwner: DeviceDto,
 	) : DataOwnerWithTypeDto
 }

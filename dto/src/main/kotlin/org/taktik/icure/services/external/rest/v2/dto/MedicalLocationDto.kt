@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,29 +41,29 @@ data class MedicalLocationDto(
 	/** The name of the medical location. */
 	override val name: String? = null,
 	/** A description of the medical location. */
-	val description: String? = null,
+	@ActiveField val description: String? = null,
 	/** The id of the healthcare party responsible for this medical location. */
-	val responsible: String? = null,
+	@ActiveField val responsible: String? = null,
 	/** Whether this medical location is a guard post. */
-	val guardPost: Boolean? = null,
+	@ActiveField val guardPost: Boolean? = null,
 	/** The CBE (Crossroads Bank for Enterprises) number of the medical location. */
-	val cbe: String? = null,
+	@ActiveField val cbe: String? = null,
 	/** The Bank Identifier Code (BIC/SWIFT) of the medical location. */
-	val bic: String? = null,
+	@ActiveField val bic: String? = null,
 	/** The bank account number (IBAN) of the medical location. */
-	val bankAccount: String? = null,
+	@ActiveField val bankAccount: String? = null,
 	/** The NIHII number of the medical location. */
-	val nihii: String? = null,
+	@ActiveField val nihii: String? = null,
 	/** The social security inscription number associated with the medical location. */
-	val ssin: String? = null,
+	@ActiveField val ssin: String? = null,
 	/** The address of the medical location. */
-	val address: AddressDto? = null,
+	@ActiveField val address: AddressDto? = null,
 	/** The set of agenda ids linked to this medical location. */
-	val agendaIds: Set<String> = emptySet(),
+	@ActiveField val agendaIds: Set<String> = emptySet(),
 	/** Additional options for the medical location. */
-	val options: Map<String, String> = emptyMap(),
+	@ActiveField val options: Map<String, String> = emptyMap(),
 	/** Public information about the medical location, in multiple languages. */
-	val publicInformations: Map<String, String> = emptyMap(),
+	@ActiveField val publicInformations: Map<String, String> = emptyMap(),
 ) : StoredDocumentDto,
 	NamedDto {
 	override fun withIdRev(

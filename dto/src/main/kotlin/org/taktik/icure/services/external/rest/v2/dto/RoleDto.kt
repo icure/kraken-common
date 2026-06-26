@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * The RoleDto class represents a role in the system, which can have permissions and can be inheritable up to a certain level by users in child Groups.$
@@ -38,18 +40,19 @@ data class RoleDto(
 	/** The timestamp of when the role was deleted, if applicable. */
 	override val deletionDate: Long? = null,
 	/** The name of the role. It can only contain uppercase letters, numbers, and underscores for a max length of 40 characters.*/
-	override val name: String? = null,
+	// Needs to be annotated with ActiveField even if is override because of a limitation in the generator
+	@ActiveField override val name: String? = null,
 	/** A short description for the role. It cannot exceed 300 characters. **/
-	val description: String? = null,
+	@ActiveField val description: String? = null,
 	/**
 	 * Represents the levels in the descendant groups hierarchy where this role can be used. Eg:
 	 * - null: all the users in the descendants of the group can use this role.
 	 * - 0: only the users in the group can use this role.
 	 * - 1: only the users in the group and in its children groups can use this role.
 	 */
-	val inheritableUpTo: Int? = null,
+	@ActiveField val inheritableUpTo: Int? = null,
 	/** A set of permissions associated with this role, defining what actions users with this role can perform. */
-	val permissions: Set<String> = emptySet(),
+	@ActiveField val permissions: Set<String> = emptySet(),
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,

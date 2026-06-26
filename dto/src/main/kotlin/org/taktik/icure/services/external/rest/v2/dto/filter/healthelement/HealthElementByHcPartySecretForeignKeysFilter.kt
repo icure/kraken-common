@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -19,13 +21,13 @@ data class HealthElementByHcPartySecretForeignKeysFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String,
+	@ActiveField val healthcarePartyId: String,
 	/** The set of secret foreign keys for patient matching. */
-	val patientSecretForeignKeys: Set<String> = emptySet(),
+	@ActiveField val patientSecretForeignKeys: Set<String> = emptySet(),
 	/** The start of the date range (inclusive). */
-	val startDate: Long? = null,
+	@ActiveField val startDate: Long? = null,
 	/** The end of the date range (inclusive). */
-	val endDate: Long? = null,
+	@ActiveField val endDate: Long? = null,
 	/** Whether to return results in descending order. */
-	val descending: Boolean = false,
+	@ActiveField val descending: Boolean = false,
 ) : AbstractFilterDto<HealthElementDto>

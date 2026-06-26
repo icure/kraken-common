@@ -25,6 +25,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionTemplateDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -56,15 +58,15 @@ data class HealthElementTemplateDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Description of the health element template. */
-	val descr: String? = null,
+	@ActiveField val descr: String? = null,
 	/** A text note associated with the template. */
-	val note: String? = null,
+	@ActiveField val note: String? = null,
 	/** Bit field: bit 0 = active/inactive, bit 1 = relevant/irrelevant, bit 2 = present/absent. */
-	@param:Schema(defaultValue = "0") val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	@param:Schema(defaultValue = "0") @ActiveField val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	/** Whether the health element template is relevant. */
-	@param:Schema(defaultValue = "true") val relevant: Boolean = true,
+	@param:Schema(defaultValue = "true") @ActiveField val relevant: Boolean = true,
 	/** List of plan of action templates associated with this health element template. */
-	val plansOfAction: List<PlanOfActionTemplateDto> = emptyList(),
+	@ActiveField val plansOfAction: List<PlanOfActionTemplateDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {

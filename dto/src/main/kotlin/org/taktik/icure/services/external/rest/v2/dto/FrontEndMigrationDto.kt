@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FrontEndMigrationStatusDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -38,27 +40,27 @@ data class FrontEndMigrationDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The name of the migration. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The start date (unix epoch in ms) of the migration. */
-	val startDate: Long? = null,
+	@ActiveField val startDate: Long? = null,
 	/** The end date (unix epoch in ms) of the migration. */
-	val endDate: Long? = null,
+	@ActiveField val endDate: Long? = null,
 	/** The current status of the migration. */
-	val status: FrontEndMigrationStatusDto? = null,
+	@ActiveField val status: FrontEndMigrationStatusDto? = null,
 	/** Logs produced during the migration process. */
-	val logs: String? = null,
+	@ActiveField val logs: String? = null,
 	/** The id of the user that initiated the migration. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** The start key used for pagination during migration. */
-	val startKey: String? = null,
+	@ActiveField val startKey: String? = null,
 	/** The start key document id used for pagination during migration. */
-	val startKeyDocId: String? = null,
+	@ActiveField val startKeyDocId: String? = null,
 	/** The number of items processed during the migration. */
-	val processCount: Long? = null,
+	@ActiveField val processCount: Long? = null,
 	@param:Schema(
 		description = "Extra properties for the fem. Those properties are typed (see class Property)",
 	/** Extra properties for the front-end migration. Those properties are typed (see class Property). */
-	) val properties: Set<PropertyStubDto> =
+	) @ActiveField val properties: Set<PropertyStubDto> =
 		emptySet(),
 ) : StoredDocumentDto {
 	override fun withIdRev(

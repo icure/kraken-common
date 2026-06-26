@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed.form.template
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -10,11 +11,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
  */
 class Launcher(
 	/** The name of the launcher. */
-	val name: String = "",
+	@ActiveField val name: String = "",
 	/** The trigger event that activates this launcher. */
-	val triggerer: Trigger = Trigger.INIT,
+	@ActiveField val triggerer: Trigger = Trigger.INIT,
 	/** Whether the current field value should be passed when the launcher is triggered. */
-	val shouldPassValue: Boolean = false,
+	@ActiveField val shouldPassValue: Boolean = false,
 )
 
 /**

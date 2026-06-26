@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(Predicate::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -33,5 +35,5 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
  */
 data class NotPredicate(
 	/** The predicate to negate. */
-	@param:Schema(required = true) val predicate: Predicate,
+	@param:Schema(required = true) @ActiveField val predicate: Predicate,
 ) : Predicate

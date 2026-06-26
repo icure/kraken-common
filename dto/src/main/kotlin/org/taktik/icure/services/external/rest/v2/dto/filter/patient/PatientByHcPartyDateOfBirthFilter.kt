@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -38,7 +40,7 @@ data class PatientByHcPartyDateOfBirthFilter(
 	override val desc: String? = null,
 	/** The date of birth to match (in YYYYMMDD format). */
 	@param:Schema(required = true)
-	val dateOfBirth: Int,
+	@ActiveField val dateOfBirth: Int,
 	/** The identifier of the healthcare party. */
-	val healthcarePartyId: String? = null,
+	@ActiveField val healthcarePartyId: String? = null,
 ) : AbstractFilterDto<PatientDto>

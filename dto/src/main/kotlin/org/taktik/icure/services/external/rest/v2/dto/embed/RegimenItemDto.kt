@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,17 +34,17 @@ data class RegimenItemDto(
 	// Day definition (One and only one of the three following should be not null)
 	// The three are null if it applies to every day
 	/** A specific date (yyyyMMdd) for this regimen item. */
-	val date: Long? = null, // yyyymmdd at this date
+	@ActiveField val date: Long? = null, // yyyymmdd at this date
 	/** The day number in the treatment (1-based). */
-	val dayNumber: Int? = null, // day 1 of treatment. 1 based numeration
+	@ActiveField val dayNumber: Int? = null, // day 1 of treatment. 1 based numeration
 	/** The weekday for this regimen item. */
-	val weekday: Weekday? = null, // on monday
+	@ActiveField val weekday: Weekday? = null, // on monday
 	// Time of day definition (One and only one of the three following should be not null)
 	// Both are null if not specified
 	/** The period of the day (CD-DAYPERIOD) for administration. */
-	val dayPeriod: CodeStubDto? = null, // CD-DAYPERIOD
+	@ActiveField val dayPeriod: CodeStubDto? = null, // CD-DAYPERIOD
 	/** The time of day (hhmmss) for administration. */
-	val timeOfDay: Long? = null, // hhmmss 103010
+	@ActiveField val timeOfDay: Long? = null, // hhmmss 103010
 	/** The quantity to administer. */
-	val administratedQuantity: AdministrationQuantity? = null,
+	@ActiveField val administratedQuantity: AdministrationQuantity? = null,
 ) : Serializable

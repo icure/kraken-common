@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,7 +31,7 @@ import java.io.Serializable
  */
 data class DurationDto(
 	/** The numeric value of the duration. */
-	val value: Double? = null,
+	@ActiveField val value: Double? = null,
 	/** The coded time unit (CD-TIMEUNIT) for this duration. */
-	val unit: CodeStubDto? = null, // CD-TIMEUNIT
+	@ActiveField val unit: CodeStubDto? = null, // CD-TIMEUNIT
 ) : Serializable

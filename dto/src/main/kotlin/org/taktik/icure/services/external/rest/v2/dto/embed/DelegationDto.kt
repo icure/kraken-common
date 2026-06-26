@@ -21,13 +21,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DelegationDto(
 	// This is not the owner of a piece of date (patient, contact). It is the owner of the delegation.
-	var owner: String? = null, // owner id
-	var delegatedTo: String? = null, // delegatedTo id
-	var key: HexStringDto? = null, // An arbitrary key (generated, patientId, any ID, etc.), usually prefixed with the entity ID followed by ":", encrypted using an exchange AES key.
-	var tags: List<String> = emptyList(), // Used for rights
+	@ActiveField var owner: String? = null, // owner id
+	@ActiveField var delegatedTo: String? = null, // delegatedTo id
+	@ActiveField var key: HexStringDto? = null, // An arbitrary key (generated, patientId, any ID, etc.), usually prefixed with the entity ID followed by ":", encrypted using an exchange AES key.
+	@ActiveField var tags: List<String> = emptyList(), // Used for rights
 ) : Serializable

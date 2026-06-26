@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed.form.template
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -10,11 +11,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
  */
 class State(
 	/** The name of the target field. */
-	val name: String = "",
+	@ActiveField val name: String = "",
 	/** The aspect of the field state to update (value, visibility, readonly, etc.). */
-	val stateToUpdate: StateToUpdate = StateToUpdate.VISIBLE,
+	@ActiveField val stateToUpdate: StateToUpdate = StateToUpdate.VISIBLE,
 	/** Whether this state change can trigger additional launchers. */
-	val canLaunchLauncher: Boolean = false,
+	@ActiveField val canLaunchLauncher: Boolean = false,
 )
 
 /**

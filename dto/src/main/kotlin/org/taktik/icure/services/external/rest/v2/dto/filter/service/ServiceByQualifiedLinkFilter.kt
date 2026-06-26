@@ -8,6 +8,8 @@ import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -18,9 +20,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class ServiceByQualifiedLinkFilter(
 	/** The list of link values to match. */
-	val linkValues: List<String>,
+	@ActiveField val linkValues: List<String>,
 	/** The optional link qualification to filter by. */
-	val linkQualification: LinkQualificationDto? = null,
+	@ActiveField val linkQualification: LinkQualificationDto? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ServiceDto>

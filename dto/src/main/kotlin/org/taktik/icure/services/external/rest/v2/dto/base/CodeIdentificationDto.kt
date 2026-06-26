@@ -17,17 +17,18 @@
  */
 
 package org.taktik.icure.services.external.rest.v2.dto.base
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that can be identified by a code from a codification system.
  * The id is typically composed as type|code|version.
  */
 interface CodeIdentificationDto<K> {
-	val id: K
-	val code: String?
-	val context: String?
-	val type: String?
-	val version: String?
+	@ActiveField val id: K
+	@ActiveField val code: String?
+	@ActiveField val context: String?
+	@ActiveField val type: String?
+	@ActiveField val version: String?
 
 	fun normalizeIdentification(): CodeIdentificationDto<K>
 }
