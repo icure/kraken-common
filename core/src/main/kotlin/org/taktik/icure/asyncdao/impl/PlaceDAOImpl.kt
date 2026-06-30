@@ -17,6 +17,7 @@ import org.taktik.icure.asyncdao.PlaceDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Place
 
@@ -29,8 +30,16 @@ class PlaceDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-) : ConflictDAOImpl<Place>(Place::class.java, couchDbDispatcher, idGenerator, entityCacheFactory.getConfiguredCache(), designDocumentProvider, daoConfig = daoConfig),
-	PlaceDAO {
+	queryProvider: QueryProvider,
+) : ConflictDAOImpl<Place>(
+	entityClass = Place::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
+	daoConfig = daoConfig,
+	queryProvider = queryProvider
+), PlaceDAO {
 
 	@View(
 		name = "conflicts",

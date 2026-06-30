@@ -16,6 +16,9 @@ import org.taktik.icure.utils.sortTimeBounds
 class AccessLogByDateFilter(
 	private val accessLogDAO: AccessLogDAO,
 ) : Filter<String, AccessLog, AccessLogByDateFilter> {
+	override val entity get() = accessLogDAO.entityClass
+	override val views = listOf("by_date")
+
 	override fun resolve(
 		filter: AccessLogByDateFilter,
 		context: Filters,

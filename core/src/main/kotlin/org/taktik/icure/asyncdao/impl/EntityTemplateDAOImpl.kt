@@ -21,10 +21,12 @@ import org.taktik.icure.asyncdao.EntityTemplateDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.EntityTemplate
 import org.taktik.icure.utils.distinctById
+import org.taktik.icure.utils.main
 
 @Repository("entityTemplateDAO")
 @Profile("app")
@@ -38,15 +40,16 @@ class EntityTemplateDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : GenericDAOImpl<EntityTemplate>(
-	EntityTemplate::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = EntityTemplate::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	EntityTemplateDAO {
+	queryProvider = queryProvider
+), EntityTemplateDAO {
 	@View(name = "by_user_type_descr", map = "classpath:js/entitytemplate/By_user_type_descr.js")
 	override fun listEntityTemplatesByUserIdTypeDescr(
 		datastoreInformation: IDatastoreInformation,
@@ -58,17 +61,17 @@ class EntityTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val descr = if (searchString != null) sanitizeString(searchString) else null
 		val viewQuery =
-			createQuery(datastoreInformation, "by_user_type_descr")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_user_type_descr".main(),
+				configurationView = "by_user_type_descr"
+			)
 				.startKey(ComplexKey.of(userId, type, descr))
 				.endKey(
 					ComplexKey.of(
 						userId,
 						type,
-						(
-							descr
-								?: ""
-							) +
-							"\ufff0",
+						(descr ?: "") + "\ufff0",
 					),
 				).includeDocs(false)
 
@@ -92,16 +95,16 @@ class EntityTemplateDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val descr = if (searchString != null) sanitizeString(searchString) else null
 		val viewQuery =
-			createQuery(datastoreInformation, "by_type_descr")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_type_descr".main(),
+				configurationView = "by_type_descr"
+			)
 				.startKey(ComplexKey.of(type, descr))
 				.endKey(
 					ComplexKey.of(
 						type,
-						(
-							descr
-								?: ""
-							) +
-							"\ufff0",
+						(descr ?: "") + "\ufff0",
 					),
 				).includeDocs(false)
 
@@ -125,17 +128,17 @@ class EntityTemplateDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_user_type_keyword")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_user_type_keyword".main(),
+				configurationView = "by_user_type_keyword"
+			)
 				.startKey(ComplexKey.of(userId, type, keyword))
 				.endKey(
 					ComplexKey.of(
 						userId,
 						type,
-						(
-							keyword
-								?: ""
-							) +
-							"\ufff0",
+						(keyword ?: "") + "\ufff0",
 					),
 				).includeDocs(false)
 
@@ -158,16 +161,16 @@ class EntityTemplateDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_type_keyword")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_type_keyword".main(),
+				configurationView = "by_type_keyword"
+			)
 				.startKey(ComplexKey.of(type, keyword))
 				.endKey(
 					ComplexKey.of(
 						type,
-						(
-							keyword
-								?: ""
-							) +
-							"\ufff0",
+						(keyword ?: "") + "\ufff0",
 					),
 				).includeDocs(false)
 

@@ -14,20 +14,22 @@ import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.ConflictDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
+import org.taktik.icure.asynclogic.impl.conflict.getConflictSolver
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.base.encryptableMetadataEquals
 import org.taktik.icure.entities.conflicts.ConflictResolutionResult
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.conflicts.MergeResult
 import org.taktik.icure.entities.utils.MergeUtil
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.mergers.Merger
 
 open class ConflictResolutionLogicImpl<E : StoredDocument>(
-	private val dao: ConflictDAO<E>,
-	private val merger: Merger<E>,
+	val dao: ConflictDAO<E>,
+	val merger: Merger<E>,
 	private val datastoreInstanceProvider: DatastoreInstanceProvider
 ) : ConflictResolutionLogic<E> {
 
@@ -142,56 +144,19 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 		ids: List<String>?,
 		limit: Int?,
 		datastoreInformation: IDatastoreInformation,
+		strategy: ConflictResolutionStrategy,
 	): Flow<MergeResult> = flow {
 		val flow = ids?.asFlow()?.mapNotNull { dao.get(datastoreInformation, it, Option.CONFLICTS) }
 				?: dao.listConflicts(datastoreInformation)
 					.mapNotNull { dao.getBypassingCache(datastoreInformation, id = it.id, rev = null, Option.CONFLICTS) }
+		val solver = strategy.getConflictSolver()
 		(limit?.let { flow.take(it) } ?: flow).collect { entity ->
-			val mutableConflicts = entity.conflicts?.toMutableList() ?: mutableListOf()
-			val toBePurged = mutableListOf<E>()
-			var merged = entity
-			while (mutableConflicts.isNotEmpty()) {
-				// Remove from the conflicts only after checking that the entity with that rev exists and is mergeable,
-				// to avoid mixing up the PartialSuccess and Failure cases.
-				val conflictingRevision = mutableConflicts.first()
-				val conflict = dao.getBypassingCache(
+			emit(
+				solver.solve(
+					entity = entity,
 					datastoreInformation = datastoreInformation,
-					id = entity.id,
-					rev = conflictingRevision,
 				)
-				when {
-					conflict != null && merger.canMerge(merged, conflict) -> {
-						merged = merger.merge(merged, conflict)
-						toBePurged.add(conflict)
-						mutableConflicts.removeAt(0)
-					}
-					conflict != null && !merger.canMerge(merged, conflict) -> break
-					else -> {
-						mutableConflicts.removeAt(0)
-					}
-				}
-			}
-			val (entityAfterMerge, purgedCount) = if (toBePurged.isNotEmpty()) {
-				dao.save(datastoreInformation, merged) to
-					dao.purge(datastoreInformation, toBePurged).filterSuccessfulUpdates().count()
-			} else {
-				entity to 0
-			}
-			when {
-				// All conflicts have been merged and all the other revision have been purged
-				mutableConflicts.isEmpty() && purgedCount == toBePurged.size -> MergeResult.Success(
-					id = entityAfterMerge.id,
-					rev = checkNotNull(entityAfterMerge.rev) { "Merged entity must have a revision" },
-				)
-				// There are unmergeable conflicts, but the revisions of merged conflicts have been successfully purged
-				mutableConflicts.size != (entity.conflicts?.size ?: 0) && purgedCount == toBePurged.size -> MergeResult.PartialSuccess(
-					id = entityAfterMerge.id,
-					rev = checkNotNull(entityAfterMerge.rev) { "Merged entity must have a revision" },
-				)
-				else -> MergeResult.Failure(id = entityAfterMerge.id)
-			}.also {
-				emit(it)
-			}
+			)
 		}
 	}
 
@@ -213,12 +178,14 @@ open class ConflictResolutionLogicImpl<E : StoredDocument>(
 	override fun solveConflicts(
 		limit: Int?,
 		ids: List<String>?,
+		strategy: ConflictResolutionStrategy,
 	): Flow<MergeResult> = flow {
 		emitAll(
 			doSolveConflicts(
 				ids,
 				limit,
 				datastoreInstanceProvider.getInstanceAndGroup(),
+				strategy,
 			),
 		)
 	}

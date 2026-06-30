@@ -19,6 +19,9 @@ import org.taktik.icure.entities.base.Code
 class CodeByRegionTypeLabelLanguageFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByRegionTypeLabelLanguageFilter> {
+	override val entity get() = codeDAO.entityClass
+	override val views = listOf("by_language_type_label")
+
 	override fun resolve(
 		filter: CodeByRegionTypeLabelLanguageFilter,
 		context: Filters,

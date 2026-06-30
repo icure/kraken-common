@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,15 +33,15 @@ import java.io.Serializable
  */
 data class IdentityDocumentReaderDto(
 	/** The justification document number. */
-	val justificatifDocumentNumber: String? = null,
+	@ActiveField val justificatifDocumentNumber: String? = null,
 	/** The serial number of the support used to read the document. */
-	val supportSerialNumber: String? = null,
+	@ActiveField val supportSerialNumber: String? = null,
 	/** The timestamp (unix epoch in ms) when the eID document was read. */
-	val timeReadingEIdDocument: Long? = null,
+	@ActiveField val timeReadingEIdDocument: Long? = null,
 	/** The type of eID document support used. */
-	@param:Schema(defaultValue = "0") val eidDocumentSupportType: Int = 0,
+	@param:Schema(defaultValue = "0") @ActiveField val eidDocumentSupportType: Int = 0,
 	/** The reason code for manual encoding, if applicable. */
-	@param:Schema(defaultValue = "0") val reasonManualEncoding: Int = 0,
+	@param:Schema(defaultValue = "0") @ActiveField val reasonManualEncoding: Int = 0,
 	/** The reason code for using a vignette, if applicable. */
-	@param:Schema(defaultValue = "0") val reasonUsingVignette: Int = 0,
+	@param:Schema(defaultValue = "0") @ActiveField val reasonUsingVignette: Int = 0,
 ) : Serializable

@@ -15,6 +15,9 @@ import org.taktik.icure.entities.AccessLog
 data class AccessLogByUserIdUserTypeDateFilter(
 	private val accessLogDAO: AccessLogDAO,
 ) : Filter<String, AccessLog, AccessLogByUserIdUserTypeDateFilter> {
+	override val entity get() = accessLogDAO.entityClass
+	override val views = listOf("by_user_type_and_date")
+
 	override fun resolve(
 		filter: AccessLogByUserIdUserTypeDateFilter,
 		context: Filters,

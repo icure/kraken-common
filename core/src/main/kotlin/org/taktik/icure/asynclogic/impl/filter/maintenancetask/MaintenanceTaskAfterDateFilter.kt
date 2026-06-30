@@ -23,6 +23,9 @@ class MaintenanceTaskAfterDateFilter(
 	private val maintenanceTaskDAO: MaintenanceTaskDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, MaintenanceTask, MaintenanceTaskAfterDateFilter> {
+	override val entity get() = maintenanceTaskDAO.entityClass
+	override val views = listOf("by_all_delegates_date")
+
 	override fun resolve(
 		filter: MaintenanceTaskAfterDateFilter,
 		context: Filters,

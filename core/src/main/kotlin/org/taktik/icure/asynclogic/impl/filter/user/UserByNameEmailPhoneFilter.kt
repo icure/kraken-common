@@ -31,6 +31,9 @@ import org.taktik.icure.entities.User
 class UserByNameEmailPhoneFilter(
 	private val userDAO: UserDAO,
 ) : Filter<String, User, UserByNameEmailPhoneFilter> {
+	override val entity get() = userDAO.entityClass
+	override val views = listOf("by_name_email_phone")
+
 	override fun resolve(
 		filter: UserByNameEmailPhoneFilter,
 		context: Filters,

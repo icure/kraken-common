@@ -7,8 +7,10 @@ package org.taktik.icure.utils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -61,8 +63,7 @@ suspend fun <T> List<LinkedList<T?>>.pushAndShift(
 	queue.add(item)
 	return this.also {
 		while (
-
-			it.none { queue -> queue.size <= 0 } &&
+			it.none { queue -> queue.isEmpty() } &&
 			this.mapIndexed { index, v -> v.first() to index }
 				.sortedWith { (p0, _), (p1, _) ->
 					if (p0 == null) {
@@ -124,9 +125,18 @@ inline fun <reified K, reified V : Any> Client.interleave(viewQueries: NoDocView
  *
  * @return a flow of ViewQueryResultEvent
  */
-fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>, v: Class<V>, t: Class<T>, comparator: Comparator<K>, deduplicationMode: DeduplicationMode = DeduplicationMode.ID, timeoutDuration: Duration? = null): Flow<ViewQueryResultEvent> = channelFlow {
-	@Suppress("UNCHECKED_CAST")
-	if (viewQueries.isNotEmpty()) {
+fun <K, V, T : Any> Client.interleave(
+	viewQueries: List<ViewQuery>,
+	k: Class<K>,
+	v: Class<V>,
+	t: Class<T>,
+	comparator: Comparator<K>,
+	deduplicationMode: DeduplicationMode = DeduplicationMode.ID,
+	timeoutDuration: Duration? = null
+): Flow<ViewQueryResultEvent> = when {
+	viewQueries.isEmpty() -> emptyFlow()
+	viewQueries.size == 1 -> queryView(viewQueries.first(), k, v, t, timeoutDuration)
+	else -> channelFlow {
 		// Normalisation: just deduplicate and order keys in the same way for all queries
 		val normalisedViewQueries = viewQueries.map { it.copy(keys = ((it.keys as List<K>?)?.distinct())?.sortedWith(comparator)) }
 		val globalLimit = normalisedViewQueries.first().limit.takeIf { it >= 0 }
@@ -193,7 +203,7 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 					mutex.withLock { queues.pushAndShift(idx, null, comparatorSortingIds, sender) } // Flush
 				}
 			}
-		}.forEach { it.join() }
+		}.joinAll()
 
 		while (globalLimit != null && globalLimit > sent) {
 			// get all queues for which there might be more pages (queues that have been otherwise emptied from there content and for which the termination token has not been added)
@@ -252,10 +262,10 @@ fun <K, V, T : Any> Client.interleave(viewQueries: List<ViewQuery>, k: Class<K>,
 					t,
 					timeoutDuration,
 				).filterIsInstance<ViewRow<K, V, T>>().drop(1).fold(1) { count, it ->
-					(it as? ViewRow<K, V, T>)?.also { vr -> queues.pushAndShift(idx, vr, comparatorSortingIds, sender) }
-						?.let {
+					it.also { vr -> queues.pushAndShift(idx, vr, comparatorSortingIds, sender) }
+						.let {
 							count + 1
-						} ?: count
+						}
 				}
 			}
 			if (loaded < iterationLimit) {

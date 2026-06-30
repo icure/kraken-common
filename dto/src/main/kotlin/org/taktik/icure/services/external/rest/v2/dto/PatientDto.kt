@@ -55,6 +55,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -86,7 +88,7 @@ data class PatientDto(
 	/** The Id of the patient. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	/** The patient's identifiers, used by the client to uniquely identify the patient. */
-	val identifier: List<IdentifierDto> = emptyList(),
+	@ActiveField val identifier: List<IdentifierDto> = emptyList(),
 	/** The revision of the patient in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the patient in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	/** The timestamp (unix epoch in ms) of creation. */
@@ -103,7 +105,7 @@ data class PatientDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The firstname (name) of the patient. */
@@ -132,99 +134,99 @@ data class PatientDto(
 		description = "the birth sex of the patient: male, female, indeterminate, unknown",
 		defaultValue = "GenderDto.unknown",
 	/** The birth sex of the patient. */
-	) val birthSex: GenderDto? = GenderDto.unknown,
+	) @ActiveField val birthSex: GenderDto? = GenderDto.unknown,
 	/** The id of the patient this patient has been merged with. */
-	@param:Schema(description = "The id of the patient this patient has been merged with.") val mergeToPatientId: String? = null,
+	@param:Schema(description = "The id of the patient this patient has been merged with.") @ActiveField val mergeToPatientId: String? = null,
 	/** The ids of the patients that have been merged inside this patient. */
-	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") val mergedIds: Set<String> = emptySet(),
+	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") @ActiveField val mergedIds: Set<String> = emptySet(),
 	/** An alias of the person, nickname, ... */
-	@param:Schema(description = "An alias of the person, nickname, ...") val alias: String? = null,
+	@param:Schema(description = "An alias of the person, nickname, ...") @ActiveField val alias: String? = null,
 	/** Whether the patient is active. */
-	@param:Schema(description = "Is the patient active (boolean).", defaultValue = "true") val active: Boolean = true,
+	@param:Schema(description = "Is the patient active (boolean).", defaultValue = "true") @ActiveField val active: Boolean = true,
 	/** When not active, the reason for deactivation. */
-	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "\"none\"") val deactivationReason: String = "none",
+	@param:Schema(description = "When not active, the reason for deactivation.", defaultValue = "\"none\"") @ActiveField val deactivationReason: String = "none",
 	/** Deactivation date of the patient. */
-	@param:Schema(description = "Deactivation date of the patient") val deactivationDate: Int? = null,
+	@param:Schema(description = "Deactivation date of the patient") @ActiveField val deactivationDate: Int? = null,
 	/** Social security inscription number. */
-	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
+	@param:Schema(description = "Social security inscription number.") @ActiveField val ssin: String? = null,
 	@param:Schema(
 		description = "Lastname at birth (can be different of the current name), depending on the country, must be used to design the patient .",
 	/** Lastname at birth (can be different from the current name). */
-	) val maidenName: String? = null, // Never changes (nom de jeune fille),
+	) @ActiveField val maidenName: String? = null, // Never changes (nom de jeune fille),
 	@param:Schema(
 		description = "Lastname of the spouse for a married woman, depending on the country, can be used to design the patient.",
 	/** Lastname of the spouse for a married woman. */
-	) val spouseName: String? = null, // Name of the spouse after marriage,
+	) @ActiveField val spouseName: String? = null, // Name of the spouse after marriage,
 	/** Lastname of the partner. */
-	@param:Schema(description = "Lastname of the partner, should not be used to design the patient.") val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
+	@param:Schema(description = "Lastname of the partner, should not be used to design the patient.") @ActiveField val partnerName: String? = null, // Name of the partner, sometimes equal to spouseName,
 	@param:Schema(
 		description = "any of `single`, `in_couple`, `married`, `separated`, `divorced`, `divorcing`, `widowed`, `widower`, `complicated`, `unknown`, `contract`, `other`.",
 		defaultValue = "PersonalStatusDto.unknown",
 	/** The personal/marital status of the patient. */
-	) val personalStatus: PersonalStatusDto? = PersonalStatusDto.unknown,
+	) @ActiveField val personalStatus: PersonalStatusDto? = PersonalStatusDto.unknown,
 	@param:Schema(
 		description = "The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
 	/** The birthdate encoded as a fuzzy date on 8 positions (YYYYMMDD). */
-	) val dateOfBirth: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
+	) @ActiveField val dateOfBirth: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
 	@param:Schema(
 		description = "The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD) MM and/or DD can be set to 00 if unknown (19740000 is a valid date).",
 	/** The date of death encoded as a fuzzy date on 8 positions (YYYYMMDD). */
-	) val dateOfDeath: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
+	) @ActiveField val dateOfDeath: Int? = null, // YYYYMMDD if unknown, 00, ex:20010000 or,
 	/** Timestamp of the latest validation of the eID of the person. */
-	@param:Schema(description = "Timestamp of the latest validation of the eID of the person..") val timestampOfLatestEidReading: Long? = null,
+	@param:Schema(description = "Timestamp of the latest validation of the eID of the person..") @ActiveField val timestampOfLatestEidReading: Long? = null,
 	/** The place of birth. */
-	@param:Schema(description = "The place of birth.") val placeOfBirth: String? = null,
+	@param:Schema(description = "The place of birth.") @ActiveField val placeOfBirth: String? = null,
 	/** The place of death. */
-	@param:Schema(description = "The place of death.") val placeOfDeath: String? = null,
+	@param:Schema(description = "The place of death.") @ActiveField val placeOfDeath: String? = null,
 	/** Whether the patient is deceased. */
-	@param:Schema(description = "Is the patient deceased.") val deceased: Boolean? = null,
+	@param:Schema(description = "Is the patient deceased.") @ActiveField val deceased: Boolean? = null,
 	/** The level of education (college degree, undergraduate, phd). */
-	@param:Schema(description = "The level of education (college degree, undergraduate, phd).") val education: String? = null,
+	@param:Schema(description = "The level of education (college degree, undergraduate, phd).") @ActiveField val education: String? = null,
 	/** The current professional activity. */
-	@param:Schema(description = "The current professional activity.") val profession: String? = null,
+	@param:Schema(description = "The current professional activity.") @ActiveField val profession: String? = null,
 	/** Localized text notes (can be confidential). */
-	@param:Schema(description = "Localized text notes (can be confidential).") val notes: List<AnnotationDto> = emptyList(),
+	@param:Schema(description = "Localized text notes (can be confidential).") @ActiveField val notes: List<AnnotationDto> = emptyList(),
 	/** A text note (can be confidential, encrypted by default). */
-	@param:Schema(description = "A text note (can be confidential, encrypted by default).", deprecated = true) val note: String? = null,
+	@param:Schema(description = "A text note (can be confidential, encrypted by default).", deprecated = true) @ActiveField val note: String? = null,
 	/** An administrative note, not confidential. */
-	@param:Schema(description = "An administrative note, not confidential.", deprecated = true) val administrativeNote: String? = null,
+	@param:Schema(description = "An administrative note, not confidential.", deprecated = true) @ActiveField val administrativeNote: String? = null,
 	/** The nationality of the patient. */
-	@param:Schema(description = "The nationality of the patient.") val nationality: String? = null,
+	@param:Schema(description = "The nationality of the patient.") @ActiveField val nationality: String? = null,
 	/** The race of the patient. */
-	@param:Schema(description = "The race of the patient.") val race: String? = null,
+	@param:Schema(description = "The race of the patient.") @ActiveField val race: String? = null,
 	/** The ethnicity of the patient. */
-	@param:Schema(description = "The ethnicity of the patient.") val ethnicity: String? = null,
+	@param:Schema(description = "The ethnicity of the patient.") @ActiveField val ethnicity: String? = null,
 	/** The id of the user that usually handles this patient. */
-	@Deprecated("Discouraged, use custom property if you really want them") @param:Schema(description = "The id of the user that usually handles this patient.") val preferredUserId: String? = null,
+	@Deprecated("Discouraged, use custom property if you really want them") @param:Schema(description = "The id of the user that usually handles this patient.") @ActiveField val preferredUserId: String? = null,
 	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") val picture: ByteArray? = null,
+	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte") @ActiveField val picture: ByteArray? = null,
 	/** An external (from another source) id with no guarantee of unicity. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "An external (from another source) id with no guarantee or requirement for unicity .")
-	val externalId: String? = null, // No guarantee of unicity
+	@ActiveField val externalId: String? = null, // No guarantee of unicity
 	/** List of insurance coverages. */
 	@param:Schema(description = "List of insurance coverages (of class Insurability, see below).")
-	val insurabilities: List<InsurabilityDto> = emptyList(),
+	@ActiveField val insurabilities: List<InsurabilityDto> = emptyList(),
 	/** List of partners, or persons of contact. */
 	@param:Schema(description = "List of partners, or persons of contact (of class Partnership, see below)")
-	val partnerships: List<PartnershipDto> = emptyList(),
+	@ActiveField val partnerships: List<PartnershipDto> = emptyList(),
 	/** Links between this patient and healthcare parties. */
 	@param:Schema(description = "Links (usually for therapeutic reasons) between this patient and healthcare parties (of class PatientHealthcareParty)")
-	val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
+	@ActiveField val patientHealthCareParties: List<PatientHealthCarePartyDto> = emptyList(),
 	/** Financial information used to reimburse the patient. */
 	@param:Schema(description = "Financial information (Bank, bank account) used to reimburse the patient.")
-	val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@ActiveField val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
 	/** Contracts between the patient and the healthcare entity. */
 	@param:Schema(description = "Contracts between the patient and the healthcare entity")
-	val medicalHouseContracts: List<MedicalHouseContractDto> = emptyList(),
+	@ActiveField val medicalHouseContracts: List<MedicalHouseContractDto> = emptyList(),
 	/** Codified list of professions exercised by this patient. */
-	@param:Schema(description = "Codified list of professions exercised by this patient.") val patientProfessions: List<CodeStubDto> = emptyList(),
+	@param:Schema(description = "Codified list of professions exercised by this patient.") @ActiveField val patientProfessions: List<CodeStubDto> = emptyList(),
 	/** Extra parameters. */
 	@param:JsonDeserialize(contentUsing = JacksonLenientCollectionDeserializer::class)
-	@param:Schema(description = "Extra parameters") val parameters: Map<String, List<String>> = emptyMap(),
+	@param:Schema(description = "Extra parameters") @ActiveField val parameters: Map<String, List<String>> = emptyMap(),
 	/** Extra properties. */
-	@param:Schema(description = "Extra properties") val properties: Set<PropertyStubDto> = emptySet(),
+	@param:Schema(description = "Extra properties") @ActiveField val properties: Set<PropertyStubDto> = emptySet(),
 	/** For each couple of HcParties, the AES exchange key. */
 	override val hcPartyKeys: Map<String, List<HexStringDto>> = emptyMap(),
 	/** Extra AES exchange keys, indexed by the owner of the pair and target data owner id. */
@@ -255,27 +257,27 @@ data class PatientDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	override val medicalLocationId: String? = null,
 	/** Set of patient ids that are not duplicates of this patient. */
-	@Deprecated("Do not use") val nonDuplicateIds: Set<String> = emptySet(),
+	@Deprecated("Do not use") @ActiveField val nonDuplicateIds: Set<String> = emptySet(),
 	/** Set of encrypted administrative documents. */
-	@Deprecated("Do not use") val encryptedAdministrativesDocuments: Set<String> = emptySet(),
+	@Deprecated("Do not use") @ActiveField val encryptedAdministrativesDocuments: Set<String> = emptySet(),
 	/** A comment on the patient (deprecated, use note or administrativeNote). */
-	@Deprecated("Use note or administrativeNote") val comment: String? = null,
+	@Deprecated("Use note or administrativeNote") @ActiveField val comment: String? = null,
 	/** A warning on the patient (deprecated, use note or administrativeNote). */
-	@Deprecated("Use note or administrativeNote") val warning: String? = null,
+	@Deprecated("Use note or administrativeNote") @ActiveField val warning: String? = null,
 	/** The father's birth country (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") @ActiveField val fatherBirthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
 	/** The patient's birth country (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") @ActiveField val birthCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
 	/** The patient's native country (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") @ActiveField val nativeCountry: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
 	/** The social status of the patient (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") @ActiveField val socialStatus: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
 	/** The main source of income (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
+	@Deprecated("Use properties instead") @ActiveField val mainSourceOfIncome: CodeStubDto? = null, // Deprecated won't work on $ref, because the serialisation gets rid of everything that is not $ref (in conformance with the spec)
 	/** Schooling information (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
+	@Deprecated("Use properties instead") @ActiveField val schoolingInfos: List<SchoolingInfoDto> = emptyList(),
 	/** Employment information (deprecated, use properties instead). */
-	@Deprecated("Use properties instead") val employementInfos: List<EmploymentInfoDto> = emptyList(),
+	@Deprecated("Use properties instead") @ActiveField val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	/** Always null for patients. */
 	override val parentId: Nothing? = null,
 	override val extensions: RawJson.JsonObject? = null,

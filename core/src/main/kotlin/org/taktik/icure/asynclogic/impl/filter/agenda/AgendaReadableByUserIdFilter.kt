@@ -15,6 +15,9 @@ import org.taktik.icure.entities.Agenda
 class AgendaReadableByUserIdFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, AgendaReadableByUserIdFilter> {
+	override val entity get() = agendaDAO.entityClass
+	override val views = listOf("readable_by_user")
+
 	override fun resolve(
 		filter: AgendaReadableByUserIdFilter,
 		context: Filters,

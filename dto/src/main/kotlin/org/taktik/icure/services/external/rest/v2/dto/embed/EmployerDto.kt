@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,6 +34,6 @@ data class EmployerDto(
 	/** The name of the employer. */
 	override val name: String? = null,
 	/** The address of the employer. */
-	val addresse: AddressDto? = null,
+	@ActiveField val addresse: AddressDto? = null,
 ) : NamedDto,
 	Serializable

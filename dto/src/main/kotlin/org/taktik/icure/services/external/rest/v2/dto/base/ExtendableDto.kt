@@ -19,9 +19,11 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import org.taktik.icure.CardinalMetadataProperty
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.entities.RawJson
 
 interface ExtendableDto {
 	@CardinalMetadataProperty
+	@ActiveField
 	val extensions: RawJson.JsonObject?
 }

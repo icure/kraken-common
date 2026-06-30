@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +30,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
  */
 data class PropertyTypeStubDto(
 	/** The human-readable identifier of this property type. */
-	val identifier: String? = null,
+	@ActiveField val identifier: String? = null,
 	/** The value type of this property type. */
-	val type: TypedValuesTypeDto? = null,
+	@ActiveField val type: TypedValuesTypeDto? = null,
 )

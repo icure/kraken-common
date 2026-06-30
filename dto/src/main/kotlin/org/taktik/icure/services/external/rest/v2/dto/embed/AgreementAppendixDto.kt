@@ -21,6 +21,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,11 +31,11 @@ import java.io.Serializable
  */
 data class AgreementAppendixDto(
 	/** The sequence number of the document. */
-	val docSeq: Int? = null,
+	@ActiveField val docSeq: Int? = null,
 	/** The sequence number of the verse within the document. */
-	val verseSeq: Int? = null,
+	@ActiveField val verseSeq: Int? = null,
 	/** The identifier of the linked document. */
-	val documentId: String? = null,
+	@ActiveField val documentId: String? = null,
 	/** The path to the appendix content. */
-	val path: String? = null,
+	@ActiveField val path: String? = null,
 ) : Serializable

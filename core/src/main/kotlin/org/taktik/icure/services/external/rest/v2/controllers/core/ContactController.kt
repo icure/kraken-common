@@ -41,6 +41,7 @@ import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -53,6 +54,7 @@ import org.taktik.icure.services.external.rest.v2.dto.PaginatedDocumentKeyIdPair
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
@@ -72,6 +74,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
@@ -112,6 +115,7 @@ class ContactController(
 	private val objectMapper: ObjectMapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
 	private val cardinalVersionConfig: CardinalVersionConfig,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
@@ -689,9 +693,9 @@ class ContactController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		contactService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<ContactDto> =
 		contactService.getConflictsFor(entityId)
 			.toDto()
@@ -710,9 +714,16 @@ class ContactController(
 
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
-		@RequestBody entityIds: List<String>
+		@RequestBody entityIds: List<String>,
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = contactService
-		.solveConflicts(limit = null, ids = entityIds)
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

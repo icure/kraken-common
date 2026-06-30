@@ -23,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -31,13 +33,13 @@ import java.io.Serializable
  */
 data class EmploymentInfoDto(
 	/** The start date (unix epoch in ms) of the employment. */
-	val startDate: Long? = null,
+	@ActiveField val startDate: Long? = null,
 	/** The end date (unix epoch in ms) of the employment. */
-	val endDate: Long? = null,
+	@ActiveField val endDate: Long? = null,
 	/** A code describing the profession type. */
-	val professionType: CodeStubDto? = null,
+	@ActiveField val professionType: CodeStubDto? = null,
 	/** The employer details. */
-	val employer: EmployerDto? = null,
+	@ActiveField val employer: EmployerDto? = null,
 	/** The base64-encoded encrypted content of this employment info. */
 	override val encryptedSelf: Base64StringDto? = null,
 ) : Serializable,

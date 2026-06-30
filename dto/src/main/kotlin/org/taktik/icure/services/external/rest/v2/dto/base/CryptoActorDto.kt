@@ -26,6 +26,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that participate in the iCure end-to-end encryption system.
@@ -38,43 +39,50 @@ interface CryptoActorDto : VersionableDto<String> {
 			"The AES exchange key is encrypted using RSA twice : once using this hcp public key (index 0 in the Array) and once using the other hcp public key (index 1 in the Array). For a pair of HcParties. Each HcParty always has one AES exchange key for himself.",
 	)
 	@CardinalMetadataProperty
+	@ActiveField
 	val hcPartyKeys: Map<String, List<HexStringDto>>
 
 	@get:Schema(
 		description = "Extra AES exchange keys, usually the ones we lost access to at some point. The structure is { publicKey: { delegateId: { myPubKey1: aesExKey_for_this, delegatePubKey1: aesExKey_for_delegate } } }",
 	)
 	@CardinalMetadataProperty
+	@ActiveField
 	val aesExchangeKeys: Map<AesExchangeKeyEntryKeyStringDto, Map<String, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>>
 
 	@get:Schema(
 		description = "Our private keys encrypted with our public keys. The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }",
 	)
 	@CardinalMetadataProperty
+	@ActiveField
 	val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>>
 
 	@get:Schema(
 		description = "The privateKeyShamirPartitions are used to share this hcp's private RSA key with a series of other hcParties using Shamir's algorithm. The key of the map is the hcp Id with whom this partition has been shared. The value is \"threshold⎮partition in hex\" encrypted using the the partition's holder's public RSA key",
 	)
 	@CardinalMetadataProperty
+	@ActiveField
 	val privateKeyShamirPartitions: Map<String, HexStringDto>
 
 	@get:Schema(description = "The public key of this hcp")
 	@CardinalMetadataProperty
+	@ActiveField
 	val publicKey: SpkiHexStringDto?
 
 	@get:Schema(description = "The public keys of this actor that are generates using the OAEP Sha-256 standard")
 	@CardinalMetadataProperty
+	@ActiveField
 	val publicKeysForOaepWithSha256: Set<SpkiHexStringDto>
 
 	@get:Schema(
 		description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent",
 	)
 	@CardinalMetadataProperty
+	@ActiveField
 	val parentId: String?
 
 	@get:Schema(
 		description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.",
 	)
 	@AlwaysDecrypted
-	val cryptoActorProperties: Set<PropertyStubDto>?
+	@ActiveField val cryptoActorProperties: Set<PropertyStubDto>?
 }

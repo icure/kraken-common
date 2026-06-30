@@ -32,6 +32,7 @@ import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CodeLogic
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -55,6 +56,7 @@ import javax.xml.parsers.SAXParserFactory
 
 open class CodeLogicImpl(
 	protected val codeDAO: CodeDAO,
+	protected val cardinalVersionConfig: CardinalVersionConfig,
 	filters: Filters,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
@@ -62,6 +64,7 @@ open class CodeLogicImpl(
 ) : GenericLogicImpl<Code, CodeDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<Code> by ConflictResolutionLogicImpl(codeDAO, codeMerger, datastoreInstanceProvider),
 	CodeLogic {
+
 	companion object {
 		private val log = LogFactory.getLog(this::class.java)
 	}
@@ -79,6 +82,8 @@ open class CodeLogicImpl(
 				.build(),
 		)
 	}
+
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
 
 	override fun getTagTypeCandidates(): List<String> = listOf("CD-ITEM", "CD-PARAMETER", "CD-CAREPATH", "CD-SEVERITY", "CD-URGENCY", "CD-GYNECOLOGY")
 
@@ -122,7 +127,7 @@ open class CodeLogicImpl(
 		}
 	}
 
-	protected fun validateForCreation(batch: List<Code>) = batch.onEach {
+	protected suspend fun validateForCreation(batch: List<Code>) = batch.onEach {
 		checkValidityForCreation(it)
 		validateIdFields(it)
 	}

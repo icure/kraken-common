@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto.data
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,8 +31,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class LabelledOccurenceDto(
 	/** The label identifying what is being counted. */
 	@param:Schema(required = true)
-	val label: String,
+	@ActiveField val label: String,
 	/** The number of occurrences for this label. */
 	@param:Schema(required = true)
-	val occurence: Long,
+	@ActiveField val occurence: Long,
 )

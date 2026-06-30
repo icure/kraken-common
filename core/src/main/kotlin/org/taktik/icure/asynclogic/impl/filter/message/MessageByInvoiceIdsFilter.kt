@@ -14,6 +14,9 @@ import org.taktik.icure.entities.Message
 class MessageByInvoiceIdsFilter(
 	private val messageDAO: MessageDAO,
 ) : Filter<String, Message, MessageByInvoiceIdsFilter> {
+	override val entity get() = messageDAO.entityClass
+	override val views = listOf("by_invoice_id")
+
 	override fun resolve(
 		filter: MessageByInvoiceIdsFilter,
 		context: org.taktik.icure.asynclogic.impl.filter.Filters,

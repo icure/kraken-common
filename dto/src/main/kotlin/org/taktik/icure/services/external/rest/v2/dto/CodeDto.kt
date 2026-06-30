@@ -26,6 +26,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeFlagDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeIdentificationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PeriodicityDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -48,34 +50,34 @@ data class CodeDto(
 	/** The version of the code (e.g., 10). Must be lexicographically searchable. */
 	override val version: String? = null, // ex: 10. Must be lexicographically searchable
 	/** The human-readable label for the code, mapped by language (e.g., {en: "...", fr: "..."}). */
-	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) @ActiveField val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 	/** The id of the author of this code. */
-	val author: String? = null,
+	@ActiveField val author: String? = null,
 	/** The geographic regions where this code is applicable (e.g., be, fr). */
-	val regions: Set<String> = emptySet(), // ex: be,fr
+	@ActiveField val regions: Set<String> = emptySet(), // ex: be,fr
 	/** The periodicities associated with this code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val periodicity: Set<PeriodicityDto> = emptySet(),
+	@ActiveField val periodicity: Set<PeriodicityDto> = emptySet(),
 	/** The access level of the code (e.g., 0 = System, 1 = optional/user-modifiable). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val level: Int? = null, // ex: 0 = System, not to be modified by userDto, 1 = optional, created or modified by userDto
+	@ActiveField val level: Int? = null, // ex: 0 = System, not to be modified by userDto, 1 = optional, created or modified by userDto
 	/** Links towards related codes (corresponds to approximate links in qualifiedLinks). */
-	val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
+	@ActiveField val links: Set<String> = emptySet(), // Links towards related codes (corresponds to an approximate link in qualifiedLinks)
 	/** Qualified links towards related codes. */
-	val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
+	@ActiveField val qualifiedLinks: Map<String, List<String>> = emptyMap(), // Links towards related codes
 	/** Flags (like female only) for the code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val flags: Set<CodeFlagDto> = emptySet(), // flags (like female only) for the code
+	@ActiveField val flags: Set<CodeFlagDto> = emptySet(), // flags (like female only) for the code
 	/** Extra search terms indexed by language. */
-	val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
+	@ActiveField val searchTerms: Map<String, Set<String>> = emptyMap(), // Extra search terms/ language
 	/** Additional data associated with this code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val data: String? = null,
+	@ActiveField val data: String? = null,
 	/** Appendices associated with this code, keyed by appendix type. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val appendices: Map<AppendixTypeDto, String> = emptyMap(),
+	@ActiveField val appendices: Map<AppendixTypeDto, String> = emptyMap(),
 	/** Whether this code is disabled. */
-	@param:Schema(defaultValue = "false") val disabled: Boolean = false,
+	@param:Schema(defaultValue = "false") @ActiveField val disabled: Boolean = false,
 ) : StoredDocumentDto,
 	CodeIdentificationDto<String> {
 	companion object {

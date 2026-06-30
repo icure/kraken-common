@@ -23,6 +23,7 @@ import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.validation.EntityIdValidation
 import org.taktik.icure.validation.aspect.Fixer
 
 abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
@@ -32,12 +33,6 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 ) : AutoFixableLogic<E>(fixer),
 	EntityPersister<E> {
 	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
-
-	protected fun checkValidityForCreation(entity: E) {
-		if (entity.rev != null) {
-			throw IllegalArgumentException("An entity with a non-null revision is not valid for creation")
-		}
-	}
 
 	override suspend fun createEntity(entity: E): E = fix(entity, isCreate = true) { fixedEntity ->
 		checkValidityForCreation(fixedEntity)

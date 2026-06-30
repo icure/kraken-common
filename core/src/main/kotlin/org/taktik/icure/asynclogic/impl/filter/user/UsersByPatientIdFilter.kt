@@ -15,6 +15,9 @@ import org.taktik.icure.entities.User
 class UsersByPatientIdFilter(
 	private val userDAO: UserDAO,
 ) : Filter<String, User, UsersByPatientIdFilter> {
+	override val entity get() = userDAO.entityClass
+	override val views = listOf("by_patient_id")
+
 	override fun resolve(
 		filter: UsersByPatientIdFilter,
 		context: Filters,

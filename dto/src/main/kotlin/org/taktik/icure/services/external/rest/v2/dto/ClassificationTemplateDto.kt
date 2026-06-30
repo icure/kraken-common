@@ -22,6 +22,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -52,9 +54,9 @@ data class ClassificationTemplateDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The id of the parent classification template, for nesting. */
-	val parentId: String? = null,
+	@ActiveField val parentId: String? = null,
 	/** A human-readable label for this classification template. */
-	val label: String = "",
+	@ActiveField val label: String = "",
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {

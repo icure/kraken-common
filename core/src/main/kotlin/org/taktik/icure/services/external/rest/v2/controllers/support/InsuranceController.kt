@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -33,11 +34,13 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InsuranceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.utils.injectReactorContext
@@ -55,7 +58,8 @@ class InsuranceController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
 ) {
 	@Operation(summary = "Gets all the insurances")
 	@GetMapping
@@ -209,9 +213,9 @@ class InsuranceController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		insuranceService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<InsuranceDto> =
 		insuranceService.getConflictsFor(entityId)
 			.map(insuranceV2Mapper::map)
@@ -230,9 +234,16 @@ class InsuranceController(
 
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
-		@RequestBody entityIds: List<String>
+		@RequestBody entityIds: List<String>,
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = insuranceService
-		.solveConflicts(limit = null, ids = entityIds)
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

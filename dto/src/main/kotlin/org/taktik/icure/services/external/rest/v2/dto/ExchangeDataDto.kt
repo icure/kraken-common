@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.KeypairFingerprintV2StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,20 +26,20 @@ data class ExchangeDataDto(
 		required = true,
 	)
 	/** The id of the data owner who created this exchange data to share data with the delegate. */
-	val delegator: String,
+	@ActiveField val delegator: String,
 	@param:Schema(
 		description = """ID of a data owner which can use this exchange data to access data shared with him by [delegator].""",
 		required = true,
 	)
 	/** The id of the data owner who can use this exchange data to access shared data. */
-	val delegate: String,
+	@ActiveField val delegate: String,
 	@param:Schema(
 		description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""",
 		required = true,
 	)
 	/** AES key for sharing data, encrypted with the public keys of both delegate and delegator. */
-	val exchangeKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
+	@ActiveField val exchangeKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
 	@param:Schema(
 		description = """Key used for access control to data shared from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator.
@@ -62,7 +64,7 @@ securityMetadataKey = sha256Hex(accessControlKey)
 		required = true,
 	)
 	/** Key used for access control, encrypted with the public keys of both delegate and delegator. */
-	val accessControlSecret: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
+	@ActiveField val accessControlSecret: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
 	@param:Schema(
 		description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
@@ -71,14 +73,14 @@ This field will contain the signature by fingerprint of the public key to use fo
 		required = true,
 	)
 	/** Signature by the delegator to ensure key data has not been tampered with by third parties. */
-	val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
+	@ActiveField val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	@param:Schema(
 		description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
 the exchange data, without voiding the authenticity guarantee.""",
 		required = true,
 	)
 	/** Encrypted HMAC-SHA256 signature key shared between delegate and delegator. */
-	val sharedSignatureKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
+	@ActiveField val sharedSignatureKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
 	@param:Schema(
 		description = """Base 64 signature of the exchange data, to ensure it was not tampered by third parties. This signature validates:
 - The (decrypted) exchange key
@@ -88,7 +90,7 @@ the exchange data, without voiding the authenticity guarantee.""",
 		required = true,
 	)
 	/** Base64 signature of the exchange data to ensure it was not tampered by third parties. */
-	val sharedSignature: Base64StringDto,
+	@ActiveField val sharedSignature: Base64StringDto,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

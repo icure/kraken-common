@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.ClassificationDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -17,15 +19,15 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
  */
 data class ClassificationByDataOwnerPatientCreatedDateFilter(
 	/** The identifier of the data owner. */
-	val dataOwnerId: String,
+	@ActiveField val dataOwnerId: String,
 	/** The start of the creation date range (inclusive). */
-	val startDate: Long?,
+	@ActiveField val startDate: Long?,
 	/** The end of the creation date range (inclusive). */
-	val endDate: Long?,
+	@ActiveField val endDate: Long?,
 	/** The set of secret foreign keys used for secure delegation matching. */
-	val secretForeignKeys: Set<String>,
+	@ActiveField val secretForeignKeys: Set<String>,
 	/** Whether to return results in descending order. */
-	val descending: Boolean?,
+	@ActiveField val descending: Boolean?,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<ClassificationDto>

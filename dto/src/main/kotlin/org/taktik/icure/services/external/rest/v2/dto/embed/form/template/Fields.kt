@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.handlers.JacksonStructureElementDeserializer
+import com.fasterxml.jackson.annotation.JsonFilter
 
 @JsonDeserialize(using = JacksonStructureElementDeserializer::class)
 /**

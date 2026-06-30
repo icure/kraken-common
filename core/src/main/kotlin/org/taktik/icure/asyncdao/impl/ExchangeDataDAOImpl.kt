@@ -15,9 +15,9 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ExchangeDataDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
-import org.taktik.icure.cache.EntityCacheFactory
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
@@ -34,15 +34,16 @@ class ExchangeDataDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : GenericDAOImpl<ExchangeData>(
-	ExchangeData::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = ExchangeData::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	ExchangeDataDAO {
+	queryProvider = queryProvider,
+), ExchangeDataDAO {
 	@View(name = "by_participant", map = "classpath:js/exchangedata/By_participant_map.js")
 	override fun findExchangeDataByParticipant(
 		datastoreInformation: IDatastoreInformation,

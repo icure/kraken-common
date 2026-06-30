@@ -15,6 +15,9 @@ import org.taktik.icure.entities.Contact
 class ContactByExternalIdFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Contact, ContactByExternalIdFilter> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("by_externalid")
+
 	override fun resolve(
 		filter: ContactByExternalIdFilter,
 		context: Filters,

@@ -13,6 +13,7 @@ import org.taktik.icure.asyncdao.SecureDelegationKeyMapDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.SecureDelegationKeyMap
 
@@ -28,15 +29,16 @@ class SecureDelegationKeyMapDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<SecureDelegationKeyMap>(
-	SecureDelegationKeyMap::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = SecureDelegationKeyMap::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	SecureDelegationKeyMapDAO {
+	queryProvider = queryProvider
+), SecureDelegationKeyMapDAO {
 	@View(
 		name = "by_delegation_key",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(doc.delegationKey, null)}",

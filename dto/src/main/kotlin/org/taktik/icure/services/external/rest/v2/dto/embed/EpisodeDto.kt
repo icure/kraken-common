@@ -25,6 +25,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,11 +39,11 @@ data class EpisodeDto(
 	/** The name of the episode. */
 	override val name: String? = null,
 	/** A comment associated with the episode. */
-	val comment: String? = null,
+	@ActiveField val comment: String? = null,
 	/** The start date in YYYYMMDDHHMMSS format. Unknown components are set to 00. */
-	var startDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	@ActiveField var startDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	/** The end date in YYYYMMDDHHMMSS format. Unknown components are set to 00. */
-	var endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
+	@ActiveField var endDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	/** The base64-encoded encrypted content of this episode. */
 	override val encryptedSelf: Base64StringDto? = null,
 	override val extensions: RawJson.JsonObject? = null,

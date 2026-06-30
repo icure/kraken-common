@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -25,7 +27,7 @@ data class HealthcarePartyByNameFilter(
 	override val desc: String? = null,
 	/** The name to search for. */
 	@param:Schema(required = true)
-	val name: String,
+	@ActiveField val name: String,
 	/** Whether to return results in descending order. */
-	val descending: Boolean? = null,
+	@ActiveField val descending: Boolean? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>

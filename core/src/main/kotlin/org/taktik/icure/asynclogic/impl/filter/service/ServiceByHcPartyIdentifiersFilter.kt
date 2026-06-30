@@ -18,6 +18,9 @@ class ServiceByHcPartyIdentifiersFilter(
 	private val contactDAO: ContactDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyIdentifiersFilter> {
+	override val entity get() = contactDAO.entityClass
+	override val views = listOf("service_by_all_delegates_identifier")
+
 	override fun resolve(
 		filter: ServiceByHcPartyIdentifiersFilter,
 		context: Filters,

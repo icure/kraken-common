@@ -85,3 +85,7 @@ tasks.withType<com.google.devtools.ksp.gradle.KspAATask> {
         gradle.startParameter.taskNames.contains(":kraken-common:core:kspKotlin")
     }
 }
+
+if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
+	apply(plugin = "generate-jackson-filters-conventions")
+}

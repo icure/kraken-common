@@ -7,6 +7,7 @@ package org.taktik.icure.services.external.rest.v1.controllers.support
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.reactor.asCoroutineContext
 import kotlinx.coroutines.reactor.mono
@@ -74,8 +75,8 @@ class LoginController(
 		session: WebSession? = null,
 	): ResponseEntity<AuthenticationResponse> = if (authentication != null && authentication.isAuthenticated && sessionEnabled) {
 		val secContext = SecurityContextImpl(authentication)
-		val securityContext = coroutineContext[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
-		withContext(coroutineContext.plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
+		val securityContext = currentCoroutineContext()[ReactorContext]?.context?.put(SecurityContext::class.java, Mono.just(secContext))
+		withContext(currentCoroutineContext().plus(securityContext?.asCoroutineContext() as CoroutineContext)) {
 			ResponseEntity.ok().body(
 				authentication.toAuthenticationResponse(jwtUtils, username, jwtDuration).also {
 					if (session != null) {
@@ -109,7 +110,15 @@ class LoginController(
 		try {
 			val username = loginCredentials.username!!
 
-			val authentication = sessionLogic.login(username, loginCredentials.password!!, if (sessionEnabled) session else null, groupId, null, null)
+			val authentication = sessionLogic.login(
+				username = username,
+				password = loginCredentials.password!!,
+				session = if (sessionEnabled) session else null,
+				groupId = groupId,
+				applicationId = null,
+				scopeDataOwner = null,
+				requestedSchemaVersion = null,
+			)
 			produceAuthenticationResponse(authentication, username, duration, session)
 		} catch (e: Exception) {
 			@Suppress("DEPRECATION")

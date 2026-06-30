@@ -38,12 +38,14 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.embed.ReceiptBlobType
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.ReceiptDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
@@ -51,6 +53,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -77,7 +80,8 @@ class ReceiptController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -322,9 +326,9 @@ class ReceiptController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		receiptService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<ReceiptDto> =
 		receiptService.getConflictsFor(entityId)
 			.map(receiptV2Mapper::map)
@@ -343,9 +347,16 @@ class ReceiptController(
 
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
-		@RequestBody entityIds: List<String>
+		@RequestBody entityIds: List<String>,
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = receiptService
-		.solveConflicts(limit = null, ids = entityIds)
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

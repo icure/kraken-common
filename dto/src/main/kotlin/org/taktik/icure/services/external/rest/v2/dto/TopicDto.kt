@@ -29,6 +29,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Defines the possible roles a participant can have within a topic conversation.
@@ -54,11 +56,11 @@ data class TopicDto(
 	/** The timestamp (unix epoch in ms) of the latest modification. */
 	override val modified: Long? = null,
 	/** The id of the health element linked to this topic. */
-	val healthElementId: String? = null,
+	@ActiveField val healthElementId: String? = null,
 	/** The id of the contact linked to this topic. */
-	val contactId: String? = null,
+	@ActiveField val contactId: String? = null,
 	/** A description of the topic. */
-	val description: String? = null,
+	@ActiveField val description: String? = null,
 	/** Codes that identify or qualify this particular topic. */
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Tags that qualify the topic as being member of a certain class. */
@@ -72,11 +74,12 @@ data class TopicDto(
 	override val medicalLocationId: String? = null,
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Map of active participants with their roles (participant, admin, or owner). */
 	@CardinalMetadataProperty
+	@ActiveField
 	val activeParticipants: Map<String, TopicRoleDto> = emptyMap(),
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
@@ -91,9 +94,9 @@ data class TopicDto(
 	/** The base64-encoded encrypted fields of this entity. */
 	override val encryptedSelf: Base64StringDto? = null,
 	/** Set of ids of health elements linked to this topic. */
-	val linkedHealthElements: Set<String> = emptySet(),
+	@ActiveField val linkedHealthElements: Set<String> = emptySet(),
 	/** Set of ids of services linked to this topic. */
-	val linkedServices: Set<String> = emptySet(),
+	@ActiveField val linkedServices: Set<String> = emptySet(),
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,
 ) : StoredDocumentDto,

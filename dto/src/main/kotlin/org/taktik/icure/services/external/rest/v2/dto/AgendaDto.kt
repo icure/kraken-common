@@ -32,6 +32,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Represents an agenda that keeps track of appointments (calendar items) for a resource or group of resources.
@@ -64,39 +66,50 @@ data class AgendaDto(
 	override val deletionDate: Long? = null,
 	/** A fuzzy time in HHMMSS format used to split working hours into blocks for availabilities computation. */
 	@CardinalMetadataProperty
+	@ActiveField
 	val daySplitHour: Int? = null,
 	/** If true the agenda is not available for availabilities and safe booking requests. */
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT)
+	@ActiveField
 	@CardinalMetadataProperty
-	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val unpublished: Boolean = false,
+	val unpublished: Boolean = false,
 	/** The name of the agenda. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 	/** The id of the user associated with this agenda. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 	/** An identifier for the time zone of the agenda, must be an id accepted by java's ZoneId. */
+	@ActiveField
 	@CardinalMetadataProperty
 	val zoneId: String? = null,
 	/** The legacy rights for this agenda. Deprecated: use userRights instead. */
 	@Deprecated("Use `userRights` instead")
+	@ActiveField
 	@CardinalMetadataProperty
 	val rights: List<RightDto> = emptyList(),
 	/** Associates a user id to the permission that user has on the entity. */
 	@param:Schema(description = "Associates a user id to the permission that user has on the entity.")
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@ActiveField
 	@CardinalMetadataProperty
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
+	val userRights: Map<String, UserAccessLevelDto> = emptyMap(),
 	/** The algorithm to use for computing time slots in the agenda. */
+	@ActiveField
 	@CardinalMetadataProperty
 	val slottingAlgorithm: AgendaSlottingAlgorithmDto? = null,
 	/** If not null, limits the amount of monthly appointments per unprivileged user for this agenda. */
+	@ActiveField
 	@CardinalMetadataProperty
 	val publicBookingQuota: Int? = null,
 	/** Custom properties of the agenda. */
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val properties: Set<PropertyStubDto> = emptySet(),
 	/** The resource group allocation schedules defining availability rules for this agenda. */
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@ActiveField
 	@CardinalMetadataProperty
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
+	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,
-) : StoredDocumentDto,
+)  : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto,
 	ExtendableRootDto {

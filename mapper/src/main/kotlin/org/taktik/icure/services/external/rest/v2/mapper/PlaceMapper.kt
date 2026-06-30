@@ -35,7 +35,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 interface PlaceV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(placeDto.extensions))"),

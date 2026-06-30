@@ -15,6 +15,7 @@ import org.taktik.icure.entities.embed.Service as ICureService
 class ExternalViewFilter<O : Identifiable<String>>(
 	private val daoList: List<GenericDAOImpl<*>>,
 ) : Filter<String, O, ExternalViewFilter<O>> {
+	// View is supplied dynamically by the caller (filter.view); no fixed configuration view.
 	override fun resolve(
 		filter: ExternalViewFilter<O>,
 		context: Filters,

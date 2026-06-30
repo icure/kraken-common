@@ -323,7 +323,7 @@ open class DocumentLogicImpl(
 
 	override fun getGenericDAO() = documentDAO
 
-	protected fun checkNewDocument(
+	protected suspend fun checkNewDocument(
 		document: Document,
 		strict: Boolean,
 	): Document {

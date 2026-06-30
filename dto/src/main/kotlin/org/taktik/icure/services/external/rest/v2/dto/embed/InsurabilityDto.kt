@@ -28,22 +28,24 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
-	@param:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
-	@param:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
-	@param:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
-	@param:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
-	@param:Schema(description = "Identification number of the patient at the insurance.") val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
-	@param:Schema(description = "Id of the Insurance.") val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
-	@param:Schema(description = "Start date of the coverage (YYYYMMDD).") val startDate: Long? = null,
-	@param:Schema(description = "End date of the coverage (YYYYMMDD).") val endDate: Long? = null,
+	@param:Schema(description = "Insurance extra parameters.") @ActiveField val parameters: Map<String, String> = emptyMap(),
+	@param:Schema(description = "Is hospitalization covered.") @ActiveField val hospitalisation: Boolean? = null,
+	@param:Schema(description = "Is outpatient care covered.") @ActiveField val ambulatory: Boolean? = null,
+	@param:Schema(description = "Is dental care covered.") @ActiveField val dental: Boolean? = null,
+	@param:Schema(description = "Identification number of the patient at the insurance.") @ActiveField val identificationNumber: String? = null, // N° in form (number for the insurance's identification)
+	@param:Schema(description = "Id of the Insurance.") @ActiveField val insuranceId: String? = null, // UUID to identify Partena, etc. (link to InsuranceDto object's document ID)
+	@param:Schema(description = "Start date of the coverage (YYYYMMDD).") @ActiveField val startDate: Long? = null,
+	@param:Schema(description = "End date of the coverage (YYYYMMDD).") @ActiveField val endDate: Long? = null,
 	@param:Schema(
 		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
-	) val titularyId: String? = null,
+	) @ActiveField val titularyId: String? = null,
 	override val encryptedSelf: Base64StringDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,

@@ -13,6 +13,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ApplicationSettingsDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.entities.ApplicationSettings
 
 @Repository("ApplicationSettingsDAO")
@@ -26,11 +27,12 @@ class ApplicationSettingsDAOImpl(
 	idGenerator: IDGenerator,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : GenericDAOImpl<ApplicationSettings>(
-	ApplicationSettings::class.java,
-	couchDbDispatcher,
-	idGenerator,
+	entityClass = ApplicationSettings::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	ApplicationSettingsDAO
+	queryProvider = queryProvider
+), ApplicationSettingsDAO

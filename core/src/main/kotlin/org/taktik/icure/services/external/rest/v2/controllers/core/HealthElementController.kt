@@ -34,6 +34,7 @@ import org.taktik.icure.asyncservice.HealthElementService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
@@ -41,6 +42,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
@@ -57,6 +59,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -89,6 +92,8 @@ class HealthElementController(
 	private val objectMapper: ObjectMapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
@@ -413,9 +418,9 @@ class HealthElementController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		healthElementService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<HealthElementDto> =
 		healthElementService.getConflictsFor(entityId)
 			.toDto()
@@ -434,9 +439,16 @@ class HealthElementController(
 
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
-		@RequestBody entityIds: List<String>
+		@RequestBody entityIds: List<String>,
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = healthElementService
-		.solveConflicts(limit = null, ids = entityIds)
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

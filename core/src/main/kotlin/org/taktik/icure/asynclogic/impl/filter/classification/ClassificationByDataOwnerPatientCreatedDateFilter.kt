@@ -19,6 +19,9 @@ class ClassificationByDataOwnerPatientCreatedDateFilter(
 	val classificationDAO: ClassificationDAO,
 	val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Classification, ClassificationByDataOwnerPatientCreatedDateFilter> {
+	override val entity get() = classificationDAO.entityClass
+	override val views = listOf("by_all_delegates_patient")
+
 	override fun resolve(
 		filter: ClassificationByDataOwnerPatientCreatedDateFilter,
 		context: Filters,

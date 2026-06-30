@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.constants.PropertyTypeScopeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.TypedValuesTypeDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,17 +39,17 @@ data class PropertyTypeDto(
 	/** The soft-delete timestamp in epoch milliseconds. */
 	override val deletionDate: Long? = null,
 	/** The human-readable identifier of this property type. */
-	val identifier: String,
+	@ActiveField val identifier: String,
 	/** The value type of this property type. */
-	val type: TypedValuesTypeDto? = null,
+	@ActiveField val type: TypedValuesTypeDto? = null,
 	/** The scope in which this property type is applicable. */
-	val scope: PropertyTypeScopeDto? = null,
+	@ActiveField val scope: PropertyTypeScopeDto? = null,
 	/** Whether values of this property type must be unique. */
-	val unique: Boolean = false,
+	@ActiveField val unique: Boolean = false,
 	/** The identifier of the editor component used to edit this property type. */
-	val editor: String? = null,
+	@ActiveField val editor: String? = null,
 	/** Whether this property type supports localized values. */
-	val localized: Boolean = false,
+	@ActiveField val localized: Boolean = false,
 ) : StoredDocumentDto {
 	override fun withIdRev(
 		id: String?,

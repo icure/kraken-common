@@ -29,6 +29,7 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.Form
@@ -37,6 +38,7 @@ import org.taktik.icure.utils.distinctById
 import org.taktik.icure.utils.distinctByIdIf
 import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.main
+import org.taktik.icure.utils.queryView
 
 @Repository("formDAO")
 @Profile("app")
@@ -47,15 +49,16 @@ internal class FormDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider,
 ) : ConflictDAOImpl<Form>(
-	Form::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = Form::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	FormDAO {
+	queryProvider = queryProvider,
+), FormDAO {
 	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
 	@Views(
 		View(name = "by_hcparty_patientfk", map = "classpath:js/form/By_hcparty_patientfk_map.js"),
@@ -79,9 +82,12 @@ internal class FormDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_patientfk".main(),
-				"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_patientfk".main(),
+					"by_data_owner_patientfk" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_patientfk",
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -104,7 +110,8 @@ internal class FormDAOImpl(
 		endDate: Long?,
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
-		views = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		legacyViews = listOf("by_hcparty_patientfk_date" to MAURICE_PARTITION, "by_data_owner_patientfk" to DATA_OWNER_PARTITION),
+		configurationView = "by_all_delegates_patientfk",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -124,12 +131,21 @@ internal class FormDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
+		val viewQueries = createQueries(
+			datastoreInformation = datastoreInformation,
+			legacyViews = listOf(
+				"by_hcparty_parentId".main(),
+				"by_data_owner_parentId" to DATA_OWNER_PARTITION
+			),
+			configurationView = "by_all_delegates_parent_id",
+		)
+			.keys(searchKeys.map { arrayOf(it, formId) })
+			.includeDocs()
+
 		emitAll(
 			client
 				.interleave<Array<String>, String, Form>(
-					createQueries(datastoreInformation, "by_hcparty_parentId", "by_data_owner_parentId" to DATA_OWNER_PARTITION)
-						.keys(searchKeys.map { arrayOf(it, formId) })
-						.includeDocs(),
+					viewQueries,
 					compareBy({ it[0] }, { it[1] }),
 				).filterIsInstance<ViewRowWithDoc<Array<String>, String, Form>>()
 				.map { it.doc },
@@ -145,9 +161,12 @@ internal class FormDAOImpl(
 
 		val queries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_parentId",
-				"by_data_owner_parentId" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_parentId".main(),
+					"by_data_owner_parentId" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_parent_id",
 			).keys(searchKeys.map { arrayOf(it, formId) }).doNotIncludeDocs()
 
 		emitAll(
@@ -165,8 +184,16 @@ internal class FormDAOImpl(
 		pagination: PaginationOffset<String>,
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val viewQuery = pagedViewQuery(datastoreInformation, "all", null, null, pagination, false)
-		emitAll(client.queryView(viewQuery, Any::class.java, String::class.java, Form::class.java))
+		val viewQuery = pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "all".main(),
+			configurationView = "all",
+			startKey = null,
+			endKey = null,
+			pagination = pagination,
+			descending = false
+		)
+		emitAll(client.queryView<Any, String, Form>(viewQuery))
 	}
 
 	@View(
@@ -194,7 +221,11 @@ internal class FormDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_logical_uuid_created", MAURICE_PARTITION)
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_logical_uuid_created" to MAURICE_PARTITION,
+				configurationView = "by_logical_uuid_created"
+			)
 				.startKey(ComplexKey.of(formUuid, if (descending) ComplexKey.emptyObject() else null))
 				.endKey(ComplexKey.of(formUuid, if (descending) null else ComplexKey.emptyObject()))
 				.descending(descending)
@@ -211,7 +242,11 @@ internal class FormDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_logical_uuid_created", MAURICE_PARTITION)
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_logical_uuid_created" to MAURICE_PARTITION,
+				configurationView = "by_logical_uuid_created"
+			)
 				.startKey(ComplexKey.of(formUuid, if (descending) ComplexKey.emptyObject() else null))
 				.endKey(ComplexKey.of(formUuid, if (descending) null else ComplexKey.emptyObject()))
 				.descending(descending)
@@ -235,7 +270,11 @@ internal class FormDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_unique_id_created", MAURICE_PARTITION)
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_unique_id_created" to MAURICE_PARTITION,
+				configurationView = "by_unique_id_created"
+			)
 				.startKey(ComplexKey.of(externalUuid, if (descending) ComplexKey.emptyObject() else null))
 				.endKey(ComplexKey.of(externalUuid, if (descending) null else ComplexKey.emptyObject()))
 				.descending(descending)
@@ -252,7 +291,11 @@ internal class FormDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val viewQuery =
-			createQuery(datastoreInformation, "by_unique_id_created", MAURICE_PARTITION)
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_unique_id_created" to MAURICE_PARTITION,
+				configurationView = "by_unique_id_created"
+			)
 				.startKey(ComplexKey.of(externalUuid, if (descending) ComplexKey.emptyObject() else null))
 				.endKey(ComplexKey.of(externalUuid, if (descending) null else ComplexKey.emptyObject()))
 				.descending(descending)

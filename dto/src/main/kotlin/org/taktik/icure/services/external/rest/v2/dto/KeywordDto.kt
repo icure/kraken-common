@@ -24,6 +24,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.KeywordSubwordDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
@@ -55,11 +57,11 @@ data class KeywordDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The keyword value. */
-	val value: String? = null,
+	@ActiveField val value: String? = null,
 	/** The set of sub-words associated with this keyword. */
-	val subWords: Set<KeywordSubwordDto> = emptySet(),
+	@ActiveField val subWords: Set<KeywordSubwordDto> = emptySet(),
 	/** The id of the user who owns this keyword. */
-	val userId: String? = null,
+	@ActiveField val userId: String? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto {

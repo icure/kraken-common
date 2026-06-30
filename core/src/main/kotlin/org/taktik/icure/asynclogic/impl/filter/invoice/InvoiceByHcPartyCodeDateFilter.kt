@@ -23,6 +23,9 @@ class InvoiceByHcPartyCodeDateFilter(
 	private val invoiceDAO: InvoiceDAO,
 	private val healthcarePartyLogic: HealthcarePartyLogic,
 ) : Filter<String, Invoice, InvoiceByHcPartyCodeDateFilter> {
+	override val entity get() = invoiceDAO.entityClass
+	override val views = listOf("tarification_by_all_delegates_code")
+
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun resolve(
 		filter: InvoiceByHcPartyCodeDateFilter,

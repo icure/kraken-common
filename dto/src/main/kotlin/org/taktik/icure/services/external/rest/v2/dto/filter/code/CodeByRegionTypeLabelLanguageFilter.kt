@@ -26,6 +26,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.CodeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
@@ -38,13 +40,13 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 	/** The region to filter codes by. */
-	val region: String? = null,
+	@ActiveField val region: String? = null,
 	/** The code type to match. */
 	@param:Schema(required = true)
-	val type: String,
+	@ActiveField val type: String,
 	/** The language of the label to match. */
 	@param:Schema(required = true)
-	val language: String,
+	@ActiveField val language: String,
 	/** The label text to match. */
-	val label: String? = null,
+	@ActiveField val label: String? = null,
 ) : AbstractFilterDto<CodeDto>

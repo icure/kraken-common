@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.ExposedToCustomEntities
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,29 +17,29 @@ import org.taktik.icure.ExposedToCustomEntities
 @ExposedToCustomEntities
 data class PersonNameDto(
 	/** Family name (often called 'Surname'). */
-	@param:Schema(description = "Family name (often called 'Surname')") val lastName: String? = null,
+	@param:Schema(description = "Family name (often called 'Surname')") @ActiveField val lastName: String? = null,
 	@param:Schema(
 		description = "Given names (not always 'first'). Includes middle names. This repeating element order: Given Names appear in the correct order for presenting the name",
 	/** Given names (not always 'first'), including middle names, in the correct order for presentation. */
-	) val firstNames: List<String> = emptyList(),
+	) @ActiveField val firstNames: List<String> = emptyList(),
 	@param:Schema(
 		description = "Starting date of time period when name is/was valid for use. Date encoded as a fuzzy date on 8 positions (YYYYMMDD)",
 	/** Starting date of the period when the name is valid (fuzzy date, YYYYMMDD). */
-	) val start: Long? = null,
+	) @ActiveField val start: Long? = null,
 	@param:Schema(
 		description = "Ending date of time period when name is/was valid for use. Date encoded as a fuzzy date on 8 positions (YYYYMMDD)",
 	/** Ending date of the period when the name is valid (fuzzy date, YYYYMMDD). */
-	) val end: Long? = null,
+	) @ActiveField val end: Long? = null,
 	@param:Schema(
 		description = "Parts that come before the name. This repeating element order: Prefixes appear in the correct order for presenting the name",
 	/** Parts that come before the name, in the correct order for presentation. */
-	) val prefix: List<String> = emptyList(),
+	) @ActiveField val prefix: List<String> = emptyList(),
 	@param:Schema(
 		description = "Parts that come after the name. This repeating element order: Suffixes appear in the correct order for presenting the name",
 	/** Parts that come after the name, in the correct order for presentation. */
-	) val suffix: List<String> = emptyList(),
+	) @ActiveField val suffix: List<String> = emptyList(),
 	/** Text representation of the full name. */
-	@param:Schema(description = "Text representation of the full name") val text: String? = null,
+	@param:Schema(description = "Text representation of the full name") @ActiveField val text: String? = null,
 	/** The use of this name (usual, official, temp, etc.). */
-	@param:Schema(description = "What is the use of this name") val use: PersonNameUseDto? = null,
+	@param:Schema(description = "What is the use of this name") @ActiveField val use: PersonNameUseDto? = null,
 )

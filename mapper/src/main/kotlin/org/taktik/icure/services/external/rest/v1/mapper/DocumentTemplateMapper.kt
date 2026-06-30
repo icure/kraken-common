@@ -18,7 +18,6 @@ interface DocumentTemplateMapper {
 	@Mappings(
 		Mapping(target = "isAttachmentDirty", ignore = true),
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)

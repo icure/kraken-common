@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao
 
+import io.icure.asyncjacksonhttpclient.exception.TimeoutException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.Client
@@ -42,7 +43,11 @@ enum class Partitions(val partitionName: String) {
 	}
 }
 
-interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
+interface DAOWithClass<T> {
+	val entityClass: Class<T>
+}
+
+interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	/**
 	 * If true the DAO is a generic DAO for group-level entities.
 	 * The views for these DAOs will always be automatically initialized when creating a new group and when updating the
@@ -50,10 +55,9 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 	 * If false the views must be explicitly initialized on the groups that need it.
 	 */
 	val isGenericGroupDao get() = true
-	val entityClass: Class<T>
 
 	/**
-	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
+	 * @throws TimeoutException if the request takes longer than timeout
 	 * @throws IllegalStateException if [checkAllNodesUp] is true and not all nodes are up
 	 */
 	suspend fun getEntityWithFullQuorum(
@@ -65,8 +69,8 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T> {
 
 	/**
 	 * @param checkAllNodesUp if true and not all nodes are up before or after the request then the result's second value
-	 * will be set to false, regardless of the answer of the create.
-	 * @throws io.icure.asyncjacksonhttpclient.exception.TimeoutException if the request takes longer than timeout
+	 * will be set to false, regardless of the answer of the creation.
+	 * @throws TimeoutException if the request takes longer than timeout
 	 */
 	suspend fun saveEntityWithFullQuorum(
 		datastoreInformation: IDatastoreInformation,

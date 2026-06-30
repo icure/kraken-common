@@ -23,18 +23,23 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.LegacyField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "One or several periods of care by an hcp for this patient")
-@JsonFilter("patientHealthCareParty")
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PatientHealthCarePartyDto")
 data class PatientHealthCarePartyDto(
-	@param:Schema(description = "Type of care/relationship.") val type: PatientHealthCarePartyTypeDto? = null,
-	@param:Schema(description = "UUID of the hcp.") val healthcarePartyId: String? = null,
-	@param:Schema(description = "Preferred format of exchange for diverse means of communication") val sendFormats: Map<TelecomTypeDto, String> =
+	@param:Schema(description = "Type of care/relationship.") @ActiveField val type: PatientHealthCarePartyTypeDto? = null,
+	@param:Schema(description = "UUID of the hcp.") @ActiveField val healthcarePartyId: String? = null,
+	@param:Schema(description = "Preferred format of exchange for diverse means of communication") @ActiveField val sendFormats: Map<TelecomTypeDto, String> =
 		emptyMap(), // String is in fact a UTI (uniform type identifier / a sort of super-MIME)
-	@param:Schema(description = "Time periods") val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
-	@Deprecated("Use type") @param:Schema(defaultValue = "false") val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
-	val properties: Set<PropertyStubDto>? = null,
+	@param:Schema(description = "Time periods") @ActiveField val referralPeriods: List<ReferralPeriodDto> = emptyList(), // History of DMG ownerships
+	@Deprecated("Use type")
+	@param:Schema(defaultValue = "false")
+	@LegacyField("Referral is by default set to false, and is always serialized")
+	val referral: Boolean = false, // mark this phcp as THE active referral link (gmd)
+	@ActiveField val properties: Set<PropertyStubDto>? = null,
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable

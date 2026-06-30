@@ -10,6 +10,7 @@ interface CustomReactiveAuthenticationManager : ReactiveAuthenticationManager {
 		groupId: String?,
 		applicationId: String?,
 		scopeDataOwner: String?,
-		cacheJwtRefreshDetails: Boolean
+		cacheJwtRefreshDetails: Boolean,
+		requestedSchemaVersion: Int?,
 	): JwtAuthentication
 }

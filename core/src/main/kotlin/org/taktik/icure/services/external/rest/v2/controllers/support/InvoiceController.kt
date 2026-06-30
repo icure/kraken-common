@@ -35,6 +35,7 @@ import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.exceptions.ForbiddenException
@@ -47,6 +48,7 @@ import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
+import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.data.LabelledOccurenceDto
@@ -61,6 +63,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.InvoicingCodeV2Mapper
@@ -97,7 +100,8 @@ class InvoiceController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper
+	private val mergeResultV2Mapper: MergeResultV2Mapper,
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
 ) {
 	@Operation(summary = "Creates an invoice")
 	@PostMapping
@@ -655,9 +659,9 @@ class InvoiceController(
 	fun getConflictingEntitiesIds(): Flux<String> =
 		invoiceService.getConflictingEntitiesIds().injectReactorContext()
 
-	@GetMapping("/conflicts/{entityId}")
+	@GetMapping("/conflicts/of")
 	fun getConflictsForEntity(
-		@PathVariable entityId: String,
+		@RequestParam entityId: String,
 	): Flux<InvoiceDto> =
 		invoiceService.getConflictsFor(entityId)
 			.map(invoiceV2Mapper::map)
@@ -676,9 +680,16 @@ class InvoiceController(
 
 	@PostMapping("/conflicts/solve")
 	fun autoSolveConflicts(
-		@RequestBody entityIds: List<String>
+		@RequestBody entityIds: List<String>,
+		@RequestParam strategy: ConflictResolutionStrategyDto?
 	): Flux<MergeResultDto> = invoiceService
-		.solveConflicts(limit = null, ids = entityIds)
+		.solveConflicts(
+			limit = null,
+			ids = entityIds,
+			strategy = strategy?.let {
+				conflictResolutionStrategyV2Mapper.map(strategy)
+			} ?: ConflictResolutionStrategy.FullMergeability
+		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
 }

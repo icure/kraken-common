@@ -19,6 +19,9 @@ class HealthElementByHcPartyIdentifiersFilter(
 	private val healthElementDAO: HealthElementDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByHcPartyIdentifiersFilter> {
+	override val entity get() = healthElementDAO.entityClass
+	override val views = listOf("by_all_delegates_identifiers")
+
 	override fun resolve(
 		filter: HealthElementByHcPartyIdentifiersFilter,
 		context: Filters,

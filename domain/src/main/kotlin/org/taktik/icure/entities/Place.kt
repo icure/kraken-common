@@ -29,6 +29,7 @@ data class Place(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+
 	override val extensions: RawJson.JsonObject? = null,
 	override val extensionsVersion: Int? = null,
 ) : StoredDocument,

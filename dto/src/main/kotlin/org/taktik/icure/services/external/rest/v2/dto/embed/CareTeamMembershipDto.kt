@@ -24,6 +24,8 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,13 +34,13 @@ import java.io.Serializable
  */
 data class CareTeamMembershipDto(
 	/** The start date (unix epoch in ms) of this membership. */
-	val startDate: Long? = null,
+	@ActiveField val startDate: Long? = null,
 	/** The end date (unix epoch in ms) of this membership. */
-	val endDate: Long? = null,
+	@ActiveField val endDate: Long? = null,
 	/** The identifier of the care team member. */
-	val careTeamMemberId: String? = null,
+	@ActiveField val careTeamMemberId: String? = null,
 	/** The type of membership. */
-	val membershipType: MembershipTypeDto? = null,
+	@ActiveField val membershipType: MembershipTypeDto? = null,
 	/** The base64-encoded encrypted content of this membership. */
 	override val encryptedSelf: Base64StringDto? = null,
 	override val extensions: RawJson.JsonObject? = null,

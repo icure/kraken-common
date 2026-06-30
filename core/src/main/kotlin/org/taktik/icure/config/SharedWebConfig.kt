@@ -25,7 +25,6 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
-import org.taktik.icure.config.SharedWebFluxConfiguration.CardinalMappers.MapperConfig
 import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.serialization.IcureDomainObjectMapper.registerMultiplatformSupportModules
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
@@ -55,7 +54,9 @@ class SharedWebConfig {
 	// endregion
 }
 
-abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
+abstract class SharedWebFluxConfiguration(
+	cardinalMappersProvider: CardinalMappersProvider
+) : WebFluxConfigurer {
 	/**
 	 * Mappers for Cardinal SDK, selectively omit some data based on the version of cardinal sdk declared in use by the
 	 * user.
@@ -136,6 +137,10 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 			}
 	}
 
+	interface CardinalMappersProvider {
+		fun getCardinalMappers(mapperProvider: () -> ObjectMapper): CardinalMappers
+	}
+
 	private val CLASSPATH_RESOURCE_LOCATIONS =
 		arrayOf("classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/")
 
@@ -171,68 +176,20 @@ abstract class SharedWebFluxConfiguration : WebFluxConfigurer {
 	 * Object mapper that serializes always all fields
 	 */
 	@Bean
-	open fun legacyObjectMapper() = legacyObjectMapper
+	open fun legacyObjectMapper(): ObjectMapper = legacyObjectMapper
 
-	// TODO will work well only as long as we have no overlap between lists
-	private val excludeLegacyMetadataFilters = listOf(
-		// Status is by default filled to 0, and is always serialized
-		Pair("healthElementFilter", SimpleBeanPropertyFilter.serializeAllExcept("status")),
-		// An older version of kraken used to automatically set a value for type
-		Pair("userFilter", SimpleBeanPropertyFilter.serializeAllExcept("type")),
-		// An older version of cardinal used to automatically set label as empty map
-		Pair("codeStubFilter", SimpleBeanPropertyFilter.serializeAllExcept("label")),
-		// An older version of kraken use to automatically set this value
-		Pair("calendarItemFilter", SimpleBeanPropertyFilter.serializeAllExcept("hcpId")),
-		// Referral is by default set to false, and is always serialized
-		Pair("patientHealthCareParty", SimpleBeanPropertyFilter.serializeAllExcept("referral")),
-		// Referral and status are by default set to non-null values and so always serialized
-		Pair("planOfAction", SimpleBeanPropertyFilter.serializeAllExcept("referral", "status")),
-	)
-	private val pre_2_4_0_filters = listOf(
-		Pair("dataAttachmentFilter", SimpleBeanPropertyFilter.serializeAllExcept("storedDataSize")),
-		Pair("documentFilter", SimpleBeanPropertyFilter.serializeAllExcept("mainAttachmentStoredDataSize")),
-	)
-
-	private fun makeCardinalObjectMapper(
-		filters: List<Pair<String, SimpleBeanPropertyFilter>>
-	): MapperConfig {
-		fun includingLegacyFields(doInclude: Boolean) =
-			ObjectMapper().registerModule(
-				KotlinModule.Builder()
-					.configure(KotlinFeature.NullIsSameAsDefault, true)
-					.build()
-			).apply {
-				setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
-				val allFilters = if (doInclude) filters else (excludeLegacyMetadataFilters + filters)
-				setFilterProvider(
-					allFilters.fold(
-						SimpleFilterProvider().setDefaultFilter(SimpleBeanPropertyFilter.serializeAll())
-					) { filters, (name, filter) ->
-						filters.addFilter(name, filter)
-					}
-				)
-			}.registerMultiplatformSupportModules()
-		return MapperConfig(
-			default = includingLegacyFields(false),
-			includingLegacyFields = includingLegacyFields(true)
-		)
-	}
-
-	protected val cardinalMappers = object : CardinalMappers {
-		override val byMinVersion = TreeMap<SemanticVersion, MapperConfig>().apply {
-			put(
-				CardinalModelInfo.minCardinalModelVersion,
-				makeCardinalObjectMapper(pre_2_4_0_filters)
-			)
-			put(
-				SemanticVersion("2.4.0"),
-				makeCardinalObjectMapper(emptyList())
-			)
-		}
+	protected val cardinalMappers = cardinalMappersProvider.getCardinalMappers {
+		ObjectMapper().registerModule(
+			KotlinModule.Builder()
+				.configure(KotlinFeature.NullIsSameAsDefault, true)
+				.build()
+		).apply {
+			setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
+		}.registerMultiplatformSupportModules()
 	}
 
 	@Bean
-	open fun cardinalObjectMapper() = cardinalMappers
+	open fun cardinalObjectMapper(): CardinalMappers = cardinalMappers
 
 	abstract fun getJackson2JsonEncoder(): Encoder<Any>
 

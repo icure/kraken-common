@@ -37,6 +37,9 @@ class PatientByHcPartyAndTelecomFilter(
 	private val patientDAO: PatientDAO,
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndTelecomFilter> {
+	override val entity get() = patientDAO.entityClass
+	override val views = listOf("by_all_delegates_telecom")
+
 	override fun resolve(
 		filter: PatientByHcPartyAndTelecomFilter,
 		context: Filters,

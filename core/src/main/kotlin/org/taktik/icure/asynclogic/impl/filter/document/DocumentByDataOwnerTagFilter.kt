@@ -20,6 +20,9 @@ class DocumentByDataOwnerTagFilter(
 	private val documentDAO: DocumentDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Document, DocumentByDataOwnerTagFilter> {
+	override val entity get() = documentDAO.entityClass
+	override val views = listOf("by_all_delegates_tag")
+
 	override fun resolve(
 		filter: DocumentByDataOwnerTagFilter,
 		context: Filters,

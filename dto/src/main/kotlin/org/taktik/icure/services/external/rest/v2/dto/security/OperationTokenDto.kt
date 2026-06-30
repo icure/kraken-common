@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,13 +15,13 @@ import java.time.Instant
  */
 data class OperationTokenDto(
 	/** The hash of the operation token. */
-	@param:Schema(description = "The hash of the token", required = true) val tokenHash: String,
+	@param:Schema(description = "The hash of the token", required = true) @ActiveField val tokenHash: String,
 	/** The epoch-millisecond timestamp at which the token was created. */
-	@param:Schema(description = "Validity starting time of the token") val creationTime: Long = Instant.now().toEpochMilli(),
+	@param:Schema(description = "Validity starting time of the token") @ActiveField val creationTime: Long = Instant.now().toEpochMilli(),
 	/** The duration in seconds for which the token remains valid after creation. */
-	@param:Schema(description = "Token validity in seconds", required = true) val validity: Long,
+	@param:Schema(description = "Token validity in seconds", required = true) @ActiveField val validity: Long,
 	/** The specific operation this token is intended to authorize. */
-	@param:Schema(description = "The operation this token is intended for", required = true) val operation: OperationDto,
+	@param:Schema(description = "The operation this token is intended for", required = true) @ActiveField val operation: OperationDto,
 	/** An optional human-readable description of the token's purpose. */
-	@param:Schema(description = "A description for the token") val description: String? = null,
+	@param:Schema(description = "A description for the token") @ActiveField val description: String? = null,
 )

@@ -19,6 +19,9 @@ class PatientByDataOwnerModifiedAfterFilter(
 	private val patientDAO: PatientDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByDataOwnerModifiedAfterFilter> {
+	override val entity get() = patientDAO.entityClass
+	override val views = listOf("by_all_delegates_modification_date")
+
 	override fun resolve(
 		filter: PatientByDataOwnerModifiedAfterFilter,
 		context: Filters,

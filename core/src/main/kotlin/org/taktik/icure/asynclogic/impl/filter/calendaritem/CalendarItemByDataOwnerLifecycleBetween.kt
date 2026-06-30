@@ -20,6 +20,9 @@ class CalendarItemByDataOwnerLifecycleBetween(
 	private val calendarItemDAO: CalendarItemDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByDataOwnerLifecycleBetween> {
+	override val entity get() = calendarItemDAO.entityClass
+	override val views = listOf("by_all_delegates_and_last_update")
+
 	override fun resolve(
 		filter: CalendarItemByDataOwnerLifecycleBetween,
 		context: Filters,

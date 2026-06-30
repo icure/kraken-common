@@ -15,6 +15,9 @@ import org.taktik.icure.entities.CalendarItem
 class CalendarItemByRecurrenceIdFilter(
 	val calendarItemDAO: CalendarItemDAO,
 ) : Filter<String, CalendarItem, CalendarItemByRecurrenceIdFilter> {
+	override val entity get() = calendarItemDAO.entityClass
+	override val views = listOf("by_recurrence_id")
+
 	override fun resolve(
 		filter: CalendarItemByRecurrenceIdFilter,
 		context: Filters,

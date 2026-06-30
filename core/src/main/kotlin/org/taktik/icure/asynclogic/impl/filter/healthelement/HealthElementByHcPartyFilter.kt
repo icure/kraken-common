@@ -36,6 +36,9 @@ class HealthElementByHcPartyFilter(
 	private val healthElementDAO: HealthElementDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, HealthElement, org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, HealthElement>> {
+	override val entity get() = healthElementDAO.entityClass
+	override val views = listOf("by_all_delegates")
+
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.ByHcpartyFilter<String, HealthElement>,
 		context: Filters,

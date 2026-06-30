@@ -24,14 +24,16 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents available contact details of a user, reachable by telecom methods""")
 data class TelecomDto(
-	@param:Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") val telecomType: TelecomTypeDto? = null,
-	val telecomNumber: String? = null,
-	val telecomDescription: String? = null,
+	@param:Schema(description = "The type of telecom method being used, ex: landline phone, mobile phone, email, fax, etc.") @ActiveField val telecomType: TelecomTypeDto? = null,
+	@ActiveField val telecomNumber: String? = null,
+	@ActiveField val telecomDescription: String? = null,
 	override val encryptedSelf: Base64StringDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,

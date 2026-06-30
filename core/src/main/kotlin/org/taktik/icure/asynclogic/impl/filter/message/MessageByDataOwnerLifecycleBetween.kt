@@ -20,6 +20,9 @@ class MessageByDataOwnerLifecycleBetween(
 	private val messageDAO: MessageDAO,
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerLifecycleBetween> {
+	override val entity get() = messageDAO.entityClass
+	override val views = listOf("by_all_delegates_and_last_update")
+
 	override fun resolve(
 		filter: MessageByDataOwnerLifecycleBetween,
 		context: Filters,

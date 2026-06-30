@@ -14,7 +14,6 @@ import org.taktik.icure.services.external.rest.v1.dto.EntityTemplateDto
 interface EntityTemplateMapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 	)

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -35,6 +34,7 @@ import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
+import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.HealthElement
@@ -58,15 +58,16 @@ internal class HealthElementDAOImpl(
 	entityCacheFactory: ConfiguredCacheProvider,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
+	queryProvider: QueryProvider
 ) : ConflictDAOImpl<HealthElement>(
-	HealthElement::class.java,
-	couchDbDispatcher,
-	idGenerator,
-	entityCacheFactory.getConfiguredCache(),
-	designDocumentProvider,
+	entityClass = HealthElement::class.java,
+	couchDbDispatcher = couchDbDispatcher,
+	idGenerator = idGenerator,
+	cacheChain = entityCacheFactory.getConfiguredCache(),
+	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-),
-	HealthElementDAO {
+	queryProvider = queryProvider
+), HealthElementDAO {
 	@Views(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),
 		View(name = "by_data_owner", map = "classpath:js/healthelement/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
@@ -77,17 +78,32 @@ internal class HealthElementDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		emitAll(
-			client
-				.interleave<Array<String>, String>(
-					createQueries(datastoreInformation, "by_hcparty", "by_data_owner" to DATA_OWNER_PARTITION)
-						.startKey(arrayOf(hcPartyId))
-						.endKey(arrayOf(hcPartyId))
-						.doNotIncludeDocs(),
-					compareBy { it[0] },
-				).filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
+		val configurationQuery = createConfigurationQueryOrNull(
+			datastoreInformation = datastoreInformation,
+			configurationView = "by_all_delegates"
 		)
+
+		if (configurationQuery != null) {
+			emitAll(client.queryView<String, String>(
+				configurationQuery.key(hcPartyId).includeDocs(false)
+			).map { it.id })
+		} else {
+			emitAll(
+				client
+					.interleave<Array<String>, String>(
+						createQueries(
+							datastoreInformation = datastoreInformation,
+							viewQueryOnMain = "by_hcparty",
+							viewQueryOnSecondary = "by_data_owner" to DATA_OWNER_PARTITION
+						)
+							.startKey(arrayOf(hcPartyId))
+							.endKey(arrayOf(hcPartyId))
+							.doNotIncludeDocs(),
+						compareBy { it[0] },
+					).filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
+					.map { it.id },
+			)
+		}
 	}
 
 	override fun listHealthElementIdsByHcPartyAndSecretPatientKeys(
@@ -104,9 +120,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_patient_date" to MAURICE_PARTITION,
-				"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_patient_date" to MAURICE_PARTITION,
+					"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_patient"
 			).keys(keys).doNotIncludeDocs()
 		emitAll(
 			client
@@ -114,6 +133,48 @@ internal class HealthElementDAOImpl(
 				.filterIsInstance<ViewRowNoDoc<Array<String>, Long>>()
 				.map { it.id },
 		)
+	}.distinct()
+
+	private fun listHealthElementIdsByHcPartyAndTagOrCode(
+		datastoreInformation: IDatastoreInformation,
+		searchKeys: Set<String>,
+		type: String,
+		code: String,
+		legacyViewOnMain: String,
+		legacyViewOnSecondary: Pair<String, String?>,
+		configurationView: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val configurationQuery = createConfigurationQueryOrNull(
+			datastoreInformation = datastoreInformation,
+			configurationView = configurationView
+		)
+
+		if (configurationQuery != null) {
+			emitAll(
+				client
+					.queryView<Array<String>, ByTagViewValue>(
+						configurationQuery
+							.keys(searchKeys.map { arrayOf(it, type, code) })
+							.includeDocs(false)
+					).map { it.id },
+			)
+		} else {
+			val viewQueries =
+				createQueries(
+					datastoreInformation = datastoreInformation,
+					viewQueryOnMain = legacyViewOnMain,
+					viewQueryOnSecondary = legacyViewOnSecondary,
+				).keys(searchKeys.map { arrayOf(it, "$type:$code") })
+					.doNotIncludeDocs()
+			emitAll(
+				client
+					.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
+					.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
+					.map { it.id },
+			)
+		}
 	}.distinct()
 
 	@Deprecated("""
@@ -134,24 +195,15 @@ internal class HealthElementDAOImpl(
 		searchKeys: Set<String>,
 		codeType: String,
 		codeCode: String,
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val viewQueries =
-			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_codes",
-				"by_data_owner_and_codes" to DATA_OWNER_PARTITION,
-			).keys(searchKeys.map { arrayOf(it, "$codeType:$codeCode") })
-				.doNotIncludeDocs()
-
-		emitAll(
-			client
-				.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
-				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
-		)
-	}.distinct()
+	) = listHealthElementIdsByHcPartyAndTagOrCode(
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		type = codeType,
+		code = codeCode,
+		legacyViewOnMain = "by_hcparty_and_codes",
+		legacyViewOnSecondary = "by_data_owner_and_codes" to DATA_OWNER_PARTITION,
+		configurationView = "by_all_delegates_code_map",
+	)
 
 	@Deprecated("""
 		Use listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning instead.
@@ -171,24 +223,15 @@ internal class HealthElementDAOImpl(
 		searchKeys: Set<String>,
 		tagType: String,
 		tagCode: String,
-	) = flow {
-		val client = couchDbDispatcher.getClient(datastoreInformation)
-
-		val viewQueries =
-			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_tags",
-				"by_data_owner_and_tags" to DATA_OWNER_PARTITION,
-			).keys(searchKeys.map { arrayOf(it, "$tagType:$tagCode") })
-				.doNotIncludeDocs()
-
-		emitAll(
-			client
-				.interleave<Array<String>, String>(viewQueries, compareBy({ it[0] }, { it[1] }))
-				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.mapNotNull { it.id },
-		)
-	}.distinct()
+	) = listHealthElementIdsByHcPartyAndTagOrCode(
+		datastoreInformation = datastoreInformation,
+		searchKeys = searchKeys,
+		type = tagType,
+		code = tagCode,
+		legacyViewOnMain = "by_hcparty_and_tags",
+		legacyViewOnSecondary = "by_data_owner_and_tags" to DATA_OWNER_PARTITION,
+		configurationView = "by_all_delegates_tag_map"
+	)
 
 	@Deprecated("""
 		Use listHealthElementIdsByHcPartyAndStatusAndVersioning instead.
@@ -212,9 +255,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_status",
-				"by_data_owner_and_status" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_and_status".main(),
+					"by_data_owner_and_status" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_status"
 			).keys(searchKeys.map { ComplexKey.of(it, status) })
 				.doNotIncludeDocs()
 
@@ -227,7 +273,7 @@ internal class HealthElementDAOImpl(
 						{ (it.components[1] as? Number)?.toLong() },
 					),
 				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 
@@ -257,9 +303,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_and_identifiers" to MAURICE_PARTITION,
-				"by_data_owner_and_identifiers" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_and_identifiers" to MAURICE_PARTITION,
+					"by_data_owner_and_identifiers" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_identifiers"
 			).keys(
 				identifiers.flatMap {
 					searchKeys.map { key -> ComplexKey.of(key, it.system, it.value) }
@@ -274,7 +323,7 @@ internal class HealthElementDAOImpl(
 						it.components[0] as? String
 					}, { it.components[1] as? String }, { it.components[2] as? String }),
 				).filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.mapNotNull { it.id },
+				.map { it.id },
 		)
 	}.distinct()
 
@@ -311,9 +360,12 @@ internal class HealthElementDAOImpl(
 
 		val viewQueries =
 			createQueries(
-				datastoreInformation,
-				"by_hcparty_patient".main(),
-				"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				datastoreInformation = datastoreInformation,
+				legacyViews = listOf(
+					"by_hcparty_patient".main(),
+					"by_data_owner_patient" to DATA_OWNER_PARTITION,
+				),
+				configurationView = "by_all_delegates_patient"
 			).keys(keys).includeDocs()
 		emitAll(
 			client
@@ -332,7 +384,8 @@ internal class HealthElementDAOImpl(
 		endDate: Long?,
 		descending: Boolean,
 	): Flow<String> = getEntityIdsByDataOwnerPatientDate(
-		views = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		legacyViews = listOf("by_hcparty_patient_date" to MAURICE_PARTITION, "by_data_owner_patient" to DATA_OWNER_PARTITION),
+		configurationView = "by_all_delegates_patient",
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
 		secretForeignKeys = secretForeignKeys,
@@ -387,9 +440,9 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
-			client,
-			datastoreInformation,
-			queryByHcPartyTagOrCodeDateSortedQuery(
+			datastoreInformation = datastoreInformation,
+			client = client,
+			healthElements = queryByHcPartyTagOrCodeDateSortedQuery(
 				datastoreInformation = datastoreInformation,
 				client = client,
 				dateInKeyViewName = "by_all_delegates_code_date_map",
@@ -420,9 +473,9 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
-			client,
-			datastoreInformation,
-			queryByHcPartyTagOrCodeDateSortedQuery(
+			datastoreInformation = datastoreInformation,
+			client = client,
+			healthElements = queryByHcPartyTagOrCodeDateSortedQuery(
 				datastoreInformation = datastoreInformation,
 				client = client,
 				dateInKeyViewName = "by_all_delegates_tag_date_map",
@@ -434,7 +487,7 @@ internal class HealthElementDAOImpl(
 				endDate = endValueDate,
 				descending = false,
 			),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
@@ -468,9 +521,9 @@ internal class HealthElementDAOImpl(
 			endDate ?: ComplexKey.emptyObject(),
 		)
 		val query = createQuery(
-			datastoreInformation,
-			dateInKeyViewName,
-			BEPPE_PARTITION
+			datastoreInformation = datastoreInformation,
+			legacyView = dateInKeyViewName to BEPPE_PARTITION,
+			configurationView = dateInKeyViewName,
 		)
 			.startKey(if (descending) to else from)
 			.endKey(if (descending) from else to)
@@ -494,9 +547,9 @@ internal class HealthElementDAOImpl(
 			)
 		}
 		val query = createQuery(
-			datastoreInformation,
-			dateInValueViewName,
-			BEPPE_PARTITION
+			datastoreInformation = datastoreInformation,
+			legacyView = dateInValueViewName to BEPPE_PARTITION,
+			configurationView = dateInValueViewName,
 		)
 			.keys(keys)
 			.descending(descending)
@@ -538,10 +591,14 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
-			client,
-			datastoreInformation,
-			client.queryView<ComplexKey, String>(
-				createQuery(datastoreInformation, "by_all_delegates_status", BEPPE_PARTITION)
+			datastoreInformation = datastoreInformation,
+			client = client,
+			healthElements = client.queryView<ComplexKey, String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_all_delegates_status" to BEPPE_PARTITION,
+					configurationView = "by_all_delegates_status",
+				)
 					.includeDocs(false)
 					.keys(searchKeys.map { ComplexKey.of(it, status) })
 			).map {
@@ -550,7 +607,7 @@ internal class HealthElementDAOImpl(
 					healthElementId = it.value
 				)
 			}.toList(),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
@@ -563,10 +620,14 @@ internal class HealthElementDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitFilteringVersions(
-			client,
-			datastoreInformation,
-			client.queryView<ComplexKey, String>(
-				createQuery(datastoreInformation, "by_all_delegates_identifiers", BEPPE_PARTITION)
+			datastoreInformation = datastoreInformation,
+			client = client,
+			healthElements = client.queryView<ComplexKey, String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_all_delegates_identifiers" to BEPPE_PARTITION,
+					configurationView = "by_all_delegates_identifiers",
+				)
 					.includeDocs(false)
 					.keys(
 						identifiers.flatMap {
@@ -579,30 +640,34 @@ internal class HealthElementDAOImpl(
 					healthElementId = it.value
 				)
 			}.toList(),
-			filterVersion
+			filterVersion = filterVersion
 		)
 	}
 
 	private suspend fun FlowCollector<String>.emitFilteringVersions(
-		client: Client,
 		datastoreInformation: IDatastoreInformation,
+		client: Client,
 		healthElements: Collection<DocumentIdHealthElementId>,
 		filterVersion: VersionFiltering
 	): Unit = when (filterVersion) {
-		VersionFiltering.LATEST -> emitLatestHealthElements(client, datastoreInformation, healthElements)
+		VersionFiltering.LATEST -> emitLatestHealthElements(datastoreInformation, client, healthElements)
 		VersionFiltering.ANY -> healthElements.forEach { emit(it.documentId) }
 	}
 
 	@View(name = "by_health_element_id_latest", map = "classpath:js/healthelement/By_health_element_id_latest_map.js", reduce = "classpath:js/healthelement/By_health_element_id_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
 	private suspend fun FlowCollector<String>.emitLatestHealthElements(
-		client: Client,
 		datastoreInformation: IDatastoreInformation,
+		client: Client,
 		healthElements: Collection<DocumentIdHealthElementId>
 	) {
 		val allHealthElementIds = healthElements.mapNotNullTo(mutableSetOf()) { it.healthElementId }
 		val latestDocForHealthElement = mutableMapOf<String, String>()
 		allHealthElementIds.chunked(1000).takeIf { it.isNotEmpty() }?.forEach { chunk ->
-			val query = createQuery(datastoreInformation, "by_health_element_id_latest", BEPPE_PARTITION)
+			val query = createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_health_element_id_latest" to BEPPE_PARTITION,
+				configurationView = "by_health_element_id_latest",
+			)
 				.reduce(true)
 				.group(true)
 				.keys(chunk)

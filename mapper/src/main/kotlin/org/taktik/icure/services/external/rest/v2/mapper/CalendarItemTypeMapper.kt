@@ -36,7 +36,6 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.DurationConfigV2M
 interface CalendarItemTypeV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
-		Mapping(target = "revHistory", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(calendarItemTypeDto.extensions))"),

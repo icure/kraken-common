@@ -44,6 +44,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -62,15 +64,15 @@ data class HealthcarePartyDto(
 	@param:Schema(description = "the revision of the healthcare party in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
 	/** Creation timestamp (unix epoch in ms) of the object. */
-	@param:Schema(description = "creation timestamp of the object.") val created: Long? = null,
+	@param:Schema(description = "creation timestamp of the object.") @ActiveField val created: Long? = null,
 	/** Last modification timestamp (unix epoch in ms) of the object. */
-	@param:Schema(description = "last modification timestamp of the object.") val modified: Long? = null,
+	@param:Schema(description = "last modification timestamp of the object.") @ActiveField val modified: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "hard delete (unix epoch in ms) timestamp of the object.") override val deletionDate: Long? = null,
 	@param:Schema(
 		description = "The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side.",
 	/** The healthcare party's identifiers, used by the client to identify uniquely and unambiguously the HCP. */
-	) val identifier: List<IdentifierDto> = emptyList(),
+	) @ActiveField val identifier: List<IdentifierDto> = emptyList(),
 	/** Tags that qualify the healthcare party as being member of a certain class. */
 	@param:Schema(description = "Tags that qualify the healthcareparty as being member of a certain class.") override val tags: Set<CodeStubDto> =
 		emptySet(),
@@ -97,43 +99,43 @@ data class HealthcarePartyDto(
 	/** The name of the company this healthcare party is member of. */
 	@param:Schema(description = "The name of the company this healthcare party is member of") override val companyName: String? = null,
 	/** Medical specialty of the healthcare party. */
-	@param:Schema(description = "Medical specialty of the healthcare party") val speciality: String? = null,
+	@param:Schema(description = "Medical specialty of the healthcare party") @ActiveField val speciality: String? = null,
 	@param:Schema(
 		description = "Bank Account identifier of the healhtcare party, IBAN, deprecated, use financial institutions instead",
 	/** Bank Account identifier of the healthcare party (IBAN). */
-	) val bankAccount: String? = null,
+	) @ActiveField val bankAccount: String? = null,
 	/** Bank Identifier Code (SWIFT Address) assigned to the bank. */
 	@param:Schema(description = "Bank Identifier Code, the SWIFT Address assigned to the bank, use financial institutions instead")
-	val bic: String? = null,
+	@ActiveField val bic: String? = null,
 	/** Proxy bank account number. */
-	val proxyBankAccount: String? = null,
+	@ActiveField val proxyBankAccount: String? = null,
 	/** Proxy bank identifier code. */
-	val proxyBic: String? = null,
+	@ActiveField val proxyBic: String? = null,
 	/** All details included in the invoice header. */
-	@param:Schema(description = "All details included in the invoice header") val invoiceHeader: String? = null,
+	@param:Schema(description = "All details included in the invoice header") @ActiveField val invoiceHeader: String? = null,
 	/** Identifier number for institution type if the healthcare party is an enterprise. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") val cbe: String? = null,
+	@param:Schema(description = "Identifier number for institution type if the healthcare party is an enterprise") @ActiveField val cbe: String? = null,
 	/** Identifier number for the institution if the healthcare party is an organization. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") val ehp: String? = null,
+	@param:Schema(description = "Identifier number for the institution if the healthcare party is an organization") @ActiveField val ehp: String? = null,
 	/** The id of the user that usually handles this healthcare party. */
 	@Deprecated("Discouraged, use custom property if you really want them")
-	@param:Schema(description = "The id of the user that usually handles this healthcare party.") val userId: String? = null,
+	@param:Schema(description = "The id of the user that usually handles this healthcare party.") @ActiveField val userId: String? = null,
 	/** The id of the parent healthcare party. */
 	override val parentId: String? = null,
 	/** The convention number (0, 1, 2, or 9). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val convention: Int? = null, // 0,1,2,9
+	@ActiveField val convention: Int? = null, // 0,1,2,9
 	/** National Institute for Health and Invalidity Insurance number. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "National Institute for Health and Invalidity Insurance number assigned to healthcare parties (institution or person).")
-	val nihii: String? = null, // institution, person
+	@ActiveField val nihii: String? = null, // institution, person
 	/** NIHII specialization code. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val nihiiSpecCode: String? = null, // don't show field in the GUI
+	@ActiveField val nihiiSpecCode: String? = null, // don't show field in the GUI
 	/** Social security inscription number. */
-	@param:Schema(description = "Social security inscription number.") val ssin: String? = null,
+	@param:Schema(description = "Social security inscription number.") @ActiveField val ssin: String? = null,
 	/** The list of addresses (with address type). */
 	@param:Schema(description = "The list of addresses (with address type).") override val addresses: List<AddressDto> = emptyList(),
 	/** The list of languages spoken by the healthcare party ordered by fluency (alpha-2 code). */
@@ -142,62 +144,62 @@ data class HealthcarePartyDto(
 	/** A picture usually saved in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A picture usually saved in JPEG format.", type = "string", format = "byte")
-	val picture: ByteArray? = null,
+	@ActiveField val picture: ByteArray? = null,
 	/** The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The healthcare party's status: 'trainee' or 'withconvention' or 'accredited'")
-	val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
+	@ActiveField val statuses: Set<HealthcarePartyStatusDto> = emptySet(),
 	/** The healthcare party's status history. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The healthcare party's status history")
-	val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
+	@ActiveField val statusHistory: List<HealthcarePartyHistoryStatusDto> = emptyList(),
 	/** Medical specialty of the healthcare party codified using FHIR or Kmehr codification scheme. */
-	@param:Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") val specialityCodes: Set<CodeStubDto> = emptySet(), // Speciality codes, default is first
+	@param:Schema(description = "Medical specialty of the healthcare party codified using FHIR or Kmehr codificaiton scheme") @ActiveField val specialityCodes: Set<CodeStubDto> = emptySet(), // Speciality codes, default is first
 	/** The type of format for contacting the healthcare party. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The type of format for contacting the healthcare party, ex: mobile, phone, email, etc.")
-	val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
+	@ActiveField val sendFormats: Map<TelecomTypeDto, String> = emptyMap(),
 	/** Text notes. */
-	@param:Schema(description = "Text notes.") val notes: String? = null,
+	@param:Schema(description = "Text notes.") @ActiveField val notes: String? = null,
 	/** List of financial information (Bank, bank account). */
-	@param:Schema(description = "List of financial information (Bank, bank account).") val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
+	@param:Schema(description = "List of financial information (Bank, bank account).") @ActiveField val financialInstitutionInformation: List<FinancialInstitutionInformationDto> = emptyList(),
 	/** A description of the HCP, meant for the public and in multiple languages. */
 	@SdkNonNullable
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:Schema(description = "A description of the HCP, meant for the public and in multiple languages.", defaultValue = "emptyMap()")
-	val descr: Map<String, String>? = emptyMap(),
+	@ActiveField val descr: Map<String, String>? = emptyMap(),
 	// Medical houses
 	/** The invoicing scheme this healthcare party adheres to: 'service fee' or 'flat rate'. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "The invoicing scheme this healthcare party adheres to : 'service fee' or 'flat rate'")
-	var billingType: String? = null, // "serviceFee" (à l'acte) or "flatRate" (forfait)
+	@ActiveField var billingType: String? = null, // "serviceFee" (à l'acte) or "flatRate" (forfait)
 	/** The type of healthcare party (e.g., 'persphysician', 'medicalHouse', 'perstechnician'). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
+	@ActiveField val type: String? = null, // "persphysician" or "medicalHouse" or "perstechnician"
 	/** Contact person name. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val contactPerson: String? = null,
+	@ActiveField val contactPerson: String? = null,
 	/** Contact person healthcare party id. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val contactPersonHcpId: String? = null,
+	@ActiveField val contactPersonHcpId: String? = null,
 	/** The id of the supervisor. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val supervisorId: String? = null,
+	@ActiveField val supervisorId: String? = null,
 	/** List of flat rate tarifications for medical houses. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val flatRateTarifications: List<FlatRateTarificationDto> = emptyList(),
+	@ActiveField val flatRateTarifications: List<FlatRateTarificationDto> = emptyList(),
 	/** Imported data map. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val importedData: Map<String, String> = emptyMap(),
+	@ActiveField val importedData: Map<String, String> = emptyMap(),
 	/** Additional options (deprecated, use properties instead). */
 	@Deprecated("Use properties instead")
-	val options: Map<String, String> = emptyMap(),
+	@ActiveField val options: Map<String, String> = emptyMap(),
 	/** Extra properties for the healthcare party. */
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	/** Whether the healthcare party profile is publicly visible. */
-	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val public: Boolean = false,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) @ActiveField val public: Boolean = false,
 	/** Properties that are publicly visible. */
-	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) val publicProperties: Set<PropertyStubDto>? = null,
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) @ActiveField val publicProperties: Set<PropertyStubDto>? = null,
 	/** Properties related to crypto actor functionality. */
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@SdkNonNullable

@@ -35,13 +35,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Represents an appointment or event in a calendar. Calendar items are linked to an agenda and can block
  * availabilities for scheduling purposes.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("calendarItemFilter")
 data class CalendarItemDto(
 	/** The Id of the calendar item. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,
@@ -64,71 +64,72 @@ data class CalendarItemDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val endOfLife: Long? = null,
+	@ActiveField val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** The title of the calendar item. */
-	val title: String? = null,
+	@ActiveField val title: String? = null,
 	/** The id of the calendar item type associated with this item. */
-	val calendarItemTypeId: String? = null,
+	@ActiveField val calendarItemTypeId: String? = null,
 	/** The id of the master calendar item if this is a recurring instance. */
-	val masterCalendarItemId: String? = null,
+	@ActiveField val masterCalendarItemId: String? = null,
 	/** The patient id. Deprecated: use cryptedForeignKeys instead. */
 	@Deprecated("Use crypedForeignKeys instead")
-	val patientId: String? = null,
+	@ActiveField val patientId: String? = null,
 	/** Whether this calendar item is marked as important. */
-	val important: Boolean? = null,
+	@ActiveField val important: Boolean? = null,
 	/** Whether this calendar item represents a home visit. */
-	val homeVisit: Boolean? = null,
+	@ActiveField val homeVisit: Boolean? = null,
 	/** A phone number associated with this calendar item. */
-	val phoneNumber: String? = null,
+	@ActiveField val phoneNumber: String? = null,
 	/** The id of the place where the appointment takes place. */
-	val placeId: String? = null,
+	@ActiveField val placeId: String? = null,
 	/** The address where the appointment takes place. */
-	val address: AddressDto? = null,
+	@ActiveField val address: AddressDto? = null,
 	/** The textual representation of the address. */
-	val addressText: String? = null,
+	@ActiveField val addressText: String? = null,
 	/** The start time of the calendar item in YYYYMMDDHHMMSS format. */
-	val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val startTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The end time of the calendar item in YYYYMMDDHHMMSS format. */
-	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The time of confirmation in YYYYMMDDHHMMSS format. */
 	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-	val confirmationTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
+	@ActiveField val confirmationTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	/** The timestamp of cancellation. */
 	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-	val cancellationTimestamp: Long? = null,
+	@ActiveField val cancellationTimestamp: Long? = null,
 	/** An id associated with the confirmation. */
 	@Deprecated("Ignored by availabilities algorithm, will be replaced by another more descriptive field")
-	val confirmationId: String? = null,
+	@ActiveField val confirmationId: String? = null,
 	/** The duration of the appointment. */
 	@Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
-	val duration: Long? = null,
+	@ActiveField val duration: Long? = null,
 	/** Whether this calendar item spans the entire day. */
 	@Deprecated("Ignored by availabilities algorithm, use appropriate startTime and endTime")
-	val allDay: Boolean? = null,
+	@ActiveField val allDay: Boolean? = null,
 	/** Additional details about the calendar item. */
-	val details: String? = null,
+	@ActiveField val details: String? = null,
 	/** Whether this calendar item was migrated from another system. */
-	val wasMigrated: Boolean? = null,
+	@ActiveField val wasMigrated: Boolean? = null,
 	/** The id of the agenda linked to this calendar item. */
-	val agendaId: String? = null,
+	@ActiveField val agendaId: String? = null,
 	/** The resource group of the agenda that will handle this calendar item. */
-	val resourceGroup: CodeStubDto? = null,
+	@ActiveField val resourceGroup: CodeStubDto? = null,
 	/** How this calendar item is considered by the availabilities algorithm. */
 	@CardinalMetadataProperty
+	@ActiveField
 	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	/** The healthcare party id associated with this calendar item. Deprecated: This field is scheduled for deletion */
-	val hcpId: String? = null,
+	@ActiveField val hcpId: String? = null,
 	/** An id for linking recurring calendar items. */
-	val recurrenceId: String? = null,
+	@ActiveField val recurrenceId: String? = null,
 	/** Tags for the meeting associated with this calendar item. */
-	val meetingTags: Set<CalendarItemTagDto> = emptySet(),
+	@ActiveField val meetingTags: Set<CalendarItemTagDto> = emptySet(),
 	/** Flow item information associated with this calendar item. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	val flowItem: FlowItemDto? = null,
+	@ActiveField val flowItem: FlowItemDto? = null,
 	/** Custom properties of this calendar item. */
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val properties: Set<PropertyStubDto> = emptySet(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val properties: Set<PropertyStubDto> = emptySet(),
 	/** The secret foreign keys, used for secure linking to patients. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */

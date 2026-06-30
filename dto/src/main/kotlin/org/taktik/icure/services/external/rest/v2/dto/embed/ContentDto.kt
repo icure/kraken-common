@@ -27,6 +27,8 @@ import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,38 +39,38 @@ import java.time.Instant
 @ExposedToCustomEntities(specializable = true)
 data class ContentDto(
 	/** A string value. */
-	val stringValue: String? = null,
+	@ActiveField val stringValue: String? = null,
 	/** A numeric value. */
-	val numberValue: Double? = null,
+	@ActiveField val numberValue: Double? = null,
 	/** A boolean value. */
-	val booleanValue: Boolean? = null,
+	@ActiveField val booleanValue: Boolean? = null,
 	/** An instant value. */
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
-	val instantValue: Instant? = null,
+	@ActiveField val instantValue: Instant? = null,
 	@param:Schema(
 		description = "Value as date. The format could have a all three (day, month and year) or values on any of these three, whatever is known.",
 	/** Value as a fuzzy date, which may contain day, month, and/or year components. */
-	) val fuzzyDateValue: Long? = null,
+	) @ActiveField val fuzzyDateValue: Long? = null,
 	/** A binary value encoded as a byte array. */
-	@param:Schema(type = "string", format = "byte") val binaryValue: ByteArray? = null,
+	@param:Schema(type = "string", format = "byte") @ActiveField val binaryValue: ByteArray? = null,
 	/** The identifier of a linked document. */
-	@param:Schema(description = "Linked document.") val documentId: String? = null,
+	@param:Schema(description = "Linked document.") @ActiveField val documentId: String? = null,
 	@param:Schema(
 		description = "Values of measurements recorded. Fields included would be the value, permissible range (min. and max.), severity, unit of measurement, etc ",
 	/** Values of measurements recorded, including value, range, severity, and unit. */
-	) val measureValue: MeasureDto? = null,
+	) @ActiveField val measureValue: MeasureDto? = null,
 	/** The details of prescribed or suggested medication. */
-	@param:Schema(description = "The details of prescribed or suggested medication") val medicationValue: MedicationDto? = null,
+	@param:Schema(description = "The details of prescribed or suggested medication") @ActiveField val medicationValue: MedicationDto? = null,
 	/** A high frequency time-series containing timestamps in ms and their values. */
-	@param:Schema(description = "A high frequency time-series containing the ts in ms from the start (double) and the values") val timeSeries: TimeSeriesDto? = null,
+	@param:Schema(description = "A high frequency time-series containing the ts in ms from the start (double) and the values") @ActiveField val timeSeries: TimeSeriesDto? = null,
 	/** A list of sub-services forming a compound value. */
-	val compoundValue: List<ServiceDto>? = null,
+	@ActiveField val compoundValue: List<ServiceDto>? = null,
 	/** A list of measures representing a ratio. */
-	val ratio: List<MeasureDto>? = null,
+	@ActiveField val ratio: List<MeasureDto>? = null,
 	/** A list of measures representing a range. */
-	val range: List<MeasureDto>? = null,
+	@ActiveField val range: List<MeasureDto>? = null,
 ) : Serializable {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true

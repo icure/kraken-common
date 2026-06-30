@@ -19,8 +19,10 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import org.taktik.icure.CardinalMetadataProperty
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 interface ExtendableRootDto : ExtendableDto {
 	@CardinalMetadataProperty
+	@ActiveField
 	val extensionsVersion: Int?
 }

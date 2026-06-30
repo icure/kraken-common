@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +30,7 @@ import java.io.Serializable
  */
 data class FormGroupDto(
 	/** The globally unique identifier for this form group. */
-	val guid: String? = null,
+	@ActiveField val guid: String? = null,
 	/** The human-readable name of the form group. */
-	val name: String? = null,
+	@ActiveField val name: String? = null,
 ) : Serializable

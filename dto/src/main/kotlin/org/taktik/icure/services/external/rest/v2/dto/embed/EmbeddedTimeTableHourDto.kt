@@ -20,6 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
+import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +30,7 @@ import java.io.Serializable
  */
 data class EmbeddedTimeTableHourDto(
 	/** The start hour encoded as an integer. */
-	val startHour: Int,
+	@ActiveField val startHour: Int,
 	/** The end hour encoded as an integer. */
-	val endHour: Int,
+	@ActiveField val endHour: Int,
 ) : Serializable
