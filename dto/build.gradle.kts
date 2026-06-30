@@ -44,9 +44,3 @@ dependencies {
     implementation(coreLibs.reflections)
     implementation(coreLibs.guava)
 }
-
-tasks.withType<KspAATask> {
-    onlyIf {
-        gradle.startParameter.taskNames.contains(":kraken-common:dto:kspKotlin")
-    }
-}

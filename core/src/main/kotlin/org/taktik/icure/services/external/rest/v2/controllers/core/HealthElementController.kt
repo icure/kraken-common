@@ -94,7 +94,6 @@ class HealthElementController(
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
-	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,

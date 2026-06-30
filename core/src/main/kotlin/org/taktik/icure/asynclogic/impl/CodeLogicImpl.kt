@@ -83,7 +83,7 @@ open class CodeLogicImpl(
 		)
 	}
 
-	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.getMappingContextForCurrentUser().useLegacyDataModelCompatibility()
 
 	override fun getTagTypeCandidates(): List<String> = listOf("CD-ITEM", "CD-PARAMETER", "CD-CAREPATH", "CD-SEVERITY", "CD-URGENCY", "CD-GYNECOLOGY")
 
