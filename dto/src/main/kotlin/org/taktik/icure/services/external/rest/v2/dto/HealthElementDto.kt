@@ -106,7 +106,7 @@ data class HealthElementDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present", defaultValue = "0")
 	@LegacyField("Status is by default filled to 0, and is always serialized")
-	@ActiveField val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
+	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	/** Left or right dominance/preference. */
 	@param:Schema(description = "Left or Right dominance/preference.") @ActiveField val laterality: LateralityDto? = null,
 	/** List of healthcare approaches. */
