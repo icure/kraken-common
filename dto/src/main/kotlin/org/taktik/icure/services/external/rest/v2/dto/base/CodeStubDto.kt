@@ -47,7 +47,7 @@ data class CodeStubDto(
 	/** A map of language codes to localized labels for this code. */
 	@Deprecated("label shouldn't be included in code stub but only in full codes")
 	@LegacyField("An older version of cardinal used to automatically set label as empty map")
-	@ActiveField val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
+	val label: Map<String, String>? = null, // ex: {en: Rheumatic Aortic Stenosis, fr: Sténose rhumatoïde de l'Aorte}
 ) : CodeIdentificationDto<String?> {
 
 	override fun normalizeIdentification(): CodeStubDto {
