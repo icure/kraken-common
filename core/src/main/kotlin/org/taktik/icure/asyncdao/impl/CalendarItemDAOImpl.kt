@@ -37,6 +37,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
+import org.taktik.icure.asyncdao.impl.CalendarItemDAOImpl.Companion.MAX_OCCUPANCY_CALENDAR_ITEMS
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -542,17 +543,17 @@ class CalendarItemDAOImpl(
 		}
 
 		var running = 0
-		var baselineReported = startDate == null
+		var baselineReported = false
 		for ((t, delta) in deltas) {
 			if (startDate != null && t < startDate) {
 				// Before the period: only build the baseline of items already open at startDate.
 				running += delta
 				continue
 			}
-			if (!baselineReported) {
+			if (!baselineReported && startDate != null) {
 				// Report the pre-existing occupancy at the start of the period if any item spans into it.
 				// Reported before the endDate break so an item spanning the whole period is still reported.
-				if (startDate == null || t > startDate) report(startDate!!, running.toLong())
+				if (t > startDate) report(startDate, running.toLong())
 				baselineReported = true
 			}
 			if (endDate != null && t > endDate) break
