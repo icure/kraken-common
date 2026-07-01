@@ -316,7 +316,7 @@ class CalendarItemDAOImpl(
 	 * to include items that start before [startDate] but are still open during the period). Items reaching beyond
 	 * the extended range are ignored.
 	 *
-	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps.
+	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
 	 */
 	override fun collectFrequenciesByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
@@ -343,13 +343,15 @@ class CalendarItemDAOImpl(
 		// Reconstruct each item's interval from a single primary row (start = key[1], end = value.e), then turn
 		// them into +1 (at start) / -1 (at end) sweep-line events ordered by time (fuzzy Longs sort chronologically).
 		val deltas = sortedMapOf<Long, Int>()
+		var itemCount = 0
 		client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.BookingDetails?>(query).collect { row ->
 			val end = row.value?.endTime ?: return@collect // skip day markers and items with no end time
 			val start = (row.key?.components?.getOrNull(1) as? Number)?.toLong() ?: return@collect
 			if (end <= start) return@collect
 			if (endUpper != null && end > endUpper) return@collect // item ends beyond the accepted range
-			deltas.merge(start, 1, Int::plus)
-			deltas.merge(end, -1, Int::plus)
+			if (++itemCount > MAX_OCCUPANCY_CALENDAR_ITEMS) throwTooManyCalendarItems()
+			deltas.merge(start, 1, ::deltaMerger)
+			deltas.merge(end, -1, ::deltaMerger)
 		}
 
 		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
@@ -452,7 +454,7 @@ class CalendarItemDAOImpl(
 	 * from the `by_all_delegates_and_startdate` / `by_all_delegates_and_enddate` views, joining the
 	 * start and end of each item by its id.
 	 *
-	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps.
+	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
 	 */
 	override fun collectFrequenciesByPeriodAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
@@ -478,7 +480,9 @@ class CalendarItemDAOImpl(
 			val out = LinkedHashMap<String, Long>()
 			client.queryView<ComplexKey, String>(query).collect { row ->
 				// An item is emitted once per delegation; keep the first (the date is the same).
-				(row.key?.components?.getOrNull(1) as? Number)?.toLong()?.let { out.putIfAbsent(row.id, it) }
+				(row.key?.components?.getOrNull(1) as? Number)?.toLong()?.let { date ->
+					if (out.putIfAbsent(row.id, date) == null && out.size > MAX_OCCUPANCY_CALENDAR_ITEMS) throwTooManyCalendarItems()
+				}
 			}
 			return out
 		}
@@ -492,12 +496,18 @@ class CalendarItemDAOImpl(
 		startById.forEach { (id, start) ->
 			val end = endById[id] ?: return@forEach
 			if (end <= start) return@forEach
-			deltas.merge(start, 1, Int::plus)
-			deltas.merge(end, -1, Int::plus)
+			deltas.merge(start, 1, ::deltaMerger)
+			deltas.merge(end, -1, ::deltaMerger)
 		}
 
 		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
 	}
+
+	/**
+	 * Merges two sweep-line deltas, returning null when they cancel out so the entry is dropped from the map
+	 * (see [Map.merge]): a +1 and a -1 on the same instant leave no event behind.
+	 */
+	private fun deltaMerger(a: Int, b: Int): Int? = (a + b).takeIf { it != 0 }
 
 	/** Shifts a fuzzy date-time by [days] (may be negative), preserving the fuzzy encoding. */
 	private fun shiftFuzzyDays(fuzzyDate: Long, days: Int): Long =
@@ -505,12 +515,17 @@ class CalendarItemDAOImpl(
 		else FuzzyDates.getFullLocalDateTime(fuzzyDate, lenient = true)?.plusDays(days.toLong())
 			?.let { FuzzyDates.getFuzzyDateTime(it, ChronoUnit.SECONDS, false) } ?: fuzzyDate
 
+	/** Throws the shared "too many calendar items" error, used to bound the occupancy queries. */
+	private fun throwTooManyCalendarItems(): Nothing = throw TooManyResultsException(
+		"More than $MAX_OCCUPANCY_CALENDAR_ITEMS calendar items match the occupancy query; please restrict the period.",
+	)
+
 	/**
 	 * Sweeps the +1/-1 [deltas] (ordered by fuzzy time) into the concurrent-occupancy step function over the
 	 * period [startDate]..[endDate], as an ordered list of (fuzzyTimePoint, busyCount) points.
 	 *
-	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps. The list
-	 * is materialised (rather than streamed) so the limit is enforced before any point reaches the caller.
+	 * Only points where the occupancy actually changes are emitted: adjacent equal-height steps collapse into
+	 * one, so e.g. a +1 and a -1 falling on the same instant produce no step at all.
 	 */
 	private fun sweepOccupancyHistogram(
 		deltas: SortedMap<Long, Int>,
@@ -518,32 +533,31 @@ class CalendarItemDAOImpl(
 		endDate: Long?,
 	): List<Pair<Long, Long>> {
 		val steps = ArrayList<Pair<Long, Long>>()
-		fun addStep(step: Pair<Long, Long>) {
-			if (steps.size >= MAX_OCCUPANCY_HISTOGRAM_STEPS) {
-				throw TooManyResultsException(
-					"Calendar item occupancy histogram exceeds the maximum of $MAX_OCCUPANCY_HISTOGRAM_STEPS steps; please restrict the period.",
-				)
+		var lastReported = 0L // occupancy already reported to the caller; implicitly 0 before the first step
+		fun report(t: Long, value: Long) {
+			if (value != lastReported) {
+				steps.add(t to value)
+				lastReported = value
 			}
-			steps.add(step)
 		}
 
 		var running = 0
-		var baselineEmitted = startDate == null
+		var baselineReported = startDate == null
 		for ((t, delta) in deltas) {
 			if (startDate != null && t < startDate) {
 				// Before the period: only build the baseline of items already open at startDate.
 				running += delta
 				continue
 			}
-			if (!baselineEmitted) {
+			if (!baselineReported) {
 				// Report the pre-existing occupancy at the start of the period if any item spans into it.
-				// Flushed before the endDate break so an item spanning the whole period is still reported.
-				if (running > 0 && (startDate == null || t > startDate)) addStep(startDate!! to running.toLong())
-				baselineEmitted = true
+				// Reported before the endDate break so an item spanning the whole period is still reported.
+				if (startDate == null || t > startDate) report(startDate!!, running.toLong())
+				baselineReported = true
 			}
 			if (endDate != null && t > endDate) break
 			running += delta
-			addStep(t to running.toLong())
+			report(t, running.toLong())
 		}
 		return steps
 	}
@@ -825,9 +839,10 @@ class CalendarItemDAOImpl(
 
 	companion object {
 		/**
-		 * Maximum number of steps a calendar item occupancy histogram may contain before the query is rejected
-		 * with a [TooManyResultsException].
+		 * Maximum number of calendar items an occupancy query may collect before it is rejected with a
+		 * [TooManyResultsException]. The limit is on the collected items rather than the emitted steps, because
+		 * adjacent equal-height steps are collapsed and a large number of items may reduce to very few steps.
 		 */
-		const val MAX_OCCUPANCY_HISTOGRAM_STEPS = 10000
+		const val MAX_OCCUPANCY_CALENDAR_ITEMS = 10000
 	}
 }
