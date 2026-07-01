@@ -296,6 +296,77 @@ class CalendarItemDAOImpl(
 		)
 	}
 
+	/**
+	 * Computes the concurrent-occupancy histogram of the calendar items of the agenda [agendaId] over the
+	 * period [startDate]..[endDate] (fuzzy date-times, either bound may be null = open).
+	 *
+	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs, one per point
+	 * in time where the occupancy changes. The count is the number of calendar items active at that instant.
+	 *
+	 * It does not load the calendar item documents: it reads the `by_agenda_period` view, whose primary row is
+	 * keyed at the item start and carries the item end in its value. The value-less day markers that the same
+	 * view emits for multi-day items are ignored: the primary rows alone fully describe every interval.
+	 *
+	 * Calendar items longer than one week are not supported: an item that started more than a week before
+	 * [startDate] but is still ongoing within the period will be missed (same limitation as
+	 * [collectFrequenciesByPeriodAndHcPartyId]).
+	 */
+	override fun collectFrequenciesByPeriodAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		agendaId: String
+	): Flow<Pair<Long, Long>> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		fun fuzzyShiftWeeks(date: Long, weeks: Long): Long =
+			FuzzyValues.getDateTime(date)?.plusWeeks(weeks)
+				?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: date
+
+		// Calendar items can't be longer than a week, so any item overlapping the period started at most a week
+		// before its start; look back that far to pick up the items already open at the start of the period.
+		val lookBack = startDate?.let { fuzzyShiftWeeks(it, -1) }
+
+		val query = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_agenda_period" to MAURICE_PARTITION,
+			configurationView = "by_agenda_period",
+		)
+			.startKey(ComplexKey.of(agendaId, lookBack))
+			.endKey(ComplexKey.of(agendaId, endDate ?: ComplexKey.emptyObject()))
+			.includeDocs(false)
+
+		// Reconstruct each item's interval from a single primary row (start = key[1], end = value.e), then turn
+		// them into +1 (at start) / -1 (at end) sweep-line events ordered by time (fuzzy Longs sort chronologically).
+		val deltas = sortedMapOf<Long, Int>()
+		client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.BookingDetails?>(query).collect { row ->
+			val end = row.value?.endTime ?: return@collect // skip day markers and items with no end time
+			val start = (row.key?.components?.getOrNull(1) as? Number)?.toLong() ?: return@collect
+			if (end <= start) return@collect
+			deltas.merge(start, 1, Int::plus)
+			deltas.merge(end, -1, Int::plus)
+		}
+
+		var running = 0
+		var baselineEmitted = startDate == null
+		for ((t, delta) in deltas) {
+			if (startDate != null && t < startDate) {
+				// Before the period: only build the baseline of items already open at startDate.
+				running += delta
+				continue
+			}
+			if (endDate != null && t > endDate) break
+			if (!baselineEmitted) {
+				// Report the pre-existing occupancy at the start of the period if any item spans into it.
+				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
+				baselineEmitted = true
+			}
+			running += delta
+			emit(t to running.toLong())
+		}
+	}
+
+
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")
 	fun listCalendarItemByStartDateAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
@@ -356,6 +427,85 @@ class CalendarItemDAOImpl(
 				it.endTime?.let { et -> et > startDate } ?: true
 			},
 		)
+	}
+
+	/**
+	 * Computes the concurrent-occupancy histogram of the calendar items of [hcPartyId] over the
+	 * period [startDate]..[endDate] (fuzzy date-times, either bound may be null = open).
+	 *
+	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs,
+	 * one per point in time where the occupancy changes. The count is the number of calendar items
+	 * that are active at that instant.
+	 *
+	 * It does not load the calendar item documents: it reads only the ids and the start/end dates
+	 * from the `by_all_delegates_and_startdate` / `by_all_delegates_and_enddate` views, joining the
+	 * start and end of each item by its id.
+	 *
+	 * Calendar items longer than one week are not supported: an item that started more than a week
+	 * before [startDate] but is still ongoing within the period will be missed.
+	 */
+	override fun collectFrequenciesByPeriodAndHcPartyId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		hcPartyId: String
+	): Flow<Pair<Long, Long>> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		fun fuzzyShiftWeeks(date: Long, weeks: Long): Long =
+			FuzzyValues.getDateTime(date)?.plusWeeks(weeks)
+				?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: date
+
+		// Calendar items can't be longer than a week, so any item overlapping the period started at
+		// most a week before its start, and ended at most a week after its end.
+		val lookBack = startDate?.let { fuzzyShiftWeeks(it, -1) }
+		val endUpper = endDate?.let { fuzzyShiftWeeks(it, 1) }
+
+		// Reads (calendarItemId -> fuzzyDate) from one of the date views, without loading documents.
+		suspend fun datesById(configurationView: String, upper: Long?): Map<String, Long> {
+			val query = createConfigurationQueryOrNull(datastoreInformation, configurationView)
+				?.startKey(ComplexKey.of(hcPartyId, lookBack))
+				?.endKey(ComplexKey.of(hcPartyId, upper ?: ComplexKey.emptyObject()))
+				?.includeDocs(false)
+				?: return emptyMap()
+			val out = LinkedHashMap<String, Long>()
+			client.queryView<ComplexKey, String>(query).collect { row ->
+				// An item is emitted once per delegation; keep the first (the date is the same).
+				(row.key?.components?.getOrNull(1) as? Number)?.toLong()?.let { out.putIfAbsent(row.id, it) }
+			}
+			return out
+		}
+
+		val startById = datesById("by_all_delegates_and_startdate", endDate)
+		val endById = datesById("by_all_delegates_and_enddate", endUpper)
+
+		// Reconstruct each item's interval by joining start and end on the id, then turn them into
+		// +1 (at start) / -1 (at end) sweep-line events ordered by time (fuzzy Longs sort chronologically).
+		val deltas = sortedMapOf<Long, Int>()
+		startById.forEach { (id, start) ->
+			val end = endById[id] ?: return@forEach
+			if (end <= start) return@forEach
+			deltas.merge(start, 1, Int::plus)
+			deltas.merge(end, -1, Int::plus)
+		}
+
+		var running = 0
+		var baselineEmitted = startDate == null
+		for ((t, delta) in deltas) {
+			if (startDate != null && t < startDate) {
+				// Before the period: only build the baseline of items already open at startDate.
+				running += delta
+				continue
+			}
+			if (endDate != null && t > endDate) break
+			if (!baselineEmitted) {
+				// Report the pre-existing occupancy at the start of the period if any item spans into it.
+				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
+				baselineEmitted = true
+			}
+			running += delta
+			emit(t to running.toLong())
+		}
 	}
 
 	@Views(

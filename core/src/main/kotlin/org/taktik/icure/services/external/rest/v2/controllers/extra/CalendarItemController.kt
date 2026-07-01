@@ -37,6 +37,7 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
+import org.taktik.icure.services.external.rest.v2.dto.CalendarItemOccupancyDto
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -235,6 +236,36 @@ class CalendarItemController(
 		}
 		val calendars = calendarItemService.getCalendarItemByPeriodAndAgendaId(startDate, endDate, agendaId)
 		return calendars.map { calendarItemV2Mapper.map(it) }.injectReactorContext()
+	}
+
+	@Operation(summary = "Get the concurrent-occupancy histogram of the CalendarItems by Period and HcPartyId")
+	@PostMapping("/occupancyByPeriodAndHcPartyId")
+	fun getCalendarItemsOccupancyByPeriodAndHcPartyId(
+		@RequestParam startDate: Long,
+		@RequestParam endDate: Long,
+		@RequestParam hcPartyId: String,
+	): Flux<CalendarItemOccupancyDto> {
+		if (hcPartyId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "hcPartyId was empty")
+		}
+		return calendarItemService.collectFrequenciesByPeriodAndHcPartyId(startDate, endDate, hcPartyId)
+			.map { (timestamp, occupancy) -> CalendarItemOccupancyDto(timestamp, occupancy) }
+			.injectReactorContext()
+	}
+
+	@Operation(summary = "Get the concurrent-occupancy histogram of the CalendarItems by Period and AgendaId")
+	@PostMapping("/occupancyByPeriodAndAgendaId")
+	fun getCalendarItemsOccupancyByPeriodAndAgendaId(
+		@RequestParam startDate: Long,
+		@RequestParam endDate: Long,
+		@RequestParam agendaId: String,
+	): Flux<CalendarItemOccupancyDto> {
+		if (agendaId.isBlank()) {
+			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
+		}
+		return calendarItemService.collectFrequenciesByPeriodAndAgendaId(startDate, endDate, agendaId)
+			.map { (timestamp, occupancy) -> CalendarItemOccupancyDto(timestamp, occupancy) }
+			.injectReactorContext()
 	}
 
 	@Operation(summary = "Get calendarItems by ids")
