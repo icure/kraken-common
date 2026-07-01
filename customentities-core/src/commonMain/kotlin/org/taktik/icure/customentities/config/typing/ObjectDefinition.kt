@@ -466,9 +466,9 @@ data class ObjectDefinition(
 					}
 				} else {
 					builtinExtension.propertiesEncryptionConfiguration.keys.forEach {
-						if (!builtinDefinition.properties.contains(it)) {
+						if (!builtinDefinition.properties.containsKey(it)) {
 							context.validation.addError(
-								"GED-OBJECT-ENCRYPTEDPROPNOTFOUND",
+								if (builtinDefinition.metadataProperties.contains(it)) "GED-OBJECT-ENCRYPTBUILTINPROPNOTALLOWED" else "GED-OBJECT-ENCRYPTBUILTINPROPNOTFOUND",
 								"prop" to it,
 								"entity" to builtinExtension.entityName
 							)
