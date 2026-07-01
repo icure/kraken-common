@@ -45,6 +45,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.exceptions.TooManyResultsException
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.distinctBy
 import org.taktik.icure.utils.distinctById
@@ -501,8 +502,8 @@ class CalendarItemDAOImpl(
 	/** Shifts a fuzzy date-time by [days] (may be negative), preserving the fuzzy encoding. */
 	private fun shiftFuzzyDays(fuzzyDate: Long, days: Int): Long =
 		if (days == 0) fuzzyDate
-		else FuzzyValues.getDateTime(fuzzyDate)?.plusDays(days.toLong())
-			?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: fuzzyDate
+		else FuzzyDates.getFullLocalDateTime(fuzzyDate, lenient = true)?.plusDays(days.toLong())
+			?.let { FuzzyDates.getFuzzyDateTime(it, ChronoUnit.SECONDS, false) } ?: fuzzyDate
 
 	/**
 	 * Sweeps the +1/-1 [deltas] (ordered by fuzzy time) into the concurrent-occupancy step function over the
