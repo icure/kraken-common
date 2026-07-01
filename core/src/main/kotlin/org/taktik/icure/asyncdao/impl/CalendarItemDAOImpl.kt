@@ -37,6 +37,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
+import org.taktik.icure.asyncdao.impl.CalendarItemDAOImpl.Companion.MAX_OCCUPANCY_CALENDAR_ITEMS
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -44,6 +45,8 @@ import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
+import org.taktik.icure.exceptions.TooManyResultsException
+import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.distinctBy
 import org.taktik.icure.utils.distinctById
@@ -51,6 +54,7 @@ import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.interleaveNoValue
 import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
+import java.util.SortedMap
 
 @Repository("calendarItemDAO")
 @Profile("app")
@@ -296,6 +300,65 @@ class CalendarItemDAOImpl(
 		)
 	}
 
+	/**
+	 * Computes the concurrent-occupancy histogram of the calendar items of the agenda [agendaId] over the
+	 * period [startDate]..[endDate] (fuzzy date-times, either bound may be null = open).
+	 *
+	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs, one per point
+	 * in time where the occupancy changes. The count is the number of calendar items active at that instant.
+	 * See [collectFrequenciesByPeriodAndHcPartyId] for an example histogram.
+	 *
+	 * It does not load the calendar item documents: it reads the `by_agenda_period` view, whose primary row is
+	 * keyed at the item start and carries the item end in its value. The value-less day markers that the same
+	 * view emits for multi-day items are ignored: the primary rows alone fully describe every interval.
+	 *
+	 * Only calendar items whose whole interval fits within the search range are considered. By default the range
+	 * is exactly [startDate]..[endDate]; pass [extensionInDays] to widen it by that many days on each side (e.g.
+	 * to include items that start before [startDate] but are still open during the period). Items reaching beyond
+	 * the extended range are ignored.
+	 *
+	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
+	 */
+	override fun collectFrequenciesByPeriodAndAgendaId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		agendaId: String,
+		extensionInDays: Int?,
+	): Flow<Pair<Long, Long>> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		// Widen the accepted item interval by [extensionInDays] on each side (0 = only items enclosed in the range).
+		val lookBack = startDate?.let { shiftFuzzyDays(it, -(extensionInDays ?: 0)) }
+		val endUpper = endDate?.let { shiftFuzzyDays(it, extensionInDays ?: 0) }
+
+		val query = createQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_agenda_period" to MAURICE_PARTITION,
+			configurationView = "by_agenda_period",
+		)
+			.startKey(ComplexKey.of(agendaId, lookBack))
+			.endKey(ComplexKey.of(agendaId, endDate ?: ComplexKey.emptyObject()))
+			.includeDocs(false)
+
+		// Reconstruct each item's interval from a single primary row (start = key[1], end = value.e), then turn
+		// them into +1 (at start) / -1 (at end) sweep-line events ordered by time (fuzzy Longs sort chronologically).
+		val deltas = sortedMapOf<Long, Int>()
+		var itemCount = 0
+		client.queryView<ComplexKey, CalendarItemDAO.CalendarItemStub.BookingDetails?>(query).collect { row ->
+			val end = row.value?.endTime ?: return@collect // skip day markers and items with no end time
+			val start = (row.key?.components?.getOrNull(1) as? Number)?.toLong() ?: return@collect
+			if (end <= start) return@collect
+			if (endUpper != null && end > endUpper) return@collect // item ends beyond the accepted range
+			if (++itemCount > MAX_OCCUPANCY_CALENDAR_ITEMS) throwTooManyCalendarItems()
+			deltas.merge(start, 1, ::deltaMerger)
+			deltas.merge(end, -1, ::deltaMerger)
+		}
+
+		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
+	}
+
+
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")
 	fun listCalendarItemByStartDateAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
@@ -356,6 +419,148 @@ class CalendarItemDAOImpl(
 				it.endTime?.let { et -> et > startDate } ?: true
 			},
 		)
+	}
+
+	/**
+	 * Computes the concurrent-occupancy histogram of the calendar items of [hcPartyId] over the
+	 * period [startDate]..[endDate] (fuzzy date-times, either bound may be null = open).
+	 *
+	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs,
+	 * one per point in time where the occupancy changes. The count is the number of calendar items
+	 * that are active at that instant.
+	 *
+	 * Only calendar items whose whole interval fits within the search range are considered. By default the
+	 * range is exactly [startDate]..[endDate], so items starting before [startDate] or ending after [endDate]
+	 * are ignored. Pass [extensionInDays] to widen the range by that many days on each side, which lets items
+	 * that start shortly before [startDate] (contributing to the occupancy baseline) or end shortly after
+	 * [endDate] be taken into account. Items reaching beyond the extended range are still ignored.
+	 *
+	 * Example — the fixture from `CalendarItemDAOTest` over the window 10:00..13:00 with an extension wide
+	 * enough to include the items that start before / end after the window (09:00-11:00 and 12:45-14:00);
+	 * the 08:00-09:30 item is entirely before the window, so it is ignored:
+	 *
+	 * ```
+	 *  count
+	 *    2                          ___
+	 *    1    _______        ______|   |___                   _______
+	 *    0           |______|             |________|_________|
+	 *        10:00   11:00   11:30 11:45   12:00   12:30   12:45   13:00
+	 * ```
+	 *
+	 * emitted as: (10:00,1) (11:00,0) (11:30,1) (11:45,2) (12:00,1) (12:30,0) (12:45,1)
+	 * (the 09:00-11:00 item is open at 10:00 -> baseline 1; 11:45-12:00 overlaps 11:30-12:00 -> 2;
+	 * the 12:45-14:00 item ends past the window so occupancy stays at 1 through 13:00).
+	 *
+	 * It does not load the calendar item documents: it reads only the ids and the start/end dates
+	 * from the `by_all_delegates_and_startdate` / `by_all_delegates_and_enddate` views, joining the
+	 * start and end of each item by its id.
+	 *
+	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
+	 */
+	override fun collectFrequenciesByPeriodAndHcPartyId(
+		datastoreInformation: IDatastoreInformation,
+		startDate: Long?,
+		endDate: Long?,
+		hcPartyId: String,
+		extensionInDays: Int?,
+	): Flow<Pair<Long, Long>> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		// Widen the accepted item interval by [extensionInDays] on each side (0 = only items enclosed in the
+		// range): items starting in [lookBack, endDate] and ending in [lookBack, endUpper] are joined below.
+		val lookBack = startDate?.let { shiftFuzzyDays(it, -(extensionInDays ?: 0)) }
+		val endUpper = endDate?.let { shiftFuzzyDays(it, extensionInDays ?: 0) }
+
+		// Reads (calendarItemId -> fuzzyDate) from one of the date views, without loading documents.
+		suspend fun datesById(configurationView: String, upper: Long?): Map<String, Long> {
+			val query = createConfigurationQueryOrNull(datastoreInformation, configurationView)
+				?.startKey(ComplexKey.of(hcPartyId, lookBack))
+				?.endKey(ComplexKey.of(hcPartyId, upper ?: ComplexKey.emptyObject()))
+				?.includeDocs(false)
+				?: return emptyMap()
+			val out = LinkedHashMap<String, Long>()
+			client.queryView<ComplexKey, String>(query).collect { row ->
+				// An item is emitted once per delegation; keep the first (the date is the same).
+				(row.key?.components?.getOrNull(1) as? Number)?.toLong()?.let { date ->
+					if (out.putIfAbsent(row.id, date) == null && out.size > MAX_OCCUPANCY_CALENDAR_ITEMS) throwTooManyCalendarItems()
+				}
+			}
+			return out
+		}
+
+		val startById = datesById("by_all_delegates_and_startdate", endDate)
+		val endById = datesById("by_all_delegates_and_enddate", endUpper)
+
+		// Reconstruct each item's interval by joining start and end on the id, then turn them into
+		// +1 (at start) / -1 (at end) sweep-line events ordered by time (fuzzy Longs sort chronologically).
+		val deltas = sortedMapOf<Long, Int>()
+		startById.forEach { (id, start) ->
+			val end = endById[id] ?: return@forEach
+			if (end <= start) return@forEach
+			deltas.merge(start, 1, ::deltaMerger)
+			deltas.merge(end, -1, ::deltaMerger)
+		}
+
+		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
+	}
+
+	/**
+	 * Merges two sweep-line deltas, returning null when they cancel out so the entry is dropped from the map
+	 * (see [Map.merge]): a +1 and a -1 on the same instant leave no event behind.
+	 */
+	private fun deltaMerger(a: Int, b: Int): Int? = (a + b).takeIf { it != 0 }
+
+	/** Shifts a fuzzy date-time by [days] (may be negative), preserving the fuzzy encoding. */
+	private fun shiftFuzzyDays(fuzzyDate: Long, days: Int): Long =
+		if (days == 0) fuzzyDate
+		else FuzzyDates.getFullLocalDateTime(fuzzyDate, lenient = true)?.plusDays(days.toLong())
+			?.let { FuzzyDates.getFuzzyDateTime(it, ChronoUnit.SECONDS, false) } ?: fuzzyDate
+
+	/** Throws the shared "too many calendar items" error, used to bound the occupancy queries. */
+	private fun throwTooManyCalendarItems(): Nothing = throw TooManyResultsException(
+		"More than $MAX_OCCUPANCY_CALENDAR_ITEMS calendar items match the occupancy query; please restrict the period.",
+	)
+
+	/**
+	 * Sweeps the +1/-1 [deltas] (ordered by fuzzy time) into the concurrent-occupancy step function over the
+	 * period [startDate]..[endDate], as an ordered list of (fuzzyTimePoint, busyCount) points.
+	 *
+	 * Only points where the occupancy actually changes are emitted: adjacent equal-height steps collapse into
+	 * one, so e.g. a +1 and a -1 falling on the same instant produce no step at all.
+	 */
+	private fun sweepOccupancyHistogram(
+		deltas: SortedMap<Long, Int>,
+		startDate: Long?,
+		endDate: Long?,
+	): List<Pair<Long, Long>> {
+		val steps = ArrayList<Pair<Long, Long>>()
+		var lastReported = 0L // occupancy already reported to the caller; implicitly 0 before the first step
+		fun report(t: Long, value: Long) {
+			if (value != lastReported) {
+				steps.add(t to value)
+				lastReported = value
+			}
+		}
+
+		var running = 0
+		var baselineReported = false
+		for ((t, delta) in deltas) {
+			if (startDate != null && t < startDate) {
+				// Before the period: only build the baseline of items already open at startDate.
+				running += delta
+				continue
+			}
+			if (!baselineReported && startDate != null) {
+				// Report the pre-existing occupancy at the start of the period if any item spans into it.
+				// Reported before the endDate break so an item spanning the whole period is still reported.
+				if (t > startDate) report(startDate, running.toLong())
+				baselineReported = true
+			}
+			if (endDate != null && t > endDate) break
+			running += delta
+			report(t, running.toLong())
+		}
+		return steps
 	}
 
 	@Views(
@@ -631,5 +836,14 @@ class CalendarItemDAOImpl(
 			Partitions.Maurice -> warmup(datastoreInformation, "by_agenda_period" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
+	}
+
+	companion object {
+		/**
+		 * Maximum number of calendar items an occupancy query may collect before it is rejected with a
+		 * [TooManyResultsException]. The limit is on the collected items rather than the emitted steps, because
+		 * adjacent equal-height steps are collapsed and a large number of items may reduce to very few steps.
+		 */
+		const val MAX_OCCUPANCY_CALENDAR_ITEMS = 10000
 	}
 }
