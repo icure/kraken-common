@@ -355,12 +355,13 @@ class CalendarItemDAOImpl(
 				running += delta
 				continue
 			}
-			if (endDate != null && t > endDate) break
 			if (!baselineEmitted) {
 				// Report the pre-existing occupancy at the start of the period if any item spans into it.
+				// Flushed before the endDate break so an item spanning the whole period is still reported.
 				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
 				baselineEmitted = true
 			}
+			if (endDate != null && t > endDate) break
 			running += delta
 			emit(t to running.toLong())
 		}
@@ -497,12 +498,13 @@ class CalendarItemDAOImpl(
 				running += delta
 				continue
 			}
-			if (endDate != null && t > endDate) break
 			if (!baselineEmitted) {
 				// Report the pre-existing occupancy at the start of the period if any item spans into it.
+				// Flushed before the endDate break so an item spanning the whole period is still reported.
 				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
 				baselineEmitted = true
 			}
+			if (endDate != null && t > endDate) break
 			running += delta
 			emit(t to running.toLong())
 		}
