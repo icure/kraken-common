@@ -129,18 +129,20 @@ open class CalendarItemLogicImpl(
 		startDate: Long,
 		endDate: Long,
 		hcPartyId: String,
+		extensionInDays: Int?,
 	): Flow<Pair<Long, Long>> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(calendarItemDAO.collectFrequenciesByPeriodAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId))
+		emitAll(calendarItemDAO.collectFrequenciesByPeriodAndHcPartyId(datastoreInformation, startDate, endDate, hcPartyId, extensionInDays))
 	}
 
 	override fun collectFrequenciesByPeriodAndAgendaId(
 		startDate: Long,
 		endDate: Long,
 		agendaId: String,
+		extensionInDays: Int?,
 	): Flow<Pair<Long, Long>> = flow {
 		val datastoreInformation = getInstanceAndGroup()
-		emitAll(calendarItemDAO.collectFrequenciesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId))
+		emitAll(calendarItemDAO.collectFrequenciesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId, extensionInDays))
 	}
 
 	override fun getCalendarItemsByRecurrenceId(

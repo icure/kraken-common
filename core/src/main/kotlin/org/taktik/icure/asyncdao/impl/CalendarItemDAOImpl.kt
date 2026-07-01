@@ -44,6 +44,7 @@ import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
+import org.taktik.icure.exceptions.TooManyResultsException
 import org.taktik.icure.utils.FuzzyValues
 import org.taktik.icure.utils.distinctBy
 import org.taktik.icure.utils.distinctById
@@ -51,6 +52,7 @@ import org.taktik.icure.utils.interleave
 import org.taktik.icure.utils.interleaveNoValue
 import org.taktik.icure.utils.main
 import java.time.temporal.ChronoUnit
+import java.util.SortedMap
 
 @Repository("calendarItemDAO")
 @Profile("app")
@@ -308,25 +310,25 @@ class CalendarItemDAOImpl(
 	 * keyed at the item start and carries the item end in its value. The value-less day markers that the same
 	 * view emits for multi-day items are ignored: the primary rows alone fully describe every interval.
 	 *
-	 * Calendar items longer than one week are not supported: an item that started more than a week before
-	 * [startDate] but is still ongoing within the period will be missed (same limitation as
-	 * [collectFrequenciesByPeriodAndHcPartyId]).
+	 * Only calendar items whose whole interval fits within the search range are considered. By default the range
+	 * is exactly [startDate]..[endDate]; pass [extensionInDays] to widen it by that many days on each side (e.g.
+	 * to include items that start before [startDate] but are still open during the period). Items reaching beyond
+	 * the extended range are ignored.
+	 *
+	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps.
 	 */
 	override fun collectFrequenciesByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
 		endDate: Long?,
-		agendaId: String
+		agendaId: String,
+		extensionInDays: Int?,
 	): Flow<Pair<Long, Long>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		fun fuzzyShiftWeeks(date: Long, weeks: Long): Long =
-			FuzzyValues.getDateTime(date)?.plusWeeks(weeks)
-				?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: date
-
-		// Calendar items can't be longer than a week, so any item overlapping the period started at most a week
-		// before its start; look back that far to pick up the items already open at the start of the period.
-		val lookBack = startDate?.let { fuzzyShiftWeeks(it, -1) }
+		// Widen the accepted item interval by [extensionInDays] on each side (0 = only items enclosed in the range).
+		val lookBack = startDate?.let { shiftFuzzyDays(it, -(extensionInDays ?: 0)) }
+		val endUpper = endDate?.let { shiftFuzzyDays(it, extensionInDays ?: 0) }
 
 		val query = createQuery(
 			datastoreInformation = datastoreInformation,
@@ -344,28 +346,12 @@ class CalendarItemDAOImpl(
 			val end = row.value?.endTime ?: return@collect // skip day markers and items with no end time
 			val start = (row.key?.components?.getOrNull(1) as? Number)?.toLong() ?: return@collect
 			if (end <= start) return@collect
+			if (endUpper != null && end > endUpper) return@collect // item ends beyond the accepted range
 			deltas.merge(start, 1, Int::plus)
 			deltas.merge(end, -1, Int::plus)
 		}
 
-		var running = 0
-		var baselineEmitted = startDate == null
-		for ((t, delta) in deltas) {
-			if (startDate != null && t < startDate) {
-				// Before the period: only build the baseline of items already open at startDate.
-				running += delta
-				continue
-			}
-			if (!baselineEmitted) {
-				// Report the pre-existing occupancy at the start of the period if any item spans into it.
-				// Flushed before the endDate break so an item spanning the whole period is still reported.
-				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
-				baselineEmitted = true
-			}
-			if (endDate != null && t > endDate) break
-			running += delta
-			emit(t to running.toLong())
-		}
+		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
 	}
 
 
@@ -439,14 +425,20 @@ class CalendarItemDAOImpl(
 	 * one per point in time where the occupancy changes. The count is the number of calendar items
 	 * that are active at that instant.
 	 *
-	 * Example — the fixture from `CalendarItemDAOTest` over the window 10:00..13:00, with items
-	 * 09:00-11:00, 11:30-12:00, 11:45-12:30, 12:45-14:00 and 08:00-09:30 (the last one is entirely
-	 * before the window, so it is ignored):
+	 * Only calendar items whose whole interval fits within the search range are considered. By default the
+	 * range is exactly [startDate]..[endDate], so items starting before [startDate] or ending after [endDate]
+	 * are ignored. Pass [extensionInDays] to widen the range by that many days on each side, which lets items
+	 * that start shortly before [startDate] (contributing to the occupancy baseline) or end shortly after
+	 * [endDate] be taken into account. Items reaching beyond the extended range are still ignored.
+	 *
+	 * Example — the fixture from `CalendarItemDAOTest` over the window 10:00..13:00 with an extension wide
+	 * enough to include the items that start before / end after the window (09:00-11:00 and 12:45-14:00);
+	 * the 08:00-09:30 item is entirely before the window, so it is ignored:
 	 *
 	 * ```
 	 *  count
 	 *    2                          ___
-	 *    1    _______        ______|   |______                _______
+	 *    1    _______        ______|   |___                   _______
 	 *    0           |______|             |________|_________|
 	 *        10:00   11:00   11:30 11:45   12:00   12:30   12:45   13:00
 	 * ```
@@ -459,25 +451,21 @@ class CalendarItemDAOImpl(
 	 * from the `by_all_delegates_and_startdate` / `by_all_delegates_and_enddate` views, joining the
 	 * start and end of each item by its id.
 	 *
-	 * Calendar items longer than one week are not supported: an item that started more than a week
-	 * before [startDate] but is still ongoing within the period will be missed.
+	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps.
 	 */
 	override fun collectFrequenciesByPeriodAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
 		endDate: Long?,
-		hcPartyId: String
+		hcPartyId: String,
+		extensionInDays: Int?,
 	): Flow<Pair<Long, Long>> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		fun fuzzyShiftWeeks(date: Long, weeks: Long): Long =
-			FuzzyValues.getDateTime(date)?.plusWeeks(weeks)
-				?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: date
-
-		// Calendar items can't be longer than a week, so any item overlapping the period started at
-		// most a week before its start, and ended at most a week after its end.
-		val lookBack = startDate?.let { fuzzyShiftWeeks(it, -1) }
-		val endUpper = endDate?.let { fuzzyShiftWeeks(it, 1) }
+		// Widen the accepted item interval by [extensionInDays] on each side (0 = only items enclosed in the
+		// range): items starting in [lookBack, endDate] and ending in [lookBack, endUpper] are joined below.
+		val lookBack = startDate?.let { shiftFuzzyDays(it, -(extensionInDays ?: 0)) }
+		val endUpper = endDate?.let { shiftFuzzyDays(it, extensionInDays ?: 0) }
 
 		// Reads (calendarItemId -> fuzzyDate) from one of the date views, without loading documents.
 		suspend fun datesById(configurationView: String, upper: Long?): Map<String, Long> {
@@ -507,6 +495,37 @@ class CalendarItemDAOImpl(
 			deltas.merge(end, -1, Int::plus)
 		}
 
+		emitAll(sweepOccupancyHistogram(deltas, startDate, endDate).asFlow())
+	}
+
+	/** Shifts a fuzzy date-time by [days] (may be negative), preserving the fuzzy encoding. */
+	private fun shiftFuzzyDays(fuzzyDate: Long, days: Int): Long =
+		if (days == 0) fuzzyDate
+		else FuzzyValues.getDateTime(fuzzyDate)?.plusDays(days.toLong())
+			?.let { FuzzyValues.getFuzzyDateTime(it, ChronoUnit.SECONDS) } ?: fuzzyDate
+
+	/**
+	 * Sweeps the +1/-1 [deltas] (ordered by fuzzy time) into the concurrent-occupancy step function over the
+	 * period [startDate]..[endDate], as an ordered list of (fuzzyTimePoint, busyCount) points.
+	 *
+	 * @throws TooManyResultsException if the histogram would exceed [MAX_OCCUPANCY_HISTOGRAM_STEPS] steps. The list
+	 * is materialised (rather than streamed) so the limit is enforced before any point reaches the caller.
+	 */
+	private fun sweepOccupancyHistogram(
+		deltas: SortedMap<Long, Int>,
+		startDate: Long?,
+		endDate: Long?,
+	): List<Pair<Long, Long>> {
+		val steps = ArrayList<Pair<Long, Long>>()
+		fun addStep(step: Pair<Long, Long>) {
+			if (steps.size >= MAX_OCCUPANCY_HISTOGRAM_STEPS) {
+				throw TooManyResultsException(
+					"Calendar item occupancy histogram exceeds the maximum of $MAX_OCCUPANCY_HISTOGRAM_STEPS steps; please restrict the period.",
+				)
+			}
+			steps.add(step)
+		}
+
 		var running = 0
 		var baselineEmitted = startDate == null
 		for ((t, delta) in deltas) {
@@ -518,13 +537,14 @@ class CalendarItemDAOImpl(
 			if (!baselineEmitted) {
 				// Report the pre-existing occupancy at the start of the period if any item spans into it.
 				// Flushed before the endDate break so an item spanning the whole period is still reported.
-				if (running > 0 && (startDate == null || t > startDate)) emit(startDate!! to running.toLong())
+				if (running > 0 && (startDate == null || t > startDate)) addStep(startDate!! to running.toLong())
 				baselineEmitted = true
 			}
 			if (endDate != null && t > endDate) break
 			running += delta
-			emit(t to running.toLong())
+			addStep(t to running.toLong())
 		}
+		return steps
 	}
 
 	@Views(
@@ -800,5 +820,13 @@ class CalendarItemDAOImpl(
 			Partitions.Maurice -> warmup(datastoreInformation, "by_agenda_period" to MAURICE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
+	}
+
+	companion object {
+		/**
+		 * Maximum number of steps a calendar item occupancy histogram may contain before the query is rejected
+		 * with a [TooManyResultsException].
+		 */
+		const val MAX_OCCUPANCY_HISTOGRAM_STEPS = 10000
 	}
 }

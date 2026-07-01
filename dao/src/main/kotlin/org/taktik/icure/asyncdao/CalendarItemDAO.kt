@@ -58,7 +58,7 @@ interface CalendarItemDAO : ConflictDAO<CalendarItem> {
 
 	fun listCalendarItemByPeriodAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<CalendarItem>
 
-	fun collectFrequenciesByPeriodAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String): Flow<Pair<Long, Long>>
+	fun collectFrequenciesByPeriodAndHcPartyId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, hcPartyId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
 
 	/**
 	 * Retrieves all the [CalendarItem.id]s with a delegation for the specified [searchKey], where the max among [CalendarItem.created],
@@ -95,7 +95,7 @@ interface CalendarItemDAO : ConflictDAO<CalendarItem> {
 		descending: Boolean,
 	): Flow<CalendarItem>
 
-	fun collectFrequenciesByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String): Flow<Pair<Long, Long>>
+	fun collectFrequenciesByPeriodAndAgendaId(datastoreInformation: IDatastoreInformation, startDate: Long?, endDate: Long?, agendaId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
 
 	fun listCalendarItemsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<CalendarItem>
 

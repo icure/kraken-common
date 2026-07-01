@@ -86,14 +86,14 @@ interface CalendarItemService :
 	 * @throws AccessDeniedException if [hcPartyId] is not the current data owner id and is not among the access keys
 	 * and the current user does not have the permission to search Calendar Items for other users.
 	 */
-	fun collectFrequenciesByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<Pair<Long, Long>>
+	fun collectFrequenciesByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
 
 	/**
 	 * Computes the concurrent-occupancy histogram of the [CalendarItem]s of the agenda [agendaId] over the period
 	 * [startDate]..[endDate]. The result is a step function emitted as a [Flow] of (fuzzyTimePoint, busyCount) pairs,
 	 * one per point in time where the occupancy changes.
 	 */
-	fun collectFrequenciesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String): Flow<Pair<Long, Long>>
+	fun collectFrequenciesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
 
 	/**
 	 * Retrieves the ids of all the [CalendarItem]s given the [dataOwnerId] (plus all the current access keys if that is

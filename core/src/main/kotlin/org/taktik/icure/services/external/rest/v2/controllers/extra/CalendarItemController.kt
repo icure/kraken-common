@@ -244,11 +244,13 @@ class CalendarItemController(
 		@RequestParam startDate: Long,
 		@RequestParam endDate: Long,
 		@RequestParam hcPartyId: String,
+		@Parameter(description = "Days to extend the period on each side to include items that start before or end after it. If omitted, only items fully enclosed in the period are considered.")
+		@RequestParam(required = false) extensionInDays: Int?,
 	): Flux<CalendarItemOccupancyDto> {
 		if (hcPartyId.isBlank()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "hcPartyId was empty")
 		}
-		return calendarItemService.collectFrequenciesByPeriodAndHcPartyId(startDate, endDate, hcPartyId)
+		return calendarItemService.collectFrequenciesByPeriodAndHcPartyId(startDate, endDate, hcPartyId, extensionInDays)
 			.map { (timestamp, occupancy) -> CalendarItemOccupancyDto(timestamp, occupancy) }
 			.injectReactorContext()
 	}
@@ -259,11 +261,13 @@ class CalendarItemController(
 		@RequestParam startDate: Long,
 		@RequestParam endDate: Long,
 		@RequestParam agendaId: String,
+		@Parameter(description = "Days to extend the period on each side to include items that start before or end after it. If omitted, only items fully enclosed in the period are considered.")
+		@RequestParam(required = false) extensionInDays: Int?,
 	): Flux<CalendarItemOccupancyDto> {
 		if (agendaId.isBlank()) {
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, "agendaId was empty")
 		}
-		return calendarItemService.collectFrequenciesByPeriodAndAgendaId(startDate, endDate, agendaId)
+		return calendarItemService.collectFrequenciesByPeriodAndAgendaId(startDate, endDate, agendaId, extensionInDays)
 			.map { (timestamp, occupancy) -> CalendarItemOccupancyDto(timestamp, occupancy) }
 			.injectReactorContext()
 	}
