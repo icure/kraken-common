@@ -302,6 +302,7 @@ class CalendarItemDAOImpl(
 	 *
 	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs, one per point
 	 * in time where the occupancy changes. The count is the number of calendar items active at that instant.
+	 * See [collectFrequenciesByPeriodAndHcPartyId] for an example histogram.
 	 *
 	 * It does not load the calendar item documents: it reads the `by_agenda_period` view, whose primary row is
 	 * keyed at the item start and carries the item end in its value. The value-less day markers that the same
@@ -437,6 +438,22 @@ class CalendarItemDAOImpl(
 	 * It emits a step function as a [Flow] of (fuzzyTimePoint, numberOfBusyCalendarItems) pairs,
 	 * one per point in time where the occupancy changes. The count is the number of calendar items
 	 * that are active at that instant.
+	 *
+	 * Example — the fixture from `CalendarItemDAOTest` over the window 10:00..13:00, with items
+	 * 09:00-11:00, 11:30-12:00, 11:45-12:30, 12:45-14:00 and 08:00-09:30 (the last one is entirely
+	 * before the window, so it is ignored):
+	 *
+	 * ```
+	 *  count
+	 *    2                          ___
+	 *    1    _______        ______|   |______                _______
+	 *    0           |______|             |________|_________|
+	 *        10:00   11:00   11:30 11:45   12:00   12:30   12:45   13:00
+	 * ```
+	 *
+	 * emitted as: (10:00,1) (11:00,0) (11:30,1) (11:45,2) (12:00,1) (12:30,0) (12:45,1)
+	 * (the 09:00-11:00 item is open at 10:00 -> baseline 1; 11:45-12:00 overlaps 11:30-12:00 -> 2;
+	 * the 12:45-14:00 item ends past the window so occupancy stays at 1 through 13:00).
 	 *
 	 * It does not load the calendar item documents: it reads only the ids and the start/end dates
 	 * from the `by_all_delegates_and_startdate` / `by_all_delegates_and_enddate` views, joining the
