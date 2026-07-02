@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.extensions.ExtensionProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.SdkNonNullable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
@@ -53,8 +54,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
-import com.fasterxml.jackson.annotation.JsonFilter
-import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(

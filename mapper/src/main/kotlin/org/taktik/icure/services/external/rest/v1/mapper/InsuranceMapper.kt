@@ -18,6 +18,9 @@ interface InsuranceMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "tags", ignore = true),
+		Mapping(target = "codes", ignore = true),
+		Mapping(target = "identifiers", ignore = true),
 	)
 	fun map(insuranceDto: InsuranceDto): Insurance
 	fun map(insurance: Insurance): InsuranceDto
