@@ -23,6 +23,16 @@ interface CalendarItemLogic :
 	fun getCalendarItemByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String): Flow<CalendarItem>
 
 	/**
+	 * Computes the concurrent-occupancy histogram of the [CalendarItem]s of [hcPartyId] over the period
+	 * [startDate]..[endDate] (fuzzy date-times). The result is emitted as a step function: a [Flow] of
+	 * (fuzzyTimePoint, numberOfBusyCalendarItems) pairs, one per point in time where the occupancy changes.
+	 *
+	 * Note: unlike [getCalendarItemByPeriodAndHcPartyId], the histogram is computed for the provided [hcPartyId]
+	 * only and is not aggregated over the current data owner's additional search keys.
+	 */
+	fun collectFrequenciesByPeriodAndHcPartyId(startDate: Long, endDate: Long, hcPartyId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
+
+	/**
 	 * Retrieves all the [CalendarItem]s in a group where [CalendarItem.agendaId] is equal to the provided [agendaId],
 	 * [CalendarItem.startTime] is greater or equal than [startDate], and [CalendarItem.endTime] is less
 	 * or equal than [endDate].
@@ -35,6 +45,13 @@ interface CalendarItemLogic :
 	 * @return a [Flow] containing the matching [CalendarItem]s.
 	 */
 	fun getCalendarItemByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String, descending: Boolean): Flow<CalendarItem>
+
+	/**
+	 * Computes the concurrent-occupancy histogram of the [CalendarItem]s of the agenda [agendaId] over the period
+	 * [startDate]..[endDate] (fuzzy date-times). The result is emitted as a step function: a [Flow] of
+	 * (fuzzyTimePoint, numberOfBusyCalendarItems) pairs, one per point in time where the occupancy changes.
+	 */
+	fun collectFrequenciesByPeriodAndAgendaId(startDate: Long, endDate: Long, agendaId: String, extensionInDays: Int? = null): Flow<Pair<Long, Long>>
 	fun listCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>): Flow<CalendarItem>
 	fun findCalendarItemsByHCPartyAndSecretPatientKeys(hcPartyId: String, secretPatientKeys: List<String>, paginationOffset: PaginationOffset<List<Any>>): Flow<ViewQueryResultEvent>
 
