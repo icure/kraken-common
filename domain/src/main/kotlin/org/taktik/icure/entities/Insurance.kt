@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasCodes
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
@@ -27,7 +28,7 @@ data class Insurance(
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	val identifier: List<Identifier> = listOf(),
+	override val identifier: List<Identifier> = listOf(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 
@@ -43,7 +44,7 @@ data class Insurance(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-) : StoredDocument, HasTags, HasCodes {
+) : StoredDocument, HasTags, HasCodes, HasIdentifier {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

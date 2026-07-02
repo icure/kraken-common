@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
@@ -39,7 +40,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 data class AddressDto(
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),
-	@param:Schema(description = "The identifiers of the Address") @ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@param:Schema(description = "The identifiers of the Address") @ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	@param:Schema(description = "The type of place the address represents, ex: home, office, hospital, clinic, etc. ") @ActiveField val addressType: AddressTypeDto? = null,
 	@param:Schema(description = "Descriptive notes about the address") @ActiveField val descr: String? = null,
 	@param:Schema(description = "Street name") @ActiveField val street: String? = null,
@@ -57,6 +58,7 @@ data class AddressDto(
 	Serializable,
 	Comparable<AddressDto>,
 	HasTagsDto,
-	HasCodesDto {
+	HasCodesDto,
+	HasIdentifierDto {
 	override fun compareTo(other: AddressDto): Int = addressType?.compareTo(other.addressType ?: AddressTypeDto.other) ?: 0
 }

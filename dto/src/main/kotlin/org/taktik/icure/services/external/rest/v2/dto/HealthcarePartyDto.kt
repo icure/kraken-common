@@ -25,6 +25,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
@@ -70,7 +71,7 @@ data class HealthcarePartyDto(
 	@param:Schema(
 		description = "The healthcareparty's identifiers, used by the client to identify uniquely and unambiguously the HCP. However, iCure may not guarantee this uniqueness by itself : This should be done at the client side.",
 	/** The healthcare party's identifiers, used by the client to identify uniquely and unambiguously the HCP. */
-	) @ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	) @ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** Tags that qualify the healthcare party as being member of a certain class. */
 	@param:Schema(description = "Tags that qualify the healthcareparty as being member of a certain class.") override val tags: Set<CodeStubDto> =
 		emptySet(),
@@ -220,7 +221,8 @@ data class HealthcarePartyDto(
 	CryptoActorDto,
 	DataOwnerDto,
 	HasCodesDto,
-	HasTagsDto {
+	HasTagsDto,
+	HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

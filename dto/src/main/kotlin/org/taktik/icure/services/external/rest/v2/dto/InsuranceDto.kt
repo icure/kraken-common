@@ -23,6 +23,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -45,7 +46,7 @@ data class InsuranceDto(
 	@ActiveField val name: Map<String, String> = emptyMap(),
 	/** The identifiers of the insurance. */
 	@ActiveField
-	val identifier: List<IdentifierDto> = listOf(),
+	override val identifier: List<IdentifierDto> = listOf(),
 	/** Tags that qualify the insurance as being member of a certain class. */
 	@ActiveField
 	override val tags: Set<CodeStubDto> = emptySet(),
@@ -72,7 +73,7 @@ data class InsuranceDto(
 	@ActiveField val parent: String? = null, // ID of the parent
 	/** The address of the insurance company. */
 	@ActiveField val address: AddressDto = AddressDto(),
-) : StoredDocumentDto, HasTagsDto, HasCodesDto {
+) : StoredDocumentDto, HasTagsDto, HasCodesDto, HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
