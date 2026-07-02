@@ -45,7 +45,7 @@ data class InsuranceDto(
 	@ActiveField val name: Map<String, String> = emptyMap(),
 	/** The identifiers of the insurance. */
 	@ActiveField
-	val identifiers: List<IdentifierDto> = listOf(),
+	val identifier: List<IdentifierDto> = listOf(),
 	/** Tags that qualify the insurance as being member of a certain class. */
 	@ActiveField
 	override val tags: Set<CodeStubDto> = emptySet(),

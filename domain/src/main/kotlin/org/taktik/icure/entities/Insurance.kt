@@ -27,7 +27,7 @@ data class Insurance(
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	val identifiers: List<Identifier> = listOf(),
+	val identifier: List<Identifier> = listOf(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 
