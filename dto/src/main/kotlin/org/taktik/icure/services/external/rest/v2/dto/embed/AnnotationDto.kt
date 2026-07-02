@@ -46,5 +46,6 @@ data class AnnotationDto(
 	/** Tags associated with this annotation. */
 	@ActiveField val tags: Set<CodeStubDto> = emptySet(),
 	/** The encrypted content of this annotation. */
-	@ActiveField val encryptedSelf: String? = null,
-) : IdentifiableDto<String>
+	@ActiveField override val encryptedSelf: String? = null,
+) : IdentifiableDto<String>,
+	EncryptableDto

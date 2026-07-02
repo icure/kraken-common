@@ -37,6 +37,7 @@ data class Annotation(
 	val markdown: Map<String, String> = emptyMap(),
 	val confidential: Boolean? = null,
 	val location: String? = null,
-	val encryptedSelf: String? = null,
+	override val encryptedSelf: String? = null,
 ) : Identifiable<String>,
-	Serializable
+	Serializable,
+	Encryptable
