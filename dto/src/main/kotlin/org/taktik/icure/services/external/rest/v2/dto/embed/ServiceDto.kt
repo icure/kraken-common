@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
@@ -48,7 +49,7 @@ data class ServiceDto(
 	/** The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service */
 	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
 	@ActiveField val transactionId: String? = null,
-	@ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact */
 	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact") @ActiveField val contactId: String? = null,
 	//List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
@@ -125,7 +126,8 @@ data class ServiceDto(
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	Comparable<ServiceDto>,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	HasIdentifierDto {
 	override fun compareTo(other: ServiceDto): Int {
 		if (this == other) {
 			return 0

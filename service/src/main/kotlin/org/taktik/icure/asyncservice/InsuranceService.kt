@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -82,6 +83,14 @@ interface InsuranceService : EntityWithConflictResolutionService<Insurance> {
 	fun modifyInsurances(insurances: List<Insurance>): Flow<Insurance>
 
 	fun getInsurances(ids: Set<String>): Flow<Insurance>
+
+	/**
+	 * Returns the ids of the [Insurance]s matching the provided [filter].
+	 *
+	 * @param filter the [AbstractFilter] to resolve.
+	 * @return a [Flow] of the ids of the [Insurance]s matching the [filter].
+	 */
+	fun matchInsurancesBy(filter: AbstractFilter<Insurance>): Flow<String>
 
 	/**
 	 * Retrieves all the [Insurance]s defined in the group of the current logged-in user in a format for pagination.

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
@@ -23,7 +24,7 @@ import org.taktik.icure.validation.ValidCode
 data class MaintenanceTask(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
-	val identifier: List<Identifier> = listOf(),
+	override val identifier: List<Identifier> = listOf(),
 	override val medicalLocationId: String? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val created: Long? = null,
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
@@ -50,6 +51,7 @@ data class MaintenanceTask(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
+	HasIdentifier,
 	Encryptable {
 	override fun withTimestamps(created: Long?, modified: Long?) = when {
 		created != null && modified != null -> this.copy(created = created, modified = modified)

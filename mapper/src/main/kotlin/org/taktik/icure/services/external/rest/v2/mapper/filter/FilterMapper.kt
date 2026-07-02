@@ -142,6 +142,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.Healt
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.AllInsurancesFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.InsuranceByIdentifiersFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.InsuranceByTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.invoice.InvoiceByHcPartyCodeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskAfterDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.maintenancetask.MaintenanceTaskByHcPartyAndIdentifiersFilter
@@ -297,10 +299,14 @@ abstract class FilterV2Mapper {
 	}
 
 	abstract fun map(filterDto: AllInsurancesFilter): org.taktik.icure.domain.filter.impl.insurance.AllInsurancesFilter
+	abstract fun map(filterDto: InsuranceByIdentifiersFilter): org.taktik.icure.domain.filter.impl.insurance.InsuranceByIdentifiersFilter
+	abstract fun map(filterDto: InsuranceByTagCodeFilter): org.taktik.icure.domain.filter.impl.insurance.InsuranceByTagCodeFilter
 
 	@JvmName("tryMapInsuranceFilter")
 	fun tryMap(filterDto: AbstractFilterDto<InsuranceDto>): AbstractFilter<Insurance>? = when (filterDto) {
 		is AllInsurancesFilter -> map(filterDto)
+		is InsuranceByIdentifiersFilter -> map(filterDto)
+		is InsuranceByTagCodeFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
