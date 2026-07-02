@@ -7,6 +7,7 @@ import org.taktik.icure.asyncdao.DAOWithClass
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.exceptions.MissingViewException
+import org.taktik.icure.exceptions.UnsupportedConfigViewException
 import org.taktik.icure.utils.NoDocViewQueries
 import org.taktik.icure.utils.ViewQueries
 
@@ -145,6 +146,16 @@ class QueryProvider(
 		viewName = configurationView,
 		datastore = datastore
 	)
+
+	context(dao: DAOWithClass<*>)
+	suspend fun createConfigQuery(
+		datastore: IDatastoreInformation,
+		configurationView: String,
+	): ViewQuery = createQueryFromSchema(
+		entityClass = dao.entityClass,
+		viewName = configurationView,
+		datastore = datastore
+	) ?: throw UnsupportedConfigViewException(configurationView, dao.entityClass.simpleName)
 
 	context(dao: DAOWithClass<*>)
 	suspend fun createQueryFromSchemaOrNull(

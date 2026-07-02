@@ -777,6 +777,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			secondaryPartition = legacyView.second,
 		)
 
+	protected suspend fun createConfigurationQuery(
+		datastoreInformation: IDatastoreInformation,
+		configurationView: String,
+	): ViewQuery = queryProvider.createConfigQuery(datastore = datastoreInformation, configurationView = configurationView)
+
 	protected suspend fun createQuery(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,

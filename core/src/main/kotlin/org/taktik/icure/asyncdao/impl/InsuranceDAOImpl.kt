@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.entity.NullKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -30,6 +31,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Insurance
+import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.main
 
 @Repository("insuranceDAO")
@@ -120,6 +122,58 @@ class InsuranceDAOImpl(
 				.limit(paginationOffset.limit)
 
 		emitAll(client.queryViewIncludeDocs<Any?, String, Insurance>(viewQuery))
+	}
+
+	override fun listInsuranceIdsByIdentifiers(datastoreInformation: IDatastoreInformation, identifiers: List<Identifier>): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val queryView = createConfigurationQuery(
+			datastoreInformation = datastoreInformation,
+			configurationView = "by_identifiers"
+		)
+			.keys(
+				identifiers.map {
+					ComplexKey.of(it.system, it.value)
+				},
+			)
+
+		emitAll(
+			client.queryView<ComplexKey, Void>(queryView).map { it.id }
+		)
+	}
+
+	override fun listInsuranceIdsByCode(datastoreInformation: IDatastoreInformation, codeType: String, codeCode: String?): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = ComplexKey.of(codeType, codeCode)
+		val to = ComplexKey.of(codeType, codeCode ?: EmptyObjectKey,)
+
+		val viewQuery = createConfigurationQuery(
+			datastoreInformation = datastoreInformation,
+			configurationView = "by_codes",
+		)
+			.startKey(from)
+			.endKey(to)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
+	}
+
+	override fun listInsuranceIdsByTag(datastoreInformation: IDatastoreInformation, tagType: String, tagCode: String?): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		val from = ComplexKey.of(tagType, tagCode)
+		val to = ComplexKey.of(tagType, tagCode ?: EmptyObjectKey)
+
+		val viewQuery = createConfigurationQuery(
+			datastoreInformation = datastoreInformation,
+			configurationView = "by_tags",
+		)
+			.startKey(from)
+			.endKey(to)
+			.includeDocs(false)
+
+		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
 	}
 
 	@View(
