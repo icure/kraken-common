@@ -56,6 +56,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64Stri
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -136,9 +137,15 @@ data class PatientDto(
 	/** The birth sex of the patient. */
 	) @ActiveField val birthSex: GenderDto? = GenderDto.unknown,
 	/** The id of the patient this patient has been merged with. */
-	@param:Schema(description = "The id of the patient this patient has been merged with.") @ActiveField val mergeToPatientId: String? = null,
+	@param:Schema(description = "The id of the patient this patient has been merged with.")
+	@ActiveField
+	@CardinalMetadataProperty
+	val mergeToPatientId: String? = null,
 	/** The ids of the patients that have been merged inside this patient. */
-	@param:Schema(description = "The ids of the patients that have been merged inside this patient.") @ActiveField val mergedIds: Set<String> = emptySet(),
+	@param:Schema(description = "The ids of the patients that have been merged inside this patient.")
+	@ActiveField
+	@CardinalMetadataProperty
+	val mergedIds: Set<String> = emptySet(),
 	/** An alias of the person, nickname, ... */
 	@param:Schema(description = "An alias of the person, nickname, ...") @ActiveField val alias: String? = null,
 	/** Whether the patient is active. */
