@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -32,7 +33,7 @@ data class MaintenanceTaskDto(
 	/** The revision of the maintenance task in the database, used for conflict management / optimistic locking. */
 	override val rev: String? = null,
 	/** The identifiers of the maintenance task. */
-	@ActiveField val identifier: List<IdentifierDto> = listOf(),
+	@ActiveField override val identifier: List<IdentifierDto> = listOf(),
 	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
 	/** The timestamp (unix epoch in ms) of the latest modification. */
@@ -75,7 +76,8 @@ data class MaintenanceTaskDto(
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

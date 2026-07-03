@@ -26,10 +26,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.SdkNonNullable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
@@ -89,7 +91,7 @@ data class PatientDto(
 	/** The Id of the patient. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "the Id of the patient. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
 	/** The patient's identifiers, used by the client to uniquely identify the patient. */
-	@ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** The revision of the patient in the database, used for conflict management / optimistic locking. */
 	@param:Schema(description = "the revision of the patient in the database, used for conflict management / optimistic locking.") override val rev: String? = null,
 	/** The timestamp (unix epoch in ms) of creation. */
@@ -294,6 +296,7 @@ data class PatientDto(
 	PersonDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
+	HasIdentifierDto,
 	CryptoActorDto,
 	ExtendableRootDto
 	{

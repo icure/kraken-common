@@ -9,6 +9,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import java.util.UUID
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,5 +49,6 @@ data class AnnotationDto(
 	/** Tags associated with this annotation. */
 	@ActiveField val tags: Set<CodeStubDto> = emptySet(),
 	/** The encrypted content of this annotation. */
-	@ActiveField val encryptedSelf: String? = null,
-) : IdentifiableDto<String>
+	@ActiveField override val encryptedSelf: Base64StringDto? = null,
+) : IdentifiableDto<String>,
+	EncryptableDto

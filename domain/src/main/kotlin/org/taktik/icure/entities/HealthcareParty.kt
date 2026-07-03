@@ -12,6 +12,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.HasCodes
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.Person
@@ -94,7 +95,7 @@ data class HealthcareParty(
 
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	val identifier: List<Identifier> = emptyList(),
+	override val identifier: List<Identifier> = emptyList(),
 
 	override val name: String? = null,
 	override val lastName: String? = null,
@@ -184,7 +185,9 @@ data class HealthcareParty(
 	DataOwner,
 	HasTags,
 	HasCodes,
+	HasIdentifier,
 	ExtendableRoot {
+
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

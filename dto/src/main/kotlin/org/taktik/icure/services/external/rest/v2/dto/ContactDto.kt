@@ -24,6 +24,7 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
@@ -84,7 +85,7 @@ data class ContactDto(
 	/** Codes that identify or qualify this particular contact. */
 	@param:Schema(description = "Codes that identify or qualify this particular contact.") override val codes: Set<CodeStubDto> = emptySet(),
 	/** The identifiers of the Contact. */
-	@param:Schema(description = "The identifiers of the Contact") @ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@param:Schema(description = "The identifiers of the Contact") @ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** Soft delete (unix epoch in ms) timestamp of the object. */
 	@param:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.") override val endOfLife: Long? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
@@ -148,6 +149,7 @@ data class ContactDto(
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,
+	HasIdentifierDto,
 	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,

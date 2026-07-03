@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -53,7 +54,7 @@ data class InvoiceDto(
 	@param:Schema(description = "The revision of the invoice in the database, used for conflict management / optimistic locking.")
 	override val rev: String? = null,
 	/** The identifiers of the invoice. */
-	@ActiveField val identifier: List<IdentifierDto> = emptyList(),
+	@ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** The timestamp (unix epoch in ms) of creation. */
 	override val created: Long? = null,
 	/** The timestamp (unix epoch in ms) of the latest modification. */
@@ -218,7 +219,8 @@ data class InvoiceDto(
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
-	EncryptableDto {
+	EncryptableDto,
+	HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

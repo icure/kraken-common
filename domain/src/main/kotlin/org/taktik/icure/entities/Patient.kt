@@ -12,6 +12,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -116,7 +117,7 @@ import org.taktik.icure.validation.ValidCode
 data class Patient(
 	@param:JsonProperty("_id") override val id: String,
 	@param:JsonProperty("_rev") override val rev: String? = null,
-	val identifier: List<Identifier> = listOf(),
+	override val identifier: List<Identifier> = listOf(),
 	override val created: Long? = null,
 	override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
@@ -219,6 +220,7 @@ data class Patient(
 ) : StoredICureDocument,
 	Person,
 	HasEncryptionMetadata,
+	HasIdentifier,
 	CryptoActor,
 	DataOwner,
 	Encryptable,

@@ -12,6 +12,7 @@ import org.taktik.icure.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
@@ -75,7 +76,7 @@ import java.util.*
 data class Service(
 	@param:JsonProperty("_id") override val id: String = UUID.randomUUID().toString(),
 	val transactionId: String? = null, // Used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service
-	val identifier: List<Identifier> = emptyList(),
+	override val identifier: List<Identifier> = emptyList(),
 	@MergeStrategyIgnore @JsonIgnore val subContactIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
 	@MergeStrategyIgnore @JsonIgnore val plansOfActionIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
 	@MergeStrategyIgnore @JsonIgnore val healthElementsIds: Set<String>? = null, // Only used when the Service is emitted outside its contact
@@ -120,6 +121,7 @@ data class Service(
 	val contactExtensionsVersions: Int? = null, // Filled only when service is emitted as standalone, required to do proper migration on client side
 ) : Encryptable,
 	ICureDocument<String>,
+	HasIdentifier,
 	Comparable<Service>,
 	Extendable {
 

@@ -27,6 +27,7 @@ import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.entities.RawJson
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -61,7 +62,7 @@ data class UserDto(
 	/** The timestamp (unix epoch in ms) of creation. */
 	@ActiveField val created: Long? = null,
 	/** The identifiers of the user. */
-	@ActiveField val identifier: List<IdentifierDto> = listOf(),
+	@ActiveField override val identifier: List<IdentifierDto> = listOf(),
 	/** Last name of the user. */
 	@param:Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.")
 	@ActiveField
@@ -163,6 +164,7 @@ data class UserDto(
 	PrincipalDto,
 	Cloneable,
 	Serializable,
+	HasIdentifierDto,
 	ExtendableRootDto {
 	override fun withIdRev(
 		id: String?,

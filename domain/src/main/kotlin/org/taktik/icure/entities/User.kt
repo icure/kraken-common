@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.constants.Users
 import org.taktik.icure.entities.base.BaseUser
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
@@ -69,7 +70,7 @@ data class User(
 	@field:NotNull(autoFix = AutoFix.NOW)
 	val created: Long? = null,
 
-	val identifier: List<Identifier> = listOf(),
+	override val identifier: List<Identifier> = listOf(),
 
 	override val name: String? = null,
 	override val properties: Set<PropertyStub> = emptySet(),
@@ -122,6 +123,7 @@ data class User(
 	Principal,
 	Cloneable,
 	Serializable,
+	HasIdentifier,
 	BaseUser,
 	ExtendableRoot {
 	companion object {

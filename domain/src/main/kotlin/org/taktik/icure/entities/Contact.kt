@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
@@ -84,7 +85,7 @@ data class Contact(
 	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	val identifier: List<Identifier> = emptyList(),
+	override val identifier: List<Identifier> = emptyList(),
 	override val endOfLife: Long? = null,
 	@field:JsonProperty("deleted") override val deletionDate: Long? = null,
 
@@ -122,6 +123,7 @@ data class Contact(
 	override val extensionsVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
+	HasIdentifier,
 	Encryptable,
 	ExtendableRoot {
 

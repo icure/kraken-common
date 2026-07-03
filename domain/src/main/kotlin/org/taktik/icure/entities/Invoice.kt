@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
@@ -44,7 +45,7 @@ data class Invoice(
 	override val endOfLife: Long? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 
-	val identifier: List<Identifier> = listOf(),
+	override val identifier: List<Identifier> = listOf(),
 
 	val invoiceDate: Long? = null, // yyyyMMdd
 	val sentDate: Long? = null,
@@ -120,6 +121,7 @@ data class Invoice(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
+	HasIdentifier,
 	Encryptable {
 
 	fun reassign(invoicingCodes: List<InvoicingCode>, uuidGenerator: UUIDGenerator) = this.copy(
