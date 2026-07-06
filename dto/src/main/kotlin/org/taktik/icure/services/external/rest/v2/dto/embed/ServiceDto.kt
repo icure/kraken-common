@@ -48,6 +48,7 @@ Any action performed by the healthcare party which is relevant for the healthcar
 data class ServiceDto(
 	/** The Id of the Service. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.")
+	@CardinalMetadataProperty
 	override val id: String = UUID.randomUUID().toString(),
 	/** The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service */
 	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
@@ -148,6 +149,7 @@ data class ServiceDto(
 	val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	@ActiveField
+	@CardinalMetadataProperty
 	val contactExtensionsVersions: Int? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
