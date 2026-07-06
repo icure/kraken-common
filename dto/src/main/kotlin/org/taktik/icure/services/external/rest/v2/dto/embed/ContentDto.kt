@@ -29,6 +29,7 @@ import java.io.Serializable
 import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -71,7 +72,8 @@ data class ContentDto(
 	@ActiveField val ratio: List<MeasureDto>? = null,
 	/** A list of measures representing a range. */
 	@ActiveField val range: List<MeasureDto>? = null,
-) : Serializable {
+	override val encryptedSelf: Base64StringDto? = null,
+) : Serializable, EncryptableDto {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (other !is ContentDto) return false

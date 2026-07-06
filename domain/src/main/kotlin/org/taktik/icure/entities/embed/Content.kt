@@ -33,7 +33,8 @@ data class Content(
 	@param:JsonProperty("ts") val timeSeries: TimeSeries? = null,
 	val ratio: List<Measure>? = null,
 	val range: List<Measure>? = null,
-) : Serializable {
+	override val encryptedSelf: String? = null,
+) : Serializable, Encryptable {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (other !is Content) return false
