@@ -43,6 +43,10 @@ enum class Partitions(val partitionName: String) {
 	}
 }
 
+interface CouchDbDAO {
+	val couchDbDispatcher: CouchDbDispatcher
+}
+
 interface DAOWithClass<T> {
 	val entityClass: Class<T>
 }
