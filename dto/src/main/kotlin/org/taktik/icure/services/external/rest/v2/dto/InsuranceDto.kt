@@ -17,19 +17,26 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.DeprecatedAfter
+import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
+import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents an insurance entity. An insurance can be a mutual fund, a private insurance company,
  * or any other type of insurance organization that covers healthcare costs.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.InsuranceDto")
 data class InsuranceDto(
 	/** The unique identifier of the insurance. */
 	override val id: String,
@@ -39,12 +46,27 @@ data class InsuranceDto(
 	override val deletionDate: Long? = null,
 	/** The name of the insurance in different languages. */
 	@ActiveField val name: Map<String, String> = emptyMap(),
+	/** The identifiers of the insurance. */
+	@ActiveField
+	override val identifier: List<IdentifierDto> = listOf(),
+	/** Tags that qualify the insurance as being member of a certain class. */
+	@ActiveField
+	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes that identify or qualify this particular insurance. */
+	@ActiveField
+	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Whether this is a private insurance. */
-	@ActiveField val privateInsurance: Boolean = false,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@DeprecatedAfter("2.9.0")
+	val privateInsurance: Boolean = false,
 	/** Whether this insurance covers hospitalisation. */
-	@ActiveField val hospitalisationInsurance: Boolean = false,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@DeprecatedAfter("2.9.0")
+	val hospitalisationInsurance: Boolean = false,
 	/** Whether this insurance covers ambulatory care. */
-	@ActiveField val ambulatoryInsurance: Boolean = false,
+	@Deprecated("This field is deprecated for the use with Cardinal SDK")
+	@DeprecatedAfter("2.9.0")
+	val ambulatoryInsurance: Boolean = false,
 	/** The insurance code. */
 	@ActiveField val code: String? = null,
 	/** The agreement number for the insurance. */
@@ -53,7 +75,7 @@ data class InsuranceDto(
 	@ActiveField val parent: String? = null, // ID of the parent
 	/** The address of the insurance company. */
 	@ActiveField val address: AddressDto = AddressDto(),
-) : StoredDocumentDto {
+) : StoredDocumentDto, HasTagsDto, HasCodesDto, HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

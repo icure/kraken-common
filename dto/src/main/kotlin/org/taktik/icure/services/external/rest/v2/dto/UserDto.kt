@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
+import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -58,7 +59,7 @@ data class UserDto(
 	/** The timestamp (unix epoch in ms) of creation. */
 	@ActiveField val created: Long? = null,
 	/** The identifiers of the user. */
-	@ActiveField val identifier: List<IdentifierDto> = listOf(),
+	@ActiveField override val identifier: List<IdentifierDto> = listOf(),
 	/** Last name of the user. */
 	@param:Schema(description = "Last name of the user. This is the official last name that should be used for official administrative purposes.")
 	@ActiveField
@@ -76,7 +77,8 @@ data class UserDto(
 	/** Authorization source for user ('Database', 'ldap' or 'token'). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@LegacyField("An older version of kraken used to automatically set a value for type")
-	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'") @ActiveField val type: UsersTypeDto? = null,
+	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'")
+	@ActiveField val type: UsersTypeDto? = null,
 	/** State of user's activeness: 'Active', 'Disabled' or 'Registering'. */
 	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") @ActiveField val status: UsersStatusDto? = null,
 	/** Username for this user. We encourage using an email address. */
@@ -117,7 +119,8 @@ data class UserDto(
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,
-	Serializable {
+	Serializable,
+	HasIdentifierDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

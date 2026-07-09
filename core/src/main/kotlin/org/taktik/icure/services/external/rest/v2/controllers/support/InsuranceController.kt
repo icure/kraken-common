@@ -32,6 +32,7 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
@@ -43,7 +44,9 @@ import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResol
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.utils.injectReactorContext
+import org.taktik.icure.utils.orThrow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -59,7 +62,8 @@ class InsuranceController(
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val filterV2Mapper: FilterV2Mapper
 ) {
 	@Operation(summary = "Gets all the insurances")
 	@GetMapping
@@ -172,6 +176,15 @@ class InsuranceController(
 		val insurances = insuranceService.getInsurances(HashSet(insuranceIds.ids))
 		return insurances.map { insuranceV2Mapper.map(it) }.injectReactorContext()
 	}
+
+	@Operation(summary = "Get the ids of the Insurances matching the provided filter.")
+	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
+	fun matchInsurancesBy(
+		@RequestBody filter: AbstractFilterDto<InsuranceDto>,
+	): Flux<String> = insuranceService
+		.matchInsurancesBy(
+			filter = filterV2Mapper.tryMap(filter).orThrow(),
+		).injectReactorContext()
 
 	@Operation(summary = "Gets an Insurance")
 	@GetMapping("/byCode/{insuranceCode}")

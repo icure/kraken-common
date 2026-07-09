@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasCodes
+import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
@@ -24,7 +25,7 @@ import java.io.Serializable
 data class Address(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
-	val identifier: List<Identifier> = emptyList(),
+	override val identifier: List<Identifier> = emptyList(),
 	val addressType: AddressType? = null,
 	val descr: String? = null,
 	val street: String? = null,
@@ -42,7 +43,8 @@ data class Address(
 	Serializable,
 	Comparable<Address>,
 	HasTags,
-	HasCodes {
+	HasCodes,
+	HasIdentifier {
 
 	override fun compareTo(other: Address): Int = addressType?.compareTo(other.addressType ?: AddressType.other) ?: 0
 }

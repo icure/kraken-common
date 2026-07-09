@@ -43,6 +43,7 @@ import org.taktik.couchdb.get
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.update
+import org.taktik.icure.asyncdao.CouchDbDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.GenericDAO
 import org.taktik.icure.asyncdao.Partitions
@@ -77,13 +78,13 @@ import java.util.*
 
 abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
-	protected val couchDbDispatcher: CouchDbDispatcher,
+	override val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
 	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
 	protected val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig,
 	protected val queryProvider: QueryProvider
-) : GenericDAO<T> {
+) : GenericDAO<T>, CouchDbDAO {
 	companion object {
 		// Maximum number of items we are willing to filter kraken-side
 		// To use when it is not possible to get items already sorted from views
@@ -776,6 +777,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			viewName = legacyView.first,
 			secondaryPartition = legacyView.second,
 		)
+
+	protected suspend fun createConfigurationQuery(
+		datastoreInformation: IDatastoreInformation,
+		configurationView: String,
+	): ViewQuery = queryProvider.createConfigQuery(datastore = datastoreInformation, configurationView = configurationView)
 
 	protected suspend fun createQuery(
 		datastoreInformation: IDatastoreInformation,

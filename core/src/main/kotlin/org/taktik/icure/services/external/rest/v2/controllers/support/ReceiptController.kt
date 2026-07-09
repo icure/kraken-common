@@ -197,12 +197,15 @@ class ReceiptController(
 		@PathVariable receiptId: String,
 		@PathVariable blobType: String,
 		response: ServerHttpResponse,
-	): Mono<Void> =response.writeWith(
-		receiptService.getDataAttachmentByBlobType(
-			receiptId,
-			ReceiptBlobType.valueOf(blobType)
-		).injectCachedReactorContext(reactorCacheInjector, 10)
-	)
+	): Mono<Void> {
+		response.headers[HttpHeaders.CONTENT_TYPE] = MediaType.APPLICATION_OCTET_STREAM_VALUE
+		return response.writeWith(
+			receiptService.getDataAttachmentByBlobType(
+				receiptId,
+				ReceiptBlobType.valueOf(blobType)
+			).injectCachedReactorContext(reactorCacheInjector, 10)
+		)
+	}
 
 	@Operation(summary = "Creates a receipt's attachment")
 	@PutMapping("/{receiptId}/attachment/{blobType}", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
