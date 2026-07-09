@@ -78,7 +78,7 @@ data class UserDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@LegacyField("An older version of kraken used to automatically set a value for type")
 	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'")
-	val type: UsersTypeDto? = null,
+	@ActiveField val type: UsersTypeDto? = null,
 	/** State of user's activeness: 'Active', 'Disabled' or 'Registering'. */
 	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") @ActiveField val status: UsersStatusDto? = null,
 	/** Username for this user. We encourage using an email address. */

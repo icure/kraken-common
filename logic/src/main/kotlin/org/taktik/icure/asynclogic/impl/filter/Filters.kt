@@ -14,6 +14,7 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.properties.ObservabilityProperties
+import org.taktik.icure.utils.addServerTimingHeader
 import java.io.Serializable
 
 class Filters : ApplicationContextAware {
@@ -57,16 +58,11 @@ class Filters : ApplicationContextAware {
 		}
 
 		if (collectTiming && desc != null) {
-			val elapsed = System.currentTimeMillis() - startTime
-			val headers = currentCoroutineContext()[ReactorContext.Key]?.context
-				?.getOrEmpty<ServerWebExchange>(ServerWebExchange::class.java)
-				?.orElse(null)
-				?.response?.headers
-			if (headers != null && headers::class.simpleName?.startsWith("ReadOnly") == false) {
-				try {
-					headers.add("x-filter-timing-$desc", "$elapsed ms")
-				} catch (_: UnsupportedOperationException) { }
-			}
+			addServerTimingHeader(
+				name = "filter-$desc",
+				duration = System.currentTimeMillis() - startTime,
+				methodCallStart = startTime
+			)
 		}
 	}
 }

@@ -97,7 +97,7 @@ class SpringWebfluxResponse(
 	private val requestHeaderSpec: org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec<*>,
 	private val statusHandlers: Map<Int, (ResponseStatus) -> Mono<out Throwable>>,
 	private val headerHandler: Map<String, (String) -> Mono<Unit>>,
-	private val timingHandler: ((Long) -> Mono<Unit>)?,
+	private val timingHandler: ((Long, Map<String, List<String>>) -> Mono<Unit>)?,
 	private val requestTimeout: Duration?,
 ) : Response {
 	override fun onStatus(status: Int, handler: (ResponseStatus) -> Mono<out Throwable>): Response {
@@ -108,7 +108,7 @@ class SpringWebfluxResponse(
 		return SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler + (header to handler), timingHandler, requestTimeout)
 	}
 
-	override fun withTiming(handler: (Long) -> Mono<Unit>): Response {
+	override fun withTiming(handler: (Long, Map<String, List<String>>) -> Mono<Unit>): Response {
 		return SpringWebfluxResponse(requestHeaderSpec, statusHandlers, headerHandler, handler, requestTimeout)
 	}
 
@@ -120,12 +120,14 @@ class SpringWebfluxResponse(
 		) -> Mono<T>,
 	): Mono<T> {
 		val start = System.currentTimeMillis()
+		var capturedHeaders: Map<String, List<String>> = emptyMap()
 
 		return Mono.deferContextual { ctx ->
 			requestHeaderSpec.exchangeToMono { cr ->
 				val statusCode: Int = cr.statusCode().value()
 
 				val headers = cr.headers().asHttpHeaders()
+				capturedHeaders = headers
 				val flatHeaders = headers.flatMap { (k, vals) -> vals.map { v -> AbstractMap.SimpleEntry(k, v) } }
 
 				val headerHandlers = if (headerHandler.isNotEmpty()) {
@@ -165,7 +167,7 @@ class SpringWebfluxResponse(
 					)
 				)
 			}.doOnTerminate {
-				timingHandler?.let { it(System.currentTimeMillis() - start).contextWrite(ctx).subscribe() }
+				timingHandler?.let { it(System.currentTimeMillis() - start, capturedHeaders).contextWrite(ctx).subscribe() }
 			}
 		}.onErrorMap {
 			if (it is WebClientRequestException && it.cause is ReadTimeoutException) {
@@ -176,11 +178,13 @@ class SpringWebfluxResponse(
 
 	override fun toFlux(): Flux<ByteBuffer> {
 		val start = System.currentTimeMillis()
+		var capturedHeaders: Map<String, List<String>> = emptyMap()
 
 		return Flux.deferContextual { ctx -> requestHeaderSpec.exchangeToFlux { cr ->
 			val statusCode: Int = cr.statusCode().value()
 
 			val headers = cr.headers().asHttpHeaders()
+			capturedHeaders = headers
 			val flatHeaders = headers.flatMap { (k, vals) -> vals.map { v -> AbstractMap.SimpleEntry(k, v) } }
 
 			val headerHandlers = if (headerHandler.isNotEmpty()) {
@@ -214,7 +218,7 @@ class SpringWebfluxResponse(
 				} ?: cr.bodyToFlux(ByteBuffer::class.java)
 			)
 		}.doOnTerminate {
-            timingHandler?.let { it(System.currentTimeMillis() - start).contextWrite(ctx).subscribe() }
+            timingHandler?.let { it(System.currentTimeMillis() - start, capturedHeaders).contextWrite(ctx).subscribe() }
         } }.onErrorMap {
 			if (it is WebClientRequestException && it.cause is ReadTimeoutException) {
 				throw TimeoutException(it)
