@@ -22,10 +22,15 @@ fun addServerTimingHeader(
 		null
 	}
 	try {
-		exchange.response.headers.add(
-			"Server-Timing",
-			"$name;$duration${desc?.let { ";desc=\"$it\"" } ?: ""}"
-		)
+		if(
+			(exchange.response.headers["Server-Timing"]?.size ?: 0) <
+				(exchange.request.headers.getFirst("X-Couch-Requests-Feedback-Limit")?.toInt() ?: 5)
+		) {
+			exchange.response.headers.add(
+				"Server-Timing",
+				"$name;$duration${desc?.let { ";desc=\"$it\"" } ?: ""}"
+			)
+		}
 	} catch (_: UnsupportedOperationException) { }
 
 }
