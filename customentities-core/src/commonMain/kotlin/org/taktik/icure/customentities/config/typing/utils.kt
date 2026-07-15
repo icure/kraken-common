@@ -61,7 +61,8 @@ private const val IDENTIFIER_ALLOWED_LENGTH_MAX = 32 // Chosen arbitrarily, migh
  * avoid clashing with custom properties (we don't allow identifiers starting with _ in custom entities)
  */
 private val reservedIdentifiers = setOf(
-	"encryptedSelf",
+	ObjectDefinition.ENCRYPTED_SELF_PROP,
+	"${ObjectDefinition.ENCRYPTED_SELF_PROP}Extensions",
 	"id",
 	"rev",
 	"created",
@@ -70,7 +71,6 @@ private val reservedIdentifiers = setOf(
 	"responsible",
 	"endOfLife",
 	"deletionDate",
-	"encryptedSelf",
 	"secretForeignKeys",
 	"cryptedForeignKeys",
 	"delegations",

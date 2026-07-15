@@ -80,6 +80,12 @@ data class ObjectDefinition(
 	 */
 	val forceEncryptable: Boolean = false
 ) {
+	companion object {
+		internal const val ENCRYPTED_SELF_PROP = "encryptedSelf"
+		// TODO should probably limit based on what is encrypted, unless anything is unlimited
+		private val ENCRYPTED_SELF_TYPE = BinaryTypeConfig(nullable = true)
+	}
+
 	@Serializable
 	data class BuiltinExtensionConfiguration(
 		/**
@@ -590,7 +596,21 @@ data class ObjectDefinition(
 		value: RawJson.JsonObject,
 	): RawJson.JsonObject {
 		val mappedObjectProperties = mutableMapOf<String, RawJson>()
+		val encryptedSelfProp = value.properties[ENCRYPTED_SELF_PROP]
+		if (anyCustomPropertyEncrypted()) {
+			// encrypted self might be null if everything that is encrypted is using the default value
+			if (encryptedSelfProp != null) {
+				context.validation.appending(".$ENCRYPTED_SELF_PROP") {
+					mappedObjectProperties[ENCRYPTED_SELF_PROP] = ENCRYPTED_SELF_TYPE.validateAndMapValueForStore(context, encryptedSelfProp)
+				}
+			}
+		} else {
+			if (encryptedSelfProp != null) {
+				context.validation.addError("GEV-OBJECT-UNKNOWNPROP", "prop" to ENCRYPTED_SELF_PROP)
+			}
+		}
 		(properties.keys + value.properties.keys).forEach { propName ->
+			if (propName == ENCRYPTED_SELF_PROP) return@forEach // ignore encrypted self prop
 			val propConfig = properties[propName]
 			if (propConfig == null) {
 				context.validation.addError("GEV-OBJECT-UNKNOWNPROP", "prop" to propName)
@@ -641,9 +661,20 @@ data class ObjectDefinition(
 
 	/**
 	 * If the configuration of this object definition would make it encryptable, regardless of the type of extended
-	 * builtin entity, if any.
+	 * builtin entity, if any: this means the generated custom SDK will provide both a Decrypted and an Encrypted
+	 * variant of the entity.
 	 */
 	@JsonIgnore
 	fun isCustomEncryptable(): Boolean =
-		forceEncryptable || properties.any { it.value.encryptionConfiguration != null }
+		forceEncryptable ||  anyCustomPropertyEncrypted()
+
+	/**
+	 * Returns true if any property of this object definition is encrypted.
+	 * This means that:
+	 * - If the object extends a builtin entity then the extensions will contain an encryptedSelf field
+	 * - If the object is a pure custom entity then the entity itself will contain an encryptedSelf field
+	 */
+	@JsonIgnore
+	fun anyCustomPropertyEncrypted() =
+		properties.any { it.value.encryptionConfiguration != null }
 }
