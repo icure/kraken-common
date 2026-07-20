@@ -26,7 +26,7 @@ abstract class AgendaMapper {
 		Mapping(target = "unpublished", ignore = true),
 		Mapping(target = "publicBookingQuota", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	abstract fun map(agendaDto: AgendaDto): Agenda
 

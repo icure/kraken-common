@@ -10,6 +10,7 @@ import com.icure.cardinal.entities.RawJson
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ParticipantType
@@ -19,7 +20,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -121,12 +122,13 @@ data class Contact(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	val notes: List<Annotation> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	HasIdentifier,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -191,6 +193,6 @@ fun Service.pimpWithContactInformation(contact: Contact): Service {
 		author = this.author ?: contact.author,
 		responsible = this.responsible ?: contact.responsible,
 		securityMetadata = contact.securityMetadata,
-		contactExtensionsVersions = contact.extensionsVersion,
+		contactCustomisedModelVersion = contact.customisedModelVersion,
 	)
 }

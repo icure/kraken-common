@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.Person
@@ -23,7 +24,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
@@ -217,7 +218,7 @@ data class Patient(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	Person,
 	HasEncryptionMetadata,
@@ -225,7 +226,8 @@ data class Patient(
 	CryptoActor,
 	DataOwner,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

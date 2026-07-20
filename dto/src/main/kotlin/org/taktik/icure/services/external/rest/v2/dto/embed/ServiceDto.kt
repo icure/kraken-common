@@ -150,7 +150,7 @@ data class ServiceDto(
 	override val extensions: RawJson.JsonObject? = null,
 	@ActiveField
 	@CardinalMetadataProperty
-	val contactExtensionsVersions: Int? = null,
+	val contactCustomisedModelVersion: Int? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	Comparable<ServiceDto>,

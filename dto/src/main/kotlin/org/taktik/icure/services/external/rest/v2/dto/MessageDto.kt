@@ -27,13 +27,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageReadStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -98,20 +98,20 @@ data class MessageDto(
 	/** List of message attachments. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val messageAttachments: List<MessageAttachmentDto> = emptyList(),
-    /*
-        CHAP4:IN:   ${Mycarenet message ref}
-        CHAP4:OUT:  ${Mycarenet message ref}
-        EFACT:BATCH:${Mycarenet message ref}
-        EFACT:IN:   ${Mycarenet message ref}
-        EFACT:OUT:  ${Mycarenet message ref}
-        GMD:IN:     ${Mycarenet message ref}
-        INBOX:      ${Ehealth box message ref}
-        SENTBOX:    ${Ehealth box message ref}
-        BININBOX:   ${Ehealth box message ref}
-        BINSENTBOX: ${Ehealth box message ref}
-        REPORT:IN:  ${iCure ref}
-        REPORT:OUT: ${iCure ref}
-     */
+	/*
+		CHAP4:IN:   ${Mycarenet message ref}
+		CHAP4:OUT:  ${Mycarenet message ref}
+		EFACT:BATCH:${Mycarenet message ref}
+		EFACT:IN:   ${Mycarenet message ref}
+		EFACT:OUT:  ${Mycarenet message ref}
+		GMD:IN:     ${Mycarenet message ref}
+		INBOX:      ${Ehealth box message ref}
+		SENTBOX:    ${Ehealth box message ref}
+		BININBOX:   ${Ehealth box message ref}
+		BINSENTBOX: ${Ehealth box message ref}
+		REPORT:IN:  ${iCure ref}
+		REPORT:OUT: ${iCure ref}
+	 */
 	/** Transport-level identifier for the message, format depends on the transport type. */
 	@ActiveField val transportGuid: String? = null, // Each message should have a transportGuid: see above for formats
 	/** An additional remark on the message. */
@@ -152,12 +152,13 @@ data class MessageDto(
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	companion object {
 		const val STATUS_LABO_RESULT = 1 shl 0
 		const val STATUS_UNREAD = 1 shl 1

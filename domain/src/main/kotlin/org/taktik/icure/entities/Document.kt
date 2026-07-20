@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -19,7 +20,7 @@ import org.taktik.icure.entities.embed.DocumentLocation
 import org.taktik.icure.entities.embed.DocumentStatus
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
@@ -144,12 +145,13 @@ data class Document(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	HasDataAttachments<Document>,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 	companion object {
 		fun mainAttachmentKeyFromId(id: String) = id
 	}

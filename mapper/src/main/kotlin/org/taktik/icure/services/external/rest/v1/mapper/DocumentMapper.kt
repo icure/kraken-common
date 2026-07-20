@@ -35,7 +35,7 @@ interface DocumentMapper {
 		Mapping(target = "extraMainAttachmentInfo", ignore = true),
 		Mapping(target = "mainAttachmentStoredDataSize", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(documentDto: DocumentDto): Document
 

@@ -29,13 +29,13 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -107,13 +107,14 @@ data class DeviceDto(
 	/** Properties specific to the crypto actor role of this device. */
 	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	NamedDto,
 	CryptoActorDto,
 	DataOwnerDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

@@ -24,7 +24,7 @@ interface MessageMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "properties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(messageDto: MessageDto): Message
 

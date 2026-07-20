@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -16,7 +17,7 @@ import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.CalendarItemTag
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -103,11 +104,12 @@ data class CalendarItem(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 
 	init {
 		resourceGroup?.also { it.requireNormalized() }

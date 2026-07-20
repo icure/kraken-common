@@ -55,7 +55,7 @@ abstract class PatientMapper{
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	abstract fun map(patientDto: PatientDto): Patient
 

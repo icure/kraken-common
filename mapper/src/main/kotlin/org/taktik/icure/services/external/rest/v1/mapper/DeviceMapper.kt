@@ -35,7 +35,7 @@ interface DeviceMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(deviceDto: DeviceDto): Device
 

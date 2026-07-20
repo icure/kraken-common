@@ -34,13 +34,13 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -143,14 +143,15 @@ data class ContactDto(
 	@ActiveField
 	val notes: List<AnnotationDto> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,
 	HasIdentifierDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

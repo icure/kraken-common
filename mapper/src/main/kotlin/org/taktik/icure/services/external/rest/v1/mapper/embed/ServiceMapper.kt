@@ -19,7 +19,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.IdentifierMapper
 interface ServiceMapper {
 	@Mappings(
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "contactExtensionsVersions", ignore = true),
+		Mapping(target = "contactCustomisedModelVersion", ignore = true),
 	)
 	fun map(serviceDto: ServiceDto): Service
 	fun map(service: Service): ServiceDto {

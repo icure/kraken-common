@@ -27,7 +27,7 @@ interface HealthcarePartyMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "publicProperties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
 

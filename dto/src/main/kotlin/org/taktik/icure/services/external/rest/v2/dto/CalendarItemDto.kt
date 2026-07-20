@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -31,11 +30,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CalendarItemTagDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Represents an appointment or event in a calendar. Calendar items are linked to an agenda and can block
@@ -143,12 +143,13 @@ data class CalendarItemDto(
 	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

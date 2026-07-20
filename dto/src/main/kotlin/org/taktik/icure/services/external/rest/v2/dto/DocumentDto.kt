@@ -33,11 +33,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -172,12 +173,13 @@ data class DocumentDto(
 	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

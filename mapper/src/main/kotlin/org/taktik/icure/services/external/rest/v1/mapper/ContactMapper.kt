@@ -30,7 +30,7 @@ interface ContactMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "notes", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 		Mapping(target = "participants", expression = """kotlin(org.taktik.icure.services.external.rest.v1.mapper.ContactMapper.Companion.mapParticipants(contactDto))"""),
 		Mapping(target = "participantList", expression = """kotlin(org.taktik.icure.services.external.rest.v1.mapper.ContactMapper.Companion.mapParticipantList(contactDto, this.contactParticipantMapper))"""),
 	)

@@ -9,12 +9,13 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.MessageAttachment
 import org.taktik.icure.entities.embed.MessageReadStatus
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -135,11 +136,12 @@ data class Message(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 	companion object {
 		const val STATUS_LABO_RESULT = 1 shl 0
 		const val STATUS_UNREAD = 1 shl 1

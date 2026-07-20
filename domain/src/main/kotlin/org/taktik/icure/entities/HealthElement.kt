@@ -10,6 +10,7 @@ import com.icure.cardinal.entities.RawJson
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Annotation
@@ -17,7 +18,7 @@ import org.taktik.icure.entities.embed.CareTeamMember
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Episode
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
@@ -130,11 +131,12 @@ data class HealthElement(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasEncryptionMetadata,
 	Encryptable,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 	override fun withTimestamps(created: Long?, modified: Long?) = when {

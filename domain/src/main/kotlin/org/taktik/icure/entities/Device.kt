@@ -25,8 +25,9 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier
@@ -129,12 +130,13 @@ data class Device(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	Named,
 	CryptoActor,
 	DataOwner,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

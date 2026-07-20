@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.Extendable
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -35,7 +36,7 @@ data class CustomEntityBase(
 	override val endOfLife: Long? = null,
 	override val tags: Set<CodeStub> = emptySet(),
 	override val codes: Set<CodeStub> = emptySet(),
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	override val dataAttachments: Map<String, DataAttachment> = emptyMap(),
 	override val deletedAttachments: List<DeletedAttachment> = emptyList(),
@@ -49,8 +50,9 @@ data class CustomEntityBase(
 	val entityTypeId: String,
 ) : HasEncryptionMetadata,
 	StoredICureDocument,
-	ExtendableRoot,
-	HasDataAttachments<CustomEntityBase> {
+	CustomisableRoot,
+	HasDataAttachments<CustomEntityBase>,
+	Extendable {
 	override fun withEncryptionMetadata(
 		secretForeignKeys: Set<String>,
 		cryptedForeignKeys: Map<String, Set<Delegation>>,

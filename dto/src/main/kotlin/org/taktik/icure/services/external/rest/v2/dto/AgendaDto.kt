@@ -28,12 +28,12 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Represents an agenda that keeps track of appointments (calendar items) for a resource or group of resources.
@@ -108,11 +108,12 @@ data class AgendaDto(
 	@CardinalMetadataProperty
 	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 )  : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEndOfLifeDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 
 	override fun withIdRev(
 		id: String?,

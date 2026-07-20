@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
@@ -20,7 +21,7 @@ import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
-import org.taktik.icure.entities.base.ExtendableRoot
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.FlatRateTarification
 import org.taktik.icure.entities.embed.Gender
@@ -178,7 +179,7 @@ data class HealthcareParty(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Named,
 	Person,
@@ -187,7 +188,8 @@ data class HealthcareParty(
 	HasTags,
 	HasCodes,
 	HasIdentifier,
-	ExtendableRoot {
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

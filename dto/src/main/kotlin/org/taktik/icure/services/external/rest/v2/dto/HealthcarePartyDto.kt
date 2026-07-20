@@ -33,7 +33,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
@@ -45,8 +45,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -218,7 +218,7 @@ data class HealthcarePartyDto(
 	/** Public keys for OAEP with SHA-256 encryption. */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	NamedDto,
 	PersonDto,
@@ -227,7 +227,8 @@ data class HealthcarePartyDto(
 	HasCodesDto,
 	HasTagsDto,
 	HasIdentifierDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

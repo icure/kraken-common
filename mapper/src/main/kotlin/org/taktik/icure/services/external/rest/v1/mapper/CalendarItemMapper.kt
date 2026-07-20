@@ -28,7 +28,7 @@ abstract class CalendarItemMapper {
 		Mapping(target = "tentativeTimestamp", ignore = true),
 		Mapping(target = "properties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
-		Mapping(target = "extensionsVersion", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 

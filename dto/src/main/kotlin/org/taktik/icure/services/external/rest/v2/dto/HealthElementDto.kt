@@ -31,7 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.LateralityDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionDto
@@ -39,6 +39,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Represents a healthcare element. A healthcare element is a patient-centric representation of a healthcare problem
@@ -128,13 +129,14 @@ data class HealthElementDto(
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

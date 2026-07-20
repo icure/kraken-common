@@ -32,7 +32,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationTagDto
-import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto
@@ -159,13 +160,14 @@ data class UserDto(
 	@ActiveField
 	val systemMetadata: SystemMetadata? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	override val extensionsVersion: Int? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,
 	Serializable,
 	HasIdentifierDto,
-	ExtendableRootDto {
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
