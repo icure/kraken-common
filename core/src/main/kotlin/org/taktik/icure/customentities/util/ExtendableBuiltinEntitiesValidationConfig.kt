@@ -1,5 +1,5 @@
 // TODO this is auto-generated but should be moved to a build folder and tied to a gradle task
-package org.taktik.icure.customentities.util
+package com.icure.cardinal.customentities.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.`annotation`.Bean

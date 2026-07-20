@@ -32,9 +32,9 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.CalendarItemService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy

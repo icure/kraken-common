@@ -6,7 +6,7 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasCodes

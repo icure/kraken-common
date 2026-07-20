@@ -5,8 +5,8 @@ import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import org.taktik.icure.customentities.config.jackson.CustomEntitiesJacksonModule
-import org.taktik.icure.entities.RawJsonJacksonModule
+import com.icure.cardinal.customentities.config.jackson.CustomEntitiesJacksonModule
+import com.icure.cardinal.entities.RawJsonJacksonModule
 
 object IcureDomainObjectMapper {
 	/**

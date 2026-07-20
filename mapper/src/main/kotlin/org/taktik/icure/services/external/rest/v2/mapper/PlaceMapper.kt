@@ -22,7 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
-import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Place
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper

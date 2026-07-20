@@ -1,4 +1,4 @@
-package org.taktik.icure.customentities.util
+package com.icure.cardinal.customentities.util
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
@@ -14,9 +14,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.taktik.icure.customentities.config.typing.truncateValueForErrorMessage
-import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.customentities.config.typing.truncateValueForErrorMessage
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.errorreporting.addError

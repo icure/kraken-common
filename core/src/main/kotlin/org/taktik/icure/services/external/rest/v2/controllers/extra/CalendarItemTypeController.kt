@@ -44,9 +44,9 @@ import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResoluti
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
-import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.CalendarItemTypeV2Mapper

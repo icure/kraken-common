@@ -1,7 +1,7 @@
 package org.taktik.icure.security
 
 import org.taktik.icure.asynclogic.UserLogic
-import org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.security.AuthenticationToken
 import org.taktik.icure.exceptions.ConflictRequestException

@@ -49,9 +49,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
-import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
-import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper

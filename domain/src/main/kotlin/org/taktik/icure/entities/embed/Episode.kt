@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.couchdb.id.Identifiable
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.mergers.annotations.MergeStrategyMax

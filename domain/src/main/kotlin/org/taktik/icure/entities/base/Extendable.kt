@@ -4,7 +4,7 @@
 
 package org.taktik.icure.entities.base
 
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.entities.RawJson
 
 /**
  * An interface for entities that can be extended with additional custom fields.

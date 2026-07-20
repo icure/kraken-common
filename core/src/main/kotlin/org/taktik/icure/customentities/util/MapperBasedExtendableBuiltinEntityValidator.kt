@@ -1,7 +1,7 @@
-package org.taktik.icure.customentities.util
+package com.icure.cardinal.customentities.util
 
-import org.taktik.icure.customentities.config.typing.ObjectDefinition
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.customentities.config.typing.ObjectDefinition
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.MapperExtensionsValidationContextImpl
 

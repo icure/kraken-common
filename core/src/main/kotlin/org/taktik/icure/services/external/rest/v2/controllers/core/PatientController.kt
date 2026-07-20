@@ -42,13 +42,13 @@ import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.asyncservice.PatientService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
-import org.taktik.icure.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
-import org.taktik.icure.customentities.config.StandardRootEntitiesExtensionConfig
-import org.taktik.icure.customentities.util.BuiltinDefinitionsProvider
-import org.taktik.icure.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.BuiltinDefinitionsProvider
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.errorreporting.MapperScopePathProvider

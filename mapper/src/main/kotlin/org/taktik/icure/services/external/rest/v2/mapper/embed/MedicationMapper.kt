@@ -38,8 +38,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 	defaultPassOnParameters = [
 		DefaultPassOnParameter(
-			type = org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext::class,
-			valueExpression = "org.taktik.icure.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			type = com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext.Empty",
 			parameterName = "mapperExtensionsValidationContext",
 		)
 	]

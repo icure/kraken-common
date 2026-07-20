@@ -1,7 +1,7 @@
-package org.taktik.icure.customentities.mapping
+package com.icure.cardinal.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
-import org.taktik.icure.entities.RawJson
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.errorreporting.ScopedErrorCollector
 
 /**
@@ -22,9 +22,9 @@ import org.taktik.icure.errorreporting.ScopedErrorCollector
 	beforeEnteringMapEntry = "%X.withMapEntry(%K)·{",
 	afterExitingMapEntry = "}",
 	additionalImports = [
-		"org.taktik.icure.customentities.mapping.withProperty",
-		"org.taktik.icure.customentities.mapping.withListItem",
-		"org.taktik.icure.customentities.mapping.withMapEntry",
+		"com.icure.cardinal.customentities.mapping.withProperty",
+		"com.icure.cardinal.customentities.mapping.withListItem",
+		"com.icure.cardinal.customentities.mapping.withMapEntry",
 	],
 	invokeOnlyOnExplicitRequirement = true
 )
