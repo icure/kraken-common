@@ -34,7 +34,7 @@ import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionCon
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev

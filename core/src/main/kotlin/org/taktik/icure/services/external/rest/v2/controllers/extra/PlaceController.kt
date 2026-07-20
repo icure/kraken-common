@@ -36,7 +36,7 @@ import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMa
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.Place
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux

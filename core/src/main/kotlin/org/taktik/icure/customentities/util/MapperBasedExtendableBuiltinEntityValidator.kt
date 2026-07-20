@@ -2,7 +2,7 @@ package com.icure.cardinal.customentities.util
 
 import com.icure.cardinal.customentities.config.typing.ObjectDefinition
 import com.icure.cardinal.entities.RawJson
-import org.taktik.icure.errorreporting.ScopedErrorCollector
+import com.icure.cardinal.errorreporting.ScopedErrorCollector
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.MapperExtensionsValidationContextImpl
 
 // Note: for multiplatform we will need to have a different implementation, not based on mappers but only based on

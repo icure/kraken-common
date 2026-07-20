@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.taktik.couchdb.id.UUIDGenerator
 import org.taktik.icure.asynclogic.impl.filter.Filters
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.properties.ErrorProperties
 import org.taktik.icure.serialization.IcureDomainObjectMapper
 

@@ -2,7 +2,7 @@ package com.icure.cardinal.customentities.mapping
 
 import org.mapstruct.MappingContextCollector
 import com.icure.cardinal.entities.RawJson
-import org.taktik.icure.errorreporting.ScopedErrorCollector
+import com.icure.cardinal.errorreporting.ScopedErrorCollector
 
 /**
  * Keep track of the context used for mapping entities that may have extension properties.

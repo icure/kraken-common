@@ -18,8 +18,8 @@ import com.icure.cardinal.customentities.config.typing.truncateValueForErrorMess
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.Extendable
-import org.taktik.icure.errorreporting.ScopedErrorCollector
-import org.taktik.icure.errorreporting.addError
+import com.icure.cardinal.errorreporting.ScopedErrorCollector
+import com.icure.cardinal.errorreporting.addError
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper

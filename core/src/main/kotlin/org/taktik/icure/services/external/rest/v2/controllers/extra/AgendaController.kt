@@ -49,7 +49,7 @@ import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionCon
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.entities.Agenda
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.AgendaV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper

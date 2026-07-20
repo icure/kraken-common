@@ -1,4 +1,4 @@
-package org.taktik.icure.errorreporting
+package com.icure.cardinal.errorreporting
 
 interface MapperScopePathProvider {
 	fun getScopePathFor(rootName: String): ScopePath?

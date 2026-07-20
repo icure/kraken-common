@@ -51,7 +51,7 @@ import com.icure.cardinal.customentities.util.BuiltinDefinitionsProvider
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.requests.EntityBulkShareResult
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux

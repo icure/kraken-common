@@ -67,7 +67,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
-import org.taktik.icure.errorreporting.MapperScopePathProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper

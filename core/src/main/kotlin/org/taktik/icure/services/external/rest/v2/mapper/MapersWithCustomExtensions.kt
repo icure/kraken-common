@@ -1,27 +1,25 @@
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.config.StandardRootEntityExtensionConfig
+import com.icure.cardinal.customentities.config.typing.ObjectDefinition
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.CustomEntityConfigResolutionContext
+import com.icure.cardinal.customentities.util.CustomEntityValueValidationContext
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.customentities.util.MapperBasedExtendableBuiltinEntityValidator
+import com.icure.cardinal.customentities.util.resolveRequiredObjectReference
+import com.icure.cardinal.entities.RawJson
+import com.icure.cardinal.errorreporting.ErrorCollector
+import com.icure.cardinal.errorreporting.ScopePath
+import com.icure.cardinal.errorreporting.ScopedErrorCollector
+import com.icure.cardinal.errorreporting.appending
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Component
-import com.icure.cardinal.customentities.util.MapperBasedExtendableBuiltinEntityValidator
-import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
-import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
-import com.icure.cardinal.customentities.config.StandardRootEntityExtensionConfig
-import com.icure.cardinal.customentities.config.typing.ObjectDefinition
-import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
-import com.icure.cardinal.customentities.util.BuiltinDefinitionsProvider
-import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
-import com.icure.cardinal.customentities.util.CustomEntityConfigResolutionContext
-import com.icure.cardinal.customentities.util.CustomEntityConfigValidationContext
-import com.icure.cardinal.customentities.util.CustomEntityValueValidationContext
-import com.icure.cardinal.customentities.util.resolveRequiredObjectReference
-import com.icure.cardinal.entities.RawJson
-import org.taktik.icure.errorreporting.ErrorCollector
-import org.taktik.icure.errorreporting.ScopePath
-import org.taktik.icure.errorreporting.ScopedErrorCollector
-import org.taktik.icure.errorreporting.appending
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 
 
