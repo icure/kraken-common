@@ -13,14 +13,7 @@ group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
-    val projectPrefix =
-        when (rootProject.name) {
-            "kmehr-importer" -> ":kmehr-module:kraken-common"
-            "kraken-common" -> ""
-            else -> ":kraken-common"
-        }
-
-    api(project("$projectPrefix:utils-multiplatform"))
+    api("com.icure:utils-multiplatform")
     implementation(coreLibs.kotlinxCoroutinesCore)
     implementation(coreLibs.springBootWebflux)
     implementation(coreLibs.kotlinxCoroutinesReactive)

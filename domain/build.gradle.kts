@@ -29,7 +29,7 @@ val projectPrefix =
 dependencies {
 
 	implementation(project("$projectPrefix:utils"))
-	api(project("$projectPrefix:customentities-core"))
+	api("com.icure:customentities-core")
 
 	if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
 		ksp("com.icure:ksp-json-processor")

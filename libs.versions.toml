@@ -14,7 +14,7 @@ bouncyCastle = "1.81"
 jwt = "0.11.5"
 kotlin = "2.3.20"
 ksp = "2.3.9"
-reactorNettyVersion = "1.2.16"
+reactorNettyVersion = "1.2.18"
 nettyVersion = "4.1.134.Final"
 jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
@@ -120,6 +120,7 @@ nettyTransport = { group = "io.netty", name = "netty-transport", version.ref = "
 reactiveStreams = { group = "org.reactivestreams", name = "reactive-streams", version = "1.0.4" }
 reactorCore = { group = "io.projectreactor", name = "reactor-core", version = "3.7.7" }
 reactorNetty = { group = "io.projectreactor.netty", name = "reactor-netty", version.ref = "reactorNettyVersion" }
+reactorNettyHttp = { group = "io.projectreactor.netty", name = "reactor-netty-http", version.ref = "reactorNettyVersion" }
 reflections = { group = "org.reflections", name = "reflections", version = "0.9.12" }
 snakeYaml = { group = "org.yaml", name = "snakeyaml", version = "2.4" }
 springAop = { group = "org.springframework", name = "spring-aop", version.ref = "springFramework" }
