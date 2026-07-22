@@ -145,18 +145,6 @@ class ContactController(
 		)
 	}
 
-	private fun Flow<ContactDto>.toDomain(): Flow<Contact> = flow {
-		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
-		emitAll(mapFromDtoWithExtension(
-			this@toDomain,
-			customEntitiesConfigurationProvider,
-			StandardRootEntitiesExtensionConfig::contact,
-			{ dto: ContactDto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
-			scopePathProvider.getScopePathFor("Contact"),
-			builtinValidationConfigsProvider,
-		))
-	}
-
 	private suspend fun Contact.toDto(): ContactDto {
 		return contactV2Mapper.map(this, cardinalVersionConfig.getMappingContextForCurrentUser())
 	}

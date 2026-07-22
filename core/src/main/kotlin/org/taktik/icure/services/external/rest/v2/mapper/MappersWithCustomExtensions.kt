@@ -2,6 +2,8 @@ package org.taktik.icure.services.external.rest.v2.mapper
 
 import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
 import com.icure.cardinal.customentities.config.StandardRootEntityExtensionConfig
+import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfiguration
+import com.icure.cardinal.customentities.config.VersionedObjectDefinitionReference
 import com.icure.cardinal.customentities.config.typing.ObjectDefinition
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
@@ -15,11 +17,9 @@ import com.icure.cardinal.errorreporting.ErrorCollector
 import com.icure.cardinal.errorreporting.ScopePath
 import com.icure.cardinal.errorreporting.ScopedErrorCollector
 import com.icure.cardinal.errorreporting.appending
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Component
+import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 
 
@@ -150,15 +150,49 @@ object MappersWithCustomExtensions {
 		}
 	}
 
-	suspend inline fun getMapperExtensionsValidationContext(
+	suspend inline fun validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
+		dtoModelVersion: Int?,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	): MapperExtensionsValidationContext = validateModelVersionAndGetMapperExtensionsValidationContext(
+		dtoModelVersion = dtoModelVersion,
+		customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+		getExtension = { it.extensions.getExtension() },
+		scopePath = scopePath,
+		builtinValidationConfigsProvider = builtinValidationConfigsProvider,
+	)
+
+	suspend inline fun validateCustomModelVersionAndGetMapperExtensionsValidationContext(
+		dtoModelVersion: Int?,
+		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		customEntityTypeId: String,
+		scopePath: ScopePath?,
+		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	): MapperExtensionsValidationContext = validateModelVersionAndGetMapperExtensionsValidationContext(
+		dtoModelVersion = dtoModelVersion,
+		customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+		getExtension = {
+			it.customEntities[customEntityTypeId] ?: throw NotFoundRequestException("Custom entity type $customEntityTypeId not found")
+		},
+		scopePath = scopePath,
+		builtinValidationConfigsProvider = builtinValidationConfigsProvider,
+	)
+
+	suspend inline fun validateModelVersionAndGetMapperExtensionsValidationContext(
+		dtoModelVersion: Int?,
+		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		getExtension: (config: VersionedCustomEntitiesConfiguration) -> VersionedObjectDefinitionReference?,
+		scopePath: ScopePath?,
+		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): MapperExtensionsValidationContext {
 		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val extension = config?.extensions?.getExtension()
+		val extension = config?.let { getExtension(it) }
 		return if (extension != null) {
+			require (dtoModelVersion == extension.version) {
+				"Unexpected customised model version, expected ${extension.version}, got $dtoModelVersion"
+			}
 			val customEntityConfigResolutionContext = CustomEntityConfigResolutionContext.ofConfig(config)
 			MapperExtensionsValidationContextImpl(
 				customEntityConfigResolutionContext = customEntityConfigResolutionContext,
@@ -167,11 +201,14 @@ object MappersWithCustomExtensions {
 				initialExtensionDefinition = customEntityConfigResolutionContext.resolveRequiredObjectReference(extension.objectDefinitionReference)
 			)
 		} else {
+			require (dtoModelVersion == null) {
+				"Unexpected customised model version, expected null, got $dtoModelVersion"
+			}
 			MapperExtensionsValidationContext.Empty
 		}
 	}
 
-	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
+	suspend inline fun <DTO : CustomisableRootDto, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
@@ -179,52 +216,91 @@ object MappersWithCustomExtensions {
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): OBJ =
-		doMap(dto, getMapperExtensionsValidationContext(
+		doMap(dto, validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
+			dtoModelVersion = dto.customisedModelVersion,
 			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
 			getExtension = getExtension,
 			scopePath = scopePath,
 			builtinValidationConfigsProvider = builtinValidationConfigsProvider,
 		))
 
-	suspend inline fun <DTO : IdentifiableDto<String>, OBJ> mapFromDtoWithExtension(
+	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
 		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
-	): List<OBJ> {
-		val context = getMapperExtensionsValidationContext(
+	): List<OBJ> where DTO : IdentifiableDto<String>, DTO : CustomisableRootDto =
+		doMapList(
+			dtos,
+			doMap,
+			scopePath,
+		) {
+			validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
+				dtoModelVersion = it,
+				customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+				getExtension = getExtension,
+				scopePath = scopePath,
+				builtinValidationConfigsProvider = builtinValidationConfigsProvider,
+			)
+		}
+
+
+	suspend inline fun <DTO : CustomisableRootDto, OBJ> mapCustomFromDto(
+		dto: DTO,
+		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		customEntityTypeId: String,
+		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
+		scopePath: ScopePath?,
+		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	): OBJ =
+		doMap(dto, validateCustomModelVersionAndGetMapperExtensionsValidationContext(
+			dtoModelVersion = dto.customisedModelVersion,
 			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
-			getExtension = getExtension,
+			customEntityTypeId = customEntityTypeId,
 			scopePath = scopePath,
 			builtinValidationConfigsProvider = builtinValidationConfigsProvider,
-		)
+		))
+
+	suspend inline fun <DTO, OBJ> mapCustomFromDto(
+		dtos: List<DTO>,
+		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		customEntityTypeId: String,
+		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
+		scopePath: ScopePath?,
+		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	): List<OBJ> where DTO : IdentifiableDto<String>, DTO : CustomisableRootDto =
+		doMapList(
+			dtos,
+			doMap,
+			scopePath
+		) {
+			validateCustomModelVersionAndGetMapperExtensionsValidationContext(
+				dtoModelVersion = it,
+				customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+				customEntityTypeId = customEntityTypeId,
+				scopePath = scopePath,
+				builtinValidationConfigsProvider = builtinValidationConfigsProvider,
+			)
+		}
+
+	suspend inline fun <DTO, OBJ> doMapList(
+		dtos: List<DTO>,
+		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
+		scopePath: ScopePath?,
+		validateModelVersionAndLoadContext: (modelVersion: Int?) -> MapperExtensionsValidationContext,
+	): List<OBJ> where DTO : IdentifiableDto<String>, DTO : CustomisableRootDto {
+		if (dtos.isEmpty()) return emptyList()
+		val modelVersion = dtos.first().customisedModelVersion
+		require (dtos.all { it.customisedModelVersion == modelVersion }) {
+			"All provided entities of the same type should use the same customisedModelVersion"
+		} // In future if we want to support multiple valid versions in parallel this can change to maybe a set.
+		val context = validateModelVersionAndLoadContext(modelVersion)
 		return dtos.map { dto ->
 			scopePath.appending("(", dto.id, ")") {
 				doMap(dto, context)
 			}
 		}
-	}
-
-	inline fun <DTO : IdentifiableDto<String>, OBJ> mapFromDtoWithExtension(
-		dtos: Flow<DTO>,
-		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-		crossinline getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
-		crossinline doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
-		scopePath: ScopePath?,
-		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
-	): Flow<OBJ> = flow {
-		val context = getMapperExtensionsValidationContext(
-			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
-			getExtension = getExtension,
-			scopePath = scopePath,
-			builtinValidationConfigsProvider = builtinValidationConfigsProvider,
-		)
-		emitAll(dtos.map { dto ->
-			scopePath.appending("(", dto.id, ")")  {
-				doMap(dto, context)
-			}
-		})
 	}
 }

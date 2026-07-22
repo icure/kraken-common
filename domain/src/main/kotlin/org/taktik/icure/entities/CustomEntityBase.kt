@@ -44,8 +44,9 @@ data class CustomEntityBase(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	/**
-	 * A unique identifier that is used to identify the type of custom entity.
-	 * Comes with a rules baggage which depends on how the entity is configured.
+	 * A unique identifier that is used to identify the type of custom entity; points a configuration in
+	 * [com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfiguration.customEntities] which specifies
+	 * rules on how to perform the entity validation and access control.
 	 */
 	val entityTypeId: String,
 ) : HasEncryptionMetadata,
