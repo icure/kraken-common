@@ -183,7 +183,11 @@ abstract class SharedWebFluxConfiguration(
 				.configure(KotlinFeature.NullIsSameAsDefault, true)
 				.build()
 		).apply {
-			setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
+			// Single-arg setDefaultPropertyInclusion(NON_EMPTY) sets both valueInclusion AND contentInclusion to
+			// NON_EMPTY. The latter would elide individual Map entries/List elements whose own value is empty (e.g.
+			// dropping "x" from a Map<String, Set<T>> if the set for "x" is empty), even though the entry itself is
+			// meaningful. We only want to omit a property entirely when it is empty, not filter within its contents.
+			setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY, JsonInclude.Include.ALWAYS))
 		}
 	}
 
