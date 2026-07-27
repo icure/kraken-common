@@ -8,4 +8,5 @@ interface CustomEntityLogic {
 	suspend fun getCustomEntity(entityType: String, id: String): CustomEntityBase?
 	fun getCustomEntities(entityType: String, ids: List<String>): Flow<CustomEntityBase>
 	suspend fun modifyCustomEntity(entityType: String, entity: CustomEntityBase): CustomEntityBase
+	fun modifyCustomEntities(entityType: String, entities: List<CustomEntityBase>): Flow<CustomEntityBase>
 }

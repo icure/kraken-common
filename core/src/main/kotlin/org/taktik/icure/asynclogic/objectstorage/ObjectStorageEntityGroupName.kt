@@ -6,5 +6,6 @@ package org.taktik.icure.asynclogic.objectstorage
 @Suppress("EnumEntryName")
 enum class ObjectStorageEntityGroupName {
 	receipts,
-	documents
+	documents,
+	custom
 }

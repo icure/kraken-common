@@ -8,13 +8,17 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
+import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asyncdao.DocumentDAO
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentModificationLogic
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.IcureObjectStorage
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.embed.DeletedAttachment
@@ -402,4 +406,30 @@ class DocumentDataAttachmentModificationLogicImpl(
 			.withDataAttachments(dataAttachments)
 
 		override fun Document.updateRevision(rev: String) = copy(rev = rev)
+	}
+
+@Service("documentDataAttachmentModificationLogic")
+@Profile("app")
+class CustomEntityDataAttachmentModificationLogicImpl(
+	dao: CustomEntityDAO,
+	icureObjectStorage: CustomEntityObjectStorage,
+	objectStorageProperties: ObjectStorageProperties,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+) : CustomEntityDataAttachmentModificationLogic,
+	DataAttachmentModificationLogic<CustomEntityBase> by object : DataAttachmentModificationLogicImpl<CustomEntityBase>(
+		dao,
+		icureObjectStorage,
+		objectStorageProperties,
+		datastoreInstanceProvider,
+	) {
+		override fun CustomEntityBase.updateAttachmentInformation(
+			rev: String,
+			attachments: Map<String, Attachment>?,
+			dataAttachments: Map<String, DataAttachment>,
+			deletedAttachments: List<DeletedAttachment>,
+		): CustomEntityBase = this
+			.copy(rev = rev, attachments = attachments, deletedAttachments = deletedAttachments)
+			.withDataAttachments(dataAttachments)
+
+		override fun CustomEntityBase.updateRevision(rev: String) = copy(rev = rev)
 	}
