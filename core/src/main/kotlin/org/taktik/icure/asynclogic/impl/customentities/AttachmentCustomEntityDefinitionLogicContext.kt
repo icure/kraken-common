@@ -10,6 +10,13 @@ import org.taktik.icure.entities.CustomEntityBase
 class AttachmentCustomEntityDefinitionLogicContext(
 	private val attachmentModificationLogic: CustomEntityDataAttachmentModificationLogic,
 ) : CustomEntityDefinitionLogicContext {
+	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
+		require(entity.dataAttachments.isEmpty() && entity.deletedAttachments.isEmpty()) {
+			"New ${entity.entityTypeId} can't provide any attachment information."
+		}
+		return entity
+	}
+
 	override suspend fun checkValidModification(
 		currentEntityStub: CustomEntityBase,
 		updatedEntity: CustomEntityBase,
@@ -26,7 +33,7 @@ class AttachmentCustomEntityDefinitionLogicContext(
 		updatedEntities: Collection<CustomEntityBase>,
 	): Collection<CustomEntityBase> {
 		val currentEntitiesStubsById = currentEntitiesStubs.associateBy { it.id }
-		return currentEntitiesStubs.filter {
+		return updatedEntities.filter {
 			val matchingCurrent = currentEntitiesStubsById[it.id]
 			matchingCurrent != null && kotlin.runCatching {
 				checkValidModification(currentEntityStub = matchingCurrent, updatedEntity = it)

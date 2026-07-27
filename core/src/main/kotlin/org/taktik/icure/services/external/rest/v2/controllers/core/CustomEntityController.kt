@@ -1,11 +1,14 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import com.icure.cardinal.customentities.config.CustomEntityDefinition
+import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfiguration
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -45,13 +48,32 @@ class CustomEntityController(
 	private val customEntityService: CustomEntityService,
 	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
+	private suspend inline fun <T> withCustomConfig(
+		entityType: String,
+		block: (config: VersionedCustomEntitiesConfiguration, customEntityDefinition: CustomEntityDefinition) -> T,
+	): T {
+		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
+		val customEntityConfig = config?.customEntities[entityType]?.takeIf { !it.disabled } ?: throw NotFoundRequestException("No custom entity config found for $entityType")
+		return block(config, customEntityConfig)
+	}
+
+	private suspend inline fun <T> withCustomDefinition(
+		entityType: String,
+		block: (customEntityDefinition: CustomEntityDefinition) -> T,
+	): T = withCustomConfig(entityType) { _, customEntityDefinition -> block(customEntityDefinition) }
+
+	private inline fun <T> withCustomDefinitionFlow(
+		entityType: String,
+		crossinline block: (customEntityDefinition: CustomEntityDefinition) -> Flow<T>,
+	): Flow<T> = flow {
+		emitAll(withCustomConfig(entityType) { _, customEntityDefinition -> block(customEntityDefinition) })
+	}
+
 	private suspend inline fun <T> mappingCustom(
 		entityType: String,
 		dto: CustomEntityBaseDto,
 		block: (mappedEntity: CustomEntityBase, customEntityConfig: CustomEntityDefinition) -> T,
-	): T {
-		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val customEntityConfig = config?.customEntities[entityType] ?: throw NotFoundRequestException("No custom entity config found for $entityType")
+	): T = withCustomConfig(entityType) { config, customEntityConfig ->
 		validateEntityMetadataWithConfig(dto, customEntityConfig, entityType)
 		return block(
 			mapCustomFromDto(
@@ -76,9 +98,7 @@ class CustomEntityController(
 		entityType: String,
 		dtos: List<CustomEntityBaseDto>,
 		block: (mappedEntities: List<CustomEntityBase>, customEntityConfig: CustomEntityDefinition) -> T,
-	): T {
-		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val customEntityConfig = config?.customEntities[entityType] ?: throw NotFoundRequestException("No custom entity config found for $entityType")
+	): T = withCustomConfig(entityType) { config, customEntityConfig ->
 		dtos.forEach { dto ->
 			validateEntityMetadataWithConfig(dto, customEntityConfig, entityType)
 		}
@@ -151,21 +171,25 @@ class CustomEntityController(
 		@PathVariable entityType: String,
 		@PathVariable entityId: String,
 	): Mono<CustomEntityBaseDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		customEntityService.getCustomEntity(entityType = entityType, id = entityId)?.toDto(entityType)
-			?: throw ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"$entityType $entityId not found.",
-			)
+		withCustomDefinition(entityType) {
+			customEntityService.getCustomEntity(entityType = entityType, id = entityId)?.toDto(entityType)
+				?: throw ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"$entityType $entityId not found.",
+				)
+		}
 	}
 
 	@PostMapping("/{entityType}/byIds")
 	fun getCustomEntities(
 		@PathVariable entityType: String,
 		@RequestBody entityIds: ListOfIdsDto,
-	): Flux<CustomEntityBaseDto> = customEntityService.getCustomEntities(
-		entityType,
-		entityIds.ids
-	).toDto(entityType).injectCachedReactorContext(reactorCacheInjector, 100)
+	): Flux<CustomEntityBaseDto> = withCustomDefinitionFlow(entityType) {
+		customEntityService.getCustomEntities(
+			entityType,
+			entityIds.ids
+		).toDto(entityType)
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PutMapping("/{entityType}")
 	fun modifyCustomEntity(

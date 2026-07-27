@@ -34,6 +34,9 @@ class CustomEntityDefinitionLogicContextFactory(
 				if (contexts.size == 1) contexts.first() else ContextChain(contexts)
 		}
 
+		override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase =
+			contexts.fold(entity) { acc, context -> context.validateAndMapForCreation(acc) }
+
 		override suspend fun checkValidModification(
 			currentEntityStub: CustomEntityBase,
 			updatedEntity: CustomEntityBase,

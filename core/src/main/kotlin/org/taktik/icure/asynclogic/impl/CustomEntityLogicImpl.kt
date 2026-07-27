@@ -68,8 +68,9 @@ class CustomEntityLogicImpl(
 	override suspend fun createCustomEntity(
 		entityType: String,
 		entity: CustomEntityBase,
-	): CustomEntityBase =
-		dao.create(getInstanceAndGroup(), entity)
+	): CustomEntityBase = withDefinitionContext(entityType) {
+		dao.create(getInstanceAndGroup(), validateAndMapForCreation(entity))
+	}
 
 
 	override suspend fun getCustomEntity(

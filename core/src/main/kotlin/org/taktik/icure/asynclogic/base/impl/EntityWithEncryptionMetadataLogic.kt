@@ -140,6 +140,10 @@ class EntityWithEncryptionMetadataLogicHelper<E, D>(
 	where
 		E : HasEncryptionMetadata, E : Versionable<String>,
 		D : GenericDAO<E> {
+
+	fun hasLegacyEncryptionMetadata(e: E): Boolean =
+		e.delegations.isNotEmpty() || e.cryptedForeignKeys.isNotEmpty() || e.cryptedForeignKeys.isNotEmpty()
+
 	fun doBulkShareOrUpdateMetadata(
 		requests: BulkShareOrUpdateMetadataParams,
 		entities: Map<String, E>,

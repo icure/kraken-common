@@ -7,7 +7,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
 
 interface CustomEntityDefinitionLogicContext {
-	// Currently no special validation on create (no autofix)
+	suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase
 	suspend fun checkValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase)
 	suspend fun filterValidModifications(currentEntitiesStubs: Collection<CustomEntityBase>, updatedEntities: Collection<CustomEntityBase>): Collection<CustomEntityBase>
 }

@@ -10,10 +10,17 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.utils.toMap
+import org.taktik.icure.validation.EntityIdValidation
 
 @Service
 @Profile("app")
 class BasicCustomEntityDefinitionLogicContext : CustomEntityDefinitionLogicContext {
+	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
+		if (entity.rev != null) throw IllegalArgumentException("Cannot create an entity with revision.")
+		EntityIdValidation.checkValidForCreation(entity.id)
+		return entity
+	}
+
 	override suspend fun checkValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase) {
 		if (updatedEntity.rev == null) throw IllegalArgumentException("Cannot update an entity without revision.")
 		if (currentEntityStub.rev != updatedEntity.rev) throw ConflictRequestException("Entity ${updatedEntity.id} has been modified since it was retrieved.")
