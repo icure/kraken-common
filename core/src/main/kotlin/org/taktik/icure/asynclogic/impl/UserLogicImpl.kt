@@ -47,7 +47,7 @@ import org.taktik.icure.security.user.UserEnhancer
 import org.taktik.icure.utils.bufferedChunks
 import org.taktik.icure.validation.aspect.Fixer
 import java.text.DecimalFormat
-import java.util.*
+import java.util.UUID
 
 open class UserLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
@@ -568,7 +568,7 @@ open class UserLogicImpl(
 
 	override suspend fun changeUserMobilePhone(
 		userId: String,
-		newMobilePhone: String,
+		newMobilePhone: String?,
 		previousMobilePhone: String?
 	): User {
 		tailrec suspend fun withRetry(attemptsLeft: Int): User {

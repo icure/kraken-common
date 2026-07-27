@@ -61,8 +61,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -447,6 +447,14 @@ class UserController(
 		@RequestParam previousMobilePhone: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userService.changeUserMobilePhone(userId, newMobilePhone, previousMobilePhone).toDto()
+	}
+
+	@DeleteMapping("/{userId}/mobilePhone")
+	fun removeUserMobilePhone(
+		@PathVariable userId: String,
+		@RequestParam previousMobilePhone: String? = null,
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, null, previousMobilePhone))
 	}
 
 	@PutMapping("/{userId}/password")
