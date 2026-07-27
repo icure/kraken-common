@@ -5,16 +5,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContext
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CustomEntityLogic
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContextFactory
+import org.taktik.icure.asynclogic.objectstorage.ObjectStorageEntityGroupName
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
+import org.taktik.icure.entities.Document
 import org.taktik.icure.exceptions.NotFoundRequestException
 
+
+@Service
+@Profile("app")
 class CustomEntityLogicImpl(
 	val dao: CustomEntityDAO,
 	val datastoreInstanceProvider: DatastoreInstanceProvider,

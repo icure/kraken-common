@@ -408,7 +408,7 @@ class DocumentDataAttachmentModificationLogicImpl(
 		override fun Document.updateRevision(rev: String) = copy(rev = rev)
 	}
 
-@Service("documentDataAttachmentModificationLogic")
+@Service("customEntityDataAttachmentModificationLogic")
 @Profile("app")
 class CustomEntityDataAttachmentModificationLogicImpl(
 	dao: CustomEntityDAO,
