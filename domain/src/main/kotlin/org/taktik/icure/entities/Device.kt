@@ -24,6 +24,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -99,6 +100,7 @@ data class Device(
 	val serialNumber: String? = null,
 
 	override val parentId: String? = null,
+	override val groupIds: List<DataOwnerGroupLink> = emptyList(),
 	val picture: ByteArray? = null,
 
 	override val properties: Set<PropertyStub> = emptySet(),

@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
@@ -113,6 +114,7 @@ data class HealthcareParty(
 	val ehp: String? = null,
 	@Deprecated("Discouraged, use custom property if you really want them") val userId: String? = null,
 	override val parentId: String? = null,
+	override val groupIds: List<DataOwnerGroupLink> = emptyList(),
 	val convention: Int? = null, // 0,1,2,9
 	val nihii: String? = null, // institution, person
 	val nihiiSpecCode: String? = null, // don't show field in the GUI

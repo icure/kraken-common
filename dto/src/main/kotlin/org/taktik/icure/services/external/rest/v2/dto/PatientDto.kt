@@ -17,6 +17,7 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
+import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -26,9 +27,11 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
@@ -57,6 +60,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringD
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.PatientDto")
 @Schema(
 	description = """This entity is a root level object. It represents a patient It is serialized in JSON and saved in the underlying icure-patient CouchDB database.""",
 	extensions = [
@@ -278,6 +282,9 @@ data class PatientDto(
 	@Deprecated("Use properties instead") @ActiveField val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	/** Always null for patients. */
 	override val parentId: Nothing? = null,
+	/** The links to the data owners representing the groups this patient belongs to. */
+	@FilterBeforeSdkVersion("2.12.0")
+	override val groupIds: List<DataOwnerGroupLinkDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	PersonDto,

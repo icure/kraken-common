@@ -20,12 +20,13 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
-import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that participate in the iCure end-to-end encryption system.
@@ -64,6 +65,14 @@ interface CryptoActorDto : VersionableDto<String> {
 		description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent",
 	)
 	@ActiveField val parentId: String?
+
+	@get:Schema(
+		description =
+		"The links to the data owners representing the organizations, administrative units or loose groups of healthcare parties this " +
+			"crypto actor belongs to. Those data owners usually have public keys and associated private keys as they are legitimate " +
+			"targets for SecureDelegations.",
+	)
+	@FilterBeforeSdkVersion("2.12.0") val groupIds: List<DataOwnerGroupLinkDto>
 
 	@get:Schema(
 		description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.",
