@@ -16,8 +16,10 @@ import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
 import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.entities.utils.Sha256HexString
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
+import org.taktik.icure.security.IdWithHierarchy
 import org.taktik.icure.security.SessionAccessControlKeysProvider
 import org.taktik.icure.security.UserDetails
+import org.taktik.icure.security.containsId
 import org.taktik.icure.security.hashAccessControlKey
 import org.taktik.icure.security.jwt.JwtDetails
 import org.taktik.icure.security.loadSecurityContext
@@ -85,13 +87,10 @@ open class SessionInformationProviderImpl(
 			}
 		}
 
-	override suspend fun getDataOwnerHierarchyIncludingSelf(): List<String> =
+	override suspend fun selfOrDataOwnerHierarchyContains(id: String) =
 		doGetCurrentSessionContext().let {
-			it.getDataOwnerHierarchy() + it.getDataOwnerHierarchy()
+			it.getDataOwnerId() == id || it.getDataOwnerHierarchy().containsId(id)
 		}
-
-	override suspend fun getDataOwnerHierarchy(): List<String> =
-		doGetCurrentSessionContext().getDataOwnerHierarchy()
 
 	override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
 		?.context
@@ -159,7 +158,7 @@ open class SessionInformationProviderImpl(
 
 		open fun getDataOwnerId(): String? = (_userDetails as JwtDetails).dataOwnerId
 
-		fun getDataOwnerHierarchy(): List<String> = (_userDetails as JwtDetails).hcpHierarchy
+		fun getDataOwnerHierarchy(): List<IdWithHierarchy> = (_userDetails as JwtDetails).hcpHierarchies
 
 		override fun getDataOwnerType(): DataOwnerType? = (_userDetails as JwtDetails).dataOwnerType
 	}
@@ -230,22 +229,18 @@ open class SessionInformationProviderImpl(
 
 	private class HcpDataOwnerDetails(
 		override val id: String,
-		private val parent: DataOwnerAuthenticationDetails.DataOwnerDetails?,
+		private val parents: List<DataOwnerAuthenticationDetails.DataOwnerDetails>,
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		companion object {
 			fun fromHierarchy(
 				self: String,
-				hierarchy: List<String>,
-			): DataOwnerAuthenticationDetails.DataOwnerDetails = if (hierarchy.isEmpty()) {
-				HcpDataOwnerDetails(self, null)
-			} else {
-				HcpDataOwnerDetails(self, fromHierarchy(hierarchy.last(), hierarchy.dropLast(1)))
-			}
+				hierarchy: List<IdWithHierarchy>,
+			): DataOwnerAuthenticationDetails.DataOwnerDetails = HcpDataOwnerDetails(self, hierarchy.map { fromHierarchy(it.id, it.parents) })
 		}
 
 		override val type: DataOwnerType get() = DataOwnerType.HCP
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = parent
+		override suspend fun parents(): List<DataOwnerAuthenticationDetails.DataOwnerDetails> = parents
 	}
 
 	private class PatientDataOwnerDetails(
@@ -253,7 +248,7 @@ open class SessionInformationProviderImpl(
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		override val type: DataOwnerType get() = DataOwnerType.PATIENT
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = null
+		override suspend fun parents(): List<DataOwnerAuthenticationDetails.DataOwnerDetails> = emptyList()
 	}
 
 	private class DeviceDataOwnerDetails(
@@ -261,6 +256,6 @@ open class SessionInformationProviderImpl(
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		override val type: DataOwnerType get() = DataOwnerType.DEVICE
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = null
+		override suspend fun parents(): List<DataOwnerAuthenticationDetails.DataOwnerDetails> = emptyList()
 	}
 }

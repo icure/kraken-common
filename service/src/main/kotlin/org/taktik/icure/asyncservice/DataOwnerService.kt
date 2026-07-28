@@ -40,6 +40,27 @@ interface DataOwnerService {
 	 */
 	suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType
 
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchies instead")
 	fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType>
+
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesStub instead")
 	fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
+
+	/**
+	 * Get the data owner with the provided id followed by all the distinct data owners in its group hierarchies
+	 * (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation rules).
+	 * Each data owner is emitted only once even if it is reachable through multiple paths; the tree structure can be
+	 * rebuilt from the parentId and dataOwnerGroups of the returned data owners.
+	 * @param dataOwnerId a data owner id.
+	 * @return the data owner with the provided id and all the data owners of its group hierarchies.
+	 */
+	fun getCryptoActorHierarchies(dataOwnerId: String): Flow<DataOwnerWithType>
+
+	/**
+	 * Same as [getCryptoActorHierarchies] but limited to the crypto-actor properties of the data owners.
+	 * @param dataOwnerId a data owner id.
+	 * @return the crypto-actor stubs of the data owner with the provided id and all the data owners of its group
+	 * hierarchies.
+	 */
+	fun getCryptoActorHierarchiesStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
 }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.asyncdao.DeviceDAO
@@ -27,6 +28,8 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.security.allHealthcareParties
+import org.taktik.icure.security.resolveHcpHierarchies
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -127,6 +130,7 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchies instead")
 	override fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
 		var nextId: String? = dataOwnerId
 		var nextLikelyType: DataOwnerType? = null
@@ -149,7 +153,29 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesStub instead")
+	@Suppress("DEPRECATION")
 	override fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchy(dataOwnerId).map { it.retrieveStub() }
+
+	override fun getCryptoActorHierarchies(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		val self = doGetDataOwner(dataOwnerId, likelyType = null, preloadedDatastoreInfo = datastoreInfo)
+			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
+		emit(self)
+		if (self is DataOwnerWithType.HcpDataOwner) {
+			val emittedIds = mutableSetOf(self.dataOwner.id)
+			resolveHcpHierarchies(self.dataOwner) { ids ->
+				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
+			}.forEach { hierarchy ->
+				hierarchy.allHealthcareParties().forEach { hcp ->
+					if (emittedIds.add(hcp.id)) emit(DataOwnerWithType.HcpDataOwner(hcp))
+				}
+			}
+		}
+		// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies
+	}
+
+	override fun getCryptoActorHierarchiesStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchies(dataOwnerId).map { it.retrieveStub() }
 
 	private suspend fun getDataOwnerWithType(
 		dataOwnerId: String,
@@ -255,6 +281,10 @@ open class DataOwnerLogicImpl(
 		}
 		require(modified.stub.parentId == original.parentId) {
 			"You can't use this method to change the parent id of a crypto actor"
+		}
+		// An empty list is tolerated as "not provided": the v1 CryptoActorStubDto has no dataOwnerGroups
+		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
+			"You can't use this method to change the data owner groups of a crypto actor"
 		}
 		val saved =
 			checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {

@@ -101,9 +101,11 @@ class DataOwnerController(
 	}
 
 	@Operation(
-		summary = "Get the data owner corresponding to the current user",
-		description = "General information about the current data owner",
+		summary = "Get the current data owner and its legacy parentId chain",
+		description = "Deprecated: only follows the legacy linear parentId chain, use /current/hierarchies instead",
+		deprecated = true,
 	)
+	@Suppress("DEPRECATION")
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
@@ -112,12 +114,42 @@ class DataOwnerController(
 	}.injectReactorContext()
 
 	@Operation(
-		summary = "Get the data owner corresponding to the current user",
-		description = "General information about the current data owner",
+		summary = "Get the crypto-actor stubs of the current data owner and its legacy parentId chain",
+		description = "Deprecated: only follows the legacy linear parentId chain, use /current/hierarchies/stub instead",
+		deprecated = true,
 	)
+	@Suppress("DEPRECATION")
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchyStub(currentDataOwnerOr404()))
+	}.map {
+		cryptoActorStubMapper.map(it)
+	}.injectReactorContext()
+
+	@Operation(
+		summary = "Get the current data owner and all the data owners of its group hierarchies",
+		description = "The current data owner followed by all the distinct data owners of its group hierarchies " +
+			"(parents, organisations, locations, ...). Each data owner appears only once even if it is reachable " +
+			"through multiple links; the tree structure can be rebuilt from the parentId and dataOwnerGroups of the " +
+			"returned data owners.",
+	)
+	@GetMapping("/current/hierarchies")
+	fun getCurrentDataOwnerHierarchies(): Flux<DataOwnerWithTypeDto> = flow {
+		emitAll(dataOwnerService.getCryptoActorHierarchies(currentDataOwnerOr404()))
+	}.map {
+		dataOwnerWithTypeMapper.map(it)
+	}.injectReactorContext()
+
+	@Operation(
+		summary = "Get the crypto-actor stubs of the current data owner and of all the data owners of its group hierarchies",
+		description = "The crypto-actor stubs of the current data owner followed by the ones of all the distinct " +
+			"data owners of its group hierarchies (parents, organisations, locations, ...). Each data owner appears " +
+			"only once even if it is reachable through multiple links; the tree structure can be rebuilt from the " +
+			"parentId and dataOwnerGroups of the returned stubs.",
+	)
+	@GetMapping("/current/hierarchies/stub")
+	fun getCurrentDataOwnerHierarchiesStub(): Flux<CryptoActorStubWithTypeDto> = flow {
+		emitAll(dataOwnerService.getCryptoActorHierarchiesStub(currentDataOwnerOr404()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()

@@ -330,7 +330,9 @@ internal class HealthcarePartyDAOImpl(
 		}
 	}
 
-	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
+	// Emits one row per parent group of the hcp: the legacy parentId plus the dataOwnerGroups links of type 'parent'
+	// (other link types do not define a parent-child relation, see DataOwnerGroupLinkType), deduplicated by id.
+	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) { var emitted = {}; if (doc.parentId) { emitted[doc.parentId] = true; emit(doc.parentId, doc._id); } if (doc.dataOwnerGroups) { for (var i = 0; i < doc.dataOwnerGroups.length; i++) { var link = doc.dataOwnerGroups[i]; if (link && link.dataOwnerId && link.linkType === 'parent' && !emitted[link.dataOwnerId]) { emitted[link.dataOwnerId] = true; emit(link.dataOwnerId, doc._id); } } } } }")
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 

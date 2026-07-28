@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -23,6 +24,8 @@ import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
+import org.taktik.icure.security.allHealthcareParties
+import org.taktik.icure.security.resolveHcpHierarchies
 import org.taktik.icure.validation.aspect.Fixer
 
 open class HealthcarePartyLogicImpl(
@@ -191,16 +194,10 @@ open class HealthcarePartyLogicImpl(
 	}
 
 	override suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String> {
-		val hcpartyIds = HashSet<String>()
-		hcpartyIds.add(sender.id)
-
-		var hcpInHierarchy: HealthcareParty? = sender
-
-		while (hcpInHierarchy?.parentId?.isNotBlank() == true) {
-			hcpInHierarchy = getHealthcareParty(hcpInHierarchy.parentId!!)
-			hcpInHierarchy?.id?.let { hcpartyIds.add(it) }
-		}
-		return hcpartyIds
+		val datastoreInformation = getInstanceAndGroup()
+		return resolveHcpHierarchies(sender) { ids ->
+			healthcarePartyDAO.getEntities(datastoreInformation, ids.toList()).toList()
+		}.flatMapTo(hashSetOf(sender.id)) { hierarchy -> hierarchy.allHealthcareParties().map { it.id } }
 	}
 
 	override fun filterHealthcareParties(

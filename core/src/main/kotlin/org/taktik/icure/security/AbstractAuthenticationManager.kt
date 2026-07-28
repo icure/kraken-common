@@ -2,6 +2,7 @@ package org.taktik.icure.security
 
 import com.icure.kotp.ShaVersion
 import com.icure.kotp.Totp
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -14,7 +15,6 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.BaseUser
 import org.taktik.icure.entities.embed.AuthenticationClass
-import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.InvalidJwtException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.security.jwt.JwtAuthentication
@@ -118,39 +118,18 @@ abstract class AbstractAuthenticationManager<
 	}
 
 	/**
-	 * Starting from a [HealthcareParty], retrieves the [HealthcareParty] HCP hierarchy. The first element of the resulting list is the topmost
-	 * [HealthcareParty] of the hierarchy, while the last is the direct parent of the [HealthcareParty]. This is for compatibility reason with the SDK.
+	 * Starting from a [HealthcareParty], retrieves the trees of [HealthcareParty] groups the hcp is a member of,
+	 * following the legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links (see
+	 * [resolveHcpHierarchies] for the exact traversal semantics).
 	 * @param childHcp the HCP to get the hierarchy for.
 	 * @param datastore the datastore information to get the HCPs.
-	 * @param hierarchy the current hierarchy.
-	 * @return a [List] of [HealthcareParty]
+	 * @return a [List] of [HealthcarePartyWithHierarchy], one for each group [childHcp] is directly linked to.
 	 */
-	protected tailrec suspend fun getHcpHierarchy(
+	protected suspend fun getHcpHierarchy(
 		childHcp: HealthcareParty,
 		datastore: IDatastoreInformation,
-		hierarchy: List<HealthcareParty> = emptyList(),
-	): List<HealthcareParty> {
-		val parentId = childHcp.parentId
-		return if (parentId == null) {
-			hierarchy
-		} else {
-			if (hierarchy.drop(1).any { it.id == childHcp.id }) {
-				throw IllegalEntityException(
-					"Circular reference in the hcp hierarchy starting from ${hierarchy.last()} detected.",
-				)
-			}
-			if (parentId.isBlank()) {
-				throw IllegalEntityException(
-					"Blank parent id for healthcare party $childHcp",
-				)
-			}
-			if (parentId == childHcp.id) {
-				hierarchy
-			} else {
-				val parent = healthcarePartyDAO.get(datastore, parentId)
-				if (parent == null) hierarchy else getHcpHierarchy(parent, datastore, listOf(parent) + hierarchy)
-			}
-		}
+	): List<HealthcarePartyWithHierarchy> = resolveHcpHierarchies(childHcp) { ids ->
+		healthcarePartyDAO.getEntities(datastore, ids.toList()).toList()
 	}
 
 	/**
@@ -180,22 +159,28 @@ abstract class AbstractAuthenticationManager<
 		return when {
 			u.passwordHash == null -> PasswordValidationStatus.Failure
 			u.use2fa == true && u.secret?.isNotBlank() == true -> {
-                /*
-                 * Rarely the user password may end with |[0-9]{6,} which is NOT part of the 2fa code. In addition to
-                 * checking the stripped password we should also check the pw in full.
-                 * Risks of this approach: assume an attacker tries to log in with password x|123456:
-                 * - If the attacker gets an error associated to Failed2fa he knows the password is x (and the current
-                 * totp is not 123456)
-                 * - If the attacker gets an error associated to Missing2fa he knows the password is x|123456
-                 * - If the attacker gets an error associated to Failure he knows the password is neither x nor x|123456
-                 * Meaning the attacker is able to try 2 passwords at a time if one of them ends with |[0-9]{6,}. This
-                 * is not a significant issue.
-                 */
+				/*
+				 * Rarely the user password may end with |[0-9]{6,} which is NOT part of the 2fa code. In addition to
+				 * checking the stripped password we should also check the pw in full.
+				 * Risks of this approach: assume an attacker tries to log in with password x|123456:
+				 * - If the attacker gets an error associated to Failed2fa he knows the password is x (and the current
+				 * totp is not 123456)
+				 * - If the attacker gets an error associated to Missing2fa he knows the password is x|123456
+				 * - If the attacker gets an error associated to Failure he knows the password is neither x nor x|123456
+				 * Meaning the attacker is able to try 2 passwords at a time if one of them ends with |[0-9]{6,}. This
+				 * is not a significant issue.
+				 */
 				val strippedPw = strip2fa(password)
 				if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
-					val parsedSecret = u.secret?.let { ParsedTotpSecret.tryParse(it) } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
+					val parsedSecret = u.secret?.let { ParsedTotpSecret.tryParse(it) }
+						?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
 					val verificationCode = password.split("|").last()
-					if (Totp(parsedSecret.secret, parsedSecret.algorithm).verify(verificationCode, expectedLength = parsedSecret.expectedCount)) {						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+					if (Totp(parsedSecret.secret, parsedSecret.algorithm).verify(
+							verificationCode,
+							expectedLength = parsedSecret.expectedCount
+						)
+					) {
+						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
 					} else {
 						PasswordValidationStatus.Failed2fa
 					}
@@ -205,6 +190,7 @@ abstract class AbstractAuthenticationManager<
 					PasswordValidationStatus.Failure
 				}
 			}
+
 			else -> {
 				passwordEncoder
 					.matches(password, u.passwordHash)

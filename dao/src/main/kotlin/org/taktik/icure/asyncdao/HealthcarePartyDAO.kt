@@ -111,19 +111,21 @@ interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 	suspend fun getAesExchangeKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
 
 	/**
-	 * Retrieves all the [HealthcareParty] entities where [HealthcareParty.parentId] is equal to [parentId].
+	 * Retrieves all the [HealthcareParty] entities that are direct children of [parentId], either through the legacy
+	 * [HealthcareParty.parentId] or through a parent-type link in [HealthcareParty.dataOwnerGroups].
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param parentId the [HealthcareParty.parentId].
+	 * @param parentId the id of the parent healthcare party.
 	 * @return a [Flow] of [HealthcareParty].
 	 */
 	fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String): Flow<HealthcareParty>
 
 	/**
-	 * Retrieves all the [HealthcareParty.id]s where [HealthcareParty.parentId] is equal to [parentId].
+	 * Retrieves all the [HealthcareParty.id]s that are direct children of [parentId], either through the legacy
+	 * [HealthcareParty.parentId] or through a parent-type link in [HealthcareParty.dataOwnerGroups].
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param parentId the [HealthcareParty.parentId].
+	 * @param parentId the id of the parent healthcare party.
 	 * @return a [Flow] of [HealthcareParty.id]s.
 	 */
 	fun listHealthcarePartyIdsByParentId(datastoreInformation: IDatastoreInformation, parentId: String): Flow<String>
