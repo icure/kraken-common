@@ -49,7 +49,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.SecurityMetadataM
 )
 interface PatientMapper {
 	@Mappings(
-		Mapping(target = "groupIds", ignore = true),
+		Mapping(target = "dataOwnerGroups", ignore = true),
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),

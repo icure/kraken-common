@@ -20,7 +20,7 @@ interface CryptoActorStubMapper {
 	fun map(cryptoActorStub: CryptoActorStub): CryptoActorStubDto
 
 	@Mappings(
-		Mapping(target = "groupIds", ignore = true),
+		Mapping(target = "dataOwnerGroups", ignore = true),
 	)
 	fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub
 	fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto

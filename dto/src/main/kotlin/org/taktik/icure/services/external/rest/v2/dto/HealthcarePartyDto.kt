@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
@@ -46,10 +45,8 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto")
 @Schema(
 	description = """This entity is a root level object. It represents a healthcare party. It is serialized in JSON and saved in the underlying icure-healthdata CouchDB database.""",
 )
@@ -125,10 +122,11 @@ data class HealthcarePartyDto(
 	@Deprecated("Discouraged, use custom property if you really want them")
 	@param:Schema(description = "The id of the user that usually handles this healthcare party.") @ActiveField val userId: String? = null,
 	/** The id of the parent healthcare party. */
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: String? = null,
 	/** The links to the data owners representing the groups this healthcare party belongs to. */
-	@FilterBeforeSdkVersion("2.12.0")
-	override val groupIds: List<DataOwnerGroupLinkDto> = emptyList(),
+	@ActiveField
+	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
 	/** The convention number (0, 1, 2, or 9). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val convention: Int? = null, // 0,1,2,9

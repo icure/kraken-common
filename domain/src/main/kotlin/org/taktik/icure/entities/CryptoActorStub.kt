@@ -22,7 +22,7 @@ data class CryptoActorStub(
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 	override val parentId: String? = null,
-	override val groupIds: List<DataOwnerGroupLink> = emptyList(),
+	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 ) : Versionable<String>,
 	CryptoActor {

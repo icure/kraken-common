@@ -114,7 +114,7 @@ data class HealthcareParty(
 	val ehp: String? = null,
 	@Deprecated("Discouraged, use custom property if you really want them") val userId: String? = null,
 	override val parentId: String? = null,
-	override val groupIds: List<DataOwnerGroupLink> = emptyList(),
+	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
 	val convention: Int? = null, // 0,1,2,9
 	val nihii: String? = null, // institution, person
 	val nihiiSpecCode: String? = null, // don't show field in the GUI

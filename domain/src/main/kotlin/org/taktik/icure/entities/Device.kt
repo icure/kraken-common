@@ -100,7 +100,7 @@ data class Device(
 	val serialNumber: String? = null,
 
 	override val parentId: String? = null,
-	override val groupIds: List<DataOwnerGroupLink> = emptyList(),
+	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
 	val picture: ByteArray? = null,
 
 	override val properties: Set<PropertyStub> = emptySet(),

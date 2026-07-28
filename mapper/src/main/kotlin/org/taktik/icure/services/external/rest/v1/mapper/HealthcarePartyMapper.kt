@@ -22,7 +22,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.embed.PersonNameMapper
 @Mapper(componentModel = "spring", uses = [IdentifierMapper::class, HealthcarePartyHistoryStatusMapper::class, FinancialInstitutionInformationMapper::class, AddressMapper::class, CodeStubMapper::class, FlatRateTarificationMapper::class, PersonNameMapper::class, PropertyStubMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface HealthcarePartyMapper {
 	@Mappings(
-		Mapping(target = "groupIds", ignore = true),
+		Mapping(target = "dataOwnerGroups", ignore = true),
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
