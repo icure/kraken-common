@@ -70,9 +70,9 @@ interface CryptoActorDto : VersionableDto<String> {
 		description =
 		"The links to the data owners representing the organizations, administrative units or loose groups of healthcare parties this " +
 			"crypto actor belongs to. Those data owners usually have public keys and associated private keys as they are legitimate " +
-			"targets for SecureDelegations. Membership is transitive through the link types flagged as transitive: if this actor is " +
-			"linked to a group A through a transitive link and A is itself linked to a group B through a transitive link, then this " +
-			"actor also belongs to B, so resolving the complete set of groups requires following those links recursively.",
+			"targets for SecureDelegations. Membership is transitive, whatever the link type: if this actor is linked to a group A " +
+			"and A is itself linked to a group B, then this actor also belongs to B, so resolving the complete set of groups " +
+			"requires following those links recursively.",
 	)
 	@ActiveField val dataOwnerGroups: List<DataOwnerGroupLinkDto>
 

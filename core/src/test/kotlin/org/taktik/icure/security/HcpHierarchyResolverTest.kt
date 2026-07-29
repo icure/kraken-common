@@ -81,32 +81,29 @@ class HcpHierarchyResolverTest : StringSpec({
 		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
 	}
 
-	"membership should propagate past groups joined through a transitive link" {
+	"membership should propagate past linked groups whatever the link type" {
 		resolve(
 			hcp("a", groups = listOf(organisationLink("b"))),
 			hcp("b", groups = listOf(parentLink("c"))),
 			hcp("c"),
 		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
-	}
-
-	"membership should not propagate past a group joined through a non-transitive link" {
 		resolve(
 			hcp("a", groups = listOf(locationLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b"))
+		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
 	}
 
-	"a group joined through a non-transitive link at the end of a transitive path should be included without its own groups" {
+	"membership should propagate through paths mixing link types" {
 		resolve(
 			hcp("a", parentId = "b"),
 			hcp("b", groups = listOf(locationLink("c"))),
 			hcp("c", parentId = "d"),
 			hcp("d"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c", listOf(IdWithHierarchy("d"))))))
 	}
 
-	"a same group joined through links of different transitivity should be treated as transitive" {
+	"a same group joined through links of different types should be included only once" {
 		resolve(
 			hcp("a", groups = listOf(locationLink("b"), organisationLink("b"))),
 			hcp("b", parentId = "c"),
@@ -138,7 +135,7 @@ class HcpHierarchyResolverTest : StringSpec({
 		}
 	}
 
-	"a circular reference closed by a non-transitive link should throw" {
+	"a circular reference closed by a location link should throw" {
 		shouldThrow<IllegalEntityException> {
 			resolve(
 				hcp("a", parentId = "b"),

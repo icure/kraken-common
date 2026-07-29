@@ -15,7 +15,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTyp
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DataOwnerGroupLinkDto(
-	/** The nature of the link, which also determines whether membership propagates transitively. */
+	/** The nature of the link. Membership propagates transitively through all link types. */
 	@ActiveField val linkType: DataOwnerGroupLinkTypeDto = parent,
 	/** The id of the data owner representing the group. */
 	@ActiveField val dataOwnerId: String,

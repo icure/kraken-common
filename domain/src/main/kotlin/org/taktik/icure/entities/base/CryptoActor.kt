@@ -14,10 +14,9 @@ import org.taktik.icure.mergers.annotations.MergeStrategyUse
  * @property publicKey The public key of this actor
  * @property publicKeysForOaepWithSha256 The public keys of this actor which should be used for RSA-OAEP with sha256 encryption
  * @property dataOwnerGroups The links to the HealthcareParties that are used to represent organizations, administrative units or loose groups of hcps that need to easily share information with each others. Those HealthcareParties usually have public keys and associated private keys as they are legitimate targets for SecureDelegations.
- * Group membership is transitive for the link types flagged as such by [DataOwnerGroupLinkType.transitive]: if this
- * actor is linked to a group A through a transitive link and A is itself linked to a group B through a transitive link,
- * then this actor also belongs to B. Resolving the full set of groups of an actor therefore requires following those
- * links recursively.
+ * Group membership is transitive, whatever the link type: if this actor is linked to a group A and A is itself linked
+ * to a group B, then this actor also belongs to B. Resolving the full set of groups of an actor therefore requires
+ * following those links recursively.
  * @property cryptoActorProperties a set of [PropertyStub] associated to this [CryptoActor]. They are not supposed to be encrypted if
  * the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information.
  */
