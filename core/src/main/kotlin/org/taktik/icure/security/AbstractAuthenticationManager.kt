@@ -14,6 +14,7 @@ import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.BaseUser
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.AuthenticationClass
 import org.taktik.icure.exceptions.InvalidJwtException
 import org.taktik.icure.exceptions.MissingRequirementsException
@@ -128,7 +129,22 @@ abstract class AbstractAuthenticationManager<
 	protected suspend fun getHcpAncestorIds(
 		childHcp: HealthcareParty,
 		datastore: IDatastoreInformation,
-	): Set<String> = resolveHcpAncestors(childHcp) { ids ->
+	): Set<String> = doGetHcpAncestorIds(childHcp, null, datastore)
+
+	/**
+	 * Similar to [getHcpAncestorIds] but only includes data owner links that can be reached through a
+	 * [DataOwnerGroupLinkType.parent] relationship.
+	 */
+	protected suspend fun getHcpParentIds(
+		childHcp: HealthcareParty,
+		datastore: IDatastoreInformation,
+	): Set<String> = doGetHcpAncestorIds(childHcp, setOf(DataOwnerGroupLinkType.parent), datastore)
+
+	private suspend fun doGetHcpAncestorIds(
+		childHcp: HealthcareParty,
+		restrictions: Set<DataOwnerGroupLinkType>?,
+		datastore: IDatastoreInformation,
+	): Set<String> = resolveHcpAncestors(childHcp, restrictions) { ids ->
 		healthcarePartyDAO.getEntities(datastore, ids.toList()).toList()
 	}.mapTo(LinkedHashSet()) { it.id }
 
