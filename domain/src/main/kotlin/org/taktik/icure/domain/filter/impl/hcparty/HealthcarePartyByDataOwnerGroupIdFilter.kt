@@ -19,11 +19,8 @@ data class HealthcarePartyByDataOwnerGroupIdFilter(
 
 	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
 		val effectiveLinkType =
-			if (item.parentId == dataOwnerGroupId) {
-				DataOwnerGroupLinkType.parent
-			} else {
-				item.dataOwnerGroups.firstOrNull { it.dataOwnerId == dataOwnerGroupId }?.linkType
-			}
+			item.dataOwnerGroups.firstOrNull { it.dataOwnerId == dataOwnerGroupId }?.linkType ?:
+				if (item.parentId == dataOwnerGroupId) DataOwnerGroupLinkType.parent else null
 		return effectiveLinkType != null && (linkType == null || linkType == effectiveLinkType)
 	}
 }
