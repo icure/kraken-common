@@ -14,7 +14,6 @@ import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.BaseUser
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.AuthenticationClass
 import org.taktik.icure.exceptions.InvalidJwtException
 import org.taktik.icure.exceptions.MissingRequirementsException
@@ -121,32 +120,19 @@ abstract class AbstractAuthenticationManager<
 	/**
 	 * Starting from a [HealthcareParty], retrieves the ids of all the [HealthcareParty] groups the hcp is a member of,
 	 * following the legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links (see
-	 * [resolveHcpAncestors] for the exact traversal semantics).
+	 * [resolveHcpAncestors] for the exact traversal semantics), partitioned by the rights they grant (see
+	 * [resolveHcpAncestorIdsByRights]).
 	 * @param childHcp the HCP to get the ancestor groups of.
 	 * @param datastore the datastore information to get the HCPs.
-	 * @return the ids of the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself.
+	 * @return the ids of the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself, partitioned
+	 * between groups granting parent rights and groups providing membership only.
 	 */
-	protected suspend fun getHcpAncestorIds(
+	protected suspend fun getHcpAncestorIdsByRights(
 		childHcp: HealthcareParty,
 		datastore: IDatastoreInformation,
-	): Set<String> = doGetHcpAncestorIds(childHcp, null, datastore)
-
-	/**
-	 * Similar to [getHcpAncestorIds] but only includes data owner links that can be reached through a
-	 * [DataOwnerGroupLinkType.parent] relationship.
-	 */
-	protected suspend fun getHcpParentIds(
-		childHcp: HealthcareParty,
-		datastore: IDatastoreInformation,
-	): Set<String> = doGetHcpAncestorIds(childHcp, setOf(DataOwnerGroupLinkType.parent), datastore)
-
-	private suspend fun doGetHcpAncestorIds(
-		childHcp: HealthcareParty,
-		restrictions: Set<DataOwnerGroupLinkType>?,
-		datastore: IDatastoreInformation,
-	): Set<String> = resolveHcpAncestors(childHcp, restrictions) { ids ->
+	): HcpAncestorIdsByRights = resolveHcpAncestorIdsByRights(childHcp) { ids ->
 		healthcarePartyDAO.getEntities(datastore, ids.toList()).toList()
-	}.mapTo(LinkedHashSet()) { it.id }
+	}
 
 	/**
 	 * Checks if a password is valid, the password can contain the verification code of the 2FA following this format `password|123456`.

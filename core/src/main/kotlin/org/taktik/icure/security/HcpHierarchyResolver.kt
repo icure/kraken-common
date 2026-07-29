@@ -63,6 +63,49 @@ suspend fun resolveHcpAncestors(
 }
 
 /**
+ * The ids of the ancestor groups of a healthcare party, partitioned by the rights they grant.
+ *
+ * @property parentIds ids of the ancestor groups reachable exclusively through [DataOwnerGroupLinkType.parent]
+ * links (including the legacy parentId): these grant administrative rights over the healthcare party.
+ * @property otherGroupIds ids of the ancestor groups whose every path from the healthcare party includes at least
+ * one [DataOwnerGroupLinkType.other] link: these provide membership only and never grant administrative rights.
+ * Disjoint from [parentIds].
+ */
+data class HcpAncestorIdsByRights(
+	val parentIds: Set<String>,
+	val otherGroupIds: Set<String>,
+) {
+	companion object {
+		val EMPTY = HcpAncestorIdsByRights(emptySet(), emptySet())
+	}
+}
+
+/**
+ * Resolves the ids of all the ancestor groups of [childHcp] (same traversal as [resolveHcpAncestors] with no link
+ * type restriction) partitioned by the rights they grant: the groups reachable through a pure
+ * [DataOwnerGroupLinkType.parent] path and the groups only reachable through paths including an
+ * [DataOwnerGroupLinkType.other] link. A group reachable both ways counts as a parent.
+ * The partitioning is done in memory on the ancestors loaded by the full traversal: [loadHealthcareParties] is
+ * invoked exactly as many times as by a single [resolveHcpAncestors] call.
+ *
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
+ */
+suspend fun resolveHcpAncestorIdsByRights(
+	childHcp: HealthcareParty,
+	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
+): HcpAncestorIdsByRights {
+	val allAncestors = resolveHcpAncestors(childHcp, null, loadHealthcareParties)
+	val loadedById = allAncestors.associateBy { it.id }
+	val parentIds = resolveHcpAncestors(childHcp, setOf(DataOwnerGroupLinkType.parent)) { ids ->
+		ids.mapNotNull { loadedById[it] }
+	}.mapTo(LinkedHashSet()) { it.id }
+	return HcpAncestorIdsByRights(
+		parentIds = parentIds,
+		otherGroupIds = allAncestors.mapNotNullTo(LinkedHashSet()) { ancestor -> ancestor.id.takeIf { it !in parentIds } },
+	)
+}
+
+/**
  * Same traversal as [resolveHcpAncestors] but returns the hierarchies of [childHcp] as a tree of ids rooted at
  * [childHcp] itself: the parents of each node are the groups it is directly linked to. Contrary to
  * [resolveHcpAncestors], a group reachable through multiple paths (diamond configurations) appears once per path.

@@ -79,7 +79,7 @@ open class SessionInformationProviderImpl(
 		doGetCurrentSessionContext().let { sc ->
 			when (sc.getDataOwnerType()) {
 				null -> null
-				DataOwnerType.HCP -> HcpDataOwnerDetails(sc.getDataOwnerId()!!, sc.getDataOwnerHierarchy())
+				DataOwnerType.HCP -> HcpDataOwnerDetails(sc.getDataOwnerId()!!, sc.getDataOwnerParentHierarchy(), sc.getDataOwnerHierarchy())
 				DataOwnerType.PATIENT -> PatientDataOwnerDetails(sc.getDataOwnerId()!!)
 				DataOwnerType.DEVICE -> DeviceDataOwnerDetails(sc.getDataOwnerId()!!)
 			}
@@ -156,7 +156,17 @@ open class SessionInformationProviderImpl(
 
 		open fun getDataOwnerId(): String? = (_userDetails as JwtDetails).dataOwnerId
 
-		fun getDataOwnerHierarchy(): Set<String> = (_userDetails as JwtDetails).hcpHierarchyIds
+		/**
+		 * All the ancestor data owner groups of the data owner, regardless of the rights they grant (membership).
+		 */
+		fun getDataOwnerHierarchy(): Set<String> = (_userDetails as JwtDetails).let {
+			if (it.hcpOtherGroupIds.isEmpty()) it.hcpHierarchyIds else it.hcpHierarchyIds + it.hcpOtherGroupIds
+		}
+
+		/**
+		 * Only the ancestor data owner groups that grant administrative (parent) rights over the data owner.
+		 */
+		fun getDataOwnerParentHierarchy(): Set<String> = (_userDetails as JwtDetails).hcpHierarchyIds
 
 		override fun getDataOwnerType(): DataOwnerType? = (_userDetails as JwtDetails).dataOwnerType
 	}
@@ -227,11 +237,14 @@ open class SessionInformationProviderImpl(
 
 	private class HcpDataOwnerDetails(
 		override val id: String,
+		private val parentIds: Set<String>,
 		private val ancestorIds: Set<String>,
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		override val type: DataOwnerType get() = DataOwnerType.HCP
 
 		override suspend fun ancestorIds(): Set<String> = ancestorIds
+
+		override suspend fun parentIds(): Set<String> = parentIds
 	}
 
 	private class PatientDataOwnerDetails(
@@ -240,6 +253,8 @@ open class SessionInformationProviderImpl(
 		override val type: DataOwnerType get() = DataOwnerType.PATIENT
 
 		override suspend fun ancestorIds(): Set<String> = emptySet()
+
+		override suspend fun parentIds(): Set<String> = emptySet()
 	}
 
 	private class DeviceDataOwnerDetails(
@@ -248,5 +263,7 @@ open class SessionInformationProviderImpl(
 		override val type: DataOwnerType get() = DataOwnerType.DEVICE
 
 		override suspend fun ancestorIds(): Set<String> = emptySet()
+
+		override suspend fun parentIds(): Set<String> = emptySet()
 	}
 }

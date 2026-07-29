@@ -56,6 +56,14 @@ interface DataOwnerAuthenticationDetails {
 		suspend fun ancestorIds(): Set<String>
 
 		/**
+		 * Subset of [ancestorIds] limited to the ancestor data owner groups reachable exclusively through
+		 * [DataOwnerGroupLinkType.parent] links (including the legacy parentId). Only these groups grant
+		 * administrative (parent) rights over this data owner; the remaining [ancestorIds] provide group
+		 * membership only.
+		 */
+		suspend fun parentIds(): Set<String>
+
+		/**
 		 * [id] plus [ancestorIds]: the ids of all the data owners in the hierarchy of this data owner.
 		 */
 		suspend fun hierarchyIds(): Set<String> = buildSet {
