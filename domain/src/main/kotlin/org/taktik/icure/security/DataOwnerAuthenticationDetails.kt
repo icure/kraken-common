@@ -1,6 +1,7 @@
 package org.taktik.icure.security
 
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Sha256HexString
 
@@ -49,7 +50,8 @@ interface DataOwnerAuthenticationDetails {
 		/**
 		 * Ids of all the (transitive) ancestor data owner groups of this data owner, excluding [id] itself. Retrieved
 		 * on request but implementations should cache the result the first time it is requested in case the retrieval
-		 * may be costly (e.g. it requires to retrieve data from a database)
+		 * may be costly (e.g. it requires to retrieve data from a database).
+		 * This includes all links, regardless of [DataOwnerGroupLinkType]
 		 */
 		suspend fun ancestorIds(): Set<String>
 
