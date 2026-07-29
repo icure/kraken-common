@@ -3,6 +3,7 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerWithType
+import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
 
 interface DataOwnerService {
 	/**
@@ -40,27 +41,20 @@ interface DataOwnerService {
 	 */
 	suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchies instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
 	fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType>
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesStub instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
 	fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
 
 	/**
-	 * Get the data owner with the provided id followed by all the distinct data owners in its group hierarchies
-	 * (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation rules).
-	 * Each data owner is emitted only once even if it is reachable through multiple paths; the tree structure can be
-	 * rebuilt from the parentId and dataOwnerGroups of the returned data owners.
+	 * Get the group hierarchies of the data owner with the provided id as a tree of ids rooted at the data owner
+	 * itself (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation rules).
+	 * The parents of each node are the data owners it is directly linked to through the legacy parentId or a
+	 * dataOwnerGroups link; a data owner reachable through multiple paths appears once per path.
+	 * Any data owner is allowed to call this method.
 	 * @param dataOwnerId a data owner id.
-	 * @return the data owner with the provided id and all the data owners of its group hierarchies.
+	 * @return the id hierarchy tree rooted at the data owner with the provided id.
 	 */
-	fun getCryptoActorHierarchies(dataOwnerId: String): Flow<DataOwnerWithType>
-
-	/**
-	 * Same as [getCryptoActorHierarchies] but limited to the crypto-actor properties of the data owners.
-	 * @param dataOwnerId a data owner id.
-	 * @return the crypto-actor stubs of the data owner with the provided id and all the data owners of its group
-	 * hierarchies.
-	 */
-	fun getCryptoActorHierarchiesStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
+	suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy
 }

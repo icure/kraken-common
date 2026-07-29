@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
+import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
 import org.taktik.icure.exceptions.IllegalEntityException
 
 private fun hcp(id: String, parentId: String? = null, groups: List<DataOwnerGroupLink> = emptyList()) =
@@ -19,6 +20,13 @@ private suspend fun resolve(child: HealthcareParty, vararg others: HealthcarePar
 	val othersById = others.associateBy { it.id }
 	return resolveHcpAncestors(child) { ids -> ids.mapNotNull { othersById[it] } }.map { it.id }
 }
+
+private suspend fun resolveTree(child: HealthcareParty, vararg others: HealthcareParty): DataOwnerIdWithHierarchy {
+	val othersById = others.associateBy { it.id }
+	return resolveHcpHierarchyIds(child) { ids -> ids.mapNotNull { othersById[it] } }
+}
+
+private fun node(id: String, vararg parents: DataOwnerIdWithHierarchy) = DataOwnerIdWithHierarchy(id, parents.toList())
 
 class HcpHierarchyResolverTest : StringSpec({
 
@@ -161,6 +169,54 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
 			hcp("b", groups = listOf(organisationLink("other-ghost"))),
 		) shouldBe listOf("b")
+	}
+
+	"the id hierarchy tree of an hcp without any group link should be a single node" {
+		resolveTree(hcp("a")) shouldBe node("a")
+	}
+
+	"the id hierarchy tree should follow all links, with a group linked both by the legacy parentId and a group link appearing only once" {
+		resolveTree(
+			hcp("a", parentId = "b", groups = listOf(parentLink("b"), parentLink("c"), locationLink("d"))),
+			hcp("b", parentId = "d"),
+			hcp("c"),
+			hcp("d"),
+		) shouldBe node(
+			"a",
+			node("b", node("d")),
+			node("c"),
+			node("d"),
+		)
+	}
+
+	"a group reachable through multiple paths (diamond) should appear once per path in the id hierarchy tree" {
+		resolveTree(
+			hcp("a", groups = listOf(parentLink("b"), parentLink("c"))),
+			hcp("b", parentId = "d"),
+			hcp("c", parentId = "d"),
+			hcp("d"),
+		) shouldBe node(
+			"a",
+			node("b", node("d")),
+			node("c", node("d")),
+		)
+	}
+
+	"the id hierarchy tree should ignore self-references and unloadable links" {
+		resolveTree(
+			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
+			hcp("b", groups = listOf(parentLink("b"), organisationLink("c"))),
+			hcp("c"),
+		) shouldBe node("a", node("b", node("c")))
+	}
+
+	"a circular reference should make the id hierarchy tree resolution throw" {
+		shouldThrow<IllegalEntityException> {
+			resolveTree(
+				hcp("a", parentId = "b"),
+				hcp("b", parentId = "a"),
+			)
+		}
 	}
 
 	"the loader should never be called twice for the same id" {

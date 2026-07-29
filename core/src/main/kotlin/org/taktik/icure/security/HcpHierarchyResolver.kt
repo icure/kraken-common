@@ -1,6 +1,7 @@
 package org.taktik.icure.security
 
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
 import org.taktik.icure.exceptions.IllegalEntityException
 
 /**
@@ -55,6 +56,33 @@ suspend fun resolveHcpAncestors(
 	}
 	visit(childHcp, setOf(childHcp.id))
 	return ancestors.values.toList()
+}
+
+/**
+ * Same traversal as [resolveHcpAncestors] but returns the hierarchies of [childHcp] as a tree of ids rooted at
+ * [childHcp] itself: the parents of each node are the groups it is directly linked to. Contrary to
+ * [resolveHcpAncestors], a group reachable through multiple paths (diamond configurations) appears once per path.
+ *
+ * @param childHcp the healthcare party to resolve the id hierarchies of.
+ * @param loadHealthcareParties loads the healthcare parties with the provided ids, omitting the ids that do not
+ * match any existing healthcare party.
+ * @return the id hierarchy tree rooted at [childHcp].
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
+ */
+suspend fun resolveHcpHierarchyIds(
+	childHcp: HealthcareParty,
+	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
+): DataOwnerIdWithHierarchy {
+	// Loads all the ancestors and validates the links (no cycle: the recursion below terminates)
+	val ancestorsById = resolveHcpAncestors(childHcp, loadHealthcareParties).associateBy { it.id }
+	fun nodeOf(hcp: HealthcareParty): DataOwnerIdWithHierarchy = DataOwnerIdWithHierarchy(
+		id = hcp.id,
+		parents = hcp.validatedGroupLinks(childHcp)
+			.filter { it != hcp.id }
+			.mapNotNull { ancestorsById[it] }
+			.map { nodeOf(it) },
+	)
+	return nodeOf(childHcp)
 }
 
 /**
