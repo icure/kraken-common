@@ -15,7 +15,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStr
 /**
  * Holds only data specific for crypto actors without any additional information (from patient, hcparty, device).
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CryptoActorStubDto(
 	override val id: String,
