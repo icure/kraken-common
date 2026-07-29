@@ -4,8 +4,8 @@ import org.taktik.icure.entities.CustomEntityBase
 
 interface CustomEntityDefinitionLogicContext {
 	suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase
-	suspend fun checkValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase)
-	suspend fun filterValidModifications(currentEntitiesStubs: Collection<CustomEntityBase>, updatedEntities: Collection<CustomEntityBase>): Collection<CustomEntityBase>
+	suspend fun checkAndMapValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase): CustomEntityBase
+	suspend fun filterAndMapValidModifications(currentEntitiesStubs: Collection<CustomEntityBase>, updatedEntities: Collection<CustomEntityBase>): Collection<CustomEntityBase>
 
 	/**
 	 * Called after a [CustomEntityBase] has been permanently purged, to clean up any resources associated to it that

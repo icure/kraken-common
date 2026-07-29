@@ -16,6 +16,9 @@ import org.taktik.icure.entities.embed.DeletedAttachment
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
+import org.taktik.icure.validation.AutoFix
+import org.taktik.icure.validation.NotNull
+import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,12 +33,12 @@ data class CustomEntityBase(
 	override val securityMetadata: SecurityMetadata? = null,
 	override val created: Long? = null,
 	override val modified: Long? = null,
-	override val author: String? = null,
-	override val responsible: String? = null,
+	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false)	override val author: String? = null,
+	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false)	override val responsible: String? = null,
 	override val medicalLocationId: String? = null,
 	override val endOfLife: Long? = null,
-	override val tags: Set<CodeStub> = emptySet(),
-	override val codes: Set<CodeStub> = emptySet(),
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
+	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val customisedModelVersion: Int? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	override val dataAttachments: Map<String, DataAttachment> = emptyMap(),

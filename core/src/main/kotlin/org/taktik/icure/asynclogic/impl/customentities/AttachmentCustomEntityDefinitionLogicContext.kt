@@ -17,27 +17,27 @@ class AttachmentCustomEntityDefinitionLogicContext(
 		return entity
 	}
 
-	override suspend fun checkValidModification(
+	override suspend fun checkAndMapValidModification(
 		currentEntityStub: CustomEntityBase,
 		updatedEntity: CustomEntityBase,
-	) {
+	) =
 		attachmentModificationLogic.ensureValidAttachmentChanges(
 			currEntity = currentEntityStub,
 			newEntity = updatedEntity,
 			lenientKeys = emptySet()
 		)
-	}
 
-	override suspend fun filterValidModifications(
+	override suspend fun filterAndMapValidModifications(
 		currentEntitiesStubs: Collection<CustomEntityBase>,
 		updatedEntities: Collection<CustomEntityBase>,
 	): Collection<CustomEntityBase> {
 		val currentEntitiesStubsById = currentEntitiesStubs.associateBy { it.id }
-		return updatedEntities.filter {
-			val matchingCurrent = currentEntitiesStubsById[it.id]
-			matchingCurrent != null && kotlin.runCatching {
-				checkValidModification(currentEntityStub = matchingCurrent, updatedEntity = it)
-			}.isSuccess
+		return updatedEntities.mapNotNull {
+			currentEntitiesStubsById[it.id]?.let { matchingCurrent ->
+				kotlin.runCatching {
+					checkAndMapValidModification(currentEntityStub = matchingCurrent, updatedEntity = it)
+				}.getOrNull()
+			}
 		}
 	}
 

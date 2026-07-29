@@ -122,12 +122,14 @@ class CustomEntityLogicImpl(
 		entityType
 	) {
 		val datastoreInfo = getInstanceAndGroup()
-		checkValidModification(
-			currentEntityStub = dao.getCustomEntityMetadataStub(datastoreInfo, entity.id)
-				?: throw NotFoundRequestException("Entity ${entity.id} does not exist"),
-			updatedEntity = entity
+		dao.save(
+			getInstanceAndGroup(),
+			checkAndMapValidModification(
+				currentEntityStub = dao.getCustomEntityMetadataStub(datastoreInfo, entity.id)
+					?: throw NotFoundRequestException("Entity ${entity.id} does not exist"),
+				updatedEntity = entity
+			)
 		)
-		dao.save(getInstanceAndGroup(), entity)
 	}
 
 	override fun modifyCustomEntities(
@@ -137,7 +139,7 @@ class CustomEntityLogicImpl(
 		val datastoreInfo = getInstanceAndGroup()
 		dao.saveBulk(
 			datastoreInfo,
-			filterValidModifications(
+			filterAndMapValidModifications(
 				currentEntitiesStubs = dao.getCustomEntitiesMetadataStubs(
 					datastoreInfo,
 					entities.map { it.id }

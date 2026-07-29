@@ -37,18 +37,18 @@ class CustomEntityDefinitionLogicContextFactory(
 		override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase =
 			contexts.fold(entity) { acc, context -> context.validateAndMapForCreation(acc) }
 
-		override suspend fun checkValidModification(
+		override suspend fun checkAndMapValidModification(
 			currentEntityStub: CustomEntityBase,
 			updatedEntity: CustomEntityBase,
 		) =
-			contexts.forEach {
-				it.checkValidModification(
+			contexts.fold(updatedEntity) { updated, ctx ->
+				ctx.checkAndMapValidModification(
 					currentEntityStub = currentEntityStub,
-					updatedEntity = updatedEntity
+					updatedEntity = updated
 				)
 			}
 
-		override suspend fun filterValidModifications(
+		override suspend fun filterAndMapValidModifications(
 			currentEntitiesStubs: Collection<CustomEntityBase>,
 			updatedEntities: Collection<CustomEntityBase>,
 		): Collection<CustomEntityBase> =
@@ -56,7 +56,7 @@ class CustomEntityDefinitionLogicContextFactory(
 				if (updated.isEmpty()) {
 					Pair(emptyList(), emptyList())
 				} else {
-					val newUpdated = context.filterValidModifications(
+					val newUpdated = context.filterAndMapValidModifications(
 						currentEntitiesStubs = stubs,
 						updatedEntities = updated
 					)

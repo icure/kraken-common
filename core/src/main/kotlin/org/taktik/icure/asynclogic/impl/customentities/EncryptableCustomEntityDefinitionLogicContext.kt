@@ -23,7 +23,7 @@ class EncryptableCustomEntityDefinitionLogicContext : CustomEntityDefinitionLogi
 		return entity
 	}
 
-	override suspend fun checkValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase) {
+	override suspend fun checkAndMapValidModification(currentEntityStub: CustomEntityBase, updatedEntity: CustomEntityBase): CustomEntityBase {
 		require (!helper.hasLegacyEncryptionMetadata(updatedEntity)) {
 			"Custom entities do not support legacy encryption metadata."
 		}
@@ -32,9 +32,10 @@ class EncryptableCustomEntityDefinitionLogicContext : CustomEntityDefinitionLogi
 			currentEntity = currentEntityStub,
 			throwErrorOnInvalidRev = true,
 		)
+		return updatedEntity
 	}
 
-	override suspend fun filterValidModifications(currentEntitiesStubs: Collection<CustomEntityBase>, updatedEntities: Collection<CustomEntityBase>): Collection<CustomEntityBase> =
+	override suspend fun filterAndMapValidModifications(currentEntitiesStubs: Collection<CustomEntityBase>, updatedEntities: Collection<CustomEntityBase>): Collection<CustomEntityBase> =
 		helper.filterValidEntityChanges(
 			updatedEntities = updatedEntities,
 			originalEntities = currentEntitiesStubs.asFlow().filter {
