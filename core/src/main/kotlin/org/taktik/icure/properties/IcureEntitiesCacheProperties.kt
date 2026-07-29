@@ -21,6 +21,7 @@ import org.taktik.icure.entities.ExchangeDataMap
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.FormTemplate
 import org.taktik.icure.entities.HealthElement
+import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.entities.Invoice
@@ -67,6 +68,7 @@ final data class IcureEntitiesCacheProperties(
 	var form: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var formTemplate: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var healthElement: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
+	var relatedPerson: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var insurance: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var invoice: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var keyword: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
@@ -137,6 +139,7 @@ final data class IcureEntitiesCacheProperties(
 			Form::class.java.name to form,
 			FormTemplate::class.java.name to formTemplate,
 			HealthElement::class.java.name to healthElement,
+			RelatedPerson::class.java.name to relatedPerson,
 			Insurance::class.java.name to insurance,
 			Invoice::class.java.name to invoice,
 			Keyword::class.java.name to keyword,

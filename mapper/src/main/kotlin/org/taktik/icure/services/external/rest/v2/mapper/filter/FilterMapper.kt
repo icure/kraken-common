@@ -40,6 +40,7 @@ import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Insurance
 import org.taktik.icure.entities.Invoice
+import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.entities.Message
@@ -60,6 +61,7 @@ import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.FormDto
 import org.taktik.icure.services.external.rest.v2.dto.FormTemplateDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
+import org.taktik.icure.services.external.rest.v2.dto.RelatedPersonDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
 import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
@@ -141,6 +143,9 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.Healt
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagCodeFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByHcPartyTagFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.healthelement.HealthElementByIdsFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.relatedperson.RelatedPersonByDataOwnerIdentifiersFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.relatedperson.RelatedPersonByDataOwnerNameFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.relatedperson.RelatedPersonByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.AllInsurancesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.InsuranceByIdentifiersFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.insurance.InsuranceByTagCodeFilter
@@ -400,6 +405,18 @@ abstract class FilterV2Mapper {
 		is HealthElementByHcPartySecretForeignKeysFilter -> map(filterDto)
 		is HealthElementByHcPartyFilter -> map(filterDto)
 		is HealthElementByIdsFilter -> map(filterDto)
+		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
+	}
+
+	abstract fun map(filterDto: RelatedPersonByDataOwnerNameFilter): org.taktik.icure.domain.filter.impl.relatedperson.RelatedPersonByDataOwnerNameFilter
+	abstract fun map(filterDto: RelatedPersonByDataOwnerIdentifiersFilter): org.taktik.icure.domain.filter.impl.relatedperson.RelatedPersonByDataOwnerIdentifiersFilter
+	abstract fun map(filterDto: RelatedPersonByIdsFilter): org.taktik.icure.domain.filter.impl.relatedperson.RelatedPersonByIdsFilter
+
+	@JvmName("tryMapRelatedPersonFilter")
+	fun tryMap(filterDto: AbstractFilterDto<RelatedPersonDto>): AbstractFilter<RelatedPerson>? = when (filterDto) {
+		is RelatedPersonByDataOwnerNameFilter -> map(filterDto)
+		is RelatedPersonByDataOwnerIdentifiersFilter -> map(filterDto)
+		is RelatedPersonByIdsFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 

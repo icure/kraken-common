@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2020. Taktik SA, All rights reserved.
+ */
+
+package org.taktik.icure.asynclogic.impl.filter.relatedperson
+
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Service
+import org.taktik.icure.asyncdao.RelatedPersonDAO
+import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.impl.filter.Filter
+import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.domain.filter.relatedperson.RelatedPersonByDataOwnerNameFilter
+import org.taktik.icure.entities.RelatedPerson
+import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
+import javax.security.auth.login.LoginException
+
+@Service
+@Profile("app")
+class RelatedPersonByDataOwnerNameFilter(
+	private val relatedPersonDAO: RelatedPersonDAO,
+	private val sessionLogic: SessionInformationProvider,
+) : Filter<String, RelatedPerson, RelatedPersonByDataOwnerNameFilter> {
+	override val entity get() = relatedPersonDAO.entityClass
+	override val views = listOf("by_all_delegates_contains_name")
+
+	override fun resolve(
+		filter: RelatedPersonByDataOwnerNameFilter,
+		context: Filters,
+		datastoreInformation: IDatastoreInformation,
+	) = flow {
+		try {
+			val dataOwnerId = requireNotNull(filter.dataOwnerId ?: sessionLogic.getCurrentDataOwnerIdOrNull()) {
+				"A RelatedPersonByDataOwnerNameFilter must either provide an explicit dataOwnerId or must be used by a data owner user"
+			}
+			emitAll(
+				mergeUniqueIdsForSearchKeys(sessionLogic.getAllSearchKeysIfCurrentDataOwner(dataOwnerId)) { key ->
+					relatedPersonDAO.listRelatedPersonIdsByDataOwnerNameContainsFuzzy(
+						datastoreInformation = datastoreInformation,
+						searchString = filter.name,
+						dataOwnerId = key,
+					)
+				},
+			)
+		} catch (e: LoginException) {
+			throw IllegalArgumentException(e)
+		}
+	}
+}
