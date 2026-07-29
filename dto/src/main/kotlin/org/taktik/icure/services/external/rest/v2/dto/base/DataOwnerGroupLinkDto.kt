@@ -12,7 +12,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTyp
 /**
  * A link from a crypto actor to a data owner that represents a group it belongs to.
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DataOwnerGroupLinkDto(
 	/** The nature of the link. Membership propagates transitively through all link types. */
