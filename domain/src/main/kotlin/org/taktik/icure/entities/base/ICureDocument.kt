@@ -14,7 +14,6 @@ import org.taktik.icure.mergers.annotations.MergeStrategyMin
  * @property modified the date (unix epoch in ms) of latest modification of the patient, will be filled automatically if missing. Not enforced by the application server.
  * @property author the id of the User that has created this patient, will be filled automatically if missing. Not enforced by the application server.
  * @property responsible the id of the HealthcareParty that is responsible for this patient, will be filled automatically if missing. Not enforced by the application server.
- * @property medicalLocationId
  *
  */
 interface ICureDocument<T> :
@@ -25,7 +24,6 @@ interface ICureDocument<T> :
 	@MergeStrategyMax val modified: Long?
 	val author: String?
 	val responsible: String?
-	val medicalLocationId: String?
 	@MergeStrategyMax val endOfLife: Long?
 
 	fun withTimestamps(created: Long? = null, modified: Long? = null): ICureDocument<T>

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
@@ -56,6 +57,7 @@ data class AccessLogDto(
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto {
 	override fun withIdRev(

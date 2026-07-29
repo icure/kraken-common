@@ -24,6 +24,7 @@ import org.taktik.icure.SdkNonNullable
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
@@ -106,6 +107,7 @@ data class DeviceDto(
 	@SdkNonNullable @param:JsonInclude(JsonInclude.Include.NON_NULL) override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	NamedDto,
 	CryptoActorDto,
 	DataOwnerDto {

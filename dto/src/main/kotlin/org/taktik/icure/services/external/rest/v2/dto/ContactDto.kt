@@ -24,6 +24,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ParticipantTypeDto
@@ -140,6 +141,7 @@ data class ContactDto(
 	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") @ActiveField val notes: List<AnnotationDto> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,

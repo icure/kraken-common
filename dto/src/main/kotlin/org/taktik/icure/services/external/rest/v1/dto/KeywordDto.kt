@@ -6,6 +6,7 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.KeywordSubwordDto
@@ -28,7 +29,8 @@ data class KeywordDto(
 	val subWords: Set<KeywordSubwordDto> = emptySet(),
 	val userId: String? = null,
 ) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	ICureDocumentDto<String>,
+	HasMedicalLocationDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

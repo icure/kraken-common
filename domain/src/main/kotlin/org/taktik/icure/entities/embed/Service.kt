@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
@@ -117,6 +118,7 @@ data class Service(
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	ICureDocument<String>,
+	HasMedicalLocation,
 	HasIdentifier,
 	Comparable<Service> {
 

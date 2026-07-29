@@ -37,7 +37,10 @@ data class PartnershipDto(
 	/** The status of the relationship. */
 	@param:Schema(description = "Status of the relationship.") @ActiveField val status: PartnershipStatusDto? = null,
 	/** The UUID of the contact person or patient in this relationship. */
-	@param:Schema(description = "UUID of the contact person or patient in this relationship.") @ActiveField val partnerId: String? = null, // PersonDto: can either be a patient or a hcp
+	@param:Schema(description = "UUID of the contact person or patient in this relationship.") @ActiveField val partnerId: String? = null, // PersonDto: can either be a patient, a hcp or a related person (see partnerType)
+	/** The type of entity partnerId refers to. When null the partner is either a patient or a healthcare party (legacy behavior). */
+	@param:Schema(description = "The type of entity partnerId refers to. When null the partner is either a patient or a healthcare party (legacy behavior).")
+	@ActiveField val partnerType: PartnerTypeDto? = null,
 	/** Deprecated. Description of the relationship from this patient to the other person. */
 	@Deprecated("use type instead")
 	@ActiveField val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON

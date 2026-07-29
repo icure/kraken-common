@@ -6,6 +6,7 @@ package org.taktik.icure.services.external.rest.v1.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.TimeTableItemDto
@@ -30,7 +31,8 @@ data class TimeTableDto(
 	val endTime: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20150101235960.
 	val items: List<TimeTableItemDto> = emptyList(),
 ) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	ICureDocumentDto<String>,
+	HasMedicalLocationDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
