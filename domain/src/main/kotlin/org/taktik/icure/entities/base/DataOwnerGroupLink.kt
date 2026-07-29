@@ -6,11 +6,11 @@ package org.taktik.icure.entities.base
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType.parent
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType.other
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DataOwnerGroupLink(
-	val linkType: DataOwnerGroupLinkType = parent,
+	val linkType: DataOwnerGroupLinkType = other,
 	val dataOwnerId: String,
 )
