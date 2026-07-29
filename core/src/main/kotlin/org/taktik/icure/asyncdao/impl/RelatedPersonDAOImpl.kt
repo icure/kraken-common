@@ -15,6 +15,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -110,7 +111,7 @@ internal class RelatedPersonDAOImpl(
 			configurationView = "by_all_delegates_contains_name",
 		)
 			.startKey(ComplexKey.of(dataOwnerId, name))
-			.endKey(ComplexKey.of(dataOwnerId, if (name == null) ComplexKey.emptyObject() else name + "￰"))
+			.endKey(ComplexKey.of(dataOwnerId, name?.let { "$it\ufff0" } ?: EmptyObjectKey))
 			.let { q -> limit?.let { q.limit(it) } ?: q }
 			.includeDocs(false)
 
