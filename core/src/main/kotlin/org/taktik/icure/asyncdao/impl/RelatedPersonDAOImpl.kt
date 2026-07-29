@@ -6,16 +6,13 @@ package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.annotation.View
-import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
@@ -32,8 +29,6 @@ import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.distinct
-import org.taktik.icure.utils.interleave
-import org.taktik.icure.utils.main
 
 @Repository("relatedPersonDAO")
 @Profile("app")
@@ -76,43 +71,29 @@ internal class RelatedPersonDAOImpl(
 		emitAll(client.getForPagination(relatedPersonIds, RelatedPerson::class.java))
 	}
 
-	@Views(
-		View(name = "by_hcparty", map = "classpath:js/relatedperson/By_hcparty_map.js"),
-		View(name = "by_data_owner", map = "classpath:js/relatedperson/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
-	)
+	@View(name = "by_data_owner", map = "classpath:js/relatedperson/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION)
 	override fun listRelatedPersonIdsByDataOwner(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val viewQueries = createQueries(
+		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyViews = listOf(
-				"by_hcparty".main(),
-				"by_data_owner" to DATA_OWNER_PARTITION,
-			),
+			legacyView = "by_data_owner" to DATA_OWNER_PARTITION,
 			configurationView = "by_all_delegates",
 		)
 			.startKey(arrayOf(dataOwnerId))
 			.endKey(arrayOf(dataOwnerId))
-			.doNotIncludeDocs()
+			.includeDocs(false)
 
-		emitAll(
-			client
-				.interleave<Array<String>, String>(viewQueries, compareBy { it[0] })
-				.filterIsInstance<ViewRowNoDoc<Array<String>, String>>()
-				.map { it.id },
-		)
+		emitAll(client.queryView<Array<String>, Int>(viewQuery).map { it.id })
 	}.distinct()
 
-	@Views(
-		View(name = "by_hcparty_contains_name", map = "classpath:js/relatedperson/By_hcparty_contains_name_map.js"),
-		View(
-			name = "by_data_owner_contains_name",
-			map = "classpath:js/relatedperson/By_data_owner_contains_name_map.js",
-			secondaryPartition = DATA_OWNER_PARTITION,
-		),
+	@View(
+		name = "by_data_owner_contains_name",
+		map = "classpath:js/relatedperson/By_data_owner_contains_name_map.js",
+		secondaryPartition = DATA_OWNER_PARTITION,
 	)
 	override fun listRelatedPersonIdsByDataOwnerNameContainsFuzzy(
 		datastoreInformation: IDatastoreInformation,
@@ -123,28 +104,17 @@ internal class RelatedPersonDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val name = if (searchString != null) sanitizeString(searchString) else null
-		val viewQueries = createQueries(
+		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyViews = listOf(
-				"by_hcparty_contains_name".main(),
-				"by_data_owner_contains_name" to DATA_OWNER_PARTITION,
-			),
+			legacyView = "by_data_owner_contains_name" to DATA_OWNER_PARTITION,
 			configurationView = "by_all_delegates_contains_name",
 		)
 			.startKey(ComplexKey.of(dataOwnerId, name))
 			.endKey(ComplexKey.of(dataOwnerId, if (name == null) ComplexKey.emptyObject() else name + "￰"))
-			.also { q -> limit?.let { q.limit(it) } ?: q }
-			.doNotIncludeDocs()
+			.let { q -> limit?.let { q.limit(it) } ?: q }
+			.includeDocs(false)
 
-		emitAll(
-			client
-				.interleave<ComplexKey, String>(
-					viewQueries,
-					compareBy({ it.components[0] as? String }, { it.components[1] as? String }),
-				)
-				.filterIsInstance<ViewRowNoDoc<ComplexKey, String>>()
-				.map { it.id },
-		)
+		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
 	}.distinct()
 
 	@View(

@@ -386,7 +386,7 @@ class PatientDAOImpl(
 		)
 			.startKey(ComplexKey.of(healthcarePartyId, name))
 			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0"))
-			.also { q -> limit?.let { q.limit(it) } ?: q }
+			.let { q -> limit?.let { q.limit(it) } ?: q }
 			.doNotIncludeDocs()
 
 		emitAll(
