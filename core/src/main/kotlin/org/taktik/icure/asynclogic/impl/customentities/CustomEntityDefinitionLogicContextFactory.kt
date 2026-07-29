@@ -67,5 +67,9 @@ class CustomEntityDefinitionLogicContextFactory(
 					)
 				}
 			}.second
+
+		override suspend fun cleanupPurgedEntity(purgedEntity: CustomEntityBase) {
+			contexts.forEach { it.cleanupPurgedEntity(purgedEntity) }
+		}
 	}
 }

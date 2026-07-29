@@ -40,4 +40,8 @@ class AttachmentCustomEntityDefinitionLogicContext(
 			}.isSuccess
 		}
 	}
+
+	override suspend fun cleanupPurgedEntity(purgedEntity: CustomEntityBase) {
+		attachmentModificationLogic.cleanupPurgedEntityAttachments(purgedEntity)
+	}
 }
