@@ -15,31 +15,31 @@ private fun parentLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.p
 private fun organisationLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.organisation, id)
 private fun locationLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.location, id)
 
-private suspend fun resolve(child: HealthcareParty, vararg others: HealthcareParty): List<IdWithHierarchy> {
+private suspend fun resolve(child: HealthcareParty, vararg others: HealthcareParty): List<String> {
 	val othersById = others.associateBy { it.id }
-	return resolveHcpHierarchies(child) { ids -> ids.mapNotNull { othersById[it] } }.map { it.toHierarchyNode() }
+	return resolveHcpAncestors(child) { ids -> ids.mapNotNull { othersById[it] } }.map { it.id }
 }
 
 class HcpHierarchyResolverTest : StringSpec({
 
-	"an hcp without any group link should have an empty hierarchy" {
+	"an hcp without any group link should have no ancestors" {
 		resolve(hcp("a")) shouldBe emptyList()
 	}
 
-	"a legacy parentId chain should resolve to a single branch" {
+	"a legacy parentId chain should resolve to the chain ancestors" {
 		resolve(
 			hcp("a", parentId = "b"),
 			hcp("b", parentId = "c"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf("b", "c")
 	}
 
-	"multiple parent links should produce one tree per link" {
+	"multiple parent links should all be resolved" {
 		resolve(
 			hcp("a", groups = listOf(parentLink("b"), parentLink("c"))),
 			hcp("b"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b"), IdWithHierarchy("c"))
+		) shouldBe listOf("b", "c")
 	}
 
 	"a legacy parentId should be combined with the group links" {
@@ -47,30 +47,24 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("a", parentId = "b", groups = listOf(organisationLink("c"))),
 			hcp("b"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b"), IdWithHierarchy("c"))
+		) shouldBe listOf("b", "c")
 	}
 
-	"a group reachable through multiple paths (diamond) should not be reported as a circular reference" {
+	"a group reachable through multiple paths (diamond) should be included once and not be reported as a circular reference" {
 		resolve(
 			hcp("a", groups = listOf(parentLink("b"), parentLink("c"))),
 			hcp("b", parentId = "d"),
 			hcp("c", parentId = "d"),
 			hcp("d"),
-		) shouldBe listOf(
-			IdWithHierarchy("b", listOf(IdWithHierarchy("d"))),
-			IdWithHierarchy("c", listOf(IdWithHierarchy("d"))),
-		)
+		) shouldBe listOf("b", "d", "c")
 	}
 
-	"a group that is both a direct group and a further ancestor should not be reported as a circular reference" {
+	"a group that is both a direct group and a further ancestor should be included once and not be reported as a circular reference" {
 		resolve(
 			hcp("a", groups = listOf(parentLink("b"), parentLink("d"))),
 			hcp("b", parentId = "d"),
 			hcp("d"),
-		) shouldBe listOf(
-			IdWithHierarchy("b", listOf(IdWithHierarchy("d"))),
-			IdWithHierarchy("d"),
-		)
+		) shouldBe listOf("b", "d")
 	}
 
 	"a group linked both by the legacy parentId and a group link should be included only once" {
@@ -78,7 +72,7 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("a", parentId = "b", groups = listOf(parentLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf("b", "c")
 	}
 
 	"membership should propagate past linked groups whatever the link type" {
@@ -86,12 +80,12 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("a", groups = listOf(organisationLink("b"))),
 			hcp("b", groups = listOf(parentLink("c"))),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf("b", "c")
 		resolve(
 			hcp("a", groups = listOf(locationLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf("b", "c")
 	}
 
 	"membership should propagate through paths mixing link types" {
@@ -100,7 +94,7 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("b", groups = listOf(locationLink("c"))),
 			hcp("c", parentId = "d"),
 			hcp("d"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c", listOf(IdWithHierarchy("d"))))))
+		) shouldBe listOf("b", "c", "d")
 	}
 
 	"a same group joined through links of different types should be included only once" {
@@ -108,7 +102,7 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("a", groups = listOf(locationLink("b"), organisationLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
-		) shouldBe listOf(IdWithHierarchy("b", listOf(IdWithHierarchy("c"))))
+		) shouldBe listOf("b", "c")
 	}
 
 	"direct self-references should be ignored" {
@@ -116,7 +110,16 @@ class HcpHierarchyResolverTest : StringSpec({
 		resolve(
 			hcp("a", parentId = "b"),
 			hcp("b", groups = listOf(parentLink("b"))),
-		) shouldBe listOf(IdWithHierarchy("b"))
+		) shouldBe listOf("b")
+	}
+
+	"the resolved ancestors should never include the child itself" {
+		resolve(
+			hcp("a", groups = listOf(parentLink("b"), parentLink("c"))),
+			hcp("b", parentId = "d"),
+			hcp("c", parentId = "d"),
+			hcp("d"),
+		).contains("a") shouldBe false
 	}
 
 	"a circular reference should throw" {
@@ -157,7 +160,7 @@ class HcpHierarchyResolverTest : StringSpec({
 		resolve(
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
 			hcp("b", groups = listOf(organisationLink("other-ghost"))),
-		) shouldBe listOf(IdWithHierarchy("b"))
+		) shouldBe listOf("b")
 	}
 
 	"the loader should never be called twice for the same id" {
@@ -167,23 +170,10 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("c", parentId = "d"),
 			hcp("d"),
 		).associateBy { it.id }
-		resolveHcpHierarchies(hcp("a", groups = listOf(parentLink("b"), parentLink("c")))) { ids ->
+		resolveHcpAncestors(hcp("a", groups = listOf(parentLink("b"), parentLink("c")))) { ids ->
 			loadedIds.addAll(ids)
 			ids.mapNotNull { othersById[it] }
 		}
 		loadedIds.sorted() shouldBe listOf("b", "c", "d")
-	}
-
-	"containsId should find ids at any depth and nothing else" {
-		val hierarchies = listOf(
-			IdWithHierarchy("b", listOf(IdWithHierarchy("d", listOf(IdWithHierarchy("e"))))),
-			IdWithHierarchy("c"),
-		)
-		hierarchies.containsId("b") shouldBe true
-		hierarchies.containsId("c") shouldBe true
-		hierarchies.containsId("d") shouldBe true
-		hierarchies.containsId("e") shouldBe true
-		hierarchies.containsId("a") shouldBe false
-		emptyList<IdWithHierarchy>().containsId("b") shouldBe false
 	}
 })

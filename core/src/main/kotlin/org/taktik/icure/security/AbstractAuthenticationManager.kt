@@ -118,19 +118,19 @@ abstract class AbstractAuthenticationManager<
 	}
 
 	/**
-	 * Starting from a [HealthcareParty], retrieves the trees of [HealthcareParty] groups the hcp is a member of,
+	 * Starting from a [HealthcareParty], retrieves the ids of all the [HealthcareParty] groups the hcp is a member of,
 	 * following the legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links (see
-	 * [resolveHcpHierarchies] for the exact traversal semantics).
-	 * @param childHcp the HCP to get the hierarchy for.
+	 * [resolveHcpAncestors] for the exact traversal semantics).
+	 * @param childHcp the HCP to get the ancestor groups of.
 	 * @param datastore the datastore information to get the HCPs.
-	 * @return a [List] of [HealthcarePartyWithHierarchy], one for each group [childHcp] is directly linked to.
+	 * @return the ids of the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself.
 	 */
-	protected suspend fun getHcpHierarchy(
+	protected suspend fun getHcpAncestorIds(
 		childHcp: HealthcareParty,
 		datastore: IDatastoreInformation,
-	): List<HealthcarePartyWithHierarchy> = resolveHcpHierarchies(childHcp) { ids ->
+	): Set<String> = resolveHcpAncestors(childHcp) { ids ->
 		healthcarePartyDAO.getEntities(datastore, ids.toList()).toList()
-	}
+	}.mapTo(LinkedHashSet()) { it.id }
 
 	/**
 	 * Checks if a password is valid, the password can contain the verification code of the 2FA following this format `password|123456`.

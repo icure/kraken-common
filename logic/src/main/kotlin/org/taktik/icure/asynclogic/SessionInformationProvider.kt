@@ -41,9 +41,7 @@ interface SessionInformationProvider : DataOwnerProvider {
 
 	/**
 	 * If the current user is not a data owner returns false.
-	 * If the current user has no parents data owner and the current data owner matches return true.
-	 * If the data owner has parents, search for a match in the parents and return true if a match is found.
-	 * Otherwise return false
+	 * Returns true if [id] is the current data owner or one of its (transitive) ancestor data owner groups.
 	 */
 	suspend fun selfOrDataOwnerHierarchyContains(id: String): Boolean
 

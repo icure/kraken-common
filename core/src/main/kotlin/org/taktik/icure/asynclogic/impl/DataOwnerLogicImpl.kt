@@ -28,8 +28,7 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.security.allHealthcareParties
-import org.taktik.icure.security.resolveHcpHierarchies
+import org.taktik.icure.security.resolveHcpAncestors
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -163,13 +162,10 @@ open class DataOwnerLogicImpl(
 			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
 		emit(self)
 		if (self is DataOwnerWithType.HcpDataOwner) {
-			val emittedIds = mutableSetOf(self.dataOwner.id)
-			resolveHcpHierarchies(self.dataOwner) { ids ->
+			resolveHcpAncestors(self.dataOwner) { ids ->
 				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
-			}.forEach { hierarchy ->
-				hierarchy.allHealthcareParties().forEach { hcp ->
-					if (emittedIds.add(hcp.id)) emit(DataOwnerWithType.HcpDataOwner(hcp))
-				}
+			}.forEach { hcp ->
+				emit(DataOwnerWithType.HcpDataOwner(hcp))
 			}
 		}
 		// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies

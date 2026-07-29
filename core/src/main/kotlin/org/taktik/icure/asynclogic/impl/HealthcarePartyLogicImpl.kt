@@ -24,8 +24,7 @@ import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toPaginatedFlow
-import org.taktik.icure.security.allHealthcareParties
-import org.taktik.icure.security.resolveHcpHierarchies
+import org.taktik.icure.security.resolveHcpAncestors
 import org.taktik.icure.validation.aspect.Fixer
 
 open class HealthcarePartyLogicImpl(
@@ -195,9 +194,9 @@ open class HealthcarePartyLogicImpl(
 
 	override suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String> {
 		val datastoreInformation = getInstanceAndGroup()
-		return resolveHcpHierarchies(sender) { ids ->
+		return resolveHcpAncestors(sender) { ids ->
 			healthcarePartyDAO.getEntities(datastoreInformation, ids.toList()).toList()
-		}.flatMapTo(hashSetOf(sender.id)) { hierarchy -> hierarchy.allHealthcareParties().map { it.id } }
+		}.mapTo(hashSetOf(sender.id)) { it.id }
 	}
 
 	override fun filterHealthcareParties(

@@ -4,26 +4,27 @@ import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.exceptions.IllegalEntityException
 
 /**
- * Resolves the trees of groups (parents, organisations, locations, ...) that [childHcp] is a member of, following the
- * legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links.
+ * Resolves all the (transitive) ancestor groups (parents, organisations, locations, ...) that [childHcp] is a member
+ * of, following the legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links.
  *
  * Membership propagates through all links, whatever their type: the groups of a group joined through a link are
  * included in the result, recursively.
  *
- * A same group may appear multiple times in the result when it is reachable through different paths (diamond
- * configurations), but a circular reference along a single path causes an [IllegalEntityException]. Direct
- * self-references and links to healthcare parties that cannot be loaded are ignored.
+ * A group reachable through different paths (diamond configurations) is legal and appears exactly once, but a
+ * circular reference along a single path causes an [IllegalEntityException]. Direct self-references and links to
+ * healthcare parties that cannot be loaded are ignored.
  *
- * @param childHcp the healthcare party to resolve the group hierarchies of.
+ * @param childHcp the healthcare party to resolve the ancestor groups of.
  * @param loadHealthcareParties loads the healthcare parties with the provided ids, omitting the ids that do not
  * match any existing healthcare party.
- * @return one tree for each group [childHcp] is directly linked to.
+ * @return the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself, in depth-first
+ * first-encounter order following the declaration order of the links.
  * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
  */
-suspend fun resolveHcpHierarchies(
+suspend fun resolveHcpAncestors(
 	childHcp: HealthcareParty,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
-): List<HealthcarePartyWithHierarchy> {
+): List<HealthcareParty> {
 	val loadedById = mutableMapOf(childHcp.id to childHcp)
 	val expandedIds = mutableSetOf(childHcp.id)
 	var frontier = listOf(childHcp)
@@ -36,21 +37,24 @@ suspend fun resolveHcpHierarchies(
 		frontier = links.filter { expandedIds.add(it) }.mapNotNull { loadedById[it] }
 	}
 
-	fun buildHierarchies(of: HealthcareParty, pathIds: Set<String>): List<HealthcarePartyWithHierarchy> = of.validatedGroupLinks(childHcp).mapNotNull { groupId ->
-		when {
-			groupId == of.id -> null // tolerated for compatibility with the legacy parentId handling
-			groupId in pathIds -> throw IllegalEntityException(
-				"Circular reference in the hcp hierarchy starting from ${childHcp.id} detected.",
-			)
-			else -> loadedById[groupId]?.let { group ->
-				HealthcarePartyWithHierarchy(
-					dataOwner = group,
-					parents = buildHierarchies(group, pathIds + groupId),
+	val ancestors = LinkedHashMap<String, HealthcareParty>()
+	fun visit(of: HealthcareParty, pathIds: Set<String>) {
+		of.validatedGroupLinks(childHcp).forEach { groupId ->
+			when {
+				groupId == of.id -> {} // tolerated for compatibility with the legacy parentId handling
+				groupId in pathIds -> throw IllegalEntityException(
+					"Circular reference in the hcp hierarchy starting from ${childHcp.id} detected.",
 				)
+				else -> loadedById[groupId]?.let { group ->
+					if (ancestors.putIfAbsent(group.id, group) == null) {
+						visit(group, pathIds + groupId)
+					}
+				}
 			}
 		}
 	}
-	return buildHierarchies(childHcp, setOf(childHcp.id))
+	visit(childHcp, setOf(childHcp.id))
+	return ancestors.values.toList()
 }
 
 /**
