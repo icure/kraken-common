@@ -29,7 +29,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
-import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
@@ -282,7 +281,7 @@ data class PatientDto(
 	override val parentId: Nothing? = null,
 	/** The links to the data owners representing the groups this patient belongs to. */
 	@ActiveField
-	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
+	override val dataOwnerGroups: List<Nothing> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	PersonDto,

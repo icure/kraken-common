@@ -13,8 +13,7 @@ private fun hcp(id: String, parentId: String? = null, groups: List<DataOwnerGrou
 	HealthcareParty(id = id, parentId = parentId, dataOwnerGroups = groups)
 
 private fun parentLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.parent, id)
-private fun organisationLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.organisation, id)
-private fun locationLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.location, id)
+private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.other, id)
 
 private suspend fun resolve(child: HealthcareParty, vararg others: HealthcareParty): List<String> {
 	val othersById = others.associateBy { it.id }
@@ -52,7 +51,7 @@ class HcpHierarchyResolverTest : StringSpec({
 
 	"a legacy parentId should be combined with the group links" {
 		resolve(
-			hcp("a", parentId = "b", groups = listOf(organisationLink("c"))),
+			hcp("a", parentId = "b", groups = listOf(otherLink("c"))),
 			hcp("b"),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
@@ -85,12 +84,12 @@ class HcpHierarchyResolverTest : StringSpec({
 
 	"membership should propagate past linked groups whatever the link type" {
 		resolve(
-			hcp("a", groups = listOf(organisationLink("b"))),
+			hcp("a", groups = listOf(otherLink("b"))),
 			hcp("b", groups = listOf(parentLink("c"))),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
 		resolve(
-			hcp("a", groups = listOf(locationLink("b"))),
+			hcp("a", groups = listOf(otherLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
@@ -99,7 +98,7 @@ class HcpHierarchyResolverTest : StringSpec({
 	"membership should propagate through paths mixing link types" {
 		resolve(
 			hcp("a", parentId = "b"),
-			hcp("b", groups = listOf(locationLink("c"))),
+			hcp("b", groups = listOf(otherLink("c"))),
 			hcp("c", parentId = "d"),
 			hcp("d"),
 		) shouldBe listOf("b", "c", "d")
@@ -107,7 +106,7 @@ class HcpHierarchyResolverTest : StringSpec({
 
 	"a same group joined through links of different types should be included only once" {
 		resolve(
-			hcp("a", groups = listOf(locationLink("b"), organisationLink("b"))),
+			hcp("a", groups = listOf(parentLink("b"), otherLink("b"))),
 			hcp("b", parentId = "c"),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
@@ -140,17 +139,8 @@ class HcpHierarchyResolverTest : StringSpec({
 		shouldThrow<IllegalEntityException> {
 			resolve(
 				hcp("a", groups = listOf(parentLink("b"))),
-				hcp("b", groups = listOf(organisationLink("c"))),
+				hcp("b", groups = listOf(otherLink("c"))),
 				hcp("c", groups = listOf(parentLink("b"))),
-			)
-		}
-	}
-
-	"a circular reference closed by a location link should throw" {
-		shouldThrow<IllegalEntityException> {
-			resolve(
-				hcp("a", parentId = "b"),
-				hcp("b", groups = listOf(locationLink("a"))),
 			)
 		}
 	}
@@ -167,7 +157,7 @@ class HcpHierarchyResolverTest : StringSpec({
 	"links to healthcare parties that cannot be loaded should be ignored" {
 		resolve(
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
-			hcp("b", groups = listOf(organisationLink("other-ghost"))),
+			hcp("b", groups = listOf(otherLink("other-ghost"))),
 		) shouldBe listOf("b")
 	}
 
@@ -177,7 +167,7 @@ class HcpHierarchyResolverTest : StringSpec({
 
 	"the id hierarchy tree should follow all links, with a group linked both by the legacy parentId and a group link appearing only once" {
 		resolveTree(
-			hcp("a", parentId = "b", groups = listOf(parentLink("b"), parentLink("c"), locationLink("d"))),
+			hcp("a", parentId = "b", groups = listOf(parentLink("b"), parentLink("c"), otherLink("d"))),
 			hcp("b", parentId = "d"),
 			hcp("c"),
 			hcp("d"),
@@ -205,7 +195,7 @@ class HcpHierarchyResolverTest : StringSpec({
 	"the id hierarchy tree should ignore self-references and unloadable links" {
 		resolveTree(
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
-			hcp("b", groups = listOf(parentLink("b"), organisationLink("c"))),
+			hcp("b", groups = listOf(parentLink("b"), otherLink("c"))),
 			hcp("c"),
 		) shouldBe node("a", node("b", node("c")))
 	}

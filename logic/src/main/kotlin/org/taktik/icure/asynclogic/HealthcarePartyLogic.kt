@@ -85,6 +85,5 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty>, ConflictResol
 	 */
 	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginationElement>
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
-	suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String>
 	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>
 }

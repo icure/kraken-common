@@ -14,11 +14,11 @@ package org.taktik.icure.entities.base
  * ## Administrative rights
  * Only [parent] links define the administrative hierarchy: permissions on "child" data owners (conditional
  * create/update/delete of a child hcp, acting in the scope of a child data owner, ...) are granted exclusively
- * through the legacy `parentId` and [parent]-type links. [organisation] and [location] links only provide group
+ * through the legacy `parentId` and [parent]-type links. [other] and [location] links only provide group
  * membership for data sharing purposes and never grant administrative rights over the linked data owner.
  */
 enum class DataOwnerGroupLinkType {
 	parent,
-	organisation,
+	other,
 	location,
 }
