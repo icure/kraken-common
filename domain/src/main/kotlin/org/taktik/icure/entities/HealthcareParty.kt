@@ -112,8 +112,8 @@ data class HealthcareParty(
 	val invoiceHeader: String? = null,
 	val cbe: String? = null,
 	val ehp: String? = null,
-	@Deprecated("Discouraged, use dataOwnerGroups with a linkType of parent instead") val userId: String? = null,
-	override val parentId: String? = null,
+	@Deprecated("Discouraged, use custom property if you need a link to the user") val userId: String? = null,
+	@Deprecated("Discouraged, use dataOwnerGroups with a linkType of parent instead") override val parentId: String? = null,
 	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
 	val convention: Int? = null, // 0,1,2,9
 	val nihii: String? = null, // institution, person
