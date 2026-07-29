@@ -35,6 +35,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitize
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.main
 import org.taktik.icure.utils.queryView
@@ -332,7 +333,7 @@ internal class HealthcarePartyDAOImpl(
 
 	// Emits one row per parent group of the hcp: the legacy parentId plus the dataOwnerGroups links of type 'parent'
 	// (other link types do not define a parent-child relation, see DataOwnerGroupLinkType), deduplicated by id.
-	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) { var emitted = {}; if (doc.parentId) { emitted[doc.parentId] = true; emit(doc.parentId, doc._id); } if (doc.dataOwnerGroups) { for (var i = 0; i < doc.dataOwnerGroups.length; i++) { var link = doc.dataOwnerGroups[i]; if (link && link.dataOwnerId && link.linkType === 'parent' && !emitted[link.dataOwnerId]) { emitted[link.dataOwnerId] = true; emit(link.dataOwnerId, doc._id); } } } } }")
+	@View(name = "by_parent", map = "classpath:js/healthcareparty/By_parent.js")
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -362,6 +363,21 @@ internal class HealthcarePartyDAOImpl(
 			.includeDocs(false)
 
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
+	}
+
+	@View(name = "by_data_owner_group", map = "classpath:js/healthcareparty/By_data_owner_group.js")
+	override fun listHealthcarePartiesIdsByDataOwnerGroupId(datastoreInformation: IDatastoreInformation, dataOwnerGroupId: String) = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(
+			client.queryView<String, DataOwnerGroupLinkType>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_data_owner_group".main(),
+					configurationView = "by_data_owner_group",
+				).key(dataOwnerGroupId).includeDocs(false),
+			).mapNotNull { it.value?.let { v -> it.id to v } },
+		)
 	}
 
 	override fun findHealthcarePartiesByIds(datastoreInformation: IDatastoreInformation, hcpIds: Flow<String>): Flow<ViewQueryResultEvent> = flow {

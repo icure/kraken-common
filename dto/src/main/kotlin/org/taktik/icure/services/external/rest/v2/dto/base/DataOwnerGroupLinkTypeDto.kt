@@ -14,5 +14,4 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 enum class DataOwnerGroupLinkTypeDto {
 	parent,
 	other,
-	location,
 }
