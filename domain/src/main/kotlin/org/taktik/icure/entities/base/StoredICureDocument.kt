@@ -13,7 +13,6 @@ package org.taktik.icure.entities.base
  * @property modified the date (unix epoch in ms) of latest modification of the patient, will be filled automatically if missing. Not enforced by the application server.
  * @property author the id of the User that has created this patient, will be filled automatically if missing. Not enforced by the application server.
  * @property responsible the id of the HealthcareParty that is responsible for this patient, will be filled automatically if missing. Not enforced by the application server.
- * @property medicalLocationId
  *
  */
 interface StoredICureDocument :

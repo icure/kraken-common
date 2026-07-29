@@ -12,6 +12,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ParticipantType
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
@@ -119,6 +120,7 @@ data class Contact(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	val notes: List<Annotation> = emptyList(),
 ) : StoredICureDocument,
+	HasMedicalLocation,
 	HasEncryptionMetadata,
 	HasIdentifier,
 	Encryptable {

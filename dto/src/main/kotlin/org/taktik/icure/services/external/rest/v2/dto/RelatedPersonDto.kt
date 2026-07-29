@@ -61,8 +61,6 @@ data class RelatedPersonDto(
 	override val author: String? = null,
 	/** The id of the data owner that is responsible for this related person. */
 	override val responsible: String? = null,
-	/** The id of the medical location where this related person was created. */
-	override val medicalLocationId: String? = null,
 	/** Tags that qualify the related person as being member of a certain class. */
 	override val tags: Set<CodeStubDto> = emptySet(),
 	/** Codes that identify or qualify this particular related person. */

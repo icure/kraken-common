@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DelegationDto
@@ -31,6 +32,7 @@ data class IcureStubDto(
 	override val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(),
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	VersionableDto<String>,
 	HasEncryptionMetadataDto {
 	override fun withIdRev(

@@ -33,9 +33,6 @@ interface ICureDocumentDto<T> :
 	val responsible:
 		String?
 
-	@get:Schema(description = "The id of the medical location where this entity was created.")
-	val medicalLocationId: String?
-
 	@get:Schema(description = "Soft delete (unix epoch in ms) timestamp of the object.")
 	val endOfLife: Long?
 

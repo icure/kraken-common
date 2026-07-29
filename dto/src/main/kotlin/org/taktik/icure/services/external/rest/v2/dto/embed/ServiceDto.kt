@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.LinkQualificationDto
@@ -125,6 +126,7 @@ data class ServiceDto(
 	@ActiveField val securityMetadata: SecurityMetadataDto? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	Comparable<ServiceDto>,
 	HasEndOfLifeDto,
 	HasIdentifierDto {

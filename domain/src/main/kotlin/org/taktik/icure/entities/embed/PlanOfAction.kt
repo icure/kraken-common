@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
@@ -99,6 +100,7 @@ data class PlanOfAction(
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
 	ICureDocument<String>,
+	HasMedicalLocation,
 	Named {
 	companion object {
 		const val STATUS_PLANNED = 1 shl 0

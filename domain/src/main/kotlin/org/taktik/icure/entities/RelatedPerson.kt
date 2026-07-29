@@ -44,7 +44,6 @@ import org.taktik.icure.validation.ValidCode
  * @property modified the date (unix epoch in ms) of the latest modification of this entity, will be filled automatically if missing. Not enforced by the application server.
  * @property author the id of the User that has created this entity, will be filled automatically if missing. Not enforced by the application server.
  * @property responsible the id of the data owner that is responsible for this entity, will be filled automatically if missing. Not enforced by the application server.
- * @property medicalLocationId the medical location where this entity has been created.
  * @property tags tags that qualify the related person as a member of a certain class.
  * @property codes codes that identify or qualify this related person.
  * @property endOfLife soft delete (unix epoch in ms) timestamp of the object.
@@ -71,7 +70,6 @@ data class RelatedPerson(
 	@field:NotNull(autoFix = AutoFix.NOW) override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false) override val author: String? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false) override val responsible: String? = null,
-	override val medicalLocationId: String? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),
 	override val endOfLife: Long? = null,
