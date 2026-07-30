@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.CareTeamMember
@@ -133,6 +134,7 @@ data class HealthElement(
 	override val extensions: RawJson.JsonObject? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
+	HasMedicalLocation,
 	HasEncryptionMetadata,
 	Encryptable,
 	CustomisableRoot,

@@ -21,8 +21,10 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerIdWithHierarchyDto
 import org.taktik.icure.services.external.rest.v2.mapper.CryptoActorStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerIdWithHierarchyV2Mapper
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -36,6 +38,7 @@ class DataOwnerController(
 	private val sessionLogic: SessionInformationProvider,
 	private val dataOwnerWithTypeMapper: DataOwnerWithTypeV2Mapper,
 	private val cryptoActorStubMapper: CryptoActorStubV2Mapper,
+	private val dataOwnerIdWithHierarchyMapper: DataOwnerIdWithHierarchyV2Mapper,
 ) {
 	private suspend fun currentDataOwnerOr404(): String =
 		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
@@ -101,22 +104,37 @@ class DataOwnerController(
 	}
 
 	@Operation(
-		summary = "Get the data owner corresponding to the current user",
-		description = "General information about the current data owner",
+		summary = "Get the current data owner and its legacy parentId chain",
+		description = "Deprecated: only follows the legacy linear parentId chain, use /current/hierarchies/ids instead",
+		deprecated = true,
 	)
+	@Suppress("DEPRECATION")
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
 	}.map(dataOwnerWithTypeMapper::map).injectReactorContext()
 
 	@Operation(
-		summary = "Get the data owner corresponding to the current user",
-		description = "General information about the current data owner",
+		summary = "Get the crypto-actor stubs of the current data owner and its legacy parentId chain",
+		description = "Deprecated: only follows the legacy linear parentId chain, use /current/hierarchies/ids instead",
+		deprecated = true,
 	)
+	@Suppress("DEPRECATION")
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchyStub(currentDataOwnerOr404()))
 	}.map {
 		cryptoActorStubMapper.map(it)
 	}.injectReactorContext()
+
+	@Operation(
+		summary = "Get the group hierarchies of the current data owner as a tree of ids",
+		description = "A tree of data owner ids rooted at the current data owner: the parents of each node are the " +
+			"data owners it is directly linked to, through the legacy parentId or a dataOwnerGroups link (parents, " +
+			"organisations, locations, ...). A data owner reachable through multiple links appears once per path.",
+	)
+	@GetMapping("/current/hierarchies/ids")
+	fun getCurrentDataOwnerHierarchiesIds(): Mono<DataOwnerIdWithHierarchyDto> = mono {
+		dataOwnerIdWithHierarchyMapper.map(dataOwnerService.getCryptoActorHierarchiesIds(currentDataOwnerOr404()))
+	}
 }

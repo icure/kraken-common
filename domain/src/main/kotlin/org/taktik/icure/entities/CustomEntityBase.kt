@@ -35,7 +35,6 @@ data class CustomEntityBase(
 	override val modified: Long? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTUSERID, applyOnModify = false)	override val author: String? = null,
 	@field:NotNull(autoFix = AutoFix.CURRENTDATAOWNERID, applyOnModify = false)	override val responsible: String? = null,
-	override val medicalLocationId: String? = null,
 	override val endOfLife: Long? = null,
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(),
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(),

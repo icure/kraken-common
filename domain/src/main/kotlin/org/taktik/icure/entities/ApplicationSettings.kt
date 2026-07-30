@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.RevisionInfo
@@ -44,7 +45,8 @@ data class ApplicationSettings(
 	override val encryptionKeys: Map<String, Set<Delegation>> = emptyMap(),
 	override val securityMetadata: SecurityMetadata? = null,
 	override val encryptedSelf: String? = null,
-) : StoredICureDocument, HasEncryptionMetadata, Encryptable {
+) : StoredICureDocument,
+	HasMedicalLocation, HasEncryptionMetadata, Encryptable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

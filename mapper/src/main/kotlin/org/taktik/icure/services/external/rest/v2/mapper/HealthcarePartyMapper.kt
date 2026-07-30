@@ -26,6 +26,7 @@ import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationConte
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
@@ -36,7 +37,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.PersonNameV2Mappe
 
 @Mapper(
 	componentModel = "spring",
-	uses = [IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class],
+	uses = [DataOwnerGroupLinkV2Mapper::class, IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface HealthcarePartyV2Mapper {

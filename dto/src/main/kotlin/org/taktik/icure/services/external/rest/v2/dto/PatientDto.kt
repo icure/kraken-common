@@ -35,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
@@ -287,11 +288,16 @@ data class PatientDto(
 	/** Employment information (deprecated, use properties instead). */
 	@Deprecated("Use properties instead") @ActiveField val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	/** Always null for patients. */
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: Nothing? = null,
+	/** The links to the data owners representing the groups this patient belongs to. */
+	@ActiveField
+	override val dataOwnerGroups: List<Nothing> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	PersonDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,

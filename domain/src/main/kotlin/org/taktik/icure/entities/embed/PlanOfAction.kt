@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
@@ -102,6 +103,7 @@ data class PlanOfAction(
 	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	ICureDocument<String>,
+	HasMedicalLocation,
 	Named,
 	Extendable {
 	companion object {

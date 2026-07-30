@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ParticipantType
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.Annotation
@@ -124,6 +125,7 @@ data class Contact(
 	override val extensions: RawJson.JsonObject? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
+	HasMedicalLocation,
 	HasEncryptionMetadata,
 	HasIdentifier,
 	Encryptable,

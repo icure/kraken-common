@@ -12,7 +12,8 @@ import java.io.Serializable
 data class Partnership(
 	val type: PartnershipType? = null, // codes are from CD-CONTACT-PERSON
 	val status: PartnershipStatus? = null,
-	val partnerId: String? = null, // Person: can either be a patient or a hcp
+	val partnerId: String? = null, // Person: can either be a patient, a hcp or a related person (see partnerType)
+	val partnerType: PartnerType? = null, // The type of entity partnerId refers to; null = legacy "patient or hcp"
 	@Deprecated("use type instead")
 	val meToOtherRelationshipDescription: String? = null, // son if partnerId is my son - codes are from CD-CONTACT-PERSON
 	@Deprecated("use type instead")

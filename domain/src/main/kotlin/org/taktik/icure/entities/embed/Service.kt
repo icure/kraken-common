@@ -13,6 +13,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.hasDataOwnerOrDelegationKey
@@ -121,6 +122,7 @@ data class Service(
 	val contactCustomisedModelVersion: Int? = null, // Filled only when service is emitted as standalone, required to do proper migration on client side
 ) : Encryptable,
 	ICureDocument<String>,
+	HasMedicalLocation,
 	HasIdentifier,
 	Comparable<Service>,
 	Extendable {

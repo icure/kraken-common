@@ -25,6 +25,7 @@ import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
@@ -124,7 +125,11 @@ data class HealthcarePartyDto(
 	@Deprecated("Discouraged, use custom property if you really want them")
 	@param:Schema(description = "The id of the user that usually handles this healthcare party.") @ActiveField val userId: String? = null,
 	/** The id of the parent healthcare party. */
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: String? = null,
+	/** The links to the data owners representing the groups this healthcare party belongs to. */
+	@ActiveField
+	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
 	/** The convention number (0, 1, 2, or 9). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val convention: Int? = null, // 0,1,2,9

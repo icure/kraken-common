@@ -79,19 +79,16 @@ open class SessionInformationProviderImpl(
 		doGetCurrentSessionContext().let { sc ->
 			when (sc.getDataOwnerType()) {
 				null -> null
-				DataOwnerType.HCP -> HcpDataOwnerDetails.fromHierarchy(sc.getDataOwnerId()!!, sc.getDataOwnerHierarchy())
+				DataOwnerType.HCP -> HcpDataOwnerDetails(sc.getDataOwnerId()!!, sc.getParentLinkedDataOwnerIds(), sc.getAllLinkedDataOwnerIds())
 				DataOwnerType.PATIENT -> PatientDataOwnerDetails(sc.getDataOwnerId()!!)
 				DataOwnerType.DEVICE -> DeviceDataOwnerDetails(sc.getDataOwnerId()!!)
 			}
 		}
 
-	override suspend fun getDataOwnerHierarchyIncludingSelf(): List<String> =
+	override suspend fun selfOrDataOwnerHierarchyContains(id: String) =
 		doGetCurrentSessionContext().let {
-			it.getDataOwnerHierarchy() + it.getDataOwnerHierarchy()
+			it.getDataOwnerId() == id || id in it.getAllLinkedDataOwnerIds()
 		}
-
-	override suspend fun getDataOwnerHierarchy(): List<String> =
-		doGetCurrentSessionContext().getDataOwnerHierarchy()
 
 	override suspend fun getCallerCardinalVersion(): SemanticVersion? = coroutineContext[ReactorContext]
 		?.context
@@ -159,7 +156,21 @@ open class SessionInformationProviderImpl(
 
 		open fun getDataOwnerId(): String? = (_userDetails as JwtDetails).dataOwnerId
 
-		fun getDataOwnerHierarchy(): List<String> = (_userDetails as JwtDetails).hcpHierarchy
+		/**
+		 * All the ancestor data owner groups of the data owner, regardless of the rights they grant (membership).
+		 */
+		fun getAllLinkedDataOwnerIds(): Set<String> = (_userDetails as JwtDetails).let {
+			when {
+				it.simpleLinkedDataOwnerIds.isEmpty() -> it.parentLinkedDataOwnerIds
+				it.parentLinkedDataOwnerIds.isEmpty() -> it.simpleLinkedDataOwnerIds
+				else -> it.parentLinkedDataOwnerIds + it.simpleLinkedDataOwnerIds
+			}
+		}
+
+		/**
+		 * Only the ancestor data owner groups that grant administrative (parent) rights over the data owner.
+		 */
+		fun getParentLinkedDataOwnerIds(): Set<String> = (_userDetails as JwtDetails).parentLinkedDataOwnerIds
 
 		override fun getDataOwnerType(): DataOwnerType? = (_userDetails as JwtDetails).dataOwnerType
 	}
@@ -230,22 +241,14 @@ open class SessionInformationProviderImpl(
 
 	private class HcpDataOwnerDetails(
 		override val id: String,
-		private val parent: DataOwnerAuthenticationDetails.DataOwnerDetails?,
+		private val parentIds: Set<String>,
+		private val ancestorIds: Set<String>,
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
-		companion object {
-			fun fromHierarchy(
-				self: String,
-				hierarchy: List<String>,
-			): DataOwnerAuthenticationDetails.DataOwnerDetails = if (hierarchy.isEmpty()) {
-				HcpDataOwnerDetails(self, null)
-			} else {
-				HcpDataOwnerDetails(self, fromHierarchy(hierarchy.last(), hierarchy.dropLast(1)))
-			}
-		}
-
 		override val type: DataOwnerType get() = DataOwnerType.HCP
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = parent
+		override fun allLinkedDataOwnerIds(): Set<String> = ancestorIds
+
+		override fun allParentLinkedDataOwnerIds(): Set<String> = parentIds
 	}
 
 	private class PatientDataOwnerDetails(
@@ -253,7 +256,9 @@ open class SessionInformationProviderImpl(
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		override val type: DataOwnerType get() = DataOwnerType.PATIENT
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = null
+		override fun allLinkedDataOwnerIds(): Set<String> = emptySet()
+
+		override fun allParentLinkedDataOwnerIds(): Set<String> = emptySet()
 	}
 
 	private class DeviceDataOwnerDetails(
@@ -261,6 +266,8 @@ open class SessionInformationProviderImpl(
 	) : DataOwnerAuthenticationDetails.DataOwnerDetails {
 		override val type: DataOwnerType get() = DataOwnerType.DEVICE
 
-		override suspend fun parent(): DataOwnerAuthenticationDetails.DataOwnerDetails? = null
+		override fun allLinkedDataOwnerIds(): Set<String> = emptySet()
+
+		override fun allParentLinkedDataOwnerIds(): Set<String> = emptySet()
 	}
 }

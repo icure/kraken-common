@@ -26,12 +26,13 @@ import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationConte
 import org.taktik.icure.entities.Device
 import org.taktik.icure.services.external.rest.v2.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 
 @Mapper(
 	componentModel = "spring",
-	uses = [CodeStubV2Mapper::class, IdentifierV2Mapper::class, PropertyStubV2Mapper::class],
+	uses = [CodeStubV2Mapper::class, DataOwnerGroupLinkV2Mapper::class, IdentifierV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
 interface DeviceV2Mapper {

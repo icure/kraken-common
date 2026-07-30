@@ -1,6 +1,7 @@
 package org.taktik.icure.security
 
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Sha256HexString
 
@@ -47,21 +48,15 @@ interface DataOwnerAuthenticationDetails {
 		val type: DataOwnerType
 
 		/**
-		 * Details of the data owner parent, retrieved on request but implementations should cache the result the first
-		 * time it is requested in case the retrieval may be costly (e.g. it requires to retrieve data from a database)
+		 * Ids of all the (transitive) ancestor data owner groups of this data owner, excluding [id] itself.
+		 * This includes all links, regardless of [DataOwnerGroupLinkType]
 		 */
-		suspend fun parent(): DataOwnerDetails?
+		fun allLinkedDataOwnerIds(): Set<String>
 
 		/**
-		 * Returns if the predicate applies to any of the data owners in this data owner hierarchy (this data owner and
-		 * all of his parents)
+		 * Subset of [allLinkedDataOwnerIds] limited to the ancestor data owner groups reachable exclusively through
+		 * [DataOwnerGroupLinkType.parent] links (including the legacy parentId).
 		 */
-		suspend fun anyInHierarchy(predicate: suspend (DataOwnerDetails) -> Boolean): Boolean = if (predicate(this)) true else parent()?.anyInHierarchy(predicate) ?: false
-
-		/**
-		 * Load ids of all data owners in the hierarchy of this data owner
-		 * @return a list containing this data owner and all of his parents ids
-		 */
-		suspend fun fullHierarchyIds(): List<String> = listOf(id) + (parent()?.fullHierarchyIds() ?: emptyList())
+		fun allParentLinkedDataOwnerIds(): Set<String>
 	}
 }

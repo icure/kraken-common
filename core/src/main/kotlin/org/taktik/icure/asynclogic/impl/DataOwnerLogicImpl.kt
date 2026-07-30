@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.asyncdao.DeviceDAO
@@ -22,11 +23,13 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
+import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
 import org.taktik.icure.entities.base.asCryptoActorStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.security.resolveHcpHierarchyIds
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -47,6 +50,18 @@ open class DataOwnerLogicImpl(
 		dataOwnerId: String,
 		dataOwnerType: DataOwnerType,
 	): CryptoActorStub? = getDataOwnerWithType(dataOwnerId, dataOwnerType, null)?.retrieveStub()?.stub
+
+	override fun getCryptoActorStubsWithType(
+		dataOwnerIds: Collection<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<CryptoActorStub> = flow {
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		when (dataOwnerType) {
+			DataOwnerType.HCP -> hcpDao.getEntities(datastoreInfo, dataOwnerIds)
+			DataOwnerType.DEVICE -> deviceDao.getEntities(datastoreInfo, dataOwnerIds)
+			DataOwnerType.PATIENT -> patientDao.getEntities(datastoreInfo, dataOwnerIds)
+		}.collect { if (it.deletionDate == null) emit(it.retrieveStub()) }
+	}
 
 	override suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType? = doGetDataOwner(dataOwnerId, likelyType = null)
 
@@ -127,6 +142,7 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
 	override fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
 		var nextId: String? = dataOwnerId
 		var nextLikelyType: DataOwnerType? = null
@@ -149,7 +165,22 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Suppress("DEPRECATION")
 	override fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchy(dataOwnerId).map { it.retrieveStub() }
+
+	override suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy {
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		val self = doGetDataOwner(dataOwnerId, likelyType = null, preloadedDatastoreInfo = datastoreInfo)
+			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
+		return when (self) {
+			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyIds(self.dataOwner) { ids ->
+				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
+			}
+			// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies
+			else -> DataOwnerIdWithHierarchy(self.id, emptyList())
+		}
+	}
 
 	private suspend fun getDataOwnerWithType(
 		dataOwnerId: String,
@@ -255,6 +286,10 @@ open class DataOwnerLogicImpl(
 		}
 		require(modified.stub.parentId == original.parentId) {
 			"You can't use this method to change the parent id of a crypto actor"
+		}
+		// An empty list is tolerated as "not provided": the v1 CryptoActorStubDto has no dataOwnerGroups
+		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
+			"You can't use this method to change the data owner groups of a crypto actor"
 		}
 		val saved =
 			checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {

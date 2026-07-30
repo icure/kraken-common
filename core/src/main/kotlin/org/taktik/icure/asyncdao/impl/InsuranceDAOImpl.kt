@@ -92,8 +92,8 @@ class InsuranceDAOImpl(
 				.queryView<Array<String>, String>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "all_by_code".main(),
-						configurationView = "all_by_code"
+						legacyView = "all_by_name".main(),
+						configurationView = "all_by_name"
 					)
 						.startKey(ComplexKey.of(sanitizedName))
 						.endKey(

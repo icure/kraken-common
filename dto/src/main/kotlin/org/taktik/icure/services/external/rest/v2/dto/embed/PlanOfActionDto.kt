@@ -24,6 +24,7 @@ import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
@@ -70,6 +71,7 @@ data class PlanOfActionDto(
 	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	NamedDto,
 	HasEndOfLifeDto,
 	ExtendableDto

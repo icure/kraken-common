@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import com.fasterxml.jackson.annotation.JsonFilter
@@ -63,4 +64,5 @@ data class SubContactDto(
 	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String?>,
-	ExtendableDto
+	ExtendableDto,
+	HasMedicalLocationDto

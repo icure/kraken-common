@@ -24,6 +24,7 @@ import org.taktik.icure.CardinalMetadataProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto
@@ -176,6 +177,7 @@ data class DocumentDto(
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	CustomisableRootDto,

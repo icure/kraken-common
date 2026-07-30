@@ -31,6 +31,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.PropertyStubMapper
 @Mapper(componentModel = "spring", uses = [CodeStubMapper::class, IdentifierMapper::class, PropertyStubMapper::class ], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface DeviceMapper {
 	@Mappings(
+		Mapping(target = "dataOwnerGroups", ignore = true),
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),

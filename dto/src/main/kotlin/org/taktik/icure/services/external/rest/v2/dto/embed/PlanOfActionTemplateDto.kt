@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import com.fasterxml.jackson.annotation.JsonFilter
@@ -67,5 +68,6 @@ data class PlanOfActionTemplateDto(
 	/** The list of form skeletons that compose this template. */
 	@ActiveField var forms: List<FormSkeletonDto> = emptyList(),
 ) : ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	NamedDto,
 	HasEndOfLifeDto

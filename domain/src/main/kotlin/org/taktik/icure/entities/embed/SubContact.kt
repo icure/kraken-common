@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Extendable
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
@@ -71,6 +72,7 @@ data class SubContact(
 	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	ICureDocument<String?>,
+	HasMedicalLocation,
 	Extendable {
 	companion object {
 		const val STATUS_LABO_RESULT = 1

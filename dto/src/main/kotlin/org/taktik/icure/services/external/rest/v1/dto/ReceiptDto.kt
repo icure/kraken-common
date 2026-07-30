@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasEncryptionMetadataDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.DataAttachmentDto
@@ -46,6 +47,7 @@ data class ReceiptDto(
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto {
 	override fun withIdRev(

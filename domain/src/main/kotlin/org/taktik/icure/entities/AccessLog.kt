@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.base.CustomisableRoot
@@ -62,6 +63,7 @@ data class AccessLog(
 	override val extensions: RawJson.JsonObject? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
+	HasMedicalLocation,
 	HasEncryptionMetadata,
 	Encryptable,
 	CustomisableRoot,
