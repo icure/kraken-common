@@ -6,6 +6,12 @@ import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
 import org.taktik.icure.exceptions.IllegalEntityException
 
 /**
+ * Safety limit on the number of distinct ancestor groups [resolveHcpAncestors] will follow for a single healthcare
+ * party, to avoid unbounded work on a pathologically large or adversarial hierarchy.
+ */
+private const val MAX_HCP_ANCESTORS = 100
+
+/**
  * Resolves all the (transitive) ancestor groups (parents, organisations, locations, ...) that [childHcp] is a member
  * of, following the legacy [HealthcareParty.parentId] link plus all [HealthcareParty.dataOwnerGroups] links.
  *
@@ -23,7 +29,8 @@ import org.taktik.icure.exceptions.IllegalEntityException
  * links are ignored as if they were not present.
  * @return the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself, in depth-first
  * first-encounter order following the declaration order of the links.
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
+ * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
 suspend fun resolveHcpAncestors(
 	childHcp: HealthcareParty,
@@ -40,6 +47,11 @@ suspend fun resolveHcpAncestors(
 			loadHealthcareParties(idsToLoad).forEach { loadedById[it.id] = it }
 		}
 		frontier = links.filter { expandedIds.add(it) }.mapNotNull { loadedById[it] }
+		if (expandedIds.size - 1 > MAX_HCP_ANCESTORS) {
+			throw IllegalEntityException(
+				"Too many ancestor groups for healthcare party ${childHcp.id}: exceeds the maximum of $MAX_HCP_ANCESTORS",
+			)
+		}
 	}
 
 	val ancestors = LinkedHashMap<String, HealthcareParty>()
@@ -88,7 +100,8 @@ data class HcpAncestorIdsByRights(
  * The partitioning is done in memory on the ancestors loaded by the full traversal: [loadHealthcareParties] is
  * invoked exactly as many times as by a single [resolveHcpAncestors] call.
  *
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
+ * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
 suspend fun resolveHcpAncestorIdsByRights(
 	childHcp: HealthcareParty,
@@ -116,7 +129,8 @@ suspend fun resolveHcpAncestorIdsByRights(
  * @param restrictToLinksOfType if not null, only links whose type is included in this set are followed; all other
  * links are ignored as if they were not present.
  * @return the id hierarchy tree rooted at [childHcp].
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found.
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
+ * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
 suspend fun resolveHcpHierarchyIds(
 	childHcp: HealthcareParty,

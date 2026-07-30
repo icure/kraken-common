@@ -27,6 +27,11 @@ private suspend fun resolveTree(child: HealthcareParty, vararg others: Healthcar
 
 private fun node(id: String, vararg parents: DataOwnerIdWithHierarchy) = DataOwnerIdWithHierarchy(id, parents.toList())
 
+// h0 (the child) -> h1 -> ... -> h{length}, i.e. a linear chain of `length` ancestors.
+private fun linearChain(length: Int): List<HealthcareParty> = (0..length).map { i ->
+	hcp("h$i", parentId = if (i < length) "h${i + 1}" else null)
+}
+
 class HcpHierarchyResolverTest : StringSpec({
 
 	"an hcp without any group link should have no ancestors" {
@@ -143,6 +148,46 @@ class HcpHierarchyResolverTest : StringSpec({
 				hcp("c", groups = listOf(parentLink("b"))),
 			)
 		}
+	}
+
+	"a hierarchy of exactly the maximum size (100 ancestors) should resolve without throwing" {
+		val chain = linearChain(100)
+		resolve(chain.first(), *chain.drop(1).toTypedArray()) shouldBe chain.drop(1).map { it.id }
+	}
+
+	"a hierarchy exceeding the maximum size (100 ancestors) should throw" {
+		shouldThrow<IllegalEntityException> {
+			val chain = linearChain(101)
+			resolve(chain.first(), *chain.drop(1).toTypedArray())
+		}
+	}
+
+	"the maximum size applies to the total number of distinct ancestors, not to how deep any single chain is: a wide, shallow hierarchy exceeding it should throw too" {
+		// 10 top-level parents, each with 9 of its own distinct further parents (100 distinct ancestors so far, only
+		// 2 levels deep), plus one extra ancestor of one of those grandparents: 101 distinct ancestors total.
+		val topParentIds = (1..10).map { "p$it" }
+		val grandparentIdsByParent = topParentIds.associateWith { p -> (1..9).map { "$p-g$it" } }
+		val extraId = "extra"
+		val firstGrandparentId = grandparentIdsByParent.getValue(topParentIds.first()).first()
+		val child = hcp("a", groups = topParentIds.map { parentLink(it) })
+		val topHcps = topParentIds.map { p -> hcp(p, groups = grandparentIdsByParent.getValue(p).map { parentLink(it) }) }
+		val grandparentHcps = grandparentIdsByParent.values.flatten().map { id ->
+			hcp(id, parentId = if (id == firstGrandparentId) extraId else null)
+		}
+		shouldThrow<IllegalEntityException> {
+			resolve(child, *(topHcps + grandparentHcps + hcp(extraId)).toTypedArray())
+		}
+	}
+
+	"deeper ancestors shared across branches (diamonds) should count once towards the maximum size, not once per branch" {
+		// 10 parents all linked to the SAME 20 grandparents: 30 distinct ancestors total despite 200 raw links
+		// (10 x 20), well within the limit that a naive per-link count would have exceeded.
+		val topParentIds = (1..10).map { "p$it" }
+		val sharedGrandparentIds = (1..20).map { "g$it" }
+		val child = hcp("a", groups = topParentIds.map { parentLink(it) })
+		val topHcps = topParentIds.map { p -> hcp(p, groups = sharedGrandparentIds.map { parentLink(it) }) }
+		val grandparentHcps = sharedGrandparentIds.map { hcp(it) }
+		resolve(child, *(topHcps + grandparentHcps).toTypedArray()).size shouldBe 30
 	}
 
 	"a blank link id should throw" {
