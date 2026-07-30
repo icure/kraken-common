@@ -21,6 +21,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.HandledByMapper
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
@@ -64,7 +65,8 @@ interface CryptoActorDto : VersionableDto<String> {
 		description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent",
 	)
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
-	@ActiveField val parentId: String?
+	@HandledByMapper
+	val parentId: String?
 
 	@get:Schema(
 		description =

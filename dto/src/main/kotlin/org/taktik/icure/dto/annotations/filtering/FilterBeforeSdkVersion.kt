@@ -5,4 +5,5 @@ package org.taktik.icure.dto.annotations.filtering
  * This field will not be serialized if the user is using an SDK version that is strictly less than the specified [version].
  */
 @Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
 annotation class FilterBeforeSdkVersion(val version: String)

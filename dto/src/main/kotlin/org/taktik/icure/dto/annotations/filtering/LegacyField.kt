@@ -6,4 +6,5 @@ package org.taktik.icure.dto.annotations.filtering
  * compatibility header.
  */
 @Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
 annotation class LegacyField(val comment: String = "")
