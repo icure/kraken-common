@@ -30,6 +30,18 @@ interface DataOwnerLogic {
 	): CryptoActorStub?
 
 	/**
+	 * Get just the crypto-actor properties of multiple data owners for which the type is known, in bulk.
+	 * @param dataOwnerIds the ids of the data owners to retrieve.
+	 * @param dataOwnerType the type of the data owners with the provided ids.
+	 * @return the crypto-actor properties of the data owners with the provided ids, omitting the ids that don't
+	 * match any existing data owner of the expected type.
+	 */
+	fun getCryptoActorStubsWithType(
+		dataOwnerIds: Collection<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<CryptoActorStub>
+
+	/**
 	 * Get the data owner with the provided id.
 	 * @param dataOwnerId a data owner id
 	 * @return the data owner with the provided id and its type.

@@ -51,6 +51,18 @@ open class DataOwnerLogicImpl(
 		dataOwnerType: DataOwnerType,
 	): CryptoActorStub? = getDataOwnerWithType(dataOwnerId, dataOwnerType, null)?.retrieveStub()?.stub
 
+	override fun getCryptoActorStubsWithType(
+		dataOwnerIds: Collection<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<CryptoActorStub> = flow {
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		when (dataOwnerType) {
+			DataOwnerType.HCP -> hcpDao.getEntities(datastoreInfo, dataOwnerIds)
+			DataOwnerType.DEVICE -> deviceDao.getEntities(datastoreInfo, dataOwnerIds)
+			DataOwnerType.PATIENT -> patientDao.getEntities(datastoreInfo, dataOwnerIds)
+		}.collect { if (it.deletionDate == null) emit(it.retrieveStub()) }
+	}
+
 	override suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType? = doGetDataOwner(dataOwnerId, likelyType = null)
 
 	protected suspend fun doGetDataOwner(
