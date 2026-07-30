@@ -5,9 +5,14 @@
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -33,10 +38,14 @@ import org.taktik.icure.asyncservice.RelatedPersonService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
+import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
+import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.dto.RelatedPersonDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
@@ -48,6 +57,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.RelatedPersonV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
@@ -83,9 +93,42 @@ class RelatedPersonController(
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
+
+	private suspend fun RelatedPersonDto.toDomain(): RelatedPerson =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::relatedPerson,
+			relatedPersonV2Mapper::map,
+			scopePathProvider.getScopePathFor("RelatedPerson"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun RelatedPerson.toDto(): RelatedPersonDto =
+		relatedPersonV2Mapper.map(this)
+
+	private suspend fun List<RelatedPersonDto>.toDomain(): List<RelatedPerson> =
+		mapFromDtoWithExtension(
+			this,
+			customEntitiesConfigurationProvider,
+			StandardRootEntitiesExtensionConfig::relatedPerson,
+			relatedPersonV2Mapper::map,
+			scopePathProvider.getScopePathFor("RelatedPerson"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Flow<RelatedPerson>.toDto(): Flow<RelatedPersonDto> =
+		map { relatedPersonV2Mapper.map(it) }
+
+	private fun Flow<EntityBulkShareResult<RelatedPerson>>.toDtoUpdateResult(): Flow<EntityBulkShareResultDto<RelatedPersonDto>> =
+		map { bulkShareResultV2Mapper.map(it) }
+	
 	@Operation(
 		summary = "Create a related person with the current user",
 		description = "Returns an instance of created related person.",
@@ -94,7 +137,7 @@ class RelatedPersonController(
 	fun createRelatedPerson(
 		@RequestBody c: RelatedPersonDto,
 	): Mono<RelatedPersonDto> = mono {
-		relatedPersonV2Mapper.map(relatedPersonService.createRelatedPerson(relatedPersonV2Mapper.map(c)))
+		relatedPersonV2Mapper.map(relatedPersonService.createRelatedPerson(c.toDomain()))
 	}
 
 	@Operation(summary = "Get a related person")
@@ -109,7 +152,7 @@ class RelatedPersonController(
 					"Getting related person failed. Possible reasons: no such related person exists, or server error. Please try again or read the server log.",
 				)
 
-		relatedPersonV2Mapper.map(relatedPerson)
+		relatedPerson.toDto()
 	}
 
 	@Operation(summary = "Get relatedPersons by batch", description = "Get a list of relatedPersons by ids/keys.")
@@ -118,7 +161,7 @@ class RelatedPersonController(
 		@RequestBody relatedPersonIds: ListOfIdsDto,
 	): Flux<RelatedPersonDto> {
 		require(relatedPersonIds.ids.isNotEmpty()) { "You must specify at least one id." }
-		return relatedPersonService.getRelatedPersons(relatedPersonIds.ids).map(relatedPersonV2Mapper::map).injectReactorContext()
+		return relatedPersonService.getRelatedPersons(relatedPersonIds.ids).toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Deletes multiple RelatedPersons")
@@ -157,7 +200,7 @@ class RelatedPersonController(
 		@PathVariable relatedPersonId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<RelatedPersonDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		relatedPersonV2Mapper.map(relatedPersonService.undeleteRelatedPerson(relatedPersonId, rev))
+		relatedPersonService.undeleteRelatedPerson(relatedPersonId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -166,7 +209,7 @@ class RelatedPersonController(
 	): Flux<RelatedPersonDto> = relatedPersonService
 		.undeleteRelatedPersons(
 			relatedPersonIds.ids.map(idWithRevV2Mapper::map),
-		).map(relatedPersonV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{relatedPersonId}")
@@ -192,50 +235,31 @@ class RelatedPersonController(
 	fun modifyRelatedPerson(
 		@RequestBody relatedPersonDto: RelatedPersonDto,
 	): Mono<RelatedPersonDto> = mono {
-		val modifiedRelatedPerson =
-			relatedPersonService.modifyRelatedPerson(relatedPersonV2Mapper.map(relatedPersonDto))
-		relatedPersonV2Mapper.map(modifiedRelatedPerson)
+		relatedPersonService.modifyRelatedPerson(relatedPersonDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a batch of related persons", description = "Returns the modified related persons.")
 	@PutMapping("/batch")
 	fun modifyRelatedPersons(
 		@RequestBody relatedPersonDtos: List<RelatedPersonDto>,
-	): Flux<RelatedPersonDto> = try {
+	): Flux<RelatedPersonDto> = flow {
 		val relatedPersons = relatedPersonService.modifyEntities(
-			relatedPersonDtos.map { f -> relatedPersonV2Mapper.map(f) }.asFlow(),
+			relatedPersonDtos.toDomain().asFlow(),
 		)
-		relatedPersons.map { relatedPersonV2Mapper.map(it) }.injectReactorContext()
-	} catch (e: Exception) {
-		logger.warn(e.message, e)
-		throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-	}
+		emitAll(relatedPersons.toDto())
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Create a batch of related persons", description = "Returns the created related persons.")
 	@PostMapping("/batch")
 	fun createRelatedPersons(
 		@RequestBody relatedPersonDtos: List<RelatedPersonDto>,
-	): Flux<RelatedPersonDto> = relatedPersonService.createEntities(
-		relatedPersonDtos.map { f -> relatedPersonV2Mapper.map(f) }.asFlow(),
-	).map { relatedPersonV2Mapper.map(it) }.injectReactorContext()
-
-	@Operation(
-		summary = "Filter related persons for the current user (data owner)",
-		description = "Returns a list of related persons along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
-	)
-	@PostMapping("/filter")
-	fun filterRelatedPersonsBy(
-		@Parameter(description = "A RelatedPerson document ID") @RequestParam(required = false) startDocumentId: String?,
-		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
-		@RequestBody filterChain: FilterChain<RelatedPersonDto>,
-	): Mono<PaginatedList<RelatedPersonDto>> = mono {
-		val realLimit = limit ?: paginationConfig.defaultLimit
-		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
-
-		val relatedPersons = relatedPersonService.filterRelatedPersons(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
-
-		relatedPersons.paginatedList(relatedPersonV2Mapper::map, realLimit, objectMapper = objectMapper)
-	}
+	): Flux<RelatedPersonDto> = flow {
+		emitAll(
+			relatedPersonService.createEntities(
+				relatedPersonDtos.toDomain().asFlow(),
+			).toDto()
+		)
+	}.injectReactorContext()
 
 	@Operation(description = "Shares one or more related persons with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
@@ -279,7 +303,7 @@ class RelatedPersonController(
 	fun getConflictsForEntity(
 		@RequestParam entityId: String,
 	): Flux<RelatedPersonDto> = relatedPersonService.getConflictsFor(entityId)
-		.map(relatedPersonV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -287,7 +311,7 @@ class RelatedPersonController(
 		@RequestBody request: ConflictResolutionRequestDto<RelatedPersonDto>,
 	): Mono<ConflictResolutionResultDto<RelatedPersonDto>> = mono {
 		val result = relatedPersonService.declareConflictWinner(
-			entity = relatedPersonV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge,
 		)
 		conflictResolutionV2Mapper.map(result, relatedPersonV2Mapper::map)

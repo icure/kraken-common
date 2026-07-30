@@ -26,7 +26,6 @@ data class CustomEntityBaseDto(
 	override val modified: Long? = null,
 	override val author: String? = null,
 	override val responsible: String? = null,
-	@Deprecated("This field is deprecated for the use with Cardinal SDK") override val medicalLocationId: String? = null,
 	@ActiveField val endOfLife: Long? = null,
 	override val tags: Set<CodeStubDto> = emptySet(),
 	override val codes: Set<CodeStubDto> = emptySet(),

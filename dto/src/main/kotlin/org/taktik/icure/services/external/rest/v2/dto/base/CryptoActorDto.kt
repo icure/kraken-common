@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.DeprecatedAfter
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
@@ -78,6 +79,7 @@ interface CryptoActorDto : VersionableDto<String> {
 	)
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	@CardinalMetadataProperty
+	@ActiveField
 	val parentId: String?
 
 	@get:Schema(

@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -50,7 +51,8 @@ interface RelatedPersonV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(relatedPersonDto.extensions))"),
 	)
-	fun map(relatedPersonDto: RelatedPersonDto): RelatedPerson
+	fun map(relatedPersonDto: RelatedPersonDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): RelatedPerson
 	fun map(relatedPerson: RelatedPerson): RelatedPersonDto
 }
