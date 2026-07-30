@@ -185,6 +185,10 @@ data class HealthcareParty(
 	HasCodes,
 	HasIdentifier {
 
+	init {
+		CryptoActor.requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups)
+	}
+
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
 }

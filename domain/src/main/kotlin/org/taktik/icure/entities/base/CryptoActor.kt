@@ -67,6 +67,27 @@ interface CryptoActor {
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
+	companion object {
+		/**
+		 * A data owner id must appear at most once in [dataOwnerGroups], regardless of link type: linking to the same
+		 * group both as a `parent` and as an `other` (or twice with the same type) is never meaningful, since
+		 * membership/rights are granted per target, not per (target, type) pair. This does not consider the legacy
+		 * [parentId]: a group referenced both by [parentId] and by an equivalent entry in [dataOwnerGroups] is legal
+		 * (it is deduplicated by consumers, see [org.taktik.icure.security.resolveHcpAncestors]).
+		 * @throws IllegalArgumentException if [dataOwnerGroups] contains more than one link with the same
+		 * [DataOwnerGroupLink.dataOwnerId].
+		 */
+		fun requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>) {
+			val duplicateIds = dataOwnerGroups
+				.groupingBy { it.dataOwnerId }
+				.eachCount()
+				.filterValues { it > 1 }
+				.keys
+			require(duplicateIds.isEmpty()) {
+				"Duplicate dataOwnerGroups link(s) for data owner id(s): ${duplicateIds.joinToString()}"
+			}
+		}
+	}
 }
 
 /**

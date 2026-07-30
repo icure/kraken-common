@@ -26,5 +26,9 @@ data class CryptoActorStub(
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 ) : Versionable<String>,
 	CryptoActor {
+	init {
+		CryptoActor.requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups)
+	}
+
 	override fun withIdRev(id: String?, rev: String): CryptoActorStub = copy(id = id ?: this.id, rev = rev)
 }
