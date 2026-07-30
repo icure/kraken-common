@@ -41,13 +41,13 @@ interface JwtDetails : Jwt {
 	 * `parent`-type links (including the legacy parentId), deduplicated, excluding the data owner itself.
 	 * These are the groups that grant administrative (parent) rights over the data owner.
 	 */
-	val hcpHierarchyIds: Set<String>
+	val parentLinkedDataOwnerIds: Set<String>
 
 	/**
 	 * Ids of the (transitive) ancestor data owner groups of the data owner whose every path from the data owner
-	 * includes at least one `other`-type link, deduplicated, disjoint from [hcpHierarchyIds]. These groups provide
+	 * includes at least one `other`-type link, deduplicated, disjoint from [parentLinkedDataOwnerIds]. These groups provide
 	 * membership for data sharing purposes but never grant administrative rights.
 	 */
-	val hcpOtherGroupIds: Set<String> get() = emptySet()
+	val simpleLinkedDataOwnerIds: Set<String>
 	val authorities: Set<GrantedAuthority>
 }

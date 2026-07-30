@@ -91,15 +91,15 @@ suspend fun resolveHcpAncestors(
 /**
  * The ids of the ancestor groups of a healthcare party, partitioned by the rights they grant.
  *
- * @property parentIds ids of the ancestor groups reachable exclusively through [DataOwnerGroupLinkType.parent]
+ * @property parentLinkedIds ids of the ancestor groups reachable exclusively through [DataOwnerGroupLinkType.parent]
  * links (including the legacy parentId): these grant administrative rights over the healthcare party.
- * @property otherGroupIds ids of the ancestor groups whose every path from the healthcare party includes at least
+ * @property simpleLinkedIds ids of the ancestor groups whose every path from the healthcare party includes at least
  * one [DataOwnerGroupLinkType.simple] link: these provide membership only and never grant administrative rights.
- * Disjoint from [parentIds].
+ * Disjoint from [parentLinkedIds].
  */
 data class HcpAncestorIdsByRights(
-	val parentIds: Set<String>,
-	val otherGroupIds: Set<String>,
+	val parentLinkedIds: Set<String>,
+	val simpleLinkedIds: Set<String>,
 ) {
 	companion object {
 		val EMPTY = HcpAncestorIdsByRights(emptySet(), emptySet())
@@ -121,14 +121,14 @@ suspend fun resolveHcpAncestorIdsByRights(
 	childHcp: HealthcareParty,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
 ): HcpAncestorIdsByRights {
-	val allAncestors = resolveHcpAncestors(childHcp, null, loadHealthcareParties)
-	val loadedById = allAncestors.associateBy { it.id }
-	val parentIds = resolveHcpAncestors(childHcp, setOf(DataOwnerGroupLinkType.parent)) { ids ->
+	val simpleLinkedIds = resolveHcpAncestors(childHcp, null, loadHealthcareParties)
+	val loadedById = simpleLinkedIds.associateBy { it.id }
+	val parentLinkedIds = resolveHcpAncestors(childHcp, setOf(DataOwnerGroupLinkType.parent)) { ids ->
 		ids.mapNotNull { loadedById[it] }
 	}.mapTo(LinkedHashSet()) { it.id }
 	return HcpAncestorIdsByRights(
-		parentIds = parentIds,
-		otherGroupIds = allAncestors.mapNotNullTo(LinkedHashSet()) { ancestor -> ancestor.id.takeIf { it !in parentIds } },
+		parentLinkedIds = parentLinkedIds,
+		simpleLinkedIds = simpleLinkedIds.mapNotNullTo(LinkedHashSet()) { ancestor -> ancestor.id.takeIf { it !in parentLinkedIds } },
 	)
 }
 

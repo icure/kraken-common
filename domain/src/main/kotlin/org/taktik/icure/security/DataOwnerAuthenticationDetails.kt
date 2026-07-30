@@ -48,27 +48,15 @@ interface DataOwnerAuthenticationDetails {
 		val type: DataOwnerType
 
 		/**
-		 * Ids of all the (transitive) ancestor data owner groups of this data owner, excluding [id] itself. Retrieved
-		 * on request but implementations should cache the result the first time it is requested in case the retrieval
-		 * may be costly (e.g. it requires to retrieve data from a database).
+		 * Ids of all the (transitive) ancestor data owner groups of this data owner, excluding [id] itself.
 		 * This includes all links, regardless of [DataOwnerGroupLinkType]
 		 */
-		suspend fun ancestorIds(): Set<String>
+		fun allLinkedDataOwnerIds(): Set<String>
 
 		/**
-		 * Subset of [ancestorIds] limited to the ancestor data owner groups reachable exclusively through
-		 * [DataOwnerGroupLinkType.parent] links (including the legacy parentId). Only these groups grant
-		 * administrative (parent) rights over this data owner; the remaining [ancestorIds] provide group
-		 * membership only.
+		 * Subset of [allLinkedDataOwnerIds] limited to the ancestor data owner groups reachable exclusively through
+		 * [DataOwnerGroupLinkType.parent] links (including the legacy parentId).
 		 */
-		suspend fun parentIds(): Set<String>
-
-		/**
-		 * [id] plus [ancestorIds]: the ids of all the data owners in the hierarchy of this data owner.
-		 */
-		suspend fun hierarchyIds(): Set<String> = buildSet {
-			add(id)
-			addAll(ancestorIds())
-		}
+		fun allParentLinkedDataOwnerIds(): Set<String>
 	}
 }
