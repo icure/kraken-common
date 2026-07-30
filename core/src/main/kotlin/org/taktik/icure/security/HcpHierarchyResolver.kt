@@ -114,6 +114,11 @@ data class HcpAncestorIdsByRights(
  * The partitioning is done in memory on the ancestors loaded by the full traversal: [loadHealthcareParties] is
  * invoked exactly as many times as by a single [resolveHcpAncestors] call.
  *
+ * Both id sets preserve insertion order (backed by a `LinkedHashSet`), topmost ancestor first: for a plain,
+ * non-branching legacy `parentId` chain this matches the pre-multi-parent hierarchy claim ordering (topmost first,
+ * direct parent last). Order has no single well-defined meaning once a hierarchy branches (multiple parents /
+ * diamonds), so it should not be relied upon in that case.
+ *
  * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
  * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
@@ -123,12 +128,15 @@ suspend fun resolveHcpAncestorIdsByRights(
 ): HcpAncestorIdsByRights {
 	val simpleLinkedIds = resolveHcpAncestors(childHcp, null, loadHealthcareParties)
 	val loadedById = simpleLinkedIds.associateBy { it.id }
+	// resolveHcpAncestors returns direct-first, topmost-last (deterministic first-encounter order); reversed here so
+	// that a plain, non-branching parentId chain keeps the pre-multi-parent JWT hierarchy order: topmost-first,
+	// direct-parent-last. Order has no defined meaning for branching hierarchies, so this only matters for that case.
 	val parentLinkedIds = resolveHcpAncestors(childHcp, setOf(DataOwnerGroupLinkType.parent)) { ids ->
 		ids.mapNotNull { loadedById[it] }
-	}.mapTo(LinkedHashSet()) { it.id }
+	}.asReversed().mapTo(LinkedHashSet()) { it.id }
 	return HcpAncestorIdsByRights(
 		parentLinkedIds = parentLinkedIds,
-		simpleLinkedIds = simpleLinkedIds.mapNotNullTo(LinkedHashSet()) { ancestor -> ancestor.id.takeIf { it !in parentLinkedIds } },
+		simpleLinkedIds = simpleLinkedIds.asReversed().mapNotNullTo(LinkedHashSet()) { ancestor -> ancestor.id.takeIf { it !in parentLinkedIds } },
 	)
 }
 
