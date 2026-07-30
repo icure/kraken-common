@@ -18,6 +18,14 @@ private const val MAX_HCP_ANCESTORS = 100
  * Membership propagates through all links, whatever their type: the groups of a group joined through a link are
  * included in the result, recursively.
  *
+ * Every [DataOwnerGroupLinkType] has a [DataOwnerGroupLinkType.strength]. Along any single path away from [childHcp],
+ * the strength of successive links may only stay the same (with the same link type) or decrease: a link stronger
+ * than the one before it, or of the same strength but a different type ("shifting"), makes the transitive link
+ * ambiguous and is rejected. This is intentionally conservative — a single ambiguous link fails the whole
+ * resolution, even if the same target is also reachable through another, unambiguous path (diamond configurations)
+ * — since there is no current use case for the more permissive alternative (e.g. resolving the transitive type from
+ * the least-restrictive valid path). This restriction may be relaxed in the future.
+ *
  * A group reachable through different paths (diamond configurations) is legal and appears exactly once, but a
  * circular reference along a single path causes an [IllegalEntityException]. Direct self-references and links to
  * healthcare parties that cannot be loaded are ignored.
@@ -29,8 +37,9 @@ private const val MAX_HCP_ANCESTORS = 100
  * links are ignored as if they were not present.
  * @return the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself, in depth-first
  * first-encounter order following the declaration order of the links.
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
- * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
+ * @throws IllegalEntityException if a link with a blank id or a circular reference is found, if the number of
+ * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS], or if a link stronger than (or of the same strength as, but
+ * a different type than) the previous link on the same path is found.
  */
 suspend fun resolveHcpAncestors(
 	childHcp: HealthcareParty,
@@ -55,22 +64,27 @@ suspend fun resolveHcpAncestors(
 	}
 
 	val ancestors = LinkedHashMap<String, HealthcareParty>()
-	fun visit(of: HealthcareParty, pathIds: Set<String>) {
-		of.validatedGroupLinks(childHcp, restrictToLinksOfType).forEach { groupId ->
+	fun visit(of: HealthcareParty, pathIds: Set<String>, lastLinkType: DataOwnerGroupLinkType?) {
+		of.validatedGroupLinksWithType(childHcp, restrictToLinksOfType).forEach { (linkType, groupId) ->
 			when {
 				groupId == of.id -> {} // tolerated for compatibility with the legacy parentId handling
 				groupId in pathIds -> throw IllegalEntityException(
 					"Circular reference in the hcp hierarchy starting from ${childHcp.id} detected.",
 				)
+				lastLinkType != null && !linkType.canTransitivelyFollow(lastLinkType) -> throw IllegalEntityException(
+					"Ambiguous transitive data owner group link in the hcp hierarchy starting from ${childHcp.id}: " +
+						"a $linkType link (strength ${linkType.strength}) follows a $lastLinkType link " +
+						"(strength ${lastLinkType.strength}) on the path to $groupId.",
+				)
 				else -> loadedById[groupId]?.let { group ->
 					if (ancestors.putIfAbsent(group.id, group) == null) {
-						visit(group, pathIds + groupId)
+						visit(group, pathIds + groupId, linkType)
 					}
 				}
 			}
 		}
 	}
-	visit(childHcp, setOf(childHcp.id))
+	visit(childHcp, setOf(childHcp.id), null)
 	return ancestors.values.toList()
 }
 
@@ -80,7 +94,7 @@ suspend fun resolveHcpAncestors(
  * @property parentIds ids of the ancestor groups reachable exclusively through [DataOwnerGroupLinkType.parent]
  * links (including the legacy parentId): these grant administrative rights over the healthcare party.
  * @property otherGroupIds ids of the ancestor groups whose every path from the healthcare party includes at least
- * one [DataOwnerGroupLinkType.other] link: these provide membership only and never grant administrative rights.
+ * one [DataOwnerGroupLinkType.simple] link: these provide membership only and never grant administrative rights.
  * Disjoint from [parentIds].
  */
 data class HcpAncestorIdsByRights(
@@ -96,7 +110,7 @@ data class HcpAncestorIdsByRights(
  * Resolves the ids of all the ancestor groups of [childHcp] (same traversal as [resolveHcpAncestors] with no link
  * type restriction) partitioned by the rights they grant: the groups reachable through a pure
  * [DataOwnerGroupLinkType.parent] path and the groups only reachable through paths including an
- * [DataOwnerGroupLinkType.other] link. A group reachable both ways counts as a parent.
+ * [DataOwnerGroupLinkType.simple] link. A group reachable both ways counts as a parent.
  * The partitioning is done in memory on the ancestors loaded by the full traversal: [loadHealthcareParties] is
  * invoked exactly as many times as by a single [resolveHcpAncestors] call.
  *
@@ -150,15 +164,16 @@ suspend fun resolveHcpHierarchyIds(
 }
 
 /**
- * The ids of the groups this healthcare party is directly linked to (legacy [HealthcareParty.parentId], treated as a
- * [DataOwnerGroupLinkType.parent] link, plus [HealthcareParty.dataOwnerGroups]), deduplicated, restricted to links
- * whose type is included in [restrictToLinksOfType] if it is not null.
+ * The groups this healthcare party is directly linked to (legacy [HealthcareParty.parentId], treated as a
+ * [DataOwnerGroupLinkType.parent] link, plus [HealthcareParty.dataOwnerGroups]), with their link type, deduplicated
+ * by group id (the legacy [HealthcareParty.parentId] wins over a [HealthcareParty.dataOwnerGroups] entry for the same
+ * id), restricted to links whose type is included in [restrictToLinksOfType] if it is not null.
  * @throws IllegalEntityException if any of the linked ids is blank.
  */
-private fun HealthcareParty.validatedGroupLinks(
+private fun HealthcareParty.validatedGroupLinksWithType(
 	childHcp: HealthcareParty,
 	restrictToLinksOfType: Set<DataOwnerGroupLinkType>?,
-): List<String> = (
+): List<Pair<DataOwnerGroupLinkType, String>> = (
 	listOfNotNull(parentId?.let { DataOwnerGroupLinkType.parent to it }) +
 		dataOwnerGroups.map { it.linkType to it.dataOwnerId }
 	)
@@ -168,5 +183,20 @@ private fun HealthcareParty.validatedGroupLinks(
 		}
 	}
 	.filter { (linkType, _) -> restrictToLinksOfType == null || linkType in restrictToLinksOfType }
-	.map { it.second }
-	.distinct()
+	.distinctBy { it.second }
+
+/**
+ * The ids of the groups this healthcare party is directly linked to (see [validatedGroupLinksWithType]).
+ * @throws IllegalEntityException if any of the linked ids is blank.
+ */
+private fun HealthcareParty.validatedGroupLinks(
+	childHcp: HealthcareParty,
+	restrictToLinksOfType: Set<DataOwnerGroupLinkType>?,
+): List<String> = validatedGroupLinksWithType(childHcp, restrictToLinksOfType).map { it.second }
+
+/**
+ * Whether a link of this type may transitively follow a link of type [previous] on the same path away from the
+ * starting healthcare party: only allowed if this link's [DataOwnerGroupLinkType.strength] is lower than
+ * [previous]'s, or the same and of the same type (see [resolveHcpAncestors]).
+ */
+private fun DataOwnerGroupLinkType.canTransitivelyFollow(previous: DataOwnerGroupLinkType): Boolean = strength < previous.strength || this == previous

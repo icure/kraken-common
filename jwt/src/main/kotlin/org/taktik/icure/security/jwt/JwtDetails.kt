@@ -13,7 +13,7 @@ const val DATA_OWNER_TYPE = "doTp"
  * Each entry encodes the rights the ancestor group grants:
  * - a bare id is a parent group ([hcpHierarchyIds]): the data owner is reachable exclusively through `parent`-type
  *   links, which grant administrative rights;
- * - an id prefixed with [HCP_HIERARCHY_OTHER_PREFIX] is a group providing membership only ([hcpOtherGroupIds]).
+ * - an id prefixed with [HCP_HIERARCHY_SIMPLE_PREFIX] is a group providing membership only ([hcpOtherGroupIds]).
  *
  * The prefix is a character forbidden in entity ids (see `EntityIdValidation`), which makes the encoding safe
  * against downgrade attacks: a token issued by a kraken aware of the distinction and replayed on an older kraken
@@ -29,7 +29,7 @@ const val HCP_HIERARCHY = "hh"
  * Prefix marking an [HCP_HIERARCHY] entry as a membership-only group (see [HCP_HIERARCHY]). Must be a character
  * forbidden in entity ids by `EntityIdValidation`.
  */
-const val HCP_HIERARCHY_OTHER_PREFIX = "/"
+const val HCP_HIERARCHY_SIMPLE_PREFIX = "/"
 const val AUTHORITIES = "a"
 
 interface JwtDetails : Jwt {

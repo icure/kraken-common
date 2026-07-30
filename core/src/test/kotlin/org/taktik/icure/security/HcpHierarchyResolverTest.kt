@@ -13,7 +13,7 @@ private fun hcp(id: String, parentId: String? = null, groups: List<DataOwnerGrou
 	HealthcareParty(id = id, parentId = parentId, dataOwnerGroups = groups)
 
 private fun parentLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.parent, id)
-private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.other, id)
+private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.simple, id)
 
 private suspend fun resolve(child: HealthcareParty, vararg others: HealthcareParty): List<String> {
 	val othersById = others.associateBy { it.id }
@@ -87,34 +87,74 @@ class HcpHierarchyResolverTest : StringSpec({
 		) shouldBe listOf("b", "c")
 	}
 
-	"membership should propagate past linked groups whatever the link type" {
+	"a link may transitively follow a stronger (or equally strong, same-type) link: strength may only stay the same or decrease going up the hierarchy" {
+		// parent(10) -> simple(0): decreasing, allowed
 		resolve(
-			hcp("a", groups = listOf(otherLink("b"))),
-			hcp("b", groups = listOf(parentLink("c"))),
+			hcp("a", groups = listOf(parentLink("b"))),
+			hcp("b", groups = listOf(otherLink("c"))),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
-		resolve(
-			hcp("a", groups = listOf(otherLink("b"))),
-			hcp("b", parentId = "c"),
-			hcp("c"),
-		) shouldBe listOf("b", "c")
-	}
-
-	"membership should propagate through paths mixing link types" {
+		// legacy parentId (implicit parent) -> simple: same as above
 		resolve(
 			hcp("a", parentId = "b"),
 			hcp("b", groups = listOf(otherLink("c"))),
-			hcp("c", parentId = "d"),
-			hcp("d"),
-		) shouldBe listOf("b", "c", "d")
-	}
-
-	"a same group joined through links of different types should be included only once" {
-		resolve(
-			hcp("a", groups = listOf(parentLink("b"), otherLink("b"))),
-			hcp("b", parentId = "c"),
 			hcp("c"),
 		) shouldBe listOf("b", "c")
+		// parent(10) -> simple(0) -> simple(0): decreasing then constant same-type, allowed
+		resolve(
+			hcp("a", parentId = "b"),
+			hcp("b", groups = listOf(otherLink("c"))),
+			hcp("c", groups = listOf(otherLink("d"))),
+			hcp("d"),
+		) shouldBe listOf("b", "c", "d")
+		// simple(0) -> simple(0): constant same-type, allowed
+		resolve(
+			hcp("a", groups = listOf(otherLink("b"))),
+			hcp("b", groups = listOf(otherLink("c"))),
+			hcp("c"),
+		) shouldBe listOf("b", "c")
+	}
+
+	"a link stronger than the one before it on the same path makes the transitive link ambiguous and should throw" {
+		// simple(0) -> parent(10): increasing, not allowed
+		shouldThrow<IllegalEntityException> {
+			resolve(
+				hcp("a", groups = listOf(otherLink("b"))),
+				hcp("b", groups = listOf(parentLink("c"))),
+				hcp("c"),
+			)
+		}
+		// simple(0) -> legacy parentId (implicit parent, 10): same as above
+		shouldThrow<IllegalEntityException> {
+			resolve(
+				hcp("a", groups = listOf(otherLink("b"))),
+				hcp("b", parentId = "c"),
+				hcp("c"),
+			)
+		}
+		// parent(10) -> simple(0) -> parent(10): decreasing then increasing again, not allowed
+		shouldThrow<IllegalEntityException> {
+			resolve(
+				hcp("a", parentId = "b"),
+				hcp("b", groups = listOf(otherLink("c"))),
+				hcp("c", parentId = "d"),
+				hcp("d"),
+			)
+		}
+	}
+
+	"a single ambiguous path is enough to fail the whole resolution, even if the same target is also reachable through another, unambiguous path" {
+		// a -simple-> b -parent-> d : ambiguous (simple then parent)
+		// a -parent-> c -parent-> d : unambiguous (parent then parent)
+		// the ambiguous path through b is enough to fail, even though d is also reachable unambiguously through c
+		shouldThrow<IllegalEntityException> {
+			resolve(
+				hcp("a", groups = listOf(otherLink("b"), parentLink("c"))),
+				hcp("b", groups = listOf(parentLink("d"))),
+				hcp("c", groups = listOf(parentLink("d"))),
+				hcp("d"),
+			)
+		}
 	}
 
 	"direct self-references should be ignored" {

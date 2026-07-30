@@ -8,7 +8,7 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 
 private fun parentLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.parent, id)
-private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.other, id)
+private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.simple, id)
 
 class CryptoActorTest : StringSpec({
 
