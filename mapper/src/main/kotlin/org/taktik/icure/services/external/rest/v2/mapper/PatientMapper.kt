@@ -25,6 +25,7 @@ import org.mapstruct.Mappings
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
@@ -44,6 +45,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV
 	componentModel = "spring",
 	uses = [
 		IdentifierV2Mapper::class,
+		DataOwnerGroupLinkV2Mapper::class,
 		FinancialInstitutionInformationV2Mapper::class,
 		SchoolingInfoV2Mapper::class,
 		AddressV2Mapper::class,

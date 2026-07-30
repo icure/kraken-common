@@ -190,19 +190,6 @@ open class HealthcarePartyLogicImpl(
 		emitAll(healthcarePartyDAO.listHealthcarePartiesByParentId(datastoreInformation, parentId))
 	}
 
-	override suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String> {
-		val hcpartyIds = HashSet<String>()
-		hcpartyIds.add(sender.id)
-
-		var hcpInHierarchy: HealthcareParty? = sender
-
-		while (hcpInHierarchy?.parentId?.isNotBlank() == true) {
-			hcpInHierarchy = getHealthcareParty(hcpInHierarchy.parentId!!)
-			hcpInHierarchy?.id?.let { hcpartyIds.add(it) }
-		}
-		return hcpartyIds
-	}
-
 	override fun filterHealthcareParties(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthcareParty>,

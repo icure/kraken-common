@@ -13,6 +13,10 @@ import org.taktik.icure.mergers.annotations.MergeStrategyUse
  * @property privateKeyShamirPartitions The privateKeyShamirPartitions are used to share this hcp's private RSA key with a series of other hcParties using Shamir's algorithm. The key of the map is the hcp Id with whom this partition has been shared. The value is \"threshold|partition in hex\" encrypted using the the partition's holder's public RSA key
  * @property publicKey The public key of this actor
  * @property publicKeysForOaepWithSha256 The public keys of this actor which should be used for RSA-OAEP with sha256 encryption
+ * @property dataOwnerGroups The links to the HealthcareParties that are used to represent organizations, administrative units or loose groups of hcps that need to easily share information with each others. Those HealthcareParties usually have public keys and associated private keys as they are legitimate targets for SecureDelegations.
+ * Group membership is transitive, whatever the link type: if this actor is linked to a group A and A is itself linked
+ * to a group B, then this actor also belongs to B. Resolving the full set of groups of an actor therefore requires
+ * following those links recursively.
  * @property cryptoActorProperties a set of [PropertyStub] associated to this [CryptoActor]. They are not supposed to be encrypted if
  * the concrete implementation of this interface is Encryptable and so they must not contain any sensitive information.
  */
@@ -56,10 +60,34 @@ interface CryptoActor {
 	// aesExchangeKey field must be used for RSA-OAEP with Sha-1 and are considered legacy starting from v8 of the SDK).
 	val publicKeysForOaepWithSha256: Set<String>
 
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkType.parent link instead")
 	val parentId: String?
+
+	val dataOwnerGroups: List<DataOwnerGroupLink>
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
+	companion object {
+		/**
+		 * A data owner id must appear at most once in [dataOwnerGroups], regardless of link type: linking to the same
+		 * group both as a `parent` and as an `other` (or twice with the same type) is never meaningful, since
+		 * membership/rights are granted per target, not per (target, type) pair. This does not consider the legacy
+		 * [parentId]: a group referenced both by [parentId] and by an equivalent entry in [dataOwnerGroups] is legal
+		 * (it is deduplicated by consumers, see [org.taktik.icure.security.resolveHcpAncestors]).
+		 * @throws IllegalArgumentException if [dataOwnerGroups] contains more than one link with the same
+		 * [DataOwnerGroupLink.dataOwnerId].
+		 */
+		fun requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>) {
+			val duplicateIds = dataOwnerGroups
+				.groupingBy { it.dataOwnerId }
+				.eachCount()
+				.filterValues { it > 1 }
+				.keys
+			require(duplicateIds.isEmpty()) {
+				"Duplicate dataOwnerGroups link(s) for data owner id(s): ${duplicateIds.joinToString()}"
+			}
+		}
+	}
 }
 
 /**
@@ -81,6 +109,7 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			transferKeys = this.transferKeys,
 			publicKeysForOaepWithSha256 = this.publicKeysForOaepWithSha256,
 			parentId = this.parentId,
+			dataOwnerGroups = this.dataOwnerGroups,
 			cryptoActorProperties = this.cryptoActorProperties,
 		)
 	}

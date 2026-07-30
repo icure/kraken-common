@@ -21,9 +21,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkNonNullable
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
@@ -33,8 +35,6 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
-import com.fasterxml.jackson.annotation.JsonFilter
-import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -85,7 +85,11 @@ data class DeviceDto(
 	/** The serial number of the device. */
 	@ActiveField val serialNumber: String? = null,
 	/** The id of the parent of the user representing the device. */
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: String? = null,
+	/** The links to the data owners representing the groups this device belongs to. */
+	@ActiveField
+	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
 	/** A picture of the device, usually in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val picture: ByteArray? = null,

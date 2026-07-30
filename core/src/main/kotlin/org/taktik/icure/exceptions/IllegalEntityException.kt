@@ -1,5 +1,5 @@
 package org.taktik.icure.exceptions
 
 class IllegalEntityException(
-	message: String = "Invalid 2FA",
+	message: String,
 ) : IllegalStateException(message)

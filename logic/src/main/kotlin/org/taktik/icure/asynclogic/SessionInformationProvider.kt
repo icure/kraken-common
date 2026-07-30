@@ -40,20 +40,10 @@ interface SessionInformationProvider : DataOwnerProvider {
 	suspend fun getDataOwnerAuthenticationDetailsOrNull(): DataOwnerAuthenticationDetails?
 
 	/**
-	 * If the current user is not a data owner returns an empty list.
-	 * If the current user has no parent data owner returns a singleton list of the current data owner id.
-	 * If the data owner has a parent returns a list where the first element is the topmost ancestor in the hierarchy of
-	 * the logged data owner, the element before the last is the direct parent of the hcp, and the last is the current
-	 * data owner.
+	 * If the current user is not a data owner returns false.
+	 * Returns true if [id] is the current data owner or one of its (transitive) ancestor data owner groups.
 	 */
-	suspend fun getDataOwnerHierarchyIncludingSelf(): List<String>
-
-	/**
-	 * If the current user is not a data owner or has no parent data owner returns an empty list.
-	 * If the data owner has a parent returns a list where the first element is the topmost ancestor in the hierarchy of
-	 * the logged data owner, while the last is the direct parent of the hcp.
-	 */
-	suspend fun getDataOwnerHierarchy(): List<String>
+	suspend fun selfOrDataOwnerHierarchyContains(id: String): Boolean
 
 	interface AsyncSessionContext : Serializable {
 

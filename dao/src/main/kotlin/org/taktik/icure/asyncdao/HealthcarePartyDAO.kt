@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
 
 interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
@@ -111,19 +112,21 @@ interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 	suspend fun getAesExchangeKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
 
 	/**
-	 * Retrieves all the [HealthcareParty] entities where [HealthcareParty.parentId] is equal to [parentId].
+	 * Retrieves all the [HealthcareParty] entities that are direct children of [parentId], either through the legacy
+	 * [HealthcareParty.parentId] or through a parent-type link in [HealthcareParty.dataOwnerGroups].
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param parentId the [HealthcareParty.parentId].
+	 * @param parentId the id of the parent healthcare party.
 	 * @return a [Flow] of [HealthcareParty].
 	 */
 	fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String): Flow<HealthcareParty>
 
 	/**
-	 * Retrieves all the [HealthcareParty.id]s where [HealthcareParty.parentId] is equal to [parentId].
+	 * Retrieves all the [HealthcareParty.id]s that are direct children of [parentId], either through the legacy
+	 * [HealthcareParty.parentId] or through a parent-type link in [HealthcareParty.dataOwnerGroups].
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify group and CouchDB instance.
-	 * @param parentId the [HealthcareParty.parentId].
+	 * @param parentId the id of the parent healthcare party.
 	 * @return a [Flow] of [HealthcareParty.id]s.
 	 */
 	fun listHealthcarePartyIdsByParentId(datastoreInformation: IDatastoreInformation, parentId: String): Flow<String>
@@ -145,4 +148,18 @@ interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 	 * @return a [Flow] of [HealthcareParty.id]s.
 	 */
 	fun listHealthcarePartyIdsByName(datastoreInformation: IDatastoreInformation, name: String, desc: Boolean = false): Flow<String>
+
+	/**
+	 * Retrieves the ids of the healthcare parties directly linked to the data owner group with the provided id,
+	 * together with the type of the link. The legacy [HealthcareParty.parentId] is reported as a
+	 * [DataOwnerGroupLinkType.parent] link; a healthcare party referencing the group both through the legacy
+	 * parentId and a [HealthcareParty.dataOwnerGroups] link is emitted once, as a parent link.
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify the group and CouchDB instance.
+	 * @param dataOwnerGroupId the id of the data owner representing the group.
+	 * @return a [Flow] of ([HealthcareParty.id], [DataOwnerGroupLinkType]) pairs.
+	 */
+	fun listHealthcarePartiesIdsByDataOwnerGroupId(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerGroupId: String
+	): Flow<Pair<String, DataOwnerGroupLinkType>>
 }

@@ -278,7 +278,11 @@ data class PatientDto(
 	/** Employment information (deprecated, use properties instead). */
 	@Deprecated("Use properties instead") @ActiveField val employementInfos: List<EmploymentInfoDto> = emptyList(),
 	/** Always null for patients. */
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: Nothing? = null,
+	/** The links to the data owners representing the groups this patient belongs to. */
+	@ActiveField
+	override val dataOwnerGroups: List<Nothing> = emptyList(),
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
