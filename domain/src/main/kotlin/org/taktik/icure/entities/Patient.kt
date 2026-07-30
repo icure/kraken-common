@@ -14,6 +14,7 @@ import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
@@ -217,6 +218,7 @@ data class Patient(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 ) : StoredICureDocument,
+	HasMedicalLocation,
 	Person,
 	HasEncryptionMetadata,
 	HasIdentifier,

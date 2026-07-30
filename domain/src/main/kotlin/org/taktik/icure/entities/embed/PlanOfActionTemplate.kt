@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.validation.AutoFix
@@ -34,6 +35,7 @@ data class PlanOfActionTemplate(
 	val status: Int = 0, // bit 0: active/inactive, bit 1: relevant/irrelevant, bit 2 : present/absent, ex: 0 = active,relevant and present
 	var forms: List<FormSkeleton> = emptyList(),
 ) : ICureDocument<String>,
+	HasMedicalLocation,
 	Named {
 
 	override fun withTimestamps(created: Long?, modified: Long?) = when {

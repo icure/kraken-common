@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
@@ -68,6 +69,7 @@ data class IcureStubDto(
 	/** The security metadata containing secure delegation information. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 ) : ICureDocumentDto<String>,
+	HasMedicalLocationDto,
 	VersionableDto<String>,
 	HasEncryptionMetadataDto,
 	HasEndOfLifeDto {

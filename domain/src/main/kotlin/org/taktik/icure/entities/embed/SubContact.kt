@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
@@ -67,7 +68,8 @@ data class SubContact(
 	val services: List<ServiceLink> = emptyList(),
 	override val encryptedSelf: String? = null,
 ) : Encryptable,
-	ICureDocument<String?> {
+	ICureDocument<String?>,
+	HasMedicalLocation {
 	companion object {
 		const val STATUS_LABO_RESULT = 1
 		const val STATUS_UNREAD = 2

@@ -52,8 +52,4 @@ interface ICureDocumentDto<T> :
 	@ActiveField val responsible:
 		String?
 
-	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@get:Schema(description = "The id of the medical location where this entity was created.")
-	@ActiveField val medicalLocationId: String?
-
 }

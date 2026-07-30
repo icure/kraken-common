@@ -29,6 +29,7 @@ import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
@@ -41,6 +42,7 @@ import org.taktik.icure.services.external.rest.v2.dto.InvoiceDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.dto.PatientDto
+import org.taktik.icure.services.external.rest.v2.dto.RelatedPersonDto
 import org.taktik.icure.services.external.rest.v2.dto.UserDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
@@ -67,6 +69,9 @@ open class FilterChainV2Mapper(
 
 	@JvmName("tryMapMaintenanceTask")
 	fun tryMap(filterChainDto: FilterChain<MaintenanceTaskDto>): org.taktik.icure.domain.filter.chain.FilterChain<MaintenanceTask>? = tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }
+
+	@JvmName("tryMapRelatedPerson")
+	fun tryMap(filterChainDto: FilterChain<RelatedPersonDto>): org.taktik.icure.domain.filter.chain.FilterChain<RelatedPerson>? = tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }
 
 	@JvmName("tryMapPatient")
 	fun tryMap(filterChainDto: FilterChain<PatientDto>): org.taktik.icure.domain.filter.chain.FilterChain<Patient>? = tryMap(filterChainDto) { filterV2Mapper.tryMap(it) }

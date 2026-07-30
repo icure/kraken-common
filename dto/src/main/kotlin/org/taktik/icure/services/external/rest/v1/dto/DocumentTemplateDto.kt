@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v1.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.base.ReportVersionDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
@@ -41,7 +42,8 @@ data class DocumentTemplateDto(
 	val disabled: String? = null,
 	val specialty: CodeStubDto? = null,
 ) : StoredDocumentDto,
-	ICureDocumentDto<String> {
+	ICureDocumentDto<String>,
+	HasMedicalLocationDto {
 
 	override fun withIdRev(
 		id: String?,
