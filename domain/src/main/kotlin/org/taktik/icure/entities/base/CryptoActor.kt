@@ -63,21 +63,59 @@ interface CryptoActor {
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkType.parent link instead")
 	val parentId: String?
 
+	/**
+	 * The links to the data owners representing the organizations, administrative units or other loose groups of
+	 * healthcare parties this crypto actor belongs to.
+	 * There are different types of links, which have different implication on access control and requirements for
+	 * sharing data among all members of the group.
+	 *
+	 * This list should be considered as unordered, and it may not contain two links pointing to the same data owner,
+	 * regardless of type.
+	 *
+	 * # Membership propagation
+	 *
+	 * All links are transitive, whatever their type: every directly linked group is a group of the actor, and the groups
+	 * of a group are also groups of the actor (applied recursively). An actor is therefore a member of every group
+	 * reachable through a path of links.
+	 *
+	 * For example with `hcp -parent-> department -simple-> building -simple-> campus`: the groups of `hcp` are
+	 * `department`, `building` and `campus`.
+	 *
+	 * There may however be restrictions in place on how propagation when the link type changes: propagation from a
+	 * parent link to a simple link is allowed, but the opposite is not.
+	 * A group membership such as `hcp -parent-> department -simple-> building -parent-> campus` is not allowed: while
+	 * the relationships of `building` are technically valid the full membership for `department` or `hcp` is invalid,
+	 * and a user associated with a data owner that has invalid membership is not allowed to login.
+	 *
+	 * # Why groups instead of direct sharing with members
+	 *
+	 * By using groups of data owners instead of directly sharing data with each data owner in a group you gain two
+	 * major advantages:
+	 * - Reduced size of metadata on entities
+	 * - Possibility of dynamically adding peoples to a group without having to update all the entities that they should
+	 *   be able to access
+	 *
+	 * In a full-scale system where data is massively shared between groups of users using data owner groups is the
+	 * only realistic choice available.
+	 */
 	val dataOwnerGroups: List<DataOwnerGroupLink>
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
 	companion object {
 		/**
-		 * A data owner id must appear at most once in [dataOwnerGroups], regardless of link type: linking to the same
-		 * group both as a `parent` and as an `other` (or twice with the same type) is never meaningful, since
-		 * membership/rights are granted per target, not per (target, type) pair. This does not consider the legacy
-		 * [parentId]: a group referenced both by [parentId] and by an equivalent entry in [dataOwnerGroups] is legal
-		 * (it is deduplicated by consumers, see [org.taktik.icure.security.resolveHcpAncestors]).
+		 * Validates the [dataOwnerGroups] links of a crypto actor together with its legacy [parentId]:
+		 * - A data owner id must appear at most once in [dataOwnerGroups], regardless of link type: linking to the
+		 *   same group both as a `parent` and as an `other` (or twice with the same type) is never meaningful, since
+		 *   membership/rights are granted per target, not per (target, type) pair.
+		 * - If [parentId] is not null and [dataOwnerGroups] also has an entry for that same data owner id (which is
+		 *   legal, see [org.taktik.icure.security.resolveHcpAncestors]), that entry must be a
+		 *   [DataOwnerGroupLinkType.parent] link: a [parentId] paired with a differently-typed link to the same
+		 *   target would be a contradiction (is it a parent or not?).
 		 * @throws IllegalArgumentException if [dataOwnerGroups] contains more than one link with the same
-		 * [DataOwnerGroupLink.dataOwnerId].
+		 * [DataOwnerGroupLink.dataOwnerId], or if it links the [parentId] data owner with a non-parent link type.
 		 */
-		fun requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>) {
+		fun validateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>, parentId: String?) {
 			val duplicateIds = dataOwnerGroups
 				.groupingBy { it.dataOwnerId }
 				.eachCount()
@@ -85,6 +123,12 @@ interface CryptoActor {
 				.keys
 			require(duplicateIds.isEmpty()) {
 				"Duplicate dataOwnerGroups link(s) for data owner id(s): ${duplicateIds.joinToString()}"
+			}
+			if (parentId != null) {
+				val linkToParent = dataOwnerGroups.firstOrNull { it.dataOwnerId == parentId }
+				require(linkToParent == null || linkToParent.linkType == DataOwnerGroupLinkType.parent) {
+					"dataOwnerGroups has a link of type ${linkToParent?.linkType} to the legacy parentId $parentId, expected a link of type ${DataOwnerGroupLinkType.parent} or none"
+				}
 			}
 		}
 	}

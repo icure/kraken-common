@@ -135,7 +135,7 @@ data class Device(
 	DataOwner {
 
 	init {
-		CryptoActor.requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups)
+		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups, parentId)
 	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
