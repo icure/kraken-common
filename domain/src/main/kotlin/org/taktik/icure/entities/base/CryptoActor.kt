@@ -131,6 +131,24 @@ interface CryptoActor {
 				}
 			}
 		}
+
+		/**
+		 * Folds the legacy [parentId] into [dataOwnerGroups] as a [DataOwnerGroupLinkType.parent] link, deduping by
+		 * [DataOwnerGroupLink.dataOwnerId]: if [dataOwnerGroups] already has an entry for [parentId] it is assumed to
+		 * be the equivalent [DataOwnerGroupLinkType.parent] link (see [validateDataOwnerGroupLinks]) and is kept as
+		 * is, otherwise a new [DataOwnerGroupLinkType.parent] entry for [parentId] is added.
+		 * @return the normalized, deduped set of links: [dataOwnerGroups] plus [parentId] represented as a
+		 * [DataOwnerGroupLinkType.parent] link, if not already present.
+		 */
+		fun normalizedDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>, parentId: String?): Set<DataOwnerGroupLink> {
+			val links = dataOwnerGroups.toSet()
+			val parentIdAsLink = parentId?.let { DataOwnerGroupLink(DataOwnerGroupLinkType.parent, it) }
+			return if (parentIdAsLink == null || links.any { it.dataOwnerId == parentIdAsLink.dataOwnerId }) {
+				links
+			} else {
+				links + parentIdAsLink
+			}
+		}
 	}
 }
 

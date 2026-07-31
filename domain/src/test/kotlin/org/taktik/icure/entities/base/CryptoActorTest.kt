@@ -43,6 +43,20 @@ class CryptoActorTest : StringSpec({
 		}
 	}
 
+	"normalizedDataOwnerGroupLinks should fold a parentId with no corresponding entry in as a parent-type link" {
+		CryptoActor.normalizedDataOwnerGroupLinks(listOf(otherLink("b")), parentId = "a") shouldBe
+			setOf(otherLink("b"), parentLink("a"))
+	}
+
+	"normalizedDataOwnerGroupLinks should not duplicate a parentId already represented by a parent-type link" {
+		CryptoActor.normalizedDataOwnerGroupLinks(listOf(parentLink("a")), parentId = "a") shouldBe setOf(parentLink("a"))
+	}
+
+	"normalizedDataOwnerGroupLinks should leave dataOwnerGroups untouched when parentId is null" {
+		CryptoActor.normalizedDataOwnerGroupLinks(listOf(parentLink("a"), otherLink("b")), parentId = null) shouldBe
+			setOf(parentLink("a"), otherLink("b"))
+	}
+
 	"HealthcareParty should reject a dataOwnerGroups list with a duplicate id at construction" {
 		shouldThrow<IllegalArgumentException> {
 			HealthcareParty(id = "hcp", dataOwnerGroups = listOf(parentLink("a"), otherLink("a")))
