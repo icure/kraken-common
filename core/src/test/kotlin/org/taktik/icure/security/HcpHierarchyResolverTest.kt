@@ -3,10 +3,11 @@ package org.taktik.icure.security
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 import org.taktik.icure.exceptions.IllegalEntityException
 
 private fun hcp(id: String, parentId: String? = null, groups: List<DataOwnerGroupLink> = emptyList()) =
@@ -20,12 +21,16 @@ private suspend fun resolve(child: HealthcareParty, vararg others: HealthcarePar
 	return resolveHcpAncestors(child) { ids -> ids.mapNotNull { othersById[it] } }.map { it.id }
 }
 
-private suspend fun resolveTree(child: HealthcareParty, vararg others: HealthcareParty): DataOwnerIdWithHierarchy {
+private suspend fun resolveTree(child: HealthcareParty, vararg others: HealthcareParty): DataOwnerHierarchyInfo {
 	val othersById = others.associateBy { it.id }
-	return resolveHcpHierarchyIds(child) { ids -> ids.mapNotNull { othersById[it] } }
+	return resolveHcpHierarchyInfo(child) { ids -> ids.mapNotNull { othersById[it] } }
 }
 
-private fun node(id: String, vararg parents: DataOwnerIdWithHierarchy) = DataOwnerIdWithHierarchy(id, parents.toList())
+private fun root(id: String, vararg links: DataOwnerHierarchyInfo.HierarchyNode) =
+	DataOwnerHierarchyInfo(id, DataOwnerType.HCP, links.toList())
+
+private fun link(linkType: DataOwnerGroupLinkType, id: String, vararg transientLinks: DataOwnerHierarchyInfo.HierarchyNode) =
+	DataOwnerHierarchyInfo.HierarchyNode(id, linkType, transientLinks.toList())
 
 // h0 (the child) -> h1 -> ... -> h{length}, i.e. a linear chain of `length` ancestors.
 private fun linearChain(length: Int): List<HealthcareParty> = (0..length).map { i ->
@@ -247,20 +252,20 @@ class HcpHierarchyResolverTest : StringSpec({
 	}
 
 	"the id hierarchy tree of an hcp without any group link should be a single node" {
-		resolveTree(hcp("a")) shouldBe node("a")
+		resolveTree(hcp("a")) shouldBe root("a")
 	}
 
-	"the id hierarchy tree should follow all links, with a group linked both by the legacy parentId and a group link appearing only once" {
+	"the id hierarchy tree should follow all links, with a group linked both by the legacy parentId and a group link appearing only once, and carry the type of each link" {
 		resolveTree(
 			hcp("a", parentId = "b", groups = listOf(parentLink("b"), parentLink("c"), otherLink("d"))),
 			hcp("b", parentId = "d"),
 			hcp("c"),
 			hcp("d"),
-		) shouldBe node(
+		) shouldBe root(
 			"a",
-			node("b", node("d")),
-			node("c"),
-			node("d"),
+			link(DataOwnerGroupLinkType.parent, "b", link(DataOwnerGroupLinkType.parent, "d")),
+			link(DataOwnerGroupLinkType.parent, "c"),
+			link(DataOwnerGroupLinkType.simple, "d"),
 		)
 	}
 
@@ -270,19 +275,19 @@ class HcpHierarchyResolverTest : StringSpec({
 			hcp("b", parentId = "d"),
 			hcp("c", parentId = "d"),
 			hcp("d"),
-		) shouldBe node(
+		) shouldBe root(
 			"a",
-			node("b", node("d")),
-			node("c", node("d")),
+			link(DataOwnerGroupLinkType.parent, "b", link(DataOwnerGroupLinkType.parent, "d")),
+			link(DataOwnerGroupLinkType.parent, "c", link(DataOwnerGroupLinkType.parent, "d")),
 		)
 	}
 
-	"the id hierarchy tree should ignore self-references and unloadable links" {
+	"the id hierarchy tree should ignore self-references and unloadable links, and a transient link may weaken from parent to simple" {
 		resolveTree(
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
 			hcp("b", groups = listOf(parentLink("b"), otherLink("c"))),
 			hcp("c"),
-		) shouldBe node("a", node("b", node("c")))
+		) shouldBe root("a", link(DataOwnerGroupLinkType.parent, "b", link(DataOwnerGroupLinkType.simple, "c")))
 	}
 
 	"a circular reference should make the id hierarchy tree resolution throw" {

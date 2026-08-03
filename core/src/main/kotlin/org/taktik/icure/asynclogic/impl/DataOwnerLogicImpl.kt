@@ -23,13 +23,13 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 import org.taktik.icure.entities.base.asCryptoActorStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.security.resolveHcpHierarchyIds
+import org.taktik.icure.security.resolveHcpHierarchyInfo
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -142,7 +142,7 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	override fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
 		var nextId: String? = dataOwnerId
 		var nextLikelyType: DataOwnerType? = null
@@ -165,20 +165,20 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	@Suppress("DEPRECATION")
 	override fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchy(dataOwnerId).map { it.retrieveStub() }
 
-	override suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy {
+	override suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo {
 		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
 		val self = doGetDataOwner(dataOwnerId, likelyType = null, preloadedDatastoreInfo = datastoreInfo)
 			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
 		return when (self) {
-			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyIds(self.dataOwner) { ids ->
+			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyInfo(self.dataOwner) { ids ->
 				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
 			}
 			// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies
-			else -> DataOwnerIdWithHierarchy(self.id, emptyList())
+			else -> DataOwnerHierarchyInfo(self.id, self.type, emptyList())
 		}
 	}
 
