@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -418,8 +419,8 @@ internal class HealthElementDAOImpl(
 	) {
 		when (partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_hcparty_and_identifiers" to MAURICE_PARTITION)
-			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_and_identifiers" to MAURICE_PARTITION)
-			Partitions.Beppe -> warmup(datastoreInformation, "by_health_element_id_latest" to MAURICE_PARTITION)
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_and_identifiers" to DATA_OWNER_PARTITION)
+			Partitions.Beppe -> warmup(datastoreInformation, "by_health_element_id_latest" to BEPPE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}
@@ -641,6 +642,47 @@ internal class HealthElementDAOImpl(
 				)
 			}.toList(),
 			filterVersion = filterVersion
+		)
+	}
+
+	@View(name = "by_linked_health_element_id", map = "classpath:js/healthelement/By_linked_health_element_id_map.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listHealthElementIdsByQualifiedLink(
+		datastoreInformation: IDatastoreInformation,
+		linkedIds: List<String>,
+		type: String?,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(
+			client.queryView<String, String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_linked_health_element_id" to BEPPE_PARTITION,
+					configurationView = "by_linked_health_element_id",
+				)
+					.includeDocs(false)
+					.keys(linkedIds)
+			).let { rows ->
+				if (type != null) rows.filter { it.value == type } else rows
+			}.map { it.id }.distinct(),
+		)
+	}
+
+	@View(name = "by_association_id", map = "classpath:js/healthelement/By_association_id_map.js", secondaryPartition = BEPPE_PARTITION)
+	override fun listHealthElementIdsByAssociationId(
+		datastoreInformation: IDatastoreInformation,
+		associationId: String,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(
+			client.queryView<String, String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_association_id" to BEPPE_PARTITION,
+					configurationView = "by_association_id",
+				)
+					.includeDocs(false)
+					.key(associationId)
+			).map { it.id }.distinct(),
 		)
 	}
 
