@@ -29,8 +29,8 @@ private suspend fun resolveTree(child: HealthcareParty, vararg others: Healthcar
 private fun root(id: String, vararg links: DataOwnerHierarchyInfo.HierarchyNode) =
 	DataOwnerHierarchyInfo(id, DataOwnerType.HCP, links.toList())
 
-private fun link(linkType: DataOwnerGroupLinkType, id: String, vararg transientLinks: DataOwnerHierarchyInfo.HierarchyNode) =
-	DataOwnerHierarchyInfo.HierarchyNode(id, linkType, transientLinks.toList())
+private fun link(linkType: DataOwnerGroupLinkType, id: String, vararg transitiveLinks: DataOwnerHierarchyInfo.HierarchyNode) =
+	DataOwnerHierarchyInfo.HierarchyNode(id, linkType, transitiveLinks.toList())
 
 // h0 (the child) -> h1 -> ... -> h{length}, i.e. a linear chain of `length` ancestors.
 private fun linearChain(length: Int): List<HealthcareParty> = (0..length).map { i ->
@@ -282,7 +282,7 @@ class HcpHierarchyResolverTest : StringSpec({
 		)
 	}
 
-	"the id hierarchy tree should ignore self-references and unloadable links, and a transient link may weaken from parent to simple" {
+	"the id hierarchy tree should ignore self-references and unloadable links, and a transitive link may weaken from parent to simple" {
 		resolveTree(
 			hcp("a", parentId = "ghost", groups = listOf(parentLink("b"))),
 			hcp("b", groups = listOf(parentLink("b"), otherLink("c"))),

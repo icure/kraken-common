@@ -22,6 +22,6 @@ data class DataOwnerHierarchyInfoDto(
 	data class HierarchyNode(
 		@ActiveField val linkedGroupId: String,
 		@ActiveField val linkType: DataOwnerGroupLinkTypeDto,
-		@ActiveField val transientLinks: List<HierarchyNode> = emptyList(),
+		@ActiveField val transitiveLinks: List<HierarchyNode> = emptyList(),
 	)
 }

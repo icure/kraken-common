@@ -135,7 +135,7 @@ class DataOwnerController(
 			"of data owner ids rooted at the current data owner: the parents of each node are the data owners it " +
 			"is directly linked to, through the legacy parentId or a dataOwnerGroups link (parents, organisations, " +
 			"locations, ...), together with the type of that link (parent or simple). A data owner reachable " +
-			"through multiple links appears once per path; a link's transientLinks may only have the same or a " +
+			"through multiple links appears once per path; a link's transitiveLinks may only have the same or a " +
 			"weaker link type than the link itself (e.g. a parent link may lead to a simple link, never the " +
 			"reverse).",
 	)

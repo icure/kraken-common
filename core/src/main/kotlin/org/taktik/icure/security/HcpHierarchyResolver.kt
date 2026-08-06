@@ -171,7 +171,7 @@ suspend fun resolveHcpHierarchyInfo(
 				DataOwnerHierarchyInfo.HierarchyNode(
 					linkedGroupId = groupId,
 					linkType = linkType,
-					transientLinks = nodesOf(group),
+					transitiveLinks = nodesOf(group),
 				)
 			}
 		}

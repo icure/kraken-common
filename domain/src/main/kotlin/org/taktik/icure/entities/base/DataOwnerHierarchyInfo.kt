@@ -26,7 +26,7 @@ data class DataOwnerHierarchyInfo(
 	 *
 	 * @property linkedGroupId the id of the linked group.
 	 * @property linkType the type of this specific link (see [DataOwnerGroupLinkType]).
-	 * @property transientLinks the links of the linked group itself. Per [DataOwnerGroupLinkType.strength], a link
+	 * @property transitiveLinks the links of the linked group itself. Per [DataOwnerGroupLinkType.strength], a link
 	 * nested here may only have the same or a lower strength than [linkType] (a [DataOwnerGroupLinkType.parent] link
 	 * may transitively weaken to [DataOwnerGroupLinkType.simple], never the other way around) — this is enforced
 	 * upstream, when the hierarchy is resolved, not by this type itself.
@@ -34,6 +34,6 @@ data class DataOwnerHierarchyInfo(
 	data class HierarchyNode(
 		val linkedGroupId: String,
 		val linkType: DataOwnerGroupLinkType,
-		val transientLinks: List<HierarchyNode> = emptyList(),
+		val transitiveLinks: List<HierarchyNode> = emptyList(),
 	)
 }
