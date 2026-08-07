@@ -4,6 +4,8 @@ import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
+import org.taktik.icure.entities.base.effectiveGroupLinkType
+import org.taktik.icure.entities.base.isAtLeast
 import org.taktik.icure.exceptions.IllegalEntityException
 
 /**
@@ -19,39 +21,47 @@ private const val MAX_HCP_ANCESTORS = 100
  * Membership propagates through all links, whatever their type: the groups of a group joined through a link are
  * included in the result, recursively.
  *
- * Every [DataOwnerGroupLinkType] has a [DataOwnerGroupLinkType.strength]. Along any single path away from [childHcp],
- * the strength of successive links may only stay the same (with the same link type) or decrease: a link stronger
- * than the one before it, or of the same strength but a different type ("shifting"), makes the transitive link
- * ambiguous and is rejected. This is intentionally conservative — a single ambiguous link fails the whole
- * resolution, even if the same target is also reachable through another, unambiguous path (diamond configurations)
- * — since there is no current use case for the more permissive alternative (e.g. resolving the transitive type from
- * the least-restrictive valid path). This restriction may be relaxed in the future.
+ * The type of a link is intrinsic to its *target* (see [org.taktik.icure.entities.base.CryptoActor.effectiveGroupLinkType]),
+ * not declared by whoever links to it. Every [DataOwnerGroupLinkType] has a [DataOwnerGroupLinkType.strength]. Along
+ * any single path away from [childHcp], the strength of successive links may only stay the same (with the same link
+ * type) or decrease: a link stronger than the one before it, or of the same strength but a different type
+ * ("shifting"), makes the transitive link ambiguous and is rejected. This is intentionally conservative — a single
+ * ambiguous link fails the whole resolution, even if the same target is also reachable through another, unambiguous
+ * path (diamond configurations) — since there is no current use case for the more permissive alternative (e.g.
+ * resolving the transitive type from the least-restrictive valid path). This restriction may be relaxed in the
+ * future.
  *
  * A group reachable through different paths (diamond configurations) is legal and appears exactly once, but a
  * circular reference along a single path causes an [IllegalEntityException]. Direct self-references and links to
- * healthcare parties that cannot be loaded are ignored.
+ * healthcare parties that cannot be loaded are ignored. A blank legacy [HealthcareParty.parentId] is also tolerated,
+ * treated as if it were absent, for compatibility with legacy data (see [declaredGroupLinkIds]); a blank
+ * [HealthcareParty.dataOwnerGroups] entry id, on the other hand, is always an error.
  *
  * @param childHcp the healthcare party to resolve the ancestor groups of.
  * @param loadHealthcareParties loads the healthcare parties with the provided ids, omitting the ids that do not
  * match any existing healthcare party.
- * @param restrictToLinksOfType if not null, only links whose type is included in this set are followed; all other
- * links are ignored as if they were not present.
+ * @param minAcceptedType if not null, only links whose *target's* effective type is at least this strong (see
+ * [org.taktik.icure.entities.base.isAtLeast]) are followed; all other links (including any `notAllowed`-effective
+ * target, which should never actually occur) are ignored as if they were not present. Since a target's effective
+ * type is only known once it is loaded, the load phase always loads every declared target regardless of this
+ * restriction — only the build phase filters by it, so this has no effect on how many healthcare parties
+ * [loadHealthcareParties] is asked to load.
  * @return the ancestor groups of [childHcp], deduplicated, excluding [childHcp] itself, in depth-first
  * first-encounter order following the declaration order of the links.
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found, if the number of
- * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS], or if a link stronger than (or of the same strength as, but
- * a different type than) the previous link on the same path is found.
+ * @throws IllegalEntityException if a `dataOwnerGroups` entry with a blank id or a circular reference is found, if
+ * the number of distinct ancestor groups exceeds [MAX_HCP_ANCESTORS], or if a link stronger than (or of the same
+ * strength as, but a different type than) the previous link on the same path is found.
  */
 suspend fun resolveHcpAncestors(
 	childHcp: HealthcareParty,
-	restrictToLinksOfType: Set<DataOwnerGroupLinkType>? = null,
+	minAcceptedType: DataOwnerGroupLinkType? = null,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
 ): List<HealthcareParty> {
 	val loadedById = mutableMapOf(childHcp.id to childHcp)
 	val expandedIds = mutableSetOf(childHcp.id)
 	var frontier = listOf(childHcp)
 	while (frontier.isNotEmpty()) {
-		val links = frontier.flatMap { it.validatedGroupLinks(childHcp, restrictToLinksOfType) }
+		val links = frontier.flatMap { it.declaredGroupLinkIds(childHcp) }
 		val idsToLoad = links.toSet() - loadedById.keys
 		if (idsToLoad.isNotEmpty()) {
 			loadHealthcareParties(idsToLoad).forEach { loadedById[it.id] = it }
@@ -66,7 +76,7 @@ suspend fun resolveHcpAncestors(
 
 	val ancestors = LinkedHashMap<String, HealthcareParty>()
 	fun visit(of: HealthcareParty, pathIds: Set<String>, lastLinkType: DataOwnerGroupLinkType?) {
-		of.validatedGroupLinksWithType(childHcp, restrictToLinksOfType).forEach { (linkType, groupId) ->
+		of.groupLinksWithEffectiveType(childHcp, loadedById, minAcceptedType).forEach { (linkType, groupId) ->
 			when {
 				groupId == of.id -> {} // tolerated for compatibility with the legacy parentId handling
 				groupId in pathIds -> throw IllegalEntityException(
@@ -120,8 +130,8 @@ data class HcpAncestorIdsByRights(
  * direct parent last). Order has no single well-defined meaning once a hierarchy branches (multiple parents /
  * diamonds), so it should not be relied upon in that case.
  *
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
- * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
+ * @throws IllegalEntityException if a `dataOwnerGroups` entry with a blank id or a circular reference is found,
+ * or if the number of distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
 suspend fun resolveHcpAncestorIdsByRights(
 	childHcp: HealthcareParty,
@@ -132,7 +142,7 @@ suspend fun resolveHcpAncestorIdsByRights(
 	// resolveHcpAncestors returns direct-first, topmost-last (deterministic first-encounter order); reversed here so
 	// that a plain, non-branching parentId chain keeps the pre-multi-parent JWT hierarchy order: topmost-first,
 	// direct-parent-last. Order has no defined meaning for branching hierarchies, so this only matters for that case.
-	val parentLinkedIds = resolveHcpAncestors(childHcp, setOf(DataOwnerGroupLinkType.parent)) { ids ->
+	val parentLinkedIds = resolveHcpAncestors(childHcp, DataOwnerGroupLinkType.parent) { ids ->
 		ids.mapNotNull { loadedById[it] }
 	}.asReversed().mapTo(LinkedHashSet()) { it.id }
 	return HcpAncestorIdsByRights(
@@ -143,28 +153,29 @@ suspend fun resolveHcpAncestorIdsByRights(
 
 /**
  * Same traversal as [resolveHcpAncestors] but returns the hierarchies of [childHcp] as a tree of ids rooted at
- * [childHcp] itself: the parents of each node are the groups it is directly linked to, together with the type of
- * the link it was reached through. Contrary to [resolveHcpAncestors], a group reachable through multiple paths
- * (diamond configurations) appears once per path.
+ * [childHcp] itself: the parents of each node are the groups it is directly linked to, together with the effective
+ * type of the link it was reached through (i.e. the linked group's own type, see
+ * [org.taktik.icure.entities.base.CryptoActor.effectiveGroupLinkType]). Contrary to [resolveHcpAncestors], a group
+ * reachable through multiple paths (diamond configurations) appears once per path.
  *
  * @param childHcp the healthcare party to resolve the id hierarchies of.
  * @param loadHealthcareParties loads the healthcare parties with the provided ids, omitting the ids that do not
  * match any existing healthcare party.
- * @param restrictToLinksOfType if not null, only links whose type is included in this set are followed; all other
- * links are ignored as if they were not present.
+ * @param minAcceptedType if not null, only links whose target's effective type is at least this strong (see
+ * [org.taktik.icure.entities.base.isAtLeast]) are followed; all other links are ignored as if they were not present.
  * @return the id hierarchy tree rooted at [childHcp].
- * @throws IllegalEntityException if a link with a blank id or a circular reference is found, or if the number of
- * distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
+ * @throws IllegalEntityException if a `dataOwnerGroups` entry with a blank id or a circular reference is found,
+ * or if the number of distinct ancestor groups exceeds [MAX_HCP_ANCESTORS].
  */
 suspend fun resolveHcpHierarchyInfo(
 	childHcp: HealthcareParty,
-	restrictToLinksOfType: Set<DataOwnerGroupLinkType>? = null,
+	minAcceptedType: DataOwnerGroupLinkType? = null,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
 ): DataOwnerHierarchyInfo {
 	// Loads all the ancestors and validates the links (no cycle: the recursion below terminates)
-	val ancestorsById = resolveHcpAncestors(childHcp, restrictToLinksOfType, loadHealthcareParties).associateBy { it.id }
+	val ancestorsById = resolveHcpAncestors(childHcp, minAcceptedType, loadHealthcareParties).associateBy { it.id }
 	fun nodesOf(hcp: HealthcareParty): List<DataOwnerHierarchyInfo.HierarchyNode> = hcp
-		.validatedGroupLinksWithType(childHcp, restrictToLinksOfType)
+		.groupLinksWithEffectiveType(childHcp, ancestorsById, minAcceptedType)
 		.filter { (_, groupId) -> groupId != hcp.id }
 		.mapNotNull { (linkType, groupId) ->
 			ancestorsById[groupId]?.let { group ->
@@ -179,35 +190,37 @@ suspend fun resolveHcpHierarchyInfo(
 }
 
 /**
- * The groups this healthcare party is directly linked to (legacy [HealthcareParty.parentId], treated as a
- * [DataOwnerGroupLinkType.parent] link, plus [HealthcareParty.dataOwnerGroups]), with their link type, deduplicated
- * by group id (the legacy [HealthcareParty.parentId] wins over a [HealthcareParty.dataOwnerGroups] entry for the same
- * id), restricted to links whose type is included in [restrictToLinksOfType] if it is not null.
- * @throws IllegalEntityException if any of the linked ids is blank.
+ * The ids of the groups this healthcare party is directly linked to: the legacy [HealthcareParty.parentId] plus
+ * every [HealthcareParty.dataOwnerGroups] entry, deduplicated. Used by the load phase, which only needs ids — the
+ * type of each link is only known once its target is loaded, see [groupLinksWithEffectiveType].
+ *
+ * A blank (non-null but empty/whitespace) [HealthcareParty.parentId] is tolerated and treated as if it were absent,
+ * for compatibility with legacy data that predates any validation on this field. [HealthcareParty.dataOwnerGroups]
+ * has no such legacy baggage — it is validated strictly instead, see below.
+ *
+ * @throws IllegalEntityException if any [HealthcareParty.dataOwnerGroups] entry has a blank id.
  */
-private fun HealthcareParty.validatedGroupLinksWithType(
-	childHcp: HealthcareParty,
-	restrictToLinksOfType: Set<DataOwnerGroupLinkType>?,
-): List<Pair<DataOwnerGroupLinkType, String>> = (
-	listOfNotNull(parentId?.let { DataOwnerGroupLinkType.parent to it }) +
-		dataOwnerGroups.map { it.linkType to it.dataOwnerId }
-	)
-	.onEach { (_, groupId) ->
+private fun HealthcareParty.declaredGroupLinkIds(childHcp: HealthcareParty): List<String> =
+	(listOfNotNull(parentId?.takeIf { it.isNotBlank() }) + dataOwnerGroups.map { it.dataOwnerId }.onEach { groupId ->
 		if (groupId.isBlank()) {
-			throw IllegalEntityException("Blank parent id or group id for healthcare party ${childHcp.id}")
+			throw IllegalEntityException("Blank group id for healthcare party ${childHcp.id}")
 		}
-	}
-	.filter { (linkType, _) -> restrictToLinksOfType == null || linkType in restrictToLinksOfType }
-	.distinctBy { it.second }
+	}).distinct()
 
 /**
- * The ids of the groups this healthcare party is directly linked to (see [validatedGroupLinksWithType]).
- * @throws IllegalEntityException if any of the linked ids is blank.
+ * The groups this healthcare party is directly linked to (see [declaredGroupLinkIds]), together with the *effective*
+ * type of each link — i.e. the linked group's own type ([org.taktik.icure.entities.base.CryptoActor.effectiveGroupLinkType]),
+ * not anything declared by this healthcare party. Links to a group not present in [loadedById] (missing or not yet
+ * loaded) are skipped, matching the "links to healthcare parties that cannot be loaded are ignored" tolerance.
+ * Restricted to links whose target's effective type [isAtLeast] [minAcceptedType], if it is not null.
  */
-private fun HealthcareParty.validatedGroupLinks(
+private fun HealthcareParty.groupLinksWithEffectiveType(
 	childHcp: HealthcareParty,
-	restrictToLinksOfType: Set<DataOwnerGroupLinkType>?,
-): List<String> = validatedGroupLinksWithType(childHcp, restrictToLinksOfType).map { it.second }
+	loadedById: Map<String, HealthcareParty>,
+	minAcceptedType: DataOwnerGroupLinkType?,
+): List<Pair<DataOwnerGroupLinkType, String>> = declaredGroupLinkIds(childHcp)
+	.mapNotNull { groupId -> loadedById[groupId]?.let { target -> target.effectiveGroupLinkType(DataOwnerType.HCP) to groupId } }
+	.filter { (linkType, _) -> linkType.isAtLeast(minAcceptedType) }
 
 /**
  * Whether a link of this type may transitively follow a link of type [previous] on the same path away from the

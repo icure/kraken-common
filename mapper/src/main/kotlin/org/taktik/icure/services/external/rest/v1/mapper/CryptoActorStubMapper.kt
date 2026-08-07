@@ -21,6 +21,7 @@ interface CryptoActorStubMapper {
 
 	@Mappings(
 		Mapping(target = "dataOwnerGroups", ignore = true),
+		Mapping(target = "groupLinkType", ignore = true),
 	)
 	fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub
 	fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto

@@ -6,6 +6,9 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 /**
  * The nature of the link between a crypto actor and a data owner representing one of its groups.
+ *
+ * This is intrinsic to the *target* of the link (see [CryptoActorDto.groupLinkType]): every link pointing at a
+ * given data owner has the same type, whoever declares it.
  */
 enum class DataOwnerGroupLinkTypeDto {
 
@@ -55,4 +58,10 @@ enum class DataOwnerGroupLinkTypeDto {
 	 * - acting in scope, as in the example above
 	 */
 	parent,
+
+	/**
+	 * This data owner may never be used as a group target: no [DataOwnerGroupLinkDto] or legacy
+	 * [CryptoActorDto.parentId] may point at a data owner whose effective group link type is this value.
+	 */
+	notAllowed,
 }

@@ -17,7 +17,9 @@ import org.taktik.icure.asynclogic.HealthcarePartyLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
@@ -34,6 +36,15 @@ open class HealthcarePartyLogicImpl(
 ) : GenericLogicImpl<HealthcareParty, HealthcarePartyDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<HealthcareParty> by ConflictResolutionLogicImpl(healthcarePartyDAO, merger, datastoreInstanceProvider),
 	HealthcarePartyLogic {
+	/**
+	 * Reused by group-explicit write paths such as `HealthcarePartyCloudLogicImpl`, which extends this class.
+	 */
+	protected val groupLinksHelper = object : CryptoActorLogicHelper<HealthcareParty, HealthcarePartyDAO>(healthcarePartyDAO) {
+		override val dataOwnerType = DataOwnerType.HCP
+		override fun HealthcareParty.copyWithLinks(parentId: String?, dataOwnerGroups: List<DataOwnerGroupLink>): HealthcareParty =
+			copy(parentId = parentId, dataOwnerGroups = dataOwnerGroups)
+	}
+
 	override fun getGenericDAO(): HealthcarePartyDAO = healthcarePartyDAO
 
 	override suspend fun getHealthcareParty(id: String): HealthcareParty? {
@@ -62,7 +73,7 @@ open class HealthcarePartyLogicImpl(
 		return healthcarePartyDAO.getAesExchangeKeysForDelegate(datastoreInformation, healthcarePartyId)
 	}
 
-	protected fun validateHealthcareParty(healthcareParty: HealthcareParty) {
+	protected suspend fun validateHealthcareParty(healthcareParty: HealthcareParty) {
 		if (healthcareParty.nihii == null &&
 			healthcareParty.ssin == null &&
 			healthcareParty.name == null &&
@@ -72,35 +83,48 @@ open class HealthcarePartyLogicImpl(
 		}
 	}
 
-	protected fun validateHealthcareParties(healthcareParties: List<HealthcareParty>): List<HealthcareParty> =
+	protected suspend fun validateHealthcareParties(healthcareParties: List<HealthcareParty>): List<HealthcareParty> =
 		healthcareParties.onEach { validateHealthcareParty(it) }
 
 	override suspend fun modifyHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = false) { fixedHealthcareParty ->
 		checkValidityForModification(fixedHealthcareParty)
-		validateHealthcareParty(fixedHealthcareParty)
-		modifyEntity(fixedHealthcareParty)
+		val datastoreInformation = getInstanceAndGroup()
+		val original = healthcarePartyDAO.get(datastoreInformation, fixedHealthcareParty.id)
+		val normalized = groupLinksHelper.validateAndNormalizeOwnGroupLinks(fixedHealthcareParty, original, datastoreInformation)
+		validateHealthcareParty(normalized)
+		modifyEntity(normalized)
 	}
 
 	override fun modifyHealthcareParties(healthcareParties: List<HealthcareParty>) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val normalized = healthcareParties.map { fix(it, isCreate = false) }.onEach { checkValidityForModification(it) }.map {
+			val original = healthcarePartyDAO.get(datastoreInformation, it.id)
+			groupLinksHelper.validateAndNormalizeOwnGroupLinks(it, original, datastoreInformation)
+		}
 		emitAll(
 			healthcarePartyDAO.saveBulk(
-				datastoreInformation = getInstanceAndGroup(),
-				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = false) }.onEach { checkValidityForModification(it) }),
+				datastoreInformation = datastoreInformation,
+				entities = validateHealthcareParties(normalized),
 			).filterSuccessfulUpdates()
 		)
 	}
 
 	override suspend fun createHealthcareParty(healthcareParty: HealthcareParty) = fix(healthcareParty, isCreate = true) { fixedHealthcareParty ->
 		checkValidityForCreation(fixedHealthcareParty)
-		validateHealthcareParty(fixedHealthcareParty)
-		createEntity(fixedHealthcareParty)
+		val datastoreInformation = getInstanceAndGroup()
+		val normalized = groupLinksHelper.validateAndNormalizeOwnGroupLinks(fixedHealthcareParty, null, datastoreInformation)
+		validateHealthcareParty(normalized)
+		createEntity(normalized)
 	}
 
 	override fun createHealthcareParties(healthcareParties: List<HealthcareParty>) = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		val normalized = healthcareParties.map { fix(it, isCreate = true) }.onEach { checkValidityForCreation(it) }
+			.map { groupLinksHelper.validateAndNormalizeOwnGroupLinks(it, null, datastoreInformation) }
 		emitAll(
 			healthcarePartyDAO.saveBulk(
-				datastoreInformation = getInstanceAndGroup(),
-				entities = validateHealthcareParties(healthcareParties.map { fix(it, isCreate = true) }.onEach { checkValidityForCreation(it) }),
+				datastoreInformation = datastoreInformation,
+				entities = validateHealthcareParties(normalized),
 			).filterSuccessfulUpdates()
 		)
 	}

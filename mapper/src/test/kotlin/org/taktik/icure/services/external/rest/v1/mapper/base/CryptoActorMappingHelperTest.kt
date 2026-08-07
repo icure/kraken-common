@@ -1,35 +1,20 @@
 package org.taktik.icure.services.external.rest.v1.mapper.base
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.entities.CryptoActorStub
 import org.taktik.icure.entities.base.DataOwnerGroupLink
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.utils.SemanticVersion
-import org.taktik.icure.services.external.rest.v2.dto.CryptoActorStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
-import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTypeDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2MapperImpl
 
-private fun parentLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.parent, id)
-private fun otherLink(id: String) = DataOwnerGroupLink(DataOwnerGroupLinkType.simple, id)
-private fun parentLinkDto(id: String) = DataOwnerGroupLinkDto(DataOwnerGroupLinkTypeDto.parent, id)
-private fun otherLinkDto(id: String) = DataOwnerGroupLinkDto(DataOwnerGroupLinkTypeDto.simple, id)
+private fun link(id: String) = DataOwnerGroupLink(id)
+private fun linkDto(id: String) = DataOwnerGroupLinkDto(id)
 
 private fun cryptoActor(parentId: String? = null, dataOwnerGroups: List<DataOwnerGroupLink> = emptyList()) =
 	CryptoActorStub(id = "ca", rev = "1-abc", parentId = parentId, dataOwnerGroups = dataOwnerGroups)
-
-private fun cryptoActorDto(parentId: String? = null, dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList()) =
-	CryptoActorStubDto(
-		id = "ca",
-		rev = "1-abc",
-		publicKeysForOaepWithSha256 = emptySet(),
-		parentId = parentId,
-		dataOwnerGroups = dataOwnerGroups,
-	)
 
 private class FakeCardinalVersionConfig(private val version: SemanticVersion?) : CardinalVersionConfig {
 	override suspend fun getUserCardinalVersion(): SemanticVersion? = version
@@ -43,149 +28,71 @@ private val linkMapper = DataOwnerGroupLinkV2MapperImpl()
 
 class CryptoActorMappingHelperTest : StringSpec({
 
-	"domain to dto: empty parentId and dataOwnerGroups map to an empty pair, on any version" {
+	"empty parentId and dataOwnerGroups map to an empty pair, on any version" {
 		runBlocking {
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(), linkMapper, legacyConfig) shouldBe (null to emptyList())
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(), linkMapper, newConfig) shouldBe (null to emptyList())
 		}
 	}
 
-	"domain to dto, legacy version: a parentId alone is kept as is, with an empty links list" {
+	"legacy version: parentId and dataOwnerGroups are passed through verbatim, with no folding" {
 		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(parentId = "a"), linkMapper, legacyConfig) shouldBe ("a" to emptyList())
-		}
-	}
-
-	"domain to dto, legacy version: a single parent-type link alone is moved into a parentId, with an empty links list" {
-		runBlocking {
+			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(parentId = "a"), linkMapper, legacyConfig) shouldBe
+				("a" to emptyList())
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActor(dataOwnerGroups = listOf(parentLink("a"))),
+				cryptoActor(dataOwnerGroups = listOf(link("a"))),
 				linkMapper,
 				legacyConfig,
-			) shouldBe ("a" to emptyList())
-		}
-	}
-
-	"domain to dto, legacy version: a parentId matching an equivalent parent-type link dedups to a single parentId" {
-		runBlocking {
+			) shouldBe (null to listOf(linkDto("a")))
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActor(parentId = "a", dataOwnerGroups = listOf(parentLink("a"))),
+				cryptoActor(parentId = "a", dataOwnerGroups = listOf(link("b"))),
 				linkMapper,
 				legacyConfig,
-			) shouldBe ("a" to emptyList())
+			) shouldBe ("a" to listOf(linkDto("b")))
 		}
 	}
 
-	"domain to dto, no version configured: behaves the same as an explicit legacy version (assumed legacy)" {
+	"legacy version: multiple links are passed through verbatim, with no throw" {
 		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(parentId = "a"), linkMapper, noVersionConfig) shouldBe ("a" to emptyList())
+			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
+				cryptoActor(dataOwnerGroups = listOf(link("a"), link("b"))),
+				linkMapper,
+				legacyConfig,
+			) shouldBe (null to listOf(linkDto("a"), linkDto("b")))
 		}
 	}
 
-	"domain to dto, legacy version: two distinct links cannot be represented as a single parentId and throws" {
+	"no version configured: behaves the same as an explicit legacy version (assumed legacy)" {
 		runBlocking {
-			shouldThrow<IllegalArgumentException> {
-				CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-					cryptoActor(dataOwnerGroups = listOf(parentLink("a"), otherLink("b"))),
-					linkMapper,
-					legacyConfig,
-				)
-			}
+			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(parentId = "a"), linkMapper, noVersionConfig) shouldBe
+				("a" to emptyList())
 		}
 	}
 
-	"domain to dto, legacy version: a lone simple-type link cannot be represented as a legacy parentId and throws" {
-		runBlocking {
-			shouldThrow<IllegalArgumentException> {
-				CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-					cryptoActor(dataOwnerGroups = listOf(otherLink("a"))),
-					linkMapper,
-					legacyConfig,
-				)
-			}
-		}
-	}
-
-	"domain to dto, new version: a parentId alone is fully moved into the links list" {
+	"new version: a parentId alone is folded into the links list" {
 		runBlocking {
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActor(parentId = "a"), linkMapper, newConfig) shouldBe
-				(null to listOf(parentLinkDto("a")))
+				(null to listOf(linkDto("a")))
 		}
 	}
 
-	"domain to dto, new version: multiple links are all kept in the list, with no throw" {
+	"new version: a parentId matching an equivalent dataOwnerGroups entry dedups to a single link" {
 		runBlocking {
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActor(dataOwnerGroups = listOf(parentLink("a"), otherLink("b"))),
+				cryptoActor(parentId = "a", dataOwnerGroups = listOf(link("a"))),
 				linkMapper,
 				newConfig,
-			) shouldBe (null to listOf(parentLinkDto("a"), otherLinkDto("b")))
+			) shouldBe (null to listOf(linkDto("a")))
 		}
 	}
 
-	"dto to domain: empty parentId and dataOwnerGroups map to an empty pair, regardless of version" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActorDto(), linkMapper, legacyConfig) shouldBe (null to emptyList())
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActorDto(), linkMapper, newConfig) shouldBe (null to emptyList())
-		}
-	}
-
-	"dto to domain: a parentId alone is kept in parentId only, with an empty links list, regardless of version" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActorDto(parentId = "a"), linkMapper, legacyConfig) shouldBe
-				("a" to emptyList())
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(cryptoActorDto(parentId = "a"), linkMapper, newConfig) shouldBe
-				("a" to emptyList())
-		}
-	}
-
-	"dto to domain: a single parent-type link alone is backfilled into parentId, with an empty links list" {
+	"new version: multiple links are all kept in the list" {
 		runBlocking {
 			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActorDto(dataOwnerGroups = listOf(parentLinkDto("a"))),
+				cryptoActor(dataOwnerGroups = listOf(link("a"), link("b"))),
 				linkMapper,
 				newConfig,
-			) shouldBe ("a" to emptyList())
-		}
-	}
-
-	"dto to domain: a parentId matching an equivalent parent-type link dedups and is still backfilled with an empty list" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActorDto(parentId = "a", dataOwnerGroups = listOf(parentLinkDto("a"))),
-				linkMapper,
-				newConfig,
-			) shouldBe ("a" to emptyList())
-		}
-	}
-
-	"dto to domain: a lone simple-type link is not backfilled into parentId" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActorDto(dataOwnerGroups = listOf(otherLinkDto("a"))),
-				linkMapper,
-				newConfig,
-			) shouldBe (null to listOf(otherLink("a")))
-		}
-	}
-
-	"dto to domain: a parentId conflicting with a simple-type link to the same id is not backfilled, no throw" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActorDto(parentId = "a", dataOwnerGroups = listOf(otherLinkDto("a"))),
-				linkMapper,
-				newConfig,
-			) shouldBe (null to listOf(otherLink("a")))
-		}
-	}
-
-	"dto to domain: two distinct links are not backfilled into parentId, no throw" {
-		runBlocking {
-			CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
-				cryptoActorDto(dataOwnerGroups = listOf(parentLinkDto("a"), otherLinkDto("b"))),
-				linkMapper,
-				newConfig,
-			) shouldBe (null to listOf(parentLink("a"), otherLink("b")))
+			) shouldBe (null to listOf(linkDto("a"), linkDto("b")))
 		}
 	}
 })

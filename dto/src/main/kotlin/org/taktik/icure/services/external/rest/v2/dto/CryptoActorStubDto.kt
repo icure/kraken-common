@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
@@ -29,6 +30,7 @@ data class CryptoActorStubDto(
 	override val parentId: String? = null,
 	@ActiveField
 	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
+	override val groupLinkType: DataOwnerGroupLinkTypeDto? = null,
 	override val cryptoActorProperties: Set<PropertyStubDto>? = null,
 ) : VersionableDto<String>,
 	CryptoActorDto {

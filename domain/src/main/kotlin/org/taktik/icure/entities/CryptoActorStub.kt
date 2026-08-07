@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwnerGroupLink
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.PropertyStub
 
 /**
@@ -23,11 +24,12 @@ data class CryptoActorStub(
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
 	override val parentId: String? = null,
 	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
+	override val groupLinkType: DataOwnerGroupLinkType? = null,
 	override val cryptoActorProperties: Set<PropertyStub>? = null,
 ) : Versionable<String>,
 	CryptoActor {
 	init {
-		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups, parentId)
+		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups)
 	}
 
 	override fun withIdRev(id: String?, rev: String): CryptoActorStub = copy(id = id ?: this.id, rev = rev)

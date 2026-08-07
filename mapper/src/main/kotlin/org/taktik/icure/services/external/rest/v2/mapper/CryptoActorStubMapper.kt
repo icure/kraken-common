@@ -42,12 +42,14 @@ internal class CryptoActorStubV2MapperImpl(
 	}
 
 	override suspend fun map(cryptoActorStubDto: CryptoActorStubDto): CryptoActorStub {
-		val (parentId, dataOwnerGroups) = CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
+		// Dumb 1:1 copy: whether a link is admin-type or not is now intrinsic to its target, not declared here, so
+		// there is nothing to fold/collapse on the way in. Validation and storage-shape normalization happen at the
+		// logic layer.
+		return precomputedLinksMapper.map(
 			cryptoActorStubDto,
-			dataOwnerGroupLinkV2Mapper,
-			cardinalVersionConfig,
+			cryptoActorStubDto.parentId,
+			cryptoActorStubDto.dataOwnerGroups.map(dataOwnerGroupLinkV2Mapper::map),
 		)
-		return precomputedLinksMapper.map(cryptoActorStubDto, parentId, dataOwnerGroups)
 	}
 
 	override suspend fun map(cryptoActorStubWithType: CryptoActorStubWithType): CryptoActorStubWithTypeDto =

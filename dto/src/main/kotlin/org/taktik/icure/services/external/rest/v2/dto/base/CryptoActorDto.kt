@@ -106,6 +106,12 @@ interface CryptoActorDto : VersionableDto<String> {
 	@ActiveField val dataOwnerGroups: List<DataOwnerGroupLinkDto>
 
 	@get:Schema(
+		description = "The type any incoming link pointing at this data owner must have. Always null unless explicitly " +
+			"set at creation; once set (or once relied upon while null) it can never be changed.",
+	)
+	@ActiveField val groupLinkType: DataOwnerGroupLinkTypeDto?
+
+	@get:Schema(
 		description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.",
 	)
 	@AlwaysDecrypted

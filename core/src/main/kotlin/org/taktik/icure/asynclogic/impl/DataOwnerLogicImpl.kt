@@ -291,6 +291,11 @@ open class DataOwnerLogicImpl(
 		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
 			"You can't use this method to change the data owner groups of a crypto actor"
 		}
+		// null is tolerated as "not provided" for the same reason; groupLinkType is a logic/correctness invariant
+		// (not access-control), so unlike dataOwnerGroups/parentId there is no permission that can ever bypass this.
+		require(modified.stub.groupLinkType == null || modified.stub.groupLinkType == original.groupLinkType) {
+			"You can't use this method to change the groupLinkType of a crypto actor"
+		}
 		val saved =
 			checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {
 				"Update returned null for entity with id ${original.id}"

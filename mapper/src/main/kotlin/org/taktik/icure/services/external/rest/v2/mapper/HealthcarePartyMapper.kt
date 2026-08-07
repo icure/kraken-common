@@ -52,12 +52,14 @@ internal class HealthcarePartyV2MapperImpl(
 	private val dataOwnerGroupLinkV2Mapper: DataOwnerGroupLinkV2Mapper,
 ) : HealthcarePartyV2Mapper {
 	override suspend fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty {
-		val (parentId, dataOwnerGroups) = CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
+		// Dumb 1:1 copy: whether a link is admin-type or not is now intrinsic to its target, not declared here, so
+		// there is nothing to fold/collapse on the way in. Validation and storage-shape normalization happen at the
+		// logic layer.
+		return precomputedLinksMapper.map(
 			healthcarePartyDto,
-			dataOwnerGroupLinkV2Mapper,
-			cardinalVersionConfig,
+			healthcarePartyDto.parentId,
+			healthcarePartyDto.dataOwnerGroups.map(dataOwnerGroupLinkV2Mapper::map),
 		)
-		return precomputedLinksMapper.map(healthcarePartyDto, parentId, dataOwnerGroups)
 	}
 
 	override suspend fun map(healthcareParty: HealthcareParty): HealthcarePartyDto {

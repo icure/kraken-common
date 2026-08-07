@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.handlers.JsonPolymorphismRoot
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
-import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 
 @JsonPolymorphismRoot(AbstractFilterDto::class)
@@ -16,14 +15,11 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Filter that matches the healthcare parties directly linked to a data owner group, through the legacy parentId
- * (treated as a parent link) or a dataOwnerGroups link. Only direct links match: membership is not propagated
- * through the group hierarchies.
+ * or a dataOwnerGroups link. Only direct links match: membership is not propagated through the group hierarchies.
  */
 data class HealthcarePartyByDataOwnerGroupIdFilter(
 	/** The identifier of the data owner representing the group. */
 	@ActiveField val dataOwnerGroupId: String,
-	/** When not null, only healthcare parties whose effective link to the group has this type match. */
-	@ActiveField val linkType: DataOwnerGroupLinkTypeDto? = null,
 	/** Optional description of this filter. */
 	override val desc: String? = null,
 ) : AbstractFilterDto<HealthcarePartyDto>
