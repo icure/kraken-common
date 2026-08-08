@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
@@ -28,7 +27,6 @@ import org.taktik.icure.dto.annotations.filtering.LegacyField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "One or several periods of care by an hcp for this patient")
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PatientHealthCarePartyDto")
 data class PatientHealthCarePartyDto(
 	@param:Schema(description = "Type of care/relationship.") @ActiveField val type: PatientHealthCarePartyTypeDto? = null,
 	@param:Schema(description = "UUID of the hcp.") @ActiveField val healthcarePartyId: String? = null,
