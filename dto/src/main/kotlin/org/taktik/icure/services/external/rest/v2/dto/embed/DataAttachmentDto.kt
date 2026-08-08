@@ -1,19 +1,19 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 /**
  * Represents a data attachment that can be stored either as a CouchDB attachment or via object storage.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto")
 data class DataAttachmentDto(
 	/** The identifier of the attachment if stored as a CouchDB attachment. */
 	@param:Schema(description = "Id of the attachment, if stored as a couchdb attachment") @ActiveField val couchDbAttachmentId: String? = null,
@@ -39,7 +39,11 @@ data class DataAttachmentDto(
 	/**
 	 * Value computed by the backend, the actual size of the data stored for the attachment, in bytes.
 	 */
-	@FilterBeforeSdkVersion("2.4.0") val storedDataSize: Long? = null,
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class), // Automatically auto-filled by the kraken
+		Since("2.4.0", ActiveField::class),
+	)
+	val storedDataSize: Long? = null,
 	/**
 	 * Value provided by the client, the real size of the data after it has been decrypted and decompressed, in bytes.
 	 * This value is not used or verified by the backend.

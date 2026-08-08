@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
@@ -49,7 +48,6 @@ import org.taktik.icure.dto.annotations.filtering.LegacyField
 @Schema(
 	description = """This entity is a root level object. It represents a healthcare element. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.HealthElementDto")
 data class HealthElementDto(
 	/** The Id of the healthcare element. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the healthcare element. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,

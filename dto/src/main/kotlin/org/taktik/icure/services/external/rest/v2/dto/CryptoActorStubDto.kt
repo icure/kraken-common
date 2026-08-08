@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.NonNull
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.base.VersionableDto
@@ -24,7 +27,11 @@ data class CryptoActorStubDto(
 	override val transferKeys: Map<AesExchangeKeyEncryptionKeypairIdentifierDto, Map<AesExchangeKeyEncryptionKeypairIdentifierDto, HexStringDto>> = emptyMap(),
 	override val privateKeyShamirPartitions: Map<String, HexStringDto> = emptyMap(),
 	override val publicKey: SpkiHexStringDto? = null,
-	@param:Schema(required = true) override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto>,
+	@SerializationPolicy(
+		Since("2.0.0", NonNull::class),
+		Since("2.13.0", ActiveField::class)
+	)
+	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
 	override val parentId: String? = null,
 	@ActiveField
