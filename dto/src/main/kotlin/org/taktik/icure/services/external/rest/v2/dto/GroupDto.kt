@@ -29,9 +29,10 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AuthenticationClassD
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 /**
  * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
@@ -40,7 +41,6 @@ import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = """This entity represents a group""")
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.GroupDto")
 data class GroupDto(
 	/** The id of the group. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The id of the group. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
@@ -92,13 +92,19 @@ data class GroupDto(
 	/**
 	 * The versions of the custom design doc schema applied to the group.
 	 */
-	@FilterBeforeSdkVersion("2.7.0") // filtered because it can be set by the cockpit / ddoc manager
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class), // filtered because it can be set by the cockpit / ddoc manager
+		Since("2.7.0", ActiveField::class)
+	)
 	val designDocSchemaVersions: Set<Int> = emptySet(),
 	/**
 	 * The version of the custom design doc schema to apply by default children groups on creation.
 	 */
-	@FilterBeforeSdkVersion("2.7.0") // filtered because it can be set by the cockpit / ddoc manager
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class), // filtered because it can be set by the cockpit / ddoc manager
+		Since("2.7.0", ActiveField::class)
+	)
 	val defaultChildrenSchemaVersion: Int? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {

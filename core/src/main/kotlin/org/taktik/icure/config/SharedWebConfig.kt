@@ -6,9 +6,6 @@ package org.taktik.icure.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ser.FilterProvider
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
@@ -25,6 +22,7 @@ import org.springframework.web.reactive.socket.server.WebSocketService
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
+import org.taktik.icure.config.SharedWebFluxConfiguration.CardinalMappers.MapperConfig
 import org.taktik.icure.entities.utils.SemanticVersion
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
@@ -136,8 +134,27 @@ abstract class SharedWebFluxConfiguration(
 			}
 	}
 
-	interface CardinalMappersProvider {
-		fun getCardinalMappers(mapperProvider: () -> ObjectMapper): CardinalMappers
+	abstract class CardinalMappersProvider {
+		abstract fun getCardinalMappers(mapperProvider: () -> ObjectMapper): CardinalMappers
+
+		protected fun TreeMap<SemanticVersion, MapperConfig>.putConfig(
+			version: String,
+			provider: CardinalMixInProvider,
+			mapperProvider: () -> ObjectMapper
+		) {
+			put(
+				SemanticVersion(version),
+				MapperConfig(
+					default = mapperProvider().setMixIns(provider.getMixInConfiguration()),
+					includingLegacyFields = mapperProvider().setMixIns(provider.getLegacyMixInConfiguration())
+				)
+			)
+		}
+	}
+
+	interface CardinalMixInProvider {
+		fun getMixInConfiguration(): Map<Class<*>, Class<*>>
+		fun getLegacyMixInConfiguration(): Map<Class<*>, Class<*>>
 	}
 
 	private val CLASSPATH_RESOURCE_LOCATIONS =
@@ -158,9 +175,6 @@ abstract class SharedWebFluxConfiguration(
 			.allowedHeaders("*")
 	}
 
-	private val legacyJacksonFilter: FilterProvider = SimpleFilterProvider()
-		.setDefaultFilter(SimpleBeanPropertyFilter.serializeAll())
-
 	protected val legacyObjectMapper: ObjectMapper =
 		ObjectMapper().registerModule(
 			KotlinModule.Builder()
@@ -168,7 +182,6 @@ abstract class SharedWebFluxConfiguration(
 				.build()
 		).apply {
 			setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-			setFilterProvider(legacyJacksonFilter)
 		}
 
 	/**
