@@ -17,12 +17,14 @@ import org.taktik.icure.entities.embed.CareTeamMember
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Episode
+import org.taktik.icure.entities.embed.HealthElementAsserter
 import org.taktik.icure.entities.embed.HealthElementQualifiedLink
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
+import org.taktik.icure.mergers.annotations.MergeStrategyCollectionNotEmpty
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
 import org.taktik.icure.mergers.annotations.Mergeable
@@ -77,6 +79,9 @@ import org.taktik.icure.validation.ValidCode
  * @property qualifiedLinks Directed links towards related healthcare elements. Links should be created in a single
  * direction: the reverse link can be found through a view. This field is indexed by views and must stay in clear text
  * (it must not be part of the encrypted fields).
+ * @property asserters The parties (0..*) asserting that the patient has this healthcare element, i.e. on whose word
+ * the healthcare element is held to be true. Unlike [qualifiedLinks], which must stay in clear text because views index
+ * it, this field is encrypted: it belongs in [encryptedSelf].
  * @property delegations The delegations giving access to all connected healthcare information.
  * @property encryptionKeys The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors.
  * @property encryptedSelf The encrypted fields of this healthcare element.
@@ -122,6 +127,8 @@ data class HealthElement(
 	@field:Valid val episodes: List<Episode> = emptyList(),
 	@field:Valid val careTeam: List<CareTeamMember> = emptyList(),
 	val qualifiedLinks: List<HealthElementQualifiedLink> = emptyList(),
+	@MergeStrategyCollectionNotEmpty
+	val asserters: List<HealthElementAsserter> = emptyList(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
 	override val cryptedForeignKeys: Map<String, Set<Delegation>> = emptyMap(),
