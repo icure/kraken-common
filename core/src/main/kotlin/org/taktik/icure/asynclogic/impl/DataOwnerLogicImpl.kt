@@ -284,12 +284,17 @@ open class DataOwnerLogicImpl(
 		if (original.rev != modified.stub.rev) {
 			throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
 		}
-		require(modified.stub.parentId == original.parentId) {
-			"You can't use this method to change the parent id of a crypto actor"
-		}
-		// An empty list is tolerated as "not provided": the v1 CryptoActorStubDto has no dataOwnerGroups
-		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
-			"You can't use this method to change the data owner groups of a crypto actor"
+		// Compare the normalized (parentId folded into dataOwnerGroups) link sets rather than each field
+		// individually: parentId and dataOwnerGroups are just two different wire representations of the same
+		// underlying links, and which one carries a given link can differ across SDK versions (e.g. a cardinal
+		// 3+ reader is served the legacy parentId folded into dataOwnerGroups, with parentId reported as null).
+		// Comparing fields one-to-one would wrongly reject a client echoing back an unchanged link set in a
+		// different shape than it was originally stored in.
+		require(
+			CryptoActor.normalizedDataOwnerGroupLinks(modified.stub.dataOwnerGroups, modified.stub.parentId) ==
+				CryptoActor.normalizedDataOwnerGroupLinks(original.dataOwnerGroups, original.parentId)
+		) {
+			"You can't use this method to change the parent id or data owner group links of a crypto actor"
 		}
 		// null is tolerated as "not provided" for the same reason; groupLinkType is a logic/correctness invariant
 		// (not access-control), so unlike dataOwnerGroups/parentId there is no permission that can ever bypass this.

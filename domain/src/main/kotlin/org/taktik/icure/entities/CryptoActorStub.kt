@@ -22,6 +22,7 @@ data class CryptoActorStub(
 	override val privateKeyShamirPartitions: Map<String, String> = emptyMap(),
 	override val publicKey: String? = null,
 	override val publicKeysForOaepWithSha256: Set<String> = emptySet(),
+	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkType.parent link instead")
 	override val parentId: String? = null,
 	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
 	override val groupLinkType: DataOwnerGroupLinkType? = null,
