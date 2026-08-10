@@ -76,4 +76,25 @@ interface HealthElementDAO : ConflictDAO<HealthElement> {
 	fun listHealthElementIdsByHcPartyAndStatusAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, status: Int?, filterVersion: VersionFiltering): Flow<String>
 
 	fun listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>, filterVersion: VersionFiltering): Flow<String>
+
+	/**
+	 * Retrieves the ids of all the [HealthElement]s that have in [HealthElement.qualifiedLinks] at least one link
+	 * towards one of [linkedIds]. If [type] is not null, only links with that qualification type are considered.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param linkedIds the ids of the linked [HealthElement]s.
+	 * @param type the qualification type of the links, or null to consider all links.
+	 * @return a [Flow] of HealthElement ids.
+	 */
+	fun listHealthElementIdsByQualifiedLink(datastoreInformation: IDatastoreInformation, linkedIds: List<String>, type: String?): Flow<String>
+
+	/**
+	 * Retrieves the ids of all the [HealthElement]s that have in [HealthElement.qualifiedLinks], for any type of
+	 * qualification, a link with an association id equal to [associationId].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify CouchDB instance and group.
+	 * @param associationId the association id of the links.
+	 * @return a [Flow] of HealthElement ids.
+	 */
+	fun listHealthElementIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String): Flow<String>
 }
