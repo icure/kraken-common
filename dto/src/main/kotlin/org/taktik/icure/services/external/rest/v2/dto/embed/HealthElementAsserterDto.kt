@@ -1,7 +1,6 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.io.Serializable
@@ -21,7 +20,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * [HealthElementAsserterDto.HealthcareParty.hcpId] points to such a record. The association between a practitioner and
  * the organisation they were acting for at the time of the assertion is deliberately NOT modelled here.
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
