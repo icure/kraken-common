@@ -24,9 +24,9 @@ import org.taktik.icure.entities.embed.Laterality
 import org.taktik.icure.entities.embed.PlanOfAction
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
-import org.taktik.icure.mergers.annotations.MergeStrategyCollectionNotEmpty
 import org.taktik.icure.mergers.annotations.MergeStrategyMax
 import org.taktik.icure.mergers.annotations.MergeStrategyMin
+import org.taktik.icure.mergers.annotations.MergeStrategyUse
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -127,7 +127,11 @@ data class HealthElement(
 	@field:Valid val episodes: List<Episode> = emptyList(),
 	@field:Valid val careTeam: List<CareTeamMember> = emptyList(),
 	val qualifiedLinks: List<HealthElementQualifiedLink> = emptyList(),
-	@MergeStrategyCollectionNotEmpty
+	@MergeStrategyUse(
+		canMerge = "true",
+		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
+		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"],
+	)
 	val asserters: List<HealthElementAsserter> = emptyList(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
