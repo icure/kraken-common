@@ -176,7 +176,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 
 	override fun save(entities: List<T>): Flow<BulkSaveResult<T>> = save(entities.asFlow())
 
-	override suspend fun update(entity: T): T? {
+	override suspend fun update(entity: T): T {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".save: " + entity.id + ":" + entity.rev)
