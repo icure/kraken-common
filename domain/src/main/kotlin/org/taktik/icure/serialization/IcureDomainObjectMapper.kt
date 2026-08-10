@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.icure.cardinal.customentities.config.jackson.CustomEntitiesJacksonModule
 import com.icure.cardinal.entities.RawJsonJacksonModule
+import com.icure.cardinal.views.CustomViewsJacksonModule
 
 object IcureDomainObjectMapper {
 	/**
@@ -25,5 +26,7 @@ object IcureDomainObjectMapper {
 	}.registerMultiplatformSupportModules()
 
 	fun ObjectMapper.registerMultiplatformSupportModules(): ObjectMapper =
-		registerModule(RawJsonJacksonModule()).registerModule(CustomEntitiesJacksonModule())
+		registerModule(RawJsonJacksonModule())
+			.registerModule(CustomEntitiesJacksonModule())
+			.registerModule(CustomViewsJacksonModule())
 }
