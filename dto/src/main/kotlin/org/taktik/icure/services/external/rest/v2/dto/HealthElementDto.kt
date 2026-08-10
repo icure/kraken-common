@@ -31,6 +31,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementAsserterDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementQualifiedLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.LateralityDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionDto
@@ -115,6 +116,8 @@ data class HealthElementDto(
 	@param:Schema(description = "List of care team members assigned for the healthcare element.") @ActiveField val careTeam: List<CareTeamMemberDto> = emptyList(),
 	/** Directed links towards related healthcare elements. Links should be created in a single direction: the reverse link can be found through a view. This field is not encrypted. */
 	@param:Schema(description = "Directed links towards related healthcare elements. Links should be created in a single direction: the reverse link can be found through a view. This field is not encrypted.") @ActiveField val qualifiedLinks: List<HealthElementQualifiedLinkDto> = emptyList(),
+	/** The parties asserting that the patient has this healthcare element, i.e. on whose word the healthcare element is held to be true. This field is encrypted. */
+	@param:Schema(description = "The parties asserting that the patient has this healthcare element, i.e. on whose word the healthcare element is held to be true. This field is encrypted.") @ActiveField val asserters: List<HealthElementAsserterDto> = emptyList(),
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */
