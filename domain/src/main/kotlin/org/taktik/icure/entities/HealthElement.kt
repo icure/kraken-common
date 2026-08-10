@@ -132,6 +132,7 @@ data class HealthElement(
 		merge = "mergeListsDistinct({{LEFT}}.{{PROP}}, {{RIGHT}}.{{PROP}})",
 		imports = ["org.taktik.icure.entities.utils.MergeUtil.mergeListsDistinct"],
 	)
+	@field:JsonInclude(JsonInclude.Include.NON_EMPTY)
 	val asserters: List<HealthElementAsserter> = emptyList(),
 
 	override val secretForeignKeys: Set<String> = emptySet(),
