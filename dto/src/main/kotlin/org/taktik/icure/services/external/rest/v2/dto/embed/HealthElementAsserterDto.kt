@@ -1,8 +1,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
@@ -14,51 +13,30 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * report a condition on behalf of the patient, and a physician may assert a diagnosis: all three are asserters, and the
  * same healthcare element may carry more than one of them.
  *
- * Note on organisations: an organisation (hospital, practice, care home, ...) is not a separate branch of this
- * hierarchy. Organisations are stored as healthcare party records, distinguished from individual practitioners by tags
- * set by the client, so an organisation asserter is a [HealthElementAsserterDto.HealthcareParty] whose
- * [HealthElementAsserterDto.HealthcareParty.hcpId] points to such a record. The association between a practitioner and
- * the organisation they were acting for at the time of the assertion is deliberately NOT modelled here.
+ * The two fields must agree: [asserterType] declares which kind of entity [asserterId] points at. Nothing enforces
+ * this. The field is encrypted, so the server never sees the values and cannot validate or repair them; the invariant
+ * is owned by the SDK.
+ *
+ * Note on organisations: an organisation (hospital, practice, care home, ...) is not a distinct asserter type.
+ * Organisations are stored as healthcare party records, distinguished from individual practitioners by tags set by the
+ * client, so an organisation asserter is an entry with `asserterType = "healthcareParty"` whose [asserterId] points to
+ * such a record. The association between a practitioner and the organisation they were acting for at the time of the
+ * assertion is deliberately NOT modelled here.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-	JsonSubTypes.Type(value = HealthElementAsserterDto.Patient::class, name = "patient"),
-	JsonSubTypes.Type(value = HealthElementAsserterDto.RelatedPerson::class, name = "relatedPerson"),
-	JsonSubTypes.Type(value = HealthElementAsserterDto.HealthcareParty::class, name = "healthcareParty"),
-)
-sealed interface HealthElementAsserterDto : Serializable {
+data class HealthElementAsserterDto(
+	/** The id of the entity making the assertion. Which entity it refers to is given by [asserterType]. */
+	@ActiveField val asserterId: String,
 	/**
-	 * The patient themselves asserts the healthcare element: it is self-reported.
-	 *
-	 * @property patientId The id of the patient making the assertion. Usually the same patient the healthcare element
-	 * is about, but nothing enforces it.
+	 * The kind of entity [asserterId] refers to. Free string; using the names of PartnerType entries (`patient`,
+	 * `relatedPerson`, `healthcareParty`) is encouraged but not enforced. This is the kind of entity, not the role the
+	 * party played - do not confuse it with ParticipantType.
 	 */
-	data class Patient(
-		@ActiveField val patientId: String,
-	) : HealthElementAsserterDto,
-		Serializable
-
-	/**
-	 * Someone related to the patient - a parent, a spouse, a carer, ... - asserts the healthcare element on the
-	 * patient's behalf.
-	 *
-	 * @property relatedPersonId The id of the related person making the assertion.
-	 */
-	data class RelatedPerson(
-		@ActiveField val relatedPersonId: String,
-	) : HealthElementAsserterDto,
-		Serializable
-
-	/**
-	 * A healthcare party asserts the healthcare element. This covers both individual practitioners and organisations:
-	 * both are stored as healthcare party records and are told apart by client-side tags, not by the shape of this
-	 * branch.
-	 *
-	 * @property hcpId The id of the healthcare party making the assertion.
-	 */
-	data class HealthcareParty(
-		@ActiveField val hcpId: String,
-	) : HealthElementAsserterDto,
-		Serializable
+	@ActiveField val asserterType: String,
+) : Serializable {
+	init {
+		require(asserterId.isNotBlank()) { "asserterId cannot be blank" }
+		require(asserterType.isNotBlank()) { "asserterType cannot be blank" }
+	}
 }
