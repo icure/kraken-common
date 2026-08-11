@@ -7,7 +7,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.icure.cardinal.customentities.config.jackson.CustomEntitiesJacksonModule
 import com.icure.cardinal.entities.RawJsonJacksonModule
-import com.icure.cardinal.views.CustomViewsJacksonModule
+import com.icure.cardinal.customviews.CustomViewsJacksonModule
 
 object IcureDomainObjectMapper {
 	/**
