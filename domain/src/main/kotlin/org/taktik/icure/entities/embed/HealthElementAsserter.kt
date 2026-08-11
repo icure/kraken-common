@@ -1,8 +1,7 @@
 package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 
 /**
@@ -14,54 +13,28 @@ import java.io.Serializable
  * may report a condition on behalf of the patient, and a physician may assert a diagnosis: all three are asserters,
  * and the same health element may carry more than one of them.
  *
- * Note on organisations: an organisation (hospital, practice, care home, ...) is not a separate branch of this
- * hierarchy. Organisations are stored as [org.taktik.icure.entities.HealthcareParty] records, distinguished from
- * individual practitioners by tags set by the client, so an organisation asserter is a [HealthElementAsserter.HealthcareParty]
- * whose [HealthElementAsserter.HealthcareParty.hcpId] points to such a record. The association between a practitioner and the organisation
- * they were acting for at the time of the assertion is deliberately NOT modelled here: if that link matters, the
- * client asserts both parties, or resolves the association from its own data.
+ * The two fields must agree: [asserterType] declares which kind of entity [asserterId] points at. Nothing enforces
+ * this. The field is encrypted, so the server never sees the values and cannot validate or repair them; the invariant
+ * is owned by the SDK. See ADR 0006.
+ *
+ * Note on organisations: an organisation (hospital, practice, care home, ...) is not a distinct asserter type.
+ * Organisations are stored as [org.taktik.icure.entities.HealthcareParty] records, distinguished from individual
+ * practitioners by tags set by the client, so an organisation asserter is an entry with
+ * `asserterType = "healthcareParty"` whose [asserterId] points to such a record. The association between a
+ * practitioner and the organisation they were acting for at the time of the assertion is deliberately NOT modelled
+ * here: if that link matters, the client asserts both parties, or resolves the association from its own data.
+ *
+ * @property asserterId The id of the entity making the assertion. Which entity it refers to is given by
+ * [asserterType].
+ * @property asserterType The kind of entity [asserterId] refers to. Free string; using the names of
+ * [PartnerType] entries (`patient`, `relatedPerson`, `healthcareParty`) is encouraged but not enforced. [PartnerType]
+ * is cited because it answers the same question for [Partnership.partnerId] - not because asserter semantics and
+ * partnership semantics coincide. Do not confuse this axis with [org.taktik.icure.entities.base.ParticipantType],
+ * which qualifies the *role* a party played rather than the kind of entity it is.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-	JsonSubTypes.Type(value = HealthElementAsserter.Patient::class, name = "patient"),
-	JsonSubTypes.Type(value = HealthElementAsserter.RelatedPerson::class, name = "relatedPerson"),
-	JsonSubTypes.Type(value = HealthElementAsserter.HealthcareParty::class, name = "healthcareParty"),
-)
-sealed interface HealthElementAsserter : Serializable {
-	/**
-	 * A patient asserts the health element. Usually the subject of the health element themselves, making it
-	 * self-reported, but not necessarily: a mother who is herself a patient may assert about her child.
-	 *
-	 * @property patientId The id of the [org.taktik.icure.entities.Patient] making the assertion. There is no
-	 * marker for "the subject of this health element" - the id is always explicit, and nothing enforces that it
-	 * matches the subject.
-	 */
-	data class Patient(
-		val patientId: String,
-	) : HealthElementAsserter,
-		Serializable
-
-	/**
-	 * Someone related to the patient - a parent, a spouse, a carer, ... - asserts the health element on the patient's
-	 * behalf.
-	 *
-	 * @property relatedPersonId The id of the [org.taktik.icure.entities.RelatedPerson] making the assertion.
-	 */
-	data class RelatedPerson(
-		val relatedPersonId: String,
-	) : HealthElementAsserter,
-		Serializable
-
-	/**
-	 * A healthcare party asserts the health element. This covers both individual practitioners and organisations:
-	 * both are stored as [org.taktik.icure.entities.HealthcareParty] records and are told apart by client-side tags,
-	 * not by the shape of this branch.
-	 *
-	 * @property hcpId The id of the [org.taktik.icure.entities.HealthcareParty] making the assertion.
-	 */
-	data class HealthcareParty(
-		val hcpId: String,
-	) : HealthElementAsserter,
-		Serializable
-}
+data class HealthElementAsserter(
+	val asserterId: String,
+	val asserterType: String,
+) : Serializable
