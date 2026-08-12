@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 
 /**
  * The party asserting that the patient has the healthcare element this asserter is attached to.
@@ -13,28 +14,61 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * report a condition on behalf of the patient, and a physician may assert a diagnosis: all three are asserters, and the
  * same healthcare element may carry more than one of them.
  *
- * The two fields must agree: [asserterType] declares which kind of entity [asserterId] points at. [AsserterTypeDto]
- * bounds the vocabulary, but nothing enforces the *pairing* - the field is encrypted, so the server never sees the
- * values and cannot validate or repair them; that invariant is owned by the SDK.
+ * The party is named in exactly one of two ways, and exactly one of the two fields must be set:
+ * - [localAsserterIdentifier] names a party stored in this iCure instance: an id, plus the [AsserterTypeDto] saying
+ *   which kind of record that id points at;
+ * - [externalAsserterIdentifier] names a party that has no record here, through a business [IdentifierDto] issued by
+ *   another system. There is deliberately no [AsserterTypeDto] on this branch: the kind of a record we do not store is
+ *   not knowable to us.
+ *
+ * The `require` below is the only place the exactly-one rule is enforced, and it is reachable only for callers that
+ * bypass SDK encryption - normally the field is encrypted and the server receives it empty. Nothing enforces the
+ * *pairing* inside [LocalAsserterIdentifier]: [AsserterTypeDto] bounds the vocabulary, not what
+ * [LocalAsserterIdentifier.asserterId] actually points at; that invariant is owned by the SDK.
  *
  * Note on organisations: an organisation (hospital, practice, care home, ...) is not a distinct asserter type.
  * Organisations are stored as healthcare party records, distinguished from individual practitioners by tags set by the
- * client, so an organisation asserter is an entry with `asserterType = AsserterTypeDto.healthcareParty` whose
- * [asserterId] points to such a record. The association between a practitioner and the organisation they were acting
- * for at the time of the assertion is deliberately NOT modelled here.
+ * client, so an organisation asserter is a [localAsserterIdentifier] with
+ * `asserterType = AsserterTypeDto.healthcareParty` whose `asserterId` points to such a record. The association between
+ * a practitioner and the organisation they were acting for at the time of the assertion is deliberately NOT modelled
+ * here.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementAsserterDto(
-	/** The id of the entity making the assertion. Which entity it refers to is given by [asserterType]. */
-	@ActiveField val asserterId: String,
 	/**
-	 * The kind of entity [asserterId] refers to. This is the kind of entity, not the role the party played - do not
-	 * confuse it with ParticipantTypeDto.
+	 * The asserting party, as a reference to a record stored in this instance. Null when the party is named by
+	 * [externalAsserterIdentifier].
 	 */
-	@ActiveField val asserterType: AsserterTypeDto,
+	@ActiveField val localAsserterIdentifier: LocalAsserterIdentifier? = null,
+	/**
+	 * The asserting party, as a business identifier from a system that is not this one. Null when the party is named by
+	 * [localAsserterIdentifier]. Carries no [AsserterTypeDto].
+	 */
+	@ActiveField val externalAsserterIdentifier: IdentifierDto? = null,
 ) : Serializable {
 	init {
-		require(asserterId.isNotBlank()) { "asserterId cannot be blank" }
+		require((localAsserterIdentifier == null) != (externalAsserterIdentifier == null)) {
+			"Exactly one of localAsserterIdentifier and externalAsserterIdentifier must be set"
+		}
+	}
+
+	/**
+	 * A reference to the record, stored in iCure.
+	 */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	data class LocalAsserterIdentifier(
+		/** The id of the entity making the assertion. Which entity it refers to is given by [asserterType]. */
+		@ActiveField val asserterId: String,
+		/**
+		 * The kind of entity [asserterId] refers to. This is the kind of entity, not the role the party played - do not
+		 * confuse it with ParticipantTypeDto.
+		 */
+		@ActiveField val asserterType: AsserterTypeDto,
+	) : Serializable {
+		init {
+			require(asserterId.isNotBlank()) { "asserterId cannot be blank" }
+		}
 	}
 }
