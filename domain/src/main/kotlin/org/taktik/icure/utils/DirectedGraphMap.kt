@@ -122,3 +122,43 @@ fun <T> edgesToGraphMap(edges: Collection<Pair<T, T>>): DirectedGraphMap<T> {
 }
 
 private fun <T> DirectedGraphMap<T>.edgesOf(vertex: T): Set<T> = this[vertex] ?: emptySet()
+
+/**
+ * Check if all possible paths that can be followed starting from any vertex in [pathStart] reach at some point [target].
+ *
+ * A path ends as soon as it reaches [target]: whatever [target] itself links to is irrelevant, so a vertex in
+ * [pathStart] that *is* [target] always satisfies the check, through the path of length 0 to itself. Every other path
+ * must reach [target] in a finite number of steps, so a path that stops on a vertex with no outgoing edges (including
+ * a vertex that is not a key of this graph at all) fails the check, and so does a path that can keep looping forever
+ * without ever passing through [target]. Unlike [paths], this can therefore safely be used on a graph with loops: a
+ * loop that avoids [target] is simply a set of paths that never reach it.
+ *
+ * @param pathStart the vertices to start the paths from. If empty the check trivially succeeds.
+ * @param target the vertex that every path must pass through.
+ * @return true if every path starting from every vertex of [pathStart] reaches [target].
+ */
+fun <T : Any> DirectedGraphMap<T>.allPathsReach(pathStart: Set<T>, target: T): Boolean {
+	// The vertices from which every path reaches target, resolved backwards from target itself: a vertex is added as
+	// soon as *all* of its outgoing edges lead to a vertex already known to always reach target. A vertex on a loop
+	// that avoids target is never added, since the loop always leaves it at least one unresolved outgoing edge.
+	val alwaysReaching = mutableSetOf(target)
+	val incomingEdges = reversed()
+	val unresolvedEdgeCounts = mutableMapOf<T, Int>()
+	val toPropagate = ArrayDeque(listOf(target))
+	while (toPropagate.isNotEmpty()) {
+		val resolved = toPropagate.removeFirst()
+		// Each vertex is propagated at most once, so each of a predecessor's outgoing edges decrements its count at
+		// most once: the count reaches 0 exactly when all of them are resolved.
+		incomingEdges[resolved]?.forEach { predecessor ->
+			if (predecessor !in alwaysReaching) {
+				val unresolvedEdges = unresolvedEdgeCounts.getOrElse(predecessor) { edgesOf(predecessor).size } - 1
+				unresolvedEdgeCounts[predecessor] = unresolvedEdges
+				if (unresolvedEdges == 0) {
+					alwaysReaching += predecessor
+					toPropagate.addLast(predecessor)
+				}
+			}
+		}
+	}
+	return pathStart.all { it in alwaysReaching }
+}
