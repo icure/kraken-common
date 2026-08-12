@@ -3,7 +3,7 @@ package org.taktik.icure.entities.embed
 import org.taktik.icure.entities.base.EnumVersion
 
 /**
- * The kind of entity a [HealthElementAsserter.LocalAsserterIdentifier.asserterId] refers to.
+ * The kind of entity a [HealthElementAsserter.LocalAsserterIdentifier.id] refers to.
  *
  * This is the *entity-kind* axis, not the role axis: it says what sort of record the id points at, not what part the
  * party played in the assertion. Do not confuse it with [org.taktik.icure.entities.base.ParticipantType].

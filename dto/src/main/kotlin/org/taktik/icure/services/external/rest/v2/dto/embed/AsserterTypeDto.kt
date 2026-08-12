@@ -1,7 +1,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
 /**
- * The kind of entity a health element asserter's asserterId refers to.
+ * The kind of entity a health element asserter's [HealthElementAsserterDto.LocalAsserterIdentifier.id] refers to.
  *
  * This is the *entity-kind* axis, not the role axis: it says what sort of record the id points at, not what part the
  * party played in the assertion. Do not confuse it with ParticipantTypeDto.

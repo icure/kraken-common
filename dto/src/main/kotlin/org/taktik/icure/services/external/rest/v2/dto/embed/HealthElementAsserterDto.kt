@@ -21,17 +21,17 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
  *   another system. There is deliberately no [AsserterTypeDto] on this branch: the kind of a record we do not store is
  *   not knowable to us.
  *
- * The `require` below is the only place the exactly-one rule is enforced, and it is reachable only for callers that
- * bypass SDK encryption - normally the field is encrypted and the server receives it empty. Nothing enforces the
- * *pairing* inside [LocalAsserterIdentifier]: [AsserterTypeDto] bounds the vocabulary, not what
- * [LocalAsserterIdentifier.asserterId] actually points at; that invariant is owned by the SDK.
+ * The exactly-one rule is **not** checked on this DTO. It is checked one layer down, in `HealthElementAsserter`'s
+ * `init`: mapping this DTO constructs one, so a violation still surfaces as a `400`, and the rule also covers the write
+ * paths that never build a DTO at all. This class only checks that [LocalAsserterIdentifier.id] is not blank. Nothing
+ * enforces the *pairing* inside [LocalAsserterIdentifier]: [AsserterTypeDto] bounds the vocabulary, not what
+ * [LocalAsserterIdentifier.id] actually points at; that invariant is owned by the SDK.
  *
  * Note on organisations: an organisation (hospital, practice, care home, ...) is not a distinct asserter type.
  * Organisations are stored as healthcare party records, distinguished from individual practitioners by tags set by the
- * client, so an organisation asserter is a [localAsserterIdentifier] with
- * `asserterType = AsserterTypeDto.healthcareParty` whose `asserterId` points to such a record. The association between
- * a practitioner and the organisation they were acting for at the time of the assertion is deliberately NOT modelled
- * here.
+ * client, so an organisation asserter is a [localAsserterIdentifier] with `type = AsserterTypeDto.healthcareParty`
+ * whose `id` points to such a record. The association between a practitioner and the organisation they were acting for
+ * at the time of the assertion is deliberately NOT modelled here.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -47,28 +47,22 @@ data class HealthElementAsserterDto(
 	 */
 	@ActiveField val externalAsserterIdentifier: IdentifierDto? = null,
 ) : Serializable {
-	init {
-		require((localAsserterIdentifier == null) != (externalAsserterIdentifier == null)) {
-			"Exactly one of localAsserterIdentifier and externalAsserterIdentifier must be set"
-		}
-	}
-
 	/**
 	 * A reference to the record, stored in iCure.
 	 */
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	data class LocalAsserterIdentifier(
-		/** The id of the entity making the assertion. Which entity it refers to is given by [asserterType]. */
-		@ActiveField val asserterId: String,
+		/** The id of the entity making the assertion. Which entity it refers to is given by [type]. */
+		@ActiveField val id: String,
 		/**
-		 * The kind of entity [asserterId] refers to. This is the kind of entity, not the role the party played - do not
+		 * The kind of entity [id] refers to. This is the kind of entity, not the role the party played - do not
 		 * confuse it with ParticipantTypeDto.
 		 */
-		@ActiveField val asserterType: AsserterTypeDto,
+		@ActiveField val type: AsserterTypeDto,
 	) : Serializable {
 		init {
-			require(asserterId.isNotBlank()) { "asserterId cannot be blank" }
+			require(id.isNotBlank()) { "id cannot be blank" }
 		}
 	}
 }
