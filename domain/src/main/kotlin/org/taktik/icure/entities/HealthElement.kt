@@ -80,8 +80,9 @@ import org.taktik.icure.validation.ValidCode
  * direction: the reverse link can be found through a view. This field is indexed by views and must stay in clear text
  * (it must not be part of the encrypted fields).
  * @property asserters The parties (0..*) asserting that the patient has this healthcare element, i.e. on whose word
- * the healthcare element is held to be true. Unlike [qualifiedLinks], which must stay in clear text because views index
- * it, this field is encrypted: it belongs in [encryptedSelf].
+ * the healthcare element is held to be true. Each entry names its party either by a reference to a record stored in
+ * this instance or by a business identifier issued by another system. Unlike [qualifiedLinks], which must stay in clear
+ * text because views index it, this field is encrypted: it belongs in [encryptedSelf].
  * @property delegations The delegations giving access to all connected healthcare information.
  * @property encryptionKeys The patient secret encryption key used to encrypt the secured properties (like note for example), encrypted for separate Crypto Actors.
  * @property encryptedSelf The encrypted fields of this healthcare element.
