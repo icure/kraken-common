@@ -20,19 +20,22 @@ import java.io.Serializable
  *   another system. There is deliberately no [AsserterType] on this branch: the kind of a record we do not store is
  *   not knowable to us.
  *
- * Nothing here is validated by the server. The field is encrypted, so the server never sees the values and can neither
- * validate nor repair them: nothing enforces that exactly one branch is set, and nothing enforces the *pairing* inside
- * [LocalAsserterIdentifier] - [AsserterType] bounds the vocabulary, not what [LocalAsserterIdentifier.asserterId]
- * actually points at. Both invariants are owned by the SDK; the exactly-one check is mirrored on
- * `HealthElementAsserterDto` (a `400` for callers that bypass SDK encryption) and deliberately **not** here, so that a
- * single bad stored value cannot make the whole health element undeserializable. See ADR 0006.
+ * The exactly-one rule is enforced in `init`, on the entity rather than on the DTO: construction fails on both-null and
+ * on both-set, whichever path builds the instance - mapping a DTO, a service path, a `copy`. On a write that surfaces
+ * as a `400` (`IllegalArgumentException` → `GlobalErrorHandler`). The cost is accepted deliberately, not overlooked:
+ * `init` also runs on CouchDB read, so an asserter stored in a shape this check rejects makes the whole health element
+ * undeserializable and - the field being encrypted - unfixable through the API. See ADR 0006 decision 10.
+ *
+ * What is *not* enforced is the *pairing* inside [LocalAsserterIdentifier]: [AsserterType] bounds the vocabulary, not
+ * what [LocalAsserterIdentifier.id] actually points at. The field is encrypted, so the server never sees the values and
+ * can neither validate nor repair them; that invariant is owned by the SDK.
  *
  * Note on organisations: an organisation (hospital, practice, care home, ...) is not a distinct asserter type.
  * Organisations are stored as [org.taktik.icure.entities.HealthcareParty] records, distinguished from individual
  * practitioners by tags set by the client, so an organisation asserter is a [localAsserterIdentifier] with
- * `asserterType = AsserterType.healthcareParty` whose `asserterId` points to such a record. The association between a
- * practitioner and the organisation they were acting for at the time of the assertion is deliberately NOT modelled
- * here: if that link matters, the client asserts both parties, or resolves the association from its own data.
+ * `type = AsserterType.healthcareParty` whose `id` points to such a record. The association between a practitioner and
+ * the organisation they were acting for at the time of the assertion is deliberately NOT modelled here: if that link
+ * matters, the client asserts both parties, or resolves the association from its own data.
  *
  * @property localAsserterIdentifier The asserting party, as a reference to a record stored in this instance. Null when
  * the party is named by [externalAsserterIdentifier].
@@ -45,19 +48,29 @@ data class HealthElementAsserter(
 	val localAsserterIdentifier: LocalAsserterIdentifier? = null,
 	val externalAsserterIdentifier: Identifier? = null,
 ) : Serializable {
+	init {
+		require((localAsserterIdentifier == null) != (externalAsserterIdentifier == null)) {
+			"Exactly one of localAsserterIdentifier and externalAsserterIdentifier must be set"
+		}
+	}
+
 	/**
 	 * A reference to the record, stored in this iCure instance, of the party making the assertion.
 	 *
-	 * @property asserterId The id of the entity making the assertion. Which entity it refers to is given by
-	 * [asserterType].
-	 * @property asserterType The kind of entity [asserterId] refers to. Do not confuse this axis with
+	 * The fields are bare `id` / `type` rather than `asserterId` / `asserterType`: inside a class that already says
+	 * whose identifier this is, the prefix only stutters. `type` here is the *entity-kind* axis, and it is unambiguous
+	 * because this class holds nothing else - the role axis, if HealthElement ever needs one, belongs on
+	 * [HealthElementAsserter] itself, where `type` and `function` are still free. See ADR 0006 decision 8.
+	 *
+	 * @property id The id of the entity making the assertion. Which entity it refers to is given by [type].
+	 * @property type The kind of entity [id] refers to. Do not confuse this axis with
 	 * [org.taktik.icure.entities.base.ParticipantType], which qualifies the *role* a party played rather than the kind
 	 * of entity it is.
 	 */
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	data class LocalAsserterIdentifier(
-		val asserterId: String,
-		val asserterType: AsserterType,
+		val id: String,
+		val type: AsserterType,
 	) : Serializable
 }
