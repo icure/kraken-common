@@ -20,9 +20,10 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.CardinalMetadataProperty
+import org.taktik.icure.ViewBuiltInField
+import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
-import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
  * Interface for entities that hold encryption metadata used for end-to-end encryption and access control.
@@ -32,7 +33,9 @@ interface HasEncryptionMetadataDto : VersionableDto<String> {
 	@get:Schema(
 		description = "The secretForeignKeys are filled at the to many end of a one to many relationship (for example inside Contact for the Patient -> Contacts relationship). Used when we want to find all contacts for a specific patient. These keys are in clear. You can have several to partition the medical document space.",
 	)
-	@CardinalMetadataProperty
+	@CardinalMetadataProperty(
+		ViewBuiltInField(type = ViewBuiltInField.Type.LinkedEntityId)
+	)
 	@ActiveField
 	val secretForeignKeys: Set<String>
 
@@ -63,7 +66,9 @@ In [Encryptable] entities this is also used to store additional encrypted metada
 [Encryptable.encryptedSelf] (replacing [Encryptable.encryptionKeys]), owning entity id (replacing [Encryptable.cryptedForeignKeys]),
 and secret id (replacing the keys of [Encryptable.delegations]).""",
 	)
-	@CardinalMetadataProperty
+	@CardinalMetadataProperty(
+		ViewBuiltInField(type = ViewBuiltInField.Type.Delegates)
+	)
 	@ActiveField
 	val securityMetadata: SecurityMetadataDto?
 }

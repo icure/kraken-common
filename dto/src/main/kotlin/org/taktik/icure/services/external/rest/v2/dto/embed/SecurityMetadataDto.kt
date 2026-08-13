@@ -3,9 +3,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
-import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.specializations.SecureDelegationKeyStringDto
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,5 +24,6 @@ This could happen in situations where a user should have access only to the unen
 		required = true,
 	)
 	/** A map from hex-encoded SHA-256 hash of an access control key to its corresponding secure delegation. */
-	@ActiveField val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
+	@ActiveField
+	val secureDelegations: Map<SecureDelegationKeyStringDto, SecureDelegationDto>,
 )
