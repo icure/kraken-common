@@ -180,7 +180,8 @@ class ExchangeDataDAOImpl(
 	 * Queries [viewName] for one key per entry of [filterRecipients], as built by [keyForRecipient], returning at most
 	 * [limit] entities.
 	 * [startDocumentId] is applied to the first entry of [filterRecipients] only, since it is the only recipient that
-	 * may have been partially returned by the previous page.
+	 * may have been partially returned by the previous page. This costs a second query, see the comment in the body for
+	 * why couchdb can't do it in one.
 	 */
 	private fun findExchangeDataForRecipients(
 		datastoreInformation: IDatastoreInformation,
@@ -213,12 +214,11 @@ class ExchangeDataDAOImpl(
 			.reduce(false)
 			.descending(false)
 
-		if (startDocumentId == null || keys.size == 1) {
+		if (startDocumentId == null) {
 			emitAll(
 				client.queryView(
 					query(datastoreInformation, viewName)
 						.keys(keys)
-						.startDocId(startDocumentId)
 						.limit(limit),
 					ComplexKey::class.java,
 					Nothing::class.java,
@@ -226,18 +226,25 @@ class ExchangeDataDAOImpl(
 				),
 			)
 		} else {
-			// The start document id is only applied to the rows of a single key, so the first recipient has to be
-			// queried separately from the others.
+			/*
+			 * couchdb applies the start document id to *every* key of a multi-key query, and not only to the first one:
+			 * passing it together with all the keys would silently drop the rows of the other recipients that happen to
+			 * have a document id lower than it. Only the first recipient may have been partially returned by the
+			 * previous page, so it is queried on its own, and the others are queried without a start document id.
+			 * The first recipient is queried as an explicit single-key range rather than through `keys`, since a start
+			 * document id is only documented to be honoured together with a start key.
+			 */
 			val returnedForFirstRecipient = client.queryView(
 				query(datastoreInformation, viewName)
-					.key(keys.first())
+					.startKey(keys.first())
+					.endKey(keys.first())
 					.startDocId(startDocumentId)
 					.limit(limit),
 				ComplexKey::class.java,
 				Nothing::class.java,
 				ExchangeData::class.java,
 			).onEach { emit(it) }.count { it is ViewRowWithDoc<*, *, *> }
-			if (returnedForFirstRecipient < limit) {
+			if (keys.size > 1 && returnedForFirstRecipient < limit) {
 				emitAll(
 					client.queryView(
 						query(datastoreInformation, viewName)
