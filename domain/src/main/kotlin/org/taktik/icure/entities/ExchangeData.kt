@@ -33,6 +33,11 @@ import org.taktik.icure.security.DataOwnerAuthenticationDetails
  *
  * Each piece will contain [exchangeKey], [accessControlSecret], and [sharedSignatureKey] that are only for the keypairs
  * of a specific member of the [delegate] group, as specified by [recipient].
+ *
+ * # Invalidation
+ *
+ * Exchange data is invalidated by permanently deleting its [delegatorSignature], not by setting a flag: see
+ * [delegatorSignature] for why.
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -120,6 +125,24 @@ data class ExchangeData(
 	 *
 	 * Note that in case of exchange data to a simple-type group this value is non-empty only for the piece where the
 	 * [recipient] is the [delegator].
+	 *
+	 * # Invalidation
+	 *
+	 * An empty delegator signature means this exchange data has been permanently invalidated: it can still be used to
+	 * decrypt and modify existing data, but the SDK will never use it to encrypt new data, since without the signature
+	 * of the delegator there is no proof that the delegator is the one who created it.
+	 *
+	 * Deleting the delegator signature is the intended way to invalidate exchange data, and is preferred to an
+	 * `invalidated` boolean flag: a flag can simply be flipped back by anyone with write access to the database, while
+	 * the signature can only be recreated by an actor holding the private key of the [delegator]. Invalidation is
+	 * therefore enforced by cryptography, and not by the server or the database being trusted to preserve a flag.
+	 *
+	 * Note that [sharedSignature] is **not** what gets removed: it protects the whole exchange data from tampering by
+	 * third parties and can be recreated by either participant, so deleting it would void the integrity guarantee
+	 * instead of dropping the trust needed for encryption.
+	 *
+	 * For exchange data to a simple-type group the delegator signature only exists on the piece where the [recipient]
+	 * is the [delegator], so that single piece carries the invalidation state of the whole group.
 	 */
 	val delegatorSignature: Map<KeypairFingerprintString, Base64String> = emptyMap(),
 	/**
@@ -131,16 +154,10 @@ data class ExchangeData(
 	 * - The recipient and exchangeDataGroupId (included only if not null)
 	 *
 	 * Note that in case of exchange data to a simple-type group this value only includes the signature for this piece.
+	 *
+	 * This is always present: exchange data is invalidated by removing the [delegatorSignature], never this signature.
 	 */
 	val sharedSignature: Base64String,
-	/**
-	 * If true this exchange data has been invalidated for encryption of new data; it can still be used to decrypt
-	 * and modify existing data, but when creating new data the SDK will not use this exchange data.
-	 *
-	 * For exchange data to a simple-type group this value is relevant only on the piece where the [recipient] is
-	 * the [delegator].
-	 */
-	val invalidated: Boolean = false,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,

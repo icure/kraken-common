@@ -79,10 +79,12 @@ securityMetadataKey = sha256Hex(accessControlKey)
 		description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 sign it with his own private key.
-This field will contain the signature by fingerprint of the public key to use for verification.""",
-		required = true,
+This field will contain the signature by fingerprint of the public key to use for verification.
+If empty this exchange data has been permanently invalidated: it can still be used to decrypt and modify existing
+data, but it will never be used to encrypt new data. For exchange data of a simple-type group only the piece where
+the recipient is the delegator has this signature, and therefore carries the invalidation state of the group.""",
 	)
-	/** Signature by the delegator to ensure key data has not been tampered with by third parties. */
+	/** Signature by the delegator to ensure key data has not been tampered with by third parties; empty if invalidated. */
 	@ActiveField val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	@param:Schema(
 		description = """Encrypted signature key (hmac-sha256) shared between delegate and delegator, to allow either of them to modify
@@ -101,12 +103,6 @@ the exchange data, without voiding the authenticity guarantee.""",
 	)
 	/** Base64 signature of the exchange data to ensure it was not tampered by third parties. */
 	@ActiveField val sharedSignature: Base64StringDto,
-	@param:Schema(
-		description = """If true this exchange data has been invalidated for encryption of new data; it can still be used to decrypt
-and modify existing data, but when creating new data the SDK will not use this exchange data.""",
-	)
-	/** If true, this exchange data can still be used to decrypt existing data but will not be used to encrypt new data. */
-	@ActiveField val invalidated: Boolean = false,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

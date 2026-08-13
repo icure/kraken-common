@@ -394,13 +394,20 @@ open class ExchangeDataLogicImpl(
 			}
 			/*
 			 * We intentionally allow no delegator signature on the recipient piece; this allows creating exchange data
-			 * that will never be used for encryption by the SDK.
+			 * that will never be used for encryption by the SDK, i.e. exchange data that is already invalidated.
 			 * Sample use case: server-side mass migration of unencrypted data to something encrypted. To encrypt the
 			 * data the server creates exchange data for the main parent HCP of the group, but can't (and shouldn't)
 			 * sign it or decrypt it. The migration process only keeps the aesKey and accessControl secret in volatile
 			 * memory for only the time required to perform the migration then forgets it; once completed the hcp can
 			 * decrypt the migrated data through this exchange data, but the SDK will never trust the exchange data for
 			 * encryption.
+			 *
+			 * Note that the delegator signature is also how existing exchange data is invalidated: it is deleted, and
+			 * there is no `invalidated` flag. A flag could be flipped back by anyone with write access to the database,
+			 * while the signature can only be recreated by an actor holding the private key of the delegator. This
+			 * means the server never needs to (and never does) enforce that invalidated exchange data stays
+			 * invalidated. The shared signature is never the one removed: it protects the whole piece from tampering,
+			 * so removing it would void the integrity guarantee rather than the trust needed for encryption.
 			 */
 			ExchangeData(
 				id = if (recipient == delegator) exchangeDataGroupId else Hasher.sha256Alphanumeric("$exchangeDataGroupId|$recipient"),
@@ -414,7 +421,6 @@ open class ExchangeDataLogicImpl(
 				sharedSignatureKey = piece.sharedSignatureKey,
 				delegatorSignature = piece.delegatorSignature,
 				sharedSignature = piece.sharedSignature,
-				invalidated = piece.invalidated,
 			)
 		}
 

@@ -23,10 +23,10 @@ data class ExchangeDataPieceCreationRequestDto(
 	@param:Schema(required = true)
 	@ActiveField val sharedSignatureKey: Map<KeypairFingerprintV2StringDto, Base64StringDto>,
 	/**
-	 * Must be empty except on the piece of exchange data where the recipient is the delegator.
+	 * Must be empty except on the piece of exchange data where the recipient is the delegator. Empty there as well to
+	 * create exchange data that is already permanently invalidated: it will never be used to encrypt new data.
 	 */
 	@ActiveField val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
 	@param:Schema(required = true)
 	@ActiveField val sharedSignature: Base64StringDto,
-	@ActiveField val invalidated: Boolean = false,
 )

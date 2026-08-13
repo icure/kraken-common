@@ -201,10 +201,22 @@ class ExchangeDataDAOImpl(
 		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = filterRecipients.map(keyForRecipient)
+
+		suspend fun query(
+			datastoreInformation: IDatastoreInformation,
+			viewName: String,
+		): ViewQuery = createQuery(
+			datastoreInformation = datastoreInformation,
+			viewName = viewName,
+			secondaryPartition = MAURICE_PARTITION,
+		).includeDocs(true)
+			.reduce(false)
+			.descending(false)
+
 		if (startDocumentId == null || keys.size == 1) {
 			emitAll(
 				client.queryView(
-					exchangeDataQuery(datastoreInformation, viewName)
+					query(datastoreInformation, viewName)
 						.keys(keys)
 						.startDocId(startDocumentId)
 						.limit(limit),
@@ -217,7 +229,7 @@ class ExchangeDataDAOImpl(
 			// The start document id is only applied to the rows of a single key, so the first recipient has to be
 			// queried separately from the others.
 			val returnedForFirstRecipient = client.queryView(
-				exchangeDataQuery(datastoreInformation, viewName)
+				query(datastoreInformation, viewName)
 					.key(keys.first())
 					.startDocId(startDocumentId)
 					.limit(limit),
@@ -228,7 +240,7 @@ class ExchangeDataDAOImpl(
 			if (returnedForFirstRecipient < limit) {
 				emitAll(
 					client.queryView(
-						exchangeDataQuery(datastoreInformation, viewName)
+						query(datastoreInformation, viewName)
 							.keys(keys.drop(1))
 							.limit(limit - returnedForFirstRecipient),
 						ComplexKey::class.java,
@@ -239,15 +251,4 @@ class ExchangeDataDAOImpl(
 			}
 		}
 	}
-
-	private suspend fun exchangeDataQuery(
-		datastoreInformation: IDatastoreInformation,
-		viewName: String,
-	): ViewQuery = createQuery(
-		datastoreInformation = datastoreInformation,
-		viewName = viewName,
-		secondaryPartition = MAURICE_PARTITION,
-	).includeDocs(true)
-		.reduce(false)
-		.descending(false)
 }
