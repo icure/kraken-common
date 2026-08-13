@@ -23,13 +23,13 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 import org.taktik.icure.entities.base.asCryptoActorStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.security.resolveHcpHierarchyIds
+import org.taktik.icure.security.resolveHcpHierarchyInfo
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -142,7 +142,7 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	override fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
 		var nextId: String? = dataOwnerId
 		var nextLikelyType: DataOwnerType? = null
@@ -165,20 +165,20 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	@Suppress("DEPRECATION")
 	override fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchy(dataOwnerId).map { it.retrieveStub() }
 
-	override suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy {
+	override suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo {
 		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
 		val self = doGetDataOwner(dataOwnerId, likelyType = null, preloadedDatastoreInfo = datastoreInfo)
 			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
 		return when (self) {
-			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyIds(self.dataOwner) { ids ->
+			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyInfo(self.dataOwner) { ids ->
 				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
 			}
 			// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies
-			else -> DataOwnerIdWithHierarchy(self.id, emptyList())
+			else -> DataOwnerHierarchyInfo(self.id, self.type, emptyList())
 		}
 	}
 
@@ -284,12 +284,22 @@ open class DataOwnerLogicImpl(
 		if (original.rev != modified.stub.rev) {
 			throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
 		}
-		require(modified.stub.parentId == original.parentId) {
-			"You can't use this method to change the parent id of a crypto actor"
+		// Compare the normalized (parentId folded into dataOwnerGroups) link sets rather than each field
+		// individually: parentId and dataOwnerGroups are just two different wire representations of the same
+		// underlying links, and which one carries a given link can differ across SDK versions (e.g. a cardinal
+		// 3+ reader is served the legacy parentId folded into dataOwnerGroups, with parentId reported as null).
+		// Comparing fields one-to-one would wrongly reject a client echoing back an unchanged link set in a
+		// different shape than it was originally stored in.
+		require(
+			CryptoActor.normalizedDataOwnerGroupLinks(modified.stub.dataOwnerGroups, modified.stub.parentId) ==
+				CryptoActor.normalizedDataOwnerGroupLinks(original.dataOwnerGroups, original.parentId)
+		) {
+			"You can't use this method to change the parent id or data owner group links of a crypto actor"
 		}
-		// An empty list is tolerated as "not provided": the v1 CryptoActorStubDto has no dataOwnerGroups
-		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
-			"You can't use this method to change the data owner groups of a crypto actor"
+		// null is tolerated as "not provided" for the same reason; groupLinkType is a logic/correctness invariant
+		// (not access-control), so unlike dataOwnerGroups/parentId there is no permission that can ever bypass this.
+		require(modified.stub.groupLinkType == null || modified.stub.groupLinkType == original.groupLinkType) {
+			"You can't use this method to change the groupLinkType of a crypto actor"
 		}
 		val saved =
 			checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {

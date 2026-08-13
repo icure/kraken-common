@@ -6,6 +6,8 @@ package org.taktik.icure.entities.base
 
 import org.taktik.couchdb.entity.Versionable
 import org.taktik.icure.entities.CryptoActorStub
+import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType.Companion.defaultGroupLinkType
 import org.taktik.icure.mergers.annotations.MergeStrategyUse
 
 /**
@@ -63,21 +65,69 @@ interface CryptoActor {
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkType.parent link instead")
 	val parentId: String?
 
+	/**
+	 * The links to the data owners representing the organizations, administrative units or other loose groups of
+	 * healthcare parties this crypto actor belongs to.
+	 * There are different types of links, which have different implication on access control and requirements for
+	 * sharing data among all members of the group. The type of a link is not declared here: it is intrinsic to the
+	 * linked data owner itself, see [groupLinkType] and [effectiveGroupLinkType].
+	 *
+	 * This list should be considered as unordered, and it may not contain two links pointing to the same data owner.
+	 *
+	 * # Membership propagation
+	 *
+	 * All links are transitive, whatever their type: every directly linked group is a group of the actor, and the groups
+	 * of a group are also groups of the actor (applied recursively). An actor is therefore a member of every group
+	 * reachable through a path of links.
+	 *
+	 * For example with `hcp -> department -> building -> campus`, where `department` is a [DataOwnerGroupLinkType.parent]
+	 * target and `building`/`campus` are [DataOwnerGroupLinkType.simple] targets: the groups of `hcp` are `department`,
+	 * `building` and `campus`.
+	 *
+	 * There may however be restrictions in place on propagation when the link type changes going up a path:
+	 * propagation from a parent-effective target to a simple-effective one is allowed, but the opposite is not.
+	 * A group membership such as `hcp -> department -> building -> campus`, where `building` is simple-effective but
+	 * `campus` is parent-effective, is not allowed: while the relationship of `building` to `campus` is technically
+	 * valid on its own, the full membership path for `department` or `hcp` is invalid, and a user associated with a
+	 * data owner that has invalid membership is not allowed to login.
+	 *
+	 * # Why groups instead of direct sharing with members
+	 *
+	 * By using groups of data owners instead of directly sharing data with each data owner in a group you gain two
+	 * major advantages:
+	 * - Reduced size of metadata on entities
+	 * - Possibility of dynamically adding peoples to a group without having to update all the entities that they should
+	 *   be able to access
+	 *
+	 * In a full-scale system where data is massively shared between groups of users using data owner groups is the
+	 * only realistic choice available.
+	 */
 	val dataOwnerGroups: List<DataOwnerGroupLink>
+
+	/**
+	 * The [DataOwnerGroupLinkType] that any link pointing at this data owner (a [DataOwnerGroupLink] entry or legacy
+	 * [parentId] on another data owner) must have — see [effectiveGroupLinkType]. Always defaults to `null` at
+	 * creation, regardless of this data owner's [DataOwnerType]; `null` is interpreted via
+	 * [DataOwnerGroupLinkType.defaultGroupLinkType]. May be set explicitly at creation to override that default;
+	 * once set (or once relied upon while still `null`) it can never be changed — enforced at the logic layer, not
+	 * by this type itself, since changing it would silently invalidate exchange data already created assuming the
+	 * previous effective type.
+	 */
+	val groupLinkType: DataOwnerGroupLinkType?
 
 	val cryptoActorProperties: Set<PropertyStub>?
 
 	companion object {
 		/**
-		 * A data owner id must appear at most once in [dataOwnerGroups], regardless of link type: linking to the same
-		 * group both as a `parent` and as an `other` (or twice with the same type) is never meaningful, since
-		 * membership/rights are granted per target, not per (target, type) pair. This does not consider the legacy
-		 * [parentId]: a group referenced both by [parentId] and by an equivalent entry in [dataOwnerGroups] is legal
-		 * (it is deduplicated by consumers, see [org.taktik.icure.security.resolveHcpAncestors]).
+		 * Validates the [dataOwnerGroups] links of a crypto actor: a data owner id must appear at most once,
+		 * regardless of whether it is also the legacy [parentId] — membership/rights are granted per target, not
+		 * per declaration. This is a purely structural check; validating that a linked target actually exists, is of
+		 * the same [DataOwnerType], and allows being linked to (see [effectiveGroupLinkType]) requires fetching the
+		 * target and is done at the logic layer instead.
 		 * @throws IllegalArgumentException if [dataOwnerGroups] contains more than one link with the same
 		 * [DataOwnerGroupLink.dataOwnerId].
 		 */
-		fun requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>) {
+		fun validateDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>) {
 			val duplicateIds = dataOwnerGroups
 				.groupingBy { it.dataOwnerId }
 				.eachCount()
@@ -87,8 +137,31 @@ interface CryptoActor {
 				"Duplicate dataOwnerGroups link(s) for data owner id(s): ${duplicateIds.joinToString()}"
 			}
 		}
+
+		/**
+		 * Folds the legacy [parentId] into [dataOwnerGroups], deduping by [DataOwnerGroupLink.dataOwnerId]: if
+		 * [dataOwnerGroups] already has an entry for [parentId] it is kept as is, otherwise a new entry for
+		 * [parentId] is added.
+		 * @return the normalized, deduped set of links: [dataOwnerGroups] plus [parentId], if not already present.
+		 */
+		fun normalizedDataOwnerGroupLinks(dataOwnerGroups: List<DataOwnerGroupLink>, parentId: String?): Set<DataOwnerGroupLink> {
+			val links = dataOwnerGroups.toSet()
+			val parentIdAsLink = parentId?.let(::DataOwnerGroupLink)
+			return if (parentIdAsLink == null || links.any { it.dataOwnerId == parentIdAsLink.dataOwnerId }) {
+				links
+			} else {
+				links + parentIdAsLink
+			}
+		}
 	}
 }
+
+/**
+ * The effective [DataOwnerGroupLinkType] of any link pointing at this crypto actor: its own explicit
+ * [CryptoActor.groupLinkType] if set, otherwise [dataOwnerType]'s [DataOwnerGroupLinkType.defaultGroupLinkType].
+ * This is the only source of truth for a link's type — it no longer depends on how the link was declared.
+ */
+fun CryptoActor.effectiveGroupLinkType(dataOwnerType: DataOwnerType): DataOwnerGroupLinkType = groupLinkType ?: dataOwnerType.defaultGroupLinkType()
 
 /**
  * Converts this [CryptoActor] to a [CryptoActorStub]. If the rev is null, this will return null, since stubs can't be
@@ -110,6 +183,7 @@ fun <T> T.asCryptoActorStub(): CryptoActorStub? where T : CryptoActor, T : Versi
 			publicKeysForOaepWithSha256 = this.publicKeysForOaepWithSha256,
 			parentId = this.parentId,
 			dataOwnerGroups = this.dataOwnerGroups,
+			groupLinkType = this.groupLinkType,
 			cryptoActorProperties = this.cryptoActorProperties,
 		)
 	}

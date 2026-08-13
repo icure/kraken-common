@@ -3,12 +3,10 @@ package org.taktik.icure.domain.filter.impl.hcparty
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.hcparty.HealthcarePartyByDataOwnerGroupIdFilter
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 
 data class HealthcarePartyByDataOwnerGroupIdFilter(
 	override val dataOwnerGroupId: String,
-	override val linkType: DataOwnerGroupLinkType? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<HealthcareParty>,
 	HealthcarePartyByDataOwnerGroupIdFilter {
@@ -17,10 +15,10 @@ data class HealthcarePartyByDataOwnerGroupIdFilter(
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
-	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean {
-		val effectiveLinkType =
-			item.dataOwnerGroups.firstOrNull { it.dataOwnerId == dataOwnerGroupId }?.linkType ?:
-				if (item.parentId == dataOwnerGroupId) DataOwnerGroupLinkType.parent else null
-		return effectiveLinkType != null && (linkType == null || linkType == effectiveLinkType)
-	}
+	/**
+	 * Membership-only match: whether [item] is directly linked to [dataOwnerGroupId] at all, via legacy [parentId]
+	 * or a [dataOwnerGroups] entry.
+	 */
+	override fun matches(item: HealthcareParty, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Boolean =
+		item.parentId == dataOwnerGroupId || item.dataOwnerGroups.any { it.dataOwnerId == dataOwnerGroupId }
 }

@@ -23,6 +23,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -35,7 +36,6 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitize
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.main
 import org.taktik.icure.utils.queryView
@@ -331,9 +331,7 @@ internal class HealthcarePartyDAOImpl(
 		}
 	}
 
-	// Emits one row per parent group of the hcp: the legacy parentId plus the dataOwnerGroups links of type 'parent'
-	// (other link types do not define a parent-child relation, see DataOwnerGroupLinkType), deduplicated by id.
-	@View(name = "by_parent", map = "classpath:js/healthcareparty/By_parent.js")
+	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -370,13 +368,13 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(
-			client.queryView<String, DataOwnerGroupLinkType>(
+			client.queryViewNoValue<String>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
 					legacyView = "by_data_owner_group".main(),
 					configurationView = "by_data_owner_group",
 				).key(dataOwnerGroupId).includeDocs(false),
-			).mapNotNull { it.value?.let { v -> it.id to v } },
+			).map { it.id },
 		)
 	}
 

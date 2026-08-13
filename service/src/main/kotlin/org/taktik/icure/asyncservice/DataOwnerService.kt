@@ -3,7 +3,7 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerWithType
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 
 interface DataOwnerService {
 	/**
@@ -41,20 +41,21 @@ interface DataOwnerService {
 	 */
 	suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType>
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
 
 	/**
-	 * Get the group hierarchies of the data owner with the provided id as a tree of ids rooted at the data owner
-	 * itself (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation rules).
-	 * The parents of each node are the data owners it is directly linked to through the legacy parentId or a
-	 * dataOwnerGroups link; a data owner reachable through multiple paths appears once per path.
+	 * Get the type and group hierarchies of the data owner with the provided id as a tree of ids rooted at the data
+	 * owner itself (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation
+	 * rules). The parents of each node are the data owners it is directly linked to through the legacy parentId or a
+	 * dataOwnerGroups link, together with the type of that link; a data owner reachable through multiple paths
+	 * appears once per path.
 	 * Any data owner is allowed to call this method.
 	 * @param dataOwnerId a data owner id.
 	 * @return the id hierarchy tree rooted at the data owner with the provided id.
 	 */
-	suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy
+	suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo
 }

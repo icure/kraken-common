@@ -12,6 +12,7 @@ import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.DataOwnerGroupLink
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
@@ -115,6 +116,7 @@ data class HealthcareParty(
 	@Deprecated("Discouraged, use custom property if you need a link to the user") val userId: String? = null,
 	@Deprecated("Discouraged, use dataOwnerGroups with a linkType of parent instead") override val parentId: String? = null,
 	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
+	override val groupLinkType: DataOwnerGroupLinkType? = null,
 	val convention: Int? = null, // 0,1,2,9
 	val nihii: String? = null, // institution, person
 	val nihiiSpecCode: String? = null, // don't show field in the GUI
@@ -186,7 +188,7 @@ data class HealthcareParty(
 	HasIdentifier {
 
 	init {
-		CryptoActor.requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups)
+		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups)
 	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

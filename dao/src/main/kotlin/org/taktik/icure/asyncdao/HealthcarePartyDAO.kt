@@ -10,7 +10,6 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
 
 interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
@@ -151,15 +150,16 @@ interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 
 	/**
 	 * Retrieves the ids of the healthcare parties directly linked to the data owner group with the provided id,
-	 * together with the type of the link. The legacy [HealthcareParty.parentId] is reported as a
-	 * [DataOwnerGroupLinkType.parent] link; a healthcare party referencing the group both through the legacy
-	 * parentId and a [HealthcareParty.dataOwnerGroups] link is emitted once, as a parent link.
+	 * through the legacy [HealthcareParty.parentId] or a [HealthcareParty.dataOwnerGroups] link (a healthcare party
+	 * referencing the group both ways is emitted once). The type of these links is not reported here: it is
+	 * intrinsic to the group itself, not to each individual link, see
+	 * [org.taktik.icure.entities.base.CryptoActor.effectiveGroupLinkType].
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify the group and CouchDB instance.
 	 * @param dataOwnerGroupId the id of the data owner representing the group.
-	 * @return a [Flow] of ([HealthcareParty.id], [DataOwnerGroupLinkType]) pairs.
+	 * @return a [Flow] of [HealthcareParty.id]s.
 	 */
 	fun listHealthcarePartiesIdsByDataOwnerGroupId(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerGroupId: String
-	): Flow<Pair<String, DataOwnerGroupLinkType>>
+	): Flow<String>
 }

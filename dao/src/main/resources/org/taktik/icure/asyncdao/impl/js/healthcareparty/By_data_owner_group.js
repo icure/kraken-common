@@ -3,14 +3,14 @@ map = function (doc) {
         var emitted = {};
         if (doc.parentId) {
             emitted[doc.parentId] = true;
-            emit(doc.parentId, 'parent');
+            emit(doc.parentId, null);
         }
         if (doc.dataOwnerGroups) {
             for (var i = 0; i < doc.dataOwnerGroups.length; i++) {
                 var link = doc.dataOwnerGroups[i];
                 if (link && link.dataOwnerId && !emitted[link.dataOwnerId]) {
                     emitted[link.dataOwnerId] = true;
-                    emit(link.dataOwnerId, link.linkType);
+                    emit(link.dataOwnerId, null);
                 }
             }
         }

@@ -26,6 +26,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
@@ -90,6 +91,7 @@ data class DeviceDto(
 	/** The links to the data owners representing the groups this device belongs to. */
 	@ActiveField
 	override val dataOwnerGroups: List<DataOwnerGroupLinkDto> = emptyList(),
+	override val groupLinkType: DataOwnerGroupLinkTypeDto? = null,
 	/** A picture of the device, usually in JPEG format. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@ActiveField val picture: ByteArray? = null,

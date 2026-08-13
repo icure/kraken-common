@@ -9,6 +9,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -220,10 +222,11 @@ class HealthcarePartyController(
 	@PostMapping("/batch")
 	fun createHealthcareParties(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
-	): Flux<HealthcarePartyDto> =
-		healthcarePartyService.createHealthcareParties(
-			healthcareParties.map(healthcarePartyV2Mapper::map)
-		).map(healthcarePartyV2Mapper::map).injectReactorContext()
+	): Flux<HealthcarePartyDto> = flow {
+		emitAll(healthcarePartyService.createHealthcareParties(
+			healthcareParties.map { healthcarePartyV2Mapper.map(it) }
+		).map(healthcarePartyV2Mapper::map))
+	}.injectReactorContext()
 
 	@Operation(
 		summary = "Get the HcParty encrypted AES keys indexed by owner.",
@@ -381,10 +384,11 @@ class HealthcarePartyController(
 	@PutMapping("/batch")
 	fun modifyHealthcareParties(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
-	): Flux<HealthcarePartyDto> =
-		healthcarePartyService.modifyHealthcareParties(
-			healthcareParties.map(healthcarePartyV2Mapper::map)
-		).map(healthcarePartyV2Mapper::map).injectReactorContext()
+	): Flux<HealthcarePartyDto> = flow {
+		emitAll(healthcarePartyService.modifyHealthcareParties(
+			healthcareParties.map { healthcarePartyV2Mapper.map(it) }
+		).map(healthcarePartyV2Mapper::map))
+	}.injectReactorContext()
 
 	@Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
