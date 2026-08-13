@@ -34,6 +34,16 @@ data class ExchangeDataDto(
 	/** The id of the data owner who can use this exchange data to access shared data. */
 	@ActiveField val delegate: String,
 	@param:Schema(
+		description = """If the delegate is a data owner group, this is the id of a member in the group that is the recipient of this piece of the exchange data.""",
+	)
+	/** If the delegate is a data owner group, the id of the member that is the recipient of this piece of the exchange data. */
+	@ActiveField val recipient: String? = null,
+	@param:Schema(
+		description = """If this is a piece of exchange data for a simple-type group then this is a uuid shared between all the pieces of exchange data for that group.""",
+	)
+	/** If this is a piece of exchange data for a simple-type group, the id shared between all the pieces of exchange data for that group. */
+	@ActiveField val exchangeDataGroupId: String? = null,
+	@param:Schema(
 		description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""",
 		required = true,
@@ -91,6 +101,12 @@ the exchange data, without voiding the authenticity guarantee.""",
 	)
 	/** Base64 signature of the exchange data to ensure it was not tampered by third parties. */
 	@ActiveField val sharedSignature: Base64StringDto,
+	@param:Schema(
+		description = """If true this exchange data has been invalidated for encryption of new data; it can still be used to decrypt
+and modify existing data, but when creating new data the SDK will not use this exchange data.""",
+	)
+	/** If true, this exchange data can still be used to decrypt existing data but will not be used to encrypt new data. */
+	@ActiveField val invalidated: Boolean = false,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

@@ -130,6 +130,24 @@ fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper
 }
 
 /**
+ * Map all the [MultiKeyPaginationElement.Row] of a [Flow] of [MultiKeyPaginationElement] from their [SRC] type to a
+ * [DST] type. A [MultiKeyPaginationElement.NextPage] is left unchanged.
+ *
+ * @receiver a [Flow] of [MultiKeyPaginationElement].
+ * @param mapper a function that can convert a [SRC] to a [DST].
+ * @return a [Flow] of [MultiKeyPaginationElement].
+ */
+@JvmName("mapMultiKeyElements")
+fun <SRC, DST, K> Flow<MultiKeyPaginationElement<SRC, K>>.mapElements(
+	mapper: suspend (SRC) -> DST,
+): Flow<MultiKeyPaginationElement<DST, K>> = map {
+	when (it) {
+		is MultiKeyPaginationElement.NextPage -> it
+		is MultiKeyPaginationElement.Row -> MultiKeyPaginationElement.Row(mapper(it.element))
+	}
+}
+
+/**
  * Terminal operator for a [Flow] of [PaginationElement]. It collects it generating a [PaginatedList].
  *
  * @receiver a [Flow] of [PaginationElement].
