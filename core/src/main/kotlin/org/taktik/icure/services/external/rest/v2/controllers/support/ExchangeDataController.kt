@@ -4,6 +4,8 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.emitAll
@@ -27,9 +29,8 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.pagination.MultiKeyPaginatedFlux
 import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asMultiKeyPaginatedFlux
+import org.taktik.icure.pagination.asPaginationElements
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
@@ -52,6 +53,7 @@ class ExchangeDataController(
 	private val exchangeDataPieceCreationRequestMapper: ExchangeDataPieceCreationRequestV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val reactorCacheInjector: ReactorCacheInjector,
+	private val objectMapper: ObjectMapper,
 ) {
 	@Operation(summary = "Creates new exchange data")
 	@PostMapping
@@ -190,40 +192,45 @@ class ExchangeDataController(
 	@Operation(
 		summary = "Get the pieces of an exchange data group for the provided recipients",
 		description =
-		"Use an empty string as a recipient to also get the exchange data that has no recipient, that is the " +
-			"exchange data that is not for a simple-type data owner group.",
+		"The recipients are a json array, so include null in it to also get the exchange data that has no recipient, " +
+			"that is the exchange data that is not for a simple-type data owner group. To get the next page, pass the " +
+			"start key of the returned cursor back as the recipients and its start document id as startDocumentId.",
 	)
 	@GetMapping("/group/{exchangeDataGroupId}/byRecipients")
 	fun getExchangeDataGroupByIdForRecipients(
 		@PathVariable exchangeDataGroupId: String,
 		@RequestParam(required = true) recipients: String,
 		@RequestParam(required = false) startDocumentId: String?,
-	): MultiKeyPaginatedFlux<ExchangeDataDto, String?> = exchangeDataLogic
-		.findExchangeDataGroupByIdForRecipients(exchangeDataGroupId, recipients.toFilterRecipients(), startDocumentId)
+	): PaginatedFlux<ExchangeDataDto> = exchangeDataLogic
+		.findExchangeDataGroupByIdForRecipients(exchangeDataGroupId, recipients.toFilterRecipients(objectMapper), startDocumentId)
 		.mapElements(exchangeDataMapper::map)
-		.asMultiKeyPaginatedFlux()
+		.asPaginationElements()
+		.asPaginatedFlux()
 
 	@Operation(
 		summary = "Get the exchange data with a specific participant, for the provided recipients",
 		description =
-		"Use an empty string as a recipient to also get the exchange data that has no recipient, that is the " +
-			"exchange data that is not for a simple-type data owner group.",
+		"The recipients are a json array, so include null in it to also get the exchange data that has no recipient, " +
+			"that is the exchange data that is not for a simple-type data owner group. To get the next page, pass the " +
+			"start key of the returned cursor back as the recipients and its start document id as startDocumentId.",
 	)
 	@GetMapping("/byParticipant/byRecipients")
 	fun getExchangeDataByParticipantForRecipients(
 		@RequestParam(required = true) dataOwnerId: String,
 		@RequestParam(required = true) recipients: String,
 		@RequestParam(required = false) startDocumentId: String?,
-	): MultiKeyPaginatedFlux<ExchangeDataDto, String?> = exchangeDataLogic
-		.findExchangeDataByParticipantForRecipients(dataOwnerId, recipients.toFilterRecipients(), startDocumentId)
+	): PaginatedFlux<ExchangeDataDto> = exchangeDataLogic
+		.findExchangeDataByParticipantForRecipients(dataOwnerId, recipients.toFilterRecipients(objectMapper), startDocumentId)
 		.mapElements(exchangeDataMapper::map)
-		.asMultiKeyPaginatedFlux()
+		.asPaginationElements()
+		.asPaginatedFlux()
 
 	@Operation(
 		summary = "Get the exchange data with a specific delegator-delegate pair, for the provided recipients",
 		description =
-		"Use an empty string as a recipient to also get the exchange data that has no recipient, that is the " +
-			"exchange data that is not for a simple-type data owner group.",
+		"The recipients are a json array, so include null in it to also get the exchange data that has no recipient, " +
+			"that is the exchange data that is not for a simple-type data owner group. To get the next page, pass the " +
+			"start key of the returned cursor back as the recipients and its start document id as startDocumentId.",
 	)
 	@GetMapping("/byDelegatorDelegate/byRecipients")
 	fun getExchangeDataByDelegatorDelegateForRecipients(
@@ -231,14 +238,15 @@ class ExchangeDataController(
 		@RequestParam(required = true) delegateId: String,
 		@RequestParam(required = true) recipients: String,
 		@RequestParam(required = false) startDocumentId: String?,
-	): MultiKeyPaginatedFlux<ExchangeDataDto, String?> = exchangeDataLogic
+	): PaginatedFlux<ExchangeDataDto> = exchangeDataLogic
 		.findExchangeDataByDelegatorDelegateForRecipients(
 			delegatorId,
 			delegateId,
-			recipients.toFilterRecipients(),
+			recipients.toFilterRecipients(objectMapper),
 			startDocumentId,
 		).mapElements(exchangeDataMapper::map)
-		.asMultiKeyPaginatedFlux()
+		.asPaginationElements()
+		.asPaginatedFlux()
 
 	@Operation(
 		summary =
@@ -275,8 +283,11 @@ class ExchangeDataController(
 }
 
 /**
- * Converts the comma-separated `recipients` request parameter of the recipient-filtered searches to the recipients to
- * filter by: since only the exchange data that is not for a simple-type data owner group has no recipient, an empty
- * entry stands for the `null` recipient.
+ * Parses the `recipients` request parameter of the recipient-filtered searches, a json array of the recipients to filter
+ * by. A `null` entry stands for the exchange data that has no recipient, that is the exchange data that is not for a
+ * simple-type data owner group.
+ *
+ * The cursor of a page of these searches carries the recipients still to visit as its start key, in this same shape, so
+ * a caller resumes a search by passing that start key back as this parameter.
  */
-fun String.toFilterRecipients(): List<String?> = split(",").map { it.takeIf { r -> r.isNotEmpty() } }
+fun String.toFilterRecipients(objectMapper: ObjectMapper): List<String?> = objectMapper.readValue<List<String?>>(this)

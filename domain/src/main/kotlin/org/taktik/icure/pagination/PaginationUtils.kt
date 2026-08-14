@@ -148,6 +148,29 @@ fun <SRC, DST, K> Flow<MultiKeyPaginationElement<SRC, K>>.mapElements(
 }
 
 /**
+ * Converts a [Flow] of [MultiKeyPaginationElement] to a [Flow] of [PaginationElement], so that a search that paginates
+ * over multiple view keys at once is returned in the same shape as every other paginated search: chain
+ * [asPaginatedFlux] on the result to serialize it as a normal paginated list.
+ *
+ * The keys still to visit become the start key of the cursor, since that is what a caller has to pass back to resume,
+ * exactly like the start key of a single-key search:
+ * - [MultiKeyPaginationElement.Row] becomes a [PaginationRowElement] with no key of its own.
+ * - [MultiKeyPaginationElement.NextPage] becomes a [NextPageElement] with [MultiKeyPaginationElement.NextPage.nextKeys]
+ *   as its start key and [MultiKeyPaginationElement.NextPage.nextDocId] as its start document id.
+ * - [MultiKeyPaginationElement.Aborted] becomes an [AbortedPageElement] with the same error.
+ *
+ * @receiver a [Flow] of [MultiKeyPaginationElement].
+ * @return a [Flow] of [PaginationElement].
+ */
+fun <T, K> Flow<MultiKeyPaginationElement<T, K>>.asPaginationElements(): Flow<PaginationElement> = map {
+	when (it) {
+		is MultiKeyPaginationElement.Row -> PaginationRowElement<T, List<K>>(it.element)
+		is MultiKeyPaginationElement.NextPage -> NextPageElement(startKeyDocId = it.nextDocId, startKey = it.nextKeys)
+		is MultiKeyPaginationElement.Aborted -> AbortedPageElement(it.error)
+	}
+}
+
+/**
  * Terminal operator for a [Flow] of [PaginationElement]. It collects it generating a [PaginatedList].
  *
  * @receiver a [Flow] of [PaginationElement].
