@@ -108,7 +108,7 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
 
 /**
  * Map all the [PaginationRowElement] of a [Flow] of [PaginationElement] from their [SRC] type to a [DST] type.
- * If the flow contains a [NextPageElement], then it will be left unchanged.
+ * If the flow contains a [NextPageElement] or an [AbortedPageElement], then it will be left unchanged.
  *
  * @receiver a [Flow] of [PaginationElement].
  * @param mapper a function that can convert a [SRC] to a [DST].
@@ -119,7 +119,7 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
 @Suppress("UNCHECKED_CAST")
 fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: suspend (SRC) -> DST): Flow<PaginationElement> = map {
 	when (it) {
-		is NextPageElement<*> -> it
+		is NextPageElement<*>, is AbortedPageElement -> it
 		is PaginationRowElement<*, *> -> {
 			PaginationRowElement(
 				element = mapper(checkNotNull(it.element as? SRC) { "Invalid class in PaginatedElement Flow" }),
@@ -131,7 +131,7 @@ fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper
 
 /**
  * Map all the [MultiKeyPaginationElement.Row] of a [Flow] of [MultiKeyPaginationElement] from their [SRC] type to a
- * [DST] type. A [MultiKeyPaginationElement.NextPage] is left unchanged.
+ * [DST] type. A [MultiKeyPaginationElement.NextPage] or a [MultiKeyPaginationElement.Aborted] is left unchanged.
  *
  * @receiver a [Flow] of [MultiKeyPaginationElement].
  * @param mapper a function that can convert a [SRC] to a [DST].
@@ -142,7 +142,7 @@ fun <SRC, DST, K> Flow<MultiKeyPaginationElement<SRC, K>>.mapElements(
 	mapper: suspend (SRC) -> DST,
 ): Flow<MultiKeyPaginationElement<DST, K>> = map {
 	when (it) {
-		is MultiKeyPaginationElement.NextPage -> it
+		is MultiKeyPaginationElement.NextPage, is MultiKeyPaginationElement.Aborted -> it
 		is MultiKeyPaginationElement.Row -> MultiKeyPaginationElement.Row(mapper(it.element))
 	}
 }
@@ -154,6 +154,7 @@ fun <SRC, DST, K> Flow<MultiKeyPaginationElement<SRC, K>>.mapElements(
  * @return a [PaginatedList]
  */
 @Suppress("UNCHECKED_CAST")
+@Deprecated("This method ignores aborted page elements")
 suspend fun <T : Serializable, K> Flow<PaginationElement>.toPaginatedList(): PaginatedList<T> {
 	var nextKey: NextPageElement<K>? = null
 	val rows = mapNotNull {
@@ -162,6 +163,8 @@ suspend fun <T : Serializable, K> Flow<PaginationElement>.toPaginatedList(): Pag
 				nextKey = it as? NextPageElement<K>
 				null
 			}
+			// The internal PaginatedList has no field to carry it: only the rest layer reports an aborted page.
+			is AbortedPageElement -> null
 			is PaginationRowElement<*, *> -> it.element as? T
 		}
 	}.toList()

@@ -19,6 +19,11 @@ data class MultiKeyPaginatedList<T, K>(
 	@ActiveField val rows: List<T> = emptyList(),
 	/** The cursor to use for fetching the next page of results, or null if this is the last page. */
 	@ActiveField val nextPage: NextPage<K>? = null,
+	/**
+	 * If not null the page was aborted by this error after some rows were already returned: [rows] is valid but
+	 * incomplete, and there is no [nextPage] to resume from.
+	 */
+	@ActiveField val error: PaginationErrorDto? = null,
 ) : Serializable {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonIgnoreProperties(ignoreUnknown = true)
