@@ -12,11 +12,32 @@ import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.utils.Base64String
 import org.taktik.icure.entities.utils.KeypairFingerprintString
-import org.taktik.icure.mergers.annotations.MergeStrategyChooseLeft
 import org.taktik.icure.security.DataOwnerAuthenticationDetails
 
 /**
  * Data necessary for the secure sharing of entities between data owners.
+ *
+ * # Exchange data for data owner groups
+ *
+ * ## Parent-type groups
+ *
+ * Each parent-type group must have a one or more keypairs that are known by all members of the group.
+ *
+ * When creating exchange data to a parent-type data owner group the delegator creates the exchange data with both
+ * his own keys and with the group keypairs.
+ *
+ * ## Simple-type groups
+ *
+ * Simple-type data owner groups do not use a shared group keypair; instead, the complete exchange data for a group will
+ * consist of many pieces of [ExchangeData] that share the same [delegator], [delegate], and [exchangeDataGroupId].
+ *
+ * Each piece will contain [exchangeKey], [accessControlSecret], and [sharedSignatureKey] that are only for the keypairs
+ * of a specific member of the [delegate] group, as specified by [recipient].
+ *
+ * # Invalidation
+ *
+ * Exchange data is invalidated by permanently deleting its [delegatorSignature], not by setting a flag: see
+ * [delegatorSignature] for why.
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,12 +46,42 @@ data class ExchangeData(
 	@param:JsonProperty("_rev") override val rev: String? = null,
 	/**
 	 * ID of the data owner which created this exchange data, in order to share some data with the [delegate].
+	 * This can be a either a data owner or a parent-type data owner group.
+	 * Simple-type data owner groups can never be delegators.
+	 *
+	 * For exchange data dedicated to inter-group sharing this might be a data owner reference (group/dataOwnerId)
+	 * rather than a simple id.
 	 */
 	val delegator: String,
 	/**
-	 * ID of a data owner which can use this exchange data to access data shared with him by [delegator].
+	 * ID of a data owner or data owner group which can use this exchange data to access encrypted data shared with him
+	 * by [delegator].
+	 *
+	 * For exchange data dedicated to inter-group sharing this might be a data owner reference (group/dataOwnerId)
+	 * rather than a simple id.
 	 */
 	val delegate: String,
+	/**
+	 * If the [delegate] is a data owner group, this is the id of a member in the group that is the recipient of this
+	 * piece of the exchange data.
+	 * In this piece the [exchangeKey], [accessControlSecret], and [sharedSignatureKey] have entries for, and only for,
+	 * the keypairs of this recipient.
+	 *
+	 * For exchange data dedicated to inter-group sharing this might be a data owner reference (group/dataOwnerId)
+	 * rather than a simple id.
+	 *
+	 * This is null exactly when [exchangeDataGroupId] is null: a piece of exchange data has a [recipient] if and only
+	 * if it belongs to a simple-type group. Plain exchange data and the exchange data for parent-type groups always
+	 * have both null.
+	 */
+	val recipient: String? = null,
+	/**
+	 * If this is a piece of exchange data for a simple-type group then this is a uuid shared between all the
+	 * [ExchangeData] pieces for that group; null otherwise.
+	 *
+	 * This is null exactly when [recipient] is null: see [recipient] for the exchange data that has neither.
+	 */
+	val exchangeDataGroupId: String? = null,
 	/**
 	 * Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 	 * delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.
@@ -71,16 +122,42 @@ data class ExchangeData(
 	 * keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 	 * sign it with his own private key.
 	 * This field will contain the signature by fingerprint of the public key to use for verification.
+	 *
+	 * Note that in case of exchange data to a simple-type group this value is non-empty only for the piece where the
+	 * [recipient] is the [delegator].
+	 *
+	 * # Invalidation
+	 *
+	 * An empty delegator signature means this exchange data has been permanently invalidated: it can still be used to
+	 * decrypt and modify existing data, but the SDK will never use it to encrypt new data, since without the signature
+	 * of the delegator there is no proof that the delegator is the one who created it.
+	 *
+	 * Deleting the delegator signature is the intended way to invalidate exchange data, and is preferred to an
+	 * `invalidated` boolean flag: a flag can simply be flipped back by anyone with write access to the database, while
+	 * the signature can only be recreated by an actor holding the private key of the [delegator]. Invalidation is
+	 * therefore enforced by cryptography, and not by the server or the database being trusted to preserve a flag.
+	 *
+	 * Note that [sharedSignature] is **not** what gets removed: it protects the whole exchange data from tampering by
+	 * third parties and can be recreated by either participant, so deleting it would void the integrity guarantee
+	 * instead of dropping the trust needed for encryption.
+	 *
+	 * For exchange data to a simple-type group the delegator signature only exists on the piece where the [recipient]
+	 * is the [delegator], so that single piece carries the invalidation state of the whole group.
 	 */
-	val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
+	val delegatorSignature: Map<KeypairFingerprintString, Base64String> = emptyMap(),
 	/**
 	 * Base 64 signature of the exchange data, to ensure it was not tampered by third parties. This signature validates:
 	 * - The (decrypted) exchange key
 	 * - The (decrypted) access control secret
 	 * - The delegator and delegates being part of the exchange data
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
+	 * - The recipient and exchangeDataGroupId (included only if not null)
+	 *
+	 * Note that in case of exchange data to a simple-type group this value only includes the signature for this piece.
+	 *
+	 * This is always present: exchange data is invalidated by removing the [delegatorSignature], never this signature.
 	 */
-	@MergeStrategyChooseLeft val sharedSignature: Base64String,
+	val sharedSignature: Base64String,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
