@@ -1,12 +1,15 @@
 package org.taktik.icure.pagination
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.couchdb.ViewRow
 import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.id.Identifiable
@@ -103,6 +106,52 @@ fun Flow<ViewQueryResultEvent>.toPaginatedFlowOfIds(pageSize: Int): Flow<Paginat
 		}
 	}.takeWhile {
 		emitted <= pageSize + 1
+	}
+}
+
+/**
+ * Converts the raw rows of a paginated multi-key ("by keys") view query into a [Flow] of
+ * [MultiKeyPaginationElement], turning the [pageSize] + 1-th row into the [MultiKeyPaginationElement.NextPage]
+ * cursor instead of returning it as a [MultiKeyPaginationElement.Row]. The receiver is expected to hold at most
+ * [pageSize] + 1 rows, which is what the caller should have asked the dao for (see
+ * `multiKeyPaginatedViewQuery` in the dao utils for the query side of this).
+ *
+ * The cursor keeps the key of that extra row first in [keys], dropping all the earlier entries, since it is the
+ * only key that was partially returned. Which part of a row identifies its key depends on the view — a search may
+ * paginate over one component of a composite view key — so it is up to [keyOfRow] to extract it.
+ *
+ * A row for which [rowTransform] returns null is **dropped from the page but still counts towards [pageSize]**.
+ * That is how a search that deduplicates its rows returns a page shorter than the page size without ever
+ * re-querying: one call is one page's worth of rows, and the cursor is still built from the [pageSize] + 1-th raw
+ * row, so nothing is skipped across the page boundary.
+ *
+ * @receiver the raw results of the view query, of which only the [ViewRow]s are considered.
+ * @param pageSize the maximum number of rows the page may hold.
+ * @param keys the keys the search paginates over, in the order they are visited.
+ * @param keyOfRow extracts from a row the key of [keys] it belongs to.
+ * @param rowTransform converts a row into the element to return, or null to drop it from the page.
+ * @return a [Flow] of [MultiKeyPaginationElement].
+ * @throws IllegalStateException if [keyOfRow] returns a key that is not in [keys], which means the wrong part of
+ * the row was used to extract it.
+ */
+fun <T, K> Flow<ViewQueryResultEvent>.toMultiKeyPaginatedFlow(
+	pageSize: Int,
+	keys: List<K>,
+	keyOfRow: (row: ViewRow<*, *, *>) -> K,
+	rowTransform: suspend (row: ViewRow<*, *, *>) -> T?,
+): Flow<MultiKeyPaginationElement<T, K>> = flow {
+	var rowCount = 0
+	filterIsInstance<ViewRow<*, *, *>>().collect { row ->
+		if (rowCount++ < pageSize) {
+			rowTransform(row)?.let { emit(MultiKeyPaginationElement.Row(it)) }
+		} else {
+			val lastKey = keyOfRow(row)
+			val lastKeyIndex = keys.indexOf(lastKey)
+			check(lastKeyIndex >= 0) {
+				"The key of the last row is not one of the keys the search paginates over, the wrong part of the row was used to extract it."
+			}
+			emit(MultiKeyPaginationElement.NextPage(row.id, keys.subList(lastKeyIndex, keys.size)))
+		}
 	}
 }
 

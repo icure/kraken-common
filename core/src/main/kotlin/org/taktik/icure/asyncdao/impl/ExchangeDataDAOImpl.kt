@@ -1,20 +1,16 @@
 package org.taktik.icure.asyncdao.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
-import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -28,6 +24,7 @@ import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
+import org.taktik.icure.utils.multiKeyPaginatedViewQuery
 
 @Repository("ExchangeDataDAO")
 @Profile("app")
@@ -178,10 +175,8 @@ class ExchangeDataDAOImpl(
 
 	/**
 	 * Queries [viewName] for one key per entry of [filterRecipients], as built by [keyForRecipient], returning at most
-	 * [limit] entities.
-	 * [startDocumentId] is applied to the first entry of [filterRecipients] only, since it is the only recipient that
-	 * may have been partially returned by the previous page. This costs a second query, see the comment in the body for
-	 * why couchdb can't do it in one.
+	 * [limit] entities, resuming from [startDocumentId] for the first recipient. See [multiKeyPaginatedViewQuery] for
+	 * the mechanics, including why resuming costs a second query.
 	 */
 	private fun findExchangeDataForRecipients(
 		datastoreInformation: IDatastoreInformation,
@@ -191,71 +186,25 @@ class ExchangeDataDAOImpl(
 		limit: Int,
 		keyForRecipient: (recipient: String?) -> ComplexKey,
 	): Flow<ViewQueryResultEvent> = flow {
-		require(filterRecipients.isNotEmpty()) {
-			"At least one recipient should be provided to filter the exchange data."
-		}
-		require(filterRecipients.distinct().size == filterRecipients.size) {
-			"The recipients used to filter the exchange data should not contain duplicates."
-		}
-		require(limit > 0) {
-			"The limit should be positive."
-		}
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val keys = filterRecipients.map(keyForRecipient)
-
-		suspend fun query(
-			datastoreInformation: IDatastoreInformation,
-			viewName: String,
-		): ViewQuery = createQuery(
-			datastoreInformation = datastoreInformation,
-			viewName = viewName,
-			secondaryPartition = MAURICE_PARTITION,
-		).includeDocs(true)
-			.reduce(false)
-			.descending(false)
-
-		if (startDocumentId == null) {
-			emitAll(
-				client.queryView(
-					query(datastoreInformation, viewName)
-						.keys(keys)
-						.limit(limit),
-					ComplexKey::class.java,
-					Nothing::class.java,
-					ExchangeData::class.java,
-				),
-			)
-		} else {
-			/*
-			 * couchdb applies the start document id to *every* key of a multi-key query, and not only to the first one:
-			 * passing it together with all the keys would silently drop the rows of the other recipients that happen to
-			 * have a document id lower than it. Only the first recipient may have been partially returned by the
-			 * previous page, so it is queried on its own, and the others are queried without a start document id.
-			 * The first recipient is queried as an explicit single-key range rather than through `keys`, since a start
-			 * document id is only documented to be honoured together with a start key.
-			 */
-			val returnedForFirstRecipient = client.queryView(
-				query(datastoreInformation, viewName)
-					.startKey(keys.first())
-					.endKey(keys.first())
-					.startDocId(startDocumentId)
-					.limit(limit),
-				ComplexKey::class.java,
-				Nothing::class.java,
-				ExchangeData::class.java,
-			).onEach { emit(it) }.count { it is ViewRowWithDoc<*, *, *> }
-			if (keys.size > 1 && returnedForFirstRecipient < limit) {
-				emitAll(
-					client.queryView(
-						query(datastoreInformation, viewName)
-							.keys(keys.drop(1))
-							.limit(limit - returnedForFirstRecipient),
-						ComplexKey::class.java,
-						Nothing::class.java,
-						ExchangeData::class.java,
-					),
-				)
-			}
-		}
+		emitAll(
+			multiKeyPaginatedViewQuery(
+				keys = filterRecipients.map(keyForRecipient),
+				keysDescription = "recipients used to filter the exchange data",
+				startDocumentId = startDocumentId,
+				limit = limit,
+				viewQuery = {
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						viewName = viewName,
+						secondaryPartition = MAURICE_PARTITION,
+					).includeDocs(true)
+						.reduce(false)
+						.descending(false)
+				},
+			) { query ->
+				client.queryView(query, ComplexKey::class.java, Nothing::class.java, ExchangeData::class.java)
+			},
+		)
 	}
 }
