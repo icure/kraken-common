@@ -1,8 +1,11 @@
 map = function(doc) {
 	if (doc.java_type === 'org.taktik.icure.entities.ExchangeData' && !doc.deleted && (doc.delegator && doc.delegate)) {
-		// Only the pieces of exchange data for a simple-type group have a recipient; any other exchange data, including
-		// the exchange data for parent-type groups, emits null so it is never matched by a recipient filter. It is
-		// still reachable unfiltered, as a group of its own, exactly once.
-		emit([doc.exchangeDataGroupId || doc._id, doc.recipient || null], null)
+		// Exchange data that is not for a simple-type group has no group id: it is its own single-piece group, keyed by
+		// its own id, so that a lookup by id and a lookup by group id are the same query.
+		var groupId = doc.exchangeDataGroupId == null ? doc._id : doc.exchangeDataGroupId
+		// Such exchange data has no recipient field either: it is normalised to null here, so that it still produces
+		// exactly one row and is matched only by a filter on the null recipient, while staying reachable unfiltered.
+		var recipient = doc.recipient == null ? null : doc.recipient
+		emit([groupId, recipient], null)
 	}
 }
