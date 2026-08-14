@@ -210,13 +210,17 @@ open class ExchangeDataLogicImpl(
 	/**
 	 * Converts the raw view results of a recipient-filtered "by_keys" DAO query into a [MultiKeyPaginationElement]
 	 * flow, requesting one more entity than [PAGE_SIZE] from [daoQuery] and using the extra entity to build the
-	 * [MultiKeyPaginationElement.NextPage] cursor instead of returning it as a [MultiKeyPaginationElement.Row]: its
-	 * key is a [ComplexKey] whose last component is the recipient that [filterRecipients] must keep first (dropping
-	 * all earlier entries) on the next call.
+	 * [MultiKeyPaginationElement.NextPage] cursor instead of returning it as a [MultiKeyPaginationElement.Row].
+	 *
+	 * The cursor keeps the recipient of that extra entity first in [filterRecipients], dropping all the earlier
+	 * entries, since it is the only recipient that was partially returned. Which component of the view key holds the
+	 * recipient depends on the view, so it is up to [recipientOfKey] to extract it: every recipient-filtered view keys
+	 * the recipient last today, but that is a property of each view and not something this method assumes.
 	 */
-	private fun multiKeyPaginatedFlow(
+	private inline fun multiKeyPaginatedFlow(
 		filterRecipients: List<String?>,
-		daoQuery: (limit: Int) -> Flow<ViewQueryResultEvent>,
+		crossinline recipientOfKey: (key: ComplexKey) -> String?,
+		crossinline daoQuery: (limit: Int) -> Flow<ViewQueryResultEvent>,
 	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = flow {
 		var emittedCount = 0
 		daoQuery(PAGE_SIZE + 1)
@@ -225,11 +229,15 @@ open class ExchangeDataLogicImpl(
 				if (emittedCount++ < PAGE_SIZE) {
 					emit(MultiKeyPaginationElement.Row(it.doc as ExchangeData))
 				} else {
-					val lastRecipient = (it.key as ComplexKey).components.last() as String?
+					val lastRecipient = recipientOfKey(it.key as ComplexKey)
+					val lastRecipientIndex = filterRecipients.indexOf(lastRecipient)
+					check(lastRecipientIndex >= 0) {
+						"The recipient of the last row is not one of the recipients used to filter, the wrong component of the view key was used to extract it."
+					}
 					emit(
 						MultiKeyPaginationElement.NextPage(
 							it.id,
-							filterRecipients.subList(filterRecipients.indexOf(lastRecipient), filterRecipients.size),
+							filterRecipients.subList(lastRecipientIndex, filterRecipients.size),
 						),
 					)
 				}
@@ -241,7 +249,11 @@ open class ExchangeDataLogicImpl(
 		exchangeDataOrGroupId: String,
 		filterRecipients: List<String?>,
 		startDocumentId: String?,
-	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(filterRecipients) { limit ->
+	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(
+		filterRecipients = filterRecipients,
+		// by_exchange_data_group_id_recipient is keyed by [exchangeDataGroupId ?: _id, recipient].
+		recipientOfKey = { it.components[1] as String? },
+	) { limit ->
 		exchangeDataDAO.findExchangeDataGroupByIdForRecipients(datastoreInformation, exchangeDataOrGroupId, filterRecipients, startDocumentId, limit)
 	}
 
@@ -265,7 +277,11 @@ open class ExchangeDataLogicImpl(
 		dataOwnerId: String,
 		filterRecipients: List<String?>,
 		startDocumentId: String?,
-	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(filterRecipients) { limit ->
+	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(
+		filterRecipients = filterRecipients,
+		// by_participant_recipient is keyed by [participant, recipient].
+		recipientOfKey = { it.components[1] as String? },
+	) { limit ->
 		exchangeDataDAO.findExchangeDataByParticipantForRecipients(datastoreInformation, dataOwnerId, filterRecipients, startDocumentId, limit)
 	}
 
@@ -290,7 +306,11 @@ open class ExchangeDataLogicImpl(
 		delegateId: String,
 		filterRecipients: List<String?>,
 		startDocumentId: String?,
-	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(filterRecipients) { limit ->
+	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = multiKeyPaginatedFlow(
+		filterRecipients = filterRecipients,
+		// by_delegator_delegate_recipient is keyed by [delegator, delegate, recipient].
+		recipientOfKey = { it.components[2] as String? },
+	) { limit ->
 		exchangeDataDAO.findExchangeDataByDelegatorDelegateForRecipients(datastoreInformation, delegatorId, delegateId, filterRecipients, startDocumentId, limit)
 	}
 
