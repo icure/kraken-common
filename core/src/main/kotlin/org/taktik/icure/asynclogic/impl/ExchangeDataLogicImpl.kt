@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
@@ -27,7 +28,9 @@ import org.taktik.icure.entities.requests.ExchangeDataPieceCreationRequest
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.MultiKeyPaginationElement
+import org.taktik.icure.pagination.NextPageElement
 import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.pagination.PaginationRowElement
 import org.taktik.icure.pagination.limitIncludingKey
 import org.taktik.icure.pagination.toMultiKeyPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlow
@@ -45,6 +48,19 @@ open class ExchangeDataLogicImpl(
 ) : ExchangeDataLogic {
 	companion object {
 		const val PAGE_SIZE = 300
+
+		/**
+		 * Smallest page a caller of [findNonGroupPieceCounterparts] may ask for. A page is shortened by the data owner
+		 * type and keypair filters rather than refilled, so a minimum is what bounds how many requests a caller can be
+		 * forced into to exhaust the search.
+		 */
+		const val MIN_COUNTERPARTS_PAGE_SIZE = 100
+
+		/**
+		 * Largest page a caller of [findNonGroupPieceCounterparts] may ask for, and the page size it uses when the
+		 * caller asks for none.
+		 */
+		const val MAX_COUNTERPARTS_PAGE_SIZE = 1000
 	}
 
 	// Using values + when ensures we get compilation errors if we add more types and forget to update this.
@@ -139,6 +155,7 @@ open class ExchangeDataLogicImpl(
 		}
 	}
 
+	@Deprecated("Use findNonGroupPieceCounterparts")
 	override fun getParticipantCounterparts(
 		dataOwnerId: String,
 		counterpartsType: List<DataOwnerType>,
@@ -175,18 +192,74 @@ open class ExchangeDataLogicImpl(
 					dataOwnerId -
 					allAnalyzed
 			allAnalyzed.addAll(counterpartsIds)
-			emitAll(filterDataOwnersWithTypes(counterpartsIds, counterpartsType.toSet()))
+			emitAll(filterDataOwnersWithTypes(datastoreInfo, counterpartsIds, counterpartsType.toSet()))
 		} while (nextPage != null)
 	}
 
+	protected fun doFindNonGroupPieceCounterparts(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		counterpartsTypes: List<DataOwnerType>,
+		ignoreOnEntryForFingerprint: String?,
+		startCounterpartId: String?,
+		limit: Int?,
+	): Flow<PaginationElement> = flow {
+		require(counterpartsTypes.isNotEmpty()) { "At least one counterpart type should be provided." }
+		val pageSize = limit ?: MAX_COUNTERPARTS_PAGE_SIZE
+		require(pageSize in MIN_COUNTERPARTS_PAGE_SIZE..MAX_COUNTERPARTS_PAGE_SIZE) {
+			"The limit should be between $MIN_COUNTERPARTS_PAGE_SIZE and $MAX_COUNTERPARTS_PAGE_SIZE."
+		}
+		/*
+		 * One request is one database query. The counterparts dropped by the two filters below shorten the page instead
+		 * of triggering another query to refill it, and the caller follows the cursor rather than counting rows. The
+		 * extra row is only asked for to tell a full page apart from the last one, and is never part of the page.
+		 */
+		val rows = exchangeDataDAO
+			.findNonGroupPieceCounterparts(datastoreInformation, dataOwnerId, startCounterpartId, pageSize + 1)
+			.toList()
+		val pageRows = rows.take(pageSize)
+		val candidates = pageRows
+			.filterNot { ignoreOnEntryForFingerprint != null && ignoreOnEntryForFingerprint in it.usableKeypairFingerprints }
+			.map { it.counterpartId }
+		/*
+		 * filterDataOwnersWithTypes emits the ids grouped by the dao that recognised them, but the cursor is the last
+		 * counterpart of the page, so the rows have to keep the order of the view for the two to agree.
+		 */
+		val acceptedIds = filterDataOwnersWithTypes(datastoreInformation, candidates, counterpartsTypes.toSet()).toSet()
+		candidates.forEach { if (it in acceptedIds) emit(PaginationRowElement<String, String>(it)) }
+		// The cursor is built from the raw rows, before either filter, so that nothing is skipped across a page boundary.
+		if (rows.size > pageSize) {
+			emit(NextPageElement<String>(startKey = pageRows.last().counterpartId))
+		}
+	}
+
+	override fun findNonGroupPieceCounterparts(
+		dataOwnerId: String,
+		counterpartsTypes: List<DataOwnerType>,
+		ignoreOnEntryForFingerprint: String?,
+		startCounterpartId: String?,
+		limit: Int?,
+	): Flow<PaginationElement> = flow {
+		emitAll(
+			doFindNonGroupPieceCounterparts(
+				datastoreInstanceProvider.getInstanceAndGroup(),
+				dataOwnerId,
+				counterpartsTypes,
+				ignoreOnEntryForFingerprint,
+				startCounterpartId,
+				limit,
+			),
+		)
+	}
+
 	private fun filterDataOwnersWithTypes(
+		datastoreInformation: IDatastoreInformation,
 		dataOwnerIds: Collection<String>,
 		dataOwnerTypes: Set<DataOwnerType>,
 	): Flow<String> = if (dataOwnerTypes.toSet() == DataOwnerType.entries.toSet()) {
 		dataOwnerIds.asFlow()
 	} else {
 		flow {
-			val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
 			var remainingIds = dataOwnerIds
 			val acceptableTypes = dataOwnerTypes.map { dataOwnerTypeToQualifiedName.getValue(it) }.toSet()
 			listOfNotNull(
@@ -194,7 +267,7 @@ open class ExchangeDataLogicImpl(
 				patientEntityInfoDao.takeIf { DataOwnerType.PATIENT in dataOwnerTypes },
 			).forEach { entityInfoDao ->
 				if (remainingIds.isNotEmpty()) {
-					val infoForCurrentType = entityInfoDao.getEntitiesInfo(datastoreInfo, remainingIds).toList()
+					val infoForCurrentType = entityInfoDao.getEntitiesInfo(datastoreInformation, remainingIds).toList()
 					val idsForCurrentType =
 						infoForCurrentType
 							.filter { it.fullyQualifiedName in acceptableTypes }

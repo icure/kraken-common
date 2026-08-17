@@ -6,6 +6,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
+import org.taktik.icure.entities.requests.ExchangeDataCounterpart
 
 interface ExchangeDataDAO : GenericDAO<ExchangeData> {
 	/**
@@ -173,4 +174,34 @@ interface ExchangeDataDAO : GenericDAO<ExchangeData> {
 		startDocumentId: String?,
 		limit: Int,
 	): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Get the distinct data owners that [dataOwnerId] shares exchange data with, that is the [ExchangeData.delegate] of
+	 * the exchange data where [dataOwnerId] is the [ExchangeData.delegator] and the other way around, along with the
+	 * keypairs that exchange data is usable with ([ExchangeDataCounterpart.usableKeypairFingerprints]).
+	 *
+	 * Only the exchange data with a null [ExchangeData.recipient] is considered: the pieces of a simple-type data owner
+	 * group are created and re-encrypted through the group pieces flow, so a simple-type group is never returned as a
+	 * counterpart by this search. [dataOwnerId] itself is never returned either.
+	 *
+	 * Only the counterparts belonging to the same group as [dataOwnerId] are returned: a counterpart referenced as
+	 * "dataOwnerGroupId/dataOwnerId" is indexed but skipped. [dataOwnerId] itself may be such a reference.
+	 *
+	 * # Pagination
+	 * Each returned [ExchangeDataCounterpart] is a distinct counterpart, however many exchange data there is with it,
+	 * so a page of [limit] rows holds exactly [limit] counterparts.
+	 *
+	 * To ask for the first page leave [startCounterpartId] null. This is **not** boundary-inclusive, unlike the other
+	 * searches of this dao: pass the [ExchangeDataCounterpart.counterpartId] of the last row of a page as the
+	 * [startCounterpartId] of the next one, and it will not be returned again.
+	 *
+	 * All results have been returned once a page holds fewer than [limit] rows.
+	 * @throws IllegalArgumentException when the returned flow is collected, if [limit] is not positive.
+	 */
+	fun findNonGroupPieceCounterparts(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerId: String,
+		startCounterpartId: String?,
+		limit: Int,
+	): Flow<ExchangeDataCounterpart>
 }
