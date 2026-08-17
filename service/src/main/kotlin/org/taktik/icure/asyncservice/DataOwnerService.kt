@@ -2,8 +2,12 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStubWithType
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.DataOwnerWithType
 import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
+import org.taktik.icure.entities.requests.DataOwnerPublicKeys
+import org.taktik.icure.entities.requests.LinkedDataOwner
+import org.taktik.icure.pagination.MultiKeyPaginationElement
 
 interface DataOwnerService {
 	/**
@@ -58,4 +62,31 @@ interface DataOwnerService {
 	 * @return the id hierarchy tree rooted at the data owner with the provided id.
 	 */
 	suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo
+
+	/**
+	 * Get the data owners that declare a direct link to any of the data owner groups with the provided ids,
+	 * together with the group link type of each of them. Any data owner is allowed to call this method.
+	 *
+	 * See [org.taktik.icure.asynclogic.DataOwnerLogic.findDataOwnersLinkedToGroups] for the semantics: this is
+	 * not transitive, a page may hold fewer rows than [limit] because of the deduplication of data owners linked
+	 * to several of [dataOwnerGroupIds], and the logic may use a lower limit than requested.
+	 */
+	fun findDataOwnersLinkedToGroups(
+		dataOwnerGroupIds: List<String>,
+		dataOwnerType: DataOwnerType,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<MultiKeyPaginationElement<LinkedDataOwner, String>>
+
+	/**
+	 * Get the public keys of the data owners with the provided ids, each with the encryption algorithm it must be
+	 * used with. Any data owner is allowed to call this method. Ignores missing data owners, and data owners
+	 * without any public key.
+	 *
+	 * @throws IllegalArgumentException if there are too many [dataOwnerIds].
+	 */
+	fun getDataOwnersPublicKeys(
+		dataOwnerIds: List<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<DataOwnerPublicKeys>
 }

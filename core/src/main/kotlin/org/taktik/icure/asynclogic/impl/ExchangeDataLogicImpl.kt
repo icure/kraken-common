@@ -29,6 +29,7 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.MultiKeyPaginationElement
 import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.limitIncludingKey
+import org.taktik.icure.pagination.toMultiKeyPaginatedFlow
 import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.Hasher
@@ -209,40 +210,23 @@ open class ExchangeDataLogicImpl(
 
 	/**
 	 * Converts the raw view results of a recipient-filtered "by_keys" DAO query into a [MultiKeyPaginationElement]
-	 * flow, requesting one more entity than [PAGE_SIZE] from [daoQuery] and using the extra entity to build the
-	 * [MultiKeyPaginationElement.NextPage] cursor instead of returning it as a [MultiKeyPaginationElement.Row].
+	 * flow, requesting one more entity than [PAGE_SIZE] from [daoQuery] so that [toMultiKeyPaginatedFlow] can build
+	 * the [MultiKeyPaginationElement.NextPage] cursor from it.
 	 *
-	 * The cursor keeps the recipient of that extra entity first in [filterRecipients], dropping all the earlier
-	 * entries, since it is the only recipient that was partially returned. Which component of the view key holds the
-	 * recipient depends on the view, so it is up to [recipientOfKey] to extract it: every recipient-filtered view keys
-	 * the recipient last today, but that is a property of each view and not something this method assumes.
+	 * Which component of the view key holds the recipient depends on the view, so it is up to [recipientOfKey] to
+	 * extract it: every recipient-filtered view keys the recipient last today, but that is a property of each view
+	 * and not something this method assumes.
 	 */
 	private inline fun multiKeyPaginatedFlow(
 		filterRecipients: List<String?>,
 		crossinline recipientOfKey: (key: ComplexKey) -> String?,
-		crossinline daoQuery: (limit: Int) -> Flow<ViewQueryResultEvent>,
-	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = flow {
-		var emittedCount = 0
-		daoQuery(PAGE_SIZE + 1)
-			.filterIsInstance<ViewRowWithDoc<*, *, *>>()
-			.collect {
-				if (emittedCount++ < PAGE_SIZE) {
-					emit(MultiKeyPaginationElement.Row(it.doc as ExchangeData))
-				} else {
-					val lastRecipient = recipientOfKey(it.key as ComplexKey)
-					val lastRecipientIndex = filterRecipients.indexOf(lastRecipient)
-					check(lastRecipientIndex >= 0) {
-						"The recipient of the last row is not one of the recipients used to filter, the wrong component of the view key was used to extract it."
-					}
-					emit(
-						MultiKeyPaginationElement.NextPage(
-							it.id,
-							filterRecipients.subList(lastRecipientIndex, filterRecipients.size),
-						),
-					)
-				}
-			}
-	}
+		daoQuery: (limit: Int) -> Flow<ViewQueryResultEvent>,
+	): Flow<MultiKeyPaginationElement<ExchangeData, String?>> = daoQuery(PAGE_SIZE + 1).toMultiKeyPaginatedFlow(
+		pageSize = PAGE_SIZE,
+		keys = filterRecipients,
+		keyOfRow = { recipientOfKey(it.key as ComplexKey) },
+		rowTransform = { it.doc as ExchangeData },
+	)
 
 	protected fun doFindExchangeDataGroupByIdForRecipients(
 		datastoreInformation: IDatastoreInformation,
