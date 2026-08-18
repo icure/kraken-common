@@ -11,8 +11,8 @@ import org.taktik.icure.asyncdao.AgendaDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.AgendaLogic
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
-import org.taktik.icure.asynclogic.impl.ConflictResolutionLogicImpl
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SdkVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
@@ -26,13 +26,18 @@ import org.taktik.icure.validation.aspect.Fixer
 open class AgendaLogicImpl(
 	private val agendaDAO: AgendaDAO,
 	private val sdkVersionConfig: SdkVersionConfig,
+	protected val cardinalVersionConfig: CardinalVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
 	merger: Merger<Agenda>
 ) : GenericLogicImpl<Agenda, AgendaDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<Agenda> by ConflictResolutionLogicImpl(agendaDAO, merger, datastoreInstanceProvider),
-	AgendaLogic {
+	AgendaLogic
+{
+
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
