@@ -20,7 +20,7 @@ jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
 slf4j = "2.0.17"
-krouch = "1.2.91-feature.add-partition.g3305cc381d-dirty"
+krouch = "1.2.92-g1a7fc49069"
 asyncJacksonHttpClient = "0.2.27-g528cb8c312"
 
 [libraries]
