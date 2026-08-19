@@ -586,7 +586,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		dryRun: Boolean,
 		partition: Partitions,
 		ignoreIfUnchanged: Boolean
-	): List<DesignDocument> = forceInitStandardDesignDocument(couchDbDispatcher.getClient(datastoreInformation), updateIfExists, dryRun, partition, ignoreIfUnchanged)
+	): List<DesignDocument> = forceInitStandardDesignDocument(
+		client = couchDbDispatcher.getClient(datastoreInformation),
+		updateIfExists = updateIfExists,
+		dryRun = dryRun,
+		partition = partition,
+		ignoreIfUnchanged = ignoreIfUnchanged
+	)
 
 	override suspend fun forceInitStandardDesignDocument(
 		client: Client,
@@ -595,7 +601,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		partition: Partitions,
 		ignoreIfUnchanged: Boolean
 	): List<DesignDocument> {
-		val generatedDocs = designDocumentProvider.generateDesignDocuments(this.entityClass, this, client, partition, ignoreIfUnchanged)
+		val generatedDocs = designDocumentProvider.generateDesignDocuments(
+			entityClass = this.entityClass,
+			metaDataSource = this,
+			client = client,
+			partition = partition,
+			ignoreIfUnchanged = ignoreIfUnchanged
+		)
 		return saveDesignDocs(generatedDocs, client, updateIfExists, dryRun)
 	}
 
