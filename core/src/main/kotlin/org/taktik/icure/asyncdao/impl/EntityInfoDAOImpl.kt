@@ -19,7 +19,6 @@ class EntityInfoDAOImpl(
 		ids: Collection<String>,
 	): Flow<EntityInfo> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-
 		val viewQuery =
 			ViewQuery()
 				.allDocs()
