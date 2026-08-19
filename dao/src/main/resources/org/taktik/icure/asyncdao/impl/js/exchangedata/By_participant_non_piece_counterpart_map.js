@@ -14,9 +14,23 @@ map = function(doc) {
 		var exchangeKey = doc.exchangeKey || {}
 		var accessControlSecret = doc.accessControlSecret || {}
 		var sharedSignatureKey = doc.sharedSignatureKey || {}
-		for (var fingerprint in exchangeKey) {
-			if (accessControlSecret.hasOwnProperty(fingerprint) && sharedSignatureKey.hasOwnProperty(fingerprint)) {
-				usableFingerprints.push(fingerprint)
+		/*
+		 * Couchdb rejects a reduce whose output is over 4096 bytes (5000 and configurable from 3.5) and does not at
+		 * least halve its input, and the intersection of a lone exchange data is its own list, so a list past ~116
+		 * fingerprints of 32 hex characters would turn this counterpart's row into a reduce_overflow_error instead of
+		 * a value.
+		 *
+		 * The usable fingerprints are by construction a subset of the keys of exchangeKey, so measuring those is enough
+		 * to know the list would be over the cap, and measuring them first is what lets an oversized exchange data be
+		 * skipped without walking it at all. Over the cap nothing is collected and the list stays empty, which the
+		 * reduce propagates on its own: no keypair is then ever excluded for this counterpart, so it is always
+		 * reported. That is the safe direction, and the only thing lost is the keypair filter for that one counterpart.
+		 */
+		if (Object.keys(exchangeKey).length <= 100) {
+			for (var fingerprint in exchangeKey) {
+				if (accessControlSecret.hasOwnProperty(fingerprint) && sharedSignatureKey.hasOwnProperty(fingerprint)) {
+					usableFingerprints.push(fingerprint)
+				}
 			}
 		}
 		var pairs = [[doc.delegator, doc.delegate], [doc.delegate, doc.delegator]]
