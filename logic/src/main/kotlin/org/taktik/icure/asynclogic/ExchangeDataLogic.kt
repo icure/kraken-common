@@ -115,8 +115,8 @@ interface ExchangeDataLogic {
 	 * [org.taktik.icure.pagination.NextPageElement.startKey] of the previous one as [startCounterpartId], until the
 	 * flow completes without emitting a [org.taktik.icure.pagination.NextPageElement].
 	 *
-	 * Unlike the other paginated searches this one is not boundary-inclusive: the counterpart passed as
-	 * [startCounterpartId] is not returned again, and there is no start document id to pass along with it.
+	 * Like every other paginated search this one is boundary-inclusive, so the cursor names the counterpart that opens
+	 * the next page rather than the last one of this page. There is no start document id to pass along with it.
 	 *
 	 * [limit] is only an upper bound on the size of a page: the counterparts dropped by [counterpartsTypes] and
 	 * [ignoreOnEntryForFingerprint] shorten the page instead of triggering another query, so a page may hold fewer
@@ -128,7 +128,7 @@ interface ExchangeDataLogic {
 	 * [dataOwnerId] has an entry for this keypair fingerprint in all of [ExchangeData.exchangeKey],
 	 * [ExchangeData.accessControlSecret] and [ExchangeData.sharedSignatureKey], that is the counterparts there is
 	 * nothing left to re-encrypt for with that keypair.
-	 * @param startCounterpartId null for the first page, else the last counterpart of the previous page.
+	 * @param startCounterpartId null for the first page, else the cursor the previous page ended with.
 	 * @param limit maximum number of counterparts in a page. Must be between 100 and 1000, and defaults to 1000.
 	 * @throws IllegalArgumentException when the returned flow is collected, if [counterpartsTypes] is empty or if
 	 * [limit] is not between 100 and 1000.

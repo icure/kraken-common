@@ -227,9 +227,9 @@ open class ExchangeDataLogicImpl(
 		 */
 		val acceptedIds = filterDataOwnersWithTypes(datastoreInformation, candidates, counterpartsTypes.toSet()).toSet()
 		candidates.forEach { if (it in acceptedIds) emit(PaginationRowElement<String, String>(it)) }
-		// The cursor is built from the raw rows, before either filter, so that nothing is skipped across a page boundary.
+
 		if (rows.size > pageSize) {
-			emit(NextPageElement<String>(startKey = pageRows.last().counterpartId))
+			emit(NextPageElement(startKey = rows[pageSize].counterpartId))
 		}
 	}
 

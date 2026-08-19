@@ -198,20 +198,9 @@ class ExchangeDataDAOImpl(
 			.reduce(true)
 			.group(true)
 			.groupLevel(3)
-			.startKey(
-				if (startCounterpartId == null) {
-					// A null group id is the counterparts of the group of the participant, and sorts before every other.
-					ComplexKey.of(dataOwnerId, null, null)
-				} else {
-					/*
-					 * CouchDB has no exclusive start key, but an array sorts after every array that is a prefix of it
-					 * and before every array with a greater component, so this is exactly "the first key after all the
-					 * rows of startCounterpartId" — without having to know which counterpart comes next, and without
-					 * assuming anything about the shape of the ids.
-					 */
-					ComplexKey.of(dataOwnerId, null, startCounterpartId, EmptyObjectKey)
-				},
-			).endKey(ComplexKey.of(dataOwnerId, null, EmptyObjectKey))
+			// A null group id is the counterparts of the group of the participant, and sorts before every other.
+			.startKey(ComplexKey.of(dataOwnerId, null, startCounterpartId))
+			.endKey(ComplexKey.of(dataOwnerId, null, EmptyObjectKey))
 			.limit(limit)
 			.descending(false)
 		emitAll(

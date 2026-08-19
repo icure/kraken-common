@@ -191,9 +191,13 @@ interface ExchangeDataDAO : GenericDAO<ExchangeData> {
 	 * Each returned [ExchangeDataCounterpart] is a distinct counterpart, however many exchange data there is with it,
 	 * so a page of [limit] rows holds exactly [limit] counterparts.
 	 *
-	 * To ask for the first page leave [startCounterpartId] null. This is **not** boundary-inclusive, unlike the other
-	 * searches of this dao: pass the [ExchangeDataCounterpart.counterpartId] of the last row of a page as the
-	 * [startCounterpartId] of the next one, and it will not be returned again.
+	 * To ask for the first page leave [startCounterpartId] null.
+	 *
+	 * This is boundary-inclusive, like the other searches of this dao: the counterpart named by [startCounterpartId] is
+	 * returned again as the first row of the page. To browse without ever processing the same counterpart twice,
+	 * request one more than the page size you want and, whenever a page holds that many rows, use only its last row to
+	 * build the next [startCounterpartId] without treating it as page content: it will reappear as the first row of
+	 * the next page.
 	 *
 	 * All results have been returned once a page holds fewer than [limit] rows.
 	 * @throws IllegalArgumentException when the returned flow is collected, if [limit] is not positive.
