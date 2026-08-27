@@ -51,7 +51,7 @@ open class CalendarItemLogicImpl(
 	ConflictResolutionLogic<CalendarItem> by ConflictResolutionLogicImpl(calendarItemDAO, merger, datastoreInstanceProvider)
 {
 
-	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.getMappingContextForCurrentUser().useLegacyDataModelCompatibility()
 
 	// TODO seems obsolete behaviour, will not work with scoped data owner
 	protected suspend fun fixHcpIdIfNecessary(

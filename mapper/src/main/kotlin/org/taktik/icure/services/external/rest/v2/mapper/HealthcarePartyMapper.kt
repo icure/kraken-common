@@ -23,11 +23,11 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
+import org.mapstruct.PassOnParameter
 import org.springframework.stereotype.Service
-import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.DataOwnerGroupLink
-import org.taktik.icure.services.external.rest.v1.mapper.HealthcarePartyMapper
+import org.taktik.icure.services.external.rest.ModelMappingVersionContext
 import org.taktik.icure.services.external.rest.v1.mapper.base.CryptoActorMappingHelper
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
@@ -42,17 +42,22 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.HealthcarePartyHi
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PersonNameV2Mapper
 
 interface HealthcarePartyV2Mapper {
-	suspend fun map(healthcarePartyDto: HealthcarePartyDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthcareParty
-	suspend fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
+	fun map(
+		healthcarePartyDto: HealthcarePartyDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext,
+	): HealthcareParty
+	fun map(
+		healthcareParty: HealthcareParty,
+		@PassOnParameter modelMappingVersionContext: ModelMappingVersionContext,
+	): HealthcarePartyDto
 }
 
 @Service
 internal class HealthcarePartyV2MapperImpl(
 	private val precomputedLinksMapper: HealthcarePartyMapperWithPrecomputedLinks,
-	private val cardinalVersionConfig: CardinalVersionConfig,
 	private val dataOwnerGroupLinkV2Mapper: DataOwnerGroupLinkV2Mapper,
 ) : HealthcarePartyV2Mapper {
-	override suspend fun map(
+	override fun map(
 		healthcarePartyDto: HealthcarePartyDto,
 		mapperExtensionsValidationContext: MapperExtensionsValidationContext
 	): HealthcareParty {
@@ -67,11 +72,14 @@ internal class HealthcarePartyV2MapperImpl(
 		)
 	}
 
-	override suspend fun map(healthcareParty: HealthcareParty): HealthcarePartyDto {
+	override fun map(
+		healthcareParty: HealthcareParty,
+		modelMappingVersionContext: ModelMappingVersionContext,
+	): HealthcarePartyDto {
 		val (parentId, dataOwnerGroups) = CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
 			healthcareParty,
 			dataOwnerGroupLinkV2Mapper,
-			cardinalVersionConfig,
+			modelMappingVersionContext,
 		)
 		return precomputedLinksMapper.map(healthcareParty, parentId, dataOwnerGroups)
 	}

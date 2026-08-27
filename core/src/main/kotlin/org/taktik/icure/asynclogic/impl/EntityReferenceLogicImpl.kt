@@ -25,7 +25,7 @@ class EntityReferenceLogicImpl(
 ) : GenericLogicImpl<EntityReference, EntityReferenceDAO>(fixer, datastoreInstanceProvider, filters),
 	EntityReferenceLogic {
 
-	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.getMappingContextForCurrentUser().useLegacyDataModelCompatibility()
 
 	override suspend fun getLatest(prefix: String): EntityReference? {
 		val datastoreInformation = getInstanceAndGroup()

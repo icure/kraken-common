@@ -35,12 +35,14 @@ import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationP
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.entities.HealthcareParty
 import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import kotlinx.coroutines.flow.collect
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
@@ -100,6 +102,7 @@ class HealthcarePartyController(
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val cardinalVersionConfig: CardinalVersionConfig,
 ) {
 	companion object {
 		private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -125,15 +128,26 @@ class HealthcarePartyController(
 			builtinValidationConfigsProvider,
 		)
 
-	private fun HealthcareParty.toDto(): HealthcarePartyDto = healthcarePartyV2Mapper.map(this)
+	private suspend fun HealthcareParty.toDto(): HealthcarePartyDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return healthcarePartyV2Mapper.map(this, versionCtx)
+	}
 
-	private fun Flow<HealthcareParty>.toDto(): Flow<HealthcarePartyDto> = map { it.toDto() }
+	private fun Flow<HealthcareParty>.toDto(): Flow<HealthcarePartyDto> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		collect { emit(healthcarePartyV2Mapper.map(it, versionCtx)) }
+	}
 
 	@JvmName("toDtoPagination")
-	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
-		mapElements<HealthcareParty, HealthcarePartyDto> { it.toDto() }
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		emitAll(mapElements<HealthcareParty, HealthcarePartyDto> { healthcarePartyV2Mapper.map(it, versionCtx) })
+	}
 
-	private fun toDtoLambda(): (HealthcareParty) -> HealthcarePartyDto = { it.toDto() }
+	private suspend fun toDtoLambda(): (HealthcareParty) -> HealthcarePartyDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return { healthcarePartyV2Mapper.map(it, versionCtx) }
+	}
 
 	@Operation(
 		summary = "Get the current healthcare party if logged in.",

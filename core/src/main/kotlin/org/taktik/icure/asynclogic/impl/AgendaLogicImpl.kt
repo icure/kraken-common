@@ -36,7 +36,7 @@ open class AgendaLogicImpl(
 	AgendaLogic
 {
 
-	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.getMappingContextForCurrentUser().useLegacyDataModelCompatibility()
 
 	override fun getAllPaginated(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastoreInformation = getInstanceAndGroup()

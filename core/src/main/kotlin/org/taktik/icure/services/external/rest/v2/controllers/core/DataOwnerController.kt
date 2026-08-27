@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -21,8 +22,11 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DataOwnerService
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.entities.CryptoActorStubWithType
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.entities.DataOwnerWithType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -57,23 +61,42 @@ class DataOwnerController(
 	private val dataOwnerPublicKeysMapper: DataOwnerPublicKeysV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val objectMapper: ObjectMapper,
+	private val cardinalVersionConfig: CardinalVersionConfig,
 ) {
 	private suspend fun currentDataOwnerOr404(): String =
 		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
+
+	private suspend fun DataOwnerWithType.toDto(): DataOwnerWithTypeDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return dataOwnerWithTypeMapper.map(this, versionCtx)
+	}
+	private fun Flow<DataOwnerWithType>.toDto(): Flow<DataOwnerWithTypeDto> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		collect { emit(dataOwnerWithTypeMapper.map(it, versionCtx)) }
+	}
+	private suspend fun CryptoActorStubWithType.toDto(): CryptoActorStubWithTypeDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return cryptoActorStubMapper.map(this, versionCtx)
+	}
+	@JvmName("stubToDto")
+	private fun Flow<CryptoActorStubWithType>.toDto(): Flow<CryptoActorStubWithTypeDto> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		collect { emit(cryptoActorStubMapper.map(it, versionCtx)) }
+	}
 
 	@Operation(summary = "Get a data owner by his ID", description = "General information about the data owner")
 	@GetMapping("/{dataOwnerId}")
 	fun getDataOwner(
 		@PathVariable dataOwnerId: String,
 	): Mono<DataOwnerWithTypeDto> = mono {
-		dataOwnerService.getDataOwner(dataOwnerId)?.let(dataOwnerWithTypeMapper::map)
+		dataOwnerService.getDataOwner(dataOwnerId)?.toDto()
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@PostMapping("/byIds")
 	fun getDataOwners(
 		@RequestBody dataOwnerIds: ListOfIdsDto,
-	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).map(dataOwnerWithTypeMapper::map).injectReactorContext()
+	): Flux<DataOwnerWithTypeDto> = dataOwnerService.getDataOwners(dataOwnerIds.ids).toDto().injectReactorContext()
 
 	@Operation(
 		summary = "Get a data owner stub by his ID",
@@ -83,14 +106,14 @@ class DataOwnerController(
 	fun getDataOwnerStub(
 		@PathVariable dataOwnerId: String,
 	): Mono<CryptoActorStubWithTypeDto> = mono {
-		dataOwnerService.getCryptoActorStub(dataOwnerId)?.let { cryptoActorStubMapper.map(it) }
+		dataOwnerService.getCryptoActorStub(dataOwnerId)?.toDto()
 			?: throw NotFoundRequestException("Data owner with id $dataOwnerId not found")
 	}
 
 	@PostMapping("/stub/byIds")
 	fun getDataOwnerStubs(
 		@RequestBody dataOwnerIds: ListOfIdsDto,
-	): Flux<CryptoActorStubWithTypeDto> = dataOwnerService.getCryptoActorStubs(dataOwnerIds.ids).map { cryptoActorStubMapper.map(it) }.injectReactorContext()
+	): Flux<CryptoActorStubWithTypeDto> = dataOwnerService.getCryptoActorStubs(dataOwnerIds.ids).toDto().injectReactorContext()
 
 	@Operation(
 		summary = "Update key-related information of a data owner",
@@ -100,7 +123,7 @@ class DataOwnerController(
 	fun modifyDataOwnerStub(
 		@RequestBody updated: CryptoActorStubWithTypeDto,
 	): Mono<CryptoActorStubWithTypeDto> = mono {
-		cryptoActorStubMapper.map(dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)))
+		dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)).toDto()
 	}
 
 	@Operation(
@@ -130,7 +153,7 @@ class DataOwnerController(
 	@GetMapping("/current/hierarchy")
 	fun getCurrentDataOwnerHierarchy(): Flux<DataOwnerWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchy(currentDataOwnerOr404()))
-	}.map(dataOwnerWithTypeMapper::map).injectReactorContext()
+	}.toDto().injectReactorContext()
 
 	@Operation(
 		summary = "Get the crypto-actor stubs of the current data owner and its legacy parentId chain",
@@ -141,9 +164,7 @@ class DataOwnerController(
 	@GetMapping("/current/hierarchy/stub")
 	fun getCurrentDataOwnerHierarchyStub(): Flux<CryptoActorStubWithTypeDto> = flow {
 		emitAll(dataOwnerService.getCryptoActorHierarchyStub(currentDataOwnerOr404()))
-	}.map {
-		cryptoActorStubMapper.map(it)
-	}.injectReactorContext()
+	}.toDto().injectReactorContext()
 
 	@Operation(
 		summary = "Get the type and group hierarchies of the current data owner as a tree of ids",
